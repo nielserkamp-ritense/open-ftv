@@ -1,6 +1,6 @@
-Go unit-tests:
+utilites:
   stage: Tests
-  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.23.2-alpine@sha256:9dd2625a1ff2859b8d8b01d8f7822c0f528942fe56cfe7a1e7c38d3b8d72d679
+  image: golang:1.22
   variables:
     GOPATH: ${CI_PROJECT_DIR}/utilities/.go-cache
   before_script:
@@ -34,4 +34,3 @@ Go unit-tests:
           - utilities/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
-  retry: 1
