@@ -1,0 +1,37 @@
+Go unit-tests:
+  stage: Tests
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.23.2-alpine@sha256:9dd2625a1ff2859b8d8b01d8f7822c0f528942fe56cfe7a1e7c38d3b8d72d679
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/utilities/.go-cache
+  before_script:
+    - mkdir -p utilities/.go-cache
+  script:
+    - cd utilities
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... --tags=integration -covermode=atomic  -coverprofile cover.out.tmp
+    - cat cover.out.tmp | grep -v '.pb.go\|.pb.gw.go' > cover.out
+    - rm cover.out.tmp
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd ..
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: testcache
+    paths:
+      - utilities/.go-cache
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - utilities/cover.html
+  needs: [ ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/**/*
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+  retry: 1
