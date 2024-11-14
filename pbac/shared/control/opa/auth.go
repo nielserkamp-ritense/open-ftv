@@ -9,6 +9,7 @@ import (
 	"github.com/open-policy-agent/opa/sdk"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Authorize implements the Controller interface.
@@ -43,8 +44,7 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 func (c *controller) buildDecisionOptions(req *types.Request) sdk.DecisionOptions {
 	a, _ := c.PIP().CollectAttributesFromRequest(req)
 
-	p1, p2 := DeterminePrincipal(a)
-
+	p1, p2 := standards.DeterminePrincipal(a)
 	return sdk.DecisionOptions{
 		Now:        *req.RequestTime,
 		Path:       fmt.Sprintf("/%s/%s/allow", p1, p2),

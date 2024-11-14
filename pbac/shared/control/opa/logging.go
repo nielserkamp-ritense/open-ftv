@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/open-policy-agent/opa/logging"
 )
@@ -31,9 +32,19 @@ func (l *wrappedLogger) Error(msg string, a ...any) {
 // WithFields implements the OPA Logger interface.
 func (l *wrappedLogger) WithFields(fields map[string]any) logging.Logger {
 	l2 := &wrappedLogger{logger: l.logger, fields: l.fields}
+
+	keys := make([]string, 0, len(l.fields))
 	for k := range fields {
+		keys = append(keys, k)
+	}
+
+	slices.Sort(keys)
+
+	for i := range keys {
+		k := keys[i]
 		l2.fields = append(l2.fields, k, fields[k])
 	}
+
 	return l2
 }
 

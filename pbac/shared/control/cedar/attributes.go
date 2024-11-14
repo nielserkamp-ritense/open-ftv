@@ -45,8 +45,9 @@ func (a *attributes) AddAttribute(key string, value any) {
 // GetAttribute implements the AttributeSet interface.
 func (a *attributes) GetAttribute(key string) any {
 	a.mutex.RLock()
-	defer a.mutex.RUnlock()
-	return a.set[cedar.String(key)]
+	v := a.set[cedar.String(key)]
+	a.mutex.RUnlock()
+	return a.valueToAny(v)
 }
 
 // RemoveAttribute implements the AttributeSet interface.

@@ -4,4 +4,7 @@ import rego.v1
 
 default allow = false
 
-allow if input.http.method == "POST"
+allow if {
+    input.http.method == "POST"
+    input.body.type == "RaadpleegMetBurgerservicenummer"
+}
