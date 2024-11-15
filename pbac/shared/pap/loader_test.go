@@ -20,7 +20,7 @@ func TestCache_LoadFromStore(t *testing.T) {
 		{
 			name:    "empty",
 			recurse: true,
-			wantLog: 1,
+			wantLog: 0,
 		},
 		{
 			name:    "invalid",

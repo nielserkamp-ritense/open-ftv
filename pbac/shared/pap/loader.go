@@ -8,6 +8,10 @@ import (
 
 // LoadFromStore loads all policies from the store.
 func (c *pap) LoadFromStore(path string, recurse bool) {
+	if path == "" {
+		return
+	}
+
 	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

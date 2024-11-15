@@ -43,8 +43,8 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 
 func (c *controller) buildDecisionOptions(req *types.Request) sdk.DecisionOptions {
 	a, _ := c.PIP().CollectAttributesFromRequest(req)
-
 	p1, p2 := standards.DeterminePrincipal(a)
+
 	return sdk.DecisionOptions{
 		Now:        *req.RequestTime,
 		Path:       fmt.Sprintf("/%s/%s/allow", p1, p2),

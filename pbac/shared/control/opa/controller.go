@@ -25,7 +25,9 @@ const Version = "1.0.0"
 
 // NewController instantiates a new OPA/Rego controller.
 func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger) control.Controller {
-	store, _ = filepath.Abs(store)
+	if store != "" {
+		store, _ = filepath.Abs(store)
+	}
 
 	wait := make(chan struct{})
 
@@ -77,6 +79,10 @@ func (c *controller) loadEntities() {
 		m[entity.Type()] = m2
 	})
 
+	if len(m) == 0 {
+		return
+	}
+
 	d, err := json.Marshal(m)
 	if err != nil {
 		c.Logger().Error("failed to marshal entities", "controller", c.String(), "error", err)
@@ -94,7 +100,6 @@ func (c *controller) loadEntities() {
 	} else {
 		c.Logger().Info("entities added/replaced", "controller", c.String(), "document-key", key)
 	}
-
 }
 
 type controller struct {
