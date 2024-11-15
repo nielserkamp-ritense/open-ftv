@@ -24,12 +24,16 @@ func NewAttributeSet(logger *slog.Logger, in ...any) types.AttributeSet {
 	a := &attributes{logger: logger, set: make(cedar.RecordMap)}
 	for _, p := range in {
 		switch t := p.(type) {
+		case cedar.RecordMap:
+			for k := range t {
+				a.set[k] = t[k]
+			}
+		case types.AttributeSet:
+			a.MergeAttributes(t)
 		case types.Attribute:
 			a.AddAttribute(t.Key, t.Value)
 		case *types.Attribute:
 			a.AddAttribute(t.Key, t.Value)
-		case types.AttributeSet:
-			a.MergeAttributes(t)
 		}
 	}
 	return a
@@ -94,7 +98,7 @@ func (a *attributes) valueToAny(in cedar.Value) any {
 	case cedar.Long:
 		return int64(t)
 	case cedar.Decimal:
-		return t.Value
+		return float64(t.Value) / cedar.DecimalPrecision
 	case cedar.Datetime:
 		return time.UnixMilli(t.Milliseconds()).UTC()
 	case cedar.Duration:
@@ -114,9 +118,6 @@ func (a *attributes) valueToAny(in cedar.Value) any {
 
 func (a *attributes) setToSlice(in cedar.Set) []any {
 	s := in.Slice()
-	if len(s) == 0 {
-		return nil
-	}
 
 	out := make([]any, len(s))
 	for i := range s {
@@ -127,9 +128,6 @@ func (a *attributes) setToSlice(in cedar.Set) []any {
 
 func (a *attributes) recordToMap(in cedar.Record) map[string]any {
 	m := in.Map()
-	if len(m) == 0 {
-		return nil
-	}
 
 	out := make(map[string]any, len(m))
 	for k, v := range m {
@@ -150,6 +148,8 @@ func (a *attributes) anyToValue(in any) cedar.Value {
 		return cedar.String(t)
 	case bool:
 		return cedar.Boolean(t)
+	case int:
+		return cedar.Long(t)
 	case int64:
 		return cedar.Long(t)
 	case float64:

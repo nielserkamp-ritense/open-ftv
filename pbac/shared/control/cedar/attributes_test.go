@@ -1,0 +1,418 @@
+package cedar
+
+import (
+	"fmt"
+	"log/slog"
+	"testing"
+	"time"
+
+	"github.com/cedar-policy/cedar-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+)
+
+func TestNewAttributeBuilder(t *testing.T) {
+	t.Run("new attribute builder", func(t *testing.T) {
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		got := NewAttributeBuilder(logger)
+		require.NotNil(t, got)
+
+		a1 := types.NewAttribute("hello", "world")
+		a2 := types.NewAttribute("int", 123)
+		a3 := types.NewAttribute("float", 123.456)
+		a4 := types.NewAttribute("bool", true)
+
+		aa := NewAttributeSet(logger, a3, a4)
+		require.NotNil(t, aa)
+
+		got2 := got(a1, aa, *a2)
+		require.NotNil(t, got2)
+
+		got3, ok := got2.(*attributes)
+		require.True(t, ok)
+		require.NotNil(t, got3)
+
+		assert.Equal(t, logger, got3.logger)
+		assert.Equal(t, 4, len(got3.set))
+	})
+}
+
+func TestNewAttributeSet(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Millisecond)
+
+	a1 := types.NewAttribute("hello", "world")
+	a2 := types.NewAttribute("float", 123.456)
+	a3 := types.NewAttribute("bool", false)
+	a4 := types.NewAttribute("int", 456)
+	a5 := types.NewAttribute("int64", int64(987654321))
+	a6 := types.NewAttribute("time", now)
+	a7 := types.NewAttribute("duration", time.Second)
+
+	aa1 := NewAttributeSet(nil, a1, a3)
+	aa2 := types.NewAttributeSet(nil, a3, a5, a7)
+	aa3 := cedar.RecordMap{"woo": cedar.String("hoo"), "key": cedar.Decimal{Value: 9990000}}
+
+	testCases := []struct {
+		name      string
+		in        []any
+		wantCount int
+		want      map[string]any
+	}{
+		{
+			name:      "empty",
+			wantCount: 0,
+			want:      map[string]any{},
+		},
+		{
+			name:      "1 attribute",
+			in:        []any{a1},
+			wantCount: 1,
+			want:      map[string]any{"hello": "world"},
+		},
+		{
+			name:      "few attributes",
+			in:        []any{a1, *a2, a3},
+			wantCount: 3,
+			want: map[string]any{
+				"hello": "world",
+				"float": 123.456,
+				"bool":  false,
+			},
+		},
+		{
+			name:      "many attributes",
+			in:        []any{a1, *a2, a3, a4, a5, a6, a7},
+			wantCount: 7,
+			want: map[string]any{
+				"hello":    "world",
+				"float":    123.456,
+				"bool":     false,
+				"int":      int64(456),
+				"int64":    int64(987654321),
+				"time":     now,
+				"duration": time.Second,
+			},
+		},
+		{
+			name:      "1 set",
+			in:        []any{aa1},
+			wantCount: 2,
+			want: map[string]any{
+				"hello": "world",
+				"bool":  false,
+			},
+		},
+		{
+			name:      "few sets",
+			in:        []any{aa2, aa1},
+			wantCount: 4,
+			want: map[string]any{
+				"hello":    "world",
+				"bool":     false,
+				"int64":    int64(987654321),
+				"duration": time.Second,
+			},
+		},
+		{
+			name:      "mixed",
+			in:        []any{*a3, aa2, a1, aa3, a2, aa1},
+			wantCount: 7,
+			want: map[string]any{
+				"hello":    "world",
+				"float":    123.456,
+				"bool":     false,
+				"int64":    int64(987654321),
+				"duration": time.Second,
+				"woo":      "hoo",
+				"key":      999.0,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
+
+			got := NewAttributeSet(logger, tc.in...)
+			require.NotNil(t, got)
+
+			got2, ok := got.(*attributes)
+			require.True(t, ok)
+			require.NotNil(t, got2)
+
+			assert.Equal(t, tc.wantCount, len(got2.set))
+
+			for key := range tc.want {
+				got3 := got.GetAttribute(key)
+				assert.Equal(t, tc.want[key], got3)
+			}
+
+			got.IterateAttributes(func(key string, value any) {
+				assert.Equal(t, tc.want[key], value)
+			})
+		})
+	}
+}
+
+func TestAttributes_AddAttribute(t *testing.T) {
+	testCases := []struct {
+		name      string
+		add       map[string]any
+		wantCount int
+		want      map[string]any
+	}{
+		{
+			name:      "none",
+			wantCount: 0,
+			want:      map[string]any{},
+		},
+		{
+			name:      "one",
+			add:       map[string]any{"hello": "world"},
+			wantCount: 1,
+			want:      map[string]any{"hello": "world"},
+		},
+		{
+			name:      "few",
+			add:       map[string]any{"hello": "world", "int": 9, "bool": false},
+			wantCount: 3,
+			want:      map[string]any{"hello": "world", "bool": false, "int": int64(9)},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
+
+			got := NewAttributeSet(logger)
+			require.NotNil(t, got)
+
+			for key := range tc.add {
+				got.AddAttribute(key, tc.add[key])
+			}
+
+			got2, ok := got.(*attributes)
+			require.True(t, ok)
+			require.NotNil(t, got2)
+
+			assert.Equal(t, tc.wantCount, len(got2.set))
+
+			for key := range tc.want {
+				got3 := got.GetAttribute(key)
+				assert.Equal(t, tc.want[key], got3)
+			}
+
+			got.IterateAttributes(func(key string, value any) {
+				assert.Equal(t, tc.want[key], value)
+			})
+		})
+	}
+}
+
+func TestAttributes_RemoveAttribute(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Millisecond)
+
+	a1 := types.NewAttribute("hello", "world")
+	a2 := types.NewAttribute("float", 123.456)
+	a3 := types.NewAttribute("bool", false)
+	a4 := types.NewAttribute("int", 456)
+	a5 := types.NewAttribute("int64", int64(987654321))
+	a6 := types.NewAttribute("time", now)
+	a7 := types.NewAttribute("duration", time.Second)
+
+	testCases := []struct {
+		name      string
+		remove    []string
+		wantCount int
+		want      map[string]any
+	}{
+		{
+			name:      "none",
+			wantCount: 7,
+			want: map[string]any{
+				"hello":    "world",
+				"float":    123.456,
+				"bool":     false,
+				"int":      int64(456),
+				"int64":    int64(987654321),
+				"time":     now,
+				"duration": time.Second,
+			},
+		},
+		{
+			name:      "one",
+			remove:    []string{"int64"},
+			wantCount: 6,
+			want: map[string]any{
+				"hello":    "world",
+				"float":    123.456,
+				"bool":     false,
+				"int":      int64(456),
+				"time":     now,
+				"duration": time.Second,
+			},
+		},
+		{
+			name:      "few",
+			remove:    []string{"int64", "time", "float"},
+			wantCount: 4,
+			want: map[string]any{
+				"hello":    "world",
+				"bool":     false,
+				"int":      int64(456),
+				"duration": time.Second,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
+
+			got := NewAttributeSet(logger, a1, a2, a3, a4, a5, a6, a7)
+			require.NotNil(t, got)
+
+			for i := range tc.remove {
+				got.RemoveAttribute(tc.remove[i])
+			}
+
+			got2, ok := got.(*attributes)
+			require.True(t, ok)
+			require.NotNil(t, got2)
+
+			assert.Equal(t, tc.wantCount, len(got2.set))
+
+			for key := range tc.want {
+				got3 := got.GetAttribute(key)
+				assert.Equal(t, tc.want[key], got3)
+			}
+
+			got.IterateAttributes(func(key string, value any) {
+				assert.Equal(t, tc.want[key], value)
+			})
+		})
+	}
+}
+
+func TestValueToAny(t *testing.T) {
+	now := time.Now().UTC().Truncate(time.Millisecond)
+
+	testCases := []struct {
+		name    string
+		in      cedar.Value
+		want    any
+		wantLog int
+	}{
+		{
+			name:    "invalid",
+			in:      cedar.EntityUID{Type: "x", ID: "y"},
+			want:    `x::"y"`,
+			wantLog: 1,
+		},
+		{
+			name: "nil",
+		},
+		{
+			name: "empty string",
+			in:   cedar.String(""),
+			want: "",
+		},
+		{
+			name: "string",
+			in:   cedar.String("world magic"),
+			want: "world magic",
+		},
+		{
+			name: "true",
+			in:   cedar.Boolean(true),
+			want: true,
+		},
+		{
+			name: "false",
+			in:   cedar.Boolean(false),
+			want: false,
+		},
+		{
+			name: "long",
+			in:   cedar.Long(123456),
+			want: int64(123456),
+		},
+		{
+			name: "decimal",
+			in:   cedar.Decimal{Value: 4567890},
+			want: 456.789,
+		},
+		{
+			name: "time",
+			in:   cedar.FromStdTime(now),
+			want: now,
+		},
+		{
+			name: "duration",
+			in:   cedar.FromStdDuration(15 * time.Millisecond),
+			want: 15 * time.Millisecond,
+		},
+		{
+			name: "empty set",
+			in:   cedar.NewSet([]cedar.Value{}),
+			want: []any{},
+		},
+		{
+			name: "set",
+			in:   cedar.NewSet([]cedar.Value{cedar.String("yo"), cedar.Boolean(true)}),
+			want: []any{"yo", true},
+		},
+		{
+			name: "empty map",
+			in:   cedar.NewRecord(cedar.RecordMap{}),
+			want: map[string]any{},
+		},
+		{
+			name: "map",
+			in:   cedar.NewRecord(cedar.RecordMap{"do": cedar.String("it"), "float": cedar.Decimal{Value: 1234560}}),
+			want: map[string]any{"do": "it", "float": 123.456},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
+
+			got := NewAttributeSet(logger)
+			require.NotNil(t, got)
+
+			got2, ok := got.(*attributes)
+			require.True(t, ok)
+			require.NotNil(t, got2)
+
+			got3 := got2.valueToAny(tc.in)
+			assert.Equal(t, tc.wantLog, h.Count())
+
+			s1, ok1 := tc.want.([]any)
+			s2, ok2 := got3.([]any)
+			if ok1 && ok2 {
+				for i := range s1 {
+					var found bool
+					for j := range s2 {
+						if s1[i] == s2[j] {
+							found = true
+							break
+						}
+					}
+					assert.Truef(t, found, fmt.Sprintf("slices mismatched; %v != %v", s1, s2))
+				}
+			} else {
+				assert.EqualValues(t, tc.want, got3)
+			}
+		})
+	}
+}
