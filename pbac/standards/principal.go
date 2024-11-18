@@ -1,10 +1,7 @@
 package standards
 
 import (
-	"bytes"
 	"fmt"
-
-	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 )
@@ -32,23 +29,23 @@ func DeterminePrincipal(a types.AttributeSet) (string, string) {
 	}
 
 	// TODO: this is dubious; can we really determine the Principal from a JWT?
-	if jwt := a.GetAttribute(AttrJWT); jwt != nil {
-		if valid, ok2 := a.GetAttribute(AttrValid).(cedar.Boolean); ok2 && bool(valid) {
-			switch t := a.GetAttribute(AttrClaims).(type) {
-			case string:
-				return PrincipalJWT, t
-
-			case []string:
-				out := bytes.Buffer{}
-				for i := range t {
-					out.WriteString(string(t[i]))
-					out.WriteByte(',')
-				}
-				out.Truncate(1)
-				return PrincipalJWT, out.String()
-			}
-		}
-	}
+	// if jwt := a.GetAttribute(AttrJWT); jwt != nil {
+	// 	if valid, ok2 := a.GetAttribute(AttrValid).(cedar.Boolean); ok2 && bool(valid) {
+	// 		switch t := a.GetAttribute(AttrClaims).(type) {
+	// 		case string:
+	// 			return PrincipalJWT, t
+	//
+	// 		case []string:
+	// 			out := bytes.Buffer{}
+	// 			for i := range t {
+	// 				out.WriteString(t[i])
+	// 				out.WriteByte(',')
+	// 			}
+	// 			out.Truncate(1)
+	// 			return PrincipalJWT, out.String()
+	// 		}
+	// 	}
+	// }
 
 	if apikey, ok := a.GetAttribute(AttrApiKey).(string); ok && apikey != "" {
 		return PrincipalApp, apikey

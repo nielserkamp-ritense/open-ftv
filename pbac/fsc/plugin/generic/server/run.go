@@ -15,7 +15,15 @@ func (s *service) run() {
 		})
 
 		address := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
-		if err := s.svc.ListenTLS(address, s.cfg.Cert, s.cfg.Key); err != nil {
+
+		var err error
+		if s.cfg.Cert != "" && s.cfg.Key != "" {
+			err = s.svc.ListenTLS(address, s.cfg.Cert, s.cfg.Key)
+		} else {
+			err = s.svc.Listen(address)
+		}
+
+		if err != nil {
 			s.logger.Error("failed to start service", "error", err)
 			s.shutdown.Store(true)       // indicate server is stopped or never started.
 			s.intChan <- syscall.SIGQUIT // send a signal to end the Run function.

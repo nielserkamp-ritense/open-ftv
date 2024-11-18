@@ -16,41 +16,44 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// Serve initializes and runs the HTTP service using fiber and fasthttp.
-func Serve(cfg *config.Config, logger *slog.Logger) {
-	svc := service{
-		cfg:     cfg,
-		logger:  logger,
-		intChan: make(chan os.Signal),
-	}
-	signal.Notify(svc.intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+type Service interface {
+	Serve()
+	Shutdown()
+}
 
-	svc.svc = fiber.New(fiber.Config{
+// NewService initializes a HTTP service which is implemented with fiber/fasthttp.
+func NewService(cfg *config.Config, logger *slog.Logger) Service {
+	return &service{cfg: cfg, logger: logger}
+}
+
+// Serve runs the HTTP service.
+func (s *service) Serve() {
+	s.intChan = make(chan os.Signal)
+	signal.Notify(s.intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+
+	s.svc = fiber.New(fiber.Config{
 		CaseSensitive:         true,
 		DisableDefaultDate:    true,
 		DisableStartupMessage: true,
-		BodyLimit:             svc.cfg.MaxBody,
-		ReadTimeout:           svc.cfg.ReadTimeout,
-		WriteTimeout:          svc.cfg.WriteTimeout,
-		IdleTimeout:           svc.cfg.IdleTimeout,
-		ErrorHandler:          svc.errorHandler,
+		BodyLimit:             s.cfg.MaxBody,
+		ReadTimeout:           s.cfg.ReadTimeout,
+		WriteTimeout:          s.cfg.WriteTimeout,
+		IdleTimeout:           s.cfg.IdleTimeout,
+		ErrorHandler:          s.errorHandler,
 		AppName:               config.AppName,
 		JSONEncoder:           json.Marshal,
 		JSONDecoder:           json.Unmarshal,
 		RequestMethods:        []string{fiber.MethodGet, fiber.MethodHead, fiber.MethodPost, fiber.MethodOptions},
 	})
 
-	svc.initMiddleware()
-	svc.initRoutes()
-	svc.run()
+	s.initMiddleware()
+	s.initRoutes()
+	s.run()
 }
 
-type service struct {
-	cfg      *config.Config
-	logger   *slog.Logger
-	svc      *fiber.App
-	intChan  chan os.Signal
-	shutdown atomic.Bool
+// Shutdown can be used to stop the HTTP service.
+func (s *service) Shutdown() {
+	s.intChan <- syscall.SIGQUIT
 }
 
 // errorHandler is the default error handler for things gone awry in fiber.
@@ -67,4 +70,12 @@ func (s *service) errorHandler(req *fiber.Ctx, err error) error {
 
 	s.logger.Error("internal server error", "status", status, "error", err)
 	return handlers.SendBasicResponse(req, status)
+}
+
+type service struct {
+	cfg      *config.Config
+	logger   *slog.Logger
+	svc      *fiber.App
+	intChan  chan os.Signal
+	shutdown atomic.Bool
 }

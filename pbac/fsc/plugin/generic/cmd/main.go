@@ -19,5 +19,5 @@ func main() {
 	}
 
 	logger.Info("configuration loaded successfully", "config", cfg)
-	server.Serve(cfg, logger)
+	server.NewService(cfg, logger).Serve()
 }

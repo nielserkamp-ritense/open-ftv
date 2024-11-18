@@ -64,11 +64,6 @@ func (h *authHandler) run(fc *fiber.Ctx) error {
 		defer p.log()
 	}
 
-	if p.controller == nil {
-		p.msg, p.err = "internal configuration error", fmt.Errorf("unsupported policy language: %s", p.cfg.PolicyLanguage)
-		return SendMessageResponse(fc, p.status, p.msg)
-	}
-
 	if p.verifyRequest(); p.status != fiber.StatusOK {
 		return SendMessageResponse(fc, p.status, p.msg)
 	}
@@ -100,6 +95,11 @@ func (p *authProcess) verifyRequest() {
 	p.authReq = &auth.AuthorizationRequest{}
 	if p.err = p.fc.BodyParser(p.authReq); p.err != nil {
 		p.msg = "invalid input data"
+		return
+	}
+
+	if p.authReq.Input == nil {
+		p.msg, p.err = "invalid data", errors.New("input must be filled")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (p *authProcess) newAccessRequest() {
 func (p *authProcess) log() {
 	args := make([]any, 0, 16)
 
-	if p.authReq != nil {
+	if p.authReq != nil && p.authReq.Input != nil {
 		args = append(args, "method", p.authReq.Input.Method)
 	}
 	if p.req != nil {
