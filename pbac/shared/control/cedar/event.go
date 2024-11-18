@@ -12,15 +12,20 @@ import (
 func (c *controller) Handle(t pap.EventType, key string) {
 	switch t {
 	case pap.PolicyAdded, pap.PolicyReplaced:
-		if f, err := c.PAP().Get(key); err == nil {
-			d, _ := io.ReadAll(f)
-			var policy cedar.Policy
-			if err = policy.UnmarshalCedar(d); err == nil {
-				c.pdp.Store(cedar.PolicyID(key), &policy)
-				c.Logger().Info("policy added/replaced", "controller", c.String(), "policy-key", key)
-			} else {
-				c.Logger().Error("error decoding policy", "controller", c.String(), "policy-key", key, "error", err)
-			}
+		f, err := c.PAP().Get(key)
+		if err != nil {
+			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-key", key, "error", err)
+			return
+		}
+
+		d, _ := io.ReadAll(f)
+
+		var policy cedar.Policy
+		if err = policy.UnmarshalCedar(d); err == nil {
+			c.pdp.Store(cedar.PolicyID(key), &policy)
+			c.Logger().Info("policy added/replaced", "controller", c.String(), "policy-key", key)
+		} else {
+			c.Logger().Error("error decoding policy", "controller", c.String(), "policy-key", key, "error", err)
 		}
 
 	case pap.PolicyRemoved:

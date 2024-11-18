@@ -1,15 +1,12 @@
-package opa
+package cedar
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"testing"
 	"time"
 
-	"github.com/open-policy-agent/opa/hooks"
-	"github.com/open-policy-agent/opa/sdk"
-	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/cedar-policy/cedar-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,7 +16,11 @@ import (
 )
 
 func TestController_Handle(t *testing.T) {
-	p1 := "package authz\ndefault allow = false"
+	p1 := `permit (
+    principal is User,
+    action == Action::"POST",
+    resource is Service
+);`
 
 	testCases := []struct {
 		name       string
@@ -100,13 +101,6 @@ func TestController_Handle(t *testing.T) {
 			logPrefix2: "policy added/replaced",
 		},
 		{
-			name:       "remove - not found",
-			event1:     pap.PolicyRemoved,
-			key1:       "p1",
-			wantLog1:   1,
-			logPrefix1: "failed to remove policy",
-		},
-		{
 			name:       "remove - found",
 			policies:   map[string]string{"p1": p1},
 			event1:     pap.PolicyAdded,
@@ -125,23 +119,12 @@ func TestController_Handle(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			mem := inmem.New()
-
-			pdp, err := sdk.New(context.Background(), sdk.Options{
-				RegoVersion:   1,
-				ID:            "opa-controller",
-				Config:        bytes.NewReader([]byte(cfg)),
-				ConsoleLogger: &wrappedLogger{logger: logger},
-				Hooks:         hooks.Hooks{},
-				Store:         mem,
-			})
-			require.NoError(t, err)
+			pdp := cedar.NewPolicySet()
+			require.NotNil(t, pdp)
 
 			c := &controller{
 				Base: control.NewBase("x", "v1", logger),
 				pdp:  pdp,
-				mem:  mem,
-				ctx:  context.Background(),
 			}
 
 			p := pap.New(logger, nil)

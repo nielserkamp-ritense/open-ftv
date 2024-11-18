@@ -135,6 +135,9 @@ func (e *entities) MergeEntities(in ...types.EntitySet) {
 }
 
 func (e *entities) cedarToEntity(in *cedar.Entity) types.Entity {
+	if in == nil {
+		return nil
+	}
 	return NewWrappedEntity(in, e.logger)
 }
 
@@ -148,6 +151,10 @@ func cedarToUID(ce cedar.EntityUID) string {
 }
 
 func entityToCedar(in types.Entity) *cedar.Entity {
+	if in == nil {
+		return nil
+	}
+
 	if e, ok := in.(*WrappedEntity); ok {
 		return e.ce
 	}

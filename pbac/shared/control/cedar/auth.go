@@ -1,7 +1,6 @@
 package cedar
 
 import (
-	"context"
 	"log/slog"
 	"time"
 
@@ -12,7 +11,8 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
-	if c.Logger().Enabled(context.TODO(), slog.LevelDebug) {
+	debug := c.Logger().Enabled(nil, slog.LevelDebug)
+	if debug {
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
 	}
 
@@ -20,13 +20,18 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 	decision, diagnostic := c.pdp.IsAuthorized(c.entities, c.buildCedarRequest(req))
 	duration := time.Since(started)
 
-	if !decision {
-		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
-	} else {
-		c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+	if decision {
+		if debug {
+			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+		}
+		return &types.Response{Allowed: true}, nil
 	}
 
-	return &types.Response{Allowed: bool(decision), Message: "not authorized"}, nil
+	if debug {
+		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
+	}
+
+	return &types.Response{Allowed: false, Message: "not authorized"}, nil
 }
 
 func (c *controller) buildCedarRequest(req *types.Request) cedar.Request {

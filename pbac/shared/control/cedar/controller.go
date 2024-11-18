@@ -20,7 +20,9 @@ const Version = "1.0.0"
 
 // NewController instantiates a new Cedar controller.
 func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger) control.Controller {
-	store, _ = filepath.Abs(store)
+	if store != "" {
+		store, _ = filepath.Abs(store)
+	}
 
 	c := &controller{
 		Base:     control.NewBase(types.CEDAR.String(), Version, logger),
