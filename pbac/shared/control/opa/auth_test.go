@@ -20,7 +20,7 @@ func TestController_Authorize(t *testing.T) {
 	uid := uuid.New()
 	u1, _ := url.Parse("https://x.y")
 	u2, _ := url.Parse("https://inway-fsc-nlx-inway:443/brp-personen")
-	b1 := []byte(`{"type": "RaadpleegMetBurgerservicenummer","burgerservicenummer":["999993653"],"fields":["haha"]}`)
+	b1 := []byte(`{"type":"RaadpleegMetBurgerservicenummer","burgerservicenummer":["999993653"],"fields":["naam"]}`)
 
 	testCases := []struct {
 		name     string
@@ -37,12 +37,12 @@ func TestController_Authorize(t *testing.T) {
 			name:     "bad request",
 			store1:   "../../../../testdata/pip",
 			recurse1: true,
-			store2:   "../../../../testdata/policies/opa",
+			store2:   "../../../../testdata/unittest/opa",
 			recurse2: true,
 			req: types.Request{
 				UID:         &uid,
 				URL:         u1,
-				Method:      "POST",
+				Method:      "GET",
 				RequestTime: &now,
 				Headers:     map[string][]string{},
 				Body:        []byte(""),
@@ -54,7 +54,7 @@ func TestController_Authorize(t *testing.T) {
 			name:     "good request",
 			store1:   "../../../../testdata/pip",
 			recurse1: true,
-			store2:   "../../../../testdata/policies/opa",
+			store2:   "../../../../testdata/unittest/opa",
 			recurse2: true,
 			req: types.Request{
 				UID:         &uid,
