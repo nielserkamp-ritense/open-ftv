@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"path/filepath"
 
-	"github.com/goccy/go-json"
 	"github.com/open-policy-agent/opa/hooks"
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/open-policy-agent/opa/storage"
@@ -74,7 +73,10 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 func (c *controller) loadEntities() {
 	m := make(map[string]any)
 	c.PIP().IterateEntities(func(entity types.Entity) {
-		m2 := make(map[string]any)
+		m2, ok := m[entity.Type()].(map[string]any)
+		if !ok || m2 == nil {
+			m2 = make(map[string]any)
+		}
 		m2[entity.ID()] = types.MapFromAttributes(entity.Attributes())
 		m[entity.Type()] = m2
 	})
@@ -83,19 +85,19 @@ func (c *controller) loadEntities() {
 		return
 	}
 
-	d, err := json.Marshal(m)
-	if err != nil {
-		c.Logger().Error("failed to marshal entities", "controller", c.String(), "error", err)
-		return
-	}
+	// d, err := json.Marshal(m)
+	// if err != nil {
+	// 	c.Logger().Error("failed to marshal entities", "controller", c.String(), "error", err)
+	// 	return
+	// }
 
 	key := "entities"
 
 	t, _ := c.mem.NewTransaction(c.ctx, storage.TransactionParams{Write: true})
-	if err = c.mem.Write(c.ctx, t, storage.AddOp, storage.Path{key}, d); err != nil {
+	if err := c.mem.Write(c.ctx, t, storage.AddOp, storage.Path{key}, m); err != nil {
 		c.Logger().Error("failed to upsert entities", "controller", c.String(), "document-key", key, "error", err)
 	}
-	if err = c.mem.Commit(c.ctx, t); err != nil {
+	if err := c.mem.Commit(c.ctx, t); err != nil {
 		c.Logger().Error("failed to commit transaction", "controller", c.String(), "document-key", key, "error", err)
 	} else {
 		c.Logger().Info("entities added/replaced", "controller", c.String(), "document-key", key)
@@ -107,6 +109,7 @@ type controller struct {
 	pdp *sdk.OPA
 	mem storage.Store
 	ctx context.Context
+	m   map[string]any
 }
 
 const cfg = `{

@@ -26,11 +26,13 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 	if err != nil {
 		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "err", err, "pdp elapsed", duration.String())
 	} else {
-		if allowed, ok := resp.Result.(bool); ok && allowed {
-			if debug {
-				c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+		if m, ok := resp.Result.(map[string]any); ok {
+			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
+				if debug {
+					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+				}
+				return &types.Response{Allowed: true}, nil
 			}
-			return &types.Response{Allowed: true}, nil
 		}
 
 		if debug {
@@ -42,13 +44,19 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 }
 
 func (c *controller) buildDecisionOptions(req *types.Request) sdk.DecisionOptions {
-	a, _ := c.PIP().CollectAttributesFromRequest(req)
+	a, newURI := c.PIP().CollectAttributesFromRequest(req)
+	m := types.MapFromAttributes(a)
+
+	if newURI != "" {
+		m["uri"] = newURI
+	}
+
 	p1, p2 := standards.DeterminePrincipal(a)
 
 	return sdk.DecisionOptions{
 		Now:        *req.RequestTime,
-		Path:       fmt.Sprintf("/%s/%s/allow", p1, p2),
-		Input:      types.MapFromAttributes(a),
+		Path:       fmt.Sprintf("/%s/%s", p1, p2),
+		Input:      m,
 		DecisionID: req.UID.String(),
 	}
 }
