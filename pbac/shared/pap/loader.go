@@ -7,33 +7,40 @@ import (
 )
 
 // LoadFromStore loads all policies from the store.
-func (c *pap) LoadFromStore(path string, recurse bool) {
-	if path == "" {
+func (p *pap) LoadFromStore(path string, recurse bool) {
+	p.path = path
+	p.recurse = recurse
+	p.clearWatcher()
+
+	if p.path == "" {
 		return
 	}
 
-	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() {
-			if recurse || p == path {
-				return nil
-			}
-			return filepath.SkipDir
-		}
-
-		f, err2 := os.Open(p)
-		if err2 != nil {
-			return err2
-		}
-
-		defer f.Close()
-		return c.Add(d.Name(), f)
-	})
-
-	if err != nil {
-		c.logger.Error("pap: error loading policies", "path", path, "err", err)
+	if err := filepath.WalkDir(path, p.loadPolicy); err != nil {
+		p.logger.Error("pap: error loading policies", "path", path, "err", err)
 	}
+}
+
+func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if d.IsDir() {
+		if p.recurse || path == p.path {
+			if p.watcher != nil {
+				_ = p.watcher.Add(path)
+			}
+			return nil
+		}
+		return filepath.SkipDir
+	}
+
+	f, err2 := os.Open(path)
+	if err2 != nil {
+		return err2
+	}
+
+	defer f.Close()
+	return p.Add(d.Name(), f)
 }

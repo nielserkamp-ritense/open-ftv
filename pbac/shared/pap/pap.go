@@ -3,11 +3,15 @@ package pap
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"slices"
 	"sync"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 // PAP represents the interface for caching and retrieving policies.
@@ -26,11 +30,29 @@ type EventSink interface {
 }
 
 // New instantiates a new policy cache.
-func New(logger *slog.Logger, events EventSink) PAP {
+//
+// The optional context can be used to signal app shutdown by closing the,
+// so the PAP can clean up long-running go-routines and other resources.
+func New(ctx context.Context, logger *slog.Logger, events EventSink) PAP {
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		w = nil // this means file handles are exhausted!
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	c := &pap{
+		ctx:      ctx,
 		logger:   logger,
 		events:   events,
 		policies: make(map[string][]byte),
+		watcher:  w,
+	}
+
+	if w != nil {
+		go c.watchFiles()
 	}
 
 	c.logger.Info("pap initialized")
@@ -42,7 +64,7 @@ func New(logger *slog.Logger, events EventSink) PAP {
 // If the input reader is nil, the function returns duccessfully without doing anything.
 //
 // An error is returned if the policy key already exists.
-func (c *pap) Add(key string, reader io.Reader) error {
+func (p *pap) Add(key string, reader io.Reader) error {
 	if reader == nil {
 		return nil
 	}
@@ -52,26 +74,26 @@ func (c *pap) Add(key string, reader io.Reader) error {
 		return err
 	}
 
-	c.mutex.Lock()
-	if _, ok := c.policies[key]; ok {
+	p.mutex.Lock()
+	if _, ok := p.policies[key]; ok {
 		err = fmt.Errorf("cache policy '%s' already exists", key)
 	} else {
-		c.policies[key] = data
+		p.policies[key] = data
 	}
-	c.mutex.Unlock()
+	p.mutex.Unlock()
 
-	if err == nil && c.events != nil {
-		c.events.Handle(PolicyAdded, key)
+	if err == nil && p.events != nil {
+		p.events.Handle(PolicyAdded, key)
 	}
 	return err
 }
 
 // Replace modifies a policy in the cache with a newer version.
 //
-// If the input reader is nil, the function returns duccessfully without doing anything.
+// If the input reader is nil, the function returns successfully without doing anything.
 //
 // An error is returned if the policy key doesn't exist.
-func (c *pap) Replace(key string, reader io.Reader) error {
+func (p *pap) Replace(key string, reader io.Reader) error {
 	if reader == nil {
 		return nil
 	}
@@ -81,16 +103,16 @@ func (c *pap) Replace(key string, reader io.Reader) error {
 		return err
 	}
 
-	c.mutex.Lock()
-	if _, ok := c.policies[key]; !ok {
+	p.mutex.Lock()
+	if _, ok := p.policies[key]; !ok {
 		err = fmt.Errorf("cache policy '%s' not found", key)
 	} else {
-		c.policies[key] = data
+		p.policies[key] = data
 	}
-	c.mutex.Unlock()
+	p.mutex.Unlock()
 
-	if err == nil && c.events != nil {
-		c.events.Handle(PolicyReplaced, key)
+	if err == nil && p.events != nil {
+		p.events.Handle(PolicyReplaced, key)
 	}
 	return err
 }
@@ -98,29 +120,29 @@ func (c *pap) Replace(key string, reader io.Reader) error {
 // Remove removes a policy from the cache.
 //
 // An error is returned if the policy key doesn't exist.
-func (c *pap) Remove(key string) error {
+func (p *pap) Remove(key string) error {
 	var err error
 
-	c.mutex.Lock()
-	if _, ok := c.policies[key]; !ok {
+	p.mutex.Lock()
+	if _, ok := p.policies[key]; !ok {
 		err = fmt.Errorf("cache policy '%s' not found", key)
 	} else {
-		delete(c.policies, key)
+		delete(p.policies, key)
 	}
-	c.mutex.Unlock()
+	p.mutex.Unlock()
 
-	if err == nil && c.events != nil {
-		c.events.Handle(PolicyRemoved, key)
+	if err == nil && p.events != nil {
+		p.events.Handle(PolicyRemoved, key)
 	}
 	return err
 }
 
 // Get retrieves a policy from the cache, or an error if the policy key doesn't exist.
-func (c *pap) Get(key string) (io.Reader, error) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+func (p *pap) Get(key string) (io.Reader, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
 
-	if data, ok := c.policies[key]; ok {
+	if data, ok := p.policies[key]; ok {
 		// we return a reader on a deep copy of the data, so changes in the cache do not affect it.
 		s := string(data)
 		return bytes.NewBufferString(s), nil
@@ -130,12 +152,12 @@ func (c *pap) Get(key string) (io.Reader, error) {
 }
 
 // ListAllKeys returns a list of all cached policy keys.
-func (c *pap) ListAllKeys() []string {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+func (p *pap) ListAllKeys() []string {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
 
-	out := make([]string, 0, len(c.policies))
-	for k := range c.policies {
+	out := make([]string, 0, len(p.policies))
+	for k := range p.policies {
 		out = append(out, k)
 	}
 
@@ -144,8 +166,15 @@ func (c *pap) ListAllKeys() []string {
 }
 
 type pap struct {
+	recurse  bool
+	path     string
+	ctx      context.Context
 	logger   *slog.Logger
+	watcher  *fsnotify.Watcher
+	wTimer   *time.Timer
 	policies map[string][]byte
+	updates  []string
+	deletes  []string
 	events   EventSink
 	mutex    sync.RWMutex
 }

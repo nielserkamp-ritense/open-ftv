@@ -56,7 +56,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 	}
 
 	c.SetPIP(pip)
-	c.SetPAP(pap.New(c.Logger(), c))
+	c.SetPAP(pap.New(nil, c.Logger(), c))
 
 	// wait for OPA to be ready, before loading policies!
 	select {

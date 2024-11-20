@@ -144,7 +144,7 @@ func TestController_Handle(t *testing.T) {
 				ctx:  context.Background(),
 			}
 
-			p := pap.New(logger, nil)
+			p := pap.New(nil, logger, nil)
 			for key := range tc.policies {
 				pol := []byte(tc.policies[key])
 				err2 := p.Add(key, bytes.NewReader(pol))
