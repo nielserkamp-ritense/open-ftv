@@ -261,7 +261,9 @@ func TestWatchFiles(t *testing.T) {
 				wg.Done()
 			}(wg)
 
-			time.Sleep(300 * time.Millisecond)
+			for range 15 {
+				time.Sleep(25 * time.Millisecond)
+			}
 
 			cancel()
 
