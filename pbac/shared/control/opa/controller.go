@@ -29,7 +29,6 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 	}
 
 	wait := make(chan struct{})
-
 	mem := inmem.New()
 
 	pdp, err := sdk.New(context.Background(), sdk.Options{
@@ -40,8 +39,6 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 		Ready:         wait,
 		Hooks:         hooks.Hooks{},
 		Store:         mem,
-		// Plugins:      nil,
-		// ManagerOpts:  nil,
 	})
 	if err != nil {
 		logger.Error("Failed to initialize OPA SDK", "error", err)

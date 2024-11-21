@@ -3,7 +3,7 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all lint dep fmt test race cover coverhtml escape app help
+.PHONY: all lint dep fmt test race cover coverhtml escape app docker help
 
 all: test
 
@@ -39,6 +39,9 @@ escape: fmt ## run escape analysis
 app: fmt ## build binaries
 	@mkdir -f ../../../../bin
 	@go build -ldflags "-s -w" -o ../../../../bin/fsc-opa cmd/*.go
+
+docker:
+	@cd ../../../.. && docker build -f pbac/fsc/plugin/generic/docker-build/Dockerfile -t fsc-auth:1.0.0 .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

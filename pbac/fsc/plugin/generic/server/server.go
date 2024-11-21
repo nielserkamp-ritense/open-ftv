@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"sync/atomic"
 	"syscall"
 
@@ -16,20 +17,23 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// Service represents the interface for an HTTP service.
 type Service interface {
 	Serve()
 	Shutdown()
 }
 
-// NewService initializes a HTTP service which is implemented with fiber/fasthttp.
+// NewService initializes an HTTP service (implemented with fiber/fasthttp).
 func NewService(cfg *config.Config, logger *slog.Logger) Service {
 	return &service{cfg: cfg, logger: logger}
 }
 
 // Serve runs the HTTP service.
 func (s *service) Serve() {
+	s.mutex.Lock()
 	s.intChan = make(chan os.Signal)
 	signal.Notify(s.intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	s.mutex.Unlock()
 
 	s.svc = fiber.New(fiber.Config{
 		CaseSensitive:         true,
@@ -53,7 +57,9 @@ func (s *service) Serve() {
 
 // Shutdown can be used to stop the HTTP service.
 func (s *service) Shutdown() {
+	s.mutex.Lock()
 	s.intChan <- syscall.SIGQUIT
+	s.mutex.Unlock()
 }
 
 // errorHandler is the default error handler for things gone awry in fiber.
@@ -78,4 +84,5 @@ type service struct {
 	svc      *fiber.App
 	intChan  chan os.Signal
 	shutdown atomic.Bool
+	mutex    sync.Mutex
 }
