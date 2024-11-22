@@ -12,8 +12,8 @@
   id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
   attributes:
     owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    code: "EVENTS"
+    name: "Belastingdienst - cloud events"
     queryFields:
       - abc:
           type: string

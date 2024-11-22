@@ -2,18 +2,18 @@
   id: 'zorgtoeslag'
   attributes:
     Belastingdienst:
-      backend:
-    BRP:
-      backend:
+      INKOMEN:
+    Rijksoverheid:
+      PERSONEN:
         types:
           - RaadpleegMetBurgerservicenummer
+      BERICHTEN:
+      LDVFILTER:
     DUO:
-      backend:
-    Rijksoverheid:
-      backend:
+      SCHULDEN:
     Toeslagen:
-      backend:
+      TOESLAG:
     UWV:
-      backend:
+      UITKERING:
     Zorgverzekeraars:
-      backend:
+      VERZEKERING:

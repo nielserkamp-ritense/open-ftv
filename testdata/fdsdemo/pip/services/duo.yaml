@@ -1,19 +1,19 @@
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+  id: " https://duo-fsc-inway.tn-fds-padv-duo:443/backend"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "Duo"
+    code: "SCHULDEN"
+    name: "DUO - studieschulden"
     queryFields:
       - abc:
           type: string
 
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+  id: " https://duo-fsc-inway.tn-fds-padv-duo:443/nats"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "DUO"
+    code: "EVENTS"
+    name: "DUO - cloud events"
     queryFields:
       - abc:
           type: string

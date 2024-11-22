@@ -1,19 +1,19 @@
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+  id: " https://rzv-fsc-inway.tn-fds-padv-rzv:443/backend"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "Register Zorgverzekeraars"
+    code: "VERZEKERING"
+    name: "Register Zorgverzekeraars - verzekering"
     queryFields:
       - abc:
           type: string
 
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+  id: " https://rzv-fsc-inway.tn-fds-padv-rzv:443/nats"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "Register Zorgverzekeraars"
+    code: "EVENTS"
+    name: "Register Zorgverzekeraars - cloud events"
     queryFields:
       - abc:
           type: string

@@ -1,0 +1,9 @@
+- type: "Service"
+  id: " https://fds-fsc-inway.tn-fds-padv-fds:443/backend"
+  attributes:
+    owner: "FDS"
+    code: "DEELNEMER"
+    name: "FDS - deelnemerlijst"
+    queryFields:
+      - abc:
+          type: string

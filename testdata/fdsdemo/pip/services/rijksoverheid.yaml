@@ -1,19 +1,39 @@
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+  id: " https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/berichtenbox-backend"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "Rijksoverheid"
+    code: "BERICHTEN"
+    name: "Rijksoverheid - berichtenbox"
     queryFields:
       - abc:
           type: string
 
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+  id: " https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/brp-backend"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "Rijksoverheid"
+    code: "PERSONEN"
+    name: "Rijksoverheid - persoonsgegevens"
+    queryFields:
+      - abc:
+          type: string
+
+- type: "Service"
+  id: " https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/ldv-filter-backend"
+  attributes:
+    owner: "Rijksoverheid"
+    code: "LDVFILTER"
+    name: "Rijksoverheid - LDV filter"
+    queryFields:
+      - abc:
+          type: string
+
+- type: "Service"
+  id: " https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/nats"
+  attributes:
+    owner: "Rijksoverheid"
+    code: "EVENTS"
+    name: "Rijksoverheid - cloud events"
     queryFields:
       - abc:
           type: string

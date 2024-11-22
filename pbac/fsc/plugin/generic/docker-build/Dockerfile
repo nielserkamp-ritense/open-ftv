@@ -16,9 +16,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o fsc-auth 
 FROM digilabpublic.azurecr.io/alpine:3.19
 
 COPY --from=golang_builder /build/* /
-COPY ./testdata/fdsdemo/fsc-auth.yaml ./etc
-COPY ./testdata/policies/cedar/* ./policies
-COPY ./testdata/pip/* ./pip
+COPY ./testdata/fdsdemo/etc/fsc-auth.yaml ./etc
+COPY ./testdata/fdsdemo/policies/* ./policies
+COPY ./testdata/fdsdemo/pip/* ./pip
 
 # Run the binary when starting the container
 ENTRYPOINT ["/fsc-auth"]

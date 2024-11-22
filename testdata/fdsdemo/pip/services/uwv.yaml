@@ -1,19 +1,19 @@
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+  id: " https://uwv-fsc-inway.tn-fds-padv-uwv:443/backend"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "UWV"
+    code: "UITKERING"
+    name: "UWV - uitkering"
     queryFields:
       - abc:
           type: string
 
 - type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+  id: " https://uwv-fsc-inway.tn-fds-padv-uwv:443/nats"
   attributes:
-    owner: "Belastingdienst"
-    code: "INKOMEN"
-    name: "Belastingdienst - inkomen"
+    owner: "UWV"
+    code: "EVENTS"
+    name: "UWV - cloud events"
     queryFields:
       - abc:
           type: string
