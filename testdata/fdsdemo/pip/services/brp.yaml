@@ -1,0 +1,19 @@
+- type: "Service"
+  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+  attributes:
+    owner: "RvIG"
+    code: "BRP"
+    name: "BRP - persoonsgegevens"
+    queryFields:
+      - abc:
+          type: string
+
+- type: "Service"
+  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+  attributes:
+    owner: "RvIG"
+    code: "BRP"
+    name: "BRP - cloud events"
+    queryFields:
+      - abc:
+          type: string

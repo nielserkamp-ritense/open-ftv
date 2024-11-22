@@ -20,9 +20,9 @@ func TestHealth(t *testing.T) {
 		require.NotNil(t, cfg)
 
 		srv := fiber.New()
-		srv.Get("/health", Health)
+		srv.Get("/healthz", HealthZ)
 
-		req := httptest.NewRequest("GET", "/health", nil)
+		req := httptest.NewRequest("GET", "/healthz", nil)
 		resp, err2 := srv.Test(req, 1)
 
 		require.NoError(t, err2)

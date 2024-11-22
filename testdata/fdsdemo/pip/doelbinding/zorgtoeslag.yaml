@@ -1,0 +1,19 @@
+- type: 'Doelbinding'
+  id: 'zorgtoeslag'
+  attributes:
+    Belastingdienst:
+      backend:
+    BRP:
+      backend:
+        types:
+          - RaadpleegMetBurgerservicenummer
+    DUO:
+      backend:
+    Rijksoverheid:
+      backend:
+    Toeslagen:
+      backend:
+    UWV:
+      backend:
+    Zorgverzekeraars:
+      backend:

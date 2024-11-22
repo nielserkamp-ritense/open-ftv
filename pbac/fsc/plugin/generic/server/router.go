@@ -11,8 +11,10 @@ func (s *service) initRoutes() {
 		panic("failed to initialize authorization handler")
 	}
 
+	// liveness & readiness.
+	s.svc.Get("/healthz", handlers.HealthZ)
+
 	// API v1.
 	v1 := s.svc.Group("/v1")
-	v1.Get("/health", handlers.Health)
 	v1.Post("/auth", auth)
 }
