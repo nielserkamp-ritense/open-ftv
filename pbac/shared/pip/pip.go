@@ -59,28 +59,31 @@ func New(store string, recurse bool, logger *slog.Logger, newAttributes types.At
 	p.load()
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
-		kv1 := types.MapFromAttributes(p.attributes)
-
-		kv2 := make(map[string]any)
-		p.entities.IterateEntities(func(entity types.Entity) {
-			kv3 := types.MapFromAttributes(entity.Attributes())
-			kv2[entity.UID()] = struct {
-				UID        string         `json:"UID,omitempty"`
-				Attributes map[string]any `json:"attributes,omitempty"`
-				Parents    []string       `json:"parents,omitempty"`
-			}{
-				UID:        entity.UID(),
-				Attributes: kv3,
-				Parents:    entity.Parents(),
-			}
-		})
-
-		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore, "attributes", kv1, "entities", kv2)
+		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore,
+			"attributes", types.MapFromAttributes(p.attributes), "entities", p.entitiesToMap())
 	} else {
 		p.logger.Info("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore)
 	}
 
 	return p
+}
+
+func (p *pip) entitiesToMap() map[string]any {
+	out := make(map[string]any)
+
+	p.entities.IterateEntities(func(entity types.Entity) {
+		out[entity.UID()] = struct {
+			UID        string         `json:"UID,omitempty"`
+			Attributes map[string]any `json:"attributes,omitempty"`
+			Parents    []string       `json:"parents,omitempty"`
+		}{
+			UID:        entity.UID(),
+			Attributes: types.MapFromAttributes(entity.Attributes()),
+			Parents:    entity.Parents(),
+		}
+	})
+
+	return out
 }
 
 // CollectAttributesFromRequest uses the given PBAC authorization request and other inputs
@@ -92,11 +95,10 @@ func (p *pip) CollectAttributesFromRequest(req *types.Request) (types.AttributeS
 	a := p.newAttributes(p.attributes)
 	a.AddAttribute("request-time", time.Now().UTC())
 
-	newURI := p.processHeaders(req, a)
+	newURI := p.testHeaders(req, a)
 
-	// p.processCertificates(req, a)
-	p.processURL(req, a)
-	p.processBody(req, a)
+	p.determineURL(req, a)
+	p.decodeBody(req, a)
 
 	if len(req.Attributes) > 0 {
 		for k := range req.Attributes {

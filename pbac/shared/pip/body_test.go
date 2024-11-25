@@ -220,7 +220,7 @@ func TestProcessBody(t *testing.T) {
 			p2, ok := p.(*pip)
 			require.True(t, ok)
 			require.NotNil(t, p2)
-			p2.processBody(req, a)
+			p2.decodeBody(req, a)
 
 			assert.Equal(t, tc.wantLog, h.Count())
 

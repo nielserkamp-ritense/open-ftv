@@ -122,7 +122,7 @@ func TestProcessHeaders(t *testing.T) {
 			require.NotNil(t, a)
 
 			req := &types.Request{Headers: tc.headers}
-			newURI := p.processHeaders(req, a)
+			newURI := p.testHeaders(req, a)
 
 			if tc.wantURI != "" {
 				assert.Equal(t, tc.wantURI, newURI)
@@ -205,6 +205,48 @@ func TestProcessHeaders(t *testing.T) {
 			} else {
 				assert.Empty(t, other)
 			}
+		})
+	}
+}
+
+func TestProcessActivityID(t *testing.T) {
+	testCases := []struct {
+		name string
+		id   string
+		want any
+	}{
+		{
+			name: "empty",
+		},
+		{
+			name: "not found",
+			id:   "abc",
+		},
+		{
+			name: "found, invalid",
+			id:   "bad",
+		},
+		{
+			name: "found, valid",
+			id:   "good",
+			want: "zorgtoeslag",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+			p := &pip{
+				logger:   logger,
+				entities: New("../../../testdata/unittest/pip", true, logger, nil, nil),
+			}
+
+			a := types.NewAttributeSet()
+			require.NotNil(t, a)
+
+			p.convertActivityID(tc.id, a)
+			assert.Equal(t, tc.want, a.GetAttribute(standards.AttrDoelbinding))
 		})
 	}
 }

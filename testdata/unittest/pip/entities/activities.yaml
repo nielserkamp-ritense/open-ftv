@@ -1,0 +1,11 @@
+- type: 'RVA'
+  id: 'good'
+  attributes:
+    doelbinding: 'zorgtoeslag'
+    register: 'BRP'
+    comment: 'read_person'
+
+- type: 'RVA'
+  id: 'bad'
+  attributes:
+    register: 'ongeldig'

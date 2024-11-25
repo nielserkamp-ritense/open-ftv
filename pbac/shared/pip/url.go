@@ -7,7 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
-func (p *pip) processURL(req *types.Request, a types.AttributeSet) {
+func (p *pip) determineURL(req *types.Request, a types.AttributeSet) {
 	m := make(map[string]any, 8)
 
 	if req.Method != "" {

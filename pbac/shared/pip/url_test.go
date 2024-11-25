@@ -71,7 +71,7 @@ func TestProcessURL(t *testing.T) {
 				RequestTime: &now,
 			}
 
-			p.processURL(req, a)
+			p.determineURL(req, a)
 
 			m, ok := a.GetAttribute("http").(map[string]any)
 			require.True(t, ok)

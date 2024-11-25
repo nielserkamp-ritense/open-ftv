@@ -12,7 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *pip) processBody(req *types.Request, a types.AttributeSet) {
+func (p *pip) decodeBody(req *types.Request, a types.AttributeSet) {
 	if req.Body == nil {
 		return
 	}

@@ -1,16 +1,17 @@
 package pip
 
 import (
+	"fmt"
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
-func (p *pip) processHeaders(req *types.Request, a types.AttributeSet) string {
+func (p *pip) testHeaders(req *types.Request, a types.AttributeSet) string {
 	other := make(map[string]string)
 
-	var newURI, fwd1, fwd2 string
+	var activityID, newURI, fwd1, fwd2 string
 
 	for k := range req.Headers {
 		if list := req.Headers[k]; len(list) > 0 {
@@ -24,7 +25,9 @@ func (p *pip) processHeaders(req *types.Request, a types.AttributeSet) string {
 			case standards.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
 				a.AddAttribute(standards.AttrApiKey, list[0])
 			case standards.HeaderRvaActivityID:
-				a.AddAttribute(standards.AttrActivityID, list[0])
+				activityID = list[0]
+				a.AddAttribute(standards.AttrActivityID, activityID)
+				p.convertActivityID(activityID, a)
 			case standards.HeaderCoreUser:
 				a.AddAttribute(standards.AttrCoreUser, list[0])
 			case standards.HeaderGrondslag:
@@ -52,4 +55,20 @@ func (p *pip) processHeaders(req *types.Request, a types.AttributeSet) string {
 	a.AddAttribute(standards.AttrHeaders, other)
 
 	return newURI
+}
+
+func (p *pip) convertActivityID(id string, a types.AttributeSet) {
+	// An Activity is an entity with 'RVA' type.
+	e := p.GetEntity(fmt.Sprintf("RVA::%s", id))
+	if e == nil {
+		return
+	}
+
+	// It should give us the actual 'doelbinding' from its attributes.
+	doel, ok := e.Attributes().GetAttribute(standards.AttrDoelbinding).(string)
+	if !ok || doel == "" {
+		return
+	}
+
+	a.AddAttribute(standards.AttrDoelbinding, doel)
 }
