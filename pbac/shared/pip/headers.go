@@ -58,6 +58,10 @@ func (p *pip) testHeaders(req *types.Request, a types.AttributeSet) string {
 }
 
 func (p *pip) convertActivityID(id string, a types.AttributeSet) {
+	if p.entities == nil {
+		return
+	}
+
 	// An Activity is an entity with 'RVA' type.
 	e := p.GetEntity(fmt.Sprintf("RVA::%s", id))
 	if e == nil {

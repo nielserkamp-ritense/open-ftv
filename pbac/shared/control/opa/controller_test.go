@@ -28,7 +28,7 @@ func TestNewController(t *testing.T) {
 		{
 			name:    "pip store - no recurse",
 			store1:  "../../../../testdata/pip",
-			wantLog: 3,
+			wantLog: 2,
 		},
 		{
 			name:     "pip store - recurse",
