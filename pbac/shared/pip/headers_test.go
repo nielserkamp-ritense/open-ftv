@@ -21,6 +21,8 @@ func TestProcessHeaders(t *testing.T) {
 		wantAuth    bool
 		wantFSC     bool
 		wantKey     string
+		wantAID     string
+		wantCU      string
 		wantGS      string
 		wantDB      string
 		wantZT      string
@@ -55,6 +57,16 @@ func TestProcessHeaders(t *testing.T) {
 			name:    "X-API-KEY",
 			headers: map[string][]string{"X-API-KEY": {"123456"}},
 			wantKey: "123456",
+		},
+		{
+			name:    "Activity-ID",
+			headers: map[string][]string{"X-Dpl-Rva-Activity-Id": {"54f6a690-d7f5-4dc9-9ec9-af00e336bf6a"}},
+			wantAID: "54f6a690-d7f5-4dc9-9ec9-af00e336bf6a",
+		},
+		{
+			name:    "Core-User",
+			headers: map[string][]string{"X-Dpl-Core-User": {"Alice"}},
+			wantCU:  "Alice",
 		},
 		{
 			name:    "GrondSlag",
@@ -140,6 +152,18 @@ func TestProcessHeaders(t *testing.T) {
 				assert.Equal(t, tc.wantKey, a.GetAttribute(standards.AttrApiKey))
 			} else {
 				assert.Nil(t, a.GetAttribute(standards.AttrApiKey))
+			}
+
+			if tc.wantAID != "" {
+				assert.Equal(t, tc.wantAID, a.GetAttribute(standards.AttrActivityID))
+			} else {
+				assert.Nil(t, a.GetAttribute(standards.AttrActivityID))
+			}
+
+			if tc.wantCU != "" {
+				assert.Equal(t, tc.wantCU, a.GetAttribute(standards.AttrCoreUser))
+			} else {
+				assert.Nil(t, a.GetAttribute(standards.AttrCoreUser))
 			}
 
 			if tc.wantGS != "" {

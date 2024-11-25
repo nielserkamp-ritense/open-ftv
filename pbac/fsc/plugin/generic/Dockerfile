@@ -3,8 +3,8 @@ FROM digilabpublic.azurecr.io/golang:1.22.5-alpine3.19 AS golang_builder
 
 WORKDIR /build
 
-COPY ./pbac/fsc/plugin/generic/go.* ./
-COPY ./pbac/fsc/plugin/generic/cmd/*.go ./
+COPY ./go.* ./
+COPY ./cmd/*.go ./
 
 RUN go mod download
 

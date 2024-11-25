@@ -1,7 +1,7 @@
 - type: "Service"
   id: " https://duo-fsc-inway.tn-fds-padv-duo:443/backend"
   attributes:
-    owner: "Duo"
+    owner: "DUO"
     code: "SCHULDEN"
     name: "DUO - studieschulden"
     queryFields:

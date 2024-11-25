@@ -15,25 +15,29 @@ func (p *pip) processHeaders(req *types.Request, a types.AttributeSet) string {
 	for k := range req.Headers {
 		if list := req.Headers[k]; len(list) > 0 {
 			switch strings.ToLower(k) {
-			case standards.AttrContentType:
+			case standards.HeaderContentType:
 				a.AddAttribute(standards.AttrContentType, list[0])
-			case standards.AttrAuthorization:
+			case standards.HeaderAuthorization:
 				p.processAuth(req, list[0], a)
-			case standards.AttrFSCAuthorization:
+			case standards.HeaderFSCAuthorization:
 				newURI = p.processFSC(req, list[0], a)
-			case standards.AttrApiKey, "apikey", "x-apikey", "x-api-key":
+			case standards.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
 				a.AddAttribute(standards.AttrApiKey, list[0])
-			case standards.AttrGrondslag:
+			case standards.HeaderRvaActivityID:
+				a.AddAttribute(standards.AttrActivityID, list[0])
+			case standards.HeaderCoreUser:
+				a.AddAttribute(standards.AttrCoreUser, list[0])
+			case standards.HeaderGrondslag:
 				a.AddAttribute(standards.AttrGrondslag, list[0])
-			case standards.AttrDoelbinding:
+			case standards.HeaderDoelbinding:
 				a.AddAttribute(standards.AttrDoelbinding, list[0])
-			case standards.AttrZaakType, "zaaktype":
+			case standards.HeaderZaakType, "zaaktype":
 				a.AddAttribute(standards.AttrZaakType, list[0])
-			case standards.AttrTaak:
+			case standards.HeaderTaak:
 				a.AddAttribute(standards.AttrTaak, list[0])
-			case standards.AttrXForwardedFor:
+			case standards.HeaderXForwardedFor:
 				fwd1 = strings.Join(list, ",")
-			case standards.AttrForwarded:
+			case standards.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
 			default:
 				other[k] = strings.Join(list, ",")
