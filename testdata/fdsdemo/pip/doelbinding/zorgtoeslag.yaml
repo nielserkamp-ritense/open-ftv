@@ -3,17 +3,23 @@
   attributes:
     Belastingdienst:
       INKOMEN:
+      NATS:
     Rijksoverheid:
       PERSONEN:
         types:
           - RaadpleegMetBurgerservicenummer
       BERICHTEN:
       LDVFILTER:
+      NATS:
     DUO:
       SCHULDEN:
+      NATS:
     Toeslagen:
       TOESLAG:
+      NATS:
     UWV:
       UITKERING:
+      NATS:
     Zorgverzekeraars:
       VERZEKERING:
+      NATS:

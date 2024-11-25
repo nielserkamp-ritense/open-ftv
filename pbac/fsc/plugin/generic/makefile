@@ -41,7 +41,7 @@ app: fmt ## build binaries
 	@go build -ldflags "-s -w" -o ../../../../bin/fsc-opa cmd/*.go
 
 docker:
-	@cd ../../../.. && docker build -f pbac/fsc/plugin/generic/docker-build/Dockerfile -t fsc-auth:1.0.0 .
+	@docker build -t fsc-auth:1.0.0 .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
