@@ -1,0 +1,4 @@
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241126121959-501b6f02c6eb h1:KblHxU30pHw0SylSPTOhzkdWvd4RKdZpJUnOQK1kl+k=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241126121959-501b6f02c6eb/go.mod h1:bdpXAzTQKK+0qiC+6E5HU9Gv3QqBFiRRI9I9K/0DtEk=
