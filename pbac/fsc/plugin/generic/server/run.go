@@ -38,7 +38,7 @@ func (s *service) run() {
 	}
 
 	go func() {
-		s.logger.Info("service stopping")
+		s.logger.Info("http service stopping")
 		s.svc.Shutdown()
 		s.shutdown.Store(true)       // indicate shutdown was successful.
 		s.intChan <- syscall.SIGQUIT // send a second signal to end the Run function.
@@ -48,8 +48,8 @@ func (s *service) run() {
 	<-s.intChan
 
 	if s.shutdown.Load() {
-		s.logger.Info("service stopped successfully")
+		s.logger.Info("http service stopped successfully")
 	} else {
-		s.logger.Info("service aborted")
+		s.logger.Info("http service aborted")
 	}
 }
