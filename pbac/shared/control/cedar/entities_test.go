@@ -2,6 +2,7 @@ package cedar
 
 import (
 	"log/slog"
+	"slices"
 	"testing"
 
 	"github.com/cedar-policy/cedar-go"
@@ -21,10 +22,10 @@ func TestNewWrappedEntity(t *testing.T) {
 		ce := &cedar.Entity{
 			UID:        types.EntityUID{Type: "User", ID: "donaldduck"},
 			Attributes: types.NewRecord(cedar.RecordMap{"x": cedar.String("y")}),
-			Parents: []cedar.EntityUID{
-				{Type: "User", ID: "marieduck"},
-				{Type: "User", ID: "jimmyduck"},
-			},
+			Parents: cedar.NewEntityUIDSet(
+				cedar.EntityUID{Type: "User", ID: "marieduck"},
+				cedar.EntityUID{Type: "User", ID: "jimmyduck"},
+			),
 		}
 
 		w := NewWrappedEntity(ce, logger)
@@ -42,7 +43,8 @@ func TestNewWrappedEntity(t *testing.T) {
 		assert.Equal(t, "y", got)
 
 		parents := w.Parents()
-		assert.EqualValues(t, []string{"User::marieduck", "User::jimmyduck"}, parents)
+		slices.Sort(parents)
+		assert.EqualValues(t, []string{"User::jimmyduck", "User::marieduck"}, parents)
 	})
 }
 
@@ -50,11 +52,11 @@ func TestNewEntitySet(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	e1 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x1"}}
-	e2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
-	e3 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x3"}}
-	e4 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x4"}}
-	dup2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
+	e1 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x1"}}
+	e2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
+	e3 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x3"}}
+	e4 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x4"}}
+	dup2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
 
 	w1 := NewWrappedEntity(e1, logger)
 	w2 := NewWrappedEntity(e2, logger)
@@ -73,14 +75,14 @@ func TestNewEntitySet(t *testing.T) {
 		{
 			name: "one set",
 			in: []any{
-				&entities{set: cedar.Entities{e1.UID: e1}},
+				&entities{set: cedar.EntityMap{e1.UID: *e1}},
 			},
 			want: map[string]types2.Entity{w1.UID(): w1},
 		},
 		{
 			name: "mixed input - no dupes",
 			in: []any{
-				&entities{set: cedar.Entities{e3.UID: e3, e1.UID: e1}},
+				&entities{set: cedar.EntityMap{e3.UID: *e3, e1.UID: *e1}},
 				w2,
 				12345,
 			},
@@ -90,7 +92,7 @@ func TestNewEntitySet(t *testing.T) {
 			name: "mixed input - 1 dupe",
 			in: []any{
 				w2,
-				&entities{set: cedar.Entities{e4.UID: e4, e1.UID: e1}},
+				&entities{set: cedar.EntityMap{e4.UID: *e4, e1.UID: *e1}},
 				w3,
 				12345,
 				dupW2,
@@ -157,7 +159,7 @@ func TestEntities_AddEntity(t *testing.T) {
 		},
 		{
 			name: "duplicate key",
-			in:   NewEntitySet(logger, &entities{set: cedar.Entities{e2.UID: e2, e3.UID: e3}}),
+			in:   NewEntitySet(logger, &entities{set: cedar.EntityMap{e2.UID: *e2, e3.UID: *e3}}),
 			add:  dupW2,
 			want: map[string]types2.Entity{dupW2.UID(): dupW2, w3.UID(): w3},
 		},
@@ -208,7 +210,7 @@ func TestEntities_RemoveEntity(t *testing.T) {
 		},
 		{
 			name: "miss",
-			in:   NewEntitySet(logger, &entities{set: cedar.Entities{e1.UID: e1, e4.UID: e4}}),
+			in:   NewEntitySet(logger, &entities{set: cedar.EntityMap{e1.UID: *e1, e4.UID: *e4}}),
 			key:  "entity::x2",
 			want: map[string]types2.Entity{w1.UID(): w1, w4.UID(): w4},
 		},

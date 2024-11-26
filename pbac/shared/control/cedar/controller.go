@@ -27,12 +27,12 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 	c := &controller{
 		Base:     control.NewBase(types.CEDAR.String(), Version, logger),
 		pdp:      cedar.NewPolicySet(),
-		entities: make(cedar.Entities),
+		entities: make(cedar.EntityMap),
 	}
 
 	pip.IterateEntities(func(entity types.Entity) {
 		if wrapped, ok := entity.(*WrappedEntity); ok {
-			c.entities[wrapped.ce.UID] = wrapped.ce
+			c.entities[wrapped.ce.UID] = *wrapped.ce
 		}
 	})
 
@@ -50,5 +50,5 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger)
 type controller struct {
 	control.Base
 	pdp      *cedar.PolicySet
-	entities cedar.Entities
+	entities cedar.EntityMap
 }

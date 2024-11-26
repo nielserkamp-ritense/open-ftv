@@ -52,10 +52,11 @@ func (e *WrappedEntity) Attributes() types.AttributeSet {
 
 // Parents implements the Entity interface.
 func (e *WrappedEntity) Parents() []string {
-	out := make([]string, len(e.ce.Parents))
-	for i := range e.ce.Parents {
-		out[i] = cedarToUID(e.ce.Parents[i])
-	}
+	out := make([]string, 0, e.ce.Parents.Len())
+	e.ce.Parents.Iterate(func(ce cedar.EntityUID) bool {
+		out = append(out, cedarToUID(ce))
+		return true
+	})
 	return out
 }
 
@@ -68,7 +69,7 @@ func NewEntityBuilder(logger *slog.Logger) types.EntitiesBuilder {
 
 // NewEntitySet instantiates a new Cedar based entity set.
 func NewEntitySet(logger *slog.Logger, in ...any) types.EntitySet {
-	a := &entities{logger: logger, set: make(cedar.Entities)}
+	a := &entities{logger: logger, set: make(cedar.EntityMap)}
 	for _, p := range in {
 		switch t := p.(type) {
 		case types.Entity:
@@ -84,10 +85,10 @@ func NewEntitySet(logger *slog.Logger, in ...any) types.EntitySet {
 func (e *entities) AddEntity(entity types.Entity) {
 	e.mutex.Lock()
 	if wrapped, ok := entity.(*WrappedEntity); ok {
-		e.set[wrapped.ce.UID] = wrapped.ce
+		e.set[wrapped.ce.UID] = *wrapped.ce
 	} else {
 		ce := entityToCedar(entity)
-		e.set[ce.UID] = ce
+		e.set[ce.UID] = *ce
 	}
 	e.mutex.Unlock()
 }
@@ -95,8 +96,9 @@ func (e *entities) AddEntity(entity types.Entity) {
 // GetEntity implements the EntitySet interface.
 func (e *entities) GetEntity(uid string) types.Entity {
 	e.mutex.RLock()
-	defer e.mutex.RUnlock()
-	return e.cedarToEntity(e.set[uidToCedar(uid)])
+	ce := e.set[uidToCedar(uid)]
+	e.mutex.RUnlock()
+	return e.cedarToEntity(&ce)
 }
 
 // RemoveEntity implements the EntitySet interface.
@@ -111,7 +113,7 @@ func (e *entities) IterateEntities(f types.EntityIterator) {
 	e.mutex.RLock()
 	for uid := range e.set {
 		ce := e.set[uid]
-		f(NewWrappedEntity(ce, e.logger))
+		f(NewWrappedEntity(&ce, e.logger))
 	}
 	e.mutex.RUnlock()
 }
@@ -127,7 +129,7 @@ func (e *entities) MergeEntities(in ...types.EntitySet) {
 		} else {
 			in[i].IterateEntities(func(entity types.Entity) {
 				ce := entityToCedar(entity)
-				e.set[ce.UID] = ce
+				e.set[ce.UID] = *ce
 			})
 		}
 	}
@@ -169,13 +171,13 @@ func entityToCedar(in types.Entity) *cedar.Entity {
 
 	return &cedar.Entity{
 		UID:        uidToCedar(in.UID()),
-		Parents:    parents,
+		Parents:    cedar.NewEntityUIDSet(parents...),
 		Attributes: cedar.NewRecord(attrs.set),
 	}
 }
 
 type entities struct {
 	logger *slog.Logger
-	set    cedar.Entities
+	set    cedar.EntityMap
 	mutex  sync.RWMutex
 }

@@ -53,9 +53,11 @@ func TestNewAttributeSet(t *testing.T) {
 	a6 := types.NewAttribute("time", now)
 	a7 := types.NewAttribute("duration", time.Second)
 
+	f1, _ := cedar.NewDecimalFromFloat(999.0)
+
 	aa1 := NewAttributeSet(nil, a1, a3)
 	aa2 := types.NewAttributeSet(nil, a3, a5, a7)
-	aa3 := cedar.RecordMap{"woo": cedar.String("hoo"), "key": cedar.Decimal{Value: 9990000}}
+	aa3 := cedar.RecordMap{"woo": cedar.String("hoo"), "key": f1}
 
 	testCases := []struct {
 		name      string
@@ -305,6 +307,9 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 func TestValueToAny(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
+	f1, _ := cedar.NewDecimalFromFloat(456.789)
+	f2, _ := cedar.NewDecimalFromFloat(123.456)
+
 	testCases := []struct {
 		name    string
 		in      cedar.Value
@@ -347,27 +352,27 @@ func TestValueToAny(t *testing.T) {
 		},
 		{
 			name: "decimal",
-			in:   cedar.Decimal{Value: 4567890},
+			in:   f1,
 			want: 456.789,
 		},
 		{
 			name: "time",
-			in:   cedar.FromStdTime(now),
+			in:   cedar.NewDatetime(now),
 			want: now,
 		},
 		{
 			name: "duration",
-			in:   cedar.FromStdDuration(15 * time.Millisecond),
+			in:   cedar.NewDuration(15 * time.Millisecond),
 			want: 15 * time.Millisecond,
 		},
 		{
 			name: "empty set",
-			in:   cedar.NewSet([]cedar.Value{}),
+			in:   cedar.NewSet(),
 			want: []any{},
 		},
 		{
 			name: "set",
-			in:   cedar.NewSet([]cedar.Value{cedar.String("yo"), cedar.Boolean(true)}),
+			in:   cedar.NewSet(cedar.String("yo"), cedar.Boolean(true)),
 			want: []any{"yo", true},
 		},
 		{
@@ -377,7 +382,7 @@ func TestValueToAny(t *testing.T) {
 		},
 		{
 			name: "map",
-			in:   cedar.NewRecord(cedar.RecordMap{"do": cedar.String("it"), "float": cedar.Decimal{Value: 1234560}}),
+			in:   cedar.NewRecord(cedar.RecordMap{"do": cedar.String("it"), "float": f2}),
 			want: map[string]any{"do": "it", "float": 123.456},
 		},
 	}

@@ -3,7 +3,7 @@ package cedar
 import (
 	"log/slog"
 	"maps"
-	"math"
+	"strconv"
 	"sync"
 	"time"
 
@@ -98,7 +98,8 @@ func (a *attributes) valueToAny(in cedar.Value) any {
 	case cedar.Long:
 		return int64(t)
 	case cedar.Decimal:
-		return float64(t.Value) / cedar.DecimalPrecision
+		f, _ := strconv.ParseFloat(t.String(), 64)
+		return f
 	case cedar.Datetime:
 		return time.UnixMilli(t.Milliseconds()).UTC()
 	case cedar.Duration:
@@ -153,25 +154,26 @@ func (a *attributes) anyToValue(in any) cedar.Value {
 	case int64:
 		return cedar.Long(t)
 	case float64:
-		return cedar.Decimal{Value: int64(math.Round(t * cedar.DecimalPrecision))}
+		d, _ := cedar.NewDecimalFromFloat(t)
+		return d
 	case time.Time:
-		return cedar.FromStdTime(t)
+		return cedar.NewDatetime(t)
 	case time.Duration:
-		return cedar.FromStdDuration(t)
+		return cedar.NewDuration(t)
 
 	case []string:
 		s := make([]cedar.Value, len(t))
 		for i := range t {
 			s[i] = cedar.String(t[i])
 		}
-		return cedar.NewSet(s)
+		return cedar.NewSet(s...)
 
 	case []any:
 		s := make([]cedar.Value, len(t))
 		for i := range t {
 			s[i] = a.anyToValue(t[i])
 		}
-		return cedar.NewSet(s)
+		return cedar.NewSet(s...)
 
 	case map[string]string:
 		s := make(cedar.RecordMap, len(t))
