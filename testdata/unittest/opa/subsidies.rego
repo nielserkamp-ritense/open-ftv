@@ -1,4 +1,4 @@
-package Doelbinding.subsidies
+package doelbinding.subsidies
 
 import rego.v1
 
