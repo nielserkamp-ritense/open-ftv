@@ -20,6 +20,7 @@ func TestProcessURL(t *testing.T) {
 		wantScheme string
 		wantHost   string
 		wantPath   string
+		wantParts  []string
 		wantQuery  map[string]string
 	}{
 		{
@@ -45,6 +46,7 @@ func TestProcessURL(t *testing.T) {
 			wantScheme: "https",
 			wantHost:   "oh.my",
 			wantPath:   "/this/is/the/way",
+			wantParts:  []string{"this", "is", "the", "way"},
 		},
 		{
 			name:       "with query",
@@ -53,6 +55,7 @@ func TestProcessURL(t *testing.T) {
 			wantScheme: "https",
 			wantHost:   "oh.my",
 			wantPath:   "/this/is/the/way",
+			wantParts:  []string{"this", "is", "the", "way"},
 			wantQuery:  map[string]string{"name": "grogu", "kind": "greenThingWithBigEars"},
 		},
 	}
@@ -90,6 +93,9 @@ func TestProcessURL(t *testing.T) {
 			}
 			if tc.wantPath != "" {
 				assert.Equal(t, tc.wantPath, m[standards.AttrPath])
+			}
+			if len(tc.wantParts) > 0 {
+				assert.EqualValues(t, tc.wantParts, m[standards.AttrPathParts])
 			}
 			if tc.wantQuery != nil {
 				assert.EqualValues(t, tc.wantQuery, m[standards.AttrQuery])

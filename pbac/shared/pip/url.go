@@ -27,10 +27,17 @@ func (p *pip) determineURL(req *types.Request, a types.AttributeSet) {
 			outQ[k] = strings.Join(inQ[k], "\r")
 		}
 
+		path := req.URL.Path
+
 		m[standards.AttrScheme] = s
 		m[standards.AttrQuery] = outQ
 		m[standards.AttrHost] = req.URL.Host
-		m[standards.AttrPath] = req.URL.Path
+		m[standards.AttrPath] = path
+
+		if path != "" {
+			path = strings.Trim(path, "/")
+			m[standards.AttrPathParts] = strings.Split(path, "/")
+		}
 	}
 
 	a.AddAttribute(standards.AttrHttp, m)

@@ -19,6 +19,7 @@ const (
 	AttrMethod      = "method"
 	AttrOutwayCerts = "outway-certs"
 	AttrPath        = "path"
+	AttrPathParts   = "path-parts"
 	AttrQuery       = "query"
 	AttrRequestTime = "request-time"
 	AttrScheme      = "scheme"

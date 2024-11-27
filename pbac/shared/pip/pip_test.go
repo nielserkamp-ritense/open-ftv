@@ -246,10 +246,11 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 				emptyHeaders,
 				types.NewAttributeSet(
 					types.NewAttribute("http", map[string]any{
-						"scheme": "https",
-						"host":   "www.disney.land",
-						"path":   "/donald/duck",
-						"query":  map[string]string{"x": "y", "q": "www"},
+						"scheme":     "https",
+						"host":       "www.disney.land",
+						"path":       "/donald/duck",
+						"path-parts": []string{"donald", "duck"},
+						"query":      map[string]string{"x": "y", "q": "www"},
 					}),
 				),
 			),
@@ -299,11 +300,12 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 				types.NewAttributeSet(types.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
 				types.NewAttributeSet(
 					types.NewAttribute("http", map[string]any{
-						"method": "POST",
-						"scheme": "https",
-						"host":   "www.disney.land",
-						"path":   "/donald/duck",
-						"query":  map[string]string{"x": "y", "q": "www"},
+						"method":     "POST",
+						"scheme":     "https",
+						"host":       "www.disney.land",
+						"path":       "/donald/duck",
+						"path-parts": []string{"donald", "duck"},
+						"query":      map[string]string{"x": "y", "q": "www"},
 					}),
 				),
 				types.NewAttributeSet(
