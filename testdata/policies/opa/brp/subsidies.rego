@@ -1,10 +1,10 @@
-package Doelbinding.subsidies
+package doelbinding.subsidies
 
 import rego.v1
 
 default allow := false
 
-principal := data.entities.Doelbinding.subsidies.brpPersonen
+principal := data.entities.doelbinding.subsidies.brpPersonen
 
 allow if {
     is_brp
@@ -18,7 +18,7 @@ allow if {
 }
 
 is_brp if {
-    service := data.entities.Service[input.uri]
+    service := data.entities.service[input.uri]
     service.code == "BRP"
     service.owner == "RvIG"
 }

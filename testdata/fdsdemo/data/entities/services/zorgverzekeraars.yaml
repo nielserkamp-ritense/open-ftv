@@ -4,9 +4,6 @@
     owner: "Register Zorgverzekeraars"
     code: "backend"
     name: "Register Zorgverzekeraars - verzekering"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://rzv-fsc-inway.tn-fds-padv-rzv:443/nats"
@@ -14,6 +11,3 @@
     owner: "Register Zorgverzekeraars"
     code: "nats"
     name: "Register Zorgverzekeraars - cloud events"
-    queryFields:
-      - abc:
-          type: string

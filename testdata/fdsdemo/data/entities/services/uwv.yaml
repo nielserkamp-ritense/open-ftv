@@ -4,9 +4,6 @@
     owner: "UWV"
     code: "backend"
     name: "UWV - uitkering"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://uwv-fsc-inway.tn-fds-padv-uwv:443/nats"
@@ -14,6 +11,3 @@
     owner: "UWV"
     code: "nats"
     name: "UWV - cloud events"
-    queryFields:
-      - abc:
-          type: string

@@ -2,11 +2,8 @@
   id: "https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/berichtenbox-backend"
   attributes:
     owner: "Rijksoverheid"
-    code: "BERICHTEN"
+    code: "berichtenbox-backend"
     name: "Rijksoverheid - berichtenbox"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/brp-backend"
@@ -14,9 +11,6 @@
     owner: "Rijksoverheid"
     code: "brp-backend"
     name: "Rijksoverheid - persoonsgegevens"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/ldv-filter-backend"
@@ -24,9 +18,6 @@
     owner: "Rijksoverheid"
     code: "ldv-filter-backend"
     name: "Rijksoverheid - LDV filter"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/nats"
@@ -34,6 +25,3 @@
     owner: "Rijksoverheid"
     code: "nats"
     name: "Rijksoverheid - cloud events"
-    queryFields:
-      - abc:
-          type: string

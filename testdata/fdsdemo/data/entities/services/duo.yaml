@@ -4,9 +4,6 @@
     owner: "DUO"
     code: "backend"
     name: "DUO - studieschulden"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://duo-fsc-inway.tn-fds-padv-duo:443/nats"
@@ -14,6 +11,3 @@
     owner: "DUO"
     code: "nats"
     name: "DUO - cloud events"
-    queryFields:
-      - abc:
-          type: string

@@ -4,9 +4,6 @@
     owner: "Dienst Toeslagen"
     code: "backend"
     name: "Dienst Toeslagen - toeslag"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/regels-backend"
@@ -14,9 +11,6 @@
     owner: "Dienst Toeslagen"
     code: "regels-backend"
     name: "Dienst Toeslagen - regels"
-    queryFields:
-      - abc:
-          type: string
 
 - type: "service"
   id: "https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/nats"
@@ -24,6 +18,3 @@
     owner: "Dienst Toeslagen"
     code: "nats"
     name: "Dienst Toeslagen - cloud events"
-    queryFields:
-      - abc:
-          type: string

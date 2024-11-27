@@ -1,10 +1,10 @@
-package Doelbinding.burgerzaken
+package doelbinding.burgerzaken
 
 import rego.v1
 
 default allow := false
 
-principal := data.entities.Doelbinding.burgerzaken.brpPersonen
+principal := data.entities.doelbinding.burgerzaken.brpPersonen
 
 allow if {
     is_brp
@@ -18,7 +18,7 @@ allow if {
 }
 
 is_brp if {
-    service := data.entities.Service[input.uri]
+    service := data.entities.service[input.uri]
     service.code == "BRP"
     service.owner == "RvIG"
 }
