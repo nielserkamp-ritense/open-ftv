@@ -1,19 +1,13 @@
-- type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+- type: "service"
+  id: "https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
   attributes:
     owner: "Belastingdienst"
-    code: "INKOMEN"
+    code: "backend"
     name: "Belastingdienst - inkomen"
-    queryFields:
-      - abc:
-          type: string
 
-- type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+- type: "service"
+  id: "https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
   attributes:
     owner: "Belastingdienst"
-    code: "EVENTS"
+    code: "nats"
     name: "Belastingdienst - cloud events"
-    queryFields:
-      - abc:
-          type: string

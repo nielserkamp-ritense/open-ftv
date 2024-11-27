@@ -8,11 +8,11 @@ import (
 
 // List of supported principal types.
 const (
-	PrincipalZaak         = "Zaak"
-	PrincipaleDoelbinding = "Doelbinding"
-	PrincipalJWT          = "JWT"
-	PrincipalApp          = "App"
-	PrincipalInvalid      = "Invalid"
+	PrincipalZaak         = "zaak"
+	PrincipaleDoelbinding = "doelbinding"
+	PrincipalJWT          = "jwt"
+	PrincipalApp          = "app"
+	PrincipalInvalid      = "invalid"
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.

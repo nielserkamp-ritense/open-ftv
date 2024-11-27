@@ -1,18 +1,18 @@
-- type: "Service"
-  id: " https://uwv-fsc-inway.tn-fds-padv-uwv:443/backend"
+- type: "service"
+  id: "https://uwv-fsc-inway.tn-fds-padv-uwv:443/backend"
   attributes:
     owner: "UWV"
-    code: "UITKERING"
+    code: "backend"
     name: "UWV - uitkering"
     queryFields:
       - abc:
           type: string
 
-- type: "Service"
-  id: " https://uwv-fsc-inway.tn-fds-padv-uwv:443/nats"
+- type: "service"
+  id: "https://uwv-fsc-inway.tn-fds-padv-uwv:443/nats"
   attributes:
     owner: "UWV"
-    code: "EVENTS"
+    code: "nats"
     name: "UWV - cloud events"
     queryFields:
       - abc:

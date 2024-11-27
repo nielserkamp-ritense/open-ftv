@@ -1,8 +1,8 @@
-- type: "Service"
-  id: " https://fds-fsc-inway.tn-fds-padv-fds:443/backend"
+- type: "service"
+  id: "https://fds-fsc-inway.tn-fds-padv-fds:443/backend"
   attributes:
     owner: "FDS"
-    code: "DEELNEMER"
+    code: "backend"
     name: "FDS - deelnemerlijst"
     queryFields:
       - abc:

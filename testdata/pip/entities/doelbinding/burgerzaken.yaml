@@ -1,4 +1,4 @@
-- type: 'Doelbinding'
+- type: 'doelbinding'
   id: 'burgerzaken'
   attributes:
     brpPersonen:

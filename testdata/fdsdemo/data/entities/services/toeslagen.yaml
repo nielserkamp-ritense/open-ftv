@@ -1,28 +1,28 @@
-- type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend"
+- type: "service"
+  id: "https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/backend"
   attributes:
     owner: "Dienst Toeslagen"
-    code: "TOESLAG"
+    code: "backend"
     name: "Dienst Toeslagen - toeslag"
     queryFields:
       - abc:
           type: string
 
-- type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/regels-backend"
+- type: "service"
+  id: "https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/regels-backend"
   attributes:
     owner: "Dienst Toeslagen"
-    code: "REGELS"
+    code: "regels-backend"
     name: "Dienst Toeslagen - regels"
     queryFields:
       - abc:
           type: string
 
-- type: "Service"
-  id: " https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/nats"
+- type: "service"
+  id: "https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/nats"
   attributes:
     owner: "Dienst Toeslagen"
-    code: "EVENTS"
+    code: "nats"
     name: "Dienst Toeslagen - cloud events"
     queryFields:
       - abc:

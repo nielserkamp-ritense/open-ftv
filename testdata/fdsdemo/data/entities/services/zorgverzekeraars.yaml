@@ -1,18 +1,18 @@
-- type: "Service"
-  id: " https://rzv-fsc-inway.tn-fds-padv-rzv:443/backend"
+- type: "service"
+  id: "https://rzv-fsc-inway.tn-fds-padv-rzv:443/backend"
   attributes:
     owner: "Register Zorgverzekeraars"
-    code: "VERZEKERING"
+    code: "backend"
     name: "Register Zorgverzekeraars - verzekering"
     queryFields:
       - abc:
           type: string
 
-- type: "Service"
-  id: " https://rzv-fsc-inway.tn-fds-padv-rzv:443/nats"
+- type: "service"
+  id: "https://rzv-fsc-inway.tn-fds-padv-rzv:443/nats"
   attributes:
     owner: "Register Zorgverzekeraars"
-    code: "EVENTS"
+    code: "nats"
     name: "Register Zorgverzekeraars - cloud events"
     queryFields:
       - abc:

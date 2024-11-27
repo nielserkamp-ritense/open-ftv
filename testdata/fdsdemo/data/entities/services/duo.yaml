@@ -1,18 +1,18 @@
-- type: "Service"
-  id: " https://duo-fsc-inway.tn-fds-padv-duo:443/backend"
+- type: "service"
+  id: "https://duo-fsc-inway.tn-fds-padv-duo:443/backend"
   attributes:
     owner: "DUO"
-    code: "SCHULDEN"
+    code: "backend"
     name: "DUO - studieschulden"
     queryFields:
       - abc:
           type: string
 
-- type: "Service"
-  id: " https://duo-fsc-inway.tn-fds-padv-duo:443/nats"
+- type: "service"
+  id: "https://duo-fsc-inway.tn-fds-padv-duo:443/nats"
   attributes:
     owner: "DUO"
-    code: "EVENTS"
+    code: "nats"
     name: "DUO - cloud events"
     queryFields:
       - abc:

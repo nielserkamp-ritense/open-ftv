@@ -42,6 +42,8 @@ func (p *pip) testHeaders(req *types.Request, a types.AttributeSet) string {
 				fwd1 = strings.Join(list, ",")
 			case standards.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
+			case "new-uri":
+				newURI = list[0]
 			default:
 				other[k] = strings.Join(list, ",")
 			}
@@ -62,8 +64,8 @@ func (p *pip) convertActivityID(id string, a types.AttributeSet) {
 		return
 	}
 
-	// An Activity is an entity with 'RVA' type.
-	e := p.GetEntity(fmt.Sprintf("RVA::%s", id))
+	// An activity is an entity with type 'rva'.
+	e := p.GetEntity(fmt.Sprintf("rva::%s", id))
 	if e == nil {
 		return
 	}
