@@ -17,7 +17,7 @@ func TestDeterminePrincipal(t *testing.T) {
 		{
 			name:  "empty",
 			a:     &attributes{},
-			want1: "Invalid",
+			want1: "invalid",
 			want2: "invalid",
 		},
 		{
@@ -25,7 +25,7 @@ func TestDeterminePrincipal(t *testing.T) {
 			a: &attributes{
 				set: cedar.RecordMap{"zaak-type": cedar.String("zaak1")},
 			},
-			want1: "Zaak",
+			want1: "zaak",
 			want2: "zaak1",
 		},
 		{
@@ -36,7 +36,7 @@ func TestDeterminePrincipal(t *testing.T) {
 					"taak":      cedar.String("controle"),
 				},
 			},
-			want1: "Zaak",
+			want1: "zaak",
 			want2: "zaak2-controle",
 		},
 		{
@@ -44,7 +44,7 @@ func TestDeterminePrincipal(t *testing.T) {
 			a: &attributes{
 				set: cedar.RecordMap{"doelbinding": cedar.String("subsidie")},
 			},
-			want1: "Doelbinding",
+			want1: "doelbinding",
 			want2: "subsidie",
 		},
 		{
@@ -52,7 +52,7 @@ func TestDeterminePrincipal(t *testing.T) {
 			a: &attributes{
 				set: cedar.RecordMap{"api-key": cedar.String("12cd45ef")},
 			},
-			want1: "App",
+			want1: "app",
 			want2: "12cd45ef",
 		},
 	}
@@ -64,10 +64,4 @@ func TestDeterminePrincipal(t *testing.T) {
 			assert.Equal(t, cedar.String(tc.want2), p2)
 		})
 	}
-}
-
-var jwtb64 string
-
-func init() {
-
 }

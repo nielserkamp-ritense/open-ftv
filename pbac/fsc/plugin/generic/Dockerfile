@@ -1,5 +1,5 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.22.5-alpine3.19 AS golang_builder
+FROM digilabpublic.azurecr.io/golang:1.22.8-alpine3.19 AS golang_builder
 
 WORKDIR /build
 

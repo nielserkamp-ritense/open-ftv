@@ -81,9 +81,8 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-
 replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0 => ../../../../oas
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0 => ../../../../pbac/shared
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0 =>  ../../../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0 => ../../../../utilities
 )

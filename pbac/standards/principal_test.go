@@ -18,13 +18,13 @@ func TestDeterminePrincipal(t *testing.T) {
 		{
 			name:  "empty",
 			a:     types.NewAttributeSet(),
-			want1: "Invalid",
+			want1: "invalid",
 			want2: "invalid",
 		},
 		{
 			name:  "zaaktype",
 			a:     types.NewAttributeSet(types.NewAttribute("zaak-type", "zaak1")),
-			want1: "Zaak",
+			want1: "zaak",
 			want2: "zaak1",
 		},
 		{
@@ -33,19 +33,19 @@ func TestDeterminePrincipal(t *testing.T) {
 				types.NewAttribute("zaak-type", "zaak2"),
 				types.NewAttribute("taak", "controle"),
 			),
-			want1: "Zaak",
+			want1: "zaak",
 			want2: "zaak2-controle",
 		},
 		{
 			name:  "doelbinding",
 			a:     types.NewAttributeSet(types.NewAttribute("doelbinding", "subsidie")),
-			want1: "Doelbinding",
+			want1: "doelbinding",
 			want2: "subsidie",
 		},
 		{
 			name:  "api-key",
 			a:     types.NewAttributeSet(types.NewAttribute("api-key", "12cd45ef")),
-			want1: "App",
+			want1: "app",
 			want2: "12cd45ef",
 		},
 	}
