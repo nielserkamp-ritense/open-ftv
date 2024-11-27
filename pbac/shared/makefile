@@ -3,12 +3,17 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/$(PR
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all dep-up fmt vet lint test race msan cover coverhtml escape examples help
+.PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape examples help
 
 all: vet lint test race examples
 
 dep-up: ## upgrade all dependencies
 	@go get -u ./...
+	@go mod tidy
+
+dep: ## upgrade local dependencies
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
 	@go mod tidy
 
 fmt: ${GO_FILES}  ## format all source code

@@ -3,15 +3,21 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all lint dep fmt test race cover coverhtml escape app docker help
+.PHONY: all lint dep-up dep fmt test race cover coverhtml escape app docker help
 
 all: test
 
 lint: ## lint all source code (requires 'revive' to be installed!)
 	@revive -set_exit_status ${PKG_LIST}
 
-dep: ## upgrade all dependencies
+dep-up: ## upgrade all dependencies
 	@go get -u ./...
+	@go mod tidy
+
+dep: ## upgrade local dependencies
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared
 	@go mod tidy
 
 fmt: ${GO_FILES}  ## format source code

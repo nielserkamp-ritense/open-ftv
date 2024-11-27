@@ -1,10 +1,12 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards
 
-go 1.22.2
+go 1.22.7
+
+toolchain go1.23.2
 
 require (
 	github.com/stretchr/testify v1.9.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241126121959-501b6f02c6eb
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241127113512-ad6c3d980221
 )
 
 require (
@@ -14,4 +16,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0 => ../shared
+//replace gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0 => ../shared
