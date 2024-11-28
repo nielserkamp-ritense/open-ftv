@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/handlers"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -24,8 +25,8 @@ type Service interface {
 }
 
 // NewService initializes an HTTP service (implemented with fiber/fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger) Service {
-	return &service{cfg: cfg, logger: logger}
+func NewService(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logger) Service {
+	return &service{cfg: cfg, logger: logger, ldv: ldv}
 }
 
 // Serve runs the HTTP service.
@@ -81,6 +82,7 @@ func (s *service) errorHandler(req *fiber.Ctx, err error) error {
 type service struct {
 	cfg      *config.Config
 	logger   *slog.Logger
+	ldv      opentelemetry.Logger
 	svc      *fiber.App
 	intChan  chan os.Signal
 	shutdown atomic.Bool

@@ -20,7 +20,7 @@ dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared
 	@go mod tidy
 
-fmt: ${GO_FILES}  ## format source code
+fmt: dep ${GO_FILES}  ## format source code
 	@go fmt ${PKG_LIST}
 
 test: fmt ## run all unit tests

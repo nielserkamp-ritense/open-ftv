@@ -30,7 +30,7 @@ func TestServe(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger)
+		s := NewService(cfg, logger, nil)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -64,7 +64,7 @@ func TestServe_FailPDP(t *testing.T) {
 			MaxBody:      64536,
 		}
 
-		s := NewService(cfg, logger)
+		s := NewService(cfg, logger, nil)
 
 		defer func() {
 			e := recover()
@@ -92,7 +92,7 @@ func TestErrorHandler(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger)
+		s := NewService(cfg, logger, nil)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)

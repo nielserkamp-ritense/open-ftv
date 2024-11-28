@@ -27,6 +27,10 @@ type Config struct {
 	LogFormat          string        `yaml:"log.format,omitempty" env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
 	LogLevel           string        `yaml:"log.level,omitempty" env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`
 	LogSource          bool          `yaml:"log.source,omitempty" env:"LOG_SOURCE" flag:"log-source" default:"true" desc:"Include source-location when writing log data"`
+	OpenTelURL         string        `yaml:"ldv.url,omitempty" env:"LDV_URL" flag:"ldv-url" desc:"OpenTelemetry target URL for LDV"`
+	OpenTelServiceName string        `yaml:"ldv.service,omitempty" env:"LDV_SERVICE_NAME" flag:"ldv-service" desc:"OpenTelemetry service name for LDV"`
+	OpenTelActivityID  string        `yaml:"ldv.activityID,omitempty" env:"LDV_ACTIVITY_ID" flag:"ldv-activity-id" desc:"OpenTelemetry activity-id for LDV"`
+	OpenTelTimeout     time.Duration `yaml:"ldv.timeout,omitempty" env:"LDV_TIMEOUT" flag:"ldv-timeout" default:"5s" desc:"OpenTelemetry batch timeout for LDV"`
 	PolicyLanguage     string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
 	PolicyStore        string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
 	PolicyStoreRecurse bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
