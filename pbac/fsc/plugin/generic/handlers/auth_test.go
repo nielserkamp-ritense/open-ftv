@@ -36,7 +36,7 @@ func TestAuthHandler_RunOK(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cedar",
 		}
 
-		c, err := newController(cfg, logger)
+		c, err := newController(cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
@@ -92,7 +92,7 @@ func TestAuthHandler_RunFail1(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/opa",
 		}
 
-		c, err := newController(cfg, logger)
+		c, err := newController(cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
@@ -148,7 +148,7 @@ func TestAuthHandler_RunFail2(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		c, err := newController(cfg, logger)
+		c, err := newController(cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
@@ -204,7 +204,7 @@ func TestAuthHandler_RunFail3(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		c, err := newController(cfg, logger)
+		c, err := newController(cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
@@ -260,7 +260,7 @@ func TestAuthHandler_RunFail4(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		c, err := newController(cfg, logger)
+		c, err := newController(cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 

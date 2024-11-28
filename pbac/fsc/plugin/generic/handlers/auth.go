@@ -22,11 +22,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // AuthHandler instantiates an authorization endpoint handler.
-func AuthHandler(cfg *config.Config, logger *slog.Logger) fiber.Handler {
-	c, err := newController(cfg, logger)
+func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logger) fiber.Handler {
+	c, err := newController(cfg, logger, ldv)
 	if c == nil {
 		logger.Error("configuration error", "error", err)
 		return nil
@@ -36,17 +37,17 @@ func AuthHandler(cfg *config.Config, logger *slog.Logger) fiber.Handler {
 	return h.run
 }
 
-func newController(cfg *config.Config, logger *slog.Logger) (control.Controller, error) {
+func newController(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logger) (control.Controller, error) {
 	switch types.LanguageFromString(cfg.PolicyLanguage) {
 	case types.REGO:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
-		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger), nil
+		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
 	case types.CERBOS:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
-		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger), nil
+		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
 	case types.CEDAR:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
-		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger), nil
+		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}

@@ -138,7 +138,7 @@ func TestController_Handle(t *testing.T) {
 			require.NoError(t, err)
 
 			c := &controller{
-				Base: control.NewBase("x", "v1", logger),
+				Base: control.NewBase("x", "v1", logger, nil),
 				pdp:  pdp,
 				mem:  mem,
 				ctx:  context.Background(),

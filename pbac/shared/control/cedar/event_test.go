@@ -123,7 +123,7 @@ func TestController_Handle(t *testing.T) {
 			require.NotNil(t, pdp)
 
 			c := &controller{
-				Base: control.NewBase("x", "v1", logger),
+				Base: control.NewBase("x", "v1", logger, nil),
 				pdp:  pdp,
 			}
 

@@ -16,7 +16,7 @@ dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
 	@go mod tidy
 
-fmt: ${GO_FILES}  ## format all source code
+fmt: dep ${GO_FILES}  ## format all source code
 	@go fmt ${PKG_LIST}
 
 vet: fmt  ## vet all source code

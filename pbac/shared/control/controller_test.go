@@ -41,7 +41,7 @@ func TestNewBase(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			b := NewBase(tc.id, tc.version, logger)
+			b := NewBase(tc.id, tc.version, logger, nil)
 			require.NotNil(t, b)
 
 			assert.Equal(t, tc.want, b.String())

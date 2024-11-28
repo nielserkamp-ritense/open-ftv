@@ -13,19 +13,20 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // Version defines the version of this Cedar PDP.
 const Version = "1.0.0"
 
 // NewController instantiates a new Cedar controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger) control.Controller {
+func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, ldv opentelemetry.Logger) control.Controller {
 	if store != "" {
 		store, _ = filepath.Abs(store)
 	}
 
 	c := &controller{
-		Base:     control.NewBase(types.CEDAR.String(), Version, logger),
+		Base:     control.NewBase(types.CEDAR.String(), Version, logger, ldv),
 		pdp:      cedar.NewPolicySet(),
 		entities: make(cedar.EntityMap),
 	}

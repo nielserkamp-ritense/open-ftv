@@ -10,17 +10,18 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // Version defines the version of this Cerbos/CEL PDP.
 const Version = "1.0.0"
 
 // NewController instantiates a new Cerbos/CEL controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger) control.Controller {
+func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, ldv opentelemetry.Logger) control.Controller {
 	store, _ = filepath.Abs(store)
 
 	c := &controller{
-		Base: control.NewBase(types.CERBOS.String(), Version, logger),
+		Base: control.NewBase(types.CERBOS.String(), Version, logger, ldv),
 	}
 
 	c.SetPIP(pip)

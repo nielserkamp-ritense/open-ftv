@@ -80,7 +80,7 @@ func TestController_Authorize(t *testing.T) {
 			p := pip.New(tc.store1, tc.recurse1, logger, types.NewAttributeSet, types.NewEntitySet)
 			require.NotNil(t, p)
 
-			c := NewController(p, tc.store2, tc.recurse2, logger)
+			c := NewController(p, tc.store2, tc.recurse2, logger, nil)
 			require.NotNil(t, c)
 
 			h.Clear()

@@ -8,6 +8,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // Controller represents the interface for a PBAC controller component.
@@ -21,6 +22,7 @@ type Controller interface {
 // Base contains the common attributes of a controller.
 type Base struct {
 	logger   *slog.Logger
+	ldv      opentelemetry.Logger
 	name     string
 	version  string
 	fullName string
@@ -29,9 +31,10 @@ type Base struct {
 }
 
 // NewBase instantiates a new controller base.
-func NewBase(name, version string, logger *slog.Logger) Base {
+func NewBase(name, version string, logger *slog.Logger, ldv opentelemetry.Logger) Base {
 	return Base{
 		logger:   logger,
+		ldv:      ldv,
 		name:     name,
 		version:  version,
 		fullName: fmt.Sprintf("%s %s", name, version),

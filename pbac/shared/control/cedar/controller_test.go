@@ -67,7 +67,7 @@ func TestNewController(t *testing.T) {
 
 			h.Clear()
 
-			c := NewController(p, tc.store2, tc.recurse2, logger)
+			c := NewController(p, tc.store2, tc.recurse2, logger, nil)
 			require.NotNil(t, c)
 
 			assert.Equal(t, tc.wantLog, h.Count())

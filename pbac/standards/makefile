@@ -15,38 +15,38 @@ dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared
 	@go mod tidy
 
-fmt: ${GO_FILES}  ## format all source code
+fmt: dep ${GO_FILES}  ## format all source code
 	@go fmt ${PKG_LIST}
 
-vet: dep fmt  ## vet all source code
+vet: fmt  ## vet all source code
 	@go vet ${PKG_LIST}
 
-lint: dep fmt ## lint all source code (requires revive tool)
+lint: fmt ## lint all source code (requires revive tool)
 	@revive -set_exit_status ${PKG_LIST}
 
-test: dep fmt ## run all unit tests
+test: fmt ## run all unit tests
 	@go test -cover ${PKG_LIST}
 
-bench: dep fmt ## run all benchmarks
+bench: fmt ## run all benchmarks
 	@go test -bench . -benchmem ${PKG_LIST}
 
-race: dep fmt ## run race detector
+race: fmt ## run race detector
 	@go test -race ${PKG_LIST}
 
-msan: dep fmt ## run memory sanitizer
+msan: fmt ## run memory sanitizer
 	@go test -msan ${PKG_LIST}
 
-cover: dep fmt ## run coverage report
+cover: fmt ## run coverage report
 	@../../scripts/coverage.sh
 
-coverhtml: dep fmt ## run coverage report and display in browser (requires xdg-open tool)
+coverhtml: fmt ## run coverage report and display in browser (requires xdg-open tool)
 	@../../scripts/coverage.sh html
 	@xdg-open cover.html
 
-escape: dep fmt ## run escape analysis
+escape: fmt ## run escape analysis
 	@go build -gcflags "-m" ${PKG_LIST} 2>&1
 
-examples: dep fmt ## build example binaries
+examples: fmt ## build example binaries
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
