@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/open-policy-agent/opa/sdk"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
@@ -14,6 +15,13 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
+
+	var span trace.Span
+
+	if ldv := c.LDV(); ldv != nil {
+		_, span = ldv.StartSpan(context.Background())
+	}
+
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
@@ -22,6 +30,10 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 	started := time.Now()
 	resp, err := c.pdp.Decision(context.Background(), c.buildDecisionOptions(req))
 	duration := time.Since(started)
+
+	if span != nil {
+		span.End()
+	}
 
 	if err != nil {
 		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "err", err, "pdp elapsed", duration.String())

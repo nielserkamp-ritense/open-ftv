@@ -43,8 +43,8 @@ func New(service, url string, batchTimeout time.Duration, opts ...trace.TracerOp
 
 	if url == "" {
 		exporter, _ = stdouttrace.New(
-			stdouttrace.WithWriter(os.Stdout), // so we can silence it in unit-test :)
-			stdouttrace.WithPrettyPrint(),
+			stdouttrace.WithWriter(os.Stdout), // for debug purposes and to be able to silence unit-tests :)
+			// stdouttrace.WithPrettyPrint(),
 		)
 	} else {
 		if exporter, err = otlptracegrpc.New(

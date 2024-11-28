@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // Controller represents the interface for a PBAC controller component.
@@ -22,7 +22,7 @@ type Controller interface {
 // Base contains the common attributes of a controller.
 type Base struct {
 	logger   *slog.Logger
-	ldv      opentelemetry.Logger
+	ldv      ldv.LDV
 	name     string
 	version  string
 	fullName string
@@ -31,7 +31,7 @@ type Base struct {
 }
 
 // NewBase instantiates a new controller base.
-func NewBase(name, version string, logger *slog.Logger, ldv opentelemetry.Logger) Base {
+func NewBase(name, version string, logger *slog.Logger, ldv ldv.LDV) Base {
 	return Base{
 		logger:   logger,
 		ldv:      ldv,
@@ -59,6 +59,11 @@ func (b *Base) Version() string {
 // Logger returns the logger used by the controller.
 func (b *Base) Logger() *slog.Logger {
 	return b.logger
+}
+
+// LDV returns the LDV logger used by the controller.
+func (b *Base) LDV() ldv.LDV {
+	return b.ldv
 }
 
 // PAP returns the PAP used by the controller.

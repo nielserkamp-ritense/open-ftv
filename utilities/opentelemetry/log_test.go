@@ -77,6 +77,9 @@ func TestLogger_StartSpan(t *testing.T) {
 
 		err = l.Shutdown(ctx)
 		require.NoError(t, err)
+
+		err = l.Shutdown(ctx)
+		require.NoError(t, err)
 	})
 }
 

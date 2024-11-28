@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cerbos"
@@ -22,11 +23,10 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
 // AuthHandler instantiates an authorization endpoint handler.
-func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logger) fiber.Handler {
+func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) fiber.Handler {
 	c, err := newController(cfg, logger, ldv)
 	if c == nil {
 		logger.Error("configuration error", "error", err)
@@ -37,7 +37,7 @@ func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logg
 	return h.run
 }
 
-func newController(cfg *config.Config, logger *slog.Logger, ldv opentelemetry.Logger) (control.Controller, error) {
+func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (control.Controller, error) {
 	switch types.LanguageFromString(cfg.PolicyLanguage) {
 	case types.REGO:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
