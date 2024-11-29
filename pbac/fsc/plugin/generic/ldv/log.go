@@ -4,8 +4,10 @@ package ldv
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
@@ -14,7 +16,7 @@ import (
 
 // LDV represents the interface for logging messages to Logboek Dataverwerkingen.
 type LDV interface {
-	StartSpan(ctx context.Context, opts ...trace.SpanStartOption) (context.Context, trace.Span)
+	StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (context.Context, trace.Span)
 	Shutdown(ctx context.Context) error
 }
 
@@ -48,7 +50,14 @@ func New(cfg *config.Config, logger *slog.Logger) LDV {
 }
 
 // StartSpan implements the LDV interface.
-func (l *ldv) StartSpan(ctx context.Context, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+func (l *ldv) StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (context.Context, trace.Span) {
+	attributes = append(attributes, attribute.String("authz.activity.id", l.activityID))
+
+	opts := []trace.SpanStartOption{
+		trace.WithTimestamp(time.Now().UTC()),
+		trace.WithAttributes(attributes...),
+	}
+
 	return l.ldv.StartSpan(ctx, l.activityID, opts...)
 }
 

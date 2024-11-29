@@ -74,7 +74,7 @@ func TestAuthHandler_RunOK(t *testing.T) {
 }
 
 func TestAuthHandler_RunFail1(t *testing.T) {
-	in := `{"input":{"method":"GET","path":"/x/y"}}`
+	in := `{"input":{"method":"GET","path":"/x/y","headers":{"doelbinding":["subsidies"]}}}`
 	out := `{"result":{"allowed":false,"status":{"reason":"not authorized"}}}`
 
 	t.Run("auth handler", func(t *testing.T) {

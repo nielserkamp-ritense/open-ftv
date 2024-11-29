@@ -5,8 +5,8 @@ go 1.22.7
 toolchain go1.23.2
 
 require (
-	github.com/stretchr/testify v1.9.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241127113512-ad6c3d980221
+	github.com/stretchr/testify v1.10.0
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241128151324-6f29ec583367
 )
 
 require (

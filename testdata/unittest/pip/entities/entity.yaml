@@ -1,4 +1,4 @@
-- type: "App"
+- type: "app"
   id: "app1"
   attributes:
     code: "app1"

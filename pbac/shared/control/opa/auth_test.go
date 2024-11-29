@@ -44,8 +44,10 @@ func TestController_Authorize(t *testing.T) {
 				URL:         u1,
 				Method:      "GET",
 				RequestTime: &now,
-				Headers:     map[string][]string{},
-				Body:        []byte(""),
+				Headers: map[string][]string{
+					"doelbinding": {"subsidies"},
+				},
+				Body: []byte(""),
 			},
 			wantLog: 5,
 			want:    types.Response{Message: "not authorized"},
