@@ -1,0 +1,146 @@
+openapi: 3.0.0
+info:
+  description: |
+    OpenAPI specification for AuthZEN specification v1.0.
+  version: "1.0.0"
+  title: "AuthZEN"
+paths:
+  /authzen:
+    post:
+      summary: "Authorization request"
+      parameters:
+        - in: header
+          name: "Authorization"
+          description: "Request header containing the credentials to authenticate the client to the authentication service."
+          schema:
+            type: string
+        - in: header
+          name: "X-Request-ID"
+          description: "Request header containing the unique ID of the request. This will be returned in the response."
+          schema:
+            type: string
+      responses:
+        200:
+          description: "The authorization request has been handled successfully. This does not mean the request is authorized, it means that the request has been processed successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationResponse"
+        400:
+          description: "The authorization request has failed due to malformed or invalid input data."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: "The authorization request has failed due to an unauthorized request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: "The authorization request has failed due to being forbidden."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "The authorization request has failed due to an internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/AuthorizationRequest"
+components:
+  schemas:
+    Entity:
+      type: object
+      description: "The entity associated with an authorization request. THis can be the subject (e.g. principal) or the resouce."
+      properties:
+        type:
+          type: string
+          description: "The type of the entity."
+          example: "user"
+        id:
+          type: string
+          description: "The unique ID of the entity."
+          example: "alice"
+        properties:
+          type: object
+          description: "Optional attributes for the entity."
+      required:
+        - type
+        - id
+    Action:
+      type: object
+      description: "The action associated with an authorization request."
+      properties:
+        name:
+          type: string
+          description: "The name of the action."
+          example: "can_read"
+        properties:
+          type: object
+      required:
+        - type
+        - id
+    ReasonField:
+      type: object
+      description: "Map of one or more reasons, with a language-identifier as the key."
+    ReasonObject:
+      type: object
+      description: "Specifies a particular reason."
+      properties:
+        id:
+          type: string
+          description: "Unique identifier of the reason"
+        reason_admin:
+          $ref: "#/components/schemas/ReasonField"
+        reason_user:
+          $ref: "#/components/schemas/ReasonField"
+      required:
+        - id
+    AuthorizationRequest:
+      type: object
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        action:
+          $ref: "#/components/schemas/Action"
+        resource:
+          $ref: "#/components/schemas/Entity"
+        context:
+          type: object
+      required:
+        - subject
+        - action
+        - resource
+    AuthorizationResponse:
+      type: object
+      properties:
+        decision:
+          type: boolean
+          description: "true if the request is authorized."
+        context:
+          type: object
+          description: "Optional context returned by the policy engine."
+      required:
+        - decision
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: "An optional message detailing the error."
+        data:
+          type: object
+          description: "Optional extra context of the error."
+  requestBodies:
+    AuthorizationRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AuthorizationRequest"
+      description: The body of the request send to the authorization service
+      required: true
