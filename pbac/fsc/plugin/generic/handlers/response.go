@@ -16,7 +16,6 @@ func SendBasicResponse(req *fiber.Ctx, status int) error {
 
 // SendMessageResponse sends a basic response corresponding with the given status code.
 func SendMessageResponse(req *fiber.Ctx, status int, msg string) error {
-	req.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	return req.Status(status).JSON(&basicResponse{Message: msg})
 }
 

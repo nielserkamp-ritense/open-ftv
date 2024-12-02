@@ -6,7 +6,7 @@ import (
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes() {
-	auth := handlers.AuthHandler(s.cfg, s.logger, s.ldv)
+	auth := handlers.New(s.cfg, s.logger, s.ldv)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
@@ -16,5 +16,6 @@ func (s *service) initRoutes() {
 
 	// API v1.
 	v1 := s.svc.Group("/v1")
-	v1.Post("/auth", auth)
+	v1.Post("/auth", auth.AuthFSC)
+	v1.Post("/authzen", auth.AuthZEN)
 }

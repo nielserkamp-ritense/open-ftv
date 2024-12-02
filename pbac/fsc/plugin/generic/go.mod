@@ -9,9 +9,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20241202102600-80b682f0c38d
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241202102600-80b682f0c38d
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202102600-80b682f0c38d
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20241202155444-8a49c04b9f03
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241202155817-2785d62766a0
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202155613-ad6525c1648b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202155613-ad6525c1648b
 	gitlab.com/gjuyn/go-config v1.0.1
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
@@ -65,7 +66,6 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202102600-80b682f0c38d // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.32.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.32.0 // indirect

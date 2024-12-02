@@ -43,7 +43,7 @@ func TestAuthHandler_RunOK(t *testing.T) {
 		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.run)
+		app.Post("/v1/auth", auth.AuthFSC)
 
 		cfg.PolicyLanguage = "" // this forces the bad config!
 
@@ -99,7 +99,7 @@ func TestAuthHandler_RunFail1(t *testing.T) {
 		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.run)
+		app.Post("/v1/auth", auth.AuthFSC)
 
 		cfg.PolicyLanguage = "" // this forces the bad config!
 
@@ -155,7 +155,7 @@ func TestAuthHandler_RunFail2(t *testing.T) {
 		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.run)
+		app.Post("/v1/auth", auth.AuthFSC)
 
 		cfg.PolicyLanguage = "" // this forces the bad config!
 
@@ -211,7 +211,7 @@ func TestAuthHandler_RunFail3(t *testing.T) {
 		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.run)
+		app.Post("/v1/auth", auth.AuthFSC)
 
 		cfg.PolicyLanguage = "" // this forces the bad config!
 
@@ -267,7 +267,7 @@ func TestAuthHandler_RunFail4(t *testing.T) {
 		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.run)
+		app.Post("/v1/auth", auth.AuthFSC)
 
 		cfg.PolicyLanguage = "" // this forces the bad config!
 

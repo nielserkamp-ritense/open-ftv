@@ -2,18 +2,11 @@
 package handlers
 
 import (
-	"encoding/base64"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
-	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
@@ -22,11 +15,16 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-// AuthHandler instantiates an authorization endpoint handler.
-func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) fiber.Handler {
+// AuthHandler represents the interface for handling authorization requests.
+type AuthHandler interface {
+	AuthFSC(req *fiber.Ctx) error
+	AuthZEN(req *fiber.Ctx) error
+}
+
+// New instantiates an authorization handler.
+func New(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) AuthHandler {
 	c, err := newController(cfg, logger, ldv)
 	if c == nil {
 		logger.Error("configuration error", "error", err)
@@ -34,7 +32,7 @@ func AuthHandler(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) fiber.Han
 	}
 
 	h := &authHandler{cfg: cfg, logger: logger, controller: c}
-	return h.run
+	return h
 }
 
 func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (control.Controller, error) {
@@ -53,146 +51,8 @@ func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (contro
 	}
 }
 
-func (h *authHandler) run(fc *fiber.Ctx) error {
-	p := &authProcess{
-		authHandler: *h,
-		fc:          fc,
-		status:      fiber.StatusInternalServerError,
-		started:     time.Now(),
-	}
-
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		defer p.log()
-	}
-
-	if p.verifyRequest(); p.status != fiber.StatusOK {
-		return SendMessageResponse(fc, p.status, p.msg)
-	}
-
-	p.newAccessRequest()
-
-	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
-		p.msg = "authorization process failed"
-		return SendMessageResponse(fc, p.status, p.msg)
-	}
-
-	allowed, msg := p.resp.Allowed, p.resp.Message
-	if msg == "" {
-		if allowed {
-			msg = "ok"
-		} else {
-			msg = "not authorized"
-		}
-	}
-
-	return fc.JSON(&auth.AuthorizationResponse{
-		Result: &auth.AuthorizationResponseData{
-			Allowed: &allowed,
-			Status: &struct {
-				Reason *string `json:"reason,omitempty"`
-			}{Reason: &msg},
-		},
-	})
-}
-
-func (p *authProcess) verifyRequest() {
-	p.status = fiber.StatusBadRequest
-
-	if len(p.fc.Request().Header.ContentType()) == 0 {
-		p.fc.Request().Header.SetContentType("application/json")
-	}
-
-	p.authReq = &auth.AuthorizationRequest{}
-	if p.err = p.fc.BodyParser(p.authReq); p.err != nil {
-		p.msg = "invalid input data"
-		return
-	}
-
-	if p.authReq.Input == nil {
-		p.msg, p.err = "invalid data", errors.New("input must be filled")
-		return
-	}
-
-	if p.authReq.Input.Method == "" {
-		p.msg, p.err = "invalid method", errors.New("input.method must be filled")
-		return
-	}
-
-	if p.authReq.Input.Path == "" {
-		p.msg, p.err = "invalid path", errors.New("input.path must be filled")
-		return
-	}
-
-	p.status = fiber.StatusOK
-}
-
-func (p *authProcess) newAccessRequest() {
-	s := p.authReq.Input.Path
-	if !strings.HasPrefix(s, "http") {
-		s = fmt.Sprintf("https://%s", s)
-	}
-	if p.authReq.Input.Query != "" {
-		s = fmt.Sprintf("%s?%s", s, p.authReq.Input.Query)
-	}
-
-	u, _ := url.ParseRequestURI(s)
-
-	var d []byte
-	if b := convert.OpaqueString(p.authReq.Input.Body); b != "" {
-		d, _ = base64.StdEncoding.DecodeString(b)
-	}
-
-	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &types.Request{
-		UID:         &uid,
-		URL:         u,
-		Method:      p.authReq.Input.Method,
-		RequestTime: &now,
-		Body:        d,
-		Headers:     p.authReq.Input.Headers,
-		Attributes:  make(map[string]any),
-	}
-}
-
-func (p *authProcess) log() {
-	args := make([]any, 0, 16)
-
-	if p.authReq != nil && p.authReq.Input != nil {
-		args = append(args, "method", p.authReq.Input.Method)
-	}
-	if p.req != nil {
-		args = append(args, "request-uid", p.req.UID)
-	}
-	if p.resp != nil {
-		args = append(args, "allowed", p.resp.Allowed, "policy", p.resp.PolicyKey)
-	}
-
-	var msg string
-	if p.err != nil {
-		msg = "authorization process failed"
-		args = append(args, "status", p.status, "error", p.err)
-	} else {
-		msg = "authorization process successful"
-	}
-
-	args = append(args, "elapsed time", time.Since(p.started).String())
-	p.logger.Info(msg, args...)
-}
-
 type authHandler struct {
 	cfg        *config.Config
 	logger     *slog.Logger
 	controller control.Controller
-}
-
-type authProcess struct {
-	status  int
-	fc      *fiber.Ctx
-	authReq *auth.AuthorizationRequest
-	req     *types.Request
-	resp    *types.Response
-	started time.Time
-	err     error
-	msg     string
-	authHandler
 }
