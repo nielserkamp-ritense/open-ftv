@@ -71,18 +71,18 @@ func TestNew(t *testing.T) {
 				types.NewAttribute("vrijdag", 5),
 			),
 			wantEntities: types.NewEntitySet(
-				types.NewEntity("App", "app1", types.NewAttributeSet(
+				types.NewEntity("app", "app1", types.NewAttributeSet(
 					types.NewAttribute("code", "app1"),
 					types.NewAttribute("name", "App-1"),
 				)),
-				types.NewEntity("App", "app2", types.NewAttributeSet(
+				types.NewEntity("app", "app2", types.NewAttributeSet(
 					types.NewAttribute("code", "app2"),
 					types.NewAttribute("name", "App-2"),
 				)),
-				types.NewEntity("App", "app3", types.NewAttributeSet(
+				types.NewEntity("app", "app3", types.NewAttributeSet(
 					types.NewAttribute("code", "app3"),
 					types.NewAttribute("name", "App-3"),
-				), "App::app1", "App::app2",
+				), "app::app1", "app::app2",
 				),
 			),
 		},
