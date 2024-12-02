@@ -76,14 +76,23 @@ func (h *authHandler) run(fc *fiber.Ctx) error {
 		return SendMessageResponse(fc, p.status, p.msg)
 	}
 
-	p.out = &auth.AuthorizationResponse{Result: &auth.AuthorizationResponseData{Allowed: &p.resp.Allowed}}
-	if !p.resp.Allowed && p.resp.Message != "" {
-		p.out.Result.Status = &struct {
-			Reason *string `json:"reason,omitempty"`
-		}{Reason: &p.resp.Message}
+	allowed, msg := p.resp.Allowed, p.resp.Message
+	if msg == "" {
+		if allowed {
+			msg = "ok"
+		} else {
+			msg = "not authorized"
+		}
 	}
 
-	return fc.JSON(p.out)
+	return fc.JSON(&auth.AuthorizationResponse{
+		Result: &auth.AuthorizationResponseData{
+			Allowed: &allowed,
+			Status: &struct {
+				Reason *string `json:"reason,omitempty"`
+			}{Reason: &msg},
+		},
+	})
 }
 
 func (p *authProcess) verifyRequest() {
@@ -182,7 +191,6 @@ type authProcess struct {
 	authReq *auth.AuthorizationRequest
 	req     *types.Request
 	resp    *types.Response
-	out     *auth.AuthorizationResponse
 	started time.Time
 	err     error
 	msg     string

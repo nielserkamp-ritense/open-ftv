@@ -31,6 +31,7 @@ type Config struct {
 	OpenTelServiceName string        `yaml:"ldv.service,omitempty" env:"LDV_SERVICE_NAME" flag:"ldv-service" desc:"OpenTelemetry service name for LDV"`
 	OpenTelActivityID  string        `yaml:"ldv.activityID,omitempty" env:"LDV_ACTIVITY_ID" flag:"ldv-activity-id" desc:"OpenTelemetry activity-id for LDV"`
 	OpenTelTimeout     time.Duration `yaml:"ldv.timeout,omitempty" env:"LDV_TIMEOUT" flag:"ldv-timeout" default:"5s" desc:"OpenTelemetry batch timeout for LDV"`
+	OpenTelPretty      bool          `yaml:"ldv.prettyPrint,omitempty" env:"LDV_PRETTY_PRINT" flag:"ldv-pretty-print" desc:"Facilitate pretty printing of OpenTelemetry log events"`
 	PolicyLanguage     string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
 	PolicyStore        string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
 	PolicyStoreRecurse bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`

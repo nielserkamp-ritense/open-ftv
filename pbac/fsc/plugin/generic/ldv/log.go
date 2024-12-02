@@ -4,6 +4,7 @@ package ldv
 import (
 	"context"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,14 +31,24 @@ func New(cfg *config.Config, logger *slog.Logger) LDV {
 		return nil
 	}
 
-	var out opentelemetry.Logger
-	if out, err = opentelemetry.New(cfg.OpenTelServiceName, url, cfg.OpenTelTimeout); err != nil && cfg.OpenTelServiceName != "" && url != "" {
-		logger.Error("failed to initialize OpenTelemetry logger for LDV; falling back to STDOUT", "error", err)
-		out, err = opentelemetry.New(cfg.OpenTelServiceName, "", cfg.OpenTelTimeout)
+	if url == "" {
+		url = "slog" // fall back to slog logger by default.
 	}
 
-	if url == "" {
-		url = "STDOUT"
+	ldvCfg := &opentelemetry.LoggerConfig{
+		Service:      cfg.OpenTelServiceName,
+		URL:          url,
+		PrettyPrint:  cfg.OpenTelPretty,
+		Logger:       logger,
+		BatchTimeout: cfg.OpenTelTimeout,
+	}
+
+	var out opentelemetry.Logger
+	if out, err = opentelemetry.New(ldvCfg); err != nil && cfg.OpenTelServiceName != "" && !strings.EqualFold(url, "slog") {
+		logger.Error("failed to initialize OpenTelemetry logger for LDV; falling back to slog", "url", url, "error", err)
+		url = "slog"
+		ldvCfg.URL = url
+		out, err = opentelemetry.New(ldvCfg)
 	}
 
 	if err != nil || out == nil {

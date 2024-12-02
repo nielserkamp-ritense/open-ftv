@@ -3,7 +3,10 @@ package opentelemetry
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Logger represents the interface for logging events with OpenTelemetry.
+// Logger represents the interface for logging events to Logboek Dataverwerkingen using OpenTelemetry.
 //
 // E.g. this can be used to log policy decisions into Logboek DataVerwerkingen.
 type Logger interface {
@@ -24,32 +27,55 @@ type Logger interface {
 	Shutdown(ctx context.Context) error
 }
 
-// New instantiates a new logger for Logboek Dataverwerkingen.
+// LoggerConfig contains the configuration parameters for instantiating a new event logger for Logboek Dataverwerkingen.
+type LoggerConfig struct {
+	Service      string               // name of the service.
+	URL          string               // URL of OpenTelemtry sink, or, "stdout", "stderr" or "slog".
+	PrettyPrint  bool                 // enforces a pretty format when printing an event.
+	Logger       *slog.Logger         // logger used when url == "slog".
+	BatchTimeout time.Duration        // timeout for batching events.
+	Opts         []trace.TracerOption // additional options for the tracer.
+}
+
+// New instantiates a new event logger for Logboek Dataverwerkingen.
 //
 // The given service name is mandatory.
-// If the given url is empty, events will be logged to stdout.
+//
+// If the given url is empty, events will be printed on stdout.
+// If the given url equals "stdout" or "stderr", events will be printed on the corresponding output.
+// If the given url equals "log" or "slog", events will be formatted for and sent to the given logger.
+// Any other value should be a valid URL pointing to an OpenTelemetry sink.
+//
 // If batchTimeout is 0, it will be set to 5 seconds.
 //
 // The returned Logger does not use the global variables of OpenTelemetry.
 // So it is safe to use multiple instances of Logger if the need arises.
 // And it is safe to use this Logger in an app that has its own OpenTelemetry logic.
-func New(service, url string, batchTimeout time.Duration, opts ...trace.TracerOption) (Logger, error) {
-	if service == "" {
+func New(cfg *LoggerConfig) (Logger, error) {
+	if cfg.Service == "" {
 		return nil, fmt.Errorf("service name is required")
 	}
 
 	var exporter sdktrace.SpanExporter
 	var err error
 
-	if url == "" {
-		exporter, _ = stdouttrace.New(
-			stdouttrace.WithWriter(os.Stdout), // for debug purposes and to be able to silence unit-tests :)
-			// stdouttrace.WithPrettyPrint(),
-		)
-	} else {
+	switch strings.ToLower(cfg.URL) {
+	case "", "stdout":
+		exporter = newStdLogger(os.Stdout, cfg.PrettyPrint)
+
+	case "stderr":
+		exporter = newStdLogger(os.Stderr, cfg.PrettyPrint)
+
+	case "log", "slog":
+		if cfg.Logger == nil {
+			return nil, fmt.Errorf("logger is required")
+		}
+		exporter = &slogLogger{logger: cfg.Logger}
+
+	default:
 		if exporter, err = otlptracegrpc.New(
-			context.TODO(),
-			otlptracegrpc.WithEndpoint(url),
+			context.Background(),
+			otlptracegrpc.WithEndpoint(cfg.URL),
 			otlptracegrpc.WithInsecure(),
 		); err != nil {
 			return nil, fmt.Errorf("failed to initialize trace exporter: %w", err)
@@ -57,23 +83,33 @@ func New(service, url string, batchTimeout time.Duration, opts ...trace.TracerOp
 	}
 
 	tr := resource.NewSchemaless(
-		semconv.ServiceName(service),
+		semconv.ServiceName(cfg.Service),
 		attribute.String("kind", "server"),
 	)
 
-	if batchTimeout == 0 {
-		batchTimeout = 5 * time.Second
+	if cfg.BatchTimeout == 0 {
+		cfg.BatchTimeout = 5 * time.Second
 	}
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter, sdktrace.WithBatchTimeout(batchTimeout)),
+		sdktrace.WithBatcher(exporter, sdktrace.WithBatchTimeout(cfg.BatchTimeout)),
 		sdktrace.WithResource(tr),
 	)
 
 	return &logger{
 		tp:     tp,
-		tracer: tp.Tracer(service, opts...),
+		tracer: tp.Tracer(cfg.Service, cfg.Opts...),
 	}, nil
+}
+
+func newStdLogger(f io.Writer, prettyPrint bool) *stdouttrace.Exporter {
+	opts := []stdouttrace.Option{stdouttrace.WithWriter(f)}
+	if prettyPrint {
+		opts = append(opts, stdouttrace.WithPrettyPrint())
+	}
+
+	exporter, _ := stdouttrace.New(opts...)
+	return exporter
 }
 
 // StartSpan initializes a new trace span.

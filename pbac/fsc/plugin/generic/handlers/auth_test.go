@@ -19,7 +19,7 @@ import (
 
 func TestAuthHandler_RunOK(t *testing.T) {
 	in := `{"input":{"method":"POST","path":"/x/y"}}`
-	out := `{"result":{"allowed":true}}`
+	out := `{"result":{"allowed":true,"status":{"reason":"ok"}}}`
 
 	t.Run("auth handler", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)

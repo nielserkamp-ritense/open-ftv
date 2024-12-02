@@ -3,6 +3,7 @@ package opentelemetry
 import (
 	"context"
 	"log"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -10,26 +11,44 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
+
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestNew(t *testing.T) {
+	h := slog2.NewDummyHandler(slog.LevelDebug)
+	sl := slog.New(h)
+
 	testCases := []struct {
 		name    string
 		service string
 		url     string
+		pretty  bool
+		logger  *slog.Logger
 		timeout time.Duration
-		opts    []trace.TracerOption
 		wantErr bool
 	}{
 		{name: "empty", wantErr: true},
-		{name: "stdout", service: "fsc-authz"},
-		{name: "with url", service: "fsc-authz", url: "localhost:12345"},
+		{name: "empty url", service: "fsc-authz"},
+		{name: "stdout", service: "fsc-authz", url: "stdout", pretty: true},
+		{name: "stderr", service: "fsc-authz", url: "stderr"},
+		{name: "valid slog", service: "fsc-authz", url: "slog", logger: sl},
+		{name: "invalid slog", service: "fsc-authz", url: "slog", wantErr: true},
+		{name: "valid url", service: "fsc-authz", url: "localhost:12345", timeout: time.Second},
+		{name: "invalid url", service: "fsc-authz", url: "\x00", wantErr: true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			l, err := New(tc.service, tc.url, tc.timeout, tc.opts...)
+			cfg := &LoggerConfig{
+				Service:      tc.service,
+				URL:          tc.url,
+				PrettyPrint:  tc.pretty,
+				Logger:       tc.logger,
+				BatchTimeout: tc.timeout,
+			}
+
+			l, err := New(cfg)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, l)
@@ -62,7 +81,10 @@ func TestLogger_StartSpan(t *testing.T) {
 			q()
 		}()
 
-		l, err := New("fsc-authz", "", 10*time.Millisecond)
+		l, err := New(&LoggerConfig{
+			Service:      "fsc-authz",
+			BatchTimeout: 10 * time.Millisecond,
+		})
 		require.NoError(t, err)
 		require.NotNil(t, l)
 
