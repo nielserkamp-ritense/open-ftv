@@ -8,11 +8,11 @@ import (
 
 // List of supported principal types.
 const (
-	PrincipalZaak         = "zaak"
-	PrincipaleDoelbinding = "doelbinding"
-	PrincipalJWT          = "jwt"
-	PrincipalApp          = "app"
-	PrincipalInvalid      = "invalid"
+	PrincipalApp         = "app"
+	PrincipalDoelbinding = "doelbinding"
+	PrincipalInvalid     = "invalid"
+	PrincipalJWT         = "jwt"
+	PrincipalZaak        = "zaak"
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.
@@ -25,7 +25,7 @@ func DeterminePrincipal(a types.AttributeSet) (string, string) {
 	}
 
 	if doel, ok := a.GetAttribute(AttrDoelbinding).(string); ok && doel != "" {
-		return PrincipaleDoelbinding, doel
+		return PrincipalDoelbinding, doel
 	}
 
 	// TODO: this is dubious; can we really determine the Principal from a JWT?
