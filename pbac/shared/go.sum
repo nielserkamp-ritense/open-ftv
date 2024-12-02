@@ -143,10 +143,10 @@ github.com/yashtewari/glob-intersection v0.2.0 h1:8iuHdN88yYuCzCdjt0gDe+6bAhUwBe
 github.com/yashtewari/glob-intersection v0.2.0/go.mod h1:LK7pIC3piUjovexikBbJ26Yml7g8xa5bsjfx2v1fwok=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1 h1:9lBvTpO8AN4ascBiQMKi98vTHzKpBNQwPH9bnrMYBFQ=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1/go.mod h1:+oPlcR9bthoWbKRP8Ia+czG58R6aaQ7IYTHYyOZGw20=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202102600-80b682f0c38d h1:zvL5T7ylebNF3UYuduerRX3h78nIxGSqnZjmtFMgLi4=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202102600-80b682f0c38d/go.mod h1:dIhXj0ocQ7JSTRbJd+XNWC53UaRu7CiwH/oK6bsol6k=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202102600-80b682f0c38d h1:ue/YypdxALHyLwv0rC91xCdGTKBdCzrQ1vA+wjKqB+c=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202102600-80b682f0c38d/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202155613-ad6525c1648b h1:oOggpqYpZIjp1fL8i+ea17DCQesG2PUWXoV8sgZ6l8M=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202155613-ad6525c1648b/go.mod h1:5iWzp1BSGhW8Gon29gn0f/yqug+3J4c6D13JfCtYeao=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202155613-ad6525c1648b h1:Vl9/Ryp3LauujCY7Rz5VSvPVuaE3wd9scRPRpla3sH4=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202155613-ad6525c1648b/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
 gitlab.com/gjuyn/go-config v1.0.1 h1:Q8Zu1az9PrInM/qbJGQUTa4CH+HlPkPHMr/dVSVxyUw=
 gitlab.com/gjuyn/go-config v1.0.1/go.mod h1:6HMxreOCPblTic/+qu9Oa3Xngr7GIJ4w/AgsBaOhz5o=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=

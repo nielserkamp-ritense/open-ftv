@@ -60,6 +60,11 @@ func (e *WrappedEntity) Parents() []string {
 	return out
 }
 
+// MarshalJSON implements the JSON marshaller interface.
+func (e *WrappedEntity) MarshalJSON() ([]byte, error) {
+	return types.NewEntity(e.Type(), e.ID(), e.Attributes(), e.Parents()...).MarshalJSON()
+}
+
 // NewEntityBuilder returns the function prototype for building a new Cedar based entity set.
 func NewEntityBuilder(logger *slog.Logger) types.EntitiesBuilder {
 	return func(in ...any) types.EntitySet {

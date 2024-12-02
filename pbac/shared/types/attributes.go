@@ -1,6 +1,7 @@
 package types
 
 import (
+	"maps"
 	"sync"
 )
 
@@ -51,6 +52,8 @@ func NewAttributeSet(in ...any) AttributeSet {
 			t.IterateAttributes(func(key string, value any) {
 				out.set[key] = value
 			})
+		case map[string]any:
+			maps.Copy(out.set, t)
 		}
 	}
 	return out

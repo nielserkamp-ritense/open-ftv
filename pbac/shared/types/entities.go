@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // EntitiesBuilder is the function prototype for creating a new set of entities.
@@ -20,6 +22,7 @@ type Entity interface {
 	ID() string               // retrieve the ID of the entity (unique ID within the name-space).
 	Attributes() AttributeSet // retrieve attributes of the entity.
 	Parents() []string        // retrieve unique identifiers (UID) of parent entities.
+	MarshalJSON() ([]byte, error)
 }
 
 // NewEntity instanties a new standard entity.
@@ -56,6 +59,16 @@ func (e *entity) Attributes() AttributeSet {
 // Parents implements the Entity interface.
 func (e *entity) Parents() []string {
 	return e.parents
+}
+
+// MarshalJSON implements the JSON.Marshaller interface.
+func (e *entity) MarshalJSON() ([]byte, error) {
+	return json.Marshal(entityJSON{
+		Type:       e.ns,
+		ID:         e.id,
+		Attributes: e.attrs,
+		Parents:    e.parents,
+	})
 }
 
 // EntitySet represents the interface to work with a set of entities.
@@ -150,4 +163,11 @@ type entity struct {
 type entities struct {
 	set   map[string]Entity
 	mutex sync.RWMutex
+}
+
+type entityJSON struct {
+	Type       string       `json:"type,omitempty"`
+	ID         string       `json:"ID,omitempty"`
+	Attributes AttributeSet `json:"attributes,omitempty"`
+	Parents    []string     `json:"parents,omitempty"`
 }
