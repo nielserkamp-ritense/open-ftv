@@ -2,6 +2,7 @@ package standards
 
 import (
 	"fmt"
+	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 )
@@ -17,6 +18,11 @@ const (
 
 // DeterminePrincipal determines the type of principal and its primary key.
 func DeterminePrincipal(a types.AttributeSet) (string, string) {
+	if principal, ok := a.GetAttribute(AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
+		parts := strings.Split(principal, "::")
+		return parts[0], parts[1]
+	}
+
 	if zaak, ok := a.GetAttribute(AttrZaakType).(string); ok && zaak != "" {
 		if taak, ok2 := a.GetAttribute(AttrTaak).(string); ok2 && taak != "" {
 			zaak = fmt.Sprintf("%s-%s", zaak, taak)

@@ -48,6 +48,12 @@ func TestDeterminePrincipal(t *testing.T) {
 			want1: "app",
 			want2: "12cd45ef",
 		},
+		{
+			name:  "principal",
+			a:     types.NewAttributeSet(types.NewAttribute("principal", "user::bob")),
+			want1: "user",
+			want2: "bob",
+		},
 	}
 
 	for _, tc := range testCases {
