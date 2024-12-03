@@ -36,7 +36,7 @@ func (c *controller) Authorize(req *types.Request) (*types.Response, error) {
 
 func (c *controller) buildCedarRequest(req *types.Request) cedar.Request {
 	a, uri := c.PIP().CollectAttributesFromRequest(req)
-	if uri == "" {
+	if uri == "" && req.URL != nil {
 		uri = req.URL.String()
 	}
 

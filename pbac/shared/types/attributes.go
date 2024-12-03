@@ -54,6 +54,10 @@ func NewAttributeSet(in ...any) AttributeSet {
 			})
 		case map[string]any:
 			maps.Copy(out.set, t)
+		case *map[string]any:
+			if t != nil {
+				maps.Copy(out.set, *t)
+			}
 		}
 	}
 	return out

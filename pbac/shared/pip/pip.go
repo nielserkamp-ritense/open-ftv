@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // PIP represents the interface for a Policy Information Point.
@@ -93,12 +94,25 @@ func (p *pip) entitiesToMap() map[string]any {
 // AttributeSet from the request will overwrite default attributes when the keys are equal.
 func (p *pip) CollectAttributesFromRequest(req *types.Request) (types.AttributeSet, string) {
 	a := p.newAttributes(p.attributes)
-	a.AddAttribute("request-time", time.Now().UTC())
+	a.AddAttribute(standards.AttrRequestTime, time.Now().UTC())
 
 	newURI := p.testHeaders(req, a)
+	if newURI == "" && req.Resource != nil {
+		newURI = req.Resource.ID()
+	}
 
 	p.determineURL(req, a)
 	p.decodeBody(req, a)
+
+	if req.Principal != nil {
+		a.AddAttribute(standards.AttrPrincipal, req.Principal.UID())
+	}
+	if req.Action != nil {
+		a.AddAttribute(standards.AttrAction, req.Action.UID())
+	}
+	if req.Resource != nil {
+		a.AddAttribute(standards.AttrResource, req.Resource.UID())
+	}
 
 	if len(req.Attributes) > 0 {
 		for k := range req.Attributes {
