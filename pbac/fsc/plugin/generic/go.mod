@@ -9,10 +9,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20241202160841-c67375b7058a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241202160841-c67375b7058a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241202160841-c67375b7058a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241202160841-c67375b7058a
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20241203151042-9fd779911832
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared v0.0.0-20241203151201-f672bb32f682
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241203151201-f672bb32f682
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241203151201-f672bb32f682
 	gitlab.com/gjuyn/go-config v1.0.1
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0

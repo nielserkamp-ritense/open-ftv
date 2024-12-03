@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/opa"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 )
@@ -45,6 +46,9 @@ func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (contro
 	case types.CEDAR:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
+	case types.OPENFGA:
+		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}
