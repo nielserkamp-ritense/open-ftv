@@ -33,7 +33,7 @@ func (h *authHandler) AuthZEN(fc *fiber.Ctx) error {
 	}
 
 	p.newAuthRequestAuthZEN(req, fc.GetReqHeaders())
-	return p.authorizeFSC()
+	return p.authorizeAuthZEN()
 }
 
 func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
@@ -69,9 +69,12 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 }
 
 func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
+	actionAttrs := types.NewAttributeSet(req.Action.Properties)
+	method, _ := actionAttrs.GetAttribute(standards.AttrMethod).(string)
+
 	principal := types.NewEntity(req.Subject.Type, req.Subject.Id, types.NewAttributeSet(req.Subject.Properties))
-	action := types.NewEntity(standards.EntityAction, *req.Action.Name, types.NewAttributeSet(req.Action.Properties))
-	Resource := types.NewEntity(req.Resource.Type, req.Resource.Id, types.NewAttributeSet(req.Resource.Properties))
+	action := types.NewEntity(standards.EntityAction, *req.Action.Name, actionAttrs)
+	resource := types.NewEntity(req.Resource.Type, req.Resource.Id, types.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
 	if req.Context != nil {
@@ -84,10 +87,11 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	p.req = &types.Request{
 		UID:         &uid,
 		RequestTime: &now,
+		Method:      method,
 		Headers:     headers,
 		Principal:   principal,
 		Action:      action,
-		Resource:    Resource,
+		Resource:    resource,
 		Attributes:  attr,
 	}
 }

@@ -31,8 +31,7 @@ func New(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) AuthHandler {
 		return nil
 	}
 
-	h := &authHandler{cfg: cfg, logger: logger, controller: c}
-	return h
+	return &authHandler{cfg: cfg, logger: logger, controller: c}
 }
 
 func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (control.Controller, error) {

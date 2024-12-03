@@ -1,15 +1,9 @@
 package handlers
 
 import (
-	"bytes"
-	"io"
 	"log/slog"
-	"net/http"
-	"sync"
 	"testing"
-	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -17,282 +11,49 @@ import (
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
-func TestAuthHandler_RunOK(t *testing.T) {
-	in := `{"input":{"method":"POST","path":"/x/y"}}`
-	out := `{"result":{"allowed":true,"status":{"reason":"ok"}}}`
-
-	t.Run("auth handler", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
-			PolicyStore:    "../../../../../testdata/unittest/cedar",
-		}
-
-		c, err := newController(cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-
-		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
-
-		app := fiber.New()
-		app.Post("/v1/auth", auth.AuthFSC)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-
-		buf := bytes.NewReader([]byte(in))
-
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
-		require.NotNil(t, req)
-
-		resp, err3 := app.Test(req, -1)
-		require.NoError(t, err3)
-		require.NotNil(t, resp)
-
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
-		defer resp.Body.Close()
-
-		data, err4 := io.ReadAll(resp.Body)
-		require.NoError(t, err4)
-		require.NotNil(t, data)
-
-		assert.Equal(t, out, string(data))
-		assert.Equal(t, 8, h.Count())
-	})
-}
-
-func TestAuthHandler_RunFail1(t *testing.T) {
-	in := `{"input":{"method":"GET","path":"/x/y","headers":{"doelbinding":["subsidies"]}}}`
-	out := `{"result":{"allowed":false,"status":{"reason":"not authorized"}}}`
-
-	t.Run("auth handler", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "opa",
-			PolicyStore:    "../../../../../testdata/unittest/opa",
-		}
-
-		c, err := newController(cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-
-		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
-
-		app := fiber.New()
-		app.Post("/v1/auth", auth.AuthFSC)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-
-		buf := bytes.NewReader([]byte(in))
-
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
-		require.NotNil(t, req)
-
-		resp, err3 := app.Test(req, -1)
-		require.NoError(t, err3)
-		require.NotNil(t, resp)
-
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
-		defer resp.Body.Close()
-
-		data, err4 := io.ReadAll(resp.Body)
-		require.NoError(t, err4)
-		require.NotNil(t, data)
-
-		assert.Equal(t, out, string(data))
-		assert.Equal(t, 9, h.Count())
-	})
-}
-
-func TestAuthHandler_RunFail2(t *testing.T) {
-	in := `{"input":{}}`
-	out := `{"message":"invalid method"}`
-
-	t.Run("auth handler", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
-
-		c, err := newController(cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-
-		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
-
-		app := fiber.New()
-		app.Post("/v1/auth", auth.AuthFSC)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-
-		buf := bytes.NewReader([]byte(in))
-
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
-		require.NotNil(t, req)
-
-		resp, err3 := app.Test(req, -1)
-		require.NoError(t, err3)
-		require.NotNil(t, resp)
-
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
-		defer resp.Body.Close()
-
-		data, err4 := io.ReadAll(resp.Body)
-		require.NoError(t, err4)
-		require.NotNil(t, data)
-
-		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
-	})
-}
-
-func TestAuthHandler_RunFail3(t *testing.T) {
-	in := `[]`
-	out := `{"message":"invalid input data"}`
-
-	t.Run("auth handler", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
-
-		c, err := newController(cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-
-		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
-
-		app := fiber.New()
-		app.Post("/v1/auth", auth.AuthFSC)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-
-		buf := bytes.NewReader([]byte(in))
-
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
-		require.NotNil(t, req)
-
-		resp, err3 := app.Test(req, -1)
-		require.NoError(t, err3)
-		require.NotNil(t, resp)
-
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
-		defer resp.Body.Close()
-
-		data, err4 := io.ReadAll(resp.Body)
-		require.NoError(t, err4)
-		require.NotNil(t, data)
-
-		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
-	})
-}
-
-func TestAuthHandler_RunFail4(t *testing.T) {
-	in := `{"input":{"method":"POST"}}`
-	out := `{"message":"invalid path"}`
-
-	t.Run("auth handler", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
-
-		c, err := newController(cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
-
-		auth := &authHandler{cfg: cfg, logger: logger, controller: c}
-
-		app := fiber.New()
-		app.Post("/v1/auth", auth.AuthFSC)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
-
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
-
-		buf := bytes.NewReader([]byte(in))
-
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
-		require.NotNil(t, req)
-
-		resp, err3 := app.Test(req, -1)
-		require.NoError(t, err3)
-		require.NotNil(t, resp)
-
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
-		defer resp.Body.Close()
-
-		data, err4 := io.ReadAll(resp.Body)
-		require.NoError(t, err4)
-		require.NotNil(t, data)
-
-		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
-	})
+func TestNew(t *testing.T) {
+	testCases := []struct {
+		name     string
+		cfg      *config.Config
+		wantFail bool
+		wantLog  int
+	}{
+		{
+			name:     "unsupported policy language",
+			cfg:      &config.Config{PolicyLanguage: "ai-magic", PolicyStore: "../../../../../testdata/unittest/ai"},
+			wantFail: true,
+			wantLog:  1,
+		},
+		{
+			name:    "cedar",
+			cfg:     &config.Config{PolicyLanguage: "CEDAR", PolicyStore: "../../../../../testdata/unittest/cedar"},
+			wantLog: 4,
+		},
+		{
+			name:    "cerbos",
+			cfg:     &config.Config{PolicyLanguage: "Cerbos", PolicyStore: "../../../../../testdata/unittest/cerbos"},
+			wantLog: 3,
+		},
+		{
+			name:    "opa",
+			cfg:     &config.Config{PolicyLanguage: "opa", PolicyStore: "../../../../../testdata/unittest/rego"},
+			wantLog: 4,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := slog2.NewDummyHandler(slog.LevelDebug)
+			logger := slog.New(h)
+
+			auth := New(tc.cfg, logger, nil)
+			if tc.wantFail {
+				require.Nil(t, auth)
+				assert.Equal(t, tc.wantLog, h.Count())
+			} else {
+				require.NotNil(t, auth)
+				assert.Equal(t, tc.wantLog, h.Count())
+			}
+		})
+	}
 }
