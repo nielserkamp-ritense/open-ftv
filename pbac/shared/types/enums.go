@@ -12,9 +12,10 @@ const (
 	REGO
 	CEDAR
 	CERBOS
+	OPENFGA
 
 	langFirst = XACML
-	langLast  = CERBOS
+	langLast  = OPENFGA
 )
 
 // String implements the Stringer interface.
@@ -30,6 +31,8 @@ func (l Language) String() string {
 		return "Cedar"
 	case CERBOS:
 		return "Cerbos/CEL"
+	case OPENFGA:
+		return "OpenFGA"
 	default:
 		return "<unknown>"
 	}
@@ -108,6 +111,7 @@ func init() {
 	languages["cerbos"] = CERBOS
 	languages["cerbos-cel"] = CERBOS
 	languages["cerboscel"] = CERBOS
+	languages["open-fga"] = OPENFGA
 
 	for i := fmtFirst; i <= fmtLast; i++ {
 		formats[strings.ToLower(i.String())] = i
