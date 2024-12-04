@@ -1,10 +1,10 @@
-package standards
+package types
 
 import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // List of supported principal types.
@@ -17,20 +17,20 @@ const (
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.
-func DeterminePrincipal(a types.AttributeSet) (string, string) {
-	if principal, ok := a.GetAttribute(AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
+func DeterminePrincipal(a AttributeSet) (string, string) {
+	if principal, ok := a.GetAttribute(standards.AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
 		parts := strings.Split(principal, "::")
 		return parts[0], parts[1]
 	}
 
-	if zaak, ok := a.GetAttribute(AttrZaakType).(string); ok && zaak != "" {
-		if taak, ok2 := a.GetAttribute(AttrTaak).(string); ok2 && taak != "" {
+	if zaak, ok := a.GetAttribute(standards.AttrZaakType).(string); ok && zaak != "" {
+		if taak, ok2 := a.GetAttribute(standards.AttrTaak).(string); ok2 && taak != "" {
 			zaak = fmt.Sprintf("%s-%s", zaak, taak)
 		}
 		return PrincipalZaak, zaak
 	}
 
-	if doel, ok := a.GetAttribute(AttrDoelbinding).(string); ok && doel != "" {
+	if doel, ok := a.GetAttribute(standards.AttrDoelbinding).(string); ok && doel != "" {
 		return PrincipalDoelbinding, doel
 	}
 
@@ -53,7 +53,7 @@ func DeterminePrincipal(a types.AttributeSet) (string, string) {
 	// 	}
 	// }
 
-	if apikey, ok := a.GetAttribute(AttrApiKey).(string); ok && apikey != "" {
+	if apikey, ok := a.GetAttribute(standards.AttrApiKey).(string); ok && apikey != "" {
 		return PrincipalApp, apikey
 	}
 

@@ -297,10 +297,10 @@ github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1 h1:9lBvTpO8AN4ascBiQMKi98vTHzKpBNQwPH9bnrMYBFQ=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1/go.mod h1:+oPlcR9bthoWbKRP8Ia+czG58R6aaQ7IYTHYyOZGw20=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241203151614-d10a523fda08 h1:mONreiXzt3FH/QVHZWWvM8DkA4ZQOIAkuvH/7V9XHug=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241203151614-d10a523fda08/go.mod h1:pUyzKvn5hCTeu6Tz7dnQZkVQOQ0Cm2KUvaPucvYNGLg=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241203151614-d10a523fda08 h1:h1E0EoymiS7JMRJ/8k/pJmPvhKHkYMdFE2WP+AZZDbE=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241203151614-d10a523fda08/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204131330-0e82041f6786 h1:Y+svIBM67ru62wvSaQZpXVS0rAKVlMilgcZN4p1UGco=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204131330-0e82041f6786/go.mod h1:N3wREPt1sB5GsoQEgzBHt9ajSG/xh2ZZtafteme7gfA=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204131330-0e82041f6786 h1:NC+i+sgYliuXyPrg9GNgqBaQWha8lFoX9Yrk8o2RDNE=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204131330-0e82041f6786/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
 gitlab.com/gjuyn/go-config v1.0.1 h1:Q8Zu1az9PrInM/qbJGQUTa4CH+HlPkPHMr/dVSVxyUw=
 gitlab.com/gjuyn/go-config v1.0.1/go.mod h1:6HMxreOCPblTic/+qu9Oa3Xngr7GIJ4w/AgsBaOhz5o=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=

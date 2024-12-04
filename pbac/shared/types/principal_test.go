@@ -1,56 +1,54 @@
-package standards
+package types
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 )
 
 func TestDeterminePrincipal(t *testing.T) {
 	testCases := []struct {
 		name  string
-		a     types.AttributeSet
+		a     AttributeSet
 		want1 string
 		want2 string
 	}{
 		{
 			name:  "empty",
-			a:     types.NewAttributeSet(),
+			a:     NewAttributeSet(),
 			want1: "invalid",
 			want2: "invalid",
 		},
 		{
 			name:  "zaaktype",
-			a:     types.NewAttributeSet(types.NewAttribute("zaak-type", "zaak1")),
+			a:     NewAttributeSet(NewAttribute("zaak-type", "zaak1")),
 			want1: "zaak",
 			want2: "zaak1",
 		},
 		{
 			name: "zaaktype met taak",
-			a: types.NewAttributeSet(
-				types.NewAttribute("zaak-type", "zaak2"),
-				types.NewAttribute("taak", "controle"),
+			a: NewAttributeSet(
+				NewAttribute("zaak-type", "zaak2"),
+				NewAttribute("taak", "controle"),
 			),
 			want1: "zaak",
 			want2: "zaak2-controle",
 		},
 		{
 			name:  "doelbinding",
-			a:     types.NewAttributeSet(types.NewAttribute("doelbinding", "subsidie")),
+			a:     NewAttributeSet(NewAttribute("doelbinding", "subsidie")),
 			want1: "doelbinding",
 			want2: "subsidie",
 		},
 		{
 			name:  "api-key",
-			a:     types.NewAttributeSet(types.NewAttribute("api-key", "12cd45ef")),
+			a:     NewAttributeSet(NewAttribute("api-key", "12cd45ef")),
 			want1: "app",
 			want2: "12cd45ef",
 		},
 		{
 			name:  "principal",
-			a:     types.NewAttributeSet(types.NewAttribute("principal", "user::bob")),
+			a:     NewAttributeSet(NewAttribute("principal", "user::bob")),
 			want1: "user",
 			want2: "bob",
 		},

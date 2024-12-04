@@ -16,8 +16,8 @@ require (
 	github.com/openfga/openfga v1.8.0
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241203151614-d10a523fda08
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241203151614-d10a523fda08
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204131330-0e82041f6786
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204131330-0e82041f6786
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.uber.org/zap v1.27.0
