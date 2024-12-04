@@ -1,5 +1,5 @@
-// Package ldv contains the code to interface with Logboek Dataverwerkingen.
-package ldv
+// Package logboek contains the code to interface with Logboek Dataverwerkingen.
+package logboek
 
 import (
 	"context"
@@ -12,17 +12,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
 )
 
-// LDV represents the interface for logging messages to Logboek Dataverwerkingen.
-type LDV interface {
-	StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (context.Context, trace.Span)
-	Shutdown(ctx context.Context) error
-}
-
 // New instantiates a new logger for Logboek Dataverwerkingen.
-func New(cfg *config.Config, logger *slog.Logger) LDV {
+func New(cfg *config.Config, logger *slog.Logger) ldv.LDV {
 	url, aid := cfg.OpenTelURL, cfg.OpenTelActivityID
 
 	u, err := uuid.Parse(aid)
@@ -57,11 +52,11 @@ func New(cfg *config.Config, logger *slog.Logger) LDV {
 	}
 
 	logger.Info("OpenTelemetry logger for LDV initialized", "service", cfg.OpenTelServiceName, "url", url, "activityID", u.String())
-	return &ldv{activityID: u.String(), ldv: out}
+	return &logboek{activityID: u.String(), logger: out}
 }
 
 // StartSpan implements the LDV interface.
-func (l *ldv) StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (context.Context, trace.Span) {
+func (l *logboek) StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (context.Context, trace.Span) {
 	attributes = append(attributes, attribute.String("authz.activity.id", l.activityID))
 
 	opts := []trace.SpanStartOption{
@@ -69,15 +64,15 @@ func (l *ldv) StartSpan(ctx context.Context, attributes ...attribute.KeyValue) (
 		trace.WithAttributes(attributes...),
 	}
 
-	return l.ldv.StartSpan(ctx, l.activityID, opts...)
+	return l.logger.StartSpan(ctx, l.activityID, opts...)
 }
 
 // Shutdown implements the LDV interface.
-func (l *ldv) Shutdown(ctx context.Context) error {
-	return l.ldv.Shutdown(ctx)
+func (l *logboek) Shutdown(ctx context.Context) error {
+	return l.logger.Shutdown(ctx)
 }
 
-type ldv struct {
+type logboek struct {
 	activityID string
-	ldv        opentelemetry.Logger
+	logger     opentelemetry.Logger
 }

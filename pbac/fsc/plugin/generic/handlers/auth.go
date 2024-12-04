@@ -8,12 +8,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/openfga"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 )
@@ -25,8 +25,8 @@ type AuthHandler interface {
 }
 
 // New instantiates an authorization handler.
-func New(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) AuthHandler {
-	c, err := newController(cfg, logger, ldv)
+func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
+	c, err := newController(cfg, logger, logboek)
 	if c == nil {
 		logger.Error("configuration error", "error", err)
 		return nil
@@ -35,20 +35,20 @@ func New(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) AuthHandler {
 	return &authHandler{cfg: cfg, logger: logger, controller: c}
 }
 
-func newController(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) (control.Controller, error) {
+func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (control.Controller, error) {
 	switch types.LanguageFromString(cfg.PolicyLanguage) {
 	case types.REGO:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
-		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
+		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case types.CERBOS:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
-		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
+		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case types.CEDAR:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
-		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
+		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case types.OPENFGA:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
-		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, ldv), nil
+		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}

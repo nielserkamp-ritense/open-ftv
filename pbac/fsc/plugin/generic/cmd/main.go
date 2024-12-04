@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/logboek"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/server"
 )
 
@@ -20,5 +20,5 @@ func main() {
 	}
 
 	logger.Info("configuration loaded successfully", "config", cfg)
-	server.NewService(cfg, logger, ldv.New(cfg, logger)).Serve()
+	server.NewService(cfg, logger, logboek.New(cfg, logger)).Serve()
 }

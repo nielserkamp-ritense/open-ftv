@@ -15,7 +15,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/handlers"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 )
 
 // Service represents the interface for an HTTP service.
@@ -25,8 +25,8 @@ type Service interface {
 }
 
 // NewService initializes an HTTP service (implemented with fiber/fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger, ldv ldv.LDV) Service {
-	return &service{cfg: cfg, logger: logger, ldv: ldv}
+func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) Service {
+	return &service{cfg: cfg, logger: logger, logboek: logboek}
 }
 
 // Serve runs the HTTP service.
@@ -83,7 +83,7 @@ type service struct {
 	cfg      *config.Config
 	logger   *slog.Logger
 	svc      *fiber.App
-	ldv      ldv.LDV
+	logboek  ldv.LDV
 	intChan  chan os.Signal
 	shutdown atomic.Bool
 	mutex    sync.Mutex

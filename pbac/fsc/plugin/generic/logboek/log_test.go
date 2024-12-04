@@ -1,4 +1,4 @@
-package ldv
+package logboek
 
 import (
 	"context"
