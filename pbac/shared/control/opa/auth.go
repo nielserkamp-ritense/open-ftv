@@ -51,7 +51,7 @@ func (c *controller) Authorize(req *types.Request) (resp *types.Response, err er
 }
 
 func (c *controller) startLog(req *types.Request) func(resp *types.Response) {
-	ldv := c.LDV()
+	ldv := c.Logboek()
 	if ldv == nil {
 		return func(*types.Response) {}
 	}

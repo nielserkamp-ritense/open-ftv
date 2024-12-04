@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"path/filepath"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
@@ -17,11 +17,11 @@ import (
 const Version = "1.0.0"
 
 // NewController instantiates a new Cerbos/CEL controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, ldv ldv.LDV) control.Controller {
+func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) control.Controller {
 	store, _ = filepath.Abs(store)
 
 	c := &controller{
-		Base: control.NewBase(types.CERBOS.String(), Version, logger, ldv),
+		Base: control.NewBase(types.CERBOS.String(), Version, logger, logboek),
 	}
 
 	c.SetPIP(pip)

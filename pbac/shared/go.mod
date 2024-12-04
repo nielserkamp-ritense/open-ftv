@@ -15,9 +15,8 @@ require (
 	github.com/openfga/language/pkg/go v0.2.0-beta.2.0.20240926131254-992b301a003f
 	github.com/openfga/openfga v1.8.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic v0.0.0-20241128110827-aaa75b8bc5b1
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204131330-0e82041f6786
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204131330-0e82041f6786
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204132516-137b6db4c0e9
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204132516-137b6db4c0e9
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
 	go.uber.org/zap v1.27.0
@@ -84,11 +83,9 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
-	gitlab.com/gjuyn/go-config v1.0.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.32.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.32.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.32.0 // indirect
 	go.opentelemetry.io/otel/metric v1.32.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.32.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
@@ -22,7 +22,7 @@ type Controller interface {
 // Base contains the common attributes of a controller.
 type Base struct {
 	logger   *slog.Logger
-	ldv      ldv.LDV
+	logboek  ldv.LDV
 	name     string
 	version  string
 	fullName string
@@ -31,10 +31,10 @@ type Base struct {
 }
 
 // NewBase instantiates a new controller base.
-func NewBase(name, version string, logger *slog.Logger, ldv ldv.LDV) Base {
+func NewBase(name, version string, logger *slog.Logger, logboek ldv.LDV) Base {
 	return Base{
 		logger:   logger,
-		ldv:      ldv,
+		logboek:  logboek,
 		name:     name,
 		version:  version,
 		fullName: fmt.Sprintf("%s %s", name, version),
@@ -61,9 +61,9 @@ func (b *Base) Logger() *slog.Logger {
 	return b.logger
 }
 
-// LDV returns the LDV logger used by the controller.
-func (b *Base) LDV() ldv.LDV {
-	return b.ldv
+// Logboek returns the LDV logger used by the controller.
+func (b *Base) Logboek() ldv.LDV {
+	return b.logboek
 }
 
 // PAP returns the PAP used by the controller.
