@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 func TestValidIP(t *testing.T) {
@@ -78,7 +78,7 @@ func TestForwardedList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p := pip{}
@@ -162,7 +162,7 @@ func TestForwarded(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p := pip{}

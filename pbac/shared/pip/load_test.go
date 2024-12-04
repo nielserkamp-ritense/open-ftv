@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -16,7 +16,7 @@ func TestLoadEntities(t *testing.T) {
 		name    string
 		path    string
 		wantLog int
-		want    types.EntitySet
+		want    standards.EntitySet
 	}{
 		{
 			name:    "empty",
@@ -26,39 +26,39 @@ func TestLoadEntities(t *testing.T) {
 			name:    "bad path",
 			path:    "/this/is/another/bad/file",
 			wantLog: 1,
-			want:    types.NewEntitySet(),
+			want:    standards.NewEntitySet(),
 		},
 		{
 			name:    "not yaml",
 			path:    "../../../testdata/unittest/pip/not_yaml.yaml",
 			wantLog: 1,
-			want:    types.NewEntitySet(),
+			want:    standards.NewEntitySet(),
 		},
 		{
 			name: "1 entity",
 			path: "../../../testdata/unittest/pip/entities/entity.yaml",
-			want: types.NewEntitySet(
-				types.NewEntity("app", "app1", types.NewAttributeSet(
-					types.NewAttribute("code", "app1"),
-					types.NewAttribute("name", "App-1"),
+			want: standards.NewEntitySet(
+				standards.NewEntity("app", "app1", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app1"),
+					standards.NewAttribute("name", "App-1"),
 				)),
 			),
 		},
 		{
 			name: "few entities",
 			path: "../../../testdata/unittest/pip/entities/entities.yaml",
-			want: types.NewEntitySet(
-				types.NewEntity("app", "app1", types.NewAttributeSet(
-					types.NewAttribute("code", "app1"),
-					types.NewAttribute("name", "App-1"),
+			want: standards.NewEntitySet(
+				standards.NewEntity("app", "app1", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app1"),
+					standards.NewAttribute("name", "App-1"),
 				)),
-				types.NewEntity("app", "app2", types.NewAttributeSet(
-					types.NewAttribute("code", "app2"),
-					types.NewAttribute("name", "App-2"),
+				standards.NewEntity("app", "app2", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app2"),
+					standards.NewAttribute("name", "App-2"),
 				)),
-				types.NewEntity("app", "app3", types.NewAttributeSet(
-					types.NewAttribute("code", "app3"),
-					types.NewAttribute("name", "App-3"),
+				standards.NewEntity("app", "app3", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app3"),
+					standards.NewAttribute("name", "App-3"),
 				), "app::app1", "app::app2",
 				),
 			),
@@ -71,8 +71,8 @@ func TestLoadEntities(t *testing.T) {
 
 			p := &pip{
 				logger:        slog.New(h),
-				entities:      types.NewEntitySet(),
-				newAttributes: types.NewAttributeSet,
+				entities:      standards.NewEntitySet(),
+				newAttributes: standards.NewAttributeSet,
 			}
 
 			p.loadEntities(tc.path)
@@ -80,13 +80,13 @@ func TestLoadEntities(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantLog == 0 {
-				tc.want.IterateEntities(func(e1 types.Entity) {
+				tc.want.IterateEntities(func(e1 standards.Entity) {
 					e2 := p.entities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)
 				})
 
-				p.entities.IterateEntities(func(e1 types.Entity) {
+				p.entities.IterateEntities(func(e1 standards.Entity) {
 					e2 := tc.want.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)
@@ -101,7 +101,7 @@ func TestLoadAttributes(t *testing.T) {
 		name    string
 		path    string
 		wantLog int
-		want    types.AttributeSet
+		want    standards.AttributeSet
 	}{
 		{
 			name:    "empty",
@@ -111,30 +111,30 @@ func TestLoadAttributes(t *testing.T) {
 			name:    "bad path",
 			path:    "/this/is/another/bad/file",
 			wantLog: 1,
-			want:    types.NewAttributeSet(),
+			want:    standards.NewAttributeSet(),
 		},
 		{
 			name:    "not yaml",
 			path:    "../../../testdata/unittest/pip/not_yaml.yaml",
 			wantLog: 1,
-			want:    types.NewAttributeSet(),
+			want:    standards.NewAttributeSet(),
 		},
 		{
 			name: "1 attribute",
 			path: "../../../testdata/unittest/pip/attributes/attribute.yaml",
-			want: types.NewAttributeSet(
-				types.NewAttribute("maandag", 1),
+			want: standards.NewAttributeSet(
+				standards.NewAttribute("maandag", 1),
 			),
 		},
 		{
 			name: "few attributes",
 			path: "../../../testdata/unittest/pip/attributes/attributes.yaml",
-			want: types.NewAttributeSet(
-				types.NewAttribute("maandag", 1),
-				types.NewAttribute("dinsdag", 2),
-				types.NewAttribute("woensdag", 3),
-				types.NewAttribute("donderdag", 4),
-				types.NewAttribute("vrijdag", 5),
+			want: standards.NewAttributeSet(
+				standards.NewAttribute("maandag", 1),
+				standards.NewAttribute("dinsdag", 2),
+				standards.NewAttribute("woensdag", 3),
+				standards.NewAttribute("donderdag", 4),
+				standards.NewAttribute("vrijdag", 5),
 			),
 		},
 	}
@@ -145,7 +145,7 @@ func TestLoadAttributes(t *testing.T) {
 
 			p := &pip{
 				logger:     slog.New(h),
-				attributes: types.NewAttributeSet(),
+				attributes: standards.NewAttributeSet(),
 			}
 
 			p.loadAttributes(tc.path)
@@ -174,8 +174,8 @@ func TestLoad(t *testing.T) {
 		path2          string
 		recurse        bool
 		wantLog        int
-		wantAttributes types.AttributeSet
-		wantEntities   types.EntitySet
+		wantAttributes standards.AttributeSet
+		wantEntities   standards.EntitySet
 	}{
 		{
 			name:    "no stores",
@@ -205,48 +205,48 @@ func TestLoad(t *testing.T) {
 			name:           "attr store, no recurse",
 			path1:          "../../../testdata/unittest/pip",
 			wantLog:        1,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities:   types.NewEntitySet(),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities:   standards.NewEntitySet(),
 		},
 		{
 			name:    "attr store, recurse",
 			path1:   "../../../testdata/unittest/pip",
 			recurse: true,
 			wantLog: 1,
-			wantAttributes: types.NewAttributeSet(
-				types.NewAttribute("maandag", 1),
-				types.NewAttribute("dinsdag", 2),
-				types.NewAttribute("woensdag", 3),
-				types.NewAttribute("donderdag", 4),
-				types.NewAttribute("vrijdag", 5),
+			wantAttributes: standards.NewAttributeSet(
+				standards.NewAttribute("maandag", 1),
+				standards.NewAttribute("dinsdag", 2),
+				standards.NewAttribute("woensdag", 3),
+				standards.NewAttribute("donderdag", 4),
+				standards.NewAttribute("vrijdag", 5),
 			),
-			wantEntities: types.NewEntitySet(),
+			wantEntities: standards.NewEntitySet(),
 		},
 		{
 			name:           "entity store, no recurse",
 			path2:          "../../../testdata/unittest/pip",
 			wantLog:        1,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities:   types.NewEntitySet(),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities:   standards.NewEntitySet(),
 		},
 		{
 			name:           "entity store, recurse",
 			path2:          "../../../testdata/unittest/pip",
 			recurse:        true,
 			wantLog:        1,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities: types.NewEntitySet(
-				types.NewEntity("App", "app1", types.NewAttributeSet(
-					types.NewAttribute("code", "app1"),
-					types.NewAttribute("name", "App-1"),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities: standards.NewEntitySet(
+				standards.NewEntity("App", "app1", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app1"),
+					standards.NewAttribute("name", "App-1"),
 				)),
-				types.NewEntity("App", "app2", types.NewAttributeSet(
-					types.NewAttribute("code", "app2"),
-					types.NewAttribute("name", "App-2"),
+				standards.NewEntity("App", "app2", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app2"),
+					standards.NewAttribute("name", "App-2"),
 				)),
-				types.NewEntity("App", "app3", types.NewAttributeSet(
-					types.NewAttribute("code", "app3"),
-					types.NewAttribute("name", "App-3"),
+				standards.NewEntity("App", "app3", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app3"),
+					standards.NewAttribute("name", "App-3"),
 				), "App::app1", "App::app2",
 				),
 			),
@@ -256,8 +256,8 @@ func TestLoad(t *testing.T) {
 			path1:          "../../../testdata/unittest/pip",
 			path2:          "../../../testdata/unittest/pip",
 			wantLog:        2,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities:   types.NewEntitySet(),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities:   standards.NewEntitySet(),
 		},
 		{
 			name:    "all, recurse",
@@ -265,25 +265,25 @@ func TestLoad(t *testing.T) {
 			path2:   "../../../testdata/unittest/pip",
 			recurse: true,
 			wantLog: 2,
-			wantAttributes: types.NewAttributeSet(
-				types.NewAttribute("maandag", 1),
-				types.NewAttribute("dinsdag", 2),
-				types.NewAttribute("woensdag", 3),
-				types.NewAttribute("donderdag", 4),
-				types.NewAttribute("vrijdag", 5),
+			wantAttributes: standards.NewAttributeSet(
+				standards.NewAttribute("maandag", 1),
+				standards.NewAttribute("dinsdag", 2),
+				standards.NewAttribute("woensdag", 3),
+				standards.NewAttribute("donderdag", 4),
+				standards.NewAttribute("vrijdag", 5),
 			),
-			wantEntities: types.NewEntitySet(
-				types.NewEntity("App", "app1", types.NewAttributeSet(
-					types.NewAttribute("code", "app1"),
-					types.NewAttribute("name", "App-1"),
+			wantEntities: standards.NewEntitySet(
+				standards.NewEntity("App", "app1", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app1"),
+					standards.NewAttribute("name", "App-1"),
 				)),
-				types.NewEntity("App", "app2", types.NewAttributeSet(
-					types.NewAttribute("code", "app2"),
-					types.NewAttribute("name", "App-2"),
+				standards.NewEntity("App", "app2", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app2"),
+					standards.NewAttribute("name", "App-2"),
 				)),
-				types.NewEntity("App", "app3", types.NewAttributeSet(
-					types.NewAttribute("code", "app3"),
-					types.NewAttribute("name", "App-3"),
+				standards.NewEntity("App", "app3", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app3"),
+					standards.NewAttribute("name", "App-3"),
 				), "App::app1", "App::app2",
 				),
 			),
@@ -299,9 +299,9 @@ func TestLoad(t *testing.T) {
 				entityStore:   tc.path2,
 				recurse:       tc.recurse,
 				logger:        slog.New(h),
-				attributes:    types.NewAttributeSet(),
-				entities:      types.NewEntitySet(),
-				newAttributes: types.NewAttributeSet,
+				attributes:    standards.NewAttributeSet(),
+				entities:      standards.NewEntitySet(),
+				newAttributes: standards.NewAttributeSet,
 			}
 
 			p.load()
@@ -322,13 +322,13 @@ func TestLoad(t *testing.T) {
 				}
 
 				if tc.wantEntities != nil {
-					tc.wantEntities.IterateEntities(func(e1 types.Entity) {
+					tc.wantEntities.IterateEntities(func(e1 standards.Entity) {
 						e2 := p.entities.GetEntity(e1.UID())
 						require.NotNil(t, e2)
 						assert.EqualValues(t, e1, e2)
 					})
 
-					p.entities.IterateEntities(func(e1 types.Entity) {
+					p.entities.IterateEntities(func(e1 standards.Entity) {
 						e2 := tc.wantEntities.GetEntity(e1.UID())
 						require.NotNil(t, e2)
 						assert.EqualValues(t, e1, e2)

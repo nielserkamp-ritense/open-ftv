@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
@@ -118,10 +117,10 @@ func TestProcessHeaders(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &pip{logger: slog.New(slog.NewTextHandler(io.Discard, nil))}
 
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &types.Request{Headers: tc.headers}
+			req := &standards.Request{Headers: tc.headers}
 			newURI := p.testHeaders(req, a)
 
 			if tc.wantURI != "" {
@@ -242,7 +241,7 @@ func TestProcessActivityID(t *testing.T) {
 				entities: New("../../../testdata/unittest/pip2", true, logger, nil, nil),
 			}
 
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p.convertActivityID(tc.id, a)

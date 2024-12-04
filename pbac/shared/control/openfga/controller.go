@@ -18,7 +18,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
 
@@ -29,7 +29,7 @@ const Version = "1.0.0"
 func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) control.Controller {
 	store, _ = filepath.Abs(store)
 
-	c := &controller{Base: control.NewBase(types.OPENFGA.String(), Version, logger, logboek)}
+	c := &controller{Base: control.NewBase(standards.OPENFGA.String(), Version, logger, logboek)}
 
 	if c.newServer(); c.pdp == nil {
 		return nil

@@ -1,12 +1,12 @@
 package openfga
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(_ *types.Request) (*types.Response, error) {
-	resp := &types.Response{Allowed: true}
+func (c *controller) Authorize(_ *standards.Request) (*standards.Response, error) {
+	resp := &standards.Response{Allowed: true}
 
 	// TODO: determine required policy and execute it
 

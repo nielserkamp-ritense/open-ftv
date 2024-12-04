@@ -10,11 +10,11 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *types.Request) (resp *types.Response, err error) {
+func (c *controller) Authorize(req *standards.Request) (resp *standards.Response, err error) {
 	finish := c.startLog(req)
 	defer func() { finish(resp) }()
 
@@ -36,7 +36,7 @@ func (c *controller) Authorize(req *types.Request) (resp *types.Response, err er
 				if debug {
 					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 				}
-				resp = &types.Response{Allowed: true}
+				resp = &standards.Response{Allowed: true}
 				return
 			}
 		}
@@ -46,14 +46,14 @@ func (c *controller) Authorize(req *types.Request) (resp *types.Response, err er
 		}
 	}
 
-	resp = &types.Response{Allowed: false, Message: "not authorized"}
+	resp = &standards.Response{Allowed: false, Message: "not authorized"}
 	return
 }
 
-func (c *controller) startLog(req *types.Request) func(resp *types.Response) {
+func (c *controller) startLog(req *standards.Request) func(resp *standards.Response) {
 	ldv := c.Logboek()
 	if ldv == nil {
-		return func(*types.Response) {}
+		return func(*standards.Response) {}
 	}
 
 	_, span := ldv.StartSpan(
@@ -61,12 +61,12 @@ func (c *controller) startLog(req *types.Request) func(resp *types.Response) {
 		attribute.String("authz.policy.engine", c.String()),
 	)
 
-	return func(result *types.Response) {
+	return func(result *standards.Response) {
 		c.endLog(span, result)
 	}
 }
 
-func (c *controller) endLog(span trace.Span, result *types.Response) {
+func (c *controller) endLog(span trace.Span, result *standards.Response) {
 	span.SetAttributes(
 		attribute.Bool("authz.policy.allowed", result.Allowed),
 		attribute.String("authz.policy.message", result.Message),
@@ -77,15 +77,15 @@ func (c *controller) endLog(span trace.Span, result *types.Response) {
 	span.End()
 }
 
-func (c *controller) buildDecisionOptions(req *types.Request) sdk.DecisionOptions {
+func (c *controller) buildDecisionOptions(req *standards.Request) sdk.DecisionOptions {
 	a, newURI := c.PIP().CollectAttributesFromRequest(req)
-	m := types.MapFromAttributes(a)
+	m := standards.MapFromAttributes(a)
 
 	if newURI != "" {
 		m["uri"] = newURI
 	}
 
-	p1, p2 := types.DeterminePrincipal(a)
+	p1, p2 := standards.DeterminePrincipal(a)
 
 	return sdk.DecisionOptions{
 		Now:        *req.RequestTime,

@@ -9,18 +9,18 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // NewAttributeBuilder returns the function prototype for building a new Cedar based attribute set.
-func NewAttributeBuilder(logger *slog.Logger) types.AttributesBuilder {
-	return func(in ...any) types.AttributeSet {
+func NewAttributeBuilder(logger *slog.Logger) standards.AttributesBuilder {
+	return func(in ...any) standards.AttributeSet {
 		return NewAttributeSet(logger, in...)
 	}
 }
 
 // NewAttributeSet instantiates a new Cedar based attribute set.
-func NewAttributeSet(logger *slog.Logger, in ...any) types.AttributeSet {
+func NewAttributeSet(logger *slog.Logger, in ...any) standards.AttributeSet {
 	a := &attributes{logger: logger, set: make(cedar.RecordMap)}
 	for _, p := range in {
 		switch t := p.(type) {
@@ -28,11 +28,11 @@ func NewAttributeSet(logger *slog.Logger, in ...any) types.AttributeSet {
 			for k := range t {
 				a.set[k] = t[k]
 			}
-		case types.AttributeSet:
+		case standards.AttributeSet:
 			a.MergeAttributes(t)
-		case types.Attribute:
+		case standards.Attribute:
 			a.AddAttribute(t.Key, t.Value)
-		case *types.Attribute:
+		case *standards.Attribute:
 			a.AddAttribute(t.Key, t.Value)
 		}
 	}
@@ -62,7 +62,7 @@ func (a *attributes) RemoveAttribute(key string) {
 }
 
 // IterateAttributes implements the AttributeSet interface.
-func (a *attributes) IterateAttributes(f types.AttributeIterator) {
+func (a *attributes) IterateAttributes(f standards.AttributeIterator) {
 	a.mutex.RLock()
 	for k := range a.set {
 		f(k.String(), a.valueToAny(a.set[k]))
@@ -71,7 +71,7 @@ func (a *attributes) IterateAttributes(f types.AttributeIterator) {
 }
 
 // MergeAttributes implements the AttributeSet interface.
-func (a *attributes) MergeAttributes(in ...types.AttributeSet) {
+func (a *attributes) MergeAttributes(in ...standards.AttributeSet) {
 	a.mutex.Lock()
 	for i := range in {
 		if set, ok := in[i].(*attributes); ok {

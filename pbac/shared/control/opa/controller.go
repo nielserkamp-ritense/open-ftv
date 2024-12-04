@@ -17,7 +17,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Version defines the version of this OPA/Rego PDP.
@@ -47,7 +47,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	}
 
 	c := &controller{
-		Base: control.NewBase(types.REGO.String(), Version, logger, logboek),
+		Base: control.NewBase(standards.REGO.String(), Version, logger, logboek),
 		pdp:  pdp,
 		mem:  mem,
 		ctx:  context.Background(),
@@ -70,12 +70,12 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 
 func (c *controller) loadEntities() {
 	m := make(map[string]any)
-	c.PIP().IterateEntities(func(entity types.Entity) {
+	c.PIP().IterateEntities(func(entity standards.Entity) {
 		m2, ok := m[entity.Type()].(map[string]any)
 		if !ok || m2 == nil {
 			m2 = make(map[string]any)
 		}
-		m2[entity.ID()] = types.MapFromAttributes(entity.Attributes())
+		m2[entity.ID()] = standards.MapFromAttributes(entity.Attributes())
 		m[entity.Type()] = m2
 	})
 

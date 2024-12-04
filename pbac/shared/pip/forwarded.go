@@ -6,11 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
-func (p *pip) processForwarded(fwd1, fwd2 string, a types.AttributeSet) {
+func (p *pip) processForwarded(fwd1, fwd2 string, a standards.AttributeSet) {
 	list1, list2 := strings.Split(fwd1, ","), strings.Split(fwd2, ",")
 
 	if len(list1) < len(list2) {
@@ -26,7 +25,7 @@ func (p *pip) processForwarded(fwd1, fwd2 string, a types.AttributeSet) {
 	}
 }
 
-func (p *pip) processForwardedList(fwd []string, a types.AttributeSet) bool {
+func (p *pip) processForwardedList(fwd []string, a standards.AttributeSet) bool {
 	for i := range fwd {
 		list := fwdRX.FindStringSubmatch(strings.TrimSpace(fwd[i]))
 		for j := 1; j < len(list); j++ {

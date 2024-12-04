@@ -3,11 +3,10 @@ package pip
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
-func (p *pip) determineURL(req *types.Request, a types.AttributeSet) {
+func (p *pip) determineURL(req *standards.Request, a standards.AttributeSet) {
 	m := make(map[string]any, 8)
 
 	if req.Method != "" {

@@ -295,10 +295,10 @@ github.com/yashtewari/glob-intersection v0.2.0 h1:8iuHdN88yYuCzCdjt0gDe+6bAhUwBe
 github.com/yashtewari/glob-intersection v0.2.0/go.mod h1:LK7pIC3piUjovexikBbJ26Yml7g8xa5bsjfx2v1fwok=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204142738-f9befe179071 h1:qQeQiUQgm0cw/XkqLZNSN8pL/hu7QrYx/JDIJTtVZGM=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204142738-f9befe179071/go.mod h1:N3wREPt1sB5GsoQEgzBHt9ajSG/xh2ZZtafteme7gfA=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204142738-f9befe179071 h1:UiwXkbKXPo3nZyrXOOE9EizN2fiEd/tn3lpKOnC6MSY=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204142738-f9befe179071/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204144019-c90a169d87c8 h1:9fibDwyXUaiZbX5L8+gVK231yEBUS1/dn01nORWV1fs=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204144019-c90a169d87c8/go.mod h1:svGH9KzJRaBNG1Ci6sxs7A3/46TebqjY5+qCLyXGY/8=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204144019-c90a169d87c8 h1:1Vy/gGDjPwweznz8UVTXnx6o9fG+ne4U2SgtNT4IpXs=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20241204144019-c90a169d87c8/go.mod h1:mHiR2ngELE00K1rsdvHz29md8Ltves/i4PbPGGfCjcg=
 go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
 go.opencensus.io v0.24.0/go.mod h1:vNK8G9p7aAivkbmorf4v+7Hgx+Zs0yY+0fOtgBfjQKo=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0 h1:DheMAlT6POBP+gh8RUH19EOTnQIor5QE0uSRPtzCpSw=

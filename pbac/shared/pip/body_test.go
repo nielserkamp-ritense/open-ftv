@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -25,7 +25,7 @@ func TestParseXML(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			err := parseXML([]byte(tc.body), a)
@@ -100,7 +100,7 @@ func TestParseJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			err := parseJSON([]byte(tc.body), a)
@@ -117,9 +117,9 @@ func TestProcessBody(t *testing.T) {
 	testCases := []struct {
 		name    string
 		body    []byte
-		attr    types.AttributeSet
+		attr    standards.AttributeSet
 		wantLog int
-		want    types.AttributeSet
+		want    standards.AttributeSet
 	}{
 		{
 			name: "empty",
@@ -137,8 +137,8 @@ func TestProcessBody(t *testing.T) {
 		{
 			name: "no content-type, xml data",
 			body: []byte("<start>hello world</start>"),
-			want: types.NewAttributeSet(
-				types.NewAttribute(
+			want: standards.NewAttributeSet(
+				standards.NewAttribute(
 					"body", []map[string]any{
 						{"start": map[string]any{
 							"attributes": []map[string]any{},
@@ -156,27 +156,27 @@ func TestProcessBody(t *testing.T) {
 		{
 			name: "no content-type, json data",
 			body: []byte(`{"hello": "world"}`),
-			want: types.NewAttributeSet(types.NewAttribute("body", map[string]any{"hello": "world"})),
+			want: standards.NewAttributeSet(standards.NewAttribute("body", map[string]any{"hello": "world"})),
 		},
 		{
 			name:    "content-type unsupported",
-			attr:    types.NewAttributeSet(types.NewAttribute("content-type", "x-iets")),
+			attr:    standards.NewAttributeSet(standards.NewAttribute("content-type", "x-iets")),
 			body:    []byte("[]"),
 			wantLog: 1,
 		},
 		{
 			name:    "content-type xml, invalid xml",
-			attr:    types.NewAttributeSet(types.NewAttribute("content-type", "application/xml")),
+			attr:    standards.NewAttributeSet(standards.NewAttribute("content-type", "application/xml")),
 			body:    []byte("<xml? wat is dit dan?"),
 			wantLog: 1,
 		},
 		{
 			name: "content-type xml, valid xml",
-			attr: types.NewAttributeSet(types.NewAttribute("content-type", "application/xml")),
+			attr: standards.NewAttributeSet(standards.NewAttribute("content-type", "application/xml")),
 			body: []byte("<start>hello world</start>"),
-			want: types.NewAttributeSet(
-				types.NewAttribute("content-type", "application/xml"),
-				types.NewAttribute(
+			want: standards.NewAttributeSet(
+				standards.NewAttribute("content-type", "application/xml"),
+				standards.NewAttribute(
 					"body", []map[string]any{
 						{"start": map[string]any{
 							"attributes": []map[string]any{},
@@ -188,24 +188,24 @@ func TestProcessBody(t *testing.T) {
 		},
 		{
 			name:    "content-type json, invalid json",
-			attr:    types.NewAttributeSet(types.NewAttribute("content-type", "application/json")),
+			attr:    standards.NewAttributeSet(standards.NewAttribute("content-type", "application/json")),
 			body:    []byte("[nee,toch}"),
 			wantLog: 1,
 		},
 		{
 			name: "content-type json, valid json",
-			attr: types.NewAttributeSet(types.NewAttribute("content-type", "text/json")),
+			attr: standards.NewAttributeSet(standards.NewAttribute("content-type", "text/json")),
 			body: []byte(`{"hello": "world"}`),
-			want: types.NewAttributeSet(
-				types.NewAttribute("content-type", "text/json"),
-				types.NewAttribute("body", map[string]any{"hello": "world"}),
+			want: standards.NewAttributeSet(
+				standards.NewAttribute("content-type", "text/json"),
+				standards.NewAttribute("body", map[string]any{"hello": "world"}),
 			),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := types.NewAttributeSet(tc.attr)
+			a := standards.NewAttributeSet(tc.attr)
 			require.NotNil(t, a)
 
 			h := util.NewDummyHandler(slog.LevelDebug)
@@ -215,7 +215,7 @@ func TestProcessBody(t *testing.T) {
 
 			h.Clear()
 
-			req := &types.Request{Body: tc.body}
+			req := &standards.Request{Body: tc.body}
 
 			p2, ok := p.(*pip)
 			require.True(t, ok)

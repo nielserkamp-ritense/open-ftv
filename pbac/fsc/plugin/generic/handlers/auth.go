@@ -15,7 +15,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -36,17 +36,17 @@ func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
 }
 
 func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (control.Controller, error) {
-	switch types.LanguageFromString(cfg.PolicyLanguage) {
-	case types.REGO:
+	switch standards.LanguageFromString(cfg.PolicyLanguage) {
+	case standards.REGO:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case types.CERBOS:
+	case standards.CERBOS:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case types.CEDAR:
+	case standards.CEDAR:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case types.OPENFGA:
+	case standards.OPENFGA:
 		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	default:

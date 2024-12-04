@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -28,10 +28,10 @@ func TestController_Authorize(t *testing.T) {
 		recurse1 bool
 		store2   string
 		recurse2 bool
-		req      types.Request
+		req      standards.Request
 		wantErr  bool
 		wantLog  int
-		want     types.Response
+		want     standards.Response
 	}{
 		{
 			name:     "bad request",
@@ -39,7 +39,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: types.Request{
+			req: standards.Request{
 				UID:         &uid,
 				URL:         u1,
 				Method:      "GET",
@@ -48,7 +48,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 4,
-			want:    types.Response{Message: "not authorized"},
+			want:    standards.Response{Message: "not authorized"},
 		},
 		{
 			name:     "good request",
@@ -56,7 +56,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: types.Request{
+			req: standards.Request{
 				UID:         &uid,
 				URL:         u2,
 				Method:      "POST",
@@ -65,7 +65,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        b1,
 			},
 			wantLog: 3,
-			want:    types.Response{Allowed: true},
+			want:    standards.Response{Allowed: true},
 		},
 	}
 
@@ -74,7 +74,7 @@ func TestController_Authorize(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(tc.store1, tc.recurse1, logger, types.NewAttributeSet, types.NewEntitySet)
+			p := pip.New(tc.store1, tc.recurse1, logger, standards.NewAttributeSet, standards.NewEntitySet)
 			require.NotNil(t, p)
 
 			c := NewController(p, tc.store2, tc.recurse2, logger, nil)

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -40,48 +40,48 @@ func TestNew(t *testing.T) {
 		path           string
 		recurse        bool
 		wantLog        int
-		wantAttributes types.AttributeSet
-		wantEntities   types.EntitySet
+		wantAttributes standards.AttributeSet
+		wantEntities   standards.EntitySet
 	}{
 		{
 			name:           "no store",
 			recurse:        true,
 			wantLog:        1,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities:   types.NewEntitySet(),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities:   standards.NewEntitySet(),
 		},
 		{
 			name:           "invalid store",
 			path:           "/not/a/valid/path",
 			recurse:        true,
 			wantLog:        1,
-			wantAttributes: types.NewAttributeSet(),
-			wantEntities:   types.NewEntitySet(),
+			wantAttributes: standards.NewAttributeSet(),
+			wantEntities:   standards.NewEntitySet(),
 		},
 		{
 			name:    "with store, no recurse",
 			level:   slog.LevelDebug,
 			path:    "../../../testdata/unittest/pip",
 			wantLog: 1,
-			wantAttributes: types.NewAttributeSet(
-				types.NewAttribute("maandag", 1),
-				types.NewAttribute("dinsdag", 2),
-				types.NewAttribute("woensdag", 3),
-				types.NewAttribute("donderdag", 4),
-				types.NewAttribute("vrijdag", 5),
+			wantAttributes: standards.NewAttributeSet(
+				standards.NewAttribute("maandag", 1),
+				standards.NewAttribute("dinsdag", 2),
+				standards.NewAttribute("woensdag", 3),
+				standards.NewAttribute("donderdag", 4),
+				standards.NewAttribute("vrijdag", 5),
 			),
-			wantEntities: types.NewEntitySet(
-				types.NewEntity("app", "app1", types.NewAttributeSet(
-					types.NewAttribute("code", "app1"),
-					types.NewAttribute("name", "App-1"),
+			wantEntities: standards.NewEntitySet(
+				standards.NewEntity("app", "app1", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app1"),
+					standards.NewAttribute("name", "App-1"),
 				)),
-				types.NewEntity("app", "app2", types.NewAttributeSet(
-					types.NewAttribute("code", "app2"),
-					types.NewAttribute("name", "App-2"),
+				standards.NewEntity("app", "app2", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app2"),
+					standards.NewAttribute("name", "App-2"),
 				)),
-				types.NewEntity("app", "app3", types.NewAttributeSet(
-					types.NewAttribute("code", "app3"),
-					types.NewAttribute("name", "App-3"),
+				standards.NewEntity("app", "app3", standards.NewAttributeSet(
+					standards.NewAttribute("code", "app3"),
+					standards.NewAttribute("name", "App-3"),
 				), "app::app1", "app::app2",
 				),
 			),
@@ -114,13 +114,13 @@ func TestNew(t *testing.T) {
 			}
 
 			if tc.wantEntities != nil {
-				tc.wantEntities.IterateEntities(func(e1 types.Entity) {
+				tc.wantEntities.IterateEntities(func(e1 standards.Entity) {
 					e2 := p2.entities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)
 				})
 
-				p2.entities.IterateEntities(func(e1 types.Entity) {
+				p2.entities.IterateEntities(func(e1 standards.Entity) {
 					e2 := tc.wantEntities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)
@@ -132,7 +132,7 @@ func TestNew(t *testing.T) {
 
 func TestPIP_Attributes(t *testing.T) {
 	t.Run("pip as AttributeSet", func(t *testing.T) {
-		p := &pip{attributes: types.NewAttributeSet()}
+		p := &pip{attributes: standards.NewAttributeSet()}
 		require.NotNil(t, p)
 
 		p.AddAttribute("hello", "world")
@@ -142,7 +142,7 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, "world", p.GetAttribute("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
-		p2 := &pip{attributes: types.NewAttributeSet(types.NewAttribute("hello", "world2"), &types.Attribute{Key: "bool", Value: true})}
+		p2 := &pip{attributes: standards.NewAttributeSet(standards.NewAttribute("hello", "world2"), &standards.Attribute{Key: "bool", Value: true})}
 		p.MergeAttributes(p2)
 
 		assert.Equal(t, "world2", p.GetAttribute("hello"))
@@ -163,22 +163,22 @@ func TestPIP_Attributes(t *testing.T) {
 
 func TestPIP_Entities(t *testing.T) {
 	t.Run("pip as EntitySet", func(t *testing.T) {
-		p := &pip{entities: types.NewEntitySet()}
+		p := &pip{entities: standards.NewEntitySet()}
 		require.NotNil(t, p)
 
-		p.AddEntity(types.NewEntity("x", "y", types.NewAttributeSet()))
-		p.AddEntity(types.NewEntity("x", "z", types.NewAttributeSet()))
+		p.AddEntity(standards.NewEntity("x", "y", standards.NewAttributeSet()))
+		p.AddEntity(standards.NewEntity("x", "z", standards.NewAttributeSet()))
 
 		p.MergeEntities(
-			types.NewEntitySet(
-				types.NewEntity("q", "x", types.NewAttributeSet()),
-				types.NewEntity("q", "y", types.NewAttributeSet()),
-				types.NewEntity("q", "z", types.NewAttributeSet()),
+			standards.NewEntitySet(
+				standards.NewEntity("q", "x", standards.NewAttributeSet()),
+				standards.NewEntity("q", "y", standards.NewAttributeSet()),
+				standards.NewEntity("q", "z", standards.NewAttributeSet()),
 			),
 		)
 
 		var count int
-		p.IterateEntities(func(entity types.Entity) {
+		p.IterateEntities(func(entity standards.Entity) {
 			count++
 		})
 		assert.Equal(t, 5, count)
@@ -193,7 +193,7 @@ func TestPIP_Entities(t *testing.T) {
 		p.RemoveEntity("q::x")
 
 		count = 0
-		p.IterateEntities(func(entity types.Entity) {
+		p.IterateEntities(func(entity standards.Entity) {
 			count++
 		})
 		assert.Equal(t, 3, count)
@@ -204,48 +204,48 @@ func TestPIP_Entities(t *testing.T) {
 }
 
 func TestPip_CollectAttributesFromRequest(t *testing.T) {
-	emptyHTTP := types.NewAttribute("http", map[string]any{})
-	emptyHeaders := types.NewAttribute("headers", map[string]string{})
+	emptyHTTP := standards.NewAttribute("http", map[string]any{})
+	emptyHeaders := standards.NewAttribute("headers", map[string]string{})
 
 	testCases := []struct {
 		name    string
 		level   slog.Level
-		req     types.Request
-		attr    types.AttributeSet
+		req     standards.Request
+		attr    standards.AttributeSet
 		wantLog int
 		wantURI string
-		want    types.AttributeSet
+		want    standards.AttributeSet
 	}{
 		{
 			name: "empty",
-			req:  types.Request{},
-			attr: types.NewAttributeSet(),
-			want: types.NewAttributeSet(emptyHTTP, emptyHeaders),
+			req:  standards.Request{},
+			attr: standards.NewAttributeSet(),
+			want: standards.NewAttributeSet(emptyHTTP, emptyHeaders),
 		},
 		{
 			name: "method",
-			req:  types.Request{Method: "POST"},
-			attr: types.NewAttributeSet(),
-			want: types.NewAttributeSet(
+			req:  standards.Request{Method: "POST"},
+			attr: standards.NewAttributeSet(),
+			want: standards.NewAttributeSet(
 				emptyHeaders,
-				types.NewAttributeSet(
-					types.NewAttribute("http", map[string]any{"method": "POST"}),
+				standards.NewAttributeSet(
+					standards.NewAttribute("http", map[string]any{"method": "POST"}),
 				),
 			),
 		},
 		{
 			name: "url",
-			req: types.Request{URL: &url.URL{
+			req: standards.Request{URL: &url.URL{
 				Scheme:   "https://",
 				Host:     "www.disney.land",
 				Path:     "/donald/duck",
 				RawQuery: "x=y&q=www",
 			}},
-			attr: types.NewAttributeSet(),
-			want: types.NewAttributeSet(
+			attr: standards.NewAttributeSet(),
+			want: standards.NewAttributeSet(
 				emptyHeaders,
-				types.NewAttributeSet(
-					types.NewAttribute("http", map[string]any{
+				standards.NewAttributeSet(
+					standards.NewAttribute("http", map[string]any{
 						"scheme":     "https",
 						"host":       "www.disney.land",
 						"path":       "/donald/duck",
@@ -257,31 +257,31 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "headers",
-			req:  types.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
-			attr: types.NewAttributeSet(),
-			want: types.NewAttributeSet(
+			req:  standards.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
+			attr: standards.NewAttributeSet(),
+			want: standards.NewAttributeSet(
 				emptyHTTP,
-				types.NewAttributeSet(types.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
-				types.NewAttributeSet(types.NewAttribute("content-type", "text/json")),
+				standards.NewAttributeSet(standards.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
+				standards.NewAttributeSet(standards.NewAttribute("content-type", "text/json")),
 			),
 		},
 		{
 			name: "attributes",
-			req:  types.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
-			attr: types.NewAttributeSet(),
-			want: types.NewAttributeSet(
+			req:  standards.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
+			attr: standards.NewAttributeSet(),
+			want: standards.NewAttributeSet(
 				emptyHTTP,
 				emptyHeaders,
-				types.NewAttributeSet(
-					types.NewAttribute("hello", "world"),
-					types.NewAttribute("int", 4567),
+				standards.NewAttributeSet(
+					standards.NewAttribute("hello", "world"),
+					standards.NewAttribute("int", 4567),
 				),
 			),
 		},
 		{
 			name:  "all with log",
 			level: slog.LevelDebug,
-			req: types.Request{
+			req: standards.Request{
 				Method: "POST",
 				URL: &url.URL{
 					Scheme:   "https://",
@@ -293,13 +293,13 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 				Body:       []byte(`{"float": 12.12, "bool": false, "hello": "kitty"}`),
 				Attributes: map[string]any{"hello": "world", "int": 765},
 			},
-			attr:    types.NewAttributeSet(),
+			attr:    standards.NewAttributeSet(),
 			wantLog: 1,
-			want: types.NewAttributeSet(
-				types.NewAttributeSet(types.NewAttribute("content-type", "text/json")),
-				types.NewAttributeSet(types.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
-				types.NewAttributeSet(
-					types.NewAttribute("http", map[string]any{
+			want: standards.NewAttributeSet(
+				standards.NewAttributeSet(standards.NewAttribute("content-type", "text/json")),
+				standards.NewAttributeSet(standards.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
+				standards.NewAttributeSet(
+					standards.NewAttribute("http", map[string]any{
 						"method":     "POST",
 						"scheme":     "https",
 						"host":       "www.disney.land",
@@ -308,10 +308,10 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 						"query":      map[string]string{"x": "y", "q": "www"},
 					}),
 				),
-				types.NewAttributeSet(
-					types.NewAttribute("hello", "world"),
-					types.NewAttribute("int", 765),
-					types.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
+				standards.NewAttributeSet(
+					standards.NewAttribute("hello", "world"),
+					standards.NewAttribute("int", 765),
+					standards.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
 				),
 			),
 		},
@@ -320,7 +320,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
-			p := &pip{logger: slog.New(h), attributes: tc.attr, newAttributes: types.NewAttributeSet}
+			p := &pip{logger: slog.New(h), attributes: tc.attr, newAttributes: standards.NewAttributeSet}
 
 			got, newURI := p.CollectAttributesFromRequest(&tc.req)
 			require.NotNil(t, got)

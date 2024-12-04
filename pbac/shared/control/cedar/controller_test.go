@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -62,7 +62,7 @@ func TestNewController(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(tc.store1, tc.recurse1, logger, types.NewAttributeSet, types.NewEntitySet)
+			p := pip.New(tc.store1, tc.recurse1, logger, standards.NewAttributeSet, standards.NewEntitySet)
 			require.NotNil(t, p)
 
 			h.Clear()

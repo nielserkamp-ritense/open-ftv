@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
@@ -69,12 +68,12 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 }
 
 func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
-	actionAttrs := types.NewAttributeSet(req.Action.Properties)
+	actionAttrs := standards.NewAttributeSet(req.Action.Properties)
 	method, _ := actionAttrs.GetAttribute(standards.AttrMethod).(string)
 
-	principal := types.NewEntity(req.Subject.Type, req.Subject.Id, types.NewAttributeSet(req.Subject.Properties))
-	action := types.NewEntity(standards.EntityAction, *req.Action.Name, actionAttrs)
-	resource := types.NewEntity(req.Resource.Type, req.Resource.Id, types.NewAttributeSet(req.Resource.Properties))
+	principal := standards.NewEntity(req.Subject.Type, req.Subject.Id, standards.NewAttributeSet(req.Subject.Properties))
+	action := standards.NewEntity(standards.EntityAction, *req.Action.Name, actionAttrs)
+	resource := standards.NewEntity(req.Resource.Type, req.Resource.Id, standards.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
 	if req.Context != nil {
@@ -84,7 +83,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &types.Request{
+	p.req = &standards.Request{
 		UID:         &uid,
 		RequestTime: &now,
 		Method:      method,

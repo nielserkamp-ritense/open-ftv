@@ -8,7 +8,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Controller represents the interface for a PBAC controller component.
@@ -16,7 +16,7 @@ type Controller interface {
 	String() string
 	Name() string
 	Version() string
-	Authorize(req *types.Request) (*types.Response, error)
+	Authorize(req *standards.Request) (*standards.Response, error)
 }
 
 // Base contains the common attributes of a controller.

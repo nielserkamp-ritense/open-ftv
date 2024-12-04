@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -53,9 +52,9 @@ func TestProcessAuth(t *testing.T) {
 			p := &pip{logger: slog.New(h)}
 
 			uid := uuid.New()
-			req := &types.Request{UID: &uid}
+			req := &standards.Request{UID: &uid}
 
-			a := types.NewAttributeSet()
+			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p.processAuth(req, tc.auth, a)

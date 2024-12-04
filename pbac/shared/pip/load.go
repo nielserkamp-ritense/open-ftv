@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 func (p *pip) load() {
@@ -96,6 +96,6 @@ func (p *pip) loadEntities(path string) {
 		for j := range e.Attrs {
 			attrs.AddAttribute(j, e.Attrs[j])
 		}
-		p.entities.AddEntity(types.NewEntity(e.Type, e.ID, attrs, e.Parents...))
+		p.entities.AddEntity(standards.NewEntity(e.Type, e.ID, attrs, e.Parents...))
 	}
 }

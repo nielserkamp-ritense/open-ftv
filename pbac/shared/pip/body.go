@@ -8,11 +8,11 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *pip) decodeBody(req *types.Request, a types.AttributeSet) {
+func (p *pip) decodeBody(req *standards.Request, a standards.AttributeSet) {
 	if req.Body == nil {
 		return
 	}
@@ -35,7 +35,7 @@ func (p *pip) decodeBody(req *types.Request, a types.AttributeSet) {
 	}
 }
 
-type bodyParser func(body []byte, a types.AttributeSet) error
+type bodyParser func(body []byte, a standards.AttributeSet) error
 
 var parsers = map[string]bodyParser{
 	"text/xml":              parseXML,
@@ -52,7 +52,7 @@ var parsers = map[string]bodyParser{
 	"application/geo+json":  parseJSON,
 }
 
-func parseJSON(body []byte, a types.AttributeSet) error {
+func parseJSON(body []byte, a standards.AttributeSet) error {
 	m := make(map[string]any)
 	if err := json.NewDecoder(bytes.NewBuffer(body)).Decode(&m); err != nil && err != io.EOF {
 		return err
@@ -62,7 +62,7 @@ func parseJSON(body []byte, a types.AttributeSet) error {
 	return nil
 }
 
-func parseXML(body []byte, a types.AttributeSet) error {
+func parseXML(body []byte, a standards.AttributeSet) error {
 	nodes := make([]xmlNode, 0)
 	if err := xml.Unmarshal(body, &nodes); err != nil {
 		return err
