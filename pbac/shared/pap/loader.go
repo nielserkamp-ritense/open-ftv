@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // LoadFromStore loads all policies from the store.
@@ -34,6 +35,10 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 			return nil
 		}
 		return filepath.SkipDir
+	}
+
+	if strings.HasSuffix(path, ".gitkeep") {
+		return nil
 	}
 
 	f, err2 := os.Open(path)
