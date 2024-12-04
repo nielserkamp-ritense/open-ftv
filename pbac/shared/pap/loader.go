@@ -37,7 +37,7 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 		return filepath.SkipDir
 	}
 
-	if strings.HasSuffix(path, ".gitkeep") {
+	if strings.HasSuffix(path, ".gitkeep") || strings.HasSuffix(path, "..data") {
 		return nil
 	}
 

@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -32,7 +33,10 @@ func (p *pip) iterateFolders(path string, recurse bool, f func(path string)) {
 			return filepath.SkipDir
 		}
 
-		f(path2)
+		if !strings.HasSuffix(path, ".gitkeep") && !strings.HasSuffix(path, "..data") {
+			f(path2)
+		}
+
 		return nil
 	})
 
