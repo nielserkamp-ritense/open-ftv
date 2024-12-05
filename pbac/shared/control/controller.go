@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
@@ -15,7 +16,7 @@ type Controller interface {
 	String() string
 	Name() string
 	Version() string
-	Authorize(req *Request) (*Response, error)
+	Authorize(req *shared.Request) (*shared.Response, error)
 }
 
 // Base contains the common attributes of a controller.

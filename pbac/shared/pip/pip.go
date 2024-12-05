@@ -11,15 +11,15 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
-	models "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 // PIP represents the interface for a Policy Information Point.
 type PIP interface {
 	models.AttributeSet
 	models.EntitySet
-	CollectAttributesFromRequest(req *control.Request) (a models.AttributeSet, newURI string)
+	CollectAttributesFromRequest(req *shared.Request) (a models.AttributeSet, newURI string)
 }
 
 // New instantiates a new Policy Information Point.
@@ -97,7 +97,7 @@ func (p *pip) entitiesToMap() map[string]any {
 //
 // The default attributes stored in the PIP will be collected first.
 // AttributeSet from the request will overwrite default attributes when the keys are equal.
-func (p *pip) CollectAttributesFromRequest(req *control.Request) (models.AttributeSet, string) {
+func (p *pip) CollectAttributesFromRequest(req *shared.Request) (models.AttributeSet, string) {
 	a := p.newAttributes(p.attributes)
 	a.AddAttribute(models.AttrRequestTime, time.Now().UTC())
 

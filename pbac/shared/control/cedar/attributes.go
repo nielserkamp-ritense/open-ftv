@@ -13,14 +13,14 @@ import (
 )
 
 // NewAttributeBuilder returns the function prototype for building a new Cedar based attribute set.
-func NewAttributeBuilder(logger *slog.Logger) standards.AttributesBuilder {
-	return func(in ...any) standards.AttributeSet {
+func NewAttributeBuilder(logger *slog.Logger) models.AttributesBuilder {
+	return func(in ...any) models.AttributeSet {
 		return NewAttributeSet(logger, in...)
 	}
 }
 
 // NewAttributeSet instantiates a new Cedar based attribute set.
-func NewAttributeSet(logger *slog.Logger, in ...any) standards.AttributeSet {
+func NewAttributeSet(logger *slog.Logger, in ...any) models.AttributeSet {
 	a := &attributes{logger: logger, set: make(cedar.RecordMap)}
 	for _, p := range in {
 		switch t := p.(type) {
@@ -28,11 +28,11 @@ func NewAttributeSet(logger *slog.Logger, in ...any) standards.AttributeSet {
 			for k := range t {
 				a.set[k] = t[k]
 			}
-		case standards.AttributeSet:
+		case models.AttributeSet:
 			a.MergeAttributes(t)
-		case standards.Attribute:
+		case models.Attribute:
 			a.AddAttribute(t.Key, t.Value)
-		case *standards.Attribute:
+		case *models.Attribute:
 			a.AddAttribute(t.Key, t.Value)
 		}
 	}
@@ -62,7 +62,7 @@ func (a *attributes) RemoveAttribute(key string) {
 }
 
 // IterateAttributes implements the AttributeSet interface.
-func (a *attributes) IterateAttributes(f standards.AttributeIterator) {
+func (a *attributes) IterateAttributes(f models.AttributeIterator) {
 	a.mutex.RLock()
 	for k := range a.set {
 		f(k.String(), a.valueToAny(a.set[k]))
@@ -71,7 +71,7 @@ func (a *attributes) IterateAttributes(f standards.AttributeIterator) {
 }
 
 // MergeAttributes implements the AttributeSet interface.
-func (a *attributes) MergeAttributes(in ...standards.AttributeSet) {
+func (a *attributes) MergeAttributes(in ...models.AttributeSet) {
 	a.mutex.Lock()
 	for i := range in {
 		if set, ok := in[i].(*attributes); ok {

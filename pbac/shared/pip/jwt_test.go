@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -53,9 +53,9 @@ func TestProcessAuth(t *testing.T) {
 			p := &pip{logger: slog.New(h)}
 
 			uid := uuid.New()
-			req := &control.Request{UID: &uid}
+			req := &shared.Request{UID: &uid}
 
-			a := standards.NewAttributeSet()
+			a := models.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p.processAuth(req, tc.auth, a)
@@ -65,24 +65,24 @@ func TestProcessAuth(t *testing.T) {
 			}
 
 			if tc.wantJWT {
-				token, ok := a.GetAttribute(standards.AttrJWT).(map[string]any)
+				token, ok := a.GetAttribute(models.AttrJWT).(map[string]any)
 				require.True(t, ok)
 				require.NotNil(t, token)
 
 				if tc.wantValid {
-					got, ok2 := token[standards.AttrValid].(bool)
+					got, ok2 := token[models.AttrValid].(bool)
 					require.True(t, ok2)
 					assert.True(t, got)
 				}
 
 				if tc.wantHeaders != nil {
-					got, ok2 := token[standards.AttrHeaders].(map[string]any)
+					got, ok2 := token[models.AttrHeaders].(map[string]any)
 					require.True(t, ok2)
 					assert.EqualValues(t, tc.wantHeaders, got)
 				}
 
 				if tc.wantClaims != nil {
-					got, ok2 := token[standards.AttrClaims].(map[string]any)
+					got, ok2 := token[models.AttrClaims].(map[string]any)
 					require.True(t, ok2)
 					assert.EqualValues(t, tc.wantClaims, got)
 				}

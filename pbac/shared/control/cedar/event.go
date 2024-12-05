@@ -9,9 +9,9 @@ import (
 )
 
 // Handle implements the EventSink interface.
-func (c *controller) Handle(t standards.EventType, key string) {
+func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
-	case standards.PolicyAdded, standards.PolicyReplaced:
+	case models.PolicyAdded, models.PolicyReplaced:
 		f, err := c.PAP().Get(key)
 		if err != nil {
 			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-key", key, "error", err)
@@ -28,7 +28,7 @@ func (c *controller) Handle(t standards.EventType, key string) {
 			c.Logger().Error("error decoding policy", "controller", c.String(), "policy-key", key, "error", err)
 		}
 
-	case standards.PolicyRemoved:
+	case models.PolicyRemoved:
 		c.pdp.Remove(cedar.PolicyID(key))
 		c.Logger().Info("policy removed", "controller", c.String(), "policy-key", key)
 	}

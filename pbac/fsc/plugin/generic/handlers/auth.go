@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cerbos"
@@ -35,17 +36,17 @@ func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
 }
 
 func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (control.Controller, error) {
-	switch control.LanguageFromString(cfg.PolicyLanguage) {
-	case control.REGO:
+	switch shared.LanguageFromString(cfg.PolicyLanguage) {
+	case shared.REGO:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case control.CERBOS:
+	case shared.CERBOS:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case control.CEDAR:
+	case shared.CEDAR:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case control.OPENFGA:
+	case shared.OPENFGA:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	default:

@@ -9,10 +9,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
-func (p *pip) processFSC(req *control.Request, auth string, a standards.AttributeSet) string {
+func (p *pip) processFSC(req *shared.Request, auth string, a models.AttributeSet) string {
 	if strings.HasPrefix(auth, "Bearer ") {
 		return p.processFSCBearer(req, auth[7:], a)
 	}
@@ -21,7 +21,7 @@ func (p *pip) processFSC(req *control.Request, auth string, a standards.Attribut
 	return ""
 }
 
-func (p *pip) processFSCBearer(req *control.Request, bearer string, a standards.AttributeSet) string {
+func (p *pip) processFSCBearer(req *shared.Request, bearer string, a models.AttributeSet) string {
 	token, err := jwt.Parse(
 		bearer,
 		func(token *jwt.Token) (interface{}, error) {
@@ -48,15 +48,15 @@ func (p *pip) processFSCBearer(req *control.Request, bearer string, a standards.
 	}
 
 	m := map[string]any{
-		standards.AttrValid:   token.Valid,
-		standards.AttrHeaders: token.Header,
+		models.AttrValid:   token.Valid,
+		models.AttrHeaders: token.Header,
 	}
 
 	var newURI string
 
 	if token.Claims != nil {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			m[standards.AttrClaims] = map[string]any(claims)
+			m[models.AttrClaims] = map[string]any(claims)
 
 			aud, ok2 := claims["aud"].(string)
 			svc, ok3 := claims["svc"].(string)
@@ -66,7 +66,7 @@ func (p *pip) processFSCBearer(req *control.Request, bearer string, a standards.
 		}
 	}
 
-	a.AddAttribute(standards.AttrFSC, m)
+	a.AddAttribute(models.AttrFSC, m)
 
 	return newURI
 }

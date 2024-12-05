@@ -5,7 +5,7 @@ import (
 )
 
 // Handle implements the EventSink interface.
-func (c *controller) Handle(standards.EventType, string) {
+func (c *controller) Handle(models.EventType, string) {
 
 	// TODO: process event
 

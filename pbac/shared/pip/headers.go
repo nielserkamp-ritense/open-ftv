@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
-func (p *pip) testHeaders(req *control.Request, a standards.AttributeSet) string {
+func (p *pip) testHeaders(req *shared.Request, a models.AttributeSet) string {
 	other := make(map[string]string)
 
 	var activityID, newURI, fwd1, fwd2 string
@@ -16,31 +16,31 @@ func (p *pip) testHeaders(req *control.Request, a standards.AttributeSet) string
 	for k := range req.Headers {
 		if list := req.Headers[k]; len(list) > 0 {
 			switch strings.ToLower(k) {
-			case standards.HeaderContentType:
-				a.AddAttribute(standards.AttrContentType, list[0])
-			case standards.HeaderAuthorization:
+			case models.HeaderContentType:
+				a.AddAttribute(models.AttrContentType, list[0])
+			case models.HeaderAuthorization:
 				p.processAuth(req, list[0], a)
-			case standards.HeaderFSCAuthorization:
+			case models.HeaderFSCAuthorization:
 				newURI = p.processFSC(req, list[0], a)
-			case standards.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
-				a.AddAttribute(standards.AttrApiKey, list[0])
-			case standards.HeaderRvaActivityID:
+			case models.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
+				a.AddAttribute(models.AttrApiKey, list[0])
+			case models.HeaderRvaActivityID:
 				activityID = list[0]
-				a.AddAttribute(standards.AttrActivityID, activityID)
+				a.AddAttribute(models.AttrActivityID, activityID)
 				p.convertActivityID(activityID, a)
-			case standards.HeaderCoreUser:
-				a.AddAttribute(standards.AttrCoreUser, list[0])
-			case standards.HeaderGrondslag:
-				a.AddAttribute(standards.AttrGrondslag, list[0])
-			case standards.HeaderDoelbinding:
-				a.AddAttribute(standards.AttrDoelbinding, list[0])
-			case standards.HeaderZaakType, "zaaktype":
-				a.AddAttribute(standards.AttrZaakType, list[0])
-			case standards.HeaderTaak:
-				a.AddAttribute(standards.AttrTaak, list[0])
-			case standards.HeaderXForwardedFor:
+			case models.HeaderCoreUser:
+				a.AddAttribute(models.AttrCoreUser, list[0])
+			case models.HeaderGrondslag:
+				a.AddAttribute(models.AttrGrondslag, list[0])
+			case models.HeaderDoelbinding:
+				a.AddAttribute(models.AttrDoelbinding, list[0])
+			case models.HeaderZaakType, "zaaktype":
+				a.AddAttribute(models.AttrZaakType, list[0])
+			case models.HeaderTaak:
+				a.AddAttribute(models.AttrTaak, list[0])
+			case models.HeaderXForwardedFor:
 				fwd1 = strings.Join(list, ",")
-			case standards.HeaderForwarded:
+			case models.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
 			case "new-uri":
 				newURI = list[0]
@@ -54,12 +54,12 @@ func (p *pip) testHeaders(req *control.Request, a standards.AttributeSet) string
 		p.processForwarded(fwd1, fwd2, a)
 	}
 
-	a.AddAttribute(standards.AttrHeaders, other)
+	a.AddAttribute(models.AttrHeaders, other)
 
 	return newURI
 }
 
-func (p *pip) convertActivityID(id string, a standards.AttributeSet) {
+func (p *pip) convertActivityID(id string, a models.AttributeSet) {
 	if p.entities == nil {
 		return
 	}
@@ -71,10 +71,10 @@ func (p *pip) convertActivityID(id string, a standards.AttributeSet) {
 	}
 
 	// It should give us the actual 'doelbinding' from its attributes.
-	doel, ok := e.Attributes().GetAttribute(standards.AttrDoelbinding).(string)
+	doel, ok := e.Attributes().GetAttribute(models.AttrDoelbinding).(string)
 	if !ok || doel == "" {
 		return
 	}
 
-	a.AddAttribute(standards.AttrDoelbinding, doel)
+	a.AddAttribute(models.AttrDoelbinding, doel)
 }

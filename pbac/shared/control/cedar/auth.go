@@ -6,11 +6,11 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *control.Request) (*control.Response, error) {
+func (c *controller) Authorize(req *shared.Request) (*shared.Response, error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
@@ -24,17 +24,17 @@ func (c *controller) Authorize(req *control.Request) (*control.Response, error) 
 		if debug {
 			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 		}
-		return &control.Response{Allowed: true}, nil
+		return &shared.Response{Allowed: true}, nil
 	}
 
 	if debug {
 		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
-	return &control.Response{Allowed: false, Message: "not authorized"}, nil
+	return &shared.Response{Allowed: false, Message: "not authorized"}, nil
 }
 
-func (c *controller) buildCedarRequest(req *control.Request) cedar.Request {
+func (c *controller) buildCedarRequest(req *shared.Request) cedar.Request {
 	a, uri := c.PIP().CollectAttributesFromRequest(req)
 	if uri == "" && req.URL != nil {
 		uri = req.URL.String()

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 func TestProcessHeaders(t *testing.T) {
@@ -118,10 +118,10 @@ func TestProcessHeaders(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &pip{logger: slog.New(slog.NewTextHandler(io.Discard, nil))}
 
-			a := standards.NewAttributeSet()
+			a := models.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &control.Request{Headers: tc.headers}
+			req := &shared.Request{Headers: tc.headers}
 			newURI := p.testHeaders(req, a)
 
 			if tc.wantURI != "" {
@@ -131,72 +131,72 @@ func TestProcessHeaders(t *testing.T) {
 			}
 
 			if tc.wantCT != "" {
-				assert.Equal(t, tc.wantCT, a.GetAttribute(standards.AttrContentType))
+				assert.Equal(t, tc.wantCT, a.GetAttribute(models.AttrContentType))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrContentType))
+				assert.Nil(t, a.GetAttribute(models.AttrContentType))
 			}
 
 			if tc.wantAuth {
-				assert.NotNil(t, a.GetAttribute(standards.AttrJWT))
+				assert.NotNil(t, a.GetAttribute(models.AttrJWT))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrJWT))
+				assert.Nil(t, a.GetAttribute(models.AttrJWT))
 			}
 
 			if tc.wantFSC {
-				assert.NotNil(t, a.GetAttribute(standards.AttrFSC))
+				assert.NotNil(t, a.GetAttribute(models.AttrFSC))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrFSC))
+				assert.Nil(t, a.GetAttribute(models.AttrFSC))
 			}
 
 			if tc.wantKey != "" {
-				assert.Equal(t, tc.wantKey, a.GetAttribute(standards.AttrApiKey))
+				assert.Equal(t, tc.wantKey, a.GetAttribute(models.AttrApiKey))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrApiKey))
+				assert.Nil(t, a.GetAttribute(models.AttrApiKey))
 			}
 
 			if tc.wantAID != "" {
-				assert.Equal(t, tc.wantAID, a.GetAttribute(standards.AttrActivityID))
+				assert.Equal(t, tc.wantAID, a.GetAttribute(models.AttrActivityID))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrActivityID))
+				assert.Nil(t, a.GetAttribute(models.AttrActivityID))
 			}
 
 			if tc.wantCU != "" {
-				assert.Equal(t, tc.wantCU, a.GetAttribute(standards.AttrCoreUser))
+				assert.Equal(t, tc.wantCU, a.GetAttribute(models.AttrCoreUser))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrCoreUser))
+				assert.Nil(t, a.GetAttribute(models.AttrCoreUser))
 			}
 
 			if tc.wantGS != "" {
-				assert.Equal(t, tc.wantGS, a.GetAttribute(standards.AttrGrondslag))
+				assert.Equal(t, tc.wantGS, a.GetAttribute(models.AttrGrondslag))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrGrondslag))
+				assert.Nil(t, a.GetAttribute(models.AttrGrondslag))
 			}
 
 			if tc.wantDB != "" {
-				assert.Equal(t, tc.wantDB, a.GetAttribute(standards.AttrDoelbinding))
+				assert.Equal(t, tc.wantDB, a.GetAttribute(models.AttrDoelbinding))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrDoelbinding))
+				assert.Nil(t, a.GetAttribute(models.AttrDoelbinding))
 			}
 
 			if tc.wantZT != "" {
-				assert.Equal(t, tc.wantZT, a.GetAttribute(standards.AttrZaakType))
+				assert.Equal(t, tc.wantZT, a.GetAttribute(models.AttrZaakType))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrZaakType))
+				assert.Nil(t, a.GetAttribute(models.AttrZaakType))
 			}
 
 			if tc.wantTaak != "" {
-				assert.Equal(t, tc.wantTaak, a.GetAttribute(standards.AttrTaak))
+				assert.Equal(t, tc.wantTaak, a.GetAttribute(models.AttrTaak))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrTaak))
+				assert.Nil(t, a.GetAttribute(models.AttrTaak))
 			}
 
 			if tc.wantFwd != "" {
-				assert.Equal(t, tc.wantFwd, a.GetAttribute(standards.AttrClientIP))
+				assert.Equal(t, tc.wantFwd, a.GetAttribute(models.AttrClientIP))
 			} else {
-				assert.Nil(t, a.GetAttribute(standards.AttrClientIP))
+				assert.Nil(t, a.GetAttribute(models.AttrClientIP))
 			}
 
-			other, ok := a.GetAttribute(standards.AttrHeaders).(map[string]string)
+			other, ok := a.GetAttribute(models.AttrHeaders).(map[string]string)
 			require.True(t, ok)
 			require.NotNil(t, other)
 
@@ -242,11 +242,11 @@ func TestProcessActivityID(t *testing.T) {
 				entities: New(nil, "../../../testdata/unittest/pip2", true, logger, nil, nil),
 			}
 
-			a := standards.NewAttributeSet()
+			a := models.NewAttributeSet()
 			require.NotNil(t, a)
 
 			p.convertActivityID(tc.id, a)
-			assert.Equal(t, tc.want, a.GetAttribute(standards.AttrDoelbinding))
+			assert.Equal(t, tc.want, a.GetAttribute(models.AttrDoelbinding))
 		})
 	}
 }

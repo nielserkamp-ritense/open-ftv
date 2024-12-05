@@ -14,6 +14,7 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
@@ -47,7 +48,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	}
 
 	c := &controller{
-		Base: control.NewBase(control.REGO.String(), Version, logger, logboek),
+		Base: control.NewBase(shared.REGO.String(), Version, logger, logboek),
 		pdp:  pdp,
 		mem:  mem,
 		ctx:  context.Background(),
@@ -70,12 +71,12 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 
 func (c *controller) loadEntities() {
 	m := make(map[string]any)
-	c.PIP().IterateEntities(func(entity standards.Entity) {
+	c.PIP().IterateEntities(func(entity models.Entity) {
 		m2, ok := m[entity.Type()].(map[string]any)
 		if !ok || m2 == nil {
 			m2 = make(map[string]any)
 		}
-		m2[entity.ID()] = standards.MapFromAttributes(entity.Attributes())
+		m2[entity.ID()] = models.MapFromAttributes(entity.Attributes())
 		m[entity.Type()] = m2
 	})
 

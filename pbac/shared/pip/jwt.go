@@ -7,11 +7,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 // See RFC-6750 for the OAuth2 Authorization bearer scheme!
-func (p *pip) processAuth(req *control.Request, auth string, a standards.AttributeSet) {
+func (p *pip) processAuth(req *shared.Request, auth string, a models.AttributeSet) {
 	if strings.HasPrefix(auth, "Bearer ") {
 		p.processBearer(req, auth[7:], a)
 	} else {
@@ -19,7 +19,7 @@ func (p *pip) processAuth(req *control.Request, auth string, a standards.Attribu
 	}
 }
 
-func (p *pip) processBearer(req *control.Request, bearer string, a standards.AttributeSet) {
+func (p *pip) processBearer(req *shared.Request, bearer string, a models.AttributeSet) {
 	token, err := jwt.Parse(bearer, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -32,15 +32,15 @@ func (p *pip) processBearer(req *control.Request, bearer string, a standards.Att
 	}
 
 	m := map[string]any{
-		standards.AttrValid:   token.Valid,
-		standards.AttrHeaders: token.Header,
+		models.AttrValid:   token.Valid,
+		models.AttrHeaders: token.Header,
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		m[standards.AttrClaims] = claims
+		m[models.AttrClaims] = claims
 	} else {
 		p.logger.Warn("jwt token without claims", "request-uid", req.UID, "jwt", token)
 	}
 
-	a.AddAttribute(standards.AttrJWT, m)
+	a.AddAttribute(models.AttrJWT, m)
 }

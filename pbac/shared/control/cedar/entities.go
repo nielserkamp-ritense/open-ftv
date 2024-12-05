@@ -22,7 +22,7 @@ type WrappedEntity struct {
 }
 
 // NewWrappedEntity instantiates a new wrapper around a cedar entity.
-func NewWrappedEntity(ce *cedar.Entity, logger *slog.Logger) standards.Entity {
+func NewWrappedEntity(ce *cedar.Entity, logger *slog.Logger) models.Entity {
 	return &WrappedEntity{
 		uid:    cedarToUID(ce.UID),
 		ce:     ce,
@@ -46,7 +46,7 @@ func (e *WrappedEntity) ID() string {
 }
 
 // Attributes implements the Entity interface.
-func (e *WrappedEntity) Attributes() standards.AttributeSet {
+func (e *WrappedEntity) Attributes() models.AttributeSet {
 	return &attributes{logger: e.logger, set: e.ce.Attributes.Map()}
 }
 
@@ -62,24 +62,24 @@ func (e *WrappedEntity) Parents() []string {
 
 // MarshalJSON implements the JSON marshaller interface.
 func (e *WrappedEntity) MarshalJSON() ([]byte, error) {
-	return standards.NewEntity(e.Type(), e.ID(), e.Attributes(), e.Parents()...).MarshalJSON()
+	return models.NewEntity(e.Type(), e.ID(), e.Attributes(), e.Parents()...).MarshalJSON()
 }
 
 // NewEntityBuilder returns the function prototype for building a new Cedar based entity set.
-func NewEntityBuilder(logger *slog.Logger) standards.EntitiesBuilder {
-	return func(in ...any) standards.EntitySet {
+func NewEntityBuilder(logger *slog.Logger) models.EntitiesBuilder {
+	return func(in ...any) models.EntitySet {
 		return NewEntitySet(logger, in...)
 	}
 }
 
 // NewEntitySet instantiates a new Cedar based entity set.
-func NewEntitySet(logger *slog.Logger, in ...any) standards.EntitySet {
+func NewEntitySet(logger *slog.Logger, in ...any) models.EntitySet {
 	a := &entities{logger: logger, set: make(cedar.EntityMap)}
 	for _, p := range in {
 		switch t := p.(type) {
-		case standards.Entity:
+		case models.Entity:
 			a.AddEntity(t)
-		case standards.EntitySet:
+		case models.EntitySet:
 			a.MergeEntities(t)
 		}
 	}
@@ -87,7 +87,7 @@ func NewEntitySet(logger *slog.Logger, in ...any) standards.EntitySet {
 }
 
 // AddEntity implements the EntitySet interface.
-func (e *entities) AddEntity(entity standards.Entity) {
+func (e *entities) AddEntity(entity models.Entity) {
 	e.mutex.Lock()
 	if wrapped, ok := entity.(*WrappedEntity); ok {
 		e.set[wrapped.ce.UID] = *wrapped.ce
@@ -99,7 +99,7 @@ func (e *entities) AddEntity(entity standards.Entity) {
 }
 
 // GetEntity implements the EntitySet interface.
-func (e *entities) GetEntity(uid string) standards.Entity {
+func (e *entities) GetEntity(uid string) models.Entity {
 	e.mutex.RLock()
 	ce := e.set[uidToCedar(uid)]
 	e.mutex.RUnlock()
@@ -114,7 +114,7 @@ func (e *entities) RemoveEntity(uid string) {
 }
 
 // IterateEntities implements the EntitySet interface.
-func (e *entities) IterateEntities(f standards.EntityIterator) {
+func (e *entities) IterateEntities(f models.EntityIterator) {
 	e.mutex.RLock()
 	for uid := range e.set {
 		ce := e.set[uid]
@@ -124,7 +124,7 @@ func (e *entities) IterateEntities(f standards.EntityIterator) {
 }
 
 // MergeEntities implements the EntitySet interface.
-func (e *entities) MergeEntities(in ...standards.EntitySet) {
+func (e *entities) MergeEntities(in ...models.EntitySet) {
 	e.mutex.Lock()
 	for i := range in {
 		if set, ok := in[i].(*entities); ok {
@@ -132,7 +132,7 @@ func (e *entities) MergeEntities(in ...standards.EntitySet) {
 			maps.Copy(e.set, set.set)
 			set.mutex.RUnlock()
 		} else {
-			in[i].IterateEntities(func(entity standards.Entity) {
+			in[i].IterateEntities(func(entity models.Entity) {
 				ce := entityToCedar(entity)
 				e.set[ce.UID] = *ce
 			})
@@ -141,7 +141,7 @@ func (e *entities) MergeEntities(in ...standards.EntitySet) {
 	e.mutex.Unlock()
 }
 
-func (e *entities) cedarToEntity(in *cedar.Entity) standards.Entity {
+func (e *entities) cedarToEntity(in *cedar.Entity) models.Entity {
 	if in == nil {
 		return nil
 	}
@@ -157,7 +157,7 @@ func cedarToUID(ce cedar.EntityUID) string {
 	return fmt.Sprintf("%s::%s", ce.Type, ce.ID)
 }
 
-func entityToCedar(in standards.Entity) *cedar.Entity {
+func entityToCedar(in models.Entity) *cedar.Entity {
 	if in == nil {
 		return nil
 	}

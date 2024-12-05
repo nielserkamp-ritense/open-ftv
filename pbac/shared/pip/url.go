@@ -4,18 +4,18 @@ import (
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
-func (p *pip) determineURL(req *control.Request, a standards.AttributeSet) {
+func (p *pip) determineURL(req *shared.Request, a models.AttributeSet) {
 	m := make(map[string]any, 8)
 
 	if req.Method != "" {
-		m[standards.AttrMethod] = req.Method
+		m[models.AttrMethod] = req.Method
 	}
 
 	if req.RequestTime != nil {
-		m[standards.AttrRequestTime] = *req.RequestTime
+		m[models.AttrRequestTime] = *req.RequestTime
 	}
 
 	if req.URL != nil {
@@ -29,16 +29,16 @@ func (p *pip) determineURL(req *control.Request, a standards.AttributeSet) {
 
 		path := req.URL.Path
 
-		m[standards.AttrScheme] = s
-		m[standards.AttrQuery] = outQ
-		m[standards.AttrHost] = req.URL.Host
-		m[standards.AttrPath] = path
+		m[models.AttrScheme] = s
+		m[models.AttrQuery] = outQ
+		m[models.AttrHost] = req.URL.Host
+		m[models.AttrPath] = path
 
 		if path != "" {
 			path = strings.Trim(path, "/")
-			m[standards.AttrPathParts] = strings.Split(path, "/")
+			m[models.AttrPathParts] = strings.Split(path, "/")
 		}
 	}
 
-	a.AddAttribute(standards.AttrHttp, m)
+	a.AddAttribute(models.AttrHttp, m)
 }

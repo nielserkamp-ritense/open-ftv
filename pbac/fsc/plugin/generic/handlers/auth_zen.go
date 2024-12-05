@@ -10,7 +10,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 // AuthZEN implements the authorization handler for AuthZEN requests.
@@ -69,12 +69,12 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 }
 
 func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
-	actionAttrs := standards.NewAttributeSet(req.Action.Properties)
-	method, _ := actionAttrs.GetAttribute(standards.AttrMethod).(string)
+	actionAttrs := models.NewAttributeSet(req.Action.Properties)
+	method, _ := actionAttrs.GetAttribute(models.AttrMethod).(string)
 
-	principal := standards.NewEntity(req.Subject.Type, req.Subject.Id, standards.NewAttributeSet(req.Subject.Properties))
-	action := standards.NewEntity(standards.EntityAction, *req.Action.Name, actionAttrs)
-	resource := standards.NewEntity(req.Resource.Type, req.Resource.Id, standards.NewAttributeSet(req.Resource.Properties))
+	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
+	action := models.NewEntity(models.EntityAction, *req.Action.Name, actionAttrs)
+	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
 	if req.Context != nil {
@@ -84,7 +84,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &control.Request{
+	p.req = &shared.Request{
 		UID:         &uid,
 		RequestTime: &now,
 		Method:      method,

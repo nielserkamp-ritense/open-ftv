@@ -240,13 +240,13 @@ type eventCounter struct {
 	removed  int
 }
 
-func (e *eventCounter) Handle(t standards.EventType, _ string) {
+func (e *eventCounter) Handle(t models.EventType, _ string) {
 	switch t {
-	case standards.PolicyAdded:
+	case models.PolicyAdded:
 		e.added++
-	case standards.PolicyReplaced:
+	case models.PolicyReplaced:
 		e.replaced++
-	case standards.PolicyRemoved:
+	case models.PolicyRemoved:
 		e.removed++
 	default:
 	}

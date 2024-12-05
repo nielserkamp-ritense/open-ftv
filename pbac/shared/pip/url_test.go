@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 )
 
 func TestProcessURL(t *testing.T) {
@@ -65,10 +65,10 @@ func TestProcessURL(t *testing.T) {
 			p := &pip{}
 			now := time.Now()
 
-			a := standards.NewAttributeSet()
+			a := models.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &control.Request{
+			req := &shared.Request{
 				URL:         tc.url,
 				Method:      tc.method,
 				RequestTime: &now,
@@ -80,25 +80,25 @@ func TestProcessURL(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, m)
 
-			assert.Equal(t, now, m[standards.AttrRequestTime])
+			assert.Equal(t, now, m[models.AttrRequestTime])
 
 			if tc.method != "" {
-				assert.Equal(t, tc.method, m[standards.AttrMethod])
+				assert.Equal(t, tc.method, m[models.AttrMethod])
 			}
 			if tc.wantScheme != "" {
-				assert.Equal(t, tc.wantScheme, m[standards.AttrScheme])
+				assert.Equal(t, tc.wantScheme, m[models.AttrScheme])
 			}
 			if tc.wantHost != "" {
-				assert.Equal(t, tc.wantHost, m[standards.AttrHost])
+				assert.Equal(t, tc.wantHost, m[models.AttrHost])
 			}
 			if tc.wantPath != "" {
-				assert.Equal(t, tc.wantPath, m[standards.AttrPath])
+				assert.Equal(t, tc.wantPath, m[models.AttrPath])
 			}
 			if len(tc.wantParts) > 0 {
-				assert.EqualValues(t, tc.wantParts, m[standards.AttrPathParts])
+				assert.EqualValues(t, tc.wantParts, m[models.AttrPathParts])
 			}
 			if tc.wantQuery != nil {
-				assert.EqualValues(t, tc.wantQuery, m[standards.AttrQuery])
+				assert.EqualValues(t, tc.wantQuery, m[models.AttrQuery])
 			}
 		})
 	}

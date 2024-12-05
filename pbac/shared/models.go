@@ -1,5 +1,5 @@
 // Package types contains generic definitions for working with policies.
-package control
+package shared
 
 import (
 	"net/url"
@@ -16,9 +16,9 @@ type Request struct {
 	URL         *url.URL            `json:"url,omitempty"`
 	Method      string              `json:"method,omitempty"`
 	RequestTime *time.Time          `json:"requestTime,omitempty"`
-	Principal   standards.Entity    `json:"principal,omitempty"`
-	Action      standards.Entity    `json:"action,omitempty"`
-	Resource    standards.Entity    `json:"resource,omitempty"`
+	Principal   models.Entity       `json:"principal,omitempty"`
+	Action      models.Entity       `json:"action,omitempty"`
+	Resource    models.Entity       `json:"resource,omitempty"`
 	Headers     map[string][]string `json:"headers,omitempty"`
 	Body        []byte              `json:"body,omitempty"`
 	Attributes  map[string]any      `json:"attributes,omitempty"`

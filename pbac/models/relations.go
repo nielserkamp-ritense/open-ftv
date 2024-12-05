@@ -9,7 +9,7 @@ import (
 //
 // Relation is an immutable object and is by design safe for use by concurrent go-routines.
 type Relation interface {
-	UID() string       // return the unique key of this relation.
+	UID() string       // return the unique identifier of this relation.
 	Subject() Entity   // returns the subject of the relation.
 	Predicate() Entity // returns the predicate of the relation.
 	Object() Entity    // returns the object of the relation.

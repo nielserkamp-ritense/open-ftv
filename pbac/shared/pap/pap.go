@@ -30,7 +30,7 @@ type PAP interface {
 //
 // The optional context can be used to signal app shutdown by closing it,
 // so the PAP can clean up long-running go-routines and other resources.
-func New(ctx context.Context, logger *slog.Logger, events standards.EventSink) PAP {
+func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		w = nil // this means file handles are exhausted!
@@ -80,7 +80,7 @@ func (p *pap) Add(key string, reader io.Reader) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(standards.PolicyAdded, key)
+		p.events.Handle(models.PolicyAdded, key)
 	}
 	return err
 }
@@ -109,7 +109,7 @@ func (p *pap) Replace(key string, reader io.Reader) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(standards.PolicyReplaced, key)
+		p.events.Handle(models.PolicyReplaced, key)
 	}
 	return err
 }
@@ -129,7 +129,7 @@ func (p *pap) Remove(key string) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(standards.PolicyRemoved, key)
+		p.events.Handle(models.PolicyRemoved, key)
 	}
 	return err
 }
@@ -172,6 +172,6 @@ type pap struct {
 	policies map[string][]byte
 	updates  []string
 	deletes  []string
-	events   standards.EventSink
+	events   models.EventSink
 	mutex    sync.RWMutex
 }

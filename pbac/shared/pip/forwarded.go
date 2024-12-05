@@ -9,7 +9,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
-func (p *pip) processForwarded(fwd1, fwd2 string, a standards.AttributeSet) {
+func (p *pip) processForwarded(fwd1, fwd2 string, a models.AttributeSet) {
 	list1, list2 := strings.Split(fwd1, ","), strings.Split(fwd2, ",")
 
 	if len(list1) < len(list2) {
@@ -25,13 +25,13 @@ func (p *pip) processForwarded(fwd1, fwd2 string, a standards.AttributeSet) {
 	}
 }
 
-func (p *pip) processForwardedList(fwd []string, a standards.AttributeSet) bool {
+func (p *pip) processForwardedList(fwd []string, a models.AttributeSet) bool {
 	for i := range fwd {
 		list := fwdRX.FindStringSubmatch(strings.TrimSpace(fwd[i]))
 		for j := 1; j < len(list); j++ {
 			if s := list[j]; len(s) > 0 {
 				if addr, err := netip.ParseAddr(s); err == nil && validIP(addr) {
-					a.AddAttribute(standards.AttrClientIP, addr.String())
+					a.AddAttribute(models.AttrClientIP, addr.String())
 					return true
 				}
 			}

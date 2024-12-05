@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -29,10 +29,10 @@ func TestController_Authorize(t *testing.T) {
 		recurse1 bool
 		store2   string
 		recurse2 bool
-		req      control.Request
+		req      shared.Request
 		wantErr  bool
 		wantLog  int
-		want     control.Response
+		want     shared.Response
 	}{
 		{
 			name:     "bad request",
@@ -40,7 +40,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: control.Request{
+			req: shared.Request{
 				UID:         &uid,
 				URL:         u1,
 				Method:      "GET",
@@ -49,7 +49,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 4,
-			want:    control.Response{Message: "not authorized"},
+			want:    shared.Response{Message: "not authorized"},
 		},
 		{
 			name:     "good request",
@@ -57,7 +57,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: control.Request{
+			req: shared.Request{
 				UID:         &uid,
 				URL:         u2,
 				Method:      "POST",
@@ -66,7 +66,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        b1,
 			},
 			wantLog: 3,
-			want:    control.Response{Allowed: true},
+			want:    shared.Response{Allowed: true},
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestController_Authorize(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(nil, tc.store1, tc.recurse1, logger, standards.NewAttributeSet, standards.NewEntitySet)
+			p := pip.New(nil, tc.store1, tc.recurse1, logger, models.NewAttributeSet, models.NewEntitySet)
 			require.NotNil(t, p)
 
 			c := NewController(p, tc.store2, tc.recurse2, logger, nil)

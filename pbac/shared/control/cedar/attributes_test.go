@@ -22,10 +22,10 @@ func TestNewAttributeBuilder(t *testing.T) {
 		got := NewAttributeBuilder(logger)
 		require.NotNil(t, got)
 
-		a1 := standards.NewAttribute("hello", "world")
-		a2 := standards.NewAttribute("int", 123)
-		a3 := standards.NewAttribute("float", 123.456)
-		a4 := standards.NewAttribute("bool", true)
+		a1 := models.NewAttribute("hello", "world")
+		a2 := models.NewAttribute("int", 123)
+		a3 := models.NewAttribute("float", 123.456)
+		a4 := models.NewAttribute("bool", true)
 
 		aa := NewAttributeSet(logger, a3, a4)
 		require.NotNil(t, aa)
@@ -45,18 +45,18 @@ func TestNewAttributeBuilder(t *testing.T) {
 func TestNewAttributeSet(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
-	a1 := standards.NewAttribute("hello", "world")
-	a2 := standards.NewAttribute("float", 123.456)
-	a3 := standards.NewAttribute("bool", false)
-	a4 := standards.NewAttribute("int", 456)
-	a5 := standards.NewAttribute("int64", int64(987654321))
-	a6 := standards.NewAttribute("time", now)
-	a7 := standards.NewAttribute("duration", time.Second)
+	a1 := models.NewAttribute("hello", "world")
+	a2 := models.NewAttribute("float", 123.456)
+	a3 := models.NewAttribute("bool", false)
+	a4 := models.NewAttribute("int", 456)
+	a5 := models.NewAttribute("int64", int64(987654321))
+	a6 := models.NewAttribute("time", now)
+	a7 := models.NewAttribute("duration", time.Second)
 
 	f1, _ := cedar.NewDecimalFromFloat(999.0)
 
 	aa1 := NewAttributeSet(nil, a1, a3)
-	aa2 := standards.NewAttributeSet(nil, a3, a5, a7)
+	aa2 := models.NewAttributeSet(nil, a3, a5, a7)
 	aa3 := cedar.RecordMap{"woo": cedar.String("hoo"), "key": f1}
 
 	testCases := []struct {
@@ -221,13 +221,13 @@ func TestAttributes_AddAttribute(t *testing.T) {
 func TestAttributes_RemoveAttribute(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
-	a1 := standards.NewAttribute("hello", "world")
-	a2 := standards.NewAttribute("float", 123.456)
-	a3 := standards.NewAttribute("bool", false)
-	a4 := standards.NewAttribute("int", 456)
-	a5 := standards.NewAttribute("int64", int64(987654321))
-	a6 := standards.NewAttribute("time", now)
-	a7 := standards.NewAttribute("duration", time.Second)
+	a1 := models.NewAttribute("hello", "world")
+	a2 := models.NewAttribute("float", 123.456)
+	a3 := models.NewAttribute("bool", false)
+	a4 := models.NewAttribute("int", 456)
+	a5 := models.NewAttribute("int64", int64(987654321))
+	a6 := models.NewAttribute("time", now)
+	a7 := models.NewAttribute("duration", time.Second)
 
 	testCases := []struct {
 		name      string

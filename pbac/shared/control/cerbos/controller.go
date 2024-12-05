@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"path/filepath"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
@@ -20,7 +21,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	store, _ = filepath.Abs(store)
 
 	c := &controller{
-		Base: control.NewBase(control.CERBOS.String(), Version, logger, logboek),
+		Base: control.NewBase(shared.CERBOS.String(), Version, logger, logboek),
 	}
 
 	c.SetPIP(pip)

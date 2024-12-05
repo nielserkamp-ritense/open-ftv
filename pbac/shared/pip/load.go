@@ -96,6 +96,6 @@ func (p *pip) loadEntities(path string) {
 		for j := range e.Attrs {
 			attrs.AddAttribute(j, e.Attrs[j])
 		}
-		p.entities.AddEntity(standards.NewEntity(e.Type, e.ID, attrs, e.Parents...))
+		p.entities.AddEntity(models.NewEntity(e.Type, e.ID, attrs, e.Parents...))
 	}
 }

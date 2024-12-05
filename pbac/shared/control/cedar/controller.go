@@ -9,6 +9,7 @@ import (
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
@@ -26,12 +27,12 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	}
 
 	c := &controller{
-		Base:     control.NewBase(control.CEDAR.String(), Version, logger, logboek),
+		Base:     control.NewBase(shared.CEDAR.String(), Version, logger, logboek),
 		pdp:      cedar.NewPolicySet(),
 		entities: make(cedar.EntityMap),
 	}
 
-	pip.IterateEntities(func(entity standards.Entity) {
+	pip.IterateEntities(func(entity models.Entity) {
 		if wrapped, ok := entity.(*WrappedEntity); ok {
 			c.entities[wrapped.ce.UID] = *wrapped.ce
 		}

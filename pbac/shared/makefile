@@ -12,7 +12,7 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards@latest
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models@latest
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities@latest
 	@go mod tidy
 
