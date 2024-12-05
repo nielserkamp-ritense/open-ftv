@@ -1,7 +1,6 @@
-// Package standards defines key parameters according to the FTV Standard.
 package models
 
-// List of standard HTTP header codes.
+// List of standard attribute keys.
 const (
 	AttrAction      = "action"
 	AttrActivityID  = "activity-id"

@@ -8,6 +8,9 @@ import (
 )
 
 func TestNewAttributeSet(t *testing.T) {
+	m1 := map[string]any{"hello": "world2", "int": 678}
+	m2 := map[string]any{"bool": true}
+
 	testCases := []struct {
 		name string
 		in   []any
@@ -23,11 +26,23 @@ func TestNewAttributeSet(t *testing.T) {
 			want: map[string]any{"hello": "world", "int": 123},
 		},
 		{
+			name: "map",
+			in:   []any{m1},
+			want: map[string]any{"hello": "world2", "int": 678},
+		},
+		{
+			name: "*map",
+			in:   []any{&m2},
+			want: map[string]any{"bool": true},
+		},
+		{
 			name: "mixed input",
 			in: []any{
 				&attributes{set: map[string]any{"hello": "world", "int": 123}},
 				12345,
+				&m1,
 				NewAttribute("world", "hello"),
+				m2,
 				&attributes{set: map[string]any{"hello": "world2", "bool": true}},
 				true,
 				NewAttribute("int", 456),

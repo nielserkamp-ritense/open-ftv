@@ -1,8 +1,8 @@
 package models
 
-// List of header codes.
+// List of HTTP header keys.
 //
-// NOTE: keep in lower-case for faster comparison!
+// NOTE: keep values in lower-case as comparison is always done in lower-case!
 const (
 	HeaderApiKey           = "api-key"
 	HeaderAuthorization    = "authorization"
