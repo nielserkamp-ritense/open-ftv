@@ -38,16 +38,16 @@ func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
 func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (control.Controller, error) {
 	switch standards.LanguageFromString(cfg.PolicyLanguage) {
 	case standards.REGO:
-		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case standards.CERBOS:
-		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case standards.CEDAR:
-		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
+		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	case standards.OPENFGA:
-		p := pip.New(cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)

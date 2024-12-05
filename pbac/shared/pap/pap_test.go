@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -239,13 +240,13 @@ type eventCounter struct {
 	removed  int
 }
 
-func (e *eventCounter) Handle(t EventType, _ string) {
+func (e *eventCounter) Handle(t standards.EventType, _ string) {
 	switch t {
-	case PolicyAdded:
+	case standards.PolicyAdded:
 		e.added++
-	case PolicyReplaced:
+	case standards.PolicyReplaced:
 		e.replaced++
-	case PolicyRemoved:
+	case standards.PolicyRemoved:
 		e.removed++
 	default:
 	}

@@ -7,13 +7,13 @@ import (
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/language/pkg/go/transformer"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Handle implements the EventSink interface.
-func (c *controller) Handle(t pap.EventType, key string) {
+func (c *controller) Handle(t standards.EventType, key string) {
 	switch t {
-	case pap.PolicyAdded, pap.PolicyReplaced:
+	case standards.PolicyAdded, standards.PolicyReplaced:
 		f, err := c.PAP().Get(key)
 		if err != nil {
 			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-key", key, "error", err)
@@ -42,7 +42,7 @@ func (c *controller) Handle(t pap.EventType, key string) {
 
 		c.Logger().Info("policy added/replaced", "controller", c.String(), "policy-key", key)
 
-	case pap.PolicyRemoved:
+	case standards.PolicyRemoved:
 		// OpenFGA does not support removal of policies.
 		// c.ds.Remove(cedar.PolicyID(key))
 		// c.Logger().Info("policy removed", "controller", c.String(), "policy-key", key)

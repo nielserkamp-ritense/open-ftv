@@ -5,13 +5,13 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Handle implements the EventSink interface.
-func (c *controller) Handle(t pap.EventType, key string) {
+func (c *controller) Handle(t standards.EventType, key string) {
 	switch t {
-	case pap.PolicyAdded, pap.PolicyReplaced:
+	case standards.PolicyAdded, standards.PolicyReplaced:
 		f, err := c.PAP().Get(key)
 		if err != nil {
 			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-key", key, "error", err)
@@ -28,7 +28,7 @@ func (c *controller) Handle(t pap.EventType, key string) {
 			c.Logger().Error("error decoding policy", "controller", c.String(), "policy-key", key, "error", err)
 		}
 
-	case pap.PolicyRemoved:
+	case standards.PolicyRemoved:
 		c.pdp.Remove(cedar.PolicyID(key))
 		c.Logger().Info("policy removed", "controller", c.String(), "policy-key", key)
 	}

@@ -2,10 +2,14 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
@@ -23,7 +27,7 @@ type PIP interface {
 //
 // If the newAttributes parameter is nil, the default attribute set builder will be used.
 // If the newEntities parameter is nil, the default entity set builder will be used.
-func New(store string, recurse bool, logger *slog.Logger, newAttributes standards.AttributesBuilder, newEntities standards.EntitiesBuilder) PIP {
+func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, newAttributes standards.AttributesBuilder, newEntities standards.EntitiesBuilder) PIP {
 	var attrStore, entityStore string
 
 	if store != "" {
@@ -46,6 +50,7 @@ func New(store string, recurse bool, logger *slog.Logger, newAttributes standard
 	}
 
 	p := &pip{
+		ctx:           ctx,
 		recurse:       recurse,
 		attrStore:     attrStore,
 		entityStore:   entityStore,
@@ -201,14 +206,25 @@ func (p *pip) MergeEntities(in ...standards.EntitySet) {
 }
 
 type pip struct {
-	recurse       bool
-	attrStore     string
-	entityStore   string
-	logger        *slog.Logger
-	newAttributes standards.AttributesBuilder
-	attributes    standards.AttributeSet
-	newEntities   standards.EntitiesBuilder
-	entities      standards.EntitySet
+	recurse          bool
+	attrStore        string
+	entityStore      string
+	logger           *slog.Logger
+	ctx              context.Context
+	newAttributes    standards.AttributesBuilder
+	attributes       standards.AttributeSet
+	newEntities      standards.EntitiesBuilder
+	entities         standards.EntitySet
+	attributeWatcher *fsnotify.Watcher
+	attributeTimer   *time.Timer
+	attributeUpdates []string
+	attributeDeletes []string
+	entityWatcher    *fsnotify.Watcher
+	entityTimer      *time.Timer
+	entityUpdates    []string
+	entityDeletes    []string
+	events           standards.EventSink
+	mutex            sync.RWMutex
 }
 
 func validPath(path string) bool {

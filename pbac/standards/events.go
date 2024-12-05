@@ -1,4 +1,4 @@
-package pap
+package standards
 
 // EventType indicates the type of PAP event.
 type EventType uint8
@@ -21,4 +21,9 @@ func (e EventType) String() string {
 	default:
 		return "<invalid>"
 	}
+}
+
+// EventSink represents the interface for handling events.
+type EventSink interface {
+	Handle(t EventType, key string)
 }

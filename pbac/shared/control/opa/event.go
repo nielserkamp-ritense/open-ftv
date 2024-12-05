@@ -5,13 +5,13 @@ import (
 
 	"github.com/open-policy-agent/opa/storage"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Handle implements the EventSink interface.
-func (c *controller) Handle(event pap.EventType, key string) {
+func (c *controller) Handle(event standards.EventType, key string) {
 	switch event {
-	case pap.PolicyAdded, pap.PolicyReplaced:
+	case standards.PolicyAdded, standards.PolicyReplaced:
 		f, err := c.PAP().Get(key)
 		if err != nil {
 			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-key", key, "error", err)
@@ -31,7 +31,7 @@ func (c *controller) Handle(event pap.EventType, key string) {
 			}
 		}
 
-	case pap.PolicyRemoved:
+	case standards.PolicyRemoved:
 		t, _ := c.mem.NewTransaction(c.ctx, storage.TransactionParams{Write: true})
 		if err := c.mem.DeletePolicy(c.ctx, t, key); err != nil {
 			c.Logger().Error("failed to remove policy", "controller", c.String(), "policy-key", key, "error", err)

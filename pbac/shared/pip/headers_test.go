@@ -238,7 +238,7 @@ func TestProcessActivityID(t *testing.T) {
 
 			p := &pip{
 				logger:   logger,
-				entities: New("../../../testdata/unittest/pip2", true, logger, nil, nil),
+				entities: New(nil, "../../../testdata/unittest/pip2", true, logger, nil, nil),
 			}
 
 			a := standards.NewAttributeSet()

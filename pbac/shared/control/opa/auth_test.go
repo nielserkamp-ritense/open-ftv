@@ -79,7 +79,7 @@ func TestController_Authorize(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(tc.store1, tc.recurse1, logger, standards.NewAttributeSet, standards.NewEntitySet)
+			p := pip.New(nil, tc.store1, tc.recurse1, logger, standards.NewAttributeSet, standards.NewEntitySet)
 			require.NotNil(t, p)
 
 			c := NewController(p, tc.store2, tc.recurse2, logger, nil)

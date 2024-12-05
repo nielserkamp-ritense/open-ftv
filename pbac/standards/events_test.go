@@ -1,4 +1,4 @@
-package pap
+package standards
 
 import (
 	"testing"

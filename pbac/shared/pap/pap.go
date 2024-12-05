@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // PAP represents the interface for caching and retrieving policies.
@@ -24,16 +26,11 @@ type PAP interface {
 	LoadFromStore(path string, recurse bool)
 }
 
-// EventSink represents the interface for handling PAP events.
-type EventSink interface {
-	Handle(t EventType, key string)
-}
-
 // New instantiates a new policy cache.
 //
-// The optional context can be used to signal app shutdown by closing the,
+// The optional context can be used to signal app shutdown by closing it,
 // so the PAP can clean up long-running go-routines and other resources.
-func New(ctx context.Context, logger *slog.Logger, events EventSink) PAP {
+func New(ctx context.Context, logger *slog.Logger, events standards.EventSink) PAP {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		w = nil // this means file handles are exhausted!
@@ -83,7 +80,7 @@ func (p *pap) Add(key string, reader io.Reader) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(PolicyAdded, key)
+		p.events.Handle(standards.PolicyAdded, key)
 	}
 	return err
 }
@@ -112,7 +109,7 @@ func (p *pap) Replace(key string, reader io.Reader) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(PolicyReplaced, key)
+		p.events.Handle(standards.PolicyReplaced, key)
 	}
 	return err
 }
@@ -132,7 +129,7 @@ func (p *pap) Remove(key string) error {
 	p.mutex.Unlock()
 
 	if err == nil && p.events != nil {
-		p.events.Handle(PolicyRemoved, key)
+		p.events.Handle(standards.PolicyRemoved, key)
 	}
 	return err
 }
@@ -175,6 +172,6 @@ type pap struct {
 	policies map[string][]byte
 	updates  []string
 	deletes  []string
-	events   EventSink
+	events   standards.EventSink
 	mutex    sync.RWMutex
 }

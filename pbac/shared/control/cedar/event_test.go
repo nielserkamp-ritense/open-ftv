@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -25,18 +26,18 @@ func TestController_Handle(t *testing.T) {
 	testCases := []struct {
 		name       string
 		policies   map[string]string
-		event1     pap.EventType
+		event1     standards.EventType
 		key1       string
 		wantLog1   int
 		logPrefix1 string
-		event2     pap.EventType
+		event2     standards.EventType
 		key2       string
 		wantLog2   int
 		logPrefix2 string
 	}{
 		{
 			name:       "add - not found",
-			event1:     pap.PolicyAdded,
+			event1:     standards.PolicyAdded,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
@@ -44,7 +45,7 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "add - new key",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyAdded,
+			event1:     standards.PolicyAdded,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
@@ -52,11 +53,11 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "add - duplicate",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyAdded,
+			event1:     standards.PolicyAdded,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
-			event2:     pap.PolicyAdded,
+			event2:     standards.PolicyAdded,
 			key2:       "p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
@@ -64,18 +65,18 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "add & replace",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyAdded,
+			event1:     standards.PolicyAdded,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
-			event2:     pap.PolicyReplaced,
+			event2:     standards.PolicyReplaced,
 			key2:       "p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "replace - not found",
-			event1:     pap.PolicyReplaced,
+			event1:     standards.PolicyReplaced,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
@@ -83,7 +84,7 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "replace - new key",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyReplaced,
+			event1:     standards.PolicyReplaced,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
@@ -91,11 +92,11 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "replace - duplicate",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyReplaced,
+			event1:     standards.PolicyReplaced,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
-			event2:     pap.PolicyReplaced,
+			event2:     standards.PolicyReplaced,
 			key2:       "p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
@@ -103,11 +104,11 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "remove - found",
 			policies:   map[string]string{"p1": p1},
-			event1:     pap.PolicyAdded,
+			event1:     standards.PolicyAdded,
 			key1:       "p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
-			event2:     pap.PolicyRemoved,
+			event2:     standards.PolicyRemoved,
 			key2:       "p1",
 			wantLog2:   1,
 			logPrefix2: "policy removed",

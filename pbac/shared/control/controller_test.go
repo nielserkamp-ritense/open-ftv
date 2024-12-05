@@ -57,7 +57,7 @@ func TestNewBase(t *testing.T) {
 			b.SetPAP(p1)
 			assert.Equal(t, p1, b.PAP())
 
-			p2 := pip.New("", false, logger, nil, nil)
+			p2 := pip.New(nil, "", false, logger, nil, nil)
 			require.NotNil(t, p2)
 
 			b.SetPIP(p2)

@@ -50,14 +50,18 @@ func (p *pap) policyModified(e fsnotify.Event) {
 
 	switch e.Op {
 	case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
+		p.mutex.Lock()
 		p.updates = append(p.updates, e.Name)
 		slices.Sort(p.updates)
 		p.updates = slices.Compact(p.updates)
+		p.mutex.Unlock()
 
 	case fsnotify.Remove:
+		p.mutex.Lock()
 		p.deletes = append(p.deletes, e.Name)
 		slices.Sort(p.deletes)
 		p.deletes = slices.Compact(p.deletes)
+		p.mutex.Unlock()
 
 	default:
 	}
@@ -72,19 +76,18 @@ func (p *pap) processUpdates() {
 		if l > 0 {
 			path = p.updates[0]
 			p.updates = p.updates[1:]
-			l--
 		}
 		p.mutex.Unlock()
+
+		if l == 0 {
+			return
+		}
 
 		if path != "" {
 			info, err := os.Stat(path)
 			if err == nil && !info.IsDir() {
 				go p.processUpdate(path)
 			}
-		}
-
-		if l == 0 {
-			return
 		}
 	}
 }
@@ -118,16 +121,15 @@ func (p *pap) processDeletes() {
 		if l > 0 {
 			path = p.deletes[0]
 			p.deletes = p.deletes[1:]
-			l--
 		}
 		p.mutex.Unlock()
 
-		if path != "" {
-			_ = p.Remove(filepath.Base(path))
-		}
-
 		if l == 0 {
 			return
+		}
+
+		if path != "" {
+			_ = p.Remove(filepath.Base(path))
 		}
 	}
 }
