@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 )
 
-func (p *pip) testHeaders(req *standards.Request, a standards.AttributeSet) string {
+func (p *pip) testHeaders(req *control.Request, a standards.AttributeSet) string {
 	other := make(map[string]string)
 
 	var activityID, newURI, fwd1, fwd2 string

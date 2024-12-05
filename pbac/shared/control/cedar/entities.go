@@ -9,7 +9,7 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // WrappedEntity is a wrapper around a cedar entity.

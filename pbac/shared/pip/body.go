@@ -8,11 +8,12 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *pip) decodeBody(req *standards.Request, a standards.AttributeSet) {
+func (p *pip) decodeBody(req *control.Request, a standards.AttributeSet) {
 	if req.Body == nil {
 		return
 	}

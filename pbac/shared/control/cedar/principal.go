@@ -3,7 +3,7 @@ package cedar
 import (
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.

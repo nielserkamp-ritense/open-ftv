@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 func (p *pip) processForwarded(fwd1, fwd2 string, a standards.AttributeSet) {

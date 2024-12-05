@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 )
 
 func TestProcessHeaders(t *testing.T) {
@@ -120,7 +121,7 @@ func TestProcessHeaders(t *testing.T) {
 			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &standards.Request{Headers: tc.headers}
+			req := &control.Request{Headers: tc.headers}
 			newURI := p.testHeaders(req, a)
 
 			if tc.wantURI != "" {

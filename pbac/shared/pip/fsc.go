@@ -8,10 +8,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 )
 
-func (p *pip) processFSC(req *standards.Request, auth string, a standards.AttributeSet) string {
+func (p *pip) processFSC(req *control.Request, auth string, a standards.AttributeSet) string {
 	if strings.HasPrefix(auth, "Bearer ") {
 		return p.processFSCBearer(req, auth[7:], a)
 	}
@@ -20,7 +21,7 @@ func (p *pip) processFSC(req *standards.Request, auth string, a standards.Attrib
 	return ""
 }
 
-func (p *pip) processFSCBearer(req *standards.Request, bearer string, a standards.AttributeSet) string {
+func (p *pip) processFSCBearer(req *control.Request, bearer string, a standards.AttributeSet) string {
 	token, err := jwt.Parse(
 		bearer,
 		func(token *jwt.Token) (interface{}, error) {

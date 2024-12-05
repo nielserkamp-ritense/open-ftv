@@ -13,7 +13,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // PAP represents the interface for caching and retrieving policies.

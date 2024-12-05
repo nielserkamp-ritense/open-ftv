@@ -1,11 +1,13 @@
 // Package types contains generic definitions for working with policies.
-package standards
+package control
 
 import (
 	"net/url"
 	"time"
 
 	"github.com/google/uuid"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // Request contains the details of an access control request.
@@ -14,9 +16,9 @@ type Request struct {
 	URL         *url.URL            `json:"url,omitempty"`
 	Method      string              `json:"method,omitempty"`
 	RequestTime *time.Time          `json:"requestTime,omitempty"`
-	Principal   Entity              `json:"principal,omitempty"`
-	Action      Entity              `json:"action,omitempty"`
-	Resource    Entity              `json:"resource,omitempty"`
+	Principal   standards.Entity    `json:"principal,omitempty"`
+	Action      standards.Entity    `json:"action,omitempty"`
+	Resource    standards.Entity    `json:"resource,omitempty"`
 	Headers     map[string][]string `json:"headers,omitempty"`
 	Body        []byte              `json:"body,omitempty"`
 	Attributes  map[string]any      `json:"attributes,omitempty"`

@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
@@ -89,7 +89,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &standards.Request{
+	p.req = &control.Request{
 		UID:         &uid,
 		URL:         u,
 		Method:      req.Input.Method,

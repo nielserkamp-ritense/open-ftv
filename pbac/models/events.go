@@ -1,4 +1,4 @@
-package standards
+package models
 
 // EventType indicates the type of PAP event.
 type EventType uint8

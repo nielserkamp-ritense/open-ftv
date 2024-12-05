@@ -9,7 +9,7 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // NewAttributeBuilder returns the function prototype for building a new Cedar based attribute set.

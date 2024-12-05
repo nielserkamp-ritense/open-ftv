@@ -1,4 +1,4 @@
-package standards
+package models
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type EntityIterator func(entity Entity)
 
 // Entity represents the interface to work with the details of an entity.
 //
-// An Entity is a read-only object and does not require protection against simultaneous use from concurrent go-routines.
+// Entity is an immutable object and is by design safe for use by concurrent go-routines.
 type Entity interface {
 	UID() string              // retrieve the Unique ID (UID) of the entity.
 	Type() string             // retrieve the Type of the entity (e,g, name-space).
@@ -61,7 +61,7 @@ func (e *entity) Parents() []string {
 	return e.parents
 }
 
-// MarshalJSON implements the JSON.Marshaller interface.
+// MarshalJSON implements the json.Marshaller interface.
 func (e *entity) MarshalJSON() ([]byte, error) {
 	return json.Marshal(entityJSON{
 		Type:       e.ns,
@@ -89,7 +89,7 @@ type EntitySet interface {
 // Input parameters should be of type Entity or EntitySet!
 // Other types of parameters are ignored.
 //
-// The given entities and/or entity-sets will be copied into the returned new attribute-set.
+// The given entities and/or entity-sets will be copied into the returned new entity-set.
 // Duplicate keys from an input set will overwrite the previous value.
 // E.g. only the last value with the duplicate key will be retained.
 func NewEntitySet(in ...any) EntitySet {
@@ -99,57 +99,59 @@ func NewEntitySet(in ...any) EntitySet {
 		case Entity:
 			out.set[t.UID()] = t
 		case EntitySet:
-			t.IterateEntities(func(entity Entity) {
-				out.set[entity.UID()] = entity
-			})
+			out.mergeSet(t)
 		}
 	}
 	return out
 }
 
-// AddEntity implements the AttributeSet interface.
-func (a *entities) AddEntity(entity Entity) {
-	a.mutex.Lock()
-	a.set[entity.UID()] = entity
-	a.mutex.Unlock()
+// AddEntity implements the EntitySety interface.
+func (s *entities) AddEntity(entity Entity) {
+	s.mutex.Lock()
+	s.set[entity.UID()] = entity
+	s.mutex.Unlock()
 }
 
-// GetEntity implements the AttributeSet interface.
+// GetEntity implements the EntitySety interface.
 // if it exists, otherwise a nil value is returned.
-func (a *entities) GetEntity(uid string) Entity {
-	a.mutex.RLock()
-	defer a.mutex.RUnlock()
-	return a.set[uid]
+func (s *entities) GetEntity(uid string) Entity {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.set[uid]
 }
 
-// RemoveEntity implements the AttributeSet interface.
-func (a *entities) RemoveEntity(uid string) {
-	a.mutex.Lock()
-	delete(a.set, uid)
-	a.mutex.Unlock()
+// RemoveEntity implements the EntitySety interface.
+func (s *entities) RemoveEntity(uid string) {
+	s.mutex.Lock()
+	delete(s.set, uid)
+	s.mutex.Unlock()
 }
 
-// IterateEntities implements the AttributeSet interface.
-func (a *entities) IterateEntities(f EntityIterator) {
-	a.mutex.RLock()
-	for uid := range a.set {
-		f(a.set[uid])
+// IterateEntities implements the EntitySety interface.
+func (s *entities) IterateEntities(f EntityIterator) {
+	s.mutex.RLock()
+	for uid := range s.set {
+		f(s.set[uid])
 	}
-	a.mutex.RUnlock()
+	s.mutex.RUnlock()
 }
 
-// MergeEntities implements the AttributeSet interface.
+// MergeEntities implements the EntitySety interface.
 //
 // Duplicate keys from an input set will overwrite the previous value.
 // E.g. only the last value with the duplicate key will be retained.
-func (a *entities) MergeEntities(in ...EntitySet) {
-	a.mutex.Lock()
+func (s *entities) MergeEntities(in ...EntitySet) {
+	s.mutex.Lock()
 	for i := range in {
-		in[i].IterateEntities(func(entity Entity) {
-			a.set[entity.UID()] = entity
-		})
+		s.mergeSet(in[i])
 	}
-	a.mutex.Unlock()
+	s.mutex.Unlock()
+}
+
+func (s *entities) mergeSet(in EntitySet) {
+	in.IterateEntities(func(entity Entity) {
+		s.set[entity.UID()] = entity
+	})
 }
 
 type entity struct {
@@ -167,7 +169,7 @@ type entities struct {
 
 type entityJSON struct {
 	Type       string       `json:"type,omitempty"`
-	ID         string       `json:"ID,omitempty"`
+	ID         string       `json:"id,omitempty"`
 	Attributes AttributeSet `json:"attributes,omitempty"`
 	Parents    []string     `json:"parents,omitempty"`
 }

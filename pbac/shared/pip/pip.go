@@ -11,14 +11,15 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
+	models "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // PIP represents the interface for a Policy Information Point.
 type PIP interface {
-	standards.AttributeSet
-	standards.EntitySet
-	CollectAttributesFromRequest(req *standards.Request) (a standards.AttributeSet, newURI string)
+	models.AttributeSet
+	models.EntitySet
+	CollectAttributesFromRequest(req *control.Request) (a models.AttributeSet, newURI string)
 }
 
 // New instantiates a new Policy Information Point.
@@ -27,7 +28,7 @@ type PIP interface {
 //
 // If the newAttributes parameter is nil, the default attribute set builder will be used.
 // If the newEntities parameter is nil, the default entity set builder will be used.
-func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, newAttributes standards.AttributesBuilder, newEntities standards.EntitiesBuilder) PIP {
+func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, newAttributes models.AttributesBuilder, newEntities models.EntitiesBuilder) PIP {
 	var attrStore, entityStore string
 
 	if store != "" {
@@ -43,10 +44,10 @@ func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, n
 	}
 
 	if newAttributes == nil {
-		newAttributes = standards.NewAttributeSet
+		newAttributes = models.NewAttributeSet
 	}
 	if newEntities == nil {
-		newEntities = standards.NewEntitySet
+		newEntities = models.NewEntitySet
 	}
 
 	p := &pip{
@@ -65,7 +66,7 @@ func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, n
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
 		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore,
-			"attributes", standards.MapFromAttributes(p.attributes), "entities", p.entitiesToMap())
+			"attributes", models.MapFromAttributes(p.attributes), "entities", p.entitiesToMap())
 	} else {
 		p.logger.Info("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore)
 	}
@@ -76,14 +77,14 @@ func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, n
 func (p *pip) entitiesToMap() map[string]any {
 	out := make(map[string]any)
 
-	p.entities.IterateEntities(func(entity standards.Entity) {
+	p.entities.IterateEntities(func(entity models.Entity) {
 		out[entity.UID()] = struct {
 			UID        string         `json:"UID,omitempty"`
 			Attributes map[string]any `json:"attributes,omitempty"`
 			Parents    []string       `json:"parents,omitempty"`
 		}{
 			UID:        entity.UID(),
-			Attributes: standards.MapFromAttributes(entity.Attributes()),
+			Attributes: models.MapFromAttributes(entity.Attributes()),
 			Parents:    entity.Parents(),
 		}
 	})
@@ -96,9 +97,9 @@ func (p *pip) entitiesToMap() map[string]any {
 //
 // The default attributes stored in the PIP will be collected first.
 // AttributeSet from the request will overwrite default attributes when the keys are equal.
-func (p *pip) CollectAttributesFromRequest(req *standards.Request) (standards.AttributeSet, string) {
+func (p *pip) CollectAttributesFromRequest(req *control.Request) (models.AttributeSet, string) {
 	a := p.newAttributes(p.attributes)
-	a.AddAttribute(standards.AttrRequestTime, time.Now().UTC())
+	a.AddAttribute(models.AttrRequestTime, time.Now().UTC())
 
 	newURI := p.testHeaders(req, a)
 	if newURI == "" && req.Resource != nil {
@@ -109,13 +110,13 @@ func (p *pip) CollectAttributesFromRequest(req *standards.Request) (standards.At
 	p.decodeBody(req, a)
 
 	if req.Principal != nil {
-		a.AddAttribute(standards.AttrPrincipal, req.Principal.UID())
+		a.AddAttribute(models.AttrPrincipal, req.Principal.UID())
 	}
 	if req.Action != nil {
-		a.AddAttribute(standards.AttrAction, req.Action.UID())
+		a.AddAttribute(models.AttrAction, req.Action.UID())
 	}
 	if req.Resource != nil {
-		a.AddAttribute(standards.AttrResource, req.Resource.UID())
+		a.AddAttribute(models.AttrResource, req.Resource.UID())
 	}
 
 	if len(req.Attributes) > 0 {
@@ -159,28 +160,28 @@ func (p *pip) RemoveAttribute(key string) {
 // IterateAttributes implements the AttributeSet interface.
 //
 // Use this to iterate through all default attributes from the PIP.
-func (p *pip) IterateAttributes(f standards.AttributeIterator) {
+func (p *pip) IterateAttributes(f models.AttributeIterator) {
 	p.attributes.IterateAttributes(f)
 }
 
 // MergeAttributes implements the AttributeSet interface.
 //
 // Use this to merge an attribute set into the default attributes of the PIP.
-func (p *pip) MergeAttributes(in ...standards.AttributeSet) {
+func (p *pip) MergeAttributes(in ...models.AttributeSet) {
 	p.attributes.MergeAttributes(in...)
 }
 
 // AddEntity implements the EntitySet interface.
 //
 // Use this to add an entity to the PIP.
-func (p *pip) AddEntity(entity standards.Entity) {
+func (p *pip) AddEntity(entity models.Entity) {
 	p.entities.AddEntity(entity)
 }
 
 // GetEntity implements the EntitySet interface.
 //
 // Use this to read an entity from the PIP.
-func (p *pip) GetEntity(uid string) standards.Entity {
+func (p *pip) GetEntity(uid string) models.Entity {
 	return p.entities.GetEntity(uid)
 }
 
@@ -194,14 +195,14 @@ func (p *pip) RemoveEntity(uid string) {
 // IterateEntities implements the EntitySet interface.
 //
 // Use this to iterate through all entities from the PIP.
-func (p *pip) IterateEntities(f standards.EntityIterator) {
+func (p *pip) IterateEntities(f models.EntityIterator) {
 	p.entities.IterateEntities(f)
 }
 
 // MergeEntities implements the EntitySet interface.
 //
 // Use this to merge an attribute set into the entities of the PIP.
-func (p *pip) MergeEntities(in ...standards.EntitySet) {
+func (p *pip) MergeEntities(in ...models.EntitySet) {
 	p.entities.MergeEntities(in...)
 }
 
@@ -211,10 +212,10 @@ type pip struct {
 	entityStore      string
 	logger           *slog.Logger
 	ctx              context.Context
-	newAttributes    standards.AttributesBuilder
-	attributes       standards.AttributeSet
-	newEntities      standards.EntitiesBuilder
-	entities         standards.EntitySet
+	newAttributes    models.AttributesBuilder
+	attributes       models.AttributeSet
+	newEntities      models.EntitiesBuilder
+	entities         models.EntitySet
 	attributeWatcher *fsnotify.Watcher
 	attributeTimer   *time.Timer
 	attributeUpdates []string
@@ -223,7 +224,7 @@ type pip struct {
 	entityTimer      *time.Timer
 	entityUpdates    []string
 	entityDeletes    []string
-	events           standards.EventSink
+	events           models.EventSink
 	mutex            sync.RWMutex
 }
 

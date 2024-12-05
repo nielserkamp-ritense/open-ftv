@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -210,7 +211,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 	testCases := []struct {
 		name    string
 		level   slog.Level
-		req     standards.Request
+		req     control.Request
 		attr    standards.AttributeSet
 		wantLog int
 		wantURI string
@@ -218,13 +219,13 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			req:  standards.Request{},
+			req:  control.Request{},
 			attr: standards.NewAttributeSet(),
 			want: standards.NewAttributeSet(emptyHTTP, emptyHeaders),
 		},
 		{
 			name: "method",
-			req:  standards.Request{Method: "POST"},
+			req:  control.Request{Method: "POST"},
 			attr: standards.NewAttributeSet(),
 			want: standards.NewAttributeSet(
 				emptyHeaders,
@@ -235,7 +236,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "url",
-			req: standards.Request{URL: &url.URL{
+			req: control.Request{URL: &url.URL{
 				Scheme:   "https://",
 				Host:     "www.disney.land",
 				Path:     "/donald/duck",
@@ -257,7 +258,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "headers",
-			req:  standards.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
+			req:  control.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
 			attr: standards.NewAttributeSet(),
 			want: standards.NewAttributeSet(
 				emptyHTTP,
@@ -267,7 +268,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "attributes",
-			req:  standards.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
+			req:  control.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
 			attr: standards.NewAttributeSet(),
 			want: standards.NewAttributeSet(
 				emptyHTTP,
@@ -281,7 +282,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		{
 			name:  "all with log",
 			level: slog.LevelDebug,
-			req: standards.Request{
+			req: control.Request{
 				Method: "POST",
 				URL: &url.URL{
 					Scheme:   "https://",

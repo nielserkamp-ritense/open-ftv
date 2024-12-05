@@ -5,7 +5,7 @@ import (
 
 	"github.com/open-policy-agent/opa/storage"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 // Handle implements the EventSink interface.

@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 )
 
 func TestProcessURL(t *testing.T) {
@@ -67,7 +68,7 @@ func TestProcessURL(t *testing.T) {
 			a := standards.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &standards.Request{
+			req := &control.Request{
 				URL:         tc.url,
 				Method:      tc.method,
 				RequestTime: &now,

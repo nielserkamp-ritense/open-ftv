@@ -1,5 +1,5 @@
 // Package standards defines key parameters according to the FTV Standard.
-package standards
+package models
 
 // List of standard HTTP header codes.
 const (

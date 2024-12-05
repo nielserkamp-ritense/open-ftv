@@ -9,7 +9,8 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 )
 
 // AuthZEN implements the authorization handler for AuthZEN requests.
@@ -83,7 +84,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &standards.Request{
+	p.req = &control.Request{
 		UID:         &uid,
 		RequestTime: &now,
 		Method:      method,

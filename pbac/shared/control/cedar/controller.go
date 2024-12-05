@@ -8,11 +8,11 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
 
@@ -26,7 +26,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	}
 
 	c := &controller{
-		Base:     control.NewBase(standards.CEDAR.String(), Version, logger, logboek),
+		Base:     control.NewBase(control.CEDAR.String(), Version, logger, logboek),
 		pdp:      cedar.NewPolicySet(),
 		entities: make(cedar.EntityMap),
 	}

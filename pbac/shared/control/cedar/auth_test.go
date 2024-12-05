@@ -10,8 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -28,10 +29,10 @@ func TestController_Authorize(t *testing.T) {
 		recurse1 bool
 		store2   string
 		recurse2 bool
-		req      standards.Request
+		req      control.Request
 		wantErr  bool
 		wantLog  int
-		want     standards.Response
+		want     control.Response
 	}{
 		{
 			name:     "bad request",
@@ -39,7 +40,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: standards.Request{
+			req: control.Request{
 				UID:         &uid,
 				URL:         u1,
 				Method:      "GET",
@@ -48,7 +49,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 4,
-			want:    standards.Response{Message: "not authorized"},
+			want:    control.Response{Message: "not authorized"},
 		},
 		{
 			name:     "good request",
@@ -56,7 +57,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/cedar",
 			recurse2: true,
-			req: standards.Request{
+			req: control.Request{
 				UID:         &uid,
 				URL:         u2,
 				Method:      "POST",
@@ -65,7 +66,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        b1,
 			},
 			wantLog: 3,
-			want:    standards.Response{Allowed: true},
+			want:    control.Response{Allowed: true},
 		},
 	}
 

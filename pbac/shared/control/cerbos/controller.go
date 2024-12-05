@@ -10,7 +10,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Version defines the version of this Cerbos/CEL PDP.
@@ -21,7 +20,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	store, _ = filepath.Abs(store)
 
 	c := &controller{
-		Base: control.NewBase(standards.CERBOS.String(), Version, logger, logboek),
+		Base: control.NewBase(control.CERBOS.String(), Version, logger, logboek),
 	}
 
 	c.SetPIP(pip)

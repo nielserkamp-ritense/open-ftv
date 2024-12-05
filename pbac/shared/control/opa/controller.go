@@ -13,11 +13,11 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards"
 )
 
 // Version defines the version of this OPA/Rego PDP.
@@ -47,7 +47,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 	}
 
 	c := &controller{
-		Base: control.NewBase(standards.REGO.String(), Version, logger, logboek),
+		Base: control.NewBase(control.REGO.String(), Version, logger, logboek),
 		pdp:  pdp,
 		mem:  mem,
 		ctx:  context.Background(),

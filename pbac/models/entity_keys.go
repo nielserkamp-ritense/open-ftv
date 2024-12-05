@@ -1,4 +1,4 @@
-package standards
+package models
 
 // List of standard entity types.
 const (
