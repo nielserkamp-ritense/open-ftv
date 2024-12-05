@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models
 
 go 1.22.7
 
