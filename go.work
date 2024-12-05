@@ -4,8 +4,8 @@ toolchain go1.23.2
 
 use (
 	./oas
+	./pbac/components
 	./pbac/fsc/plugin/generic
 	./pbac/models
-	./pbac/shared
 	./utilities
 )

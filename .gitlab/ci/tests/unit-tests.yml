@@ -70,15 +70,15 @@ pbac-models:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-shared:
+pbac-components:
   stage: Tests
   image: golang:1.22
   variables:
-    GOPATH: ${CI_PROJECT_DIR}/pbac/shared/.go-cache
+    GOPATH: ${CI_PROJECT_DIR}/pbac/components/.go-cache
   before_script:
-    - mkdir -p pbac/shared/.go-cache
+    - mkdir -p pbac/components/.go-cache
   script:
-    - cd pbac/shared
+    - cd pbac/components
     - /usr/local/go/bin/go mod download
     - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
     - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
@@ -88,11 +88,11 @@ pbac-shared:
   cache:
     key: testcache
     paths:
-      - pbac/shared/.go-cache
+      - pbac/components/.go-cache
   artifacts:
     expire_in: 1 month
     paths:
-      - pbac/shared/cover.html
+      - pbac/components/cover.html
   needs: [ ]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -104,7 +104,7 @@ pbac-shared:
           - utilities/**/*
           - testdata/**/*
           - pbac/models/**/*
-          - pbac/shared/**/*
+          - pbac/components/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
@@ -142,7 +142,7 @@ pbac-fsc-plugin-generic:
           - utilities/**/*
           - testdata/**/*
           - pbac/models/**/*
-          - pbac/shared/**/*
+          - pbac/components/**/*
           - pbac/fsc/plugin/generic/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

@@ -7,15 +7,15 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/cedar"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/cerbos"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/opa"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/openfga"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cedar"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/cerbos"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/opa"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/control/openfga"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/ldv"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared/pip"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -35,18 +35,18 @@ func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
 	return &authHandler{cfg: cfg, logger: logger, controller: c}
 }
 
-func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (control.Controller, error) {
-	switch shared.LanguageFromString(cfg.PolicyLanguage) {
-	case shared.REGO:
+func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
+	switch components.LanguageFromString(cfg.PolicyLanguage) {
+	case components.REGO:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case shared.CERBOS:
+	case components.CERBOS:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case shared.CEDAR:
+	case components.CEDAR:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-	case shared.OPENFGA:
+	case components.OPENFGA:
 		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
 		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
 	default:
@@ -57,5 +57,5 @@ func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (co
 type authHandler struct {
 	cfg        *config.Config
 	logger     *slog.Logger
-	controller control.Controller
+	controller pdp.Controller
 }

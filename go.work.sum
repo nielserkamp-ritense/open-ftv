@@ -1613,6 +1613,8 @@ github.com/yvasiyarov/newrelic_platform_go v0.0.0-20140908184405-b21fdbd4370f h1
 github.com/yvasiyarov/newrelic_platform_go v0.0.0-20140908184405-b21fdbd4370f/go.mod h1:GlGEuHIJweS1mbCqG+7vt2nvWLzLLnRHbXz5JKd/Qbg=
 github.com/zeebo/xxh3 v1.0.2 h1:xZmwmqxHZA8AI603jOQ0tMqmBr9lPeFwGg6d+xy9DC0=
 github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaDcA=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20241205111620-1f823e070e13 h1:b1w1Sz24HsnHXmYJTFK4Js36oEUk8zOGniotIDXtWkY=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20241205111620-1f823e070e13/go.mod h1:987bERFHn1DFL3Bx6cj8d8Zv8Cs5xoMoSi2dgVx3nvs=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204151937-79710e19e3a0 h1:BFEH9qdczxzE6zSlS7Uis7mpYWi1fXHtIAJuS6lW4HM=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/standards v0.0.0-20241204151937-79710e19e3a0/go.mod h1:6ctkB2UznvEbpEJJ0Tj+G7cFjhuXHkbB90yvUiPzSb4=
 go.einride.tech/aip v0.66.0 h1:XfV+NQX6L7EOYK11yoHHFtndeaWh3KbD9/cN/6iWEt8=

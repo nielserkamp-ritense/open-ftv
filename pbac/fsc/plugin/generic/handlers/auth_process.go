@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/shared"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
 )
 
 func (p *authProcess) log() {
@@ -35,8 +35,8 @@ func (p *authProcess) log() {
 type authProcess struct {
 	status  int
 	fc      *fiber.Ctx
-	req     *shared.Request
-	resp    *shared.Response
+	req     *components.Request
+	resp    *components.Response
 	started time.Time
 	err     error
 	msg     string
