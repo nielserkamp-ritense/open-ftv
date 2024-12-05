@@ -33,15 +33,15 @@ utilities:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-standards:
+pbac-models:
   stage: Tests
   image: golang:1.22
   variables:
-    GOPATH: ${CI_PROJECT_DIR}/pbac/standards/.go-cache
+    GOPATH: ${CI_PROJECT_DIR}/pbac/models/.go-cache
   before_script:
-    - mkdir -p pbac/standards/.go-cache
+    - mkdir -p pbac/models/.go-cache
   script:
-    - cd pbac/standards
+    - cd pbac/models
     - /usr/local/go/bin/go mod download
     - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
     - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
@@ -51,11 +51,11 @@ pbac-standards:
   cache:
     key: testcache
     paths:
-      - pbac/standards/.go-cache
+      - pbac/models/.go-cache
   artifacts:
     expire_in: 1 month
     paths:
-      - pbac/standards/cover.html
+      - pbac/models/cover.html
   needs: [ ]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -66,7 +66,7 @@ pbac-standards:
         paths:
           - utilities/**/*
           - testdata/**/*
-          - pbac/standards/**/*
+          - pbac/models/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
@@ -103,7 +103,7 @@ pbac-shared:
         paths:
           - utilities/**/*
           - testdata/**/*
-          - pbac/standards/**/*
+          - pbac/models/**/*
           - pbac/shared/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
@@ -141,7 +141,7 @@ pbac-fsc-plugin-generic:
         paths:
           - utilities/**/*
           - testdata/**/*
-          - pbac/standards/**/*
+          - pbac/models/**/*
           - pbac/shared/**/*
           - pbac/fsc/plugin/generic/**/*
           - .golang-ci.yml
