@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"path/filepath"
+	"strings"
 
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/language/pkg/go/transformer"
@@ -13,6 +14,9 @@ import (
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(t models.EventType, key string) {
+	ext := filepath.Ext(key)
+	store := strings.Replace(filepath.Base(key), ext, "", 1)
+
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
 		f, err := c.PAP().Get(key)
@@ -21,31 +25,30 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
-		switch filepath.Ext(key) {
+		switch ext {
 		case ".mdl", ".model":
-			c.addModel(key, f)
+			c.addModel(store, f)
 		case ".rel", ".relations":
-			c.addRelations(key, f)
+			c.addRelations(store, f)
 		}
 
 	case models.PolicyRemoved:
-		switch filepath.Ext(key) {
+		switch ext {
 		case ".mdl", ".model":
-			c.removeModel(key)
+			c.removeModel(store)
 		case ".rel", ".relations":
-			c.removeRelations(key)
+			c.removeRelations(store)
 		}
 
 	}
 }
 
-func (c *controller) addModel(key string, f io.Reader) {
-	store := filepath.Base(key)
+func (c *controller) addModel(store string, f io.Reader) {
 	d, _ := io.ReadAll(f)
 
 	model, err := transformer.TransformDSLToProto(string(d))
 	if err != nil {
-		c.Logger().Error("failed to compile model", "controller", c.String(), "model-key", key, "error", err)
+		c.Logger().Error("failed to compile model", "controller", c.String(), "store", store, "error", err)
 		return
 	}
 
@@ -59,7 +62,7 @@ func (c *controller) addModel(key string, f io.Reader) {
 			&openfgav1.CreateStoreRequest{Name: store},
 		)
 		if err2 != nil {
-			c.Logger().Error("Failed to create store", "error", err2)
+			c.Logger().Error("Failed to create store", "store", store, "error", err2)
 			return
 		}
 
@@ -74,18 +77,20 @@ func (c *controller) addModel(key string, f io.Reader) {
 		SchemaVersion:   model.GetSchemaVersion(),
 	})
 	if err2 != nil {
-		c.Logger().Error("failed to add model", "controller", c.String(), "model-key", key, "error", err2)
+		c.Logger().Error("failed to add model", "controller", c.String(), "store", store, "error", err2)
 		return
 	}
 
-	policyID := resp.GetAuthorizationModelId()
-	c.models[storeID] = policyID
+	authID := resp.GetAuthorizationModelId()
+	c.models[storeID] = authID
 
-	c.Logger().Info("model added/replaced", "controller", c.String(), "model-key", key, "storeID", storeID, "modelID", policyID)
+	c.Logger().Info("model added/replaced", "controller", c.String(), "store", store, "storeID", storeID, "authID", authID)
 }
 
-func (c *controller) removeModel(key string) {
-	store := filepath.Base(key)
+func (c *controller) removeModel(store string) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	storeID := c.stores[store]
 	if storeID == "" {
 		return // nothing here.
@@ -93,17 +98,51 @@ func (c *controller) removeModel(key string) {
 
 	_, err := c.engine.DeleteStore(context.Background(), &openfgav1.DeleteStoreRequest{StoreId: storeID})
 	if err != nil {
-		c.Logger().Error("failed to remove store", "controller", c.String(), "model-key", key, "storeID", storeID, "error", err)
+		c.Logger().Error("failed to remove store", "controller", c.String(), "store", store, "storeID", storeID, "error", err)
 		return
 	}
 
-	c.Logger().Info("store removed", "controller", c.String(), "model-key", key, "storeID", storeID)
+	c.Logger().Info("store removed", "controller", c.String(), "store", store, "storeID", storeID)
 }
 
-func (c *controller) addRelations(key string, f io.Reader) {
-	// TODO: ...
+func (c *controller) addRelations(store string, f io.Reader) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	storeID, ok := c.stores[store]
+	if !ok {
+		c.Logger().Error("failed to find store", "controller", c.String(), "store", store)
+		return
+	}
+
+	authID, ok2 := c.models[storeID]
+	if !ok2 {
+		c.Logger().Error("failed to find authorization model", "controller", c.String(), "store", store, "storeID", storeID)
+		return
+	}
+
+	writes, deletes := c.buildRelationUpdates(store, f)
+
+	_, err := c.engine.Write(context.Background(), &openfgav1.WriteRequest{
+		StoreId:              storeID,
+		Writes:               writes,
+		Deletes:              deletes,
+		AuthorizationModelId: authID,
+	})
+	if err != nil {
+		c.Logger().Error("failed to maintain relations", "controller", c.String(), "store", store, "storeID", storeID, "error", err)
+	}
 }
 
 func (c *controller) removeRelations(key string) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	// TODO: ...
+
+}
+
+func (c *controller) buildRelationUpdates(store string, f io.Reader) (*openfgav1.WriteRequestWrites, *openfgav1.WriteRequestDeletes) {
+
+	return nil, nil
 }

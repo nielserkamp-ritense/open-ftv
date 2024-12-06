@@ -93,13 +93,6 @@ func (s *relations) mergeSet(in RelationSet) {
 	})
 }
 
-type relation struct {
-	uid       string
-	subject   Entity
-	predicate Entity
-	object    Entity
-}
-
 type relations struct {
 	entities EntitySet
 	set      map[string]Relation

@@ -58,3 +58,10 @@ func (r *relation) Predicate() Entity {
 func (r *relation) Object() Entity {
 	return r.object
 }
+
+type relation struct {
+	uid       string
+	subject   Entity
+	predicate Entity
+	object    Entity
+}
