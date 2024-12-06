@@ -1,0 +1,11 @@
+model
+  schema 1.1
+
+type doelbinding
+  relations
+    define uitvoerder: [user, afdeling#medewerker]
+
+type resource
+  relations
+    define doel: [doelbinding]
+    define caller: uitvoerder of doel

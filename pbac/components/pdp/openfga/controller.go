@@ -7,11 +7,10 @@
 package openfga
 
 import (
-	"context"
 	"log/slog"
 	"path/filepath"
+	"sync"
 
-	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/openfga/pkg/server"
 	"github.com/openfga/openfga/pkg/storage/memory"
 
@@ -30,9 +29,13 @@ const Version = "1.0.0"
 func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) pdp.Controller {
 	store, _ = filepath.Abs(store)
 
-	c := &controller{Base: pdp.NewBase(components.OPENFGA.String(), Version, logger, logboek)}
+	c := &controller{
+		Base:   pdp.NewBase(components.OPENFGA.String(), Version, logger, logboek),
+		stores: make(map[string]string),
+		models: make(map[string]string),
+	}
 
-	if c.newServer(); c.pdp == nil {
+	if c.newServer(); c.engine == nil {
 		return nil
 	}
 
@@ -48,7 +51,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 }
 
 func (c *controller) newServer() {
-	pdp, err := server.NewServerWithOpts(
+	engine, err := server.NewServerWithOpts(
 		server.WithDatastore(memory.New()),
 		server.WithLogger(NewZapper(c.Logger())),
 	)
@@ -58,21 +61,13 @@ func (c *controller) newServer() {
 		return
 	}
 
-	store, err2 := pdp.CreateStore(
-		context.Background(),
-		&openfgav1.CreateStoreRequest{Name: "demo"},
-	)
-	if err2 != nil {
-		c.Logger().Error("Failed to create store", "error", err2)
-		return
-	}
-
-	c.pdp = pdp
-	c.storeID = store.GetId()
+	c.engine = engine
 }
 
 type controller struct {
 	pdp.Base
-	pdp     *server.Server
-	storeID string
+	engine *server.Server
+	stores map[string]string // key = principal, valid = storeID.
+	models map[string]string // key = storeID, value = policyID.
+	mutex  sync.RWMutex
 }
