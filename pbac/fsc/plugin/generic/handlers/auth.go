@@ -38,17 +38,43 @@ func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
 func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
 	switch components.LanguageFromString(cfg.PolicyLanguage) {
 	case components.REGO:
-		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(pip.Config{
+			Ctx:     nil,
+			Store:   cfg.PipStore,
+			Recurse: cfg.PipStoreRecurse,
+			Logger:  logger,
+		})
 		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
+
 	case components.CERBOS:
-		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(pip.Config{
+			Ctx:     nil,
+			Store:   cfg.PipStore,
+			Recurse: cfg.PipStoreRecurse,
+			Logger:  logger,
+		})
 		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
+
 	case components.CEDAR:
-		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger))
+		p := pip.New(pip.Config{
+			Ctx:           nil,
+			Store:         cfg.PipStore,
+			Recurse:       cfg.PipStoreRecurse,
+			Logger:        logger,
+			NewAttributes: cedar.NewAttributeBuilder(logger),
+			NewEntities:   cedar.NewEntityBuilder(logger),
+		})
 		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
+
 	case components.OPENFGA:
-		p := pip.New(nil, cfg.PipStore, cfg.PipStoreRecurse, logger, nil, nil)
+		p := pip.New(pip.Config{
+			Ctx:     nil,
+			Store:   cfg.PipStore,
+			Recurse: cfg.PipStoreRecurse,
+			Logger:  logger,
+		})
 		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
+
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}

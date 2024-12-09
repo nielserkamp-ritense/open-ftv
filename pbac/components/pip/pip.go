@@ -22,18 +22,28 @@ type PIP interface {
 	CollectAttributesFromRequest(req *components.Request) (a models.AttributeSet, newURI string)
 }
 
+// Config represents the configuration parameters for instantiating a new Policy Information Point.
+//
+// The Logger parameter must not be nil!
+//
+// If the NewAttributes parameter is nil, the default attribute set builder will be used.
+// If the NewEntities parameter is nil, the default entity set builder will be used.
+type Config struct {
+	Ctx           context.Context
+	Store         string
+	Recurse       bool
+	Logger        *slog.Logger
+	NewAttributes models.AttributesBuilder
+	NewEntities   models.EntitiesBuilder
+}
+
 // New instantiates a new Policy Information Point.
-//
-// The logger parameter must not be nil!
-//
-// If the newAttributes parameter is nil, the default attribute set builder will be used.
-// If the newEntities parameter is nil, the default entity set builder will be used.
-func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, newAttributes models.AttributesBuilder, newEntities models.EntitiesBuilder) PIP {
+func New(cfg Config) PIP {
 	var attrStore, entityStore string
 
-	if store != "" {
-		attrStore, _ = filepath.Abs(filepath.Join(store, "attributes"))
-		entityStore, _ = filepath.Abs(filepath.Join(store, "entities"))
+	if cfg.Store != "" {
+		attrStore, _ = filepath.Abs(filepath.Join(cfg.Store, "attributes"))
+		entityStore, _ = filepath.Abs(filepath.Join(cfg.Store, "entities"))
 
 		if !validPath(attrStore) {
 			attrStore = ""
@@ -43,23 +53,28 @@ func New(ctx context.Context, store string, recurse bool, logger *slog.Logger, n
 		}
 	}
 
-	if newAttributes == nil {
-		newAttributes = models.NewAttributeSet
+	if cfg.NewAttributes == nil {
+		cfg.NewAttributes = models.NewAttributeSet
 	}
-	if newEntities == nil {
-		newEntities = models.NewEntitySet
+	if cfg.NewEntities == nil {
+		cfg.NewEntities = models.NewEntitySet
 	}
 
 	p := &pip{
-		ctx:           ctx,
-		recurse:       recurse,
+		ctx:           cfg.Ctx,
+		recurse:       cfg.Recurse,
 		attrStore:     attrStore,
 		entityStore:   entityStore,
-		logger:        logger,
-		newAttributes: newAttributes,
-		attributes:    newAttributes(),
-		newEntities:   newEntities,
-		entities:      newEntities(),
+		logger:        cfg.Logger,
+		newAttributes: cfg.NewAttributes,
+		attributes:    cfg.NewAttributes(),
+		newEntities:   cfg.NewEntities,
+		entities:      cfg.NewEntities(),
+	}
+
+	fdsStore, _ := filepath.Abs(filepath.Join(cfg.Store, "fds"))
+	if validPath(fdsStore) {
+		p.loadFDS(fdsStore)
 	}
 
 	p.load()
@@ -212,6 +227,7 @@ type pip struct {
 	entityStore      string
 	logger           *slog.Logger
 	ctx              context.Context
+	fds              FDS
 	newAttributes    models.AttributesBuilder
 	attributes       models.AttributeSet
 	newEntities      models.EntitiesBuilder

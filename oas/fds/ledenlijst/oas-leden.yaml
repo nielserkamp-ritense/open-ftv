@@ -1,0 +1,240 @@
+openapi: '3.0.3'
+info:
+  title: FDS Ledenlijst
+  version: '0.1'
+servers:
+  - url: https://api.server.test/v1
+tags:
+  - name: Organization
+    description: Everything about an Organization in the FDS membership list.
+paths:
+  /organizations:
+    get:
+      tags:
+        - Organization
+      description: Get all Organizations.
+      operationId: readOrganizations
+      responses:
+        '200':
+          description: A list of organizations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Organization"
+        '400':
+          $ref: "#/components/responses/BadRequestErrorResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundErrorResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
+    post:
+      tags:
+        - Organization
+      description: Create a new Organization.
+      operationId: createOrganization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        '400':
+          $ref: "#/components/responses/BadRequestErrorResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
+  /organizations/{oin}:
+    get:
+      tags:
+        - Organization
+      description: Get Organization by OIN.
+      operationId: readOrganizationByOIN
+      parameters:
+        - $ref: "#/components/parameters/pathOIN"
+      responses:
+        '200':
+          description: The specified organization.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        '404':
+          $ref: "#/components/responses/NotFoundErrorResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
+    put:
+      tags:
+        - Organization
+      description: Update Organization by OIN.
+      operationId: updateOrganizationByOIN
+      parameters:
+        - $ref: "#/components/parameters/pathOIN"
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationUpdateRequest"
+      responses:
+        '204':
+          $ref: "#/components/responses/EmptyResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestErrorResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundErrorResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
+components:
+  schemas:
+    oin:
+      description: OIN (Public Organization Identification number)
+      type: string
+      pattern: "^[0-9]{20}$"
+      example: "01234567890123456789"
+    Error:
+      description: The error that occured while processing this request.
+      type: object
+      properties:
+        message:
+          type: string
+          example: foo went wrong
+      required:
+        - message
+    Organization:
+      description: Organization model
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        oin:
+          $ref: "#/components/schemas/oin"
+        attributes:
+          type: object
+          additionalProperties: true
+          description: attributes of an Organization
+      required:
+        - id
+        - oin
+        - attributes
+      example:
+        id: 00000000-0000-0000-0000-000000000000
+        oin: 123456789
+        attributes:
+          isMember: true
+          maturityLevel: 2
+    OrganizationUpdate:
+      description: organization to update.
+      type: object
+      properties:
+        attributes:
+          type: object
+          additionalProperties: true
+          description: attributes of an Organization
+      required:
+        - attributes
+      example:
+        attributes:
+          isMember: false
+  parameters:
+    pathOIN:
+      name: oin
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/oin"
+  headers:
+    X-Dpl-Rva-Activity-Id:
+      description: dpl rva activity id
+      schema:
+        type: string
+        format: uuid
+    X-Dpl-Core-User:
+      description: dpl core user
+      schema:
+        type: string
+  requestBodies:
+    OrganizationUpdateRequest:
+      description: An organization object update request.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/OrganizationUpdate"
+  responses:
+    EmptyResponse:
+      description: Nothing needs to be returned.
+      headers:
+        X-Dpl-Rva-Activity-Id:
+          $ref: "#/components/headers/X-Dpl-Rva-Activity-Id"
+        X-Dpl-Core-User:
+          $ref: "#/components/headers/X-Dpl-Core-User"
+    BadRequestErrorResponse:
+      description: Invalid input supplied.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Error"
+                example:
+                  - message: foo went wrong
+            required:
+              - errors
+            example:
+              errors:
+                - message: foo went wrong
+    NotFoundErrorResponse:
+      description: Invalid input supplied.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Error"
+                example:
+                  - message: foo went wrong
+            example:
+              errors:
+                - message: foo went wrong
+    InternalServerErrorResponse:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Error"
+                example:
+                  - message: foo went wrong
+            example:
+              errors:
+                - message: foo went wrong
+    OrganizationResponse:
+      description: organization response
+      headers:
+        X-Dpl-Rva-Activity-Id:
+          $ref: "#/components/headers/X-Dpl-Rva-Activity-Id"
+        X-Dpl-Core-User:
+          $ref: "#/components/headers/X-Dpl-Core-User"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Organization"

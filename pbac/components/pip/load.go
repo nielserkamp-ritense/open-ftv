@@ -33,10 +33,9 @@ func (p *pip) iterateFolders(path string, recurse bool, f func(path string)) {
 			return filepath.SkipDir
 		}
 
-		if !strings.HasSuffix(path, ".gitkeep") && !strings.HasSuffix(path, "..data") {
+		if !strings.HasPrefix(path2, ".") {
 			f(path2)
 		}
-
 		return nil
 	})
 

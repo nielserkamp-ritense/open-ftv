@@ -1,0 +1,2 @@
+endpoint: "http://fds-ledenlijst-backend-svc.fdsdemo"
+ttl: "60s"
