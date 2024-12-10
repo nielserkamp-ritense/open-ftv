@@ -33,7 +33,7 @@ func (p *pip) iterateFolders(path string, recurse bool, f func(path string)) {
 			return filepath.SkipDir
 		}
 
-		if !strings.HasPrefix(path2, ".") {
+		if base := filepath.Base(path2); !strings.HasPrefix(base, ".") {
 			f(path2)
 		}
 		return nil

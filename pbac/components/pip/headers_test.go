@@ -239,7 +239,7 @@ func TestProcessActivityID(t *testing.T) {
 
 			p := &pip{
 				logger:   logger,
-				entities: New(nil, "../../../testdata/unittest/pip2", true, logger, nil, nil),
+				entities: New(Config{Store: "../../../testdata/unittest/pip2", Recurse: true, Logger: logger}),
 			}
 
 			a := models.NewAttributeSet()

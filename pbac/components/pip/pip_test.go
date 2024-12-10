@@ -93,7 +93,7 @@ func TestNew(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
 
-			p := New(nil, tc.path, tc.recurse, slog.New(h), nil, nil)
+			p := New(Config{Store: tc.path, Recurse: tc.recurse, Logger: slog.New(h)})
 			require.NotNil(t, p)
 
 			p2, ok := p.(*pip)

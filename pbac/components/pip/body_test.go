@@ -211,7 +211,7 @@ func TestProcessBody(t *testing.T) {
 
 			h := util.NewDummyHandler(slog.LevelDebug)
 
-			p := New(nil, "", false, slog.New(h), nil, nil)
+			p := New(Config{Logger: slog.New(h)})
 			require.NotNil(t, p)
 
 			h.Clear()
