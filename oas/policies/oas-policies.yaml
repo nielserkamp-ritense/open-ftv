@@ -1,0 +1,71 @@
+openapi: 3.0.0
+info:
+  description: |
+    OpenAPI specification for accessing policies.
+  version: "1.0.0"
+  title: "Policies"
+paths:
+  /policies:
+    get:
+      summary: "Retrieve policies"
+      responses:
+        200:
+          description: "Policies found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoliciesResponse"
+        400:
+          description: "Bad request."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    Policy:
+      type: object
+      description: "The content of a policy."
+      properties:
+        id:
+          type: string
+          description: "The unique identifier of the policy."
+        source:
+          type: string
+          description: "The unique identifier of the source peer (OIN)."
+        target:
+          type: string
+          description: "The unique identifier of the target peer (OIN)."
+        rvvaid:
+          type: string
+          description: "The unique identifier of the Activity Register."
+        language:
+          type: string
+          description: "The language of the policy."
+          example: "rego"
+        url:
+          type: string
+          description: "Link to the actual policy."
+      required:
+        - id
+        - language
+        - url
+    PoliciesResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Policy"
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: "An optional message detailing the error."
+        data:
+          type: object
+          description: "Optional extra context of the error."

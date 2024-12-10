@@ -5,6 +5,11 @@ cd authzen
 oapi-codegen -config cfg-authzen.yaml oas-authzen.yaml
 cd ..
 
+##### Policies #####
+cd policies
+oapi-codegen -config cfg-policies.yaml oas-policies.yaml
+cd ..
+
 ##### FSC #####
 # clone repo
 cd fsc
