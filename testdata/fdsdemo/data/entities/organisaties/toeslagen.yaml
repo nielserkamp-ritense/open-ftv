@@ -1,0 +1,8 @@
+- type: org
+  id: "e154dbb599d348079520c13093f323d3"
+  attributes:
+    name: "Dienst Toeslagen"
+    oin: "01726469448036167690"
+    services:
+      - https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/backend
+      - https://toeslagen-fsc-inway.tn-fds-padv-toeslagen:443/regels-backend

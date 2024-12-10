@@ -1,0 +1,7 @@
+- type: org
+  id: "75d5e299c50f45ab968ca29ee38d8e8e"
+  attributes:
+    name: DUO
+    oin: "01726467361708067052"
+    services:
+      - https://duo-fsc-inway.tn-fds-padv-duo:443/backend

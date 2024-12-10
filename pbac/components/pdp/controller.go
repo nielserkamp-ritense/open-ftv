@@ -17,6 +17,8 @@ type Controller interface {
 	Name() string
 	Version() string
 	Authorize(req *components.Request) (*components.Response, error)
+	PAP() pap.PAP
+	PIP() pip.PIP
 }
 
 // Base contains the common attributes of a controller.

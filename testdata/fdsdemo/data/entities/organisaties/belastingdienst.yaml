@@ -1,0 +1,7 @@
+- type: org
+  id: "6a959e31997044b489d3917724bce630"
+  attributes:
+    name: Belastingdienst
+    oin: "01726421629963313914"
+    services:
+      - https://belastingdienst-fsc-inway.tn-fds-padv-belastingdienst:443/backend

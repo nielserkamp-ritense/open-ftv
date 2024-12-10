@@ -1,0 +1,10 @@
+- type: org
+  id: "c16ca84793c34324ba1345cd381c47bc"
+  attributes:
+    name: Rijksoverheid
+    oin: "01726421629963313914"
+    services:
+      - https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/berichtenbox-backend
+      - https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/brp-backend
+      - https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/ldv-filter-backend
+      - https://rijksoverheid-fsc-inway.tn-fds-padv-rijksoverheid:443/nats

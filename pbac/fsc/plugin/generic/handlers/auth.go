@@ -20,19 +20,24 @@ import (
 
 // AuthHandler represents the interface for handling authorization requests.
 type AuthHandler interface {
+	Controller() pdp.Controller
 	AuthFSC(req *fiber.Ctx) error
 	AuthZEN(req *fiber.Ctx) error
 }
 
 // New instantiates an authorization handler.
 func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
-	c, err := newController(cfg, logger, logboek)
-	if c == nil {
+	h, err := newController(cfg, logger, logboek)
+	if h == nil {
 		logger.Error("configuration error", "error", err)
 		return nil
 	}
 
-	return &authHandler{cfg: cfg, logger: logger, controller: c}
+	return &authHandler{cfg: cfg, logger: logger, controller: h}
+}
+
+func (h *authHandler) Controller() pdp.Controller {
+	return h.controller
 }
 
 func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {

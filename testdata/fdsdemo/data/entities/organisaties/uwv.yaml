@@ -1,0 +1,7 @@
+- type: org
+  id: "3942804b64214607b5381f16bfa6ad4d"
+  attributes:
+    name: "UWV"
+    oin: "01726469522909432351"
+    services:
+      - "https://uwv-fsc-inway.tn-fds-padv-uwv:443/backend"
