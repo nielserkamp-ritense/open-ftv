@@ -1,7 +1,6 @@
 # policy voor het pro-actief berekenen van zorgtoeslag.
 # wordt uitgevoerd door de FSC Outway van de Dienst Zorgtoeslagen,
 # op basis van het doel dat in het request meegegeven wordt.
-# dit doel wordt nu bepaald vanuit het activityID van Logboek Dataverwerkingen.
 
 package doelbinding.zorgtoeslag
 
