@@ -19,8 +19,8 @@ service := data.entities.service[input.uri]
 # dit doen we met de FDS ledenlijst (via de PIP opgehaald),
 # en het oin van de partijen (uit het FSC contract).
 
-lid1 := data.members[input.source.oin]
-lid2 := data.members[input.target.oin]
+lid1 := data.entities.members[input.source.oin]
+lid2 := data.entities.members[input.target.oin]
 
 allow if {
     # voor deze doelbinding is alleen een GET toegestaan op het /networth path.
