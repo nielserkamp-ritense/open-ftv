@@ -45,7 +45,7 @@ func TestNewController(t *testing.T) {
 			name:     "pap store - recurse",
 			store2:   "../../../../testdata/policies/opa",
 			recurse2: true,
-			wantLog:  4,
+			wantLog:  5,
 		},
 		{
 			name:     "pip & pap store - recurse",
@@ -53,7 +53,7 @@ func TestNewController(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/policies/opa",
 			recurse2: true,
-			wantLog:  5,
+			wantLog:  6,
 		},
 	}
 

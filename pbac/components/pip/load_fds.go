@@ -32,9 +32,17 @@ func (p *pip) loadFDS(path string) {
 				return err2
 			}
 
+			if !l.Enabled {
+				return nil
+			}
+
 			u, err3 := url.Parse(l.Endpoint)
 			if err3 != nil {
 				return err3
+			}
+
+			if l.TTL == 0 {
+				l.TTL = time.Minute
 			}
 
 			// for now we support only a single FDS!
@@ -48,11 +56,16 @@ func (p *pip) loadFDS(path string) {
 	if err != nil {
 		p.logger.Error("fds: error iterating folders", "path", path, "err", err)
 	} else {
-		p.logger.Info("fds: configuration loaded successfully", "path", path)
+		if p.fds != nil {
+			p.logger.Info("fds: configuration loaded successfully", "path", path)
+		} else {
+			p.logger.Info("fds: configuration loaded but disabled", "path", path)
+		}
 	}
 }
 
 type llConfig struct {
-	Endpoint string        `json:"endpoint,omitempty"`
-	TTL      time.Duration `json:"ttl,omitempty"`
+	Enabled  bool          `yaml:"enabled,omitempty"`
+	Endpoint string        `yaml:"endpoint,omitempty"`
+	TTL      time.Duration `yaml:"ttl,omitempty"`
 }

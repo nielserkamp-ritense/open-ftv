@@ -1,0 +1,3 @@
+enabled: false
+endpoint: "http://localhost:8090/v1/leden"
+ttl: "5s"

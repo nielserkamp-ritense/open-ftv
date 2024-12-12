@@ -53,7 +53,7 @@ func newFDS(ctx context.Context, logger *slog.Logger, u *url.URL, ttl time.Durat
 		logger: logger,
 		url:    u,
 		ttl:    ttl,
-		leden:  nil,
+		leden:  make(map[string]MaturityLevel),
 		mutex:  sync.RWMutex{},
 	}
 
@@ -108,6 +108,8 @@ func (f *fds) refresh() {
 			f.leden[org.Oin] = MaturityLevel(maturity)
 		}
 	}
+
+	// go f.logger.Info("FDS ledenlijst updated", "url", u, "count", len(list))
 }
 
 func (f *fds) run() {
