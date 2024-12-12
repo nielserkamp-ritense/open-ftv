@@ -1,0 +1,3 @@
+enabled: true
+endpoint: "\x00"
+ttl: "5s"

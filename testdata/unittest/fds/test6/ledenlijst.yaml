@@ -1,0 +1,2 @@
+enabled: true
+endpoint: "http://localhost:8090/v1/leden"

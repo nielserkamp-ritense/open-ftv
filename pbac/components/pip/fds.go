@@ -101,9 +101,9 @@ func (f *fds) refresh() {
 	for i := range list {
 		org := list[i]
 		if member, ok := org.Attributes["isMember"].(bool); ok && member {
-			maturity, ok2 := org.Attributes["maturity"].(int)
-			if !ok2 {
-				maturity = 0
+			var maturity int
+			if n, ok2 := org.Attributes["maturity"].(float64); ok2 {
+				maturity = int(n)
 			}
 			f.leden[org.Oin] = MaturityLevel(maturity)
 		}

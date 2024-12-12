@@ -17,10 +17,13 @@ func (p *pip) loadFDS(path string) {
 			return err
 		}
 		if d.IsDir() {
-			return nil
+			if path2 == path {
+				return nil
+			}
+			return filepath.SkipDir
 		}
 
-		if !strings.HasPrefix(path2, ".") {
+		if base := filepath.Base(path2); !strings.HasPrefix(base, ".") {
 			f, err2 := os.Open(path2)
 			if err2 != nil {
 				return err2
