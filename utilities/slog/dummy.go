@@ -2,7 +2,9 @@ package slog
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 )
@@ -85,6 +87,21 @@ func (d *DummyHandler) Iterate(f func(t time.Time, msg string, lvl slog.Level)) 
 		f(rec.Time, rec.Message, rec.Level)
 	}
 	d.mutex.RUnlock()
+}
+
+// Log returns the stored log records in printable format.
+func (d *DummyHandler) Log() string {
+	out := make([]string, 0, len(d.records))
+
+	d.mutex.RLock()
+	defer d.mutex.RUnlock()
+
+	for i := range d.records {
+		rec := d.records[i]
+		out = append(out, fmt.Sprintf("%s: %s", rec.Level.String(), rec.Message))
+	}
+
+	return strings.Join(out, "\n")
 }
 
 // Clear removes all stored log records.

@@ -24,6 +24,7 @@ func TestNewDummyHandler(t *testing.T) {
 		{
 			name:  "with group",
 			lvl:   slog.LevelError,
+			group: "group1",
 			count: 5,
 		},
 		{
@@ -35,7 +36,7 @@ func TestNewDummyHandler(t *testing.T) {
 		{
 			name:  "all",
 			lvl:   slog.LevelWarn,
-			group: "group1",
+			group: "group2",
 			attrs: []slog.Attr{slog.String("key", "value")},
 			count: 99,
 		},
@@ -79,4 +80,26 @@ func TestNewDummyHandler(t *testing.T) {
 			assert.Zero(t, h.Count())
 		})
 	}
+}
+
+func TestDummyHandler_Log(t *testing.T) {
+	t.Run("DummyHandler Log", func(t *testing.T) {
+		h := NewDummyHandler(slog.LevelDebug)
+		require.NotNil(t, h)
+
+		logger := slog.New(h)
+
+		logger.Debug("line 1")
+		logger.Info("line 2")
+		logger.Warn("line 3")
+		logger.Error("line 4")
+
+		got := h.Log()
+		want := `DEBUG: line 1
+INFO: line 2
+WARN: line 3
+ERROR: line 4`
+
+		assert.Equal(t, want, got)
+	})
 }
