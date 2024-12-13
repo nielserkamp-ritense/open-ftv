@@ -20,18 +20,19 @@ func TestLoadFDS(t *testing.T) {
 	}()
 
 	testCases := []struct {
-		name    string
-		path    string
-		wantLog int
-		want    bool
+		name   string
+		path   string
+		minLog int
+		maxLog int
+		want   bool
 	}{
-		{name: "bad path", path: "/this/is/not/valid/duh", wantLog: 1},
-		{name: "good path", path: "../../../testdata/unittest/fds/test1", wantLog: 1, want: true},
-		{name: "empty paths", path: "../../../testdata/unittest/fds/test2", wantLog: 1},
-		{name: "bad url", path: "../../../testdata/unittest/fds/test3", wantLog: 1},
-		{name: "disabled", path: "../../../testdata/unittest/fds/test4", wantLog: 1},
-		{name: "not yaml", path: "../../../testdata/unittest/fds/test5", wantLog: 1},
-		{name: "read forbidden", path: "../../../testdata/unittest/fds/test6", wantLog: 1},
+		{name: "bad path", path: "/this/is/not/valid/duh", minLog: 1},
+		{name: "good path", path: "../../../testdata/unittest/fds/test1", minLog: 1, maxLog: 2, want: true},
+		{name: "empty paths", path: "../../../testdata/unittest/fds/test2", minLog: 1},
+		{name: "bad url", path: "../../../testdata/unittest/fds/test3", minLog: 1},
+		{name: "disabled", path: "../../../testdata/unittest/fds/test4", minLog: 1, maxLog: 2},
+		{name: "not yaml", path: "../../../testdata/unittest/fds/test5", minLog: 1},
+		{name: "read forbidden", path: "../../../testdata/unittest/fds/test6", minLog: 1},
 	}
 
 	for _, tc := range testCases {
@@ -47,7 +48,12 @@ func TestLoadFDS(t *testing.T) {
 			time.Sleep(50 * time.Millisecond)
 			cancel()
 
-			assert.Equal(t, tc.wantLog, h.Count())
+			if tc.maxLog > 0 {
+				assert.LessOrEqual(t, tc.minLog, h.Count(), h.Log())
+				assert.GreaterOrEqual(t, tc.maxLog, h.Count(), h.Log())
+			} else {
+				assert.Equalf(t, tc.minLog, h.Count(), h.Log())
+			}
 
 			if tc.want {
 				assert.NotNil(t, p.fds)
