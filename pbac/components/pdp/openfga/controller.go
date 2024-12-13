@@ -31,8 +31,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 
 	c := &controller{
 		Base:   pdp.NewBase(components.OPENFGA.String(), Version, logger, logboek),
-		stores: make(map[string]string),
-		models: make(map[string]string),
+		stores: make(map[string]*details),
 	}
 
 	if c.newServer(); c.engine == nil {
@@ -53,7 +52,7 @@ func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger,
 func (c *controller) newServer() {
 	engine, err := server.NewServerWithOpts(
 		server.WithDatastore(memory.New()),
-		server.WithLogger(NewZapper(c.Logger())),
+		server.WithLogger(newZapper(c.Logger())),
 	)
 
 	if err != nil {
@@ -66,8 +65,14 @@ func (c *controller) newServer() {
 
 type controller struct {
 	pdp.Base
-	engine *server.Server
-	stores map[string]string // key = principal, valid = storeID.
-	models map[string]string // key = storeID, value = policyID.
+	engine *server.Server      // OpenFGA PDP
+	stores map[string]*details // key = principal type
 	mutex  sync.RWMutex
+}
+
+type details struct {
+	store       string              // key of the store (principal type).
+	storeID     string              // id of the store in the OpenFGA engine.
+	authModelID string              // id of the authorization model in the OpenFGA store.
+	relations   map[string]struct{} // keys of the relations in the OpenFGA store.
 }

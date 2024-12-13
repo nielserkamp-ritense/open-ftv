@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// NewZapper creates a wrapper around the OpenFGA Logger interface (based on Uber's zap).
-func NewZapper(logger *slog.Logger) logger.Logger {
+// newZapper creates a wrapper around the OpenFGA Logger interface (based on Uber's zap).
+func newZapper(logger *slog.Logger) logger.Logger {
 	return &zapper{logger: logger}
 }
 

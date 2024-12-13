@@ -2,12 +2,14 @@ package openfga
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"path/filepath"
 	"strings"
 
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/language/pkg/go/transformer"
+	tuple2 "github.com/openfga/openfga/pkg/tuple"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
@@ -55,8 +57,8 @@ func (c *controller) addModel(store string, f io.Reader) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	storeID := c.stores[store]
-	if storeID == "" {
+	dtl, ok := c.stores[store]
+	if !ok {
 		s, err2 := c.engine.CreateStore(
 			context.Background(),
 			&openfgav1.CreateStoreRequest{Name: store},
@@ -66,83 +68,153 @@ func (c *controller) addModel(store string, f io.Reader) {
 			return
 		}
 
-		storeID = s.GetId()
-		c.stores[store] = storeID
+		storeID := s.GetId()
+		dtl = &details{store: store, storeID: storeID, relations: make(map[string]struct{})}
+		c.stores[store] = dtl
 	}
 
 	resp, err2 := c.engine.WriteAuthorizationModel(context.Background(), &openfgav1.WriteAuthorizationModelRequest{
-		StoreId:         storeID,
+		StoreId:         dtl.storeID,
 		TypeDefinitions: model.GetTypeDefinitions(),
 		Conditions:      model.GetConditions(),
 		SchemaVersion:   model.GetSchemaVersion(),
 	})
 	if err2 != nil {
-		c.Logger().Error("failed to add model", "controller", c.String(), "store", store, "error", err2)
+		c.Logger().Error("failed to add/replace model", "controller", c.String(), "store", store, "error", err2)
 		return
 	}
 
-	authID := resp.GetAuthorizationModelId()
-	c.models[storeID] = authID
-
-	c.Logger().Info("model added/replaced", "controller", c.String(), "store", store, "storeID", storeID, "authID", authID)
+	dtl.authModelID = resp.GetAuthorizationModelId()
+	c.Logger().Info("model added/replaced", "controller", c.String(), "store", store, "storeID", dtl.storeID, "authModelID", dtl.authModelID)
 }
 
 func (c *controller) removeModel(store string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	storeID := c.stores[store]
-	if storeID == "" {
+	dtl, ok := c.stores[store]
+	if !ok {
 		return // nothing here.
 	}
 
-	_, err := c.engine.DeleteStore(context.Background(), &openfgav1.DeleteStoreRequest{StoreId: storeID})
+	_, err := c.engine.DeleteStore(context.Background(), &openfgav1.DeleteStoreRequest{StoreId: dtl.storeID})
 	if err != nil {
-		c.Logger().Error("failed to remove store", "controller", c.String(), "store", store, "storeID", storeID, "error", err)
+		c.Logger().Error("failed to remove store", "controller", c.String(), "store", store, "storeID", dtl.storeID, "error", err)
 		return
 	}
 
-	c.Logger().Info("store removed", "controller", c.String(), "store", store, "storeID", storeID)
+	delete(c.stores, store)
+	c.Logger().Info("store removed", "controller", c.String(), "store", store, "storeID", dtl.storeID)
 }
 
 func (c *controller) addRelations(store string, f io.Reader) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	storeID, ok := c.stores[store]
+	dtl, ok := c.stores[store]
 	if !ok {
 		c.Logger().Error("failed to find store", "controller", c.String(), "store", store)
 		return
 	}
 
-	authID, ok2 := c.models[storeID]
-	if !ok2 {
-		c.Logger().Error("failed to find authorization model", "controller", c.String(), "store", store, "storeID", storeID)
+	writes, deletes := c.buildRelationUpdates(store, f)
+	if (writes == nil || len(writes.TupleKeys) == 0) && (deletes == nil || len(deletes.TupleKeys) == 0) {
 		return
 	}
 
-	writes, deletes := c.buildRelationUpdates(store, f)
-
-	_, err := c.engine.Write(context.Background(), &openfgav1.WriteRequest{
-		StoreId:              storeID,
-		Writes:               writes,
-		Deletes:              deletes,
-		AuthorizationModelId: authID,
-	})
-	if err != nil {
-		c.Logger().Error("failed to maintain relations", "controller", c.String(), "store", store, "storeID", storeID, "error", err)
+	req := &openfgav1.WriteRequest{StoreId: dtl.storeID, AuthorizationModelId: dtl.authModelID}
+	if writes != nil && len(writes.TupleKeys) > 0 {
+		req.Writes = writes
 	}
+	if deletes != nil && len(deletes.TupleKeys) > 0 {
+		req.Deletes = deletes
+	}
+
+	_, err := c.engine.Write(context.Background(), req)
+	if err != nil {
+		c.Logger().Error("failed to add/replace relations", "controller", c.String(), "store", store, "storeID", dtl.storeID, "error", err)
+		return
+	}
+
+	// remember the new list of keys.
+	clear(dtl.relations)
+	if writes != nil {
+		for _, t := range writes.TupleKeys {
+			dtl.relations[keyFromTuple(t)] = struct{}{}
+		}
+	}
+
+	c.Logger().Info("relations added/replaced", "controller", c.String(), "store", store, "storeID", dtl.storeID)
 }
 
-func (c *controller) removeRelations(key string) {
+func (c *controller) removeRelations(store string) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	// TODO: ...
+	dtl, ok := c.stores[store]
+	if !ok {
+		c.Logger().Error("failed to find store", "controller", c.String(), "store", store)
+		return
+	}
 
+	// all relations will be removed.
+	deletes := &openfgav1.WriteRequestDeletes{}
+	for key := range dtl.relations {
+		items := strings.Split(key, "|")
+		t := tuple2.NewTupleKey(items[0], items[1], items[2])
+		deletes.TupleKeys = append(deletes.TupleKeys, tuple2.TupleKeyToTupleKeyWithoutCondition(t))
+	}
+
+	if len(deletes.TupleKeys) == 0 {
+		return
+	}
+
+	_, err := c.engine.Write(context.Background(), &openfgav1.WriteRequest{
+		StoreId:              dtl.storeID,
+		Deletes:              deletes,
+		AuthorizationModelId: dtl.authModelID,
+	})
+	if err != nil {
+		c.Logger().Error("failed to remove relations", "controller", c.String(), "store", store, "storeID", dtl.storeID, "error", err)
+		return
+	}
+
+	// clear the list of keys.
+	clear(dtl.relations)
+	c.Logger().Info("relations removed", "controller", c.String(), "store", store, "storeID", dtl.storeID)
 }
 
 func (c *controller) buildRelationUpdates(store string, f io.Reader) (*openfgav1.WriteRequestWrites, *openfgav1.WriteRequestDeletes) {
+	list, err := readTuples(f)
+	if err != nil {
+		c.Logger().Error("failed to decode relations", "store", store, "error", err)
+		return nil, nil
+	}
 
-	return nil, nil
+	writes := &openfgav1.WriteRequestWrites{}
+	deletes := &openfgav1.WriteRequestDeletes{}
+
+	// determine the new relations = the writes.
+	keys := make(map[string]*openfgav1.TupleKey, len(list))
+	for _, t := range list {
+		keys[keyFromTuple(t)] = t
+		writes.TupleKeys = append(writes.TupleKeys, t)
+	}
+
+	// determine which old relations are no longer present = the deletes.
+	if dtl, ok := c.stores[store]; ok {
+		for key := range dtl.relations {
+			if _, ok2 := keys[key]; !ok2 {
+				items := strings.Split(key, "|")
+				t := tuple2.NewTupleKey(items[0], items[1], items[2])
+				deletes.TupleKeys = append(deletes.TupleKeys, tuple2.TupleKeyToTupleKeyWithoutCondition(t))
+			}
+		}
+	}
+
+	return writes, deletes
+}
+
+func keyFromTuple(t *openfgav1.TupleKey) string {
+	return fmt.Sprintf("%s|%s|%s", t.User, t.Relation, t.Object)
 }

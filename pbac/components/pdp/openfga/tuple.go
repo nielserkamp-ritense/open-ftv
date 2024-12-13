@@ -1,8 +1,10 @@
 package openfga
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/goccy/go-json"
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
@@ -21,17 +23,25 @@ func readTuples(f io.Reader) ([]*openfgav1.TupleKey, error) {
 
 	out := make([]*openfgav1.TupleKey, len(t))
 	for i := range t {
-		out[i] = tupleFromTuple(t[i])
+		out[i] = tupleKeyFromTuple(t[i])
 	}
 	return out, nil
 }
 
-func tupleFromTuple(t tuple) *openfgav1.TupleKey {
+func tupleKeyFromTuple(t tuple) *openfgav1.TupleKey {
 	return &openfgav1.TupleKey{
-		User:     fmt.Sprintf("%s:%s", t.Subject.Type, t.Subject.ID),
-		Relation: t.Predicate,
-		Object:   fmt.Sprintf("%s:%s", t.Object.Type, t.Object.ID),
+		User:     fmt.Sprintf("%s:%s", t.Subject.Type, normalize(t.Subject.ID)),
+		Relation: normalize(t.Predicate),
+		Object:   fmt.Sprintf("%s:%s", t.Object.Type, normalize(t.Object.ID)),
 	}
+}
+
+func normalize(id string) string {
+	if strings.ContainsAny(id, ":#@") {
+		// some characters are prohibited for use in identifiers.
+		return base64.StdEncoding.EncodeToString([]byte(id))
+	}
+	return id
 }
 
 type tupleEntity struct {

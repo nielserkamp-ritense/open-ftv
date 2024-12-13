@@ -5,4 +5,4 @@ type doelbinding
 
 type service
   relations
-    define uitvoerder: [doelbinding]
+    define call: [doelbinding]
