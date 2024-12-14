@@ -16,16 +16,21 @@ func (p *authProcess) log() {
 		args = append(args, "request-uid", p.req.UID)
 	}
 
+	var allowed bool
 	if p.resp != nil {
-		args = append(args, "allowed", p.resp.Allowed, "policy", p.resp.PolicyKey)
+		allowed = p.resp.Allowed
+		args = append(args, "allowed", allowed, "message", p.resp.Message, "policy", p.resp.PolicyKey)
 	}
 
 	var msg string
-	if p.err != nil {
+	switch {
+	case p.err != nil:
 		msg = "authorization process failed"
 		args = append(args, "status", p.status, "error", p.err)
-	} else {
-		msg = "authorization process successful"
+	case !allowed:
+		msg = "authorization denied"
+	default:
+		msg = "authorization granted"
 	}
 
 	args = append(args, "elapsed time", time.Since(p.started).String())

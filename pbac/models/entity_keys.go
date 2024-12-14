@@ -4,4 +4,5 @@ package models
 const (
 	EntityAction   = "action"
 	EntityResource = "resource"
+	EntityService  = "service"
 )
