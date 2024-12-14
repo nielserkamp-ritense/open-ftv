@@ -30,10 +30,14 @@ func readTuples(f io.Reader) ([]*openfgav1.TupleKey, error) {
 
 func tupleKeyFromBasicTuple(t basicTuple) *openfgav1.TupleKey {
 	return &openfgav1.TupleKey{
-		User:     fmt.Sprintf("%s:%s", t.Subject.Type, normalize(t.Subject.ID)),
+		User:     t.Subject.key(),
 		Relation: normalize(t.Predicate),
-		Object:   fmt.Sprintf("%s:%s", t.Object.Type, normalize(t.Object.ID)),
+		Object:   t.Object.key(),
 	}
+}
+
+func (r basicEntity) key() string {
+	return fmt.Sprintf("%s:%s", r.Type, normalize(r.ID))
 }
 
 func normalize(id string) string {

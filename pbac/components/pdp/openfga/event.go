@@ -23,7 +23,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 	case models.PolicyAdded, models.PolicyReplaced:
 		f, err := c.PAP().Get(key)
 		if err != nil {
-			c.Logger().Error("failed to get policy", "controller", c.String(), "key", key, "error", err)
+			c.Logger().Error("failed to get file", "controller", c.String(), "key", key, "error", err)
 			return
 		}
 
@@ -54,24 +54,13 @@ func (c *controller) addModel(store string, f io.Reader) {
 		return
 	}
 
+	dtl := c.findStore(store)
+	if dtl == nil {
+		return
+	}
+
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-
-	dtl, ok := c.stores[store]
-	if !ok {
-		s, err2 := c.engine.CreateStore(
-			context.Background(),
-			&openfgav1.CreateStoreRequest{Name: store},
-		)
-		if err2 != nil {
-			c.Logger().Error("Failed to create store", "store", store, "error", err2)
-			return
-		}
-
-		storeID := s.GetId()
-		dtl = &details{store: store, storeID: storeID, relations: make(map[string]struct{})}
-		c.stores[store] = dtl
-	}
 
 	resp, err2 := c.engine.WriteAuthorizationModel(context.Background(), &openfgav1.WriteAuthorizationModelRequest{
 		StoreId:         dtl.storeID,
@@ -89,13 +78,13 @@ func (c *controller) addModel(store string, f io.Reader) {
 }
 
 func (c *controller) removeModel(store string) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	dtl, ok := c.stores[store]
 	if !ok {
 		return // nothing here.
 	}
+
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
 	_, err := c.engine.DeleteStore(context.Background(), &openfgav1.DeleteStoreRequest{StoreId: dtl.storeID})
 	if err != nil {
@@ -108,12 +97,8 @@ func (c *controller) removeModel(store string) {
 }
 
 func (c *controller) addRelations(store string, f io.Reader) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-
-	dtl, ok := c.stores[store]
-	if !ok {
-		c.Logger().Error("failed to find store", "controller", c.String(), "store", store)
+	dtl := c.findStore(store)
+	if dtl == nil {
 		return
 	}
 
@@ -129,6 +114,9 @@ func (c *controller) addRelations(store string, f io.Reader) {
 	if deletes != nil && len(deletes.TupleKeys) > 0 {
 		req.Deletes = deletes
 	}
+
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
 	_, err := c.engine.Write(context.Background(), req)
 	if err != nil {
@@ -148,12 +136,8 @@ func (c *controller) addRelations(store string, f io.Reader) {
 }
 
 func (c *controller) removeRelations(store string) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-
-	dtl, ok := c.stores[store]
-	if !ok {
-		c.Logger().Error("failed to find store", "controller", c.String(), "store", store)
+	dtl := c.findStore(store)
+	if dtl == nil {
 		return
 	}
 
@@ -169,6 +153,9 @@ func (c *controller) removeRelations(store string) {
 		return
 	}
 
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	_, err := c.engine.Write(context.Background(), &openfgav1.WriteRequest{
 		StoreId:              dtl.storeID,
 		Deletes:              deletes,
@@ -182,6 +169,28 @@ func (c *controller) removeRelations(store string) {
 	// clear the list of keys.
 	clear(dtl.relations)
 	c.Logger().Info("relations removed", "controller", c.String(), "store", store, "storeID", dtl.storeID)
+}
+
+func (c *controller) findStore(store string) *details {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	dtl, ok := c.stores[store]
+	if ok {
+		return dtl
+	}
+
+	s, err2 := c.engine.CreateStore(context.Background(), &openfgav1.CreateStoreRequest{Name: store})
+	if err2 != nil {
+		c.Logger().Error("failed to create store", "store", store, "error", err2)
+		return nil
+	}
+
+	storeID := s.GetId()
+	dtl = &details{store: store, storeID: storeID, relations: make(map[string]struct{})}
+	c.stores[store] = dtl
+
+	return dtl
 }
 
 func (c *controller) buildRelationUpdates(store string, f io.Reader) (*openfgav1.WriteRequestWrites, *openfgav1.WriteRequestDeletes) {
