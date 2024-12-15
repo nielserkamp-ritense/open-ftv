@@ -23,15 +23,69 @@ type Policy struct {
 	// Language The language of the policy.
 	Language string `json:"language"`
 
-	// Rvvaid The unique identifier of the Activity Register.
-	Rvvaid *string `json:"rvvaid,omitempty"`
+	// RvaID The unique identifier of the Register of Activities (RvA).
+	RvaID *string `json:"rvaID,omitempty"`
 
-	// Source The unique identifier of the source peer (OIN).
+	// Source The unique identifier of the source.
 	Source *string `json:"source,omitempty"`
 
-	// Target The unique identifier of the target peer (OIN).
+	// Target The unique identifier of the target.
 	Target *string `json:"target,omitempty"`
 
 	// Url Link to the actual policy.
 	Url string `json:"url"`
 }
+
+// PolicyResponse The content of a policy.
+type PolicyResponse = Policy
+
+// ForceUpsert defines model for ForceUpsert.
+type ForceUpsert = bool
+
+// IgnoreMissing defines model for IgnoreMissing.
+type IgnoreMissing = bool
+
+// PolicyID defines model for PolicyID.
+type PolicyID = string
+
+// AccessDenied defines model for AccessDenied.
+type AccessDenied = ErrorResponse
+
+// AlreadyExists defines model for AlreadyExists.
+type AlreadyExists = ErrorResponse
+
+// BadRequest defines model for BadRequest.
+type BadRequest = ErrorResponse
+
+// NotAuthorized defines model for NotAuthorized.
+type NotAuthorized = ErrorResponse
+
+// NotFound defines model for NotFound.
+type NotFound = ErrorResponse
+
+// UnexpectedError defines model for UnexpectedError.
+type UnexpectedError = ErrorResponse
+
+// DeletePolicyIdParams defines parameters for DeletePolicyId.
+type DeletePolicyIdParams struct {
+	// Force Ignore missing data during a delete operation.
+	Force *IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
+}
+
+// PostPolicyIdParams defines parameters for PostPolicyId.
+type PostPolicyIdParams struct {
+	// Force Force upsert during a put/post operation.
+	Force *ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
+
+// PutPolicyIdParams defines parameters for PutPolicyId.
+type PutPolicyIdParams struct {
+	// Force Force upsert during a put/post operation.
+	Force *ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
+
+// PostPolicyIdJSONRequestBody defines body for PostPolicyId for application/json ContentType.
+type PostPolicyIdJSONRequestBody = Policy
+
+// PutPolicyIdJSONRequestBody defines body for PutPolicyId for application/json ContentType.
+type PutPolicyIdJSONRequestBody = Policy
