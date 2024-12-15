@@ -1,7 +1,7 @@
 - type: 'doelbinding'
   id: 'burgerzaken'
   attributes:
-    rvvaid: '31953ef2-5a52-421a-9d2d-2c11e6dcb86f,82ece16c-f848-4f8c-aa18-a90bf2d91c07,c4918f99-71da-47e3-8ba5-7a03d33c7a6f,d5ec9dc2-004f-46c8-9c04-a746f273ae5e,54f6a690-d7f5-4dc9-9ec9-af00e336bf6a'
+    rvaid: '31953ef2-5a52-421a-9d2d-2c11e6dcb86f,82ece16c-f848-4f8c-aa18-a90bf2d91c07,c4918f99-71da-47e3-8ba5-7a03d33c7a6f,d5ec9dc2-004f-46c8-9c04-a746f273ae5e,54f6a690-d7f5-4dc9-9ec9-af00e336bf6a'
     source: '01726469448036167690'
     target: '01726469365987449994'
     url: 'https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/-/blob/01c394fc12c61d59b40ef3f3c7418b0be8d38324/testdata/fdsdemo/toeslagen/opa/zorgtoeslag.rego'

@@ -35,8 +35,8 @@ func (h *policiesHandler) Policies(req *fiber.Ctx) error {
 			p := policies.Policy{Id: key, Language: h.c.Name()}
 
 			if e := h.c.PIP().GetEntity(fmt.Sprintf("doelbinding::%s", key)); e != nil {
-				if s, ok := e.Attributes().GetAttribute("rvvaid").(string); ok {
-					p.Rvvaid = &s
+				if s, ok := e.Attributes().GetAttribute("rvaid").(string); ok {
+					p.RvaID = &s
 				}
 				if s, ok := e.Attributes().GetAttribute("source").(string); ok {
 					p.Source = &s
