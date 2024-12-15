@@ -1,0 +1,4 @@
+[
+ {"subject":{"type":"doelbinding","id":"burgerzaken"},"predicate":"call","object":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}},
+ {"subject":{"type":"doelbinding","id":"subsidies"},"predicate":"call","object":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}
+]

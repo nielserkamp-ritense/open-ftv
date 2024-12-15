@@ -59,7 +59,7 @@ func (c *controller) buildCheckRequest(req *components.Request) (*openfgav1.Chec
 
 	dtl, ok := c.stores[p1]
 	if !ok || dtl == nil {
-		return nil, fmt.Sprintf("store not found; invalid principal type '%s'", req.Principal.Type())
+		return nil, fmt.Sprintf("store not found; invalid principal type '%s'", p1)
 	}
 
 	t := tupleKeyFromBasicTuple(basicTuple{
