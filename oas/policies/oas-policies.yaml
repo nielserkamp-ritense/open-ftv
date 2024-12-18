@@ -222,7 +222,7 @@ components:
           description: The unique identifier of the target.
         rvvaID:
           type: string
-          description: The unique identifier of the Register of Activities (RvA).
+          description: The unique identifier of the Register of Activities (RvVA).
         language:
           type: string
           description: The language of the policy.
