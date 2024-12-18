@@ -1,106 +1,293 @@
 openapi: 3.0.0
+
 info:
   description: |
-    OpenAPI specification for AuthZEN specification v1.0.
-  version: "1.0.0"
+    OpenAPI specification for AuthZEN spec.
+  version: "1.1.0"
   title: "AuthZEN"
+
+servers:
+  - url: https://localhost:8080/authzen/v1
+    description: Local server.
+
 paths:
-  /authzen:
+  /evaluation:
     post:
-      summary: "Authorization request"
+      summary: Authorization request.
       parameters:
         - in: header
           name: "Authorization"
-          description: "Request header containing the credentials to authenticate the client to the authentication service."
+          description: Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
           schema:
             type: string
         - in: header
           name: "X-Request-ID"
-          description: "Request header containing the unique ID of the request. This will be returned in the response."
+          description: |
+            Request header containing the unique ID of the request.
+            This will be returned in the response.
           schema:
             type: string
       responses:
         200:
-          description: "The authorization request has been handled successfully. This does not mean the request is authorized, it means that the request has been processed successfully"
+          description: |
+            The authorization request has been handled successfully.
+            This does not mean the request is authorized, it means that the request has been processed successfully.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthorizationResponse"
         400:
-          description: "The authorization request has failed due to malformed or invalid input data."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/BadRequest"
         401:
-          description: "The authorization request has failed due to an unauthorized request."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/NotAuthorized"
         403:
-          description: "The authorization request has failed due to being forbidden."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        500:
-          description: "The authorization request has failed due to an internal server error."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/AccessDenied"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
       requestBody:
         $ref: "#/components/requestBodies/AuthorizationRequest"
+
+  /policies:
+    get:
+      summary: Retrieve policies.
+      description: Retrieve a list of all cached policies.
+      responses:
+        200:
+          description: Policies found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoliciesResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /policy/{id}:
+    parameters:
+      - $ref: "#/components/parameters/PolicyID"
+
+    get:
+      summary: Retrieve policy.
+      description: |
+        Retrieve a specific cached policy.
+        If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      responses:
+        200:
+          description: Policy found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
+    put:
+      summary: Add policy.
+      description: |
+        Add a new policy to the cache.
+        If the unique identifier of the policy already exists, a 409 status code will be returned.
+      requestBody:
+        description: Definition of the new policy.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Policy"
+      responses:
+        201:
+          description: Policy created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        409:
+          $ref: "#/components/responses/AlreadyExists"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
+    post:
+      summary: Replace policy.
+      description: |
+        Replace an existing policy in teh cache.
+        If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      requestBody:
+        description: Definition of the new policy.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Policy"
+      responses:
+        200:
+          description: Policy replaced.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
+    delete:
+      summary: Remove policy.
+      description: |
+        Remove an existing policy from the cache.
+        If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      responses:
+        200:
+          description: Policy removed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
 components:
+  parameters:
+    PolicyID:
+      in: path
+      name: "id"
+      schema:
+        type: string
+      required: true
+      description: Unique identifier of a policy.
+
+  requestBodies:
+    AuthorizationRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AuthorizationRequest"
+      description: The body of the request sent to the authorization service.
+      required: true
+
+  responses:
+    BadRequest:
+      description: The request has failed due to malformed or invalid input data.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotAuthorized:
+      description: The request has failed due to an unauthorized request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    AccessDenied:
+      description: The request has failed due to being forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: The request has failed due to the resource not existing.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    AlreadyExists:
+      description: The request has failed due to the resource existing.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UnexpectedError:
+      description: The request has failed due to an unexpected error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
   schemas:
     Entity:
       type: object
-      description: "The entity associated with an authorization request. THis can be the subject (e.g. principal) or the resouce."
+      description: |
+        The entity associated with an authorization request.
+        This can be the subject (e.g. principal) or the resource.
       properties:
         type:
           type: string
-          description: "The type of the entity."
+          description: The type of the entity.
           example: "user"
         id:
           type: string
-          description: "The unique ID of the entity."
+          description: The unique ID of the entity.
           example: "alice"
         properties:
           type: object
-          description: "Optional attributes for the entity."
+          description: Optional attributes for the entity.
       required:
         - type
         - id
+
     Action:
       type: object
-      description: "The action associated with an authorization request."
+      description: The action associated with an authorization request.
       properties:
         name:
           type: string
-          description: "The name of the action."
+          description: The name of the action.
           example: "can_read"
         properties:
           type: object
+          description: Optional attributes for the action.
       required:
         - type
-        - id
+
     ReasonField:
       type: object
-      description: "Map of one or more reasons, with a language-identifier as the key."
+      description: Map of one or more reasons, with a language-identifier as the key.
+
     ReasonObject:
       type: object
-      description: "Specifies a particular reason."
+      description: Specifies a particular reason.
       properties:
         id:
           type: string
-          description: "Unique identifier of the reason"
+          description: Unique identifier of the reason.
         reason_admin:
           $ref: "#/components/schemas/ReasonField"
         reason_user:
           $ref: "#/components/schemas/ReasonField"
       required:
         - id
+
     AuthorizationRequest:
       type: object
       properties:
@@ -116,31 +303,61 @@ components:
         - subject
         - action
         - resource
+
     AuthorizationResponse:
       type: object
       properties:
         decision:
           type: boolean
-          description: "true if the request is authorized."
+          description: true if the request is authorized.
         context:
           type: object
-          description: "Optional context returned by the policy engine."
+          description: Optional context returned by the policy engine.
       required:
         - decision
+
+    Policy:
+      type: object
+      description: The content of a policy.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the policy.
+        source:
+          type: string
+          description: The unique identifier of the source.
+        target:
+          type: string
+          description: The unique identifier of the target.
+        rvvaID:
+          type: string
+          description: The unique identifier of the Register of Activities (RvVA).
+        language:
+          type: string
+          description: The language of the policy.
+          example: "rego"
+        url:
+          type: string
+          description: Link to the actual policy.
+      required:
+        - id
+        - language
+        - url
+
+    PoliciesResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Policy"
+
+    PolicyResponse:
+      $ref: "#/components/schemas/Policy"
+
     ErrorResponse:
       type: object
       properties:
         message:
           type: string
-          description: "An optional message detailing the error."
+          description: An optional message detailing the error.
         data:
           type: object
-          description: "Optional extra context of the error."
-  requestBodies:
-    AuthorizationRequest:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AuthorizationRequest"
-      description: The body of the request send to the authorization service
-      required: true
+          description: Optional extra context of the error.

@@ -6,7 +6,9 @@ package authzen
 // Action The action associated with an authorization request.
 type Action struct {
 	// Name The name of the action.
-	Name       *string                 `json:"name,omitempty"`
+	Name *string `json:"name,omitempty"`
+
+	// Properties Optional attributes for the action.
 	Properties *map[string]interface{} `json:"properties,omitempty"`
 }
 
@@ -16,10 +18,12 @@ type AuthorizationRequest struct {
 	Action  Action                  `json:"action"`
 	Context *map[string]interface{} `json:"context,omitempty"`
 
-	// Resource The entity associated with an authorization request. THis can be the subject (e.g. principal) or the resouce.
+	// Resource The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
 	Resource Entity `json:"resource"`
 
-	// Subject The entity associated with an authorization request. THis can be the subject (e.g. principal) or the resouce.
+	// Subject The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
 	Subject Entity `json:"subject"`
 }
 
@@ -32,7 +36,8 @@ type AuthorizationResponse struct {
 	Decision bool `json:"decision"`
 }
 
-// Entity The entity associated with an authorization request. THis can be the subject (e.g. principal) or the resouce.
+// Entity The entity associated with an authorization request.
+// This can be the subject (e.g. principal) or the resource.
 type Entity struct {
 	// Id The unique ID of the entity.
 	Id string `json:"id"`
@@ -53,12 +58,39 @@ type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// PoliciesResponse defines model for PoliciesResponse.
+type PoliciesResponse = []Policy
+
+// Policy The content of a policy.
+type Policy struct {
+	// Id The unique identifier of the policy.
+	Id string `json:"id"`
+
+	// Language The language of the policy.
+	Language string `json:"language"`
+
+	// RvvaID The unique identifier of the Register of Activities (RvVA).
+	RvvaID *string `json:"rvvaID,omitempty"`
+
+	// Source The unique identifier of the source.
+	Source *string `json:"source,omitempty"`
+
+	// Target The unique identifier of the target.
+	Target *string `json:"target,omitempty"`
+
+	// Url Link to the actual policy.
+	Url string `json:"url"`
+}
+
+// PolicyResponse The content of a policy.
+type PolicyResponse = Policy
+
 // ReasonField Map of one or more reasons, with a language-identifier as the key.
 type ReasonField = map[string]interface{}
 
 // ReasonObject Specifies a particular reason.
 type ReasonObject struct {
-	// Id Unique identifier of the reason
+	// Id Unique identifier of the reason.
 	Id string `json:"id"`
 
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
@@ -68,14 +100,42 @@ type ReasonObject struct {
 	ReasonUser *ReasonField `json:"reason_user,omitempty"`
 }
 
-// PostAuthzenParams defines parameters for PostAuthzen.
-type PostAuthzenParams struct {
-	// Authorization Request header containing the credentials to authenticate the client to the authentication service.
+// PolicyID defines model for PolicyID.
+type PolicyID = string
+
+// AccessDenied defines model for AccessDenied.
+type AccessDenied = ErrorResponse
+
+// AlreadyExists defines model for AlreadyExists.
+type AlreadyExists = ErrorResponse
+
+// BadRequest defines model for BadRequest.
+type BadRequest = ErrorResponse
+
+// NotAuthorized defines model for NotAuthorized.
+type NotAuthorized = ErrorResponse
+
+// NotFound defines model for NotFound.
+type NotFound = ErrorResponse
+
+// UnexpectedError defines model for UnexpectedError.
+type UnexpectedError = ErrorResponse
+
+// PostEvaluationParams defines parameters for PostEvaluation.
+type PostEvaluationParams struct {
+	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
 	Authorization *string `json:"Authorization,omitempty"`
 
-	// XRequestID Request header containing the unique ID of the request. This will be returned in the response.
+	// XRequestID Request header containing the unique ID of the request.
+	// This will be returned in the response.
 	XRequestID *string `json:"X-Request-ID,omitempty"`
 }
 
-// PostAuthzenJSONRequestBody defines body for PostAuthzen for application/json ContentType.
-type PostAuthzenJSONRequestBody = AuthorizationRequest
+// PostEvaluationJSONRequestBody defines body for PostEvaluation for application/json ContentType.
+type PostEvaluationJSONRequestBody = AuthorizationRequest
+
+// PostPolicyIdJSONRequestBody defines body for PostPolicyId for application/json ContentType.
+type PostPolicyIdJSONRequestBody = Policy
+
+// PutPolicyIdJSONRequestBody defines body for PutPolicyId for application/json ContentType.
+type PutPolicyIdJSONRequestBody = Policy

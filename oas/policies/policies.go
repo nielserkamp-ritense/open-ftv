@@ -23,8 +23,8 @@ type Policy struct {
 	// Language The language of the policy.
 	Language string `json:"language"`
 
-	// RvaID The unique identifier of the Register of Activities (RvA).
-	RvaID *string `json:"rvaID,omitempty"`
+	// RvvaID The unique identifier of the Register of Activities (RvA).
+	RvvaID *string `json:"rvvaID,omitempty"`
 
 	// Source The unique identifier of the source.
 	Source *string `json:"source,omitempty"`

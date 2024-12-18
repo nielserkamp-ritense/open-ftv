@@ -35,9 +35,10 @@ paths:
   /policy/{id}:
     parameters:
       - $ref: "#/components/parameters/PolicyID"
+
     get:
       summary: Retrieve policy.
-      description: Retrieves a list of cached policies.
+      description: Retrieve a specified cached policy.
       responses:
         200:
           description: Policy found.
@@ -55,6 +56,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         5XX:
           $ref: "#/components/responses/UnexpectedError"
+
     put:
       summary: Add policy.
       description: |
@@ -85,6 +87,7 @@ paths:
           $ref: "#/components/responses/AlreadyExists"
         5XX:
           $ref: "#/components/responses/UnexpectedError"
+
     post:
       summary: Replace policy.
       description: |
@@ -115,6 +118,7 @@ paths:
           $ref: "#/components/responses/NotFound"
         5XX:
           $ref: "#/components/responses/UnexpectedError"
+
     delete:
       summary: Remove policy.
       description: |
@@ -148,55 +152,55 @@ components:
       schema:
         type: string
       required: true
-      description: "Unique identifier of a policy"
+      description: Unique identifier of a policy.
     ForceUpsert:
       in: query
       name: force
       schema:
         type: boolean
       required: false
-      description: "Force upsert during a put/post operation."
+      description: Force upsert during a put/post operation.
     IgnoreMissing:
       in: query
       name: force
       schema:
         type: boolean
       required: false
-      description: "Ignore missing data during a delete operation."
+      description: Ignore missing data during a delete operation.
 
   responses:
     BadRequest:
-      description: "Bad request."
+      description: Bad request.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotAuthorized:
-      description: "Not authorized."
+      description: Not authorized.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     AccessDenied:
-      description: "Access denied."
+      description: Access denied.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
-      description: "Resource not found."
+      description: Resource not found.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     AlreadyExists:
-      description: "Resource already exists."
+      description: Resource already exists.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     UnexpectedError:
-      description: "Unexpected error."
+      description: Unexpected error.
       content:
         application/json:
           schema:
@@ -205,27 +209,27 @@ components:
   schemas:
     Policy:
       type: object
-      description: "The content of a policy."
+      description: The content of a policy.
       properties:
         id:
           type: string
-          description: "The unique identifier of the policy."
+          description: The unique identifier of the policy.
         source:
           type: string
-          description: "The unique identifier of the source."
+          description: The unique identifier of the source.
         target:
           type: string
-          description: "The unique identifier of the target."
-        rvaID:
+          description: The unique identifier of the target.
+        rvvaID:
           type: string
-          description: "The unique identifier of the Register of Activities (RvA)."
+          description: The unique identifier of the Register of Activities (RvA).
         language:
           type: string
-          description: "The language of the policy."
+          description: The language of the policy.
           example: "rego"
         url:
           type: string
-          description: "Link to the actual policy."
+          description: Link to the actual policy.
       required:
         - id
         - language
@@ -244,7 +248,7 @@ components:
       properties:
         message:
           type: string
-          description: "An optional message detailing the error."
+          description: An optional message detailing the error.
         data:
           type: object
-          description: "Optional extra context of the error."
+          description: Optional extra context of the error.
