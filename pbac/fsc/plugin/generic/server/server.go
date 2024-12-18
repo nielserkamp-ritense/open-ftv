@@ -48,7 +48,7 @@ func (s *service) Serve() {
 		AppName:               config.AppName,
 		JSONEncoder:           json.Marshal,
 		JSONDecoder:           json.Unmarshal,
-		RequestMethods:        []string{fiber.MethodGet, fiber.MethodHead, fiber.MethodPost, fiber.MethodOptions},
+		RequestMethods:        fiber.DefaultMethods,
 	})
 
 	s.initMiddleware()

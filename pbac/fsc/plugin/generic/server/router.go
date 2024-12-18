@@ -22,10 +22,18 @@ func (s *service) initRoutes() {
 	// API v1.
 	v1 := s.svc.Group("/v1")
 
-	// authorization.
+	// FSC authorization.
 	v1.Post("/auth", auth.AuthFSC)
-	v1.Post("/authzen", auth.AuthZEN)
 
 	// policies.
-	v1.Get("/policies", policies.Policies)
+	v1.Get("/policies", policies.GetPolicies)
+	v1.Get("/policy/:id", policies.GetPolicy)
+	v1.Put("/policy/:id", policies.PutPolicy)
+	v1.Post("/policy/:id", policies.PostPolicy)
+	v1.Delete("/policy/:id", policies.DeletePolicy)
+
+	// AuthZEN
+	authZen := s.svc.Group("/authzen")
+	authZenV1 := authZen.Group("/v1")
+	authZenV1.Post("/evaluation", auth.AuthZEN)
 }
