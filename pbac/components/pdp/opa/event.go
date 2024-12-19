@@ -18,7 +18,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 			return
 		}
 
-		d, _ := io.ReadAll(f)
+		d, _ := io.ReadAll(f.Content())
 
 		t, _ := c.mem.NewTransaction(c.ctx, storage.TransactionParams{Write: true})
 		if err = c.mem.UpsertPolicy(c.ctx, t, key, d); err != nil {

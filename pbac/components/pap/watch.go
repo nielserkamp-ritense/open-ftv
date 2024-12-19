@@ -1,8 +1,8 @@
 package pap
 
 import (
+	"bytes"
 	"os"
-	"path/filepath"
 	"slices"
 	"time"
 
@@ -93,22 +93,25 @@ func (p *pap) processUpdates() {
 }
 
 func (p *pap) processUpdate(path string) {
-	f, err2 := os.Open(path)
-	if err2 != nil {
+	f, err := os.Open(path)
+	if err != nil {
 		return
 	}
 	defer f.Close()
 
-	key := filepath.Base(path)
+	pol, err2 := NewPolicyFromStore(path, f)
+	if err2 != nil {
+		return
+	}
 
 	p.mutex.RLock()
-	_, ok := p.policies[key]
+	_, ok := p.policies[pol.ID()]
 	p.mutex.RUnlock()
 
 	if ok {
-		_ = p.Replace(key, f)
+		_, _ = p.Replace(pol)
 	} else {
-		_ = p.Add(key, f)
+		_, _ = p.Add(pol)
 	}
 }
 
@@ -128,8 +131,9 @@ func (p *pap) processDeletes() {
 			return
 		}
 
-		if path != "" {
-			_ = p.Remove(filepath.Base(path))
+		pol, err2 := NewPolicyFromStore(path, bytes.NewReader([]byte{}))
+		if err2 == nil {
+			_, _ = p.Remove(pol.ID())
 		}
 	}
 }

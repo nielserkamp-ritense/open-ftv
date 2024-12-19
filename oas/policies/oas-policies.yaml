@@ -214,6 +214,13 @@ components:
         id:
           type: string
           description: The unique identifier of the policy.
+        language:
+          type: string
+          description: The language of the policy.
+          example: "rego"
+        url:
+          type: string
+          description: Link to the actual policy.
         source:
           type: string
           description: The unique identifier of the source.
@@ -223,17 +230,13 @@ components:
         rvvaID:
           type: string
           description: The unique identifier of the Register of Activities (RvVA).
-        language:
-          type: string
-          description: The language of the policy.
-          example: "rego"
-        url:
-          type: string
-          description: Link to the actual policy.
       required:
         - id
         - language
         - url
+        - source
+        - target
+        - rvvaID
 
     PoliciesResponse:
       type: array
@@ -249,6 +252,11 @@ components:
         message:
           type: string
           description: An optional message detailing the error.
+          nullable: false
         data:
           type: object
           description: Optional extra context of the error.
+          nullable: false
+      required:
+        - message
+        - data

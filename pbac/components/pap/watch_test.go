@@ -232,7 +232,7 @@ func TestWatchFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := &pap{ctx: ctx, watcher: w, policies: make(map[string][]byte)}
+			p := &pap{ctx: ctx, watcher: w, policies: make(map[string]Policy)}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)

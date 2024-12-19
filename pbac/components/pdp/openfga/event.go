@@ -29,9 +29,9 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 		switch ext {
 		case ".mdl", ".model":
-			c.addModel(store, f)
+			c.addModel(store, f.Content())
 		case ".rel", ".relations":
-			c.addRelations(store, f)
+			c.addRelations(store, f.Content())
 		}
 
 	case models.PolicyRemoved:

@@ -146,8 +146,13 @@ func TestController_HandleModel(t *testing.T) {
 
 			p := pap.New(nil, logger, nil)
 			for key := range tc.policies {
-				pol := []byte(tc.policies[key])
-				err2 := p.Add(key, bytes.NewReader(pol))
+				data := []byte(tc.policies[key])
+
+				pol, err2 := pap.NewPolicy(key, "", "", "", "", bytes.NewReader(data))
+				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				_, err2 = p.Add(pol)
 				require.NoError(t, err2)
 			}
 
@@ -345,8 +350,13 @@ func TestController_HandleRelations(t *testing.T) {
 
 			p := pap.New(nil, logger, nil)
 			for key := range tc.policies {
-				pol := []byte(tc.policies[key])
-				err2 := p.Add(key, bytes.NewReader(pol))
+				data := []byte(tc.policies[key])
+
+				pol, err2 := pap.NewPolicy(key, "", "", "", "", bytes.NewReader(data))
+				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				_, err2 = p.Add(pol)
 				require.NoError(t, err2)
 			}
 

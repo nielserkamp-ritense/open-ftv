@@ -43,7 +43,7 @@ func TestPap_Add(t *testing.T) {
 		wantErr   bool
 		wantCount int
 	}{
-		{name: "nil", key: "x1.txt"},
+		{name: "nil", key: "x1.txt", wantErr: true},
 		{name: "closed file", key: "x2.txt", data: closedFile, wantErr: true},
 		{name: "good file", key: "x3.txt", data: bytes.NewBuffer([]byte("some data")), wantCount: 1},
 	}
@@ -56,11 +56,18 @@ func TestPap_Add(t *testing.T) {
 			p := New(nil, slog.New(h), e)
 			require.NotNil(t, p)
 
-			err2 := p.Add(tc.key, tc.data)
+			pol, err2 := NewPolicy(tc.key, "", "", "", "", tc.data)
 			if tc.wantErr {
 				require.Error(t, err2)
+				require.Nil(t, pol)
 			} else {
 				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				pol2, err3 := p.Add(pol)
+				require.NoError(t, err3)
+				require.NotNil(t, pol2)
+
 				assert.Equal(t, tc.wantCount, e.added)
 				assert.Zero(t, e.replaced)
 				assert.Zero(t, e.removed)
@@ -122,15 +129,27 @@ func TestPap_Replace(t *testing.T) {
 
 			for i := range tc.cached {
 				key := tc.cached[i]
-				err2 := p.Add(key, bytes.NewBuffer([]byte("data")))
+
+				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				_, err2 = p.Add(pol)
 				require.NoError(t, err2)
 			}
 
-			err2 := p.Replace(tc.key, tc.data)
+			pol, err2 := NewPolicy(tc.key, "", "", "", "", tc.data)
+			require.NoError(t, err2)
+			require.NotNil(t, pol)
+
+			pol2, err3 := p.Replace(pol)
 			if tc.wantErr {
-				require.Error(t, err2)
+				require.Error(t, err3)
+				require.Nil(t, pol2)
 			} else {
-				require.NoError(t, err2)
+				require.NoError(t, err3)
+				require.NotNil(t, pol2)
+
 				assert.Equal(t, len(tc.cached), e.added)
 				assert.Equal(t, 1, e.replaced)
 				assert.Zero(t, e.removed)
@@ -141,12 +160,12 @@ func TestPap_Replace(t *testing.T) {
 
 				assert.Equal(t, tc.wantCount, len(p2.policies))
 
-				f, err3 := p.Get(tc.key)
-				require.NoError(t, err3)
+				f, err4 := p.Get(tc.key)
+				require.NoError(t, err4)
 				require.NotNil(t, f)
 
-				data, err4 := io.ReadAll(f)
-				require.NoError(t, err4)
+				data, err5 := io.ReadAll(f.Content())
+				require.NoError(t, err5)
 				require.Equal(t, tc.want, string(data))
 			}
 		})
@@ -158,7 +177,6 @@ func TestPap_Remove(t *testing.T) {
 		name      string
 		cached    []string
 		key       string
-		data      io.Reader
 		wantErr   bool
 		wantCount int
 	}{
@@ -177,15 +195,23 @@ func TestPap_Remove(t *testing.T) {
 
 			for i := range tc.cached {
 				key := tc.cached[i]
-				err2 := p.Add(key, bytes.NewBuffer([]byte("data")))
+
+				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				_, err2 = p.Add(pol)
 				require.NoError(t, err2)
 			}
 
-			err2 := p.Remove(tc.key)
+			pol, err2 := p.Remove(tc.key)
 			if tc.wantErr {
 				require.Error(t, err2)
+				require.Nil(t, pol)
 			} else {
 				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
 				assert.Equal(t, len(tc.cached), e.added)
 				assert.Zero(t, e.replaced)
 				assert.Equal(t, 1, e.removed)
@@ -196,8 +222,8 @@ func TestPap_Remove(t *testing.T) {
 
 				assert.Equal(t, tc.wantCount, len(p2.policies))
 
-				f, err3 := p.Get(tc.key)
-				require.Error(t, err3)
+				f, err4 := p.Get(tc.key)
+				require.Error(t, err4)
 				require.Nil(t, f)
 			}
 		})
@@ -224,7 +250,12 @@ func TestPap_ListAllKeys(t *testing.T) {
 
 			for i := range tc.cached {
 				key := tc.cached[i]
-				err2 := p.Add(key, bytes.NewBuffer([]byte("data")))
+
+				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				require.NoError(t, err2)
+				require.NotNil(t, pol)
+
+				_, err2 = p.Add(pol)
 				require.NoError(t, err2)
 			}
 

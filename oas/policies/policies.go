@@ -6,10 +6,10 @@ package policies
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Data Optional extra context of the error.
-	Data *map[string]interface{} `json:"data,omitempty"`
+	Data map[string]interface{} `json:"data"`
 
 	// Message An optional message detailing the error.
-	Message *string `json:"message,omitempty"`
+	Message string `json:"message"`
 }
 
 // PoliciesResponse defines model for PoliciesResponse.
@@ -23,14 +23,14 @@ type Policy struct {
 	// Language The language of the policy.
 	Language string `json:"language"`
 
-	// RvvaID The unique identifier of the Register of Activities (RvA).
-	RvvaID *string `json:"rvvaID,omitempty"`
+	// RvvaID The unique identifier of the Register of Activities (RvVA).
+	RvvaID string `json:"rvvaID"`
 
 	// Source The unique identifier of the source.
-	Source *string `json:"source,omitempty"`
+	Source string `json:"source"`
 
 	// Target The unique identifier of the target.
-	Target *string `json:"target,omitempty"`
+	Target string `json:"target"`
 
 	// Url Link to the actual policy.
 	Url string `json:"url"`

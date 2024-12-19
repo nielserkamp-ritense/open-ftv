@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-// LoadFromStore loads all policies from the store.
+// LoadFromStore loads all policies from the local store.
 func (p *pap) LoadFromStore(path string, recurse bool) {
-	p.path = path
+	p.path, _ = filepath.Abs(path)
 	p.recurse = recurse
 	p.clearWatcher()
 
-	if p.path == "" {
+	if path == "" {
 		return
 	}
 
@@ -37,7 +37,10 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 		return filepath.SkipDir
 	}
 
-	if strings.HasSuffix(path, ".gitkeep") || strings.HasSuffix(path, "..data") {
+	if base := filepath.Base(path); strings.HasPrefix(base, ".") {
+		return nil
+	}
+	if ext := filepath.Ext(path); ext == ".meta" {
 		return nil
 	}
 
@@ -45,7 +48,13 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 	if err2 != nil {
 		return err2
 	}
-
 	defer f.Close()
-	return p.Add(d.Name(), f)
+
+	var pol Policy
+	if pol, err2 = NewPolicyFromStore(path, f); err2 != nil {
+		return err2
+	}
+
+	_, err2 = p.Add(pol)
+	return err2
 }

@@ -18,7 +18,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
-		d, _ := io.ReadAll(f)
+		d, _ := io.ReadAll(f.Content())
 
 		var policy cedar.Policy
 		if err = policy.UnmarshalCedar(d); err == nil {

@@ -2,10 +2,8 @@
 package pap
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"slices"
 	"sync"
@@ -18,10 +16,10 @@ import (
 
 // PAP represents the interface for caching and retrieving policies.
 type PAP interface {
-	Add(key string, reader io.Reader) error
-	Replace(key string, reader io.Reader) error
-	Remove(key string) error
-	Get(key string) (io.Reader, error)
+	Add(in Policy) (Policy, error)
+	Replace(in Policy) (Policy, error)
+	Remove(id string) (Policy, error)
+	Get(id string) (Policy, error)
 	ListAllKeys() []string
 	LoadFromStore(path string, recurse bool)
 }
@@ -44,7 +42,7 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 		ctx:      ctx,
 		logger:   logger,
 		events:   events,
-		policies: make(map[string][]byte),
+		policies: make(map[string]Policy),
 		watcher:  w,
 	}
 
@@ -58,94 +56,71 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 
 // Add adds a policy to the cache.
 //
-// If the input reader is nil, the function returns duccessfully without doing anything.
-//
 // An error is returned if the policy key already exists.
-func (p *pap) Add(key string, reader io.Reader) error {
-	if reader == nil {
-		return nil
-	}
-
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-
+func (p *pap) Add(in Policy) (out Policy, err error) {
 	p.mutex.Lock()
-	if _, ok := p.policies[key]; ok {
-		err = fmt.Errorf("cache policy '%s' already exists", key)
+	if _, ok := p.policies[in.ID()]; ok {
+		err = fmt.Errorf("cache policy '%s' already exists", in.ID())
 	} else {
-		p.policies[key] = data
+		out = in
+		p.policies[out.ID()] = out
 	}
 	p.mutex.Unlock()
 
-	if err == nil && p.events != nil {
-		p.events.Handle(models.PolicyAdded, key)
+	if out != nil && p.events != nil {
+		p.events.Handle(models.PolicyAdded, out.ID())
 	}
-	return err
+	return
 }
 
 // Replace modifies a policy in the cache with a newer version.
 //
-// If the input reader is nil, the function returns successfully without doing anything.
-//
 // An error is returned if the policy key doesn't exist.
-func (p *pap) Replace(key string, reader io.Reader) error {
-	if reader == nil {
-		return nil
-	}
-
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-
+func (p *pap) Replace(in Policy) (out Policy, err error) {
 	p.mutex.Lock()
-	if _, ok := p.policies[key]; !ok {
-		err = fmt.Errorf("cache policy '%s' not found", key)
+	if _, ok := p.policies[in.ID()]; !ok {
+		err = fmt.Errorf("cache policy '%s' not found", in.ID())
 	} else {
-		p.policies[key] = data
+		out = in
+		p.policies[out.ID()] = out
 	}
 	p.mutex.Unlock()
 
-	if err == nil && p.events != nil {
-		p.events.Handle(models.PolicyReplaced, key)
+	if out != nil && p.events != nil {
+		p.events.Handle(models.PolicyReplaced, out.ID())
 	}
-	return err
+	return
 }
 
 // Remove removes a policy from the cache.
 //
 // An error is returned if the policy key doesn't exist.
-func (p *pap) Remove(key string) error {
-	var err error
-
+func (p *pap) Remove(id string) (out Policy, err error) {
 	p.mutex.Lock()
-	if _, ok := p.policies[key]; !ok {
-		err = fmt.Errorf("cache policy '%s' not found", key)
+	if old, ok := p.policies[id]; !ok {
+		err = fmt.Errorf("cache policy '%s' not found", id)
 	} else {
-		delete(p.policies, key)
+		out = old
+		delete(p.policies, id)
 	}
 	p.mutex.Unlock()
 
-	if err == nil && p.events != nil {
-		p.events.Handle(models.PolicyRemoved, key)
+	if out != nil && p.events != nil {
+		p.events.Handle(models.PolicyRemoved, out.ID())
 	}
-	return err
+	return
 }
 
 // Get retrieves a policy from the cache, or an error if the policy key doesn't exist.
-func (p *pap) Get(key string) (io.Reader, error) {
+func (p *pap) Get(id string) (Policy, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 
-	if data, ok := p.policies[key]; ok {
-		// we return a reader on a deep copy of the data, so changes in the cache do not affect it.
-		s := string(data)
-		return bytes.NewBufferString(s), nil
+	if data, ok := p.policies[id]; ok {
+		return data, nil
 	}
 
-	return nil, fmt.Errorf("cache policy '%s' not found", key)
+	return nil, fmt.Errorf("cache policy '%s' not found", id)
 }
 
 // ListAllKeys returns a list of all cached policy keys.
@@ -169,7 +144,7 @@ type pap struct {
 	logger   *slog.Logger
 	watcher  *fsnotify.Watcher
 	wTimer   *time.Timer
-	policies map[string][]byte
+	policies map[string]Policy
 	updates  []string
 	deletes  []string
 	events   models.EventSink

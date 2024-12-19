@@ -51,7 +51,7 @@ func TestCache_LoadFromStore(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			c := &pap{
 				logger:   slog.New(h),
-				policies: make(map[string][]byte),
+				policies: make(map[string]Policy),
 			}
 
 			c.LoadFromStore(tc.path, tc.recurse)

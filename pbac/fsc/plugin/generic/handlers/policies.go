@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"fmt"
 	"log/slog"
-	"path/filepath"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 )
@@ -34,9 +32,8 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 	for i := range list {
 		key := list[i]
-		if _, err := h.c.PAP().Get(key); err == nil {
-			key = strings.TrimSuffix(key, filepath.Ext(key))
-			resp = append(resp, h.getPolicyData(key))
+		if pol, err := h.c.PAP().Get(key); err == nil {
+			resp = append(resp, h.convertPolicy(pol))
 		}
 	}
 
@@ -50,47 +47,76 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
 	}
 
-	if _, err := h.c.PAP().Get(key); err != nil {
+	pol, err := h.c.PAP().Get(key)
+	if err != nil {
 		return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
-
-	return req.JSON(h.getPolicyData(key))
+	return req.JSON(h.convertPolicy(pol))
 }
 
 // PutPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
+	key := req.Params("id")
+	if key == "" || len(key) > 500 {
+		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	}
+
+	var p policies.Policy
+	if err := req.BodyParser(&p); err != nil {
+		return SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
 	return SendMessageResponse(req, fiber.StatusNotImplemented, "not implemented")
 }
 
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
+	key := req.Params("id")
+	if key == "" || len(key) > 500 {
+		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	}
+
+	var p policies.Policy
+	if err := req.BodyParser(&p); err != nil {
+		return SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
 	return SendMessageResponse(req, fiber.StatusNotImplemented, "not implemented")
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
-	return SendMessageResponse(req, fiber.StatusNotImplemented, "not implemented")
-}
+	key := req.Params("id")
+	if key == "" || len(key) > 500 {
+		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	}
 
-func (h *policiesHandler) getPolicyData(key string) policies.Policy {
-	p := policies.Policy{Id: key, Language: h.c.Name()}
+	ignore := req.QueryBool("ignoreMissing")
 
-	if e := h.c.PIP().GetEntity(fmt.Sprintf("doelbinding::%s", key)); e != nil {
-		if s, ok := e.Attributes().GetAttribute("rvvaID").(string); ok {
-			p.RvvaID = &s
-		}
-		if s, ok := e.Attributes().GetAttribute("source").(string); ok {
-			p.Source = &s
-		}
-		if s, ok := e.Attributes().GetAttribute("target").(string); ok {
-			p.Target = &s
-		}
-		if s, ok := e.Attributes().GetAttribute("url").(string); ok {
-			p.Url = s
+	if _, err := h.c.PAP().Get(key); err != nil {
+		if ignore {
+			return req.JSON(&policies.Policy{Id: key})
+		} else {
+			return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 		}
 	}
 
-	return p
+	pol, err := h.c.PAP().Remove(key)
+	if err != nil {
+		return SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+	}
+	return req.JSON(h.convertPolicy(pol))
+}
+
+func (h *policiesHandler) convertPolicy(pol pap.Policy) policies.Policy {
+	return policies.Policy{
+		Id:       pol.ID(),
+		Language: h.c.String(),
+		RvvaID:   pol.RvvaID(),
+		Source:   pol.Source(),
+		Target:   pol.Target(),
+		Url:      pol.URI(),
+	}
 }
 
 type policiesHandler struct {
