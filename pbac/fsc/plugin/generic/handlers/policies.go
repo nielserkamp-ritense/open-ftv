@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -33,7 +31,7 @@ func NewPoliciesHandler(cfg *config.Config, logger *slog.Logger, c pdp.Controlle
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	list := h.c.PAP().ListAllKeys()
-	resp := make(policies.PoliciesResponse, 0, len(list))
+	resp := make([]*policies.Policy, 0, len(list))
 
 	for i := range list {
 		key := list[i]
@@ -199,23 +197,17 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.P
 
 	defer resp.Body.Close()
 
-	// TODO: add protection against infinite input bodies (DOS attack).
-	content, err3 := io.ReadAll(resp.Body)
+	pol, err3 := pap.NewPolicy(p, resp.Body)
 	if err3 != nil {
 		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
-	}
-
-	pol, err4 := pap.NewPolicy(p, bytes.NewReader(content))
-	if err4 != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err4.Error())
 	}
 	return pol, true, nil
 }
 
-func (h *policiesHandler) convertPolicy(pol pap.Policy) policies.Policy {
-	return policies.Policy{
+func (h *policiesHandler) convertPolicy(pol pap.Policy) *policies.Policy {
+	return &policies.Policy{
 		Id:       pol.ID(),
-		Language: h.cfg.PolicyLanguage,
+		Language: pol.Language(),
 		RvvaID:   pol.RvvaID(),
 		Source:   pol.Source(),
 		Target:   pol.Target(),
