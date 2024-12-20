@@ -18,6 +18,7 @@ import (
 // A policy is designed to be read-only, so it is safe to use across concurrent go-routines.
 type Policy interface {
 	ID() string
+	Language() string
 	Source() string
 	Target() string
 	RvvaID() string
@@ -26,20 +27,31 @@ type Policy interface {
 	Content() io.Reader
 }
 
-// NewPolicy instantiates a new policy and its metadata.
-func NewPolicy(id, source, target, rvvaID, uri string, content io.Reader) (Policy, error) {
+// NewPolicy instantiates a new policy from the given OAS model.
+func NewPolicy(p *policies.Policy, content io.Reader) (Policy, error) {
+	d, err := testContent(content)
+	if err != nil {
+		return nil, err
+	}
+
+	return newPolicy(p, "", d), nil
+}
+
+// NewPolicyFromData instantiates a new policy from the given details.
+func NewPolicyFromData(id, language, source, target, rvvaID, uri string, content io.Reader) (Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
 	}
 
 	return &policy{
-		id:      id,
-		source:  source,
-		target:  target,
-		rvvaID:  rvvaID,
-		uri:     uri,
-		content: d,
+		id:       id,
+		language: language,
+		source:   source,
+		target:   target,
+		rvvaID:   rvvaID,
+		uri:      uri,
+		content:  d,
 	}, nil
 }
 
@@ -67,28 +79,39 @@ func NewPolicyFromStore(path string, content io.Reader) (Policy, error) {
 	if p.Id == "" {
 		p.Id = id
 	}
+	return newPolicy(&p, path, d), nil
+}
 
+func newPolicy(p *policies.Policy, path string, d []byte) Policy {
 	return &policy{
-		id:      p.Id,
-		source:  p.Source,
-		target:  p.Target,
-		rvvaID:  p.RvvaID,
-		uri:     p.Url,
-		path:    path,
-		content: d,
-	}, nil
+		id:       p.Id,
+		language: p.Language,
+		source:   p.Source,
+		target:   p.Target,
+		rvvaID:   p.RvvaID,
+		uri:      p.Url,
+		path:     path,
+		content:  d,
+	}
 }
 
 func testContent(content io.Reader) ([]byte, error) {
 	if content == nil {
 		return nil, errors.New("content is nil")
 	}
+
+	// TODO: protect against infinite input stream (DOS attack).
 	return io.ReadAll(content)
 }
 
 // ID implements the Policy interface.
 func (p *policy) ID() string {
 	return p.id
+}
+
+// Language implements the Policy interface.
+func (p *policy) Language() string {
+	return p.language
 }
 
 // Source implements the Policy interface.
@@ -122,11 +145,12 @@ func (p *policy) Content() io.Reader {
 }
 
 type policy struct {
-	id      string
-	source  string
-	target  string
-	rvvaID  string
-	uri     string
-	path    string
-	content []byte
+	id       string
+	language string
+	source   string
+	target   string
+	rvvaID   string
+	uri      string
+	path     string
+	content  []byte
 }

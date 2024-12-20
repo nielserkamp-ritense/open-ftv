@@ -1,7 +1,12 @@
 package handlers
 
 import (
+	"bytes"
+	"context"
+	"io"
 	"log/slog"
+	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -33,6 +38,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	for i := range list {
 		key := list[i]
 		if pol, err := h.c.PAP().Get(key); err == nil {
+			// we ignore policies that got deleted after we retrieved the list of keys.
 			resp = append(resp, h.convertPolicy(pol))
 		}
 	}
@@ -42,76 +48,174 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 // GetPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
-	key := req.Params("id")
-	if key == "" || len(key) > 500 {
-		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	id, ok, err := h.checkID(req)
+	if !ok {
+		return err
 	}
 
-	pol, err := h.c.PAP().Get(key)
-	if err != nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+	pol, err2 := h.c.PAP().Get(id)
+	if err2 != nil {
+		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol))
 }
 
 // PutPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
-	key := req.Params("id")
-	if key == "" || len(key) > 500 {
-		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	id, ok, err := h.checkID(req)
+	if !ok {
+		return err
 	}
 
-	var p policies.Policy
-	if err := req.BodyParser(&p); err != nil {
-		return SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	upsert := req.QueryBool("forceUpsert")
+
+	var p *policies.Policy
+	if p, ok, err = h.checkBody(req, id); !ok {
+		return err
 	}
 
-	return SendMessageResponse(req, fiber.StatusNotImplemented, "not implemented")
+	var pol pap.Policy
+	if pol, ok, err = h.buildPolicy(req, p); !ok {
+		return err
+	}
+
+	if upsert {
+		// for upsert we check if the policy exists.
+		// if it exists, we replace it, otherwise we add it.
+		if _, err = h.c.PAP().Get(p.Id); err == nil {
+			pol2, err2 := h.c.PAP().Replace(pol)
+			if err2 != nil {
+				return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+			}
+			return req.JSON(h.convertPolicy(pol2))
+		}
+	}
+
+	pol2, err2 := h.c.PAP().Add(pol)
+	if err2 != nil {
+		return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+	}
+	return req.JSON(h.convertPolicy(pol2))
 }
 
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
-	key := req.Params("id")
-	if key == "" || len(key) > 500 {
-		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	id, ok, err := h.checkID(req)
+	if !ok {
+		return err
 	}
 
-	var p policies.Policy
-	if err := req.BodyParser(&p); err != nil {
-		return SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	upsert := req.QueryBool("forceUpsert")
+
+	var p *policies.Policy
+	if p, ok, err = h.checkBody(req, id); !ok {
+		return err
 	}
 
-	return SendMessageResponse(req, fiber.StatusNotImplemented, "not implemented")
+	var pol pap.Policy
+	if pol, ok, err = h.buildPolicy(req, p); !ok {
+		return err
+	}
+
+	if upsert {
+		// for upsert we check if the policy exists.
+		// if it doesn't exist, we add it, otherwise we replace it.
+		if _, err = h.c.PAP().Get(p.Id); err != nil {
+			pol2, err2 := h.c.PAP().Add(pol)
+			if err2 != nil {
+				return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+			}
+			return req.JSON(h.convertPolicy(pol2))
+		}
+	}
+
+	pol2, err2 := h.c.PAP().Replace(pol)
+	if err2 != nil {
+		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+	}
+	return req.JSON(h.convertPolicy(pol2))
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
-	key := req.Params("id")
-	if key == "" || len(key) > 500 {
-		return SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled")
+	id, ok, err := h.checkID(req)
+	if !ok {
+		return err
 	}
 
 	ignore := req.QueryBool("ignoreMissing")
 
-	if _, err := h.c.PAP().Get(key); err != nil {
+	if _, err = h.c.PAP().Get(id); err != nil {
 		if ignore {
-			return req.JSON(&policies.Policy{Id: key})
-		} else {
-			return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+			return req.JSON(&policies.Policy{Id: id})
 		}
+		return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
-	pol, err := h.c.PAP().Remove(key)
-	if err != nil {
-		return SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+	pol, err2 := h.c.PAP().Remove(id)
+	if err2 != nil {
+		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol))
+}
+
+func (h *policiesHandler) checkID(req *fiber.Ctx) (string, bool, error) {
+	id := req.Params("id")
+	if id == "" || len(id) > 500 {
+		return "", false, SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled or nit more than 500 characters")
+	}
+	return id, true, nil
+}
+
+func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*policies.Policy, bool, error) {
+	var p policies.Policy
+	if err := req.BodyParser(&p); err != nil {
+		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	if p.Id != id {
+		if p.Id != "" {
+			return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy id")
+		}
+		p.Id = id
+	}
+
+	return &p, true, nil
+}
+
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.Policy, bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Url, nil)
+	if err != nil {
+		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	resp, err2 := http.DefaultClient.Do(req2)
+	if err2 != nil {
+		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
+	}
+
+	defer resp.Body.Close()
+
+	// TODO: add protection against infinite input bodies (DOS attack).
+	content, err3 := io.ReadAll(resp.Body)
+	if err3 != nil {
+		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
+	}
+
+	pol, err4 := pap.NewPolicy(p, bytes.NewReader(content))
+	if err4 != nil {
+		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err4.Error())
+	}
+	return pol, true, nil
 }
 
 func (h *policiesHandler) convertPolicy(pol pap.Policy) policies.Policy {
 	return policies.Policy{
 		Id:       pol.ID(),
-		Language: h.c.String(),
+		Language: h.cfg.PolicyLanguage,
 		RvvaID:   pol.RvvaID(),
 		Source:   pol.Source(),
 		Target:   pol.Target(),

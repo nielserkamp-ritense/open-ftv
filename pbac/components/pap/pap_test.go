@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -38,14 +39,14 @@ func TestPap_Add(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		key       string
+		id        string
 		data      io.Reader
 		wantErr   bool
 		wantCount int
 	}{
-		{name: "nil", key: "x1.txt", wantErr: true},
-		{name: "closed file", key: "x2.txt", data: closedFile, wantErr: true},
-		{name: "good file", key: "x3.txt", data: bytes.NewBuffer([]byte("some data")), wantCount: 1},
+		{name: "nil", id: "x1.txt", wantErr: true},
+		{name: "closed file", id: "x2.txt", data: closedFile, wantErr: true},
+		{name: "good file", id: "x3.txt", data: bytes.NewBuffer([]byte("some data")), wantCount: 1},
 	}
 
 	for _, tc := range testCases {
@@ -56,7 +57,7 @@ func TestPap_Add(t *testing.T) {
 			p := New(nil, slog.New(h), e)
 			require.NotNil(t, p)
 
-			pol, err2 := NewPolicy(tc.key, "", "", "", "", tc.data)
+			pol, err2 := NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, pol)
@@ -90,7 +91,7 @@ func TestPap_Replace(t *testing.T) {
 	testCases := []struct {
 		name      string
 		cached    []string
-		key       string
+		id        string
 		data      io.Reader
 		wantErr   bool
 		wantCount int
@@ -98,21 +99,21 @@ func TestPap_Replace(t *testing.T) {
 	}{
 		{
 			name:    "empty cache",
-			key:     "x1.txt",
+			id:      "x1.txt",
 			data:    bytes.NewReader([]byte("some data")),
 			wantErr: true,
 		},
 		{
 			name:    "key missing",
 			cached:  []string{"x2.txt", "x3.txt"},
-			key:     "x1.txt",
+			id:      "x1.txt",
 			data:    bytes.NewReader([]byte("some data")),
 			wantErr: true,
 		},
 		{
 			name:      "key found",
 			cached:    []string{"x2.txt", "x3.txt", "x1.txt"},
-			key:       "x1.txt",
+			id:        "x1.txt",
 			data:      bytes.NewReader([]byte("some data")),
 			wantCount: 3,
 			want:      "some data",
@@ -128,9 +129,9 @@ func TestPap_Replace(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				key := tc.cached[i]
+				id := tc.cached[i]
 
-				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -138,7 +139,7 @@ func TestPap_Replace(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			pol, err2 := NewPolicy(tc.key, "", "", "", "", tc.data)
+			pol, err2 := NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
 			require.NoError(t, err2)
 			require.NotNil(t, pol)
 
@@ -160,7 +161,7 @@ func TestPap_Replace(t *testing.T) {
 
 				assert.Equal(t, tc.wantCount, len(p2.policies))
 
-				f, err4 := p.Get(tc.key)
+				f, err4 := p.Get(tc.id)
 				require.NoError(t, err4)
 				require.NotNil(t, f)
 
@@ -194,9 +195,9 @@ func TestPap_Remove(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				key := tc.cached[i]
+				id := tc.cached[i]
 
-				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -249,9 +250,9 @@ func TestPap_ListAllKeys(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				key := tc.cached[i]
+				id := tc.cached[i]
 
-				pol, err2 := NewPolicy(key, "", "", "", "", bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 

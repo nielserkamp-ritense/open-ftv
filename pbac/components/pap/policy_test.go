@@ -8,18 +8,70 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 )
 
 func TestNewPolicy(t *testing.T) {
 	testCases := []struct {
 		name    string
-		id      string
-		source  string
-		target  string
-		rvvaID  string
-		uri     string
+		p       *policies.Policy
 		data    string
 		wantErr bool
+	}{
+		{
+			name: "only id",
+			p:    &policies.Policy{Id: "x1"},
+			data: "policy-1",
+		},
+		{
+			name: "some meta",
+			p:    &policies.Policy{Id: "x2", Source: "s1", Target: "t1"},
+			data: "policy-2",
+		},
+		{
+			name: "all meta",
+			p:    &policies.Policy{Id: "x3", Language: "opa", Source: "s3", Target: "t3", RvvaID: "e3", Url: "https://some.site/policies/x3"},
+			data: "policy-3",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := NewPolicy(tc.p, bytes.NewBufferString(tc.data))
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, got)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, got)
+
+				assert.Equal(t, tc.p.Id, got.ID())
+				assert.Equal(t, tc.p.Language, got.Language())
+				assert.Equal(t, tc.p.Source, got.Source())
+				assert.Equal(t, tc.p.Target, got.Target())
+				assert.Equal(t, tc.p.RvvaID, got.RvvaID())
+				assert.Equal(t, tc.p.Url, got.URI())
+
+				r := got.Content()
+				d, _ := io.ReadAll(r)
+				assert.Equal(t, tc.data, string(d))
+			}
+		})
+	}
+}
+
+func TestNewPolicyFromData(t *testing.T) {
+	testCases := []struct {
+		name     string
+		id       string
+		language string
+		source   string
+		target   string
+		rvvaID   string
+		uri      string
+		data     string
+		wantErr  bool
 	}{
 		{
 			name: "only id",
@@ -34,19 +86,20 @@ func TestNewPolicy(t *testing.T) {
 			data:   "policy-2",
 		},
 		{
-			name:   "all meta",
-			id:     "x3",
-			source: "s3",
-			target: "t3",
-			rvvaID: "e3",
-			uri:    "https://some.site/policies/x3",
-			data:   "policy-3",
+			name:     "all meta",
+			id:       "x3",
+			language: "opa",
+			source:   "s3",
+			target:   "t3",
+			rvvaID:   "e3",
+			uri:      "https://some.site/policies/x3",
+			data:     "policy-3",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := NewPolicy(tc.id, tc.source, tc.target, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
+			got, err := NewPolicyFromData(tc.id, tc.language, tc.source, tc.target, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -55,6 +108,7 @@ func TestNewPolicy(t *testing.T) {
 				require.NotNil(t, got)
 
 				assert.Equal(t, tc.id, got.ID())
+				assert.Equal(t, tc.language, got.Language())
 				assert.Equal(t, tc.source, got.Source())
 				assert.Equal(t, tc.target, got.Target())
 				assert.Equal(t, tc.rvvaID, got.RvvaID())
@@ -78,17 +132,18 @@ func TestNewPolicyFromStore(t *testing.T) {
 	f1.Close()
 
 	testCases := []struct {
-		name        string
-		path        string
-		content     io.Reader
-		wantErr     bool
-		wantID      string
-		wantSource  string
-		wantTarget  string
-		wantRvva    string
-		wantURI     string
-		wantPath    string
-		wantContent string
+		name         string
+		path         string
+		content      io.Reader
+		wantErr      bool
+		wantID       string
+		wantLanguage string
+		wantSource   string
+		wantTarget   string
+		wantRvva     string
+		wantURI      string
+		wantPath     string
+		wantContent  string
 	}{
 		{
 			name:    "nil",
@@ -110,28 +165,30 @@ func TestNewPolicyFromStore(t *testing.T) {
 			wantContent: "some data",
 		},
 		{
-			name:        "with yaml metadata",
-			path:        path2,
-			content:     bytes.NewBufferString("some data"),
-			wantID:      "subsidies",
-			wantSource:  "source1",
-			wantTarget:  "target1",
-			wantRvva:    "rvva1",
-			wantURI:     "https://my.site/pol/x1",
-			wantPath:    path2,
-			wantContent: "some data",
+			name:         "with yaml metadata",
+			path:         path2,
+			content:      bytes.NewBufferString("some data"),
+			wantID:       "subsidies",
+			wantLanguage: "Rego",
+			wantSource:   "source1",
+			wantTarget:   "target1",
+			wantRvva:     "rvva1",
+			wantURI:      "https://my.site/pol/x1",
+			wantPath:     path2,
+			wantContent:  "some data",
 		},
 		{
-			name:        "with json metadata",
-			path:        path3,
-			content:     bytes.NewBufferString("some data"),
-			wantID:      "doelbinding.model",
-			wantSource:  "source2",
-			wantTarget:  "target2",
-			wantRvva:    "rvva2",
-			wantURI:     "https://my.site/openfga/doelbinding.model",
-			wantPath:    path3,
-			wantContent: "some data",
+			name:         "with json metadata",
+			path:         path3,
+			content:      bytes.NewBufferString("some data"),
+			wantID:       "doelbinding.model",
+			wantLanguage: "OpenFGA",
+			wantSource:   "source2",
+			wantTarget:   "target2",
+			wantRvva:     "rvva2",
+			wantURI:      "https://my.site/openfga/doelbinding.model",
+			wantPath:     path3,
+			wantContent:  "some data",
 		},
 	}
 
@@ -146,6 +203,7 @@ func TestNewPolicyFromStore(t *testing.T) {
 				require.NotNil(t, got)
 
 				assert.Equal(t, tc.wantID, got.ID())
+				assert.Equal(t, tc.wantLanguage, got.Language())
 				assert.Equal(t, tc.wantSource, got.Source())
 				assert.Equal(t, tc.wantTarget, got.Target())
 				assert.Equal(t, tc.wantRvva, got.RvvaID())

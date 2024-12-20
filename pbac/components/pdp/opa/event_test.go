@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
@@ -146,10 +147,10 @@ func TestController_Handle(t *testing.T) {
 			}
 
 			p := pap.New(nil, logger, nil)
-			for key := range tc.policies {
-				data := []byte(tc.policies[key])
+			for id := range tc.policies {
+				data := []byte(tc.policies[id])
 
-				pol, err2 := pap.NewPolicy(key, "", "", "", "", bytes.NewReader(data))
+				pol, err2 := pap.NewPolicy(&policies.Policy{Id: id}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
