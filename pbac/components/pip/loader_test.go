@@ -304,7 +304,7 @@ func TestLoad(t *testing.T) {
 				newAttributes: models.NewAttributeSet,
 			}
 
-			p.load()
+			p.loadFromStore()
 
 			assert.Equal(t, tc.wantLog, h.Count())
 

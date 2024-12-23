@@ -38,7 +38,7 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 		ctx = context.Background()
 	}
 
-	c := &pap{
+	p := &pap{
 		ctx:      ctx,
 		logger:   logger,
 		events:   events,
@@ -47,11 +47,11 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 	}
 
 	if w != nil {
-		go c.watchFiles()
+		go p.watchFiles()
 	}
 
-	c.logger.Info("pap initialized")
-	return c
+	p.logger.Info("pap initialized")
+	return p
 }
 
 // Add adds a policy to the cache.

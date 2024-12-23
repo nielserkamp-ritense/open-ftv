@@ -77,7 +77,7 @@ func New(cfg Config) PIP {
 		p.loadFDS(fdsStore)
 	}
 
-	p.load()
+	p.loadFromStore()
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
 		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore,
@@ -87,68 +87,6 @@ func New(cfg Config) PIP {
 	}
 
 	return p
-}
-
-func (p *pip) entitiesToMap() map[string]any {
-	out := make(map[string]any)
-
-	p.entities.IterateEntities(func(entity models.Entity) {
-		out[entity.UID()] = struct {
-			UID        string         `json:"UID,omitempty"`
-			Attributes map[string]any `json:"attributes,omitempty"`
-			Parents    []string       `json:"parents,omitempty"`
-		}{
-			UID:        entity.UID(),
-			Attributes: models.MapFromAttributes(entity.Attributes()),
-			Parents:    entity.Parents(),
-		}
-	})
-
-	return out
-}
-
-// CollectAttributesFromRequest uses the given PBAC authorization request and other inputs
-// to collect a set of attributes to be used by the Policy Decision Point.
-//
-// The default attributes stored in the PIP will be collected first.
-// AttributeSet from the request will overwrite default attributes when the keys are equal.
-func (p *pip) CollectAttributesFromRequest(req *components.Request) (models.AttributeSet, string) {
-	a := p.newAttributes(p.attributes)
-	a.AddAttribute(models.AttrRequestTime, time.Now().UTC())
-
-	newURI := p.testHeaders(req, a)
-	if newURI == "" && req.Resource != nil {
-		newURI = req.Resource.ID()
-	}
-
-	p.determineURL(req, a)
-	p.decodeBody(req, a)
-
-	if req.Principal != nil {
-		a.AddAttribute(models.AttrPrincipal, req.Principal.UID())
-	}
-	if req.Action != nil {
-		a.AddAttribute(models.AttrAction, req.Action.UID())
-	}
-	if req.Resource != nil {
-		a.AddAttribute(models.AttrResource, req.Resource.UID())
-	}
-
-	if len(req.Attributes) > 0 {
-		for k := range req.Attributes {
-			a.AddAttribute(k, req.Attributes[k])
-		}
-	}
-
-	if p.logger.Enabled(nil, slog.LevelDebug) {
-		kv := make(map[string]any)
-		a.IterateAttributes(func(k string, v any) {
-			kv[k] = v
-		})
-		p.logger.Debug("attributes collected", "request-uid", req.UID, "attributes", kv)
-	}
-
-	return a, newURI
 }
 
 // AddAttribute implements the AttributeSet interface.
@@ -247,4 +185,22 @@ type pip struct {
 func validPath(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func (p *pip) entitiesToMap() map[string]any {
+	out := make(map[string]any)
+
+	p.entities.IterateEntities(func(entity models.Entity) {
+		out[entity.UID()] = struct {
+			UID        string         `json:"UID,omitempty"`
+			Attributes map[string]any `json:"attributes,omitempty"`
+			Parents    []string       `json:"parents,omitempty"`
+		}{
+			UID:        entity.UID(),
+			Attributes: models.MapFromAttributes(entity.Attributes()),
+			Parents:    entity.Parents(),
+		}
+	})
+
+	return out
 }

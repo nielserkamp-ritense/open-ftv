@@ -6,21 +6,24 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"gopkg.in/yaml.v3"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
-func (p *pip) load() {
+func (p *pip) loadFromStore() {
 	if p.attrStore != "" {
-		p.iterateFolders(p.attrStore, p.recurse, p.loadAttributes)
+		p.clearAttributeWatcher()
+		p.iterateFolders(p.attrStore, p.recurse, p.attributeWatcher, p.loadAttributes)
 	}
 	if p.entityStore != "" {
-		p.iterateFolders(p.entityStore, p.recurse, p.loadEntities)
+		p.clearAttributeWatcher()
+		p.iterateFolders(p.entityStore, p.recurse, p.entityWatcher, p.loadEntities)
 	}
 }
 
-func (p *pip) iterateFolders(path string, recurse bool, f func(path string)) {
+func (p *pip) iterateFolders(path string, recurse bool, watcher *fsnotify.Watcher, f func(path string)) {
 	err := filepath.WalkDir(path, func(path2 string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -28,6 +31,9 @@ func (p *pip) iterateFolders(path string, recurse bool, f func(path string)) {
 
 		if d.IsDir() {
 			if recurse || path2 == path {
+				if watcher != nil {
+					_ = watcher.Add(path)
+				}
 				return nil
 			}
 			return filepath.SkipDir
