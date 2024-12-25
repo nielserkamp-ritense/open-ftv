@@ -1,0 +1,10 @@
+# TOML attributes
+
+a = "b"
+c = 9
+
+# a section ###
+[ d ]
+e = "f"
+g = true
+h = 9.87654
