@@ -15,7 +15,7 @@ func TestIsSupported(t *testing.T) {
 		{name: "empty"},
 		{name: "bad", in: "xyz"},
 		{name: "RDF", in: "application/rdf+xml", want: true},
-		{name: "ODRL", in: "application/x-policy-odrl", want: true},
+		{name: "ODRL", in: "text/x-policy-odrl", want: true},
 	}
 
 	for _, tc := range testCases {

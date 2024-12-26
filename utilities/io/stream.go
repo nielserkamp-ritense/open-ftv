@@ -35,23 +35,23 @@ type sniffer func([]byte) bool
 
 var (
 	sniffers = map[string]sniffer{
-		"application/x-policy-opa":     isRego,
-		"application/x-policy-cedar":   isCedar,
-		"application/x-policy-openfga": isOpenFGA,
-		"application/toml":             isTOML,
-		"application/yaml":             isYAML,
-		"application/xml":              isXML,
-		"application/json":             isJSON,
+		MimeTypeOPA:     isRego,
+		MimeTypeCedar:   isCedar,
+		MimeTypeOpenFGA: isOpenFGA,
+		MimeTypeTOML:    isTOML,
+		MimeTypeYAML:    isYAML,
+		MimeTypeXML:     isXML,
+		MimeTypeJSON:    isJSON,
 	}
 
 	order = []string{
-		"application/x-policy-opa",
-		"application/x-policy-cedar",
-		"application/x-policy-openfga",
-		"application/toml",
-		"application/yaml",
-		"application/xml",
-		"application/json",
+		MimeTypeOPA,
+		MimeTypeCedar,
+		MimeTypeOpenFGA,
+		MimeTypeTOML,
+		MimeTypeYAML,
+		MimeTypeXML,
+		MimeTypeJSON,
 	}
 )
 
