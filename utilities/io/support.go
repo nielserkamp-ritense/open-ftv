@@ -6,14 +6,14 @@ const DefaultMimeType = "application/octet-stream"
 // list of supported mime types.
 const (
 	MimeTypeCSV       = "text/csv"
-	MimeTypeCedar     = "application/x-policy-cedar"
-	MimeTypeCerbos    = "application/x-policy-cerbos"
+	MimeTypeCedar     = "text/x-policy-cedar"
+	MimeTypeCerbos    = "text/x-policy-cerbos"
 	MimeTypeJSON      = "application/json"
 	MimeTypeJSONLD    = "application/ld+json"
 	MimeTypeNotation3 = "text/n3"
-	MimeTypeODRL      = "application/x-policy-odrl"
-	MimeTypeOPA       = "application/x-policy-opa"
-	MimeTypeOpenFGA   = "application/x-policy-openfga"
+	MimeTypeODRL      = "text/x-policy-odrl"
+	MimeTypeOPA       = "text/x-policy-opa"
+	MimeTypeOpenFGA   = "text/x-policy-openfga"
 	MimeTypePlain     = "text/plain"
 	MimeTypeRDF       = "application/rdf+xml"
 	MimeTypeTOML      = "application/toml"
@@ -36,20 +36,20 @@ func ConvertExt(ext string) string {
 }
 
 var supportedTypes = map[string]struct{}{
+	MimeTypeCSV:       {},
 	MimeTypeCedar:     {},
 	MimeTypeCerbos:    {},
-	MimeTypeCSV:       {},
 	MimeTypeJSON:      {},
 	MimeTypeJSONLD:    {},
 	MimeTypeNotation3: {},
 	MimeTypeODRL:      {},
 	MimeTypeOPA:       {},
 	MimeTypeOpenFGA:   {},
-	MimeTypeRDF:       {},
-	MimeTypeTabSep:    {},
-	MimeTypeTOML:      {},
-	MimeTypeTurtle:    {},
 	MimeTypePlain:     {},
+	MimeTypeRDF:       {},
+	MimeTypeTOML:      {},
+	MimeTypeTabSep:    {},
+	MimeTypeTurtle:    {},
 	MimeTypeXACML:     {},
 	MimeTypeXML:       {},
 	MimeTypeYAML:      {},
