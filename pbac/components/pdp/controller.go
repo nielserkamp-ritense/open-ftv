@@ -2,7 +2,7 @@
 package pdp
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
@@ -23,24 +23,32 @@ type Controller interface {
 
 // Base contains the common attributes of a controller.
 type Base struct {
+	ctx      context.Context
 	logger   *slog.Logger
 	logboek  ldv.LDV
 	name     string
 	version  string
 	fullName string
+	store    string
+	recurse  bool
 	pap      pap.PAP
 	pip      pip.PIP
 }
 
 // NewBase instantiates a new controller base.
-func NewBase(name, version string, logger *slog.Logger, logboek ldv.LDV) Base {
-	return Base{
-		logger:   logger,
-		logboek:  logboek,
-		name:     name,
-		version:  version,
-		fullName: fmt.Sprintf("%s %s", name, version),
+func NewBase(options ...Option) Base {
+	b := Base{ctx: context.Background()}
+
+	for i := range options {
+		options[i](&b)
 	}
+
+	b.fullName = b.name
+	if b.version != "" {
+		b.fullName += " " + b.version
+	}
+
+	return b
 }
 
 // String implements the Controller interface.
@@ -63,9 +71,19 @@ func (b *Base) Logger() *slog.Logger {
 	return b.logger
 }
 
+// Context returns the context used by the controller.
+func (b *Base) Context() context.Context {
+	return b.ctx
+}
+
 // Logboek returns the LDV logger used by the controller.
 func (b *Base) Logboek() ldv.LDV {
 	return b.logboek
+}
+
+// Store returns the file storage location.
+func (b *Base) Store() (string, bool) {
+	return b.store, b.recurse
 }
 
 // PAP returns the PAP used by the controller.

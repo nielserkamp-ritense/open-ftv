@@ -3,16 +3,13 @@
 package cedar
 
 import (
-	"log/slog"
 	"path/filepath"
 
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
@@ -21,26 +18,26 @@ import (
 const Version = "1.0.0"
 
 // NewController instantiates a new Cedar controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) pdp.Controller {
-	if store != "" {
-		store, _ = filepath.Abs(store)
-	}
+func NewController(options ...pdp.Option) pdp.Controller {
+	options = append(options, pdp.WithNameVersion(components.CEDAR.String(), Version))
+	c := &controller{Base: pdp.NewBase(options...)}
 
-	c := &controller{
-		Base:     pdp.NewBase(components.CEDAR.String(), Version, logger, logboek),
-		pdp:      cedar.NewPolicySet(),
-		entities: make(cedar.EntityMap),
-	}
+	c.pdp = cedar.NewPolicySet()
+	c.entities = make(cedar.EntityMap)
 
-	pip.IterateEntities(func(entity models.Entity) {
+	c.PIP().IterateEntities(func(entity models.Entity) {
 		if wrapped, ok := entity.(*WrappedEntity); ok {
 			c.entities[wrapped.ce.UID] = *wrapped.ce
 		}
 	})
 
-	c.SetPIP(pip)
-	c.SetPAP(pap.New(nil, c.Logger(), c))
-	c.PAP().LoadFromStore(store, recurse)
+	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
+
+	store, recurse := c.Store()
+	if store != "" {
+		store, _ = filepath.Abs(store)
+		c.PAP().LoadFromStore(store, recurse)
+	}
 
 	mod := "github.com/cedar-policy/cedar-go"
 	modVersion := module.GetModuleVersion(mod)

@@ -3,11 +3,10 @@
 //
 // Even though OpenFGA is advertised as Relation Based Access Control,
 // it provides the necessary support for RBAC and ABAC,
-// so it can be made to work like any other PBAC engine.
+// so it can be made to work like any other PDP.
 package openfga
 
 import (
-	"log/slog"
 	"path/filepath"
 	"sync"
 
@@ -15,10 +14,8 @@ import (
 	"github.com/openfga/openfga/pkg/storage/memory"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
 
@@ -26,21 +23,19 @@ import (
 const Version = "1.0.0"
 
 // NewController instantiates a new OpenFGA controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) pdp.Controller {
-	store, _ = filepath.Abs(store)
-
-	c := &controller{
-		Base:   pdp.NewBase(components.OPENFGA.String(), Version, logger, logboek),
-		stores: make(map[string]*details),
-	}
-
+func NewController(options ...pdp.Option) pdp.Controller {
+	options = append(options, pdp.WithNameVersion(components.OPENFGA.String(), Version))
+	c := &controller{Base: pdp.NewBase(options...), stores: make(map[string]*details)}
 	if c.newServer(); c.engine == nil {
 		return nil
 	}
 
-	c.SetPIP(pip)
 	c.SetPAP(pap.New(nil, c.Logger(), c))
-	c.PAP().LoadFromStore(store, recurse)
+
+	if store, recurse := c.Store(); store != "" {
+		store, _ = filepath.Abs(store)
+		c.PAP().LoadFromStore(store, recurse)
+	}
 
 	mod := "github.com/openfga/openfga"
 	modVersion := module.GetModuleVersion(mod)

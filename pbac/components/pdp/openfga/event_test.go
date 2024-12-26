@@ -140,7 +140,7 @@ func TestController_HandleModel(t *testing.T) {
 			require.NotNil(t, engine)
 
 			c := &controller{
-				Base:   pdp.NewBase("x", "v1", logger, nil),
+				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
 				engine: engine,
 				stores: make(map[string]*details),
 			}
@@ -344,7 +344,7 @@ func TestController_HandleRelations(t *testing.T) {
 			require.NotNil(t, engine)
 
 			c := &controller{
-				Base:   pdp.NewBase("x", "v1", logger, nil),
+				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
 				engine: engine,
 				stores: make(map[string]*details),
 			}

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
@@ -89,7 +90,7 @@ func TestController_Authorize(t *testing.T) {
 			})
 			require.NotNil(t, p)
 
-			c := NewController(p, tc.store2, tc.recurse2, logger, nil)
+			c := NewController(pdp.WithPIP(p), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
 			h.Clear()

@@ -127,11 +127,11 @@ func TestEntities_AddEntity(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	e1 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x1"}}
-	e2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
-	e3 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x3"}}
-	e4 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x4"}}
-	dup2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
+	e1 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x1"}}
+	e2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
+	e3 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x3"}}
+	e4 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x4"}}
+	dup2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
 
 	w1 := NewWrappedEntity(e1, logger)
 	w2 := NewWrappedEntity(e2, logger)
@@ -186,10 +186,10 @@ func TestEntities_RemoveEntity(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	e1 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x1"}}
-	e2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
-	e3 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x3"}}
-	e4 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x4"}}
+	e1 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x1"}}
+	e2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
+	e3 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x3"}}
+	e4 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x4"}}
 
 	w1 := NewWrappedEntity(e1, logger)
 	w2 := NewWrappedEntity(e2, logger)
@@ -243,12 +243,12 @@ func TestEntities_MergeEntities(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	e1 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x1"}}
-	e2 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x2"}}
-	e3 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x3"}}
-	e4 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x4"}}
-	e5 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x5"}}
-	e6 := &cedar.Entity{UID: cedar.EntityUID{"entity", "x6"}}
+	e1 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x1"}}
+	e2 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x2"}}
+	e3 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x3"}}
+	e4 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x4"}}
+	e5 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x5"}}
+	e6 := &cedar.Entity{UID: cedar.EntityUID{Type: "entity", ID: "x6"}}
 
 	w1 := NewWrappedEntity(e1, logger)
 	w2 := NewWrappedEntity(e2, logger)

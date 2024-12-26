@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// ExportSpans implements the SpanSynbcer interface.
+// ExportSpans implements the SpanSyncer interface.
 func (sl *slogLogger) ExportSpans(_ context.Context, spans []sdktrace.ReadOnlySpan) error {
 	for _, s := range spans {
 		sl.logger.Info("ldv", "event", logEntry{
@@ -37,7 +37,7 @@ func (sl *slogLogger) ExportSpans(_ context.Context, spans []sdktrace.ReadOnlySp
 	return nil
 }
 
-// Shutdown implements the SpanSynbcer interface.
+// Shutdown implements the SpanSyncer interface.
 func (sl *slogLogger) Shutdown(_ context.Context) error {
 	return nil
 }

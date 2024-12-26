@@ -46,7 +46,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		c, err := newController(cfg, logger, nil)
+		c, err := newController(nil, cfg, logger, nil)
 		require.NoError(t, err)
 		require.NotNil(t, c)
 
@@ -116,7 +116,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			c, err := newController(cfg, logger, nil)
+			c, err := newController(nil, cfg, logger, nil)
 			require.NoError(t, err)
 			require.NotNil(t, c)
 
@@ -154,7 +154,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
  "source": "s1",
  "target": "t1",
  "rvvaID": "id1",
- "url": "http://localhost:10000/policy/xyzqqq"
+ "url": "http://localhost:29171/policy/xyzqqq"
 }`
 
 	goodURL := `{
@@ -233,7 +233,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			c, err := newController(cfg, logger, nil)
+			c, err := newController(nil, cfg, logger, nil)
 			require.NoError(t, err)
 			require.NotNil(t, c)
 
@@ -273,7 +273,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
  "source": "s1",
  "target": "t1",
  "rvvaID": "id1",
- "url": "http://localhost:10000/policy/xyzqqq"
+ "url": "http://localhostx:100/policy/xyzqqq"
 }`
 
 	goodURL := `{
@@ -352,7 +352,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			c, err := newController(cfg, logger, nil)
+			c, err := newController(nil, cfg, logger, nil)
 			require.NoError(t, err)
 			require.NotNil(t, c)
 
@@ -427,7 +427,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			c, err := newController(cfg, logger, nil)
+			c, err := newController(nil, cfg, logger, nil)
 			require.NoError(t, err)
 			require.NotNil(t, c)
 

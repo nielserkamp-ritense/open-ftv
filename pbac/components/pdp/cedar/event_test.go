@@ -125,7 +125,7 @@ func TestController_Handle(t *testing.T) {
 			require.NotNil(t, engine)
 
 			c := &controller{
-				Base: pdp.NewBase("x", "v1", logger, nil),
+				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
 				pdp:  engine,
 			}
 

@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -26,8 +27,8 @@ type AuthHandler interface {
 }
 
 // New instantiates an authorization handler.
-func New(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
-	h, err := newController(cfg, logger, logboek)
+func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
+	h, err := newController(ctx, cfg, logger, logboek)
 	if h == nil {
 		logger.Error("configuration error", "error", err)
 		return nil
@@ -40,46 +41,59 @@ func (h *authHandler) Controller() pdp.Controller {
 	return h.controller
 }
 
-func newController(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
-	switch components.LanguageFromString(cfg.PolicyLanguage) {
+func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	var p pip.PIP
+
+	l := components.LanguageFromString(cfg.PolicyLanguage)
+	switch l {
 	case components.REGO:
-		p := pip.New(pip.Config{
-			Ctx:     nil,
+		p = pip.New(pip.Config{
+			Ctx:     ctx,
 			Store:   cfg.PipStore,
 			Recurse: cfg.PipStoreRecurse,
 			Logger:  logger,
 		})
-		return opa.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-
 	case components.CERBOS:
-		p := pip.New(pip.Config{
-			Ctx:     nil,
+		p = pip.New(pip.Config{
+			Ctx:     ctx,
 			Store:   cfg.PipStore,
 			Recurse: cfg.PipStoreRecurse,
 			Logger:  logger,
 		})
-		return cerbos.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-
 	case components.CEDAR:
-		p := pip.New(pip.Config{
-			Ctx:           nil,
+		p = pip.New(pip.Config{
+			Ctx:           ctx,
 			Store:         cfg.PipStore,
 			Recurse:       cfg.PipStoreRecurse,
 			Logger:        logger,
 			NewAttributes: cedar.NewAttributeBuilder(logger),
 			NewEntities:   cedar.NewEntityBuilder(logger),
 		})
-		return cedar.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
-
 	case components.OPENFGA:
-		p := pip.New(pip.Config{
-			Ctx:     nil,
+		p = pip.New(pip.Config{
+			Ctx:     ctx,
 			Store:   cfg.PipStore,
 			Recurse: cfg.PipStoreRecurse,
 			Logger:  logger,
 		})
-		return openfga.NewController(p, cfg.PolicyStore, cfg.PolicyStoreRecurse, logger, logboek), nil
+	default:
+	}
 
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger), pdp.WithLogboek(logboek)}
+
+	switch l {
+	case components.REGO:
+		return opa.NewController(options...), nil
+	case components.CERBOS:
+		return cerbos.NewController(options...), nil
+	case components.CEDAR:
+		return cedar.NewController(options...), nil
+	case components.OPENFGA:
+		return openfga.NewController(options...), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}

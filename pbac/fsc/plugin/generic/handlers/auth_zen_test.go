@@ -35,7 +35,7 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cedar",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -83,7 +83,7 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/opa",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -131,7 +131,7 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/opa",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -181,7 +181,7 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -229,7 +229,7 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -277,7 +277,7 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 			PolicyStore:    "../../../../../testdata/unittest/cerbos",
 		}
 
-		auth := New(cfg, logger, nil)
+		auth := New(nil, cfg, logger, nil)
 		require.NotNil(t, auth)
 
 		app := fiber.New()

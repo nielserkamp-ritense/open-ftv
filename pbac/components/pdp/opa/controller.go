@@ -5,7 +5,6 @@ package opa
 import (
 	"bytes"
 	"context"
-	"log/slog"
 	"path/filepath"
 
 	"github.com/open-policy-agent/opa/hooks"
@@ -14,10 +13,8 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
@@ -25,45 +22,41 @@ import (
 const Version = "1.0.0"
 
 // NewController instantiates a new OPA/Rego controller.
-func NewController(pip pip.PIP, store string, recurse bool, logger *slog.Logger, logboek ldv.LDV) pdp.Controller {
-	if store != "" {
-		store, _ = filepath.Abs(store)
-	}
-
+func NewController(options ...pdp.Option) pdp.Controller {
 	wait := make(chan struct{})
-	mem := inmem.New()
 
-	engine, err := sdk.New(context.Background(), sdk.Options{
+	options = append(options, pdp.WithNameVersion(components.REGO.String(), Version))
+	c := &controller{Base: pdp.NewBase(options...), mem: inmem.New()}
+
+	var err error
+	c.pdp, err = sdk.New(context.Background(), sdk.Options{
 		RegoVersion:   1,
 		ID:            "opa-controller",
 		Config:        bytes.NewReader([]byte(cfg)),
-		ConsoleLogger: &wrappedLogger{logger: logger},
+		ConsoleLogger: &wrappedLogger{logger: c.Logger()},
 		Ready:         wait,
 		Hooks:         hooks.Hooks{},
-		Store:         mem,
+		Store:         c.mem,
 	})
 	if err != nil {
-		logger.Error("Failed to initialize OPA SDK", "error", err)
+		c.Logger().Error("Failed to initialize OPA SDK", "error", err)
 		return nil
 	}
 
-	c := &controller{
-		Base: pdp.NewBase(components.REGO.String(), Version, logger, logboek),
-		pdp:  engine,
-		mem:  mem,
-		ctx:  context.Background(),
-	}
+	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
 
-	c.SetPIP(pip)
-	c.SetPAP(pap.New(nil, c.Logger(), c))
-
-	// wait for OPA to be ready, before loading policies!
+	// wait for OPA to be ready, before loading other data!
 	select {
 	case <-wait:
 	}
 
 	c.loadEntities()
-	c.PAP().LoadFromStore(store, recurse)
+
+	store, recurse := c.Store()
+	if store != "" {
+		store, _ = filepath.Abs(store)
+		c.PAP().LoadFromStore(store, recurse)
+	}
 
 	c.Logger().Info("pbac controller initialized", "controller", c.String())
 	return c
@@ -92,11 +85,11 @@ func (c *controller) loadEntities() {
 
 	key := "entities"
 
-	t, _ := c.mem.NewTransaction(c.ctx, storage.TransactionParams{Write: true})
-	if err := c.mem.Write(c.ctx, t, storage.AddOp, storage.Path{key}, m); err != nil {
+	t, _ := c.mem.NewTransaction(c.Context(), storage.TransactionParams{Write: true})
+	if err := c.mem.Write(c.Context(), t, storage.AddOp, storage.Path{key}, m); err != nil {
 		c.Logger().Error("failed to upsert entities", "controller", c.String(), "document-key", key, "error", err)
 	}
-	if err := c.mem.Commit(c.ctx, t); err != nil {
+	if err := c.mem.Commit(c.Context(), t); err != nil {
 		c.Logger().Error("failed to commit transaction", "controller", c.String(), "document-key", key, "error", err)
 	} else {
 		c.Logger().Info("entities added/replaced", "controller", c.String(), "document-key", key)
@@ -107,7 +100,6 @@ type controller struct {
 	pdp.Base
 	pdp *sdk.OPA
 	mem storage.Store
-	ctx context.Context
 	m   map[string]any
 }
 

@@ -140,10 +140,9 @@ func TestController_Handle(t *testing.T) {
 			require.NoError(t, err)
 
 			c := &controller{
-				Base: pdp.NewBase("x", "v1", logger, nil),
+				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
 				pdp:  engine,
 				mem:  mem,
-				ctx:  context.Background(),
 			}
 
 			p := pap.New(nil, logger, nil)
