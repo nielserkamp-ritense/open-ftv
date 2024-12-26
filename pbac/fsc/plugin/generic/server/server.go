@@ -2,6 +2,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"os"
@@ -26,7 +27,8 @@ type Service interface {
 
 // NewService initializes an HTTP service (implemented with fiber/fasthttp).
 func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) Service {
-	return &service{cfg: cfg, logger: logger, logboek: logboek}
+	ctx, cancel := context.WithCancel(context.Background())
+	return &service{ctx: ctx, cancel: cancel, cfg: cfg, logger: logger, logboek: logboek}
 }
 
 // Serve runs the HTTP service.
@@ -54,6 +56,7 @@ func (s *service) Serve() {
 	s.initMiddleware()
 	s.initRoutes()
 	s.run()
+	s.cancel()
 }
 
 // Shutdown can be used to stop the HTTP service.
@@ -80,6 +83,8 @@ func (s *service) errorHandler(req *fiber.Ctx, err error) error {
 }
 
 type service struct {
+	ctx      context.Context
+	cancel   context.CancelFunc
 	cfg      *config.Config
 	logger   *slog.Logger
 	svc      *fiber.App

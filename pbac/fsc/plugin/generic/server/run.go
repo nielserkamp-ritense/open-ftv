@@ -34,7 +34,8 @@ func (s *service) run() {
 	<-s.intChan
 
 	if s.shutdown.Load() {
-		return // this indicates the server never got started, so there's nothing to shut down!
+		// this indicates the server never got started, so there's nothing to shut down!
+		return
 	}
 
 	go func() {
