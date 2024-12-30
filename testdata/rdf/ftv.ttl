@@ -1,0 +1,171 @@
+@prefix : <https://ftv.nl/rdf/ftv#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://ftv.nl/rdf/ftv>
+  a owl:Ontology;
+  skos:prefLabel "FTV ontology"@en ;
+  skos:prefLabel "FTV ontologie"@nl  ;
+  dcterms:title "Ontology for Federated Access Control"@en ;
+  dcterms:title "Ontologie voor Federatieve Toegangsverlening"@nl ;
+.
+
+:Attribute
+  a owl:Class ;
+  skos:prefLabel "Attribute"@en ;
+  skos:prefLabel "Attribuut"@nl  ;
+  skos:example "An attribute can be the name or id of a person, the time of day, an IP address, etc." ;
+  dcterms:title "A key/value pair"@en ;
+  dcterms:title "Een sleutel met een waarde"@nl ;
+  dcterms:requires :key , :value ;
+.
+
+:Entity
+  a owl:Class ;
+  skos:prefLabel "Attribute"@en ;
+  skos:prefLabel "Attribuut"@nl  ;
+  skos:example "An entity can be a user, a resource, a service, etc." ;
+  dcterms:title "A set of attributes"@en ;
+  dcterms:title "Een set van attributen"@nl ;
+  dcterms:requires :type , :id ;
+.
+
+:Relation
+  a owl:Class ;
+  skos:prefLabel "Relation"@en ;
+  skos:prefLabel "Relatie"@nl  ;
+  skos:example "Relations can exist between some user(s) and some resource(s), some application(s) and some API(s), etc." ;
+  dcterms:title "A relation between two entities"@en ;
+  dcterms:title "Een relatie tussen twee entiteiten"@nl ;
+  dcterms:requires :subject , :relation , :object ;
+.
+
+:principal
+  a owl:Thing , :Entity ;
+  skos:prefLabel "Principal"@en ;
+  skos:prefLabel "Principaal"@nl  ;
+  dcterms:title "Entity performing a dataprocessing activity"@en ;
+  dcterms:title "Entiteit welke een gegevensverwerking uitvoert"@nl ;
+  rdfs:subClassOf :Entity ;
+.
+
+:action
+  a rdf:Property ;
+  skos:prefLabel "Action"@en ;
+  skos:prefLabel "Actie"@nl  ;
+  dcterms:title "Type of processing of a resource"@en ;
+  dcterms:title "Soort verwerking op een resource"@nl ;
+  rdfs:range xsd:string ;
+.
+
+:resource
+  a owl:Thing , :Entity ;
+  skos:prefLabel "Resource"@en ;
+  skos:prefLabel "Resource"@nl  ;
+  dcterms:title "Target for dataprocessing activities"@en ;
+  dcterms:title "Gegeven waarop verwerkingen plaats vinden"@nl ;
+  rdfs:subClassOf :Entity ;
+.
+
+:context
+  a owl:Class ;
+  skos:prefLabel "Context"@en ;
+  skos:prefLabel "Context"@nl  ;
+  dcterms:title "Set of attributes pertaining to a dataprocessing activity"@en ;
+  dcterms:title "Set van kenmerken bij een gegevensverwerking"@nl ;
+  rdfs:subClassOf :Entity ;
+.
+
+:subject
+  a owl:Thing ;
+  skos:prefLabel "Subject"@en ;
+  skos:prefLabel "Subject"@nl  ;
+  dcterms:title "Entity with a relationship to an object"@en ;
+  dcterms:title "Entiteit met een relatie tot een object"@nl ;
+  dcterms:isRequiredBy :Relation ;
+  rdfs:subClassOf :Entity ;
+  rdfs:domain :Relation ;
+.
+
+:relation
+  a rdf:Property ;
+  skos:prefLabel "Relation"@en ;
+  skos:prefLabel "Relatie"@nl  ;
+  dcterms:title "Relation between a subject and object"@en ;
+  dcterms:title "Relatie tussen een subject en object"@nl ;
+  dcterms:isRequiredBy :Relation ;
+  rdfs:domain :Relation ;
+  rdfs:range xsd:string ;
+.
+
+:object
+  a owl:Thing ;
+  skos:prefLabel "Object"@en ;
+  skos:prefLabel "Object"@nl  ;
+  dcterms:title "Entity with a relationship to a subject"@en ;
+  dcterms:title "Entiteit met een relatie tot een subject"@nl ;
+  dcterms:isRequiredBy :Relation ;
+  rdfs:subClassOf :Entity ;
+  rdfs:domain :Relation ;
+.
+
+:attribute
+  a owl:Class , :Attribute ;
+  skos:prefLabel "Attribute"@en ;
+  skos:prefLabel "Attribuut"@nl  ;
+  dcterms:title "Key/value pair of an entity or relation"@en ;
+  dcterms:title "Sleutel en waarde van een entiteit of relatie"@nl ;
+  rdfs:subClassOf :Attribute ;
+  rdfs:domain :Entity ;
+.
+
+:key
+  a rdf:Property ;
+  a dcterms:identifier ;
+  skos:prefLabel "Key"@en ;
+  skos:prefLabel "Sleutel"@nl  ;
+  dcterms:title "Unique identifier of an attribute"@en ;
+  dcterms:title "Unieke sleutel van een attribuut"@nl ;
+  dcterms:isRequiredBy :Attribute ;
+  rdfs:domain :Attribute ;
+  rdfs:range xsd:string ;
+.
+
+:value
+  a rdf:Property ;
+  skos:prefLabel "Value"@en ;
+  skos:prefLabel "Waarde"@nl  ;
+  dcterms:title "Value of an attribute"@en ;
+  dcterms:title "Waarde van een attribuut"@nl ;
+  dcterms:isRequiredBy :Attribute ;
+  rdfs:domain :Attribute  ;
+  rdfs:range xsd:anyType ;
+.
+
+:type
+  a rdf:Property ;
+  a dcterms:identifier ;
+  skos:prefLabel "Type"@en ;
+  skos:prefLabel "Soort"@nl  ;
+  dcterms:title "Entity type"@en ;
+  dcterms:title "Soort entiteit"@nl ;
+  dcterms:isRequiredBy :Entity ;
+  rdfs:domain :Entity ;
+  rdfs:range xsd:string ;
+.
+
+:id
+  a rdf:Property ;
+  a dcterms:identifier ;
+  skos:prefLabel "Identifier"@en ;
+  skos:prefLabel "Identificatie"@nl  ;
+  dcterms:title "Unique identifier of an entity"@en ;
+  dcterms:title "Unieke identificatie van een entiteit"@nl ;
+  dcterms:isRequiredBy :Entity ;
+  rdfs:domain :Entity ;
+  rdfs:range xsd:string ;
+.

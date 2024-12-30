@@ -52,25 +52,35 @@ func TestLoadSimpleError(t *testing.T) {
 }
 
 func TestLoadReal(t *testing.T) {
-	t.Run("load file", func(t *testing.T) {
-		r, err := os.Open("../../testdata/tooiont.ttl")
-		require.NoError(t, err)
-		require.NotNil(t, r)
+	testCases := []struct {
+		name string
+		path string
+	}{
+		{name: "tooiont", path: "../../testdata/tooiont.ttl"},
+		{name: "ftv", path: "../../testdata/rdf/ftv.ttl"},
+	}
 
-		defer r.Close()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			r, err := os.Open(tc.path)
+			require.NoError(t, err)
+			require.NotNil(t, r)
 
-		g, err2 := Load(r, "text/turtle")
-		require.NoError(t, err2)
-		require.NotNil(t, g)
+			defer r.Close()
 
-		ch := g.IterTriples()
-		require.NotNil(t, ch)
+			g, err2 := Load(r, "text/turtle")
+			require.NoError(t, err2)
+			require.NotNil(t, g)
 
-		for term := range ch {
-			s := term.String()
-			assert.NotEmpty(t, s)
-		}
-	})
+			ch := g.IterTriples()
+			require.NotNil(t, ch)
+
+			for term := range ch {
+				s := term.String()
+				assert.NotEmpty(t, s)
+			}
+		})
+	}
 }
 
 func TestLoadRealError(t *testing.T) {
