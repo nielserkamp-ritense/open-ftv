@@ -58,6 +58,7 @@ func TestLoadReal(t *testing.T) {
 	}{
 		{name: "tooiont", path: "../../testdata/tooiont.ttl"},
 		{name: "ftv", path: "../../testdata/rdf/ftv.ttl"},
+		{name: "brp service", path: "../../testdata/rdf/entities/services/brp.ttl"},
 	}
 
 	for _, tc := range testCases {

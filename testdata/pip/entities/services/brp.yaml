@@ -162,10 +162,3 @@
             - adresseringBinnenland.adresregel2
       - burgerservicenummer:
           type: arrayOfString
-
-- type: "service"
-  id: "https://inway-fsc-nlx-inway:443/basisregister-fictieve-kentekens"
-  attributes:
-    owner: "fictief"
-    code: "FRK"
-    name: "Fictief Register Kentekens"

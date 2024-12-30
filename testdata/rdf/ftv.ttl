@@ -7,7 +7,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://ftv.nl/rdf/ftv>
-  a owl:Ontology;
+  a owl:Ontology ;
   skos:prefLabel "FTV ontology"@en ;
   skos:prefLabel "FTV ontologie"@nl  ;
   dcterms:title "Ontology for Federated Access Control"@en ;
