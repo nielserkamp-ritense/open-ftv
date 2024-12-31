@@ -1,4 +1,5 @@
 @prefix : <http://example.com/ftv#> .
+
 @prefix ftv: <https://ftv.nl/rdf/ftv#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -8,10 +9,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://example.com/ftv>
-    a rdfs:Resource ;
-    skos:prefLabel "Service entities"@en ;
-    skos:prefLabel "Service entiteiten"@nl  ;
-    dcterms:title "List of service entities"@en ;
+    a ftv:Collection ;
+    skos:prefLabel "RvIG service entities"@en ;
+    skos:prefLabel "RvIG service entiteiten"@nl  ;
+    dcterms:title "List of service entities van RvIG"@en ;
     dcterms:title "Lijst van service entiteiten"@nl ;
 .
 

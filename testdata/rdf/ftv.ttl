@@ -1,4 +1,5 @@
 @prefix : <https://ftv.nl/rdf/ftv#> .
+
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -14,23 +15,35 @@
   dcterms:title "Ontologie voor Federatieve Toegangsverlening"@nl ;
 .
 
+:Collection
+  a rdfs:Resource ;
+  skos:prefLabel "Collection"@en ;
+  skos:prefLabel "Verzameling"@nl  ;
+  skos:example "A collection of attributes, entities, relations, or a combination of."@en ;
+  skos:example "Een verzameling van attributen, entiteiten, relaties, of een combinatie van."@nl ;
+  dcterms:title "A collection of data"@en ;
+  dcterms:title "Een verzameling van gegevens"@nl ;
+.
+
 :Attribute
   a owl:Class ;
   skos:prefLabel "Attribute"@en ;
   skos:prefLabel "Attribuut"@nl  ;
-  skos:example "An attribute can be the name or id of a person, the time of day, an IP address, etc." ;
+  skos:example "An attribute can be the name or id of a person, the time of day, an IP address, etc."@en ;
+  skos:example "Een attribuut kan de naam of id van een persoon zijn, de huidige datum en tijd, een IP adres, enz."@nl ;
   dcterms:title "A key/value pair"@en ;
   dcterms:title "Een sleutel met een waarde"@nl ;
   dcterms:requires :key , :value ;
 .
 
 :Entity
-  a owl:Class ;
-  skos:prefLabel "Attribute"@en ;
-  skos:prefLabel "Attribuut"@nl  ;
-  skos:example "An entity can be a user, a resource, a service, etc." ;
-  dcterms:title "A set of attributes"@en ;
-  dcterms:title "Een set van attributen"@nl ;
+  a owl:Thing ;
+  skos:prefLabel "Entity"@en ;
+  skos:prefLabel "Entiteit"@nl  ;
+  skos:example "An entity can be a user, an application, a service, etc."@en ;
+  skos:example "Een entiteit kan een gebruiker zijn, een applicatie, een service, enz."@nl ;
+  dcterms:title "A thing with a set of attributes"@en ;
+  dcterms:title "Een ding met een set attributen"@nl ;
   dcterms:requires :type , :id ;
 .
 
@@ -38,7 +51,8 @@
   a owl:Class ;
   skos:prefLabel "Relation"@en ;
   skos:prefLabel "Relatie"@nl  ;
-  skos:example "Relations can exist between some user(s) and some resource(s), some application(s) and some API(s), etc." ;
+  skos:example "Relations can exist between some user(s) and some resource(s), some application(s) and some API(s), etc."@en ;
+  skos:example "Relaties kunnen bestaan tussen bepaalde gebruiker(s) en bepaalde bron(nen), bepaalde applicatie(s) en bepaalde API(s), enz."@nl ;
   dcterms:title "A relation between two entities"@en ;
   dcterms:title "Een relatie tussen twee entiteiten"@nl ;
   dcterms:requires :subject , :relation , :object ;
@@ -48,6 +62,8 @@
   a owl:Thing , :Entity ;
   skos:prefLabel "Principal"@en ;
   skos:prefLabel "Principaal"@nl  ;
+  skos:example "The user or application that initiates a dataprocessing activity."@en ;
+  skos:example "De gebruiker of applicatie die een gegevensverwerking start."@nl ;
   dcterms:title "Entity performing a dataprocessing activity"@en ;
   dcterms:title "Entiteit welke een gegevensverwerking uitvoert"@nl ;
   rdfs:subClassOf :Entity ;
@@ -57,8 +73,10 @@
   a rdf:Property ;
   skos:prefLabel "Action"@en ;
   skos:prefLabel "Actie"@nl  ;
+  skos:example "Adding, modifying or removing of data."@en ;
+  skos:example "Toevoegen, wijzigen of verwijderen van gegevens."@nl ;
   dcterms:title "Type of processing of a resource"@en ;
-  dcterms:title "Soort verwerking op een resource"@nl ;
+  dcterms:title "Soort verwerking van een resource"@nl ;
   rdfs:range xsd:string ;
 .
 
@@ -66,6 +84,8 @@
   a owl:Thing , :Entity ;
   skos:prefLabel "Resource"@en ;
   skos:prefLabel "Resource"@nl  ;
+  skos:example "Data about a citizen, data about a license plate."@en ;
+  skos:example "Gegevens over een burger, gegevens over een kenteken, enz."@nl ;
   dcterms:title "Target for dataprocessing activities"@en ;
   dcterms:title "Gegeven waarop verwerkingen plaats vinden"@nl ;
   rdfs:subClassOf :Entity ;
@@ -75,6 +95,8 @@
   a owl:Class ;
   skos:prefLabel "Context"@en ;
   skos:prefLabel "Context"@nl  ;
+  skos:example "Date and time of a dataprocessing activity, the used IP address, etc."@en ;
+  skos:example "Datum/tijd van een gegevensverwerking, het gebruikte IP adres, enz."@nl ;
   dcterms:title "Set of attributes pertaining to a dataprocessing activity"@en ;
   dcterms:title "Set van kenmerken bij een gegevensverwerking"@nl ;
   rdfs:subClassOf :Entity ;
@@ -84,6 +106,8 @@
   a owl:Thing ;
   skos:prefLabel "Subject"@en ;
   skos:prefLabel "Subject"@nl  ;
+  skos:example "A user, an application, etc."@en ;
+  skos:example "Een gebruiker, een applicatie, enz."@nl ;
   dcterms:title "Entity with a relationship to an object"@en ;
   dcterms:title "Entiteit met een relatie tot een object"@nl ;
   dcterms:isRequiredBy :Relation ;
@@ -95,6 +119,8 @@
   a rdf:Property ;
   skos:prefLabel "Relation"@en ;
   skos:prefLabel "Relatie"@nl  ;
+  skos:example "Permission to access, any kind of connection, etc."@en ;
+  skos:example "Toestemming voor toegang, elk type verbinding, enz."@nl ;
   dcterms:title "Relation between a subject and object"@en ;
   dcterms:title "Relatie tussen een subject en object"@nl ;
   dcterms:isRequiredBy :Relation ;
@@ -106,6 +132,8 @@
   a owl:Thing ;
   skos:prefLabel "Object"@en ;
   skos:prefLabel "Object"@nl  ;
+  skos:example "A source, a data item, a service, etc."@en ;
+  skos:example "Een bron, een gegeven, een service, enz."@nl ;
   dcterms:title "Entity with a relationship to a subject"@en ;
   dcterms:title "Entiteit met een relatie tot een subject"@nl ;
   dcterms:isRequiredBy :Relation ;
