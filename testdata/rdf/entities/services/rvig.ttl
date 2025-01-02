@@ -1,4 +1,4 @@
-@prefix : <http://example.com/ftv#> .
+@prefix : <http://example.com/rvig/rdf/services#> .
 
 @prefix ftv: <https://ftv.nl/rdf/ftv#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -8,7 +8,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<http://example.com/ftv>
+<http://example.com/rvig/rdf/services>
     a ftv:Collection ;
     skos:prefLabel "RvIG service entities"@en ;
     skos:prefLabel "RvIG service entiteiten"@nl  ;
@@ -39,12 +39,16 @@
             ] ,
             [
                 ftv:key "queryFields" ;
-                ftv:value :personenType , :personenFields, :personenBSN ;
+                ftv:value :parameterType , :parameterFields, :parameterBSN ;
             ] ;
 .
 
-:personenType
+:parameterType
     a rdf:Property ;
+    skos:prefLabel "Persons API type parameter"@en ;
+    skos:prefLabel "Personen API type parameter"@nl  ;
+    dcterms:title "The type of query to be performed"@en ;
+    dcterms:title "Het type zoekopdracht die uitgevoerd moet worden"@nl ;
     rdf:type xsd:string ;
     ftv:key "type" ;
     ftv:value
@@ -57,8 +61,12 @@
             "ZoekMetAdresseerbaarObjectIdentificatie" ;
 .
 
-:personenFields
+:parameterFields
     a rdf:Property ;
+    skos:prefLabel "Persons API fields parameter"@en ;
+    skos:prefLabel "Personen API fields parameter"@nl  ;
+    dcterms:title "The fields to be returned from the query"@en ;
+    dcterms:title "De velden die uit de zoekopdracht opgeleverd dienen te worden"@nl ;
     rdf:type rdf:List ;
     ftv:key "fields" ;
     ftv:value
@@ -206,8 +214,12 @@
             "adresseringBinnenland.adresregel2" ;
 .
 
-:personenBSN
+:parameterBSN
     a rdf:Property ;
+    skos:prefLabel "Persons API BSN parameter"@en ;
+    skos:prefLabel "Personen API BSN parameter"@nl  ;
+    dcterms:title "The BSN to be queried"@en ;
+    dcterms:title "Het BSN waarnaar gezocht moet worden"@nl ;
     rdf:type rdf:List  ;
     ftv:key "burgerservicenummer" ;
     ftv:value xsd:string ;
