@@ -1,0 +1,61 @@
+@prefix : <http://example.com/rdf/services#> .
+
+@prefix ftv: <https://ftv.nl/rdf/ftv#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.com/rdf/services>
+    a ftv:Collection ;
+.
+
+:badKey
+    a ftv:Attribute  ;
+    ftv:attributeKey "123"^^xsd:int ;
+    ftv:attributeValue "world" ;
+.
+
+:badValue
+    a ftv:Attribute  ;
+    ftv:attributeKey "hello" ;
+    ftv:attributeValue :badKey ;
+.
+
+:goodKV
+    a ftv:Attribute  ;
+    ftv:attributeKey "hello" ;
+    ftv:attributeValue "world" ;
+.
+
+:moreGood
+    a ftv:Attribute  ;
+    ftv:attributeKey "bool" ;
+    ftv:attributeValue "1"^^xsd:boolean ;
+.
+
+:anotherGood
+    a ftv:Attribute  ;
+    ftv:attributeKey "int" ;
+    ftv:attributeValue "123"^^xsd:int ;
+.
+
+:singleObject
+    a ftv:Attribute  ;
+    ftv:attributeKey "singleObject" ;
+    ftv:attributeValue :anotherGood ;
+.
+
+:fewObjects
+    a ftv:Attribute  ;
+    ftv:attributeKey "fewObjects" ;
+    ftv:attributeValue :anotherGood , :goodKV , :moreGood;
+.
+
+:mixedValues
+    a ftv:Attribute  ;
+    ftv:attributeKey "mixedValues" ;
+    ftv:attributeValue :goodKV , :anotherGood , "987"^^xsd:short ;
+.

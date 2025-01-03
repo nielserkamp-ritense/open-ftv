@@ -212,7 +212,7 @@ func TestLoad(t *testing.T) {
 			name:    "attr store, recurse",
 			path1:   "../../../testdata/unittest/pip",
 			recurse: true,
-			wantLog: 1,
+			wantLog: 3,
 			wantAttributes: models.NewAttributeSet(
 				models.NewAttribute("maandag", 1),
 				models.NewAttribute("dinsdag", 2),
@@ -264,7 +264,7 @@ func TestLoad(t *testing.T) {
 			path1:   "../../../testdata/unittest/pip",
 			path2:   "../../../testdata/unittest/pip",
 			recurse: true,
-			wantLog: 2,
+			wantLog: 4,
 			wantAttributes: models.NewAttributeSet(
 				models.NewAttribute("maandag", 1),
 				models.NewAttribute("dinsdag", 2),

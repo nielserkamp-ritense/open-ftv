@@ -50,31 +50,6 @@ func (p *pip) iterateFolders(path string, recurse bool, watcher *fsnotify.Watche
 	}
 }
 
-func (p *pip) loadAttributes(path string) {
-	f, err := os.Open(path)
-	if err != nil {
-		p.logger.Error("pip: error opening attributes file", "path", path, "err", err)
-		return
-	}
-
-	defer f.Close()
-
-	attributes := make([]struct {
-		Key   string `yaml:"key"`
-		Value any    `yaml:"value"`
-	}, 0)
-
-	if err = yaml.NewDecoder(f).Decode(&attributes); err != nil {
-		p.logger.Error("pip: error decoding attributes file", "path", path, "err", err)
-		return
-	}
-
-	for i := range attributes {
-		a := attributes[i]
-		p.AddAttribute(a.Key, a.Value)
-	}
-}
-
 func (p *pip) loadEntities(path string) {
 	f, err := os.Open(path)
 	if err != nil {
