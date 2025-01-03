@@ -1,4 +1,4 @@
-package io
+package mimetype
 
 // ContainsAttribute detects if the given data map is likely to contains an attribute.
 func ContainsAttribute(data map[string]any) bool {
