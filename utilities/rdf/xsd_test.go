@@ -73,7 +73,7 @@ func TestConvertXSD(t *testing.T) {
 		{name: "duration good", data: "PT25S", t: "http://www.w3.org/2001/XMLSchema#duration", want: 25 * time.Second},
 		{name: "duration error (1)", data: "abc", t: "http://www.w3.org/2001/XMLSchema#duration", wantErr: true},
 		{name: "duration error (2)", data: "PT1.2.3S", t: "http://www.w3.org/2001/XMLSchema#duration", wantErr: true},
-		{name: "date+time +01:00", data: "2024-12-28T13:29:15+01:00", t: "http://www.w3.org/2001/XMLSchema#dateTime", want: time.Date(2024, 12, 28, 13, 29, 15, 0, time.Local)},
+		{name: "date+time", data: "2024-12-28T13:29:15Z", t: "http://www.w3.org/2001/XMLSchema#dateTime", want: time.Date(2024, 12, 28, 13, 29, 15, 0, time.UTC)},
 		{name: "date+time error", data: "abc", t: "http://www.w3.org/2001/XMLSchema#dateTime", wantErr: true},
 		{name: "time good", data: "13:59:59.887432581", t: "http://www.w3.org/2001/XMLSchema#time", want: time.Date(0, 1, 1, 13, 59, 59, 887432581, time.Local)},
 		{name: "time bad", data: "13:61:59.887432581", t: "http://www.w3.org/2001/XMLSchema#time", wantErr: true},
