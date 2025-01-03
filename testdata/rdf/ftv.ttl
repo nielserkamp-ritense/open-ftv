@@ -16,7 +16,7 @@
 .
 
 :Collection
-  a rdfs:Resource ;
+  a rdfs:Resource , rdf:List ;
   skos:prefLabel "Collection"@en ;
   skos:prefLabel "Verzameling"@nl  ;
   skos:example "A collection of attributes, entities, relations, or a combination of."@en ;
@@ -33,7 +33,7 @@
   skos:example "Een attribuut kan de naam of id van een persoon zijn, de huidige datum en tijd, een IP adres, enz."@nl ;
   dcterms:title "A key/value pair"@en ;
   dcterms:title "Een sleutel met een waarde"@nl ;
-  dcterms:requires :key , :value ;
+  dcterms:requires :attributeKey , :attributeValue ;
 .
 
 :Entity
@@ -44,7 +44,7 @@
   skos:example "Een entiteit kan een gebruiker zijn, een applicatie, een service, enz."@nl ;
   dcterms:title "A thing with a set of attributes"@en ;
   dcterms:title "Een ding met een set attributen"@nl ;
-  dcterms:requires :type , :id ;
+  dcterms:requires :entityType , :entityID ;
 .
 
 :Relation
@@ -55,7 +55,7 @@
   skos:example "Relaties kunnen bestaan tussen bepaalde gebruiker(s) en bepaalde bron(nen), bepaalde applicatie(s) en bepaalde API(s), enz."@nl ;
   dcterms:title "A relation between two entities"@en ;
   dcterms:title "Een relatie tussen twee entiteiten"@nl ;
-  dcterms:requires :subject , :relation , :object ;
+  dcterms:requires :subject , :relationType , :object ;
 .
 
 :principal
@@ -115,14 +115,14 @@
   rdfs:domain :Relation ;
 .
 
-:relation
+:relationType
   a rdf:Property ;
-  skos:prefLabel "Relation"@en ;
-  skos:prefLabel "Relatie"@nl  ;
+  skos:prefLabel "Relation type"@en ;
+  skos:prefLabel "Soort relatie"@nl  ;
   skos:example "Permission to access, any kind of connection, etc."@en ;
   skos:example "Toestemming voor toegang, elk type verbinding, enz."@nl ;
-  dcterms:title "Relation between a subject and object"@en ;
-  dcterms:title "Relatie tussen een subject en object"@nl ;
+  dcterms:title "Type of relation between a subject and object"@en ;
+  dcterms:title "Soort relatie tussen een subject en object"@nl ;
   dcterms:isRequiredBy :Relation ;
   rdfs:domain :Relation ;
   rdfs:range xsd:string ;
@@ -141,7 +141,7 @@
   rdfs:domain :Relation ;
 .
 
-:attribute
+:entityAttribute
   a owl:Class , :Attribute ;
   skos:prefLabel "Attribute"@en ;
   skos:prefLabel "Attribuut"@nl  ;
@@ -151,9 +151,8 @@
   rdfs:domain :Entity ;
 .
 
-:key
-  a rdf:Property ;
-  a dcterms:identifier ;
+:attributeKey
+  a rdf:Property , dcterms:identifier ;
   skos:prefLabel "Key"@en ;
   skos:prefLabel "Sleutel"@nl  ;
   dcterms:title "Unique identifier of an attribute"@en ;
@@ -163,7 +162,7 @@
   rdfs:range xsd:string ;
 .
 
-:value
+:attributeValue
   a rdf:Property ;
   skos:prefLabel "Value"@en ;
   skos:prefLabel "Waarde"@nl  ;
@@ -174,25 +173,23 @@
   rdfs:range xsd:anyType ;
 .
 
-:type
-  a rdf:Property ;
-  a dcterms:identifier ;
-  skos:prefLabel "Type"@en ;
-  skos:prefLabel "Soort"@nl  ;
-  dcterms:title "Entity type"@en ;
-  dcterms:title "Soort entiteit"@nl ;
+:entityType
+  a rdf:Property , dcterms:identifier ;
+  skos:prefLabel "Entity type"@en ;
+  skos:prefLabel "Soort entiteit"@nl  ;
+  dcterms:title "The entity type"@en ;
+  dcterms:title "Het soort entiteit"@nl ;
   dcterms:isRequiredBy :Entity ;
   rdfs:domain :Entity ;
   rdfs:range xsd:string ;
 .
 
-:id
-  a rdf:Property ;
-  a dcterms:identifier ;
-  skos:prefLabel "Identifier"@en ;
-  skos:prefLabel "Identificatie"@nl  ;
-  dcterms:title "Unique identifier of an entity"@en ;
-  dcterms:title "Unieke identificatie van een entiteit"@nl ;
+:entityID
+  a rdf:Property , dcterms:identifier ;
+  skos:prefLabel "Entity identifier"@en ;
+  skos:prefLabel "Entity identificatie"@nl  ;
+  dcterms:title "Identifier of an entity"@en ;
+  dcterms:title "Identificatie van een entiteit"@nl ;
   dcterms:isRequiredBy :Entity ;
   rdfs:domain :Entity ;
   rdfs:range xsd:string ;
