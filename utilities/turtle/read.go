@@ -8,6 +8,7 @@ import (
 	"github.com/deiu/rdf2go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
 )
 
 // Load loads a turtle graph from the given input stream.
@@ -39,18 +40,16 @@ func loadURI(g *rdf2go.Graph, uri string) error {
 		return err
 	}
 
-	q.Header.Set("Accept", "text/turtle;q=1,application/ld+json;q=0.5")
+	q.Header.Set("Accept", fmt.Sprintf("%s;q=1,%s;q=0.5", mime.MimeTypeTurtle, mime.MimeTypeJSONLD))
 
 	r, err2 := client.Do(q)
 	if err2 != nil {
 		return err2
 	}
 
-	if r != nil {
-		defer r.Body.Close()
-		if r.StatusCode == 200 {
-			return g.Parse(r.Body, convert.RemoveHeaderParameters(r.Header.Get("Content-Type")))
-		}
+	defer r.Body.Close()
+	if r.StatusCode == 200 {
+		return g.Parse(r.Body, convert.RemoveHeaderParameters(r.Header.Get("Content-Type")))
 	}
 
 	return fmt.Errorf("could not fetch graph from %s - HTTP %d", uri, r.StatusCode)
