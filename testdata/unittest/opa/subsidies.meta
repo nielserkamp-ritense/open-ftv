@@ -1,6 +1,6 @@
 id: "subsidies"
 language: "Rego"
-rvvaid: "rvva1"
+rvvaID: "rvva1"
 source: "source1"
 target: "target1"
 url: "https://my.site/pol/x1"

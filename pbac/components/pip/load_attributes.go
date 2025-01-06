@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/mimetype"
 	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"

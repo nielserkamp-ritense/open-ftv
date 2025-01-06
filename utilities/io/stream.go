@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 // SnifStream attempts to determine the mime-type by examining the first few bytes of the given data-stream.

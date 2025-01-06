@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/goccy/go-json"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 )
@@ -145,7 +145,7 @@ func (p *policy) Content() io.Reader {
 }
 
 type policy struct {
-	id       string
+	id       string ``
 	language string
 	source   string
 	target   string

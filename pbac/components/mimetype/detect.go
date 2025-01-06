@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/goccy/go-json"
+	"github.com/goccy/go-yaml"
 	"github.com/pelletier/go-toml/v2"
-	"gopkg.in/yaml.v3"
 
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
 )
