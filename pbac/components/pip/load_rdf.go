@@ -67,7 +67,7 @@ func (l *loader) loadEntities() {
 func (l *loader) loadAttributes() {
 	list := l.graph.All(nil, rdf2go.NewResource(rdf.Type), rdf2go.NewResource(rdf.FTVAttribute))
 	for i := range list {
-		k, v, err := l.getKeyValue(list[i].Object)
+		k, v, err := l.getKeyValue(list[i].Subject)
 		if err != nil {
 			l.logger.Error("pip: error processing RDF attributes", "path", l.path, "mimetype", l.mt, "err", err)
 		} else {

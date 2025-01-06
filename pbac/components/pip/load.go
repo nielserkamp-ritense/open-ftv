@@ -2,14 +2,10 @@ package pip
 
 import (
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
-	"gopkg.in/yaml.v3"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
 func (p *pip) loadFromStore() {
@@ -18,7 +14,7 @@ func (p *pip) loadFromStore() {
 		p.iterateFolders(p.attrStore, p.recurse, p.attributeWatcher, p.loadAttributes)
 	}
 	if p.entityStore != "" {
-		p.clearAttributeWatcher()
+		p.clearEntityWatcher()
 		p.iterateFolders(p.entityStore, p.recurse, p.entityWatcher, p.loadEntities)
 	}
 }
@@ -47,35 +43,5 @@ func (p *pip) iterateFolders(path string, recurse bool, watcher *fsnotify.Watche
 
 	if err != nil {
 		p.logger.Error("pip: error iterating folders", "path", path, "err", err)
-	}
-}
-
-func (p *pip) loadEntities(path string) {
-	f, err := os.Open(path)
-	if err != nil {
-		p.logger.Error("pip: error opening entities file", "path", path, "err", err)
-		return
-	}
-
-	defer f.Close()
-
-	entities := make([]struct {
-		Type    string         `yaml:"type"`
-		ID      string         `yaml:"id"`
-		Attrs   map[string]any `yaml:"attributes,omitempty"`
-		Parents []string       `yaml:"parents,omitempty"`
-	}, 0)
-
-	if err = yaml.NewDecoder(f).Decode(&entities); err != nil {
-		p.logger.Error("pip: error decoding entities file", "path", path, "err", err)
-		return
-	}
-
-	for i := range entities {
-		e, attrs := entities[i], p.newAttributes()
-		for j := range e.Attrs {
-			attrs.AddAttribute(j, e.Attrs[j])
-		}
-		p.entities.AddEntity(models.NewEntity(e.Type, e.ID, attrs, e.Parents...))
 	}
 }

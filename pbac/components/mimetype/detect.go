@@ -65,7 +65,9 @@ func DetectType(f io.ReadSeeker, mt string) (fileType FileType, mimeType string,
 	return
 }
 
-func detectTypeFromJSON(f io.Reader) (FileType, string, any) {
+func detectTypeFromJSON(f io.ReadSeeker) (FileType, string, any) {
+	defer func() { _, _ = f.Seek(0, io.SeekStart) }()
+
 	var data any
 	if err := json.NewDecoder(f).Decode(&data); err != nil {
 		return UnknownFile, "", nil
@@ -84,7 +86,9 @@ func detectTypeFromJSON(f io.Reader) (FileType, string, any) {
 	}
 }
 
-func detectTypeFromYAML(f io.Reader) (FileType, string, any) {
+func detectTypeFromYAML(f io.ReadSeeker) (FileType, string, any) {
+	defer func() { _, _ = f.Seek(0, io.SeekStart) }()
+
 	var data any
 	if err := yaml.NewDecoder(f).Decode(&data); err != nil {
 		return UnknownFile, "", nil
@@ -100,7 +104,9 @@ func detectTypeFromYAML(f io.Reader) (FileType, string, any) {
 	}
 }
 
-func detectTypeFromTOML(f io.Reader) (FileType, string, any) {
+func detectTypeFromTOML(f io.ReadSeeker) (FileType, string, any) {
+	defer func() { _, _ = f.Seek(0, io.SeekStart) }()
+
 	var data any
 	if err := toml.NewDecoder(f).Decode(&data); err != nil {
 		return UnknownFile, "", nil

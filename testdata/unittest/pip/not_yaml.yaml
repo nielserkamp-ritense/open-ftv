@@ -1,2 +1,4 @@
-this="is"
-toml=1
+- this:
+    is
+  not yaml!
+-

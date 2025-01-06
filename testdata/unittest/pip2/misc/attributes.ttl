@@ -1,0 +1,35 @@
+@prefix : <http://example.com/test/attributes#> .
+
+@prefix ftv: <https://ftv.nl/rdf/ftv#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:werktijden
+    a ftv:Attribute ;
+    ftv:attributeKey "werktijden" ;
+    ftv:attributeValue
+            [
+                ftv:attributeKey "maandag" ;
+                ftv:attributeValue "1"^^xsd:int ;
+            ] ,
+            [
+                ftv:attributeKey "dinsdag" ;
+                ftv:attributeValue "2"^^xsd:int ;
+            ] ,
+            [
+                ftv:attributeKey "woensdag" ;
+                ftv:attributeValue "3"^^xsd:int ;
+            ] ,
+            [
+                ftv:attributeKey "donderdag" ;
+                ftv:attributeValue "4"^^xsd:int ;
+            ] ,
+            [
+                ftv:attributeKey "vrijdag" ;
+                ftv:attributeValue "5"^^xsd:int ;
+            ] ;
+.
