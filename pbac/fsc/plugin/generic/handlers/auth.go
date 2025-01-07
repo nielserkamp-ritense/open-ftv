@@ -50,50 +50,29 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 
 	l := components.LanguageFromString(cfg.PolicyLanguage)
 	switch l {
-	case components.REGO:
-		p = pip.New(pip.Config{
-			Ctx:     ctx,
-			Store:   cfg.PipStore,
-			Recurse: cfg.PipStoreRecurse,
-			Logger:  logger,
-		})
-	case components.CERBOS:
-		p = pip.New(pip.Config{
-			Ctx:     ctx,
-			Store:   cfg.PipStore,
-			Recurse: cfg.PipStoreRecurse,
-			Logger:  logger,
-		})
 	case components.CEDAR:
-		p = pip.New(pip.Config{
-			Ctx:           ctx,
-			Store:         cfg.PipStore,
-			Recurse:       cfg.PipStoreRecurse,
-			Logger:        logger,
-			NewAttributes: cedar.NewAttributeBuilder(logger),
-			NewEntities:   cedar.NewEntityBuilder(logger),
-		})
+		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+	case components.REGO:
+		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
 	case components.OPENFGA:
-		p = pip.New(pip.Config{
-			Ctx:     ctx,
-			Store:   cfg.PipStore,
-			Recurse: cfg.PipStoreRecurse,
-			Logger:  logger,
-		})
+		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
+	case components.CERBOS:
+		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
 	default:
 	}
 
 	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger), pdp.WithLogboek(logboek)}
 
 	switch l {
-	case components.REGO:
-		return opa.NewController(options...), nil
-	case components.CERBOS:
-		return cerbos.NewController(options...), nil
 	case components.CEDAR:
 		return cedar.NewController(options...), nil
+	case components.REGO:
+		return opa.NewController(options...), nil
 	case components.OPENFGA:
 		return openfga.NewController(options...), nil
+	case components.CERBOS:
+		cerbosCFG := cerbos.Config{Addr1: cfg.CerbosAddress, Addr2: cfg.CerbosAdmin, CA: cfg.CerbosCA, User: cfg.CerbosUser, Pswd: cfg.CerbosPswd}
+		return cerbos.NewController(cerbosCFG, options...), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}

@@ -206,7 +206,7 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }
 
@@ -254,7 +254,7 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }
 
@@ -302,6 +302,6 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }

@@ -32,7 +32,7 @@ func TestNew(t *testing.T) {
 		{
 			name:    "cerbos",
 			cfg:     &config.Config{PolicyLanguage: "Cerbos", PolicyStore: "../../../../../testdata/unittest/cerbos"},
-			wantLog: 3,
+			wantLog: 4,
 		},
 		{
 			name:    "opa",

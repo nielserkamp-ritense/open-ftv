@@ -127,8 +127,8 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 			WriteTimeout:   10 * time.Second,
 			IdleTimeout:    300 * time.Second,
 			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
+			PolicyLanguage: "cedar",
+			PolicyStore:    "../../../../../testdata/unittest/cedar",
 		}
 
 		auth := New(nil, cfg, logger, nil)
@@ -156,7 +156,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }
 
@@ -175,8 +175,8 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 			WriteTimeout:   10 * time.Second,
 			IdleTimeout:    300 * time.Second,
 			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
+			PolicyLanguage: "cedar",
+			PolicyStore:    "../../../../../testdata/unittest/cedar",
 		}
 
 		auth := New(nil, cfg, logger, nil)
@@ -204,7 +204,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }
 
@@ -223,8 +223,8 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 			WriteTimeout:   10 * time.Second,
 			IdleTimeout:    300 * time.Second,
 			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
+			PolicyLanguage: "cedar",
+			PolicyStore:    "../../../../../testdata/unittest/cedar",
 		}
 
 		auth := New(nil, cfg, logger, nil)
@@ -252,6 +252,6 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 5, h.Count())
+		assert.Equal(t, 6, h.Count())
 	})
 }
