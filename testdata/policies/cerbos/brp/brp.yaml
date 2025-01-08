@@ -1,0 +1,9 @@
+---
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  resource: "service:https://inway-fsc-nlx-inway:443/brp-personen"
+  version: "default"
+  scope: "ftv"
+  rules:
+    - actions: ['POST']
+      effect: EFFECT_ALLOW

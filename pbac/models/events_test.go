@@ -13,9 +13,18 @@ func TestEventType(t *testing.T) {
 		want string
 	}{
 		{name: "empty", want: "<invalid>"},
-		{name: "added", in: PolicyAdded, want: "added"},
-		{name: "replaced", in: PolicyReplaced, want: "replaced"},
-		{name: "removed", in: PolicyRemoved, want: "removed"},
+		{name: "policy added", in: PolicyAdded, want: "policy added"},
+		{name: "policy replaced", in: PolicyReplaced, want: "policy replaced"},
+		{name: "policy removed", in: PolicyRemoved, want: "policy removed"},
+		{name: "attribute added", in: AttributeAdded, want: "attribute added"},
+		{name: "attribute replaced", in: AttributeReplaced, want: "attribute replaced"},
+		{name: "attribute removed", in: AttributeRemoved, want: "attribute removed"},
+		{name: "entity added", in: EntityAdded, want: "entity added"},
+		{name: "entity replaced", in: EntityReplaced, want: "entity replaced"},
+		{name: "entity removed", in: EntityRemoved, want: "entity removed"},
+		{name: "relation added", in: RelationAdded, want: "relation added"},
+		{name: "relation replaced", in: RelationReplaced, want: "relation replaced"},
+		{name: "relation removed", in: RelationRemoved, want: "relation removed"},
 		{name: "invalid", in: 99, want: "<invalid>"},
 	}
 

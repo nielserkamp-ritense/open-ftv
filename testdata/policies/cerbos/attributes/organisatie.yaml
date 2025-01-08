@@ -1,0 +1,8 @@
+---
+apiVersion: api.cerbos.dev/v1
+description: Werktijden
+exportVariables:
+  name: organisation
+  definitions:
+    oin: "12345678901234567890"
+    kvknr: "54111999"

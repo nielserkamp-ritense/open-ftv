@@ -31,5 +31,8 @@ func (c *controller) Handle(t models.EventType, key string) {
 	case models.PolicyRemoved:
 		c.pdp.Remove(cedar.PolicyID(key))
 		c.Logger().Info("policy removed", "controller", c.String(), "policy-key", key)
+
+	default:
+		// TODO: attributes, entities, relations
 	}
 }

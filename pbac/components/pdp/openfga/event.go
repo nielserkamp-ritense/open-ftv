@@ -42,6 +42,8 @@ func (c *controller) Handle(t models.EventType, key string) {
 			c.removeRelations(store)
 		}
 
+	default:
+		// TODO: attributes, entities, relations
 	}
 }
 

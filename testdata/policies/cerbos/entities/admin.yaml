@@ -1,0 +1,10 @@
+---
+apiVersion: api.cerbos.dev/v1
+rolePolicy:
+  role: "admin"
+  scope: "ftv"
+  scopePermissions: SCOPE_PERMISSIONS_REQUIRE_PARENTAL_CONSENT_FOR_ALLOWS
+  rules:
+    - resource: "service:https://inway-fsc-nlx-inway:443/brp-personen"
+      allowActions:
+        - 'POST'

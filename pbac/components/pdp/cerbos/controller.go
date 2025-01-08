@@ -28,9 +28,20 @@ type Config struct {
 func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 	options = append(options, pdp.WithNameVersion(components.CERBOS.String(), Version))
 
-	c := &controller{Base: pdp.NewBase(options...), cfg: cfg}
+	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
 	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
+	c.initClients()
 
+	if store, recurse := c.Store(); store != "" {
+		store, _ = filepath.Abs(store)
+		c.PAP().LoadFromStore(store, recurse)
+	}
+
+	c.Logger().Info("pbac controller initialized", c.args(nil)...)
+	return c
+}
+
+func (c *controller) initClients() {
 	var err, err2 error
 
 	if c.cfg.CA == "" {
@@ -44,28 +55,20 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 
 	switch {
 	case err != nil && err2 != nil:
-		c.Logger().Error("failed to create clients", c.log(errors.Join(err, err2))...)
+		c.Logger().Error("failed to initialize clients", c.args(errors.Join(err, err2))...)
 	case err != nil:
-		c.Logger().Error("failed to create gRPC client", c.log(err)...)
+		c.Logger().Error("failed to initialize gRPC client", c.args(err)...)
 	case err2 != nil:
-		c.Logger().Error("failed to create admin client", c.log(err2)...)
+		c.Logger().Error("failed to initialize admin client", c.args(err2)...)
 	default:
 		if c.info, err = c.engine.ServerInfo(c.Context()); err != nil || c.info == nil {
-			c.Logger().Error("failed to retrieve server-info", c.log(err)...)
+			c.Logger().Error("failed to retrieve server-info", c.args(err)...)
 		}
 	}
-
-	if store, recurse := c.Store(); store != "" {
-		store, _ = filepath.Abs(store)
-		c.PAP().LoadFromStore(store, recurse)
-	}
-
-	c.Logger().Info("pbac controller initialized", c.log(nil)...)
-	return c
 }
 
-func (c *controller) log(err error) []any {
-	out := []any{"controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA, "serverInfo", c.info}
+func (c *controller) args(err error, args ...any) []any {
+	out := append([]any{"controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA, "serverInfo", c.info}, args...)
 	if err != nil {
 		out = append(out, "error", err)
 	}
@@ -74,8 +77,9 @@ func (c *controller) log(err error) []any {
 
 type controller struct {
 	pdp.Base
-	cfg    Config
-	admin  *cerbos.GRPCAdminClient
-	engine *cerbos.GRPCClient
-	info   *cerbos.ServerInfo
+	cfg       Config
+	admin     *cerbos.GRPCAdminClient
+	engine    *cerbos.GRPCClient
+	info      *cerbos.ServerInfo
+	policyIDs map[string]string
 }

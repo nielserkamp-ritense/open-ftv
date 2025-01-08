@@ -42,5 +42,8 @@ func (c *controller) Handle(event models.EventType, key string) {
 				c.Logger().Info("policy removed", "controller", c.String(), "policy-key", key)
 			}
 		}
+
+	default:
+		// TODO: attributes, entities, relations
 	}
 }

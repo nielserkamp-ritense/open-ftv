@@ -1,0 +1,9 @@
+---
+apiVersion: api.cerbos.dev/v1
+principalPolicy:
+  principal: alice
+  version: default
+  scope: ftv
+  constants:
+    local:
+      name: "Alice"
