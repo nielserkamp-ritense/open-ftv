@@ -99,21 +99,29 @@ func TestLoadRealError(t *testing.T) {
 }
 
 func TestLoadURI(t *testing.T) {
-	const uri = `https://identifier.overheid.nl/tooi/def/ont.ttl`
+	testCases := []struct {
+		name string
+		uri  string
+	}{
+		{name: "TOOI", uri: "https://identifier.overheid.nl/tooi/def/ont.ttl"},
+		{name: "ODRL 2.2", uri: "https://www.w3.org/ns/odrl/2/ODRL22.ttl"},
+	}
 
-	t.Run("load uri", func(t *testing.T) {
-		g, err := LoadFromURI(uri, true)
-		require.NoError(t, err)
-		require.NotNil(t, g)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g, err := LoadFromURI(tc.uri, true)
+			require.NoError(t, err)
+			require.NotNil(t, g)
 
-		ch := g.IterTriples()
-		require.NotNil(t, ch)
+			ch := g.IterTriples()
+			require.NotNil(t, ch)
 
-		for term := range ch {
-			s := term.String()
-			assert.NotEmpty(t, s)
-		}
-	})
+			for term := range ch {
+				s := term.String()
+				assert.NotEmpty(t, s)
+			}
+		})
+	}
 }
 
 func TestLoadURIError(t *testing.T) {
