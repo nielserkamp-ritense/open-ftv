@@ -1,0 +1,17 @@
+---
+server:
+  httpListenAddr: ":3592"
+  grpcListenAddr: ":3593"
+  adminAPI:
+    enabled: true
+    adminCredentials:
+      username: cerbos
+      passwordHash: JDJ5JDEwJGhQYXF0ZmpxQ3pLd3pnellNOS9SeXVGSDJQR0t4QloyUHkyLkFyM2tSOVJNMnNiTVNwWVU2Cgo=
+
+audit:
+  enabled: false
+
+storage:
+  driver: sqlite3
+  sqlite3:
+    dsn: file::memory:?cache=shared

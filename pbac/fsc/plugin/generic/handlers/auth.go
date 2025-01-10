@@ -46,9 +46,9 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 		ctx = context.Background()
 	}
 
-	var p pip.PIP
-
 	l := components.LanguageFromString(cfg.PolicyLanguage)
+
+	var p pip.PIP
 	switch l {
 	case components.CEDAR:
 		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})

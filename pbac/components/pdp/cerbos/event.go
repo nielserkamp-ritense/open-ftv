@@ -12,37 +12,56 @@ import (
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(event models.EventType, key string) {
+	if c.admin == nil {
+		c.logger.Error("failed to process event; admin client not initialized", "policy-key", key)
+		return
+	}
+
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
-		c.policyIDs[key] = c.getPolicyID(key)
+		id := c.getPolicyID(key)
 
-		policy, err := c.PAP().Get(key)
-		if err != nil {
-			c.Logger().Error("failed to get policy", c.args(err, "policy-key", key)...)
-			return
+		oldID, ok := c.policyIDs[key]
+		if ok && oldID != id {
+			c.deletePolicy(key, oldID)
 		}
 
-		set := cerbos.NewPolicySet().AddPolicyFromReader(policy.Content())
-		if err = set.Validate(); err != nil {
-			c.Logger().Error("failed to decode policy", c.args(err, "policy-key", key)...)
-		} else if err = c.admin.AddOrUpdatePolicy(c.Context(), set); err != nil {
-			c.Logger().Error("failed to add/replace policy", c.args(err, "policy-key", key)...)
-		} else {
-			c.Logger().Info("policy added/replaced", c.args(nil, "policy-key", key)...)
-		}
+		c.upsertPolicy(key, id)
 
 	case models.PolicyRemoved:
 		if id, ok := c.policyIDs[key]; ok && id != "" {
-			if _, err := c.admin.DisablePolicy(c.Context(), id); err != nil {
-				c.Logger().Error("failed to remove policy", c.args(err, "policy-key", key, "policy-id", id)...)
-			} else {
-				delete(c.policyIDs, key)
-				c.Logger().Info("policy removed", c.args(nil, "policy-key", key, "policy-id", id)...)
-			}
+			c.deletePolicy(key, id)
 		}
 
 	default:
 		// TODO: attributes, entities, relations
+	}
+}
+
+func (c *controller) upsertPolicy(key, id string) {
+	policy, err := c.PAP().Get(key)
+	if err != nil {
+		c.logger.Error("failed to get policy", "policy-key", key, "error", err)
+		return
+	}
+
+	set := cerbos.NewPolicySet().AddPolicyFromReader(policy.Content())
+	if err = set.Validate(); err != nil {
+		c.logger.Error("failed to decode policy", "policy-key", key, "error", err)
+	} else if err = c.admin.AddOrUpdatePolicy(c.Context(), set); err != nil {
+		c.logger.Error("failed to add/replace policy", "policy-key", key, "error", err)
+	} else {
+		c.policyIDs[key] = id
+		c.logger.Info("policy added/replaced", "policy-key", key, "policy-id", id)
+	}
+}
+
+func (c *controller) deletePolicy(key, id string) {
+	if _, err := c.admin.DisablePolicy(c.Context(), id); err != nil {
+		c.logger.Error("failed to remove policy", "policy-key", key, "policy-id", id, "error", err)
+	} else {
+		delete(c.policyIDs, key)
+		c.logger.Info("policy removed", "policy-key", key, "policy-id", id)
 	}
 }
 

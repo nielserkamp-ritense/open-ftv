@@ -1,0 +1,7 @@
+---
+apiVersion: api.cerbos.dev/v1
+description: RvIG constanten
+exportConstants:
+  name: rvig
+  definitions:
+    personen-service-endpoint: "https://inway-fsc-nlx-inway:443/brp-personen"

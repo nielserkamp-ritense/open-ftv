@@ -1,8 +1,5 @@
 ---
 apiVersion: api.cerbos.dev/v1
 principalPolicy:
-  principal: alice
+  principal: subsidies
   version: default
-  constants:
-    local:
-      name: "Alice"
