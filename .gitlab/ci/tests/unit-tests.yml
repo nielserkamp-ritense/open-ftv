@@ -75,6 +75,8 @@ pbac-components:
   image: golang:1.23
   variables:
     GOPATH: ${CI_PROJECT_DIR}/pbac/components/.go-cache
+  services:
+    - docker:dind
   before_script:
     - mkdir -p pbac/components/.go-cache
   script:
@@ -113,6 +115,8 @@ pbac-fsc-plugin-generic:
   image: golang:1.23
   variables:
     GOPATH: ${CI_PROJECT_DIR}/pbac/fsc/plugin/generic/.go-cache
+  services:
+    - docker:dind
   before_script:
     - mkdir -p pbac/fsc/plugin/generic/.go-cache
   script:
