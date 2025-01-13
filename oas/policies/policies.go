@@ -6,7 +6,7 @@ package policies
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Data Optional extra context of the error.
-	Data map[string]interface{} `json:"data"`
+	Data map[string]interface{} `json:"data,omitempty"`
 
 	// Message An optional message detailing the error.
 	Message string `json:"message"`
@@ -23,14 +23,14 @@ type Policy struct {
 	// Language The language of the policy.
 	Language string `json:"language"`
 
-	// RvvaID The unique identifier of the Register of Activities (RvVA).
-	RvvaID string `json:"rvvaID"`
+	// RvvaID The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+	RvvaID string `json:"rvvaID,omitempty"`
 
 	// Source The unique identifier of the source.
-	Source string `json:"source"`
+	Source string `json:"source,omitempty"`
 
 	// Target The unique identifier of the target.
-	Target string `json:"target"`
+	Target string `json:"target,omitempty"`
 
 	// Url Link to the actual policy.
 	Url string `json:"url"`
@@ -69,19 +69,19 @@ type UnexpectedError = ErrorResponse
 // DeletePolicyIdParams defines parameters for DeletePolicyId.
 type DeletePolicyIdParams struct {
 	// Force Ignore missing data during a delete operation.
-	Force *IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
+	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
 // PostPolicyIdParams defines parameters for PostPolicyId.
 type PostPolicyIdParams struct {
 	// Force Force upsert during a put/post operation.
-	Force *ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
 // PutPolicyIdParams defines parameters for PutPolicyId.
 type PutPolicyIdParams struct {
 	// Force Force upsert during a put/post operation.
-	Force *ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
 // PostPolicyIdJSONRequestBody defines body for PostPolicyId for application/json ContentType.

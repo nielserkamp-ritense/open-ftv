@@ -60,7 +60,7 @@ paths:
     put:
       summary: Add policy.
       description: |
-        If the unique identifier of the policy already exists, a 409 status code will be returned.
+        If the unique identifier of the policy already exists, a 409 status code will be returned.        
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -153,6 +153,7 @@ components:
         type: string
       required: true
       description: Unique identifier of a policy.
+
     ForceUpsert:
       in: query
       name: force
@@ -160,6 +161,7 @@ components:
         type: boolean
       required: false
       description: Force upsert during a put/post operation.
+
     IgnoreMissing:
       in: query
       name: force
@@ -175,30 +177,35 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+
     NotAuthorized:
       description: Not authorized.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+
     AccessDenied:
       description: Access denied.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+
     NotFound:
       description: Resource not found.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+
     AlreadyExists:
       description: Resource already exists.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+
     UnexpectedError:
       description: Unexpected error.
       content:
@@ -229,14 +236,11 @@ components:
           description: The unique identifier of the target.
         rvvaID:
           type: string
-          description: The unique identifier of the Register of Activities (RvVA).
+          description: The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
       required:
         - id
         - language
         - url
-        - source
-        - target
-        - rvvaID
 
     PoliciesResponse:
       type: array
@@ -252,11 +256,8 @@ components:
         message:
           type: string
           description: An optional message detailing the error.
-          nullable: false
         data:
           type: object
           description: Optional extra context of the error.
-          nullable: false
       required:
         - message
-        - data

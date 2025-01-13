@@ -361,3 +361,5 @@ components:
         data:
           type: object
           description: Optional extra context of the error.
+      required:
+        - message

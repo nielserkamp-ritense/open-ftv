@@ -54,7 +54,7 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 		return nil
 	}
 
-	if req.Action.Name == nil || *req.Action.Name == "" {
+	if req.Action.Name == "" {
 		p.msg, p.err = "invalid action", errors.New("action name must be filled")
 		return nil
 	}
@@ -73,12 +73,12 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	method, _ := actionAttrs.GetAttribute(models.AttrMethod).(string)
 
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
-	action := models.NewEntity(models.EntityAction, *req.Action.Name, actionAttrs)
+	action := models.NewEntity(models.EntityAction, req.Action.Name, actionAttrs)
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
 	if req.Context != nil {
-		attr = *req.Context
+		attr = req.Context
 	} else {
 		attr = make(map[string]any)
 	}
@@ -113,6 +113,6 @@ func (p *authProcess) authorizeAuthZEN() error {
 
 	return p.fc.JSON(&authzen.AuthorizationResponse{
 		Decision: allowed,
-		Context:  &authzen.ReasonField{"en": msg},
+		Context:  map[string]any{"en": msg},
 	})
 }
