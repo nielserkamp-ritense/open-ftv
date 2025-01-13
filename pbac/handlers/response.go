@@ -1,3 +1,4 @@
+// Package handlers contains generic HTTP request handlers.
 package handlers
 
 import (

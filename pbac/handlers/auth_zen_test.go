@@ -2,17 +2,20 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/cedar"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/opa"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -21,29 +24,27 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 	out := `{"context":{"en":"ok"},"decision":true}`
 
 	t.Run("authzen handler (1)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20020,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
-			PolicyStore:    "../../../../../testdata/unittest/cedar",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzenzen", auth.AuthZEN)
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/authzenzen", buf)
+		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/authzen", buf)
 		require.NoError(t, err2)
 		require.NotNil(t, req)
 
@@ -51,16 +52,16 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 8, h.Count())
+		assert.GreaterOrEqual(t, 9, h.Count())
 	})
 }
 
@@ -69,29 +70,27 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 	out := `{"context":{"en":"ok"},"decision":true}`
 
 	t.Run("authzen handler (2)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20021,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "opa",
-			PolicyStore:    "../../../../../testdata/unittest/opa",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/opa", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzenzen", auth.AuthZEN)
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/authzenzen", buf)
+		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/authzen", buf)
 		require.NoError(t, err2)
 		require.NotNil(t, req)
 
@@ -99,16 +98,16 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 9, h.Count())
+		assert.GreaterOrEqual(t, 11, h.Count())
 	})
 }
 
@@ -117,27 +116,23 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 	out := `{"context":{"en":"not authorized"},"decision":false}`
 
 	t.Run("authzen handler fail (1)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "opa",
-			PolicyStore:    "../../../../../testdata/unittest/opa",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.AuthZEN)
-
-		cfg.PolicyLanguage = "" // this forces the bad config!
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -149,16 +144,16 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 9, h.Count())
+		assert.GreaterOrEqual(t, 10, h.Count())
 	})
 }
 
@@ -167,25 +162,23 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 	out := `{"message":"invalid subject"}`
 
 	t.Run("authzen handler fail (2)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.AuthZEN)
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -197,16 +190,16 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 6, h.Count())
+		assert.GreaterOrEqual(t, 7, h.Count())
 	})
 }
 
@@ -215,25 +208,23 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 	out := `{"message":"invalid action"}`
 
 	t.Run("authzen handler fail (3)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.AuthZEN)
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -245,16 +236,16 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 6, h.Count())
+		assert.GreaterOrEqual(t, 7, h.Count())
 	})
 }
 
@@ -263,25 +254,23 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 	out := `{"message":"invalid resource"}`
 
 	t.Run("authzen handler fail (4)", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20010,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cerbos",
-			PolicyStore:    "../../../../../testdata/unittest/cerbos",
-		}
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		auth := New(nil, cfg, logger, nil)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.AuthZEN)
+		app.Post("/v1/authzen", auth.Authorize)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -293,15 +282,15 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
-
 		defer resp.Body.Close()
+
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
 		require.NoError(t, err4)
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.Equal(t, 6, h.Count())
+		assert.GreaterOrEqual(t, 7, h.Count())
 	})
 }

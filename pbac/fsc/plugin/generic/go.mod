@@ -9,10 +9,9 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250113074201-fc06e9625c0f
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250113074201-fc06e9625c0f
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250113074201-fc06e9625c0f
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250113074201-fc06e9625c0f
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250113114800-27250d0872f5
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250113114800-27250d0872f5
 	gitlab.com/gjuyn/go-config v1.0.1
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
@@ -112,12 +111,14 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.57.0 // indirect
+	github.com/valyala/fasthttp v1.58.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250113114800-27250d0872f5 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250113114800-27250d0872f5 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.33.0 // indirect
@@ -151,6 +152,7 @@ require (
 replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../../../oas
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components => ../../../../pbac/components
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers => ../../../../pbac/handlers
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models => ../../../../pbac/models
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../../../utilities
 )

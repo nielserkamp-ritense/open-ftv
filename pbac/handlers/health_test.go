@@ -8,17 +8,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/gjuyn/go-config/config"
-
-	cfg2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 )
 
 func TestHealth(t *testing.T) {
 	t.Run("test health", func(t *testing.T) {
-		cfg, _, err := cfg2.New(config.NoFlags())
-		require.NoError(t, err)
-		require.NotNil(t, cfg)
-
 		srv := fiber.New()
 		srv.Get("/healthz", HealthZ)
 

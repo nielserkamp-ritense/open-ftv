@@ -2,6 +2,7 @@ package server
 
 import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/handlers"
+	common "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
@@ -11,13 +12,13 @@ func (s *service) initRoutes() {
 		panic("failed to initialize authorization handler")
 	}
 
-	policies := handlers.NewPoliciesHandler(s.cfg, s.logger, auth.Controller())
+	policies := common.NewPoliciesHandler(s.logger, auth.Controller().PAP())
 	if policies == nil {
 		panic("failed to initialize policies handler")
 	}
 
 	// liveness & readiness.
-	s.svc.Get("/healthz", handlers.HealthZ)
+	s.svc.Get("/healthz", common.HealthZ)
 
 	// API v1.
 	v1 := s.svc.Group("/v1")

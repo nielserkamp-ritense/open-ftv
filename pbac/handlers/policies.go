@@ -10,8 +10,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pap"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 )
 
 // PoliciesHandler represents the interface for handling requests about policies.
@@ -24,18 +22,18 @@ type PoliciesHandler interface {
 }
 
 // NewPoliciesHandler instantiates a policy handler.
-func NewPoliciesHandler(cfg *config.Config, logger *slog.Logger, c pdp.Controller) PoliciesHandler {
-	return &policiesHandler{cfg: cfg, logger: logger, c: c}
+func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP) PoliciesHandler {
+	return &policiesHandler{logger: logger, cache: cache}
 }
 
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
-	list := h.c.PAP().ListAllKeys()
+	list := h.cache.ListAllKeys()
 	resp := make([]*policies.Policy, 0, len(list))
 
 	for i := range list {
 		key := list[i]
-		if pol, err := h.c.PAP().Get(key); err == nil {
+		if pol, err := h.cache.Get(key); err == nil {
 			// we ignore policies that got deleted after we retrieved the list of keys.
 			resp = append(resp, h.convertPolicy(pol))
 		}
@@ -51,7 +49,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	pol, err2 := h.c.PAP().Get(id)
+	pol, err2 := h.cache.Get(id)
 	if err2 != nil {
 		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -80,8 +78,8 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if upsert {
 		// for upsert we check if the policy exists.
 		// if it exists, we replace it, otherwise we add it.
-		if _, err = h.c.PAP().Get(p.Id); err == nil {
-			pol2, err2 := h.c.PAP().Replace(pol)
+		if _, err = h.cache.Get(p.Id); err == nil {
+			pol2, err2 := h.cache.Replace(pol)
 			if err2 != nil {
 				return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 			}
@@ -89,7 +87,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		}
 	}
 
-	pol2, err2 := h.c.PAP().Add(pol)
+	pol2, err2 := h.cache.Add(pol)
 	if err2 != nil {
 		return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 	}
@@ -118,8 +116,8 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	if upsert {
 		// for upsert we check if the policy exists.
 		// if it doesn't exist, we add it, otherwise we replace it.
-		if _, err = h.c.PAP().Get(p.Id); err != nil {
-			pol2, err2 := h.c.PAP().Add(pol)
+		if _, err = h.cache.Get(p.Id); err != nil {
+			pol2, err2 := h.cache.Add(pol)
 			if err2 != nil {
 				return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 			}
@@ -127,7 +125,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		}
 	}
 
-	pol2, err2 := h.c.PAP().Replace(pol)
+	pol2, err2 := h.cache.Replace(pol)
 	if err2 != nil {
 		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -143,14 +141,14 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 
 	ignore := req.QueryBool("ignoreMissing")
 
-	if _, err = h.c.PAP().Get(id); err != nil {
+	if _, err = h.cache.Get(id); err != nil {
 		if ignore {
 			return req.JSON(&policies.Policy{Id: id})
 		}
 		return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
-	pol, err2 := h.c.PAP().Remove(id)
+	pol, err2 := h.cache.Remove(id)
 	if err2 != nil {
 		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -216,7 +214,6 @@ func (h *policiesHandler) convertPolicy(pol pap.Policy) *policies.Policy {
 }
 
 type policiesHandler struct {
-	cfg    *config.Config
 	logger *slog.Logger
-	c      pdp.Controller
+	cache  pap.PAP
 }

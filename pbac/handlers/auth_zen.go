@@ -10,16 +10,28 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
-// AuthZEN implements the authorization handler for AuthZEN requests.
-func (h *authHandler) AuthZEN(fc *fiber.Ctx) error {
+// AuthZENAuthorizer represents the interface for handling AuthZEN authorization requests.
+type AuthZENAuthorizer interface {
+	Authorize(req *fiber.Ctx) error
+}
+
+// NewAuthHandlerZEN instantiates a new AuthZEN authorization handler.
+func NewAuthHandlerZEN(logger *slog.Logger, controller pdp.Controller) AuthZENAuthorizer {
+	return &authZEN{logger: logger, controller: controller}
+}
+
+// Authorize implements the AuthZENAuthorizer interface.
+func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 	p := &authProcess{
-		authHandler: *h,
-		fc:          fc,
-		status:      fiber.StatusInternalServerError,
-		started:     time.Now(),
+		logger:     h.logger,
+		controller: h.controller,
+		fc:         fc,
+		status:     fiber.StatusInternalServerError,
+		started:    time.Now(),
 	}
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
@@ -28,7 +40,7 @@ func (h *authHandler) AuthZEN(fc *fiber.Ctx) error {
 
 	req := p.verifyRequestAuthZEN()
 	if p.err != nil {
-		p.logger.Error("authorization handler failed", "error", p.err)
+		p.logger.Error("AuthZEN authorization handler failed", "error", p.err)
 		return SendMessageResponse(fc, p.status, p.msg)
 	}
 
@@ -98,7 +110,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 
 func (p *authProcess) authorizeAuthZEN() error {
 	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
-		p.msg = "authorization process failed"
+		p.msg = "AuthZEN authorization process failed"
 		return SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
@@ -115,4 +127,9 @@ func (p *authProcess) authorizeAuthZEN() error {
 		Decision: allowed,
 		Context:  map[string]any{"en": msg},
 	})
+}
+
+type authZEN struct {
+	logger     *slog.Logger
+	controller pdp.Controller
 }

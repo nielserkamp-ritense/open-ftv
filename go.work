@@ -6,6 +6,7 @@ use (
 	./oas
 	./pbac/components
 	./pbac/fsc/plugin/generic
+	./pbac/handlers
 	./pbac/models
 	./utilities
 )

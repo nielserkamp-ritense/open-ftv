@@ -14,16 +14,28 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-// AuthFSC implements the authorization handler for FSC Auth plugin requests.
-func (h *authHandler) AuthFSC(fc *fiber.Ctx) error {
-	p := &authProcess{
-		authHandler: *h,
-		fc:          fc,
-		status:      fiber.StatusInternalServerError,
-		started:     time.Now(),
+// FSCAuthorizer represents the interface for handling FSC authorization requests.
+type FSCAuthorizer interface {
+	Authorize(req *fiber.Ctx) error
+}
+
+// NewAuthHandlerFSC instantiates a new FSC authorization handler.
+func NewAuthHandlerFSC(logger *slog.Logger, controller pdp.Controller) FSCAuthorizer {
+	return &authFSC{logger: logger, controller: controller}
+}
+
+// Authorize implements the FSCAuthorizer interface.
+func (h *authFSC) Authorize(fc *fiber.Ctx) error {
+	p := authProcess{
+		logger:     h.logger,
+		controller: h.controller,
+		fc:         fc,
+		status:     fiber.StatusInternalServerError,
+		started:    time.Now(),
 	}
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
@@ -32,7 +44,7 @@ func (h *authHandler) AuthFSC(fc *fiber.Ctx) error {
 
 	req := p.verifyRequestFSC()
 	if p.err != nil {
-		p.logger.Error("authorization handler failed", "error", p.err)
+		p.logger.Error("FSC authorization handler failed", "error", p.err)
 		return SendMessageResponse(fc, p.status, p.msg)
 	}
 
@@ -102,7 +114,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 
 func (p *authProcess) authorizeFSC() error {
 	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
-		p.msg = "authorization process failed"
+		p.msg = "FSC authorization process failed"
 		return SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
@@ -123,4 +135,9 @@ func (p *authProcess) authorizeFSC() error {
 			}{Reason: &msg},
 		},
 	})
+}
+
+type authFSC struct {
+	logger     *slog.Logger
+	controller pdp.Controller
 }

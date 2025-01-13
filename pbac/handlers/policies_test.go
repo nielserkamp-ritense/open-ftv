@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net/http/httptest"
@@ -13,44 +14,48 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/gjuyn/go-config/config"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
-	cfg2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/cedar"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestNewPoliciesHandler(t *testing.T) {
 	t.Run("test new policies handler", func(t *testing.T) {
-		cfg, _, err := cfg2.New(config.NoFlags())
-		require.NoError(t, err)
-		require.NotNil(t, cfg)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-		h := slog2.NewDummyHandler(slog.LevelInfo)
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		logger := slog.New(h)
 
-		ph := NewPoliciesHandler(cfg, slog.New(h), nil)
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		ph := NewPoliciesHandler(logger, controller.PAP())
 		require.NotNil(t, ph)
 	})
 }
 
 func TestPoliciesHandler_GetPolicies(t *testing.T) {
 	t.Run("test new policies handler", func(t *testing.T) {
-		cfg := &cfg2.Config{
-			PolicyLanguage:     "cedar",
-			PolicyStore:        "../../../../../testdata/policies/cedar",
-			PolicyStoreRecurse: true,
-			PipStore:           "../../../../../testdata/pip",
-			PipStoreRecurse:    true,
-		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-		h := slog2.NewDummyHandler(slog.LevelInfo)
+		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		c, err := newController(nil, cfg, logger, nil)
-		require.NoError(t, err)
-		require.NotNil(t, c)
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
 
-		ph := NewPoliciesHandler(cfg, logger, c)
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		ph := NewPoliciesHandler(logger, controller.PAP())
 		require.NotNil(t, ph)
 
 		srv := fiber.New()
@@ -70,7 +75,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list []*policies.Policy
-		err = json.Unmarshal(b, &list)
+		err := json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.Equal(t, 4, len(list))
 	})
@@ -105,22 +110,19 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &cfg2.Config{
-				PolicyLanguage:     "cedar",
-				PolicyStore:        "../../../../../testdata/policies/cedar",
-				PolicyStoreRecurse: true,
-				PipStore:           "../../../../../testdata/pip",
-				PipStoreRecurse:    true,
-			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-			h := slog2.NewDummyHandler(slog.LevelInfo)
+			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			c, err := newController(nil, cfg, logger, nil)
-			require.NoError(t, err)
-			require.NotNil(t, c)
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p)
 
-			ph := NewPoliciesHandler(cfg, logger, c)
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			require.NotNil(t, controller)
+
+			ph := NewPoliciesHandler(logger, controller.PAP())
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -141,7 +143,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 				require.NotNil(t, b)
 
 				var pol policies.Policy
-				err = json.Unmarshal(b, &pol)
+				err := json.Unmarshal(b, &pol)
 				require.NoError(t, err)
 				assert.NotNil(t, pol)
 			}
@@ -222,22 +224,19 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &cfg2.Config{
-				PolicyLanguage:     "cedar",
-				PolicyStore:        "../../../../../testdata/policies/cedar",
-				PolicyStoreRecurse: true,
-				PipStore:           "../../../../../testdata/pip",
-				PipStoreRecurse:    true,
-			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-			h := slog2.NewDummyHandler(slog.LevelInfo)
+			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			c, err := newController(nil, cfg, logger, nil)
-			require.NoError(t, err)
-			require.NotNil(t, c)
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p)
 
-			ph := NewPoliciesHandler(cfg, logger, c)
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			require.NotNil(t, controller)
+
+			ph := NewPoliciesHandler(logger, controller.PAP())
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -260,7 +259,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 				require.NotNil(t, b)
 
 				var pol policies.Policy
-				err = json.Unmarshal(b, &pol)
+				err := json.Unmarshal(b, &pol)
 				require.NoError(t, err)
 				assert.NotNil(t, pol)
 			}
@@ -341,22 +340,19 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &cfg2.Config{
-				PolicyLanguage:     "cedar",
-				PolicyStore:        "../../../../../testdata/policies/cedar",
-				PolicyStoreRecurse: true,
-				PipStore:           "../../../../../testdata/pip",
-				PipStoreRecurse:    true,
-			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-			h := slog2.NewDummyHandler(slog.LevelInfo)
+			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			c, err := newController(nil, cfg, logger, nil)
-			require.NoError(t, err)
-			require.NotNil(t, c)
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p)
 
-			ph := NewPoliciesHandler(cfg, logger, c)
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			require.NotNil(t, controller)
+
+			ph := NewPoliciesHandler(logger, controller.PAP())
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -379,7 +375,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 				require.NotNil(t, b)
 
 				var pol policies.Policy
-				err = json.Unmarshal(b, &pol)
+				err := json.Unmarshal(b, &pol)
 				require.NoError(t, err)
 				assert.NotNil(t, pol)
 			}
@@ -416,22 +412,19 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &cfg2.Config{
-				PolicyLanguage:     "cedar",
-				PolicyStore:        "../../../../../testdata/policies/cedar",
-				PolicyStoreRecurse: true,
-				PipStore:           "../../../../../testdata/pip",
-				PipStoreRecurse:    true,
-			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-			h := slog2.NewDummyHandler(slog.LevelInfo)
+			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			c, err := newController(nil, cfg, logger, nil)
-			require.NoError(t, err)
-			require.NotNil(t, c)
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p)
 
-			ph := NewPoliciesHandler(cfg, logger, c)
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			require.NotNil(t, controller)
+
+			ph := NewPoliciesHandler(logger, controller.PAP())
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -454,7 +447,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 				require.NotNil(t, b)
 
 				var pol policies.Policy
-				err = json.Unmarshal(b, &pol)
+				err := json.Unmarshal(b, &pol)
 				require.NoError(t, err)
 				assert.NotNil(t, pol)
 			}
