@@ -10,8 +10,9 @@ type Attribute struct {
 
 	// Type The optional type of a value. By default a value is stored as-is.
 	//
-	// The following codes for type are supported: "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
-	// Optionally, the type can be specified as one of the standard XSD types (e.g. "xsd:byte").
+	// The following codes for type are supported:
+	// "string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
+	// Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
 	//
 	// An *integer* value is stored as a 64-bit signed integer.
 	//
@@ -21,11 +22,11 @@ type Attribute struct {
 	// or any other value to represent a false state.
 	//
 	// A *date*, *time* or *timestamp* value should adhere to the format as described in ISO-8601.
-	// If it cannot be decoded according to ISO-8601, a 400 error will be returned.
+	// If it cannot be decoded according to ISO-8601, a 400 response status code will be returned.
 	Type string `json:"type,omitempty"`
 
 	// Value The value of the attribute.
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 }
 
 // AttributeResponse The content of an attribute (key/value pair).
@@ -59,32 +60,38 @@ type EntityResponse = Entity
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Data Optional extra context of the error.
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 
 	// Message An optional message detailing the error.
-	Message string `json:"message"`
+	Message string `json:"message,omitempty"`
 }
 
 // Relation The content of a relation.
 //
-// The combination of *subject*, *relation* and *object* defines the unique key of a relation.
+// The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
 type Relation struct {
 	// Attributes Optional attributes for the relation.
 	Attributes []Attribute `json:"attributes,omitempty"`
 
-	// Object The unique identifier of the object of the relation.
-	Object string `json:"object"`
+	// ObjectID The identifier of the object of the relation.
+	ObjectID string `json:"objectID"`
+
+	// ObjectType The type of object of the relation.
+	ObjectType string `json:"objectType"`
 
 	// Relation The type of relation.
 	Relation string `json:"relation"`
 
-	// Subject The unique identifier of the subject of the relation.
-	Subject string `json:"subject"`
+	// SubjectID The identifier of the subject of the relation.
+	SubjectID string `json:"subjectID"`
+
+	// SubjectType The type of subject of the relation.
+	SubjectType string `json:"subjectType"`
 }
 
 // RelationResponse The content of a relation.
 //
-// The combination of *subject*, *relation* and *object* defines the unique key of a relation.
+// The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
 type RelationResponse = Relation
 
 // RelationsResponse defines model for RelationsResponse.
@@ -105,14 +112,20 @@ type ForceUpsert = bool
 // IgnoreMissing defines model for IgnoreMissing.
 type IgnoreMissing = bool
 
-// RelationObject defines model for RelationObject.
-type RelationObject = string
+// ObjectID defines model for ObjectID.
+type ObjectID = string
 
-// RelationSubject defines model for RelationSubject.
-type RelationSubject = string
+// ObjectType defines model for ObjectType.
+type ObjectType = string
 
 // RelationType defines model for RelationType.
 type RelationType = string
+
+// SubjectID defines model for SubjectID.
+type SubjectID = string
+
+// SubjectType defines model for SubjectType.
+type SubjectType = string
 
 // AccessDenied defines model for AccessDenied.
 type AccessDenied = ErrorResponse
@@ -132,6 +145,12 @@ type NotFound = ErrorResponse
 // UnexpectedError defines model for UnexpectedError.
 type UnexpectedError = ErrorResponse
 
+// PutAttributeParams defines parameters for PutAttribute.
+type PutAttributeParams struct {
+	// Force Force upsert during a put/post operation.
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
+
 // DeleteAttributeKeyParams defines parameters for DeleteAttributeKey.
 type DeleteAttributeKeyParams struct {
 	// Force Ignore missing data during a delete operation.
@@ -144,8 +163,8 @@ type PostAttributeKeyParams struct {
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// PutAttributeKeyParams defines parameters for PutAttributeKey.
-type PutAttributeKeyParams struct {
+// PutEntityParams defines parameters for PutEntity.
+type PutEntityParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
@@ -162,44 +181,38 @@ type PostEntityTypeIdParams struct {
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// PutEntityTypeIdParams defines parameters for PutEntityTypeId.
-type PutEntityTypeIdParams struct {
+// PutRelationParams defines parameters for PutRelation.
+type PutRelationParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// DeleteRelationSubjectRelationObjectParams defines parameters for DeleteRelationSubjectRelationObject.
-type DeleteRelationSubjectRelationObjectParams struct {
+// DeleteRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDParams defines parameters for DeleteRelationSubjectTypeSubjectIDRelationObjectTypeObjectID.
+type DeleteRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDParams struct {
 	// Force Ignore missing data during a delete operation.
 	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// PostRelationSubjectRelationObjectParams defines parameters for PostRelationSubjectRelationObject.
-type PostRelationSubjectRelationObjectParams struct {
+// PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDParams defines parameters for PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectID.
+type PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// PutRelationSubjectRelationObjectParams defines parameters for PutRelationSubjectRelationObject.
-type PutRelationSubjectRelationObjectParams struct {
-	// Force Force upsert during a put/post operation.
-	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
-}
+// PutAttributeJSONRequestBody defines body for PutAttribute for application/json ContentType.
+type PutAttributeJSONRequestBody = Attribute
 
 // PostAttributeKeyJSONRequestBody defines body for PostAttributeKey for application/json ContentType.
 type PostAttributeKeyJSONRequestBody = Attribute
 
-// PutAttributeKeyJSONRequestBody defines body for PutAttributeKey for application/json ContentType.
-type PutAttributeKeyJSONRequestBody = Attribute
+// PutEntityJSONRequestBody defines body for PutEntity for application/json ContentType.
+type PutEntityJSONRequestBody = Entity
 
 // PostEntityTypeIdJSONRequestBody defines body for PostEntityTypeId for application/json ContentType.
 type PostEntityTypeIdJSONRequestBody = Entity
 
-// PutEntityTypeIdJSONRequestBody defines body for PutEntityTypeId for application/json ContentType.
-type PutEntityTypeIdJSONRequestBody = Entity
+// PutRelationJSONRequestBody defines body for PutRelation for application/json ContentType.
+type PutRelationJSONRequestBody = Relation
 
-// PostRelationSubjectRelationObjectJSONRequestBody defines body for PostRelationSubjectRelationObject for application/json ContentType.
-type PostRelationSubjectRelationObjectJSONRequestBody = Relation
-
-// PutRelationSubjectRelationObjectJSONRequestBody defines body for PutRelationSubjectRelationObject for application/json ContentType.
-type PutRelationSubjectRelationObjectJSONRequestBody = Relation
+// PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDJSONRequestBody defines body for PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectID for application/json ContentType.
+type PostRelationSubjectTypeSubjectIDRelationObjectTypeObjectIDJSONRequestBody = Relation

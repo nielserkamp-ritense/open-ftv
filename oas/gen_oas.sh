@@ -1,34 +1,31 @@
 #!/bin/bash
 
+function fix_code {
+  sed -i -e "s/*string/string/" $1.go
+  sed -i -e "s/*map/map/" $1.go
+  sed -i -e "s/*\[\]/\[\]/" $1.go
+  sed -i -e "s/*IgnoreMissing/IgnoreMissing/" $1.go
+  sed -i -e "s/*ForceUpsert/ForceUpsert/" $1.go
+  sed -i -e "s/*ReasonField/ReasonField/" $1.go
+  sed -i -e "s/interface{}/any/" $1.go
+}
+
 ##### AuthZEN #####
 cd authzen
 oapi-codegen -config cfg-authzen.yaml oas-authzen.yaml
-sed -i -e "s/*string/string/" authzen.go
-sed -i -e "s/*map/map/" authzen.go
-sed -i -e "s/*\[\]/\[\]/" authzen.go
-sed -i -e "s/*IgnoreMissing/IgnoreMissing/" authzen.go
-sed -i -e "s/*ForceUpsert/ForceUpsert/" authzen.go
-sed -i -e "s/*ReasonField/ReasonField/" authzen.go
+fix_code "authzen"
 cd ..
 
 ##### Policies #####
 cd policies
 oapi-codegen -config cfg-policies.yaml oas-policies.yaml
-sed -i -e "s/*string/string/" policies.go
-sed -i -e "s/*map/map/" policies.go
-sed -i -e "s/*\[\]/\[\]/" policies.go
-sed -i -e "s/*IgnoreMissing/IgnoreMissing/" policies.go
-sed -i -e "s/*ForceUpsert/ForceUpsert/" policies.go
+fix_code "policies"
 cd ..
 
 ##### Attributes #####
 cd attributes
 oapi-codegen -config cfg-attributes.yaml oas-attributes.yaml
-sed -i -e "s/*string/string/" attributes.go
-sed -i -e "s/*map/map/" attributes.go
-sed -i -e "s/*\[\]/\[\]/" attributes.go
-sed -i -e "s/*IgnoreMissing/IgnoreMissing/" attributes.go
-sed -i -e "s/*ForceUpsert/ForceUpsert/" attributes.go
+fix_code "attributes"
 cd ..
 
 ##### FSC #####

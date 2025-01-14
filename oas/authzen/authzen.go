@@ -9,14 +9,14 @@ type Action struct {
 	Name string `json:"name,omitempty"`
 
 	// Properties Optional attributes for the action.
-	Properties map[string]interface{} `json:"properties,omitempty"`
+	Properties map[string]any `json:"properties,omitempty"`
 }
 
 // AuthorizationRequest defines model for AuthorizationRequest.
 type AuthorizationRequest struct {
 	// Action The action associated with an authorization request.
-	Action  Action                 `json:"action"`
-	Context map[string]interface{} `json:"context,omitempty"`
+	Action  Action         `json:"action"`
+	Context map[string]any `json:"context,omitempty"`
 
 	// Resource The entity associated with an authorization request.
 	// This can be the subject (e.g. principal) or the resource.
@@ -30,7 +30,7 @@ type AuthorizationRequest struct {
 // AuthorizationResponse defines model for AuthorizationResponse.
 type AuthorizationResponse struct {
 	// Context Optional context returned by the policy engine.
-	Context map[string]interface{} `json:"context,omitempty"`
+	Context map[string]any `json:"context,omitempty"`
 
 	// Decision true if the request is authorized.
 	Decision bool `json:"decision"`
@@ -43,7 +43,7 @@ type Entity struct {
 	Id string `json:"id"`
 
 	// Properties Optional attributes for the entity.
-	Properties map[string]interface{} `json:"properties,omitempty"`
+	Properties map[string]any `json:"properties,omitempty"`
 
 	// Type The type of the entity.
 	Type string `json:"type"`
@@ -52,7 +52,7 @@ type Entity struct {
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Data Optional extra context of the error.
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 
 	// Message An optional message detailing the error.
 	Message string `json:"message"`
@@ -86,7 +86,7 @@ type Policy struct {
 type PolicyResponse = Policy
 
 // ReasonField Map of one or more reasons, with a language-identifier as the key.
-type ReasonField = map[string]interface{}
+type ReasonField = map[string]any
 
 // ReasonObject Specifies a particular reason.
 type ReasonObject struct {

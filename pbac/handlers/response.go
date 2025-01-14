@@ -2,10 +2,11 @@
 package handlers
 
 import (
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
 )
 
 // SendBasicResponse sends a basic response corresponding with the given status code.
@@ -17,19 +18,16 @@ func SendBasicResponse(req *fiber.Ctx, status int) error {
 
 // SendMessageResponse sends a basic response corresponding with the given status code.
 func SendMessageResponse(req *fiber.Ctx, status int, msg string) error {
-	return req.Status(status).JSON(&basicResponse{Message: msg})
-}
-
-type basicResponse struct {
-	Message string `json:"message,omitempty"`
-	Data    any    `json:"data,omitempty"`
+	return req.Status(status).JSON(&authzen.ErrorResponse{Message: msg})
 }
 
 var (
 	supportedStatus = [...]int{
 		fiber.StatusOK,
 		fiber.StatusCreated,
+		fiber.StatusNoContent,
 		fiber.StatusBadRequest,
+		fiber.StatusUnauthorized,
 		fiber.StatusForbidden,
 		fiber.StatusNotFound,
 		fiber.StatusConflict,
@@ -40,6 +38,6 @@ var (
 
 func init() {
 	for _, status := range supportedStatus {
-		responseBody[status] = convert.MustMarshall(&basicResponse{Message: utils.StatusMessage(status)})
+		responseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Message: utils.StatusMessage(status)})
 	}
 }

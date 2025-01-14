@@ -6,7 +6,7 @@ package policies
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	// Data Optional extra context of the error.
-	Data map[string]interface{} `json:"data,omitempty"`
+	Data map[string]any `json:"data,omitempty"`
 
 	// Message An optional message detailing the error.
 	Message string `json:"message"`

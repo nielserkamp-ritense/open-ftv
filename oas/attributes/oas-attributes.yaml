@@ -1,10 +1,10 @@
 openapi: 3.0.0
 
 info:
-  description: |
-    OpenAPI specification for maintaining attributes.
+  title: Attribute management.
   version: 1.1.0
-  title: Attributes management (attributes, entities & relations)
+  description: |
+    OpenAPI specification for maintaining attributes, entities and/or relations between entities.
 
 servers:
   - url: https://localhost:8080/v1
@@ -29,6 +29,38 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         404:
           $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
+  /attribute:
+    put:
+      summary: Add attribute.
+      description: |
+        If the unique key of the attribute already exists, a 409 response status code will be returned.
+        You can override this behavior by passing the 'force' parameter in the query.
+      parameters:
+        - $ref: "#/components/parameters/ForceUpsert"
+      requestBody:
+        description: Content of the new attribute.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Attribute"
+      responses:
+        201:
+          description: Attribute created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttributeResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        409:
+          $ref: "#/components/responses/AlreadyExists"
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
@@ -57,41 +89,10 @@ paths:
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
-    put:
-      summary: Add attribute.
-      description: |
-        If the unique key of the attribute already exists, a 409 status code will be returned.
-        You can override this behavior by passing the 'force' parameter in the query.
-      parameters:
-        - $ref: "#/components/parameters/ForceUpsert"
-      requestBody:
-        description: Content of the new attribute.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Attribute"
-      responses:
-        201:
-          description: Attribute created.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/NotAuthorized"
-        403:
-          $ref: "#/components/responses/AccessDenied"
-        409:
-          $ref: "#/components/responses/AlreadyExists"
-        5XX:
-          $ref: "#/components/responses/UnexpectedError"
-
     post:
       summary: Replace attribute.
       description: |
-        If the unique key of the attribute does not exist, a 404 status code will be returned.
+        If the unique key of the attribute does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -122,7 +123,7 @@ paths:
     delete:
       summary: Remove attribute.
       description: |
-        If the unique key of the attribute does not exist, a 404 status code will be returned.
+        If the unique key of the attribute does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
@@ -165,36 +166,11 @@ paths:
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
-  /entity/{type}/{id}:
-    parameters:
-      - $ref: "#/components/parameters/EntityType"
-      - $ref: "#/components/parameters/EntityID"
-
-    get:
-      summary: Retrieve entity.
-      description: Retrieve a specified cached entity.
-      responses:
-        200:
-          description: Entity found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/NotAuthorized"
-        403:
-          $ref: "#/components/responses/AccessDenied"
-        404:
-          $ref: "#/components/responses/NotFound"
-        5XX:
-          $ref: "#/components/responses/UnexpectedError"
-
+  /entity:
     put:
       summary: Add entity.
       description: |
-        If the unique type+id of the entity already exists, a 409 status code will be returned.
+        If the unique type+id of the entity already exists, a 409 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -222,10 +198,36 @@ paths:
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
+  /entity/{type}/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+
+    get:
+      summary: Retrieve entity.
+      description: Retrieve a specified cached entity.
+      responses:
+        200:
+          description: Entity found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
     post:
       summary: Replace entity.
       description: |
-        If the unique type+id of the entity does not exist, a 404 status code will be returned.
+        If the unique type+id of the entity does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -256,7 +258,7 @@ paths:
     delete:
       summary: Remove entity.
       description: |
-        If the unique type+id of the entity does not exist, a 404 status code will be returned.
+        If the unique type+id of the entity does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
@@ -300,37 +302,11 @@ paths:
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
-  /relation/{subject}/{relation}/{object}:
-    parameters:
-      - $ref: "#/components/parameters/RelationSubject"
-      - $ref: "#/components/parameters/RelationType"
-      - $ref: "#/components/parameters/RelationObject"
-
-    get:
-      summary: Retrieve relation.
-      description: Retrieve a specified cached relation.
-      responses:
-        200:
-          description: Relation found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/NotAuthorized"
-        403:
-          $ref: "#/components/responses/AccessDenied"
-        404:
-          $ref: "#/components/responses/NotFound"
-        5XX:
-          $ref: "#/components/responses/UnexpectedError"
-
+  /relation:
     put:
       summary: Add relation.
       description: |
-        If the unique subject+relation+object of the relation already exists, a 409 status code will be returned.
+        If the unique subject+relation+object of the relation already exists, a 409 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -358,10 +334,39 @@ paths:
         5XX:
           $ref: "#/components/responses/UnexpectedError"
 
+  /relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}:
+    parameters:
+      - $ref: "#/components/parameters/SubjectType"
+      - $ref: "#/components/parameters/SubjectID"
+      - $ref: "#/components/parameters/RelationType"
+      - $ref: "#/components/parameters/ObjectType"
+      - $ref: "#/components/parameters/ObjectID"
+
+    get:
+      summary: Retrieve relation.
+      description: Retrieve a specified cached relation.
+      responses:
+        200:
+          description: Relation found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelationResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/NotAuthorized"
+        403:
+          $ref: "#/components/responses/AccessDenied"
+        404:
+          $ref: "#/components/responses/NotFound"
+        5XX:
+          $ref: "#/components/responses/UnexpectedError"
+
     post:
       summary: Replace relation.
       description: |
-        If the unique subject+relation+object of the relation does not exist, a 404 status code will be returned.
+        If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -392,7 +397,7 @@ paths:
     delete:
       summary: Remove relation.
       description: |
-        If the unique subject+relation+object of the relation does not exist, a 404 status code will be returned.
+        If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
@@ -440,13 +445,21 @@ components:
       required: true
       description: ID of an entity.
 
-    RelationSubject:
+    SubjectType:
       in: path
-      name: subject
+      name: subjectType
       schema:
         type: string
       required: true
-      description: Key of the subject of a relation.
+      description: Type of subject of a relation.
+
+    SubjectID:
+      in: path
+      name: subjectID
+      schema:
+        type: string
+      required: true
+      description: ID of the subject of a relation.
 
     RelationType:
       in: path
@@ -456,13 +469,21 @@ components:
       required: true
       description: Type of relation.
 
-    RelationObject:
+    ObjectType:
       in: path
-      name: object
+      name: objectType
       schema:
         type: string
       required: true
-      description: Key of the object of a relation.
+      description: Type of object of a relation.
+
+    ObjectID:
+      in: path
+      name: objectID
+      schema:
+        type: string
+      required: true
+      description: ID of the object of a relation.
 
     ForceUpsert:
       in: query
@@ -538,8 +559,9 @@ components:
           description: |
             The optional type of a value. By default a value is stored as-is.
             
-            The following codes for type are supported: "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
-            Optionally, the type can be specified as one of the standard XSD types (e.g. "xsd:byte").
+            The following codes for type are supported: 
+            "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
+            Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
             
             An *integer* value is stored as a 64-bit signed integer.
             
@@ -549,7 +571,7 @@ components:
             or any other value to represent a false state.
             
             A *date*, *time* or *timestamp* value should adhere to the format as described in ISO-8601.
-            If it cannot be decoded according to ISO-8601, a 400 error will be returned.
+            If it cannot be decoded according to ISO-8601, a 400 response status code will be returned.
       required:
         - key
         - value
@@ -583,29 +605,39 @@ components:
       description: |
         The content of a relation.
         
-        The combination of *subject*, *relation* and *object* defines the unique key of a relation.
+        The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
       properties:
-        subject:
+        subjectType:
           type: string
-          description: The unique identifier of the subject of the relation.
-          example: "user:alice"
+          description: The type of subject of the relation.
+          example: "user"
+        subjectID:
+          type: string
+          description: The identifier of the subject of the relation.
+          example: "alice"
         relation:
           type: string
           description: The type of relation.
           example: "managerOf"
-        object:
+        objectType:
           type: string
-          description: The unique identifier of the object of the relation.
-          example: "user:bob"
+          description: The type of object of the relation.
+          example: "user"
+        objectID:
+          type: string
+          description: The identifier of the object of the relation.
+          example: "bob"
         attributes:
           type: array
           description: Optional attributes for the relation.
           items:
             $ref: "#/components/schemas/Attribute"
       required:
-        - subject
+        - subjectType
+        - subjectID
         - relation
-        - object
+        - objectType
+        - objectID
 
     AttributesResponse:
       type: array
@@ -640,5 +672,3 @@ components:
         data:
           type: object
           description: Optional extra context of the error.
-      required:
-        - message
