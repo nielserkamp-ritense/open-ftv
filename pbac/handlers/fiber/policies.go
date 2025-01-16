@@ -1,4 +1,4 @@
-package handlers
+package fiber
 
 import (
 	"context"
@@ -39,7 +39,10 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 		}
 	}
 
-	return req.JSON(&resp)
+	if len(resp) == 0 {
+		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+	}
+	return req.JSON(resp)
 }
 
 // GetPolicy implements the PoliciesHandler interface.

@@ -1,4 +1,4 @@
-package rdf
+package xsd
 
 import (
 	"net/url"
@@ -87,7 +87,7 @@ func TestConvertXSD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err2 := ConvertXSD(tc.data, tc.t)
+			got, err2 := Convert(tc.data, tc.t)
 			if tc.wantErr {
 				require.Error(t, err2)
 			} else {

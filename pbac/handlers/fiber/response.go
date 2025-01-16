@@ -1,5 +1,5 @@
-// Package handlers contains generic HTTP request handlers.
-package handlers
+// Package fiber contains HTTP request handlers for integration with Fiber/FastHTTP based services.
+package fiber
 
 import (
 	"github.com/goccy/go-json"

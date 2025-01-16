@@ -6,6 +6,11 @@ import (
 	"github.com/goccy/go-json"
 )
 
+// EntityUID formats the unique identifier (UID) for an entity.
+func EntityUID(ns, id string) string {
+	return fmt.Sprintf("%s::%s", ns, id)
+}
+
 // Entity represents the interface to work with the details of an entity.
 //
 // Entity is an immutable object and is by design safe for use by concurrent go-routines.
@@ -21,7 +26,7 @@ type Entity interface {
 // NewEntity instanties a new standard entity.
 func NewEntity(ns, id string, attrs AttributeSet, parents ...string) Entity {
 	return &entity{
-		uid:     fmt.Sprintf("%s::%s", ns, id),
+		uid:     EntityUID(ns, id),
 		ns:      ns,
 		id:      id,
 		attrs:   attrs,

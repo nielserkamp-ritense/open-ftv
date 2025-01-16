@@ -2,6 +2,8 @@ package rdf
 
 import (
 	"github.com/goccy/go-json"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
 // ConvertLiteral converts an RDF literal into a Golang variable of the appropriate type.
@@ -16,7 +18,7 @@ func ConvertLiteral(data, t string) (any, error) {
 	case JSON:
 		return convertJSON(data)
 	default:
-		return ConvertXSD(data, t)
+		return xsd.Convert(data, t)
 	}
 }
 
@@ -57,11 +59,11 @@ func IsLiteral(s string) bool {
 	switch s {
 	case FTVAction, FTVAttributeKey, FTVEntityID, FTVEntityType, FTVRelationType,
 		JSON, HTML, XMLLiteral,
-		XSDAny, XSDAnyURI, XSDBoolean, XSDByte, XSDDate, XSDDateTime, XSDDay, XSDDecimal, XSDDouble,
-		XSDDuration, XSDFloat, XSDInt, XSDInteger, XSDLanguage, XSDLong, XSDMonth,
-		XSDMonthDay, XSDNeg, XSDNonNeg, XSDNonPos, XSDNormalizedString, XSDPos,
-		XSDShort, XSDSimple, XSDString, XSDTime, XSDToken,
-		XSDUByte, XSDUInt, XSDULong, XSDUShort, XSDYear, XSDYearMonth:
+		xsd.URIAny, xsd.URIAnyURI, xsd.URIBoolean, xsd.URIByte, xsd.URIDate, xsd.URIDateTime, xsd.URIDay, xsd.URIDecimal, xsd.URIDouble,
+		xsd.URIDuration, xsd.URIFloat, xsd.URIInt, xsd.URIInteger, xsd.URILanguage, xsd.URILong, xsd.URIMonth,
+		xsd.URIMonthDay, xsd.URINeg, xsd.URINonNeg, xsd.URINonPos, xsd.URINormalized, xsd.URIPos,
+		xsd.URIShort, xsd.URISimple, xsd.URIString, xsd.URITime, xsd.URIToken,
+		xsd.URIUByte, xsd.URIUInt, xsd.URIULong, xsd.URIUShort, xsd.URIYear, xsd.URIYearMonth:
 		return true
 	default:
 		return false

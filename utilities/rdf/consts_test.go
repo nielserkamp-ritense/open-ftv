@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
 func TestPrefixUri(t *testing.T) {
@@ -20,7 +22,7 @@ func TestPrefixUri(t *testing.T) {
 		{name: "RDF", prefix: PrefixRDF, want: UriRDF},
 		{name: "RDFS", prefix: PrefixRDFS, want: UriRDFS},
 		{name: "SKOS", prefix: PrefixSKOS, want: UriSKOS},
-		{name: "XSD", prefix: PrefixXSD, want: UriXSD},
+		{name: "XSD", prefix: xsd.Prefix, want: xsd.URI},
 		{name: "VCard", prefix: PrefixVCard, want: UriVCard},
 		{name: "Schema", prefix: PrefixSchema, want: UriSchema},
 		{name: "ODRL", prefix: PrefixODRL, want: UriODRL},
@@ -50,7 +52,7 @@ func TestUriPrefix(t *testing.T) {
 		{name: "RDF", prefix: UriRDF, want: PrefixRDF},
 		{name: "RDFS", prefix: UriRDFS, want: PrefixRDFS},
 		{name: "SKOS", prefix: UriSKOS, want: PrefixSKOS},
-		{name: "XSD", prefix: UriXSD, want: PrefixXSD},
+		{name: "XSD", prefix: xsd.URI, want: xsd.Prefix},
 		{name: "FOAF", prefix: UriFOAF, want: PrefixFOAF},
 		{name: "CC", prefix: UriCC, want: PrefixCC},
 		{name: "ODRL", prefix: UriODRL, want: PrefixODRL},

@@ -17,7 +17,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	common "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers"
+	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -35,8 +35,8 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek l
 		return nil
 	}
 
-	fsc := common.NewAuthHandlerFSC(logger, h)
-	zen := common.NewAuthHandlerZEN(logger, h)
+	fsc := handle.NewAuthHandlerFSC(logger, h)
+	zen := handle.NewAuthHandlerZEN(logger, h)
 
 	return &authHandler{logger: logger, controller: h, fsc: fsc, zen: zen}
 }
@@ -90,6 +90,6 @@ func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
-	fsc        common.FSCAuthorizer
-	zen        common.AuthZENAuthorizer
+	fsc        handle.FSCAuthorizer
+	zen        handle.AuthZENAuthorizer
 }

@@ -1,4 +1,4 @@
-package handlers
+package fiber
 
 import (
 	"bytes"
@@ -23,17 +23,17 @@ import (
 )
 
 func TestNewPoliciesHandler(t *testing.T) {
-	t.Run("test new policies handler", func(t *testing.T) {
+	t.Run("new policies handler", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 		require.NotNil(t, p)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		ph := NewPoliciesHandler(logger, controller.PAP())
@@ -42,17 +42,17 @@ func TestNewPoliciesHandler(t *testing.T) {
 }
 
 func TestPoliciesHandler_GetPolicies(t *testing.T) {
-	t.Run("test new policies handler", func(t *testing.T) {
+	t.Run("get attributes", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 		require.NotNil(t, p)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		ph := NewPoliciesHandler(logger, controller.PAP())
@@ -68,7 +68,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		require.NotNil(t, resp)
 		defer resp.Body.Close()
 
-		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		b, err3 := io.ReadAll(resp.Body)
 		require.NoError(t, err3)
@@ -81,31 +81,47 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 	})
 }
 
+func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
+	t.Run("get attributes", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		logger := slog.New(h)
+
+		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/non_existing_folder", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/non_existing_folder", true), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		ph := NewPoliciesHandler(logger, controller.PAP())
+		require.NotNil(t, ph)
+
+		srv := fiber.New()
+		srv.Get("/v1/policies", ph.GetPolicies)
+
+		req := httptest.NewRequest(fiber.MethodGet, "/v1/policies", nil)
+		resp, err2 := srv.Test(req, 1)
+
+		require.NoError(t, err2)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+
+		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+	})
+}
+
 func TestPoliciesHandler_GetPolicy(t *testing.T) {
 	testCases := []struct {
 		name       string
 		id         string
 		wantStatus int
 	}{
-		{
-			name:       "no ID",
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "very long ID",
-			id:         strings.Repeat("x", 501),
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "bad ID",
-			id:         "xyz",
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "good ID",
-			id:         "subsidies.cedar",
-			wantStatus: fiber.StatusOK,
-		},
+		{name: "no ID", wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
+		{name: "bad ID", id: "xyz", wantStatus: fiber.StatusNotFound},
+		{name: "good ID", id: "subsidies.cedar", wantStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range testCases {
@@ -116,10 +132,10 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ph := NewPoliciesHandler(logger, controller.PAP())
@@ -173,53 +189,13 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 		timeout    time.Duration
 		wantStatus int
 	}{
-		{
-			name:       "no ID",
-			body:       bytes.NewBufferString(""),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "very long ID",
-			id:         strings.Repeat("x", 501),
-			body:       bytes.NewBufferString(""),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "no body",
-			id:         "xyz",
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "bad body",
-			id:         "xyz",
-			body:       bytes.NewBufferString("my policy 1.0"),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "bad url",
-			id:         "xyz",
-			body:       bytes.NewBufferString(badURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "duplicate id",
-			id:         "subsidies.cedar",
-			body:       bytes.NewBufferString(goodURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusConflict,
-		},
-		{
-			name:       "all good",
-			id:         "xyz",
-			body:       bytes.NewBufferString(goodURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusOK,
-		},
+		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "no body", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "bad body", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "bad url", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
+		{name: "duplicate id", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict},
+		{name: "all good", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range testCases {
@@ -230,10 +206,10 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ph := NewPoliciesHandler(logger, controller.PAP())
@@ -289,53 +265,13 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 		timeout    time.Duration
 		wantStatus int
 	}{
-		{
-			name:       "no ID",
-			body:       bytes.NewBufferString(""),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "very long ID",
-			id:         strings.Repeat("x", 501),
-			body:       bytes.NewBufferString(""),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "no body",
-			id:         "xyz",
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "bad body",
-			id:         "xyz",
-			body:       bytes.NewBufferString("my policy 1.0"),
-			timeout:    time.Millisecond,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "bad url",
-			id:         "xyz",
-			body:       bytes.NewBufferString(badURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "not found",
-			id:         "xyz",
-			body:       bytes.NewBufferString(goodURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "all good",
-			id:         "subsidies.cedar",
-			body:       bytes.NewBufferString(goodURL),
-			timeout:    5 * time.Second,
-			wantStatus: fiber.StatusOK,
-		},
+		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "no body", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "bad body", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
+		{name: "bad url", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
+		{name: "not found", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "all good", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range testCases {
@@ -346,10 +282,10 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ph := NewPoliciesHandler(logger, controller.PAP())
@@ -389,25 +325,10 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 		id         string
 		wantStatus int
 	}{
-		{
-			name:       "no ID",
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "very long ID",
-			id:         strings.Repeat("x", 501),
-			wantStatus: fiber.StatusBadRequest,
-		},
-		{
-			name:       "not found",
-			id:         "xyz",
-			wantStatus: fiber.StatusNotFound,
-		},
-		{
-			name:       "all good",
-			id:         "subsidies.cedar",
-			wantStatus: fiber.StatusOK,
-		},
+		{name: "no ID", wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
+		{name: "not found", id: "xyz", wantStatus: fiber.StatusNotFound},
+		{name: "all good", id: "subsidies.cedar", wantStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range testCases {
@@ -418,10 +339,10 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ph := NewPoliciesHandler(logger, controller.PAP())

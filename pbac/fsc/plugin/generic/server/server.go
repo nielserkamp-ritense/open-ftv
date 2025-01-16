@@ -16,7 +16,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
 )
 
 // Service represents the interface for an HTTP service.
@@ -79,7 +79,7 @@ func (s *service) errorHandler(req *fiber.Ctx, err error) error {
 	}
 
 	s.logger.Error("internal server error", "status", status, "error", err)
-	return handlers.SendBasicResponse(req, status)
+	return fiber2.SendBasicResponse(req, status)
 }
 
 type service struct {

@@ -1,5 +1,7 @@
 package rdf
 
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
+
 // List of well-known RDF prefixes.
 const (
 	PrefixCC      = "cc"
@@ -14,7 +16,6 @@ const (
 	PrefixSKOS    = "skos"
 	PrefixSchema  = "schema"
 	PrefixVCard   = "vcard"
-	PrefixXSD     = "xsd"
 )
 
 // List of well-known RDF uri's.
@@ -30,7 +31,6 @@ const (
 	UriSKOS    = "http://www.w3.org/2004/02/skos/core#"
 	UriSchema  = "http://schema.org/"
 	UriVCard   = "http://www.w3.org/2006/vcard/ns#"
-	UriXSD     = "http://www.w3.org/2001/XMLSchema#"
 )
 
 // PrefixUri can be used to convert a well-known prefix into the corresponding URI.
@@ -47,7 +47,7 @@ var PrefixUri = map[string]string{
 	PrefixSKOS:    UriSKOS,
 	PrefixSchema:  UriSchema,
 	PrefixVCard:   UriVCard,
-	PrefixXSD:     UriXSD,
+	xsd.Prefix:    xsd.URI,
 }
 
 // UriPrefix can be used to convert a well-known URI into the corresponding prefix.
@@ -63,7 +63,7 @@ var UriPrefix = map[string]string{
 	UriSKOS:    PrefixSKOS,
 	UriSchema:  PrefixSchema,
 	UriVCard:   PrefixVCard,
-	UriXSD:     PrefixXSD,
+	xsd.URI:    xsd.Prefix,
 }
 
 // List of standard RDF identifiers.
@@ -91,43 +91,6 @@ const (
 	Resource    = UriRDFS + "Resource"
 	SubClass    = UriRDFS + "subClassOf"
 	SubProperty = UriRDFS + "subPropertyOf"
-)
-
-// List of standard XSD identifiers.
-const (
-	XSDAny              = UriXSD + "anyType"
-	XSDAnyURI           = UriXSD + "anyURI"
-	XSDBoolean          = UriXSD + "boolean"
-	XSDByte             = UriXSD + "byte"
-	XSDDate             = UriXSD + "date"
-	XSDDateTime         = UriXSD + "dateTime"
-	XSDDay              = UriXSD + "gDay"
-	XSDDecimal          = UriXSD + "decimal"
-	XSDDouble           = UriXSD + "double"
-	XSDDuration         = UriXSD + "duration"
-	XSDFloat            = UriXSD + "float"
-	XSDInt              = UriXSD + "int"
-	XSDInteger          = UriXSD + "integer"
-	XSDLanguage         = UriXSD + "language"
-	XSDLong             = UriXSD + "long"
-	XSDMonth            = UriXSD + "gMonth"
-	XSDMonthDay         = UriXSD + "gMonthDay"
-	XSDNeg              = UriXSD + "negativeInteger"
-	XSDNonNeg           = UriXSD + "nonNegativeInteger"
-	XSDNonPos           = UriXSD + "nonPositiveInteger"
-	XSDNormalizedString = UriXSD + "normalizedString"
-	XSDPos              = UriXSD + "positiveInteger"
-	XSDShort            = UriXSD + "short"
-	XSDSimple           = UriXSD + "simpleType"
-	XSDString           = UriXSD + "string"
-	XSDTime             = UriXSD + "time"
-	XSDToken            = UriXSD + "token"
-	XSDUByte            = UriXSD + "unsignedByte"
-	XSDUInt             = UriXSD + "unsignedInt"
-	XSDULong            = UriXSD + "unsignedLong"
-	XSDUShort           = UriXSD + "unsignedShort"
-	XSDYear             = UriXSD + "gYear"
-	XSDYearMonth        = UriXSD + "gYearMonth"
 )
 
 // List of standard DC terms identifiers.

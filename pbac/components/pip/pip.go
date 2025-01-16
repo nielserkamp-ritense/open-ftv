@@ -19,6 +19,9 @@ import (
 type PIP interface {
 	models.AttributeSet
 	models.EntitySet
+
+	NewAttributeSet() models.AttributeSet
+	NewEntitySet() models.EntitySet
 	CollectAttributesFromRequest(req *components.Request) (a models.AttributeSet, newURI string)
 }
 
@@ -87,6 +90,16 @@ func New(cfg Config) PIP {
 	}
 
 	return p
+}
+
+// NewAttributeSet implements the PIP interface.
+func (p *pip) NewAttributeSet() models.AttributeSet {
+	return p.newAttributes()
+}
+
+// NewEntitySet implements the PIP interface.
+func (p *pip) NewEntitySet() models.EntitySet {
+	return p.newEntities()
 }
 
 // AddAttribute implements the AttributeSet interface.

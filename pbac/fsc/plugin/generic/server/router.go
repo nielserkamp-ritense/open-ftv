@@ -2,7 +2,7 @@ package server
 
 import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/handlers"
-	common "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers"
+	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
@@ -12,13 +12,23 @@ func (s *service) initRoutes() {
 		panic("failed to initialize authorization handler")
 	}
 
-	policies := common.NewPoliciesHandler(s.logger, auth.Controller().PAP())
+	policies := handle.NewPoliciesHandler(s.logger, auth.Controller().PAP())
 	if policies == nil {
 		panic("failed to initialize policies handler")
 	}
 
+	attributes := handle.NewAttributesHandler(s.logger, auth.Controller())
+	if attributes == nil {
+		panic("failed to initialize attributes handler")
+	}
+
+	entities := handle.NewEntitiesHandler(s.logger, auth.Controller())
+	if entities == nil {
+		panic("failed to initialize entities handler")
+	}
+
 	// liveness & readiness.
-	s.svc.Get("/healthz", common.HealthZ)
+	s.svc.Get("/healthz", handle.HealthZ)
 
 	// API v1.
 	v1 := s.svc.Group("/v1")
@@ -27,11 +37,25 @@ func (s *service) initRoutes() {
 	v1.Post("/auth", auth.AuthFSC)
 
 	// policies.
-	v1.Get("/policies", policies.GetPolicies)
-	v1.Get("/policy/:id", policies.GetPolicy)
-	v1.Put("/policy/:id", policies.PutPolicy)
-	v1.Post("/policy/:id", policies.PostPolicy)
-	v1.Delete("/policy/:id", policies.DeletePolicy)
+	v1.Get(handle.PathPolicies, policies.GetPolicies)
+	v1.Get(handle.PathPolicy, policies.GetPolicy)
+	v1.Put(handle.PathPolicy, policies.PutPolicy)
+	v1.Post(handle.PathPolicy, policies.PostPolicy)
+	v1.Delete(handle.PathPolicy, policies.DeletePolicy)
+
+	// attributes.
+	v1.Get(handle.PathAttributes, attributes.GetAttributes)
+	v1.Get(handle.PathAttribute, attributes.GetAttribute)
+	v1.Put(handle.PathAttribute, attributes.PutAttribute)
+	v1.Post(handle.PathAttribute, attributes.PostAttribute)
+	v1.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+
+	// entities.
+	v1.Get(handle.PathEntities, entities.GetEntities)
+	v1.Get(handle.PathEntity, entities.GetEntity)
+	v1.Put(handle.PathEntity, entities.PutEntity)
+	v1.Post(handle.PathEntity, entities.PostEntity)
+	v1.Delete(handle.PathEntity, entities.DeleteEntity)
 
 	// AuthZEN
 	authZen := s.svc.Group("/authzen")

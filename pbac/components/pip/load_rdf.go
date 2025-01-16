@@ -11,6 +11,7 @@ import (
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/rdf"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/turtle"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
 func (p *pip) loadRDF(f io.Reader, path, mt string) {
@@ -219,7 +220,7 @@ func (l *loader) getLiteral(obj *rdf2go.Literal) (any, error) {
 	if d := obj.Datatype; d != nil {
 		return rdf.ConvertLiteral(obj.Value, d.RawValue())
 	}
-	return rdf.ConvertLiteral(obj.Value, rdf.XSDString)
+	return rdf.ConvertLiteral(obj.Value, xsd.URIString)
 }
 
 type loader struct {

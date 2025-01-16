@@ -1,4 +1,4 @@
-package rdf
+package xsd
 
 import (
 	"fmt"
@@ -8,54 +8,54 @@ import (
 	"time"
 )
 
-// ConvertXSD converts an RDF literal into a Golang variable of the appropriate type.
+// Convert converts an RDF literal into a Golang variable of the appropriate type.
 //
 // This function supports most of the common XSD data-types.
-func ConvertXSD(data, t string) (any, error) {
+func Convert(data, t string) (any, error) {
 	switch t {
-	case XSDString, XSDNormalizedString, XSDToken, XSDLanguage, XSDAny, XSDSimple:
+	case URIString, URINormalized, URIToken, URILanguage, URIAny, URISimple:
 		return data, nil
-	case XSDBoolean:
+	case URIBoolean:
 		return data == "true" || data == "1", nil
-	case XSDFloat:
+	case URIFloat:
 		return strconv.ParseFloat(data, 32)
-	case XSDDouble:
+	case URIDouble:
 		return strconv.ParseFloat(data, 64)
-	case XSDDecimal:
+	case URIDecimal:
 		return convertDecimal(data)
-	case XSDInteger, XSDLong, XSDNonPos, XSDNeg:
+	case URIInteger, URILong, URINonPos, URINeg:
 		return strconv.ParseInt(data, 10, 64)
-	case XSDNonNeg, XSDPos, XSDULong:
+	case URINonNeg, URIPos, URIULong:
 		return strconv.ParseUint(data, 10, 64)
-	case XSDInt:
+	case URIInt:
 		return strconv.ParseInt(data, 10, 32)
-	case XSDShort:
+	case URIShort:
 		return strconv.ParseInt(data, 10, 16)
-	case XSDByte:
+	case URIByte:
 		return strconv.ParseInt(data, 10, 8)
-	case XSDUInt, XSDYear:
+	case URIUInt, URIYear:
 		return strconv.ParseUint(data, 10, 32)
-	case XSDUShort:
+	case URIUShort:
 		return strconv.ParseUint(data, 10, 16)
-	case XSDUByte, XSDDay, XSDMonth:
+	case URIUByte, URIDay, URIMonth:
 		return strconv.ParseUint(data, 10, 8)
-	case XSDDuration:
+	case URIDuration:
 		return convertDuration(data)
-	case XSDDateTime:
+	case URIDateTime:
 		return time.ParseInLocation(time.RFC3339Nano, data, time.Local)
-	case XSDAnyURI:
+	case URIAnyURI:
 		return convertURI(data)
 
-	case XSDTime:
+	case URITime:
 		// TODO: we may need a special time type.
 		return time.ParseInLocation("15:04:05.999999999", data, time.Local)
-	case XSDDate:
+	case URIDate:
 		// TODO: we may need a special date type.
 		return time.ParseInLocation("2006-01-02", data, time.Local)
-	case XSDYearMonth:
+	case URIYearMonth:
 		// TODO: we may need a special year-month type.
 		return time.ParseInLocation("2006-01", data, time.Local)
-	case XSDMonthDay:
+	case URIMonthDay:
 		// TODO: we may need a special month-day type.
 		return time.ParseInLocation("01-02", data, time.Local)
 

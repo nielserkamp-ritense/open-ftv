@@ -101,8 +101,11 @@ func (e *entities) AddEntity(entity models.Entity) {
 // GetEntity implements the EntitySet interface.
 func (e *entities) GetEntity(uid string) models.Entity {
 	e.mutex.RLock()
-	ce := e.set[uidToCedar(uid)]
+	ce, ok := e.set[uidToCedar(uid)]
 	e.mutex.RUnlock()
+	if !ok {
+		return nil
+	}
 	return e.cedarToEntity(&ce)
 }
 
@@ -142,7 +145,7 @@ func (e *entities) MergeEntities(in ...models.EntitySet) {
 }
 
 func (e *entities) cedarToEntity(in *cedar.Entity) models.Entity {
-	if in == nil {
+	if in == nil || in == empty {
 		return nil
 	}
 	return NewWrappedEntity(in, e.logger)
@@ -186,3 +189,5 @@ type entities struct {
 	set    cedar.EntityMap
 	mutex  sync.RWMutex
 }
+
+var empty = &cedar.Entity{}
