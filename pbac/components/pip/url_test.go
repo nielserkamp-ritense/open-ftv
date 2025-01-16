@@ -76,7 +76,7 @@ func TestProcessURL(t *testing.T) {
 
 			p.determineURL(req, a)
 
-			m, ok := a.GetAttribute("http").(map[string]any)
+			m, ok := a.GetAttributeValue("http").(map[string]any)
 			require.True(t, ok)
 			require.NotNil(t, m)
 

@@ -82,7 +82,7 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 
 func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
 	actionAttrs := models.NewAttributeSet(req.Action.Properties)
-	method, _ := actionAttrs.GetAttribute(models.AttrMethod).(string)
+	method, _ := actionAttrs.GetAttributeValue(models.AttrMethod).(string)
 
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
 	action := models.NewEntity(models.EntityAction, req.Action.Name, actionAttrs)

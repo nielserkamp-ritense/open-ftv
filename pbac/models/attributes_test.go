@@ -22,7 +22,7 @@ func TestNewAttributeSet(t *testing.T) {
 		},
 		{
 			name: "one set",
-			in:   []any{&attributes{set: map[string]any{"hello": "world", "int": 123}}},
+			in:   []any{NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123))},
 			want: map[string]any{"hello": "world", "int": 123},
 		},
 		{
@@ -38,12 +38,12 @@ func TestNewAttributeSet(t *testing.T) {
 		{
 			name: "mixed input",
 			in: []any{
-				&attributes{set: map[string]any{"hello": "world", "int": 123}},
+				NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 				12345,
 				&m1,
 				NewAttribute("world", "hello"),
 				m2,
-				&attributes{set: map[string]any{"hello": "world2", "bool": true}},
+				NewAttributeSet(NewAttribute("hello", "world2"), NewAttribute("bool", true)),
 				true,
 				NewAttribute("int", 456),
 				nil,
@@ -60,18 +60,17 @@ func TestNewAttributeSet(t *testing.T) {
 			got2, ok := got.(*attributes)
 			require.True(t, ok)
 			require.NotNil(t, got2)
-			assert.EqualValues(t, tc.want, got2.set)
 
 			got3 := MapFromAttributes(got)
 			require.NotNil(t, got3)
 
 			for k, v := range tc.want {
-				v2 := got.GetAttribute(k)
+				v2 := got.GetAttributeValue(k)
 				assert.Equal(t, v, v2)
 			}
 
-			got.IterateAttributes(func(key string, value any) {
-				assert.Equal(t, tc.want[key], value)
+			got.IterateAttributes(func(attr Attribute) {
+				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
 		})
 	}
@@ -87,21 +86,21 @@ func TestAttributes_AddAttribute(t *testing.T) {
 	}{
 		{
 			name:  "empty",
-			in:    &attributes{set: make(map[string]any)},
+			in:    &attributes{set: make(map[string]Attribute)},
 			key:   "hello",
 			value: 12345,
 			want:  map[string]any{"hello": 12345},
 		},
 		{
 			name:  "new key",
-			in:    &attributes{set: map[string]any{"hello": "world", "int": 123, "bool": true}},
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
 			key:   "float",
 			value: 12345.6789,
 			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
 		},
 		{
 			name:  "duplicate key",
-			in:    &attributes{set: map[string]any{"hello": "world", "int": 123, "bool": true}},
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
 			key:   "int",
 			value: 12345.6789,
 			want:  map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
@@ -120,6 +119,58 @@ func TestAttributes_AddAttribute(t *testing.T) {
 	}
 }
 
+func TestAttributes_AddAttributeWithType(t *testing.T) {
+	testCases := []struct {
+		name  string
+		in    AttributeSet
+		key   string
+		value any
+		tp    string
+		want  map[string]any
+	}{
+		{
+			name:  "empty",
+			in:    &attributes{set: make(map[string]Attribute)},
+			key:   "hello",
+			value: 12345,
+			tp:    "xsd:integer",
+			want:  map[string]any{"hello": 12345},
+		},
+		{
+			name:  "new key",
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:   "float",
+			value: 12345.6789,
+			tp:    "xsd:double",
+			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
+		},
+		{
+			name:  "duplicate key",
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:   "int",
+			value: 12345.6789,
+			tp:    "xsd:double",
+			want:  map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.in
+			a.AddAttributeWithType(tc.key, tc.value, tc.tp)
+
+			got := MapFromAttributes(a)
+			require.NotNil(t, got)
+			assert.EqualValues(t, tc.want, got)
+
+			attr := a.GetAttribute(tc.key)
+			require.NotNil(t, attr)
+			assert.Equal(t, tc.value, attr.Value())
+			assert.Equal(t, tc.tp, attr.Type())
+		})
+	}
+}
+
 func TestAttributes_RemoveAttribute(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -129,19 +180,19 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			in:   &attributes{set: make(map[string]any)},
+			in:   &attributes{set: make(map[string]Attribute)},
 			key:  "hello",
 			want: map[string]any{},
 		},
 		{
 			name: "miss",
-			in:   &attributes{set: map[string]any{"hello": "world", "int": 123, "bool": true}},
+			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
 			key:  "float",
 			want: map[string]any{"hello": "world", "int": 123, "bool": true},
 		},
 		{
 			name: "hit",
-			in:   &attributes{set: map[string]any{"hello": "world", "int": 123, "bool": true}},
+			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
 			key:  "int",
 			want: map[string]any{"hello": "world", "bool": true},
 		},
@@ -168,22 +219,24 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 	}{
 		{
 			name: "both empty",
-			in:   &attributes{set: make(map[string]any)},
+			in:   &attributes{set: make(map[string]Attribute)},
 			want: make(map[string]any),
 		},
 		{
-			name:  "add one set",
-			in:    &attributes{set: map[string]any{"hello": "world", "int": 123}},
-			merge: []AttributeSet{&attributes{set: map[string]any{"hello": "world2", "bool": true}}},
-			want:  map[string]any{"hello": "world2", "int": 123, "bool": true},
+			name: "add one set",
+			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
+			merge: []AttributeSet{
+				NewAttributeSet(NewAttribute("hello", "world2"), NewAttribute("bool", true)),
+			},
+			want: map[string]any{"hello": "world2", "int": 123, "bool": true},
 		},
 		{
 			name: "add few sets",
-			in:   &attributes{set: map[string]any{"hello": "world", "int": 234}},
+			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 234)),
 			merge: []AttributeSet{
-				&attributes{set: map[string]any{"hello": "world", "int": 123}},
-				&attributes{set: map[string]any{"int": 456, "world": "hello"}},
-				&attributes{set: map[string]any{"hello": "world2", "bool": true}},
+				NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
+				NewAttributeSet(NewAttribute("int", 456), NewAttribute("world", "hello")),
+				NewAttributeSet(NewAttribute("hello", "world2"), NewAttribute("bool", true)),
 			},
 			want: map[string]any{"hello": "world2", "int": 456, "bool": true, "world": "hello"},
 		},
@@ -217,8 +270,8 @@ func TestMapFromAttributes(t *testing.T) {
 		},
 		{
 			name: "few attributes",
-			in:   NewAttributeSet(Attribute{Key: "hello", Value: "world"}, NewAttribute("int", 123)),
-			want: map[string]any{"hello": "world", "int": 123},
+			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 234)),
+			want: map[string]any{"hello": "world", "int": 234},
 		},
 	}
 

@@ -39,7 +39,7 @@ func TestLoadAttributeMap(t *testing.T) {
 			p2.loadAttributeMap(tc.in)
 
 			if k, ok2 := tc.in["key"].(string); ok2 {
-				got := p.GetAttribute(k)
+				got := p.GetAttributeValue(k)
 				require.NotNil(t, got)
 				assert.EqualValues(t, tc.in["value"], got)
 			}
@@ -102,7 +102,7 @@ func TestLoadAttributesAny(t *testing.T) {
 			p2.loadAttributesAny(tc.in)
 
 			for k := range tc.want {
-				got := p.GetAttribute(k)
+				got := p.GetAttributeValue(k)
 				require.NotNil(t, got)
 				assert.EqualValues(t, tc.want[k], got)
 			}
@@ -201,14 +201,14 @@ func TestLoadAttributes(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantLog == 0 {
-				tc.want.IterateAttributes(func(key string, v1 any) {
-					v2 := p.attributes.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				tc.want.IterateAttributes(func(attr models.Attribute) {
+					v2 := p.attributes.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 
-				p.attributes.IterateAttributes(func(key string, v1 any) {
-					v2 := tc.want.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				p.attributes.IterateAttributes(func(attr models.Attribute) {
+					v2 := tc.want.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 			}
 		})

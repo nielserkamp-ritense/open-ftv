@@ -71,7 +71,7 @@ func (p *pip) convertActivityID(id string, a models.AttributeSet) {
 	}
 
 	// It should give us the actual 'doelbinding' from its attributes.
-	doel, ok := e.Attributes().GetAttribute(models.AttrDoelbinding).(string)
+	doel, ok := e.Attributes().GetAttributeValue(models.AttrDoelbinding).(string)
 	if !ok || doel == "" {
 		return
 	}

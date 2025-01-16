@@ -31,9 +31,7 @@ func NewAttributeSet(logger *slog.Logger, in ...any) models.AttributeSet {
 		case models.AttributeSet:
 			a.MergeAttributes(t)
 		case models.Attribute:
-			a.AddAttribute(t.Key, t.Value)
-		case *models.Attribute:
-			a.AddAttribute(t.Key, t.Value)
+			a.AddAttribute(t.Key(), t.Value())
 		}
 	}
 	return a
@@ -46,8 +44,27 @@ func (a *attributes) AddAttribute(key string, value any) {
 	a.mutex.Unlock()
 }
 
+// AddAttributeWithType implements the AttributeSet interface.
+func (a *attributes) AddAttributeWithType(key string, value any, tp string) {
+	a.mutex.Lock()
+	a.set[cedar.String(key)] = a.anyToValue(value)
+	a.mutex.Unlock()
+}
+
 // GetAttribute implements the AttributeSet interface.
-func (a *attributes) GetAttribute(key string) any {
+func (a *attributes) GetAttribute(key string) models.Attribute {
+	a.mutex.RLock()
+	v := a.set[cedar.String(key)]
+	a.mutex.RUnlock()
+
+	if v == nil {
+		return nil
+	}
+	return models.NewAttribute(key, a.valueToAny(v))
+}
+
+// GetAttributeValue implements the AttributeSet interface.
+func (a *attributes) GetAttributeValue(key string) any {
 	a.mutex.RLock()
 	v := a.set[cedar.String(key)]
 	a.mutex.RUnlock()
@@ -65,7 +82,7 @@ func (a *attributes) RemoveAttribute(key string) {
 func (a *attributes) IterateAttributes(f models.AttributeIterator) {
 	a.mutex.RLock()
 	for k := range a.set {
-		f(k.String(), a.valueToAny(a.set[k]))
+		f(models.NewAttribute(string(k), a.valueToAny(a.set[k])))
 	}
 	a.mutex.RUnlock()
 }
@@ -79,8 +96,8 @@ func (a *attributes) MergeAttributes(in ...models.AttributeSet) {
 			maps.Copy(a.set, set.set)
 			set.mutex.RUnlock()
 		} else {
-			in[i].IterateAttributes(func(key string, value any) {
-				a.set[cedar.String(key)] = a.anyToValue(value)
+			in[i].IterateAttributes(func(attr models.Attribute) {
+				a.set[cedar.String(attr.Key())] = a.anyToValue(attr.Value())
 			})
 		}
 	}

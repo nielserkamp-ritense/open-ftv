@@ -121,13 +121,13 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 	}{
 		{name: "no ID", wantStatus: fiber.StatusNotFound},
 		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
-		{name: "bad ID", key: "xyz", wantStatus: fiber.StatusNotFound},
+		{name: "bad ID", key: "qqq99", wantStatus: fiber.StatusNotFound},
 		{name: "good ID", key: "werktijden", wantStatus: fiber.StatusOK},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 
 			h := slog2.NewDummyHandler(slog.LevelDebug)
@@ -145,8 +145,8 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			srv := fiber.New()
 			srv.Get("/v1/attribute/:key", ah.GetAttribute)
 
-			req := httptest.NewRequest(fiber.MethodGet, "/v1/attribute/"+tc.key, nil)
-			resp, err2 := srv.Test(req, 1)
+			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attribute/"+tc.key, nil)
+			resp, err2 := srv.Test(req, -1)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

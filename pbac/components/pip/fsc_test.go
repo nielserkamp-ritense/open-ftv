@@ -67,7 +67,7 @@ func TestProcessFSC(t *testing.T) {
 			}
 
 			if tc.wantJWT {
-				token, ok := a.GetAttribute(models.AttrJWT).(map[string]any)
+				token, ok := a.GetAttributeValue(models.AttrJWT).(map[string]any)
 				require.True(t, ok)
 				require.NotNil(t, token)
 

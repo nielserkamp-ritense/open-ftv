@@ -226,14 +226,14 @@ func TestProcessBody(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.want != nil {
-				tc.want.IterateAttributes(func(key string, v1 any) {
-					v2 := a.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				tc.want.IterateAttributes(func(attr models.Attribute) {
+					v2 := a.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 
-				a.IterateAttributes(func(key string, v1 any) {
-					v2 := tc.want.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				a.IterateAttributes(func(attr models.Attribute) {
+					v2 := tc.want.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 			}
 		})

@@ -16,26 +16,26 @@ const (
 
 // DeterminePrincipal determines the type of principal and its primary key.
 func DeterminePrincipal(a AttributeSet) (string, string) {
-	if principal, ok := a.GetAttribute(AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
+	if principal, ok := a.GetAttributeValue(AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
 		parts := strings.Split(principal, "::")
 		return parts[0], parts[1]
 	}
 
-	if zaak, ok := a.GetAttribute(AttrZaakType).(string); ok && zaak != "" {
-		if taak, ok2 := a.GetAttribute(AttrTaak).(string); ok2 && taak != "" {
+	if zaak, ok := a.GetAttributeValue(AttrZaakType).(string); ok && zaak != "" {
+		if taak, ok2 := a.GetAttributeValue(AttrTaak).(string); ok2 && taak != "" {
 			zaak = fmt.Sprintf("%s-%s", zaak, taak)
 		}
 		return PrincipalZaak, zaak
 	}
 
-	if doel, ok := a.GetAttribute(AttrDoelbinding).(string); ok && doel != "" {
+	if doel, ok := a.GetAttributeValue(AttrDoelbinding).(string); ok && doel != "" {
 		return PrincipalDoelbinding, doel
 	}
 
 	// TODO: this is dubious; can we really determine the Principal from a JWT?
-	// if jwt := a.GetAttribute(AttrJWT); jwt != nil {
-	// 	if valid, ok2 := a.GetAttribute(AttrValid).(cedar.Boolean); ok2 && bool(valid) {
-	// 		switch t := a.GetAttribute(AttrClaims).(type) {
+	// if jwt := a.GetAttributeValue(AttrJWT); jwt != nil {
+	// 	if valid, ok2 := a.GetAttributeValue(AttrValid).(cedar.Boolean); ok2 && bool(valid) {
+	// 		switch t := a.GetAttributeValue(AttrClaims).(type) {
 	// 		case string:
 	// 			return PrincipalJWT, t
 	//
@@ -51,7 +51,7 @@ func DeterminePrincipal(a AttributeSet) (string, string) {
 	// 	}
 	// }
 
-	if apikey, ok := a.GetAttribute(AttrApiKey).(string); ok && apikey != "" {
+	if apikey, ok := a.GetAttributeValue(AttrApiKey).(string); ok && apikey != "" {
 		return PrincipalApp, apikey
 	}
 

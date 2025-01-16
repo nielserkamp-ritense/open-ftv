@@ -280,7 +280,7 @@ func TestWatchAttributeFiles(t *testing.T) {
 			assert.Empty(t, p.attributeDeletes)
 
 			var count int
-			p.attributes.IterateAttributes(func(string, any) {
+			p.attributes.IterateAttributes(func(attribute models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.want, count)

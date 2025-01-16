@@ -109,11 +109,25 @@ func (p *pip) AddAttribute(key string, value any) {
 	p.attributes.AddAttribute(key, value)
 }
 
+// AddAttributeWithType implements the AttributeSet interface.
+//
+// Use this to add a default attribute to the PIP.
+func (p *pip) AddAttributeWithType(key string, value any, tp string) {
+	p.attributes.AddAttributeWithType(key, value, tp)
+}
+
 // GetAttribute implements the AttributeSet interface.
 //
 // Use this to read a default attribute from the PIP.
-func (p *pip) GetAttribute(key string) any {
+func (p *pip) GetAttribute(key string) models.Attribute {
 	return p.attributes.GetAttribute(key)
+}
+
+// GetAttributeValue implements the AttributeSet interface.
+//
+// Use this to read a default attribute value from the PIP.
+func (p *pip) GetAttributeValue(key string) any {
+	return p.attributes.GetAttributeValue(key)
 }
 
 // RemoveAttribute implements the AttributeSet interface.

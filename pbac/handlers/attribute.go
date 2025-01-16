@@ -15,38 +15,40 @@ import (
 )
 
 // AttributeFromOAS converts an OAS attribute model to the internal model.
-func AttributeFromOAS(in *attributes.Attribute) *models.Attribute {
-	a := &models.Attribute{Key: in.Key, Value: in.Value}
+func AttributeFromOAS(in *attributes.Attribute) models.Attribute {
+	value := in.Value
 
 	if in.Type != "" {
 		// we have a preference for xsd types.
 		if f := conversions2[in.Type]; f != nil {
-			a.Value = f(in.Value)
+			value = f(in.Value)
 		} else if f = conversions1[strings.ToLower(in.Type)]; f != nil {
-			a.Value = f(in.Value)
+			value = f(in.Value)
 		}
 	}
 
-	return a
+	return models.NewAttributeWithType(in.Key, value, in.Type)
 }
 
 // AttributeToOAS converts an internal attribute model to the OAS model.
-func AttributeToOAS(in *models.Attribute) *attributes.Attribute {
-	a := &attributes.Attribute{Key: in.Key}
+func AttributeToOAS(in models.Attribute) *attributes.Attribute {
+	a := &attributes.Attribute{Key: in.Key(), Value: in.Value(), Type: in.Type()}
 
-	switch t := in.Value.(type) {
-	case string:
-		a.Value, a.Type = t, xsd.PrefixString
-	case int64:
-		a.Value, a.Type = t, xsd.PrefixLong
-	case float64:
-		a.Value, a.Type = t, xsd.PrefixDouble
-	case bool:
-		a.Value, a.Type = t, xsd.PrefixBoolean
-	case time.Time:
-		a.Value, a.Type = t.Format(time.RFC3339Nano), xsd.PrefixDateTime
-	default:
-		a.Value, a.Type = fmt.Sprintf("%v", t), xsd.PrefixString
+	if a.Type == "" {
+		switch t := a.Value.(type) {
+		case string:
+			a.Type = xsd.PrefixString
+		case int64:
+			a.Type = xsd.PrefixLong
+		case float64:
+			a.Type = xsd.PrefixDouble
+		case bool:
+			a.Type = xsd.PrefixBoolean
+		case time.Time:
+			a.Value, a.Type = t.Format(time.RFC3339Nano), xsd.PrefixDateTime
+		default:
+			a.Value, a.Type = fmt.Sprintf("%v", t), xsd.PrefixString
+		}
 	}
 
 	return a

@@ -140,14 +140,14 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 
 			got.RemoveAttribute("request-time")
 
-			tc.want.IterateAttributes(func(key string, v1 any) {
-				v2 := got.GetAttribute(key)
-				assert.EqualValues(t, v1, v2)
+			tc.want.IterateAttributes(func(attr models.Attribute) {
+				v2 := got.GetAttributeValue(attr.Key())
+				assert.EqualValues(t, attr.Value(), v2)
 			})
 
-			got.IterateAttributes(func(key string, v1 any) {
-				v2 := tc.want.GetAttribute(key)
-				assert.EqualValues(t, v1, v2)
+			got.IterateAttributes(func(attr models.Attribute) {
+				v2 := tc.want.GetAttributeValue(attr.Key())
+				assert.EqualValues(t, attr.Value(), v2)
 			})
 		})
 	}

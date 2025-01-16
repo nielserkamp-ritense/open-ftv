@@ -18,7 +18,7 @@ func (p *pip) decodeBody(req *components.Request, a models.AttributeSet) {
 		return
 	}
 
-	ct, ok := a.GetAttribute("content-type").(string)
+	ct, ok := a.GetAttributeValue("content-type").(string)
 	if ok && ct != "" {
 		ct = strings.ToLower(convert.RemoveHeaderParameters(ct))
 	} else {

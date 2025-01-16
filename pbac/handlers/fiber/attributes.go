@@ -29,8 +29,8 @@ func NewAttributesHandler(logger *slog.Logger, controller pdp.Controller) Attrib
 // GetAttributes implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	resp := make([]*attributes.Attribute, 0, 32)
-	h.cache.IterateAttributes(func(key string, value any) {
-		resp = append(resp, handlers.AttributeToOAS(&models.Attribute{Key: key, Value: value}))
+	h.cache.IterateAttributes(func(attr models.Attribute) {
+		resp = append(resp, handlers.AttributeToOAS(attr))
 	})
 
 	if len(resp) == 0 {
@@ -50,7 +50,7 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	if value == nil {
 		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
-	return req.JSON(handlers.AttributeToOAS(&models.Attribute{Key: key, Value: value}))
+	return req.JSON(handlers.AttributeToOAS(models.NewAttribute(key, value)))
 }
 
 // PutAttribute implements the AttributesHandler interface.
@@ -71,8 +71,8 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	}
 
 	a := handlers.AttributeFromOAS(p)
-	h.cache.AddAttribute(a.Key, a.Value)
-	return req.JSON(&attributes.Attribute{Key: a.Key, Value: a.Value})
+	h.cache.AddAttribute(a.Key(), a.Value())
+	return req.JSON(&attributes.Attribute{Key: a.Key(), Value: a.Value()})
 }
 
 // PostAttribute implements the AttributesHandler interface.
@@ -93,7 +93,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	}
 
 	a := handlers.AttributeFromOAS(p)
-	h.cache.AddAttribute(a.Key, a.Value)
+	h.cache.AddAttributeWithType(a.Key(), a.Value(), a.Type())
 	return req.JSON(handlers.AttributeToOAS(a))
 }
 
@@ -110,7 +110,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	}
 
 	h.cache.RemoveAttribute(key)
-	return req.JSON(handlers.AttributeToOAS(&models.Attribute{Key: key, Value: value}))
+	return req.JSON(handlers.AttributeToOAS(models.NewAttribute(key, value)))
 }
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {

@@ -30,7 +30,7 @@ func TestNewAttributeBuilder(t *testing.T) {
 		aa := NewAttributeSet(logger, a3, a4)
 		require.NotNil(t, aa)
 
-		got2 := got(a1, aa, *a2)
+		got2 := got(a1, aa, a2)
 		require.NotNil(t, got2)
 
 		got3, ok := got2.(*attributes)
@@ -78,7 +78,7 @@ func TestNewAttributeSet(t *testing.T) {
 		},
 		{
 			name:      "few attributes",
-			in:        []any{a1, *a2, a3},
+			in:        []any{a1, a2, a3},
 			wantCount: 3,
 			want: map[string]any{
 				"hello": "world",
@@ -88,7 +88,7 @@ func TestNewAttributeSet(t *testing.T) {
 		},
 		{
 			name:      "many attributes",
-			in:        []any{a1, *a2, a3, a4, a5, a6, a7},
+			in:        []any{a1, a2, a3, a4, a5, a6, a7},
 			wantCount: 7,
 			want: map[string]any{
 				"hello":    "world",
@@ -122,7 +122,7 @@ func TestNewAttributeSet(t *testing.T) {
 		},
 		{
 			name:      "mixed",
-			in:        []any{*a3, aa2, a1, aa3, a2, aa1},
+			in:        []any{a3, aa2, a1, aa3, a2, aa1},
 			wantCount: 7,
 			want: map[string]any{
 				"hello":    "world",
@@ -151,12 +151,12 @@ func TestNewAttributeSet(t *testing.T) {
 			assert.Equal(t, tc.wantCount, len(got2.set))
 
 			for key := range tc.want {
-				got3 := got.GetAttribute(key)
+				got3 := got.GetAttributeValue(key)
 				assert.Equal(t, tc.want[key], got3)
 			}
 
-			got.IterateAttributes(func(key string, value any) {
-				assert.Equal(t, tc.want[key], value)
+			got.IterateAttributes(func(attr models.Attribute) {
+				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
 		})
 	}
@@ -207,12 +207,12 @@ func TestAttributes_AddAttribute(t *testing.T) {
 			assert.Equal(t, tc.wantCount, len(got2.set))
 
 			for key := range tc.want {
-				got3 := got.GetAttribute(key)
+				got3 := got.GetAttributeValue(key)
 				assert.Equal(t, tc.want[key], got3)
 			}
 
-			got.IterateAttributes(func(key string, value any) {
-				assert.Equal(t, tc.want[key], value)
+			got.IterateAttributes(func(attr models.Attribute) {
+				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
 		})
 	}
@@ -293,12 +293,12 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 			assert.Equal(t, tc.wantCount, len(got2.set))
 
 			for key := range tc.want {
-				got3 := got.GetAttribute(key)
+				got3 := got.GetAttributeValue(key)
 				assert.Equal(t, tc.want[key], got3)
 			}
 
-			got.IterateAttributes(func(key string, value any) {
-				assert.Equal(t, tc.want[key], value)
+			got.IterateAttributes(func(attr models.Attribute) {
+				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
 		})
 	}

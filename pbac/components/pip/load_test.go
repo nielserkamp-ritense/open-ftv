@@ -154,14 +154,14 @@ func TestLoad(t *testing.T) {
 
 			if tc.wantLog == 0 {
 				if tc.wantAttributes != nil {
-					tc.wantAttributes.IterateAttributes(func(key string, v1 any) {
-						v2 := p.attributes.GetAttribute(key)
-						assert.EqualValues(t, v1, v2)
+					tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
+						v2 := p.attributes.GetAttribute(attr.Key())
+						assert.EqualValues(t, attr.Value(), v2)
 					})
 
-					p.attributes.IterateAttributes(func(key string, v1 any) {
-						v2 := tc.wantAttributes.GetAttribute(key)
-						assert.EqualValues(t, v1, v2)
+					p.attributes.IterateAttributes(func(attr models.Attribute) {
+						v2 := tc.wantAttributes.GetAttribute(attr.Key())
+						assert.EqualValues(t, attr.Value(), v2)
 					})
 				}
 

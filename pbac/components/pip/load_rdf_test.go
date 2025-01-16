@@ -57,7 +57,7 @@ func TestLoadRDF(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			var count int
-			p.attributes.IterateAttributes(func(string, any) {
+			p.attributes.IterateAttributes(func(attribute models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.wantAttributes, count)

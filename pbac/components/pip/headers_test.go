@@ -131,72 +131,72 @@ func TestProcessHeaders(t *testing.T) {
 			}
 
 			if tc.wantCT != "" {
-				assert.Equal(t, tc.wantCT, a.GetAttribute(models.AttrContentType))
+				assert.Equal(t, tc.wantCT, a.GetAttributeValue(models.AttrContentType))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrContentType))
+				assert.Nil(t, a.GetAttributeValue(models.AttrContentType))
 			}
 
 			if tc.wantAuth {
-				assert.NotNil(t, a.GetAttribute(models.AttrJWT))
+				assert.NotNil(t, a.GetAttributeValue(models.AttrJWT))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrJWT))
+				assert.Nil(t, a.GetAttributeValue(models.AttrJWT))
 			}
 
 			if tc.wantFSC {
-				assert.NotNil(t, a.GetAttribute(models.AttrFSC))
+				assert.NotNil(t, a.GetAttributeValue(models.AttrFSC))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrFSC))
+				assert.Nil(t, a.GetAttributeValue(models.AttrFSC))
 			}
 
 			if tc.wantKey != "" {
-				assert.Equal(t, tc.wantKey, a.GetAttribute(models.AttrApiKey))
+				assert.Equal(t, tc.wantKey, a.GetAttributeValue(models.AttrApiKey))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrApiKey))
+				assert.Nil(t, a.GetAttributeValue(models.AttrApiKey))
 			}
 
 			if tc.wantAID != "" {
-				assert.Equal(t, tc.wantAID, a.GetAttribute(models.AttrActivityID))
+				assert.Equal(t, tc.wantAID, a.GetAttributeValue(models.AttrActivityID))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrActivityID))
+				assert.Nil(t, a.GetAttributeValue(models.AttrActivityID))
 			}
 
 			if tc.wantCU != "" {
-				assert.Equal(t, tc.wantCU, a.GetAttribute(models.AttrCoreUser))
+				assert.Equal(t, tc.wantCU, a.GetAttributeValue(models.AttrCoreUser))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrCoreUser))
+				assert.Nil(t, a.GetAttributeValue(models.AttrCoreUser))
 			}
 
 			if tc.wantGS != "" {
-				assert.Equal(t, tc.wantGS, a.GetAttribute(models.AttrGrondslag))
+				assert.Equal(t, tc.wantGS, a.GetAttributeValue(models.AttrGrondslag))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrGrondslag))
+				assert.Nil(t, a.GetAttributeValue(models.AttrGrondslag))
 			}
 
 			if tc.wantDB != "" {
-				assert.Equal(t, tc.wantDB, a.GetAttribute(models.AttrDoelbinding))
+				assert.Equal(t, tc.wantDB, a.GetAttributeValue(models.AttrDoelbinding))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrDoelbinding))
+				assert.Nil(t, a.GetAttributeValue(models.AttrDoelbinding))
 			}
 
 			if tc.wantZT != "" {
-				assert.Equal(t, tc.wantZT, a.GetAttribute(models.AttrZaakType))
+				assert.Equal(t, tc.wantZT, a.GetAttributeValue(models.AttrZaakType))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrZaakType))
+				assert.Nil(t, a.GetAttributeValue(models.AttrZaakType))
 			}
 
 			if tc.wantTaak != "" {
-				assert.Equal(t, tc.wantTaak, a.GetAttribute(models.AttrTaak))
+				assert.Equal(t, tc.wantTaak, a.GetAttributeValue(models.AttrTaak))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrTaak))
+				assert.Nil(t, a.GetAttributeValue(models.AttrTaak))
 			}
 
 			if tc.wantFwd != "" {
-				assert.Equal(t, tc.wantFwd, a.GetAttribute(models.AttrClientIP))
+				assert.Equal(t, tc.wantFwd, a.GetAttributeValue(models.AttrClientIP))
 			} else {
-				assert.Nil(t, a.GetAttribute(models.AttrClientIP))
+				assert.Nil(t, a.GetAttributeValue(models.AttrClientIP))
 			}
 
-			other, ok := a.GetAttribute(models.AttrHeaders).(map[string]string)
+			other, ok := a.GetAttributeValue(models.AttrHeaders).(map[string]string)
 			require.True(t, ok)
 			require.NotNil(t, other)
 
@@ -246,7 +246,7 @@ func TestProcessActivityID(t *testing.T) {
 			require.NotNil(t, a)
 
 			p.convertActivityID(tc.id, a)
-			assert.Equal(t, tc.want, a.GetAttribute(models.AttrDoelbinding))
+			assert.Equal(t, tc.want, a.GetAttributeValue(models.AttrDoelbinding))
 		})
 	}
 }

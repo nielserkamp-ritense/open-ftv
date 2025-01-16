@@ -38,7 +38,7 @@ func TestNewWrappedEntity(t *testing.T) {
 		attr := w.Attributes()
 		require.NotNil(t, attr)
 
-		got, ok := attr.GetAttribute("x").(string)
+		got, ok := attr.GetAttributeValue("x").(string)
 		require.True(t, ok)
 		assert.Equal(t, "y", got)
 

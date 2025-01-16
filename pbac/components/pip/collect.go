@@ -43,8 +43,8 @@ func (p *pip) CollectAttributesFromRequest(req *components.Request) (models.Attr
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
 		kv := make(map[string]any)
-		a.IterateAttributes(func(k string, v any) {
-			kv[k] = v
+		a.IterateAttributes(func(attr models.Attribute) {
+			kv[attr.Key()] = attr.Value()
 		})
 		p.logger.Debug("attributes collected", "request-uid", req.UID, "attributes", kv)
 	}

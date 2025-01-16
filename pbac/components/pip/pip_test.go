@@ -101,14 +101,14 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantAttributes != nil {
-				tc.wantAttributes.IterateAttributes(func(key string, v1 any) {
-					v2 := p2.attributes.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
+					v2 := p2.attributes.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 
-				p2.attributes.IterateAttributes(func(key string, v1 any) {
-					v2 := tc.wantAttributes.GetAttribute(key)
-					assert.EqualValues(t, v1, v2)
+				p2.attributes.IterateAttributes(func(attr models.Attribute) {
+					v2 := tc.wantAttributes.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
 				})
 			}
 
@@ -138,22 +138,22 @@ func TestPIP_Attributes(t *testing.T) {
 		p.AddAttribute("int", "987")
 		p.AddAttribute("float", "987.789")
 
-		assert.Equal(t, "world", p.GetAttribute("hello"))
+		assert.Equal(t, "world", p.GetAttributeValue("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
-		p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), &models.Attribute{Key: "bool", Value: true})}
+		p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true))}
 		p.MergeAttributes(p2)
 
-		assert.Equal(t, "world2", p.GetAttribute("hello"))
-		assert.Equal(t, true, p.GetAttribute("bool"))
+		assert.Equal(t, "world2", p.GetAttributeValue("hello"))
+		assert.Equal(t, true, p.GetAttributeValue("bool"))
 
 		p.RemoveAttribute("bool")
 		p.RemoveAttribute("int")
-		assert.Nil(t, p.GetAttribute("bool"))
-		assert.Nil(t, p.GetAttribute("int"))
+		assert.Nil(t, p.GetAttributeValue("bool"))
+		assert.Nil(t, p.GetAttributeValue("int"))
 
 		var count int
-		p.IterateAttributes(func(string, any) {
+		p.IterateAttributes(func(models.Attribute) {
 			count++
 		})
 		assert.Equal(t, 2, count)

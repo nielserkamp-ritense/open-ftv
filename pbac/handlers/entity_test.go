@@ -35,7 +35,7 @@ func TestEntityFromOAS(t *testing.T) {
 				"type",
 				"id",
 				models.NewAttributeSet(
-					models.NewAttribute("key1", "value"),
+					models.NewAttributeWithType("key1", "value", "xsd:string"),
 				),
 			),
 		},
@@ -54,9 +54,9 @@ func TestEntityFromOAS(t *testing.T) {
 				"type",
 				"id",
 				models.NewAttributeSet(
-					models.NewAttribute("key1", "value"),
-					models.NewAttribute("key2", 123.456),
-					models.NewAttribute("key3", int64(123456)),
+					models.NewAttributeWithType("key1", "value", "xsd:string"),
+					models.NewAttributeWithType("key2", 123.456, "xsd:float"),
+					models.NewAttributeWithType("key3", int64(123456), "xsd:nonNegativeInteger"),
 				),
 			),
 		},
