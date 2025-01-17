@@ -51,7 +51,7 @@ func TestServe(t *testing.T) {
 }
 
 func TestServe_FailPDP(t *testing.T) {
-	t.Run("serve", func(t *testing.T) {
+	t.Run("fail PDP", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
@@ -64,14 +64,12 @@ func TestServe_FailPDP(t *testing.T) {
 			MaxBody:      64536,
 		}
 
-		s := NewService(cfg, logger, nil)
-
 		defer func() {
 			e := recover()
 			require.NotNil(t, e)
 		}()
 
-		s.Serve()
+		_ = NewService(cfg, logger, nil)
 
 		require.True(t, false) // should never trigger
 	})

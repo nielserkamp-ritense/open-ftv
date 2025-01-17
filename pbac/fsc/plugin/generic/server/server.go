@@ -3,93 +3,38 @@ package server
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"os"
-	"os/signal"
-	"sync"
-	"sync/atomic"
-	"syscall"
-
-	"github.com/goccy/go-json"
-	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server/fiber"
 )
 
-// Service represents the interface for an HTTP service.
-type Service interface {
-	Serve()
-	Shutdown()
-}
+// NewService initializes the HTTP service (implemented with fiber & fasthttp).
+func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server.Service {
+	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, logboek: logboek}
 
-// NewService initializes an HTTP service (implemented with fiber/fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) Service {
-	ctx, cancel := context.WithCancel(context.Background())
-	return &service{ctx: ctx, cancel: cancel, cfg: cfg, logger: logger, logboek: logboek}
-}
+	s.Service = fiber.New(
+		logger,
+		s.initRoutes,
+		server.WithDefaults(),
+		server.WithHostPort(cfg.Host, cfg.Port),
+		server.WithAppName(config.AppName),
+		server.WithTLS(cfg.Cert, cfg.Key, cfg.CA),
+		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
+		server.WithMaxBody(cfg.MaxBody),
+		server.WithRecovery(),
+		server.WithSecurity(),
+	)
 
-// Serve runs the HTTP service.
-func (s *service) Serve() {
-	s.mutex.Lock()
-	s.intChan = make(chan os.Signal)
-	signal.Notify(s.intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
-	s.mutex.Unlock()
-
-	s.svc = fiber.New(fiber.Config{
-		CaseSensitive:         true,
-		DisableDefaultDate:    true,
-		DisableStartupMessage: true,
-		BodyLimit:             s.cfg.MaxBody,
-		ReadTimeout:           s.cfg.ReadTimeout,
-		WriteTimeout:          s.cfg.WriteTimeout,
-		IdleTimeout:           s.cfg.IdleTimeout,
-		ErrorHandler:          s.errorHandler,
-		AppName:               config.AppName,
-		JSONEncoder:           json.Marshal,
-		JSONDecoder:           json.Unmarshal,
-		RequestMethods:        fiber.DefaultMethods,
-	})
-
-	s.initMiddleware()
-	s.initRoutes()
-	s.run()
-	s.cancel()
-}
-
-// Shutdown can be used to stop the HTTP service.
-func (s *service) Shutdown() {
-	s.mutex.Lock()
-	s.intChan <- syscall.SIGQUIT
-	s.mutex.Unlock()
-}
-
-// errorHandler is the default error handler for things gone awry in fiber.
-// E.g. invalid paths, bad parameters, code panics, etc.
-// The actual error gets logged while the error response body is based on the embedded status code.
-// If the error does not embed a status code, InternalServerError will be used as the status.
-func (s *service) errorHandler(req *fiber.Ctx, err error) error {
-	status := fiber.StatusInternalServerError
-
-	var e *fiber.Error
-	if errors.As(err, &e) {
-		status = e.Code
-	}
-
-	s.logger.Error("internal server error", "status", status, "error", err)
-	return fiber2.SendBasicResponse(req, status)
+	return s
 }
 
 type service struct {
-	ctx      context.Context
-	cancel   context.CancelFunc
-	cfg      *config.Config
-	logger   *slog.Logger
-	svc      *fiber.App
-	logboek  ldv.LDV
-	intChan  chan os.Signal
-	shutdown atomic.Bool
-	mutex    sync.Mutex
+	server.Service
+	ctx     context.Context
+	cfg     *config.Config
+	logger  *slog.Logger
+	logboek ldv.LDV
 }

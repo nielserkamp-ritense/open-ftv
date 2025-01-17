@@ -1,11 +1,13 @@
 package server
 
 import (
+	"github.com/gofiber/fiber/v2"
+
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes() {
+func (s *service) initRoutes(svc *fiber.App) {
 	auth := New(s.ctx, s.cfg, s.logger, s.logboek)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
@@ -27,10 +29,10 @@ func (s *service) initRoutes() {
 	}
 
 	// liveness & readiness.
-	s.svc.Get("/healthz", handle.HealthZ)
+	svc.Get("/healthz", handle.HealthZ)
 
 	// API v1.
-	v1 := s.svc.Group("/v1")
+	v1 := svc.Group("/v1")
 
 	// FSC authorization.
 	v1.Post("/auth", auth.AuthFSC)
@@ -57,9 +59,7 @@ func (s *service) initRoutes() {
 	v1.Delete(handle.PathEntity, entities.DeleteEntity)
 
 	// AuthZEN
-	authZen := s.svc.Group("/authzen")
+	authZen := svc.Group("/authzen")
 	authZenV1 := authZen.Group("/v1")
 	authZenV1.Post("/evaluation", auth.AuthZEN)
-
-	s.logger.Info("server", "endpoints", s.svc.GetRoutes())
 }

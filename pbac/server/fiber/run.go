@@ -1,4 +1,4 @@
-package server
+package fiber
 
 import (
 	"fmt"
@@ -11,14 +11,14 @@ func (s *service) run() {
 		// there's no notification from fiber when the HTTP server has started, so we fake it.
 		// 10 milliseconds should be ample time.
 		time.AfterFunc(10*time.Millisecond, func() {
-			s.logger.Info("http service started", "host", s.cfg.Host, "port", s.cfg.Port)
+			s.logger.Info("http service started", "host", s.Host, "port", s.Port)
 		})
 
-		address := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
+		address := fmt.Sprintf("%s:%d", s.Host, s.Port)
 
 		var err error
-		if s.cfg.Cert != "" && s.cfg.Key != "" {
-			err = s.svc.ListenTLS(address, s.cfg.Cert, s.cfg.Key)
+		if s.TLSCert != "" && s.TLSKey != "" {
+			err = s.svc.ListenTLS(address, s.TLSCert, s.TLSKey)
 		} else {
 			err = s.svc.Listen(address)
 		}
