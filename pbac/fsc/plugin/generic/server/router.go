@@ -1,13 +1,12 @@
 package server
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/handlers"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes() {
-	auth := handlers.New(s.ctx, s.cfg, s.logger, s.logboek)
+	auth := New(s.ctx, s.cfg, s.logger, s.logboek)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
@@ -61,4 +60,6 @@ func (s *service) initRoutes() {
 	authZen := s.svc.Group("/authzen")
 	authZenV1 := authZen.Group("/v1")
 	authZenV1.Post("/evaluation", auth.AuthZEN)
+
+	s.logger.Info("server", "endpoints", s.svc.GetRoutes())
 }

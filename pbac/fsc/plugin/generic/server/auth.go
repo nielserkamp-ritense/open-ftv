@@ -1,5 +1,5 @@
 // Package handlers contains the HTTP request handlers for the FSC Auth plugin.
-package handlers
+package server
 
 import (
 	"context"

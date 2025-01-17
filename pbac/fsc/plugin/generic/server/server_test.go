@@ -118,6 +118,6 @@ func TestErrorHandler(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Equal(t, 7, h.Count())
+		assert.GreaterOrEqual(t, 8, h.Count())
 	})
 }

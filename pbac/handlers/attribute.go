@@ -27,27 +27,67 @@ func AttributeFromOAS(in *attributes.Attribute) models.Attribute {
 		}
 	}
 
-	return models.NewAttributeWithType(in.Key, value, in.Type)
+	return models.NewOriginalAttribute(in.Key, value, in.Value, in.Type)
 }
 
 // AttributeToOAS converts an internal attribute model to the OAS model.
 func AttributeToOAS(in models.Attribute) *attributes.Attribute {
-	a := &attributes.Attribute{Key: in.Key(), Value: in.Value(), Type: in.Type()}
+	a := &attributes.Attribute{Key: in.Key(), Value: in.Original(), Type: in.Type()}
 
-	if a.Type == "" {
-		switch t := a.Value.(type) {
-		case string:
-			a.Type = xsd.PrefixString
-		case int64:
-			a.Type = xsd.PrefixLong
-		case float64:
-			a.Type = xsd.PrefixDouble
-		case bool:
-			a.Type = xsd.PrefixBoolean
-		case time.Time:
-			a.Value, a.Type = t.Format(time.RFC3339Nano), xsd.PrefixDateTime
-		default:
-			a.Value, a.Type = fmt.Sprintf("%v", t), xsd.PrefixString
+	if a.Value == nil {
+		a.Value = in.Value()
+
+		if a.Type == "" {
+			switch t := a.Value.(type) {
+			case string:
+				a.Type = "string"
+			case int64:
+				a.Type = "long"
+			case float64:
+				a.Type = "double"
+			case bool:
+				a.Type = "bool"
+			case time.Time:
+				a.Value, a.Type = t.Format(time.RFC3339Nano), "datetime"
+			case time.Duration:
+				a.Value, a.Type = t.String(), "duration"
+			case []any, map[string]any: // leave value and type as-is!
+			default:
+				a.Value, a.Type = fmt.Sprintf("%v", t), "string"
+			}
+		} else {
+			switch a.Type {
+			case "date", xsd.PrefixDate:
+				if d, ok := anyToDate(a.Value).(time.Time); ok {
+					a.Value = d.Format("2006-01-02")
+				}
+
+			case "time", xsd.PrefixTime:
+				if d, ok := anyToTime(a.Value).(time.Time); ok {
+					a.Value = d.Format("15:04:05")
+				}
+
+			case "datetime", "timestamp", xsd.PrefixDateTime:
+				if d, ok := anyToTimestamp(a.Value).(time.Time); ok {
+					a.Value = d.Format(time.RFC3339Nano)
+				}
+
+			case "duration":
+				if d, ok := anyToDuration(a.Value).(time.Duration); ok {
+					a.Value = d.String()
+				}
+
+			case xsd.PrefixDuration:
+				if d, ok := anyToDuration(a.Value).(time.Duration); ok {
+					s := d.String()
+					if strings.HasSuffix(s, "ms") || strings.HasSuffix(s, "µs") || strings.HasSuffix(s, "ns") {
+						d += time.Second
+						s = d.String()
+						s = "0" + s[1:]
+					}
+					a.Value = "PT" + strings.ToUpper(s)
+				}
+			}
 		}
 	}
 
@@ -63,6 +103,7 @@ var conversions1 = map[string]converter{
 	"date":      anyToDate,
 	"datetime":  anyToTimestamp,
 	"double":    anyToFloat,
+	"duration":  anyToDuration,
 	"float":     anyToFloat,
 	"int":       anyToInt64,
 	"integer":   anyToInt64,
@@ -74,36 +115,39 @@ var conversions1 = map[string]converter{
 }
 
 var conversions2 = map[string]converter{
-	xsd.PrefixAny:              anyToAny,
-	xsd.PrefixAnyURI:           anyToString,
-	xsd.PrefixBoolean:          anyToBool,
-	xsd.PrefixByte:             anyToInt64,
-	xsd.PrefixDate:             anyToDate,
-	xsd.PrefixDateTime:         anyToTimestamp,
-	xsd.PrefixDay:              anyToInt64,
-	xsd.PrefixDecimal:          anyToFloat,
-	xsd.PrefixDouble:           anyToFloat,
-	xsd.PrefixFloat:            anyToFloat,
-	xsd.PrefixInt:              anyToInt64,
-	xsd.PrefixInteger:          anyToInt64,
-	xsd.PrefixLanguage:         anyToString,
-	xsd.PrefixLong:             anyToInt64,
-	xsd.PrefixMonth:            anyToInt64,
-	xsd.PrefixNeg:              anyToInt64,
-	xsd.PrefixNonNeg:           anyToInt64,
-	xsd.PrefixNonPos:           anyToInt64,
-	xsd.PrefixNormalizedString: anyToString,
-	xsd.PrefixPos:              anyToInt64,
-	xsd.PrefixShort:            anyToInt64,
-	xsd.PrefixSimple:           anyToAny,
-	xsd.PrefixString:           anyToString,
-	xsd.PrefixTime:             anyToTime,
-	xsd.PrefixToken:            anyToString,
-	xsd.PrefixUByte:            anyToInt64,
-	xsd.PrefixUInt:             anyToInt64,
-	xsd.PrefixULong:            anyToInt64,
-	xsd.PrefixUShort:           anyToInt64,
-	xsd.PrefixYear:             anyToInt64,
+	xsd.PrefixAny:        anyToAny,
+	xsd.PrefixAnyURI:     anyToString,
+	xsd.PrefixBoolean:    anyToBool,
+	xsd.PrefixByte:       anyToInt64,
+	xsd.PrefixDate:       anyToDate,
+	xsd.PrefixDateTime:   anyToTimestamp,
+	xsd.PrefixDay:        anyToInt64,
+	xsd.PrefixDecimal:    anyToFloat,
+	xsd.PrefixDouble:     anyToFloat,
+	xsd.PrefixDuration:   anyToDuration,
+	xsd.PrefixFloat:      anyToFloat,
+	xsd.PrefixInt:        anyToInt64,
+	xsd.PrefixInteger:    anyToInt64,
+	xsd.PrefixLanguage:   anyToString,
+	xsd.PrefixLong:       anyToInt64,
+	xsd.PrefixMonth:      anyToInt64,
+	xsd.PrefixMonthDay:   anyToString,
+	xsd.PrefixNeg:        anyToInt64,
+	xsd.PrefixNonNeg:     anyToInt64,
+	xsd.PrefixNonPos:     anyToInt64,
+	xsd.PrefixNormalized: anyToString,
+	xsd.PrefixPos:        anyToInt64,
+	xsd.PrefixShort:      anyToInt64,
+	xsd.PrefixSimple:     anyToAny,
+	xsd.PrefixString:     anyToString,
+	xsd.PrefixTime:       anyToTime,
+	xsd.PrefixToken:      anyToString,
+	xsd.PrefixUByte:      anyToInt64,
+	xsd.PrefixUInt:       anyToInt64,
+	xsd.PrefixULong:      anyToInt64,
+	xsd.PrefixUShort:     anyToInt64,
+	xsd.PrefixYear:       anyToInt64,
+	xsd.PrefixYearMonth:  anyToString,
 }
 
 func anyToAny(in any) any {
@@ -121,7 +165,7 @@ func anyToString(in any) any {
 	case int64:
 		return strconv.FormatInt(t, 10)
 	case float64:
-		return strconv.FormatFloat(t, 'f', -1, 64)
+		return strconv.FormatFloat(t, 'g', -1, 64)
 	case bool:
 		return strconv.FormatBool(t)
 	default:
@@ -136,11 +180,11 @@ func anyToInt64(in any) any {
 	case json.Number:
 		i, _ = t.Int64()
 	case int:
-		return int64(t)
+		i = int64(t)
 	case int64:
-		return t
+		i = t
 	case float64:
-		return int64(t)
+		i = int64(t)
 	case bool:
 		if t {
 			i = 1
@@ -161,11 +205,11 @@ func anyToFloat(in any) any {
 	case json.Number:
 		i, _ = t.Float64()
 	case float64:
-		return t
+		i = t
 	case int:
-		return float64(t)
+		i = float64(t)
 	case int64:
-		return float64(t)
+		i = float64(t)
 	case bool:
 		if t {
 			i = 1
@@ -181,6 +225,8 @@ func anyToFloat(in any) any {
 
 func anyToBool(in any) any {
 	switch t := in.(type) {
+	case bool:
+		return t
 	case string:
 		return isTrue(t)
 	case json.Number:
@@ -191,8 +237,6 @@ func anyToBool(in any) any {
 		return t != 0
 	case float64:
 		return t != 0
-	case bool:
-		return t
 	default:
 		return isTrue(fmt.Sprintf("%v", in))
 	}
@@ -204,6 +248,8 @@ func isTrue(in string) bool {
 
 func anyToDate(in any) any {
 	switch t := in.(type) {
+	case time.Time:
+		return t
 	case string:
 		return stringToDate(t)
 	default:
@@ -220,6 +266,8 @@ func stringToDate(in string) time.Time {
 
 func anyToTime(in any) any {
 	switch t := in.(type) {
+	case time.Time:
+		return t
 	case string:
 		return stringToTime(t)
 	default:
@@ -236,6 +284,8 @@ func stringToTime(in string) time.Time {
 
 func anyToTimestamp(in any) any {
 	switch t := in.(type) {
+	case time.Time:
+		return t
 	case string:
 		return stringToTimestamp(t)
 	default:
@@ -248,4 +298,29 @@ func stringToTimestamp(in string) time.Time {
 		return ts
 	}
 	return time.Time{}
+}
+
+func anyToDuration(in any) any {
+	switch t := in.(type) {
+	case time.Duration:
+		return t
+	case string:
+		return stringToDuration(t)
+	default:
+		return stringToDuration(fmt.Sprintf("%v", in))
+	}
+}
+
+func stringToDuration(in string) time.Duration {
+	if d, err := time.ParseDuration(in); err == nil {
+		return d
+	}
+
+	if a, err := xsd.Convert(in, xsd.PrefixDuration); err == nil {
+		if d, ok := a.(time.Duration); ok {
+			return d
+		}
+	}
+
+	return 0
 }

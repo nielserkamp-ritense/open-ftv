@@ -94,7 +94,7 @@ func TestEntityToOAS(t *testing.T) {
 				Type: "type",
 				Id:   "id",
 				Attributes: []attributes.Attribute{
-					{Key: "key1", Value: "value", Type: "xsd:string"},
+					{Key: "key1", Value: "value", Type: "string"},
 				},
 			},
 		},
@@ -113,9 +113,9 @@ func TestEntityToOAS(t *testing.T) {
 				Type: "type",
 				Id:   "id",
 				Attributes: []attributes.Attribute{
-					{Key: "key1", Value: "value", Type: "xsd:string"},
-					{Key: "key2", Value: 123.456, Type: "xsd:double"},
-					{Key: "key3", Value: int64(123456), Type: "xsd:long"},
+					{Key: "key1", Value: "value", Type: "string"},
+					{Key: "key2", Value: 123.456, Type: "double"},
+					{Key: "key3", Value: int64(123456), Type: "long"},
 				},
 			},
 		},

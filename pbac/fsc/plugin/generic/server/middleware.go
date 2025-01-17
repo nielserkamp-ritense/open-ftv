@@ -3,11 +3,12 @@ package server
 import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func (s *service) initMiddleware() {
 	// catch panics.
-	// s.svc.Use(recover.New())
+	s.svc.Use(recover.New())
 
 	// CORS support so we can use the browser!
 	s.svc.Use(cors.New(cors.Config{

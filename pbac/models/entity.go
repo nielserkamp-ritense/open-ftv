@@ -13,7 +13,7 @@ func EntityUID(ns, id string) string {
 
 // Entity represents the interface to work with the details of an entity.
 //
-// Entity is an immutable object and is by design safe for use by concurrent go-routines.
+// Entity is an immutable object and is by design safe for use in concurrent go-routines.
 type Entity interface {
 	UID() string              // retrieve the Unique ID (UID) of the entity.
 	Type() string             // retrieve the Type of the entity (e,g, name-space).
