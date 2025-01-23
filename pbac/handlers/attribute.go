@@ -316,7 +316,7 @@ func stringToDuration(in string) time.Duration {
 		return d
 	}
 
-	if a, err := xsd.Convert(in, xsd.PrefixDuration); err == nil {
+	if a, err := xsd.FromString(in, xsd.PrefixDuration); err == nil {
 		if d, ok := a.(time.Duration); ok {
 			return d
 		}

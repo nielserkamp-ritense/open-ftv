@@ -1,0 +1,152 @@
+package x509
+
+import (
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewCertificate(t *testing.T) {
+	RootCA()
+
+	now := time.Now().UTC()
+
+	data, caKey, err := NewCA(&Config{
+		Serial:       101,
+		Name:         pkix.Name{},
+		CA:           RootCA(),
+		CAKey:        RootKey(),
+		ValidFrom:    now,
+		ExpiresAfter: time.Hour,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, data)
+	require.NotNil(t, caKey)
+
+	var b *pem.Block
+	b, _ = pem.Decode(data)
+	require.NotNil(t, b)
+
+	var ca *x509.Certificate
+	ca, err = x509.ParseCertificate(b.Bytes)
+	require.NoError(t, err)
+	require.NotNil(t, ca)
+
+	intermediates := x509.NewCertPool()
+	intermediates.AddCert(ca)
+
+	subject := pkix.Name{
+		Country:       []string{"NL"},
+		Organization:  []string{"FTV"},
+		Province:      []string{"ZH"},
+		StreetAddress: []string{"Mickey Mouse laan 1"},
+		PostalCode:    []string{"0099ZZ"},
+		CommonName:    "",
+	}
+
+	testCases := []struct {
+		name    string
+		serial  int
+		keySize int
+		subject pkix.Name
+		from    time.Time
+		to      time.Time
+		expires time.Duration
+		wantErr bool
+	}{
+		{
+			name:    "no from, no to, no expires",
+			serial:  100,
+			keySize: 512,
+			subject: subject,
+		},
+		{
+			name:    "no from, no to, no expires",
+			serial:  100,
+			subject: subject,
+		},
+		{
+			name:    "no from, no to, expires",
+			serial:  100,
+			subject: subject,
+			expires: 15 * time.Minute,
+		},
+		{
+			name:    "from, no to, no expires",
+			serial:  100,
+			subject: subject,
+			from:    now,
+		},
+		{
+			name:    "from, no to, expires",
+			serial:  100,
+			subject: subject,
+			from:    now.AddDate(0, 0, -1),
+			expires: 25 * time.Hour,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{
+				Serial:       tc.serial,
+				KeySize:      tc.keySize,
+				Name:         tc.subject,
+				CA:           ca,
+				CAKey:        caKey,
+				ValidFrom:    tc.from,
+				ExpiresAfter: tc.expires,
+			}
+
+			var key *rsa.PrivateKey
+			data, key, err = NewCert(cfg)
+
+			if tc.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, data)
+				assert.Nil(t, key)
+			} else {
+				require.NoError(t, err)
+				assert.NotNil(t, data)
+				assert.NotNil(t, key)
+
+				if tc.keySize > 0 {
+					assert.Equal(t, tc.keySize, key.Size())
+				} else {
+					assert.Equal(t, 256, key.Size())
+				}
+
+				b2, rest := pem.Decode(data)
+				assert.Empty(t, rest)
+				assert.NotNil(t, b2)
+				assert.Equal(t, "CERTIFICATE", b2.Type)
+
+				cert, err2 := x509.ParseCertificate(b2.Bytes)
+				require.NoError(t, err2)
+				require.NotNil(t, cert)
+
+				assert.EqualValues(t, tc.subject.CommonName, cert.Subject.CommonName)
+				assert.EqualValues(t, tc.subject.Organization, cert.Subject.Organization)
+				assert.EqualValues(t, tc.subject.Province, cert.Subject.Province)
+				assert.EqualValues(t, tc.subject.StreetAddress, cert.Subject.StreetAddress)
+				assert.EqualValues(t, tc.subject.PostalCode, cert.Subject.PostalCode)
+				assert.EqualValues(t, cfg.ValidFrom, cert.NotBefore)
+				assert.EqualValues(t, cfg.ValidTo, cert.NotAfter)
+
+				_, err3 := cert.Verify(x509.VerifyOptions{
+					Roots:         Roots(),
+					Intermediates: intermediates,
+					KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+					CurrentTime:   time.Now().UTC(),
+				})
+				require.NoError(t, err3)
+			}
+		})
+	}
+}

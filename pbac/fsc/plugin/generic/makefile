@@ -1,5 +1,5 @@
-PROJECT_NAME := "fsc-opa"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/opa/$(PROJECT_NAME)"
+PROJECT_NAME := "fsc-auth"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
@@ -45,7 +45,7 @@ escape: fmt ## run escape analysis
 
 app: fmt ## build binaries
 	@mkdir -f ../../../../bin
-	@go build -ldflags "-s -w" -o ../../../../bin/fsc-opa cmd/*.go
+	@go build -ldflags "-s -w" -o ../../../../bin/fsc-auth cmd/*.go
 
 docker:
 	@docker build -t fsc-auth:1.0.0 .

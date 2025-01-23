@@ -139,6 +139,7 @@ pbac-handlers:
       changes:
         compare_to: "main"
         paths:
+          - oas/**/*
           - utilities/**/*
           - testdata/**/*
           - pbac/models/**/*
@@ -218,6 +219,7 @@ pbac-fsc-plugin-generic:
       changes:
         compare_to: "main"
         paths:
+          - oas/**/*
           - utilities/**/*
           - testdata/**/*
           - pbac/models/**/*
@@ -225,5 +227,43 @@ pbac-fsc-plugin-generic:
           - pbac/handlers/**/*
           - pbac/server/**/*
           - pbac/fsc/plugin/generic/**/*
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+mock-fds-ledenlijst:
+  stage: Tests
+  image: golang:1.23
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/mock/fds/ledenlijst/.go-cache
+  before_script:
+    - mkdir -p mock/fds/ledenlijst/.go-cache
+  script:
+    - cd mock/fds/ledenlijst
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: testcache
+    paths:
+      - mock/fds/ledenlijst/.go-cache
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - mock/fds/ledenlijst/cover.html
+  needs: [ ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - oas/**/*
+          - utilities/**/*
+          - pbac/server/**/*
+          - mock/fds/ledenlijst/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

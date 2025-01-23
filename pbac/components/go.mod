@@ -9,8 +9,9 @@ require (
 	github.com/cerbos/cerbos-sdk-go v0.2.13
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25
 	github.com/fsnotify/fsnotify v1.8.0
+	github.com/go-co-op/gocron/v2 v2.14.2
 	github.com/goccy/go-json v0.10.4
-	github.com/goccy/go-yaml v1.15.14
+	github.com/goccy/go-yaml v1.15.15
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
@@ -21,12 +22,13 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20241210103718-77b36e8fbbe2
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117093900-37f1c3380709
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117093900-37f1c3380709
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117140810-48be722a76e4
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117140810-48be722a76e4
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.34.0
+	k8s.io/client-go v0.26.2
 )
 
 require (
@@ -81,6 +83,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jdxcode/netrc v1.0.0 // indirect
+	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
@@ -114,6 +117,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
@@ -148,6 +152,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
+	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
@@ -160,6 +165,9 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	k8s.io/apimachinery v0.26.2 // indirect
+	k8s.io/klog/v2 v2.90.1 // indirect
+	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5 // indirect
 	oras.land/oras-go/v2 v2.5.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )

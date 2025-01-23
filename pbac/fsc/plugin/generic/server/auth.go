@@ -16,8 +16,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers/fiber"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/fsc/plugin/generic/config"
 )
 
 // AuthHandler represents the interface for handling authorization requests.

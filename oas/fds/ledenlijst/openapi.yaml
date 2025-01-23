@@ -96,7 +96,7 @@ components:
       pattern: "^[0-9]{20}$"
       example: "01234567890123456789"
     Error:
-      description: The error that occured while processing this request.
+      description: The error that occurred while processing this request.
       type: object
       properties:
         message:

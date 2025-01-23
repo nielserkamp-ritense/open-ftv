@@ -6,6 +6,11 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+// GetAttribute represents the interface for retrieving a specific attribute.
+type GetAttribute interface {
+	GetAttribute(key string) Attribute
+}
+
 // Attribute represents the interface for an attribute.
 //
 // Attribute is an immutable object and is by design safe for use in concurrent go-routines.

@@ -9,10 +9,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250117093900-37f1c3380709
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250117093900-37f1c3380709
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117093900-37f1c3380709
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117093900-37f1c3380709
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250117140810-48be722a76e4
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250117140810-48be722a76e4
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117140810-48be722a76e4
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117140810-48be722a76e4
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/goccy/go-yaml v1.15.14 // indirect
+	github.com/goccy/go-yaml v1.15.15 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+curl https://developer.overheid.nl/static/adr/ruleset.yaml > .spectral.yml
+
 function fix_code {
   sed -i -e "s/*string/string/" $1.go
   sed -i -e "s/*map/map/" $1.go
@@ -32,11 +34,11 @@ cd ..
 # clone repo
 cd fsc
 git clone --depth 1 https://gitlab.com/commonground/nlx/fsc-nlx.git
-cp fsc-nlx/outway/authorization-interface.yaml auth/oas-auth.yaml
+cp fsc-nlx/outway/authorization-interface.yaml auth/openapi.yaml
 
 # generate
 cd auth
-oapi-codegen -config cfg-auth.yaml oas-auth.yaml
+oapi-codegen -config config.yaml openapi.yaml
 cd ..
 
 # remove repo
@@ -47,11 +49,11 @@ cd ..
 # clone repo
 cd fds
 git clone --depth 1 https://gitlab.com/digilab.overheid.nl/ecosystem/fdsdemo.git
-cp fdsdemo/fds/ledenlijst/api/openapi.yaml ledenlijst/oas-leden.yaml
+cp fdsdemo/fds/ledenlijst/api/openapi.yaml ledenlijst/
 
 # generate
 cd ledenlijst
-oapi-codegen -config cfg-leden.yaml oas-leden.yaml
+oapi-codegen -config config.yaml oopenapi.yaml
 sed -i '6,8d' ledenlijst.go
 sed -i -e "s/openapi_types.UUID/string      /" ledenlijst.go
 cd ..

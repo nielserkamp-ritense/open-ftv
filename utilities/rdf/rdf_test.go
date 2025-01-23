@@ -4,42 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func TestConvertLiteral(t *testing.T) {
-	html := "<html><head><title>Hello World</title></head><body>nothing to see here</body></html>"
-	xml := "<xml><title>Hello World</title></xml>"
-	j1 := `{"title":"Hello World"}`
-	j2 := map[string]any{"title": "Hello World"}
-
-	testCases := []struct {
-		name    string
-		data    string
-		t       string
-		want    any
-		wantErr bool
-	}{
-		{name: "no mime-type", data: "abc", wantErr: true},
-		{name: "bad mime-type", data: "abc", t: "abc", wantErr: true},
-		{name: "string", data: "abc", t: "http://www.w3.org/2001/XMLSchema#string", want: "abc"},
-		{name: "html", data: html, t: "http://www.w3.org/1999/02/22-rdf-syntax-ns#HTML", want: html},
-		{name: "xml", data: xml, t: "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", want: xml},
-		{name: "json", data: j1, t: "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON", want: j2},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := ConvertLiteral(tc.data, tc.t)
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				assert.Equal(t, tc.want, got)
-			}
-		})
-	}
-}
 
 func TestIsClass(t *testing.T) {
 	testCases := []struct {
@@ -249,37 +214,9 @@ func TestIsLiteral(t *testing.T) {
 		{name: "RDF xml", t: "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", want: true},
 		{name: "RDF json", t: "http://www.w3.org/1999/02/22-rdf-syntax-ns#JSON", want: true},
 		{name: "XSD any", t: "http://www.w3.org/2001/XMLSchema#anyType", want: true},
-		{name: "XSD anyURI", t: "http://www.w3.org/2001/XMLSchema#anyURI", want: true},
-		{name: "XSD boolean", t: "http://www.w3.org/2001/XMLSchema#boolean", want: true},
-		{name: "XSD byte", t: "http://www.w3.org/2001/XMLSchema#byte", want: true},
-		{name: "XSD date", t: "http://www.w3.org/2001/XMLSchema#date", want: true},
-		{name: "XSD dateTime", t: "http://www.w3.org/2001/XMLSchema#dateTime", want: true},
-		{name: "XSD day", t: "http://www.w3.org/2001/XMLSchema#gDay", want: true},
-		{name: "XSD decimal", t: "http://www.w3.org/2001/XMLSchema#decimal", want: true},
 		{name: "XSD double", t: "http://www.w3.org/2001/XMLSchema#double", want: true},
-		{name: "XSD duration", t: "http://www.w3.org/2001/XMLSchema#duration", want: true},
-		{name: "XSD float", t: "http://www.w3.org/2001/XMLSchema#float", want: true},
-		{name: "XSD int", t: "http://www.w3.org/2001/XMLSchema#int", want: true},
-		{name: "XSD integer", t: "http://www.w3.org/2001/XMLSchema#integer", want: true},
-		{name: "XSD language", t: "http://www.w3.org/2001/XMLSchema#language", want: true},
 		{name: "XSD long", t: "http://www.w3.org/2001/XMLSchema#long", want: true},
 		{name: "XSD month", t: "http://www.w3.org/2001/XMLSchema#gMonth", want: true},
-		{name: "XSD monthDay", t: "http://www.w3.org/2001/XMLSchema#gMonthDay", want: true},
-		{name: "XSD neg", t: "http://www.w3.org/2001/XMLSchema#negativeInteger", want: true},
-		{name: "XSD nonNeg", t: "http://www.w3.org/2001/XMLSchema#nonNegativeInteger", want: true},
-		{name: "XSD nonPos", t: "http://www.w3.org/2001/XMLSchema#nonPositiveInteger", want: true},
-		{name: "XSD pos", t: "http://www.w3.org/2001/XMLSchema#positiveInteger", want: true},
-		{name: "XSD normalizedString", t: "http://www.w3.org/2001/XMLSchema#normalizedString", want: true},
-		{name: "XSD short", t: "http://www.w3.org/2001/XMLSchema#short", want: true},
-		{name: "XSD simple", t: "http://www.w3.org/2001/XMLSchema#simpleType", want: true},
-		{name: "XSD string", t: "http://www.w3.org/2001/XMLSchema#string", want: true},
-		{name: "XSD time", t: "http://www.w3.org/2001/XMLSchema#time", want: true},
-		{name: "XSD token", t: "http://www.w3.org/2001/XMLSchema#token", want: true},
-		{name: "XSD ubyte", t: "http://www.w3.org/2001/XMLSchema#unsignedByte", want: true},
-		{name: "XSD uint", t: "http://www.w3.org/2001/XMLSchema#unsignedInt", want: true},
-		{name: "XSD ulong", t: "http://www.w3.org/2001/XMLSchema#unsignedLong", want: true},
-		{name: "XSD ushort", t: "http://www.w3.org/2001/XMLSchema#unsignedShort", want: true},
-		{name: "XSD year", t: "http://www.w3.org/2001/XMLSchema#gYear", want: true},
 		{name: "XSD yearMonth", t: "http://www.w3.org/2001/XMLSchema#gYearMonth", want: true},
 	}
 

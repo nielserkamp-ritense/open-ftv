@@ -8,8 +8,8 @@ require (
 	github.com/goccy/go-json v0.10.4
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers v0.0.0-20250117093900-37f1c3380709
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117093900-37f1c3380709
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers v0.0.0-20250117140810-48be722a76e4
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250117140810-48be722a76e4
 )
 
 require (
@@ -18,7 +18,7 @@ require (
 	github.com/deiu/gon3 v0.0.0-20241212124032-93153c038193 // indirect
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/goccy/go-yaml v1.15.14 // indirect
+	github.com/goccy/go-yaml v1.15.15 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -33,9 +33,9 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.58.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250117093900-37f1c3380709 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250117093900-37f1c3380709 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117093900-37f1c3380709 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250117140810-48be722a76e4 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250117140810-48be722a76e4 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250117140810-48be722a76e4 // indirect
 	go.opentelemetry.io/otel v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/net v0.34.0 // indirect

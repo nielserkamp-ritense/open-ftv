@@ -6,22 +6,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
-// ConvertLiteral converts an RDF literal into a Golang variable of the appropriate type.
-//
-// This function supports the RDF data-types, as well as most of the common XSD data-types.
-func ConvertLiteral(data, t string) (any, error) {
-	switch t {
-	case HTML:
-		return data, nil
-	case XMLLiteral:
-		return convertXML(data)
-	case JSON:
-		return convertJSON(data)
-	default:
-		return xsd.Convert(data, t)
-	}
-}
-
 // IsClass returns true if the given identifier can be identified as a class.
 func IsClass(s string) bool {
 	switch s {
@@ -58,15 +42,10 @@ func IsTitle(s string) bool {
 func IsLiteral(s string) bool {
 	switch s {
 	case FTVAction, FTVAttributeKey, FTVEntityID, FTVEntityType, FTVRelationType,
-		JSON, HTML, XMLLiteral,
-		xsd.URIAny, xsd.URIAnyURI, xsd.URIBoolean, xsd.URIByte, xsd.URIDate, xsd.URIDateTime, xsd.URIDay, xsd.URIDecimal, xsd.URIDouble,
-		xsd.URIDuration, xsd.URIFloat, xsd.URIInt, xsd.URIInteger, xsd.URILanguage, xsd.URILong, xsd.URIMonth,
-		xsd.URIMonthDay, xsd.URINeg, xsd.URINonNeg, xsd.URINonPos, xsd.URINormalized, xsd.URIPos,
-		xsd.URIShort, xsd.URISimple, xsd.URIString, xsd.URITime, xsd.URIToken,
-		xsd.URIUByte, xsd.URIUInt, xsd.URIULong, xsd.URIUShort, xsd.URIYear, xsd.URIYearMonth:
+		JSON, HTML, XMLLiteral:
 		return true
 	default:
-		return false
+		return xsd.IsLiteral(s)
 	}
 }
 
@@ -125,14 +104,12 @@ func IsValue(s string) bool {
 	}
 }
 
-func convertXML(data string) (any, error) {
-
+func mapFromXML(data string) (any, error) {
 	// TODO: extract XML data.
-
 	return data, nil
 }
 
-func convertJSON(data string) (any, error) {
+func mapFromJSON(data string) (any, error) {
 	var out any
 	err := json.Unmarshal([]byte(data), &out)
 	return out, err

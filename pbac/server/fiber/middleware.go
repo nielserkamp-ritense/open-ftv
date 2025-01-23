@@ -3,13 +3,13 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
-	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func (s *service) defaultMiddleware() {
 	if s.RecoverPanics {
 		// recover from panics.
-		s.svc.Use(recover2.New())
+		s.svc.Use(recover.New())
 	}
 
 	if s.CorsOrigins != "" || s.CorsHeaders != "" {

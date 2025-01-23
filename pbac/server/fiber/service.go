@@ -2,7 +2,6 @@ package fiber
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -45,7 +44,7 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.ServerOption) se
 		ReadTimeout:           s.ReadTimeout,
 		WriteTimeout:          s.WriteTimeout,
 		IdleTimeout:           s.IdleTimeout,
-		ErrorHandler:          s.errorHandler,
+		ErrorHandler:          handlers.ErrorHandler(logger),
 		JSONEncoder:           json.Marshal,
 		JSONDecoder:           json.Unmarshal,
 	})
@@ -80,22 +79,6 @@ func (s *service) Shutdown() {
 	s.mutex.Lock()
 	s.intChan <- syscall.SIGQUIT
 	s.mutex.Unlock()
-}
-
-// errorHandler is the default error handler for things gone awry in fiber.
-// E.g. invalid paths, bad parameters, code panics, etc.
-// The actual error gets logged while the error response body is based on the embedded status code.
-// If the error does not embed a status code, InternalServerError will be used as the status.
-func (s *service) errorHandler(req *fiber.Ctx, err error) error {
-	status := fiber.StatusInternalServerError
-
-	var e *fiber.Error
-	if errors.As(err, &e) {
-		status = e.Code
-	}
-
-	s.logger.Error("internal server error", "status", status, "error", err)
-	return handlers.SendBasicResponse(req, status)
 }
 
 type service struct {

@@ -218,9 +218,9 @@ func (l *loader) convertObject(obj rdf2go.Term) (string, any, error) {
 
 func (l *loader) getLiteral(obj *rdf2go.Literal) (any, error) {
 	if d := obj.Datatype; d != nil {
-		return rdf.ConvertLiteral(obj.Value, d.RawValue())
+		return rdf.FromString(obj.Value, d.RawValue())
 	}
-	return rdf.ConvertLiteral(obj.Value, xsd.URIString)
+	return rdf.FromString(obj.Value, xsd.URIString)
 }
 
 type loader struct {
