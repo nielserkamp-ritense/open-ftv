@@ -13,8 +13,9 @@ import (
 
 // RootCA returns a self-signed certificate to use as root CA.
 //
-// It is valid for at least 24 hours after initialization.
-// Use for test-purposes only!
+// It is back-dated by 2 days and valid for 2 days from the current time of day.
+//
+// !!! USE FOR TEST-PURPOSES ONLY !!!
 func RootCA() *x509.Certificate {
 	rootOnce.Do(initialize)
 	return rootCA
@@ -74,8 +75,8 @@ var rootTemplate = &x509.Certificate{
 	PublicKeyAlgorithm:    x509.RSA,
 	Version:               3,
 	IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-	NotBefore:             time.Now().UTC().Truncate(24 * time.Hour),
-	NotAfter:              time.Now().UTC().Add(48 * time.Hour),
+	NotBefore:             time.Now().UTC().AddDate(0, 0, -2),
+	NotAfter:              time.Now().UTC().Add(96 * time.Hour),
 	IsCA:                  true,
 	ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 	KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
