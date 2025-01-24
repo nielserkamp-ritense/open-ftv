@@ -41,7 +41,7 @@ func TestGenerate(t *testing.T) {
 			name:   "good",
 			cert:   rootTemplate,
 			parent: rootTemplate,
-			bits:   4096,
+			bits:   512,
 		},
 	}
 

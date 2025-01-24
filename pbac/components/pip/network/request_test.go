@@ -95,7 +95,7 @@ func TestRequest_Prepare(t *testing.T) {
 				{Name: "key", In: "body", Value: "hello", Type: "xsd:string"},
 			},
 			wantURI:  "http://localhost:9000/v1/attribute",
-			wantBody: `{"key":"hello"}`,
+			wantBody: `{"key":"hello"}` + "\n",
 		},
 		{
 			name:    "few parameters - body",
@@ -132,7 +132,7 @@ func TestRequest_Prepare(t *testing.T) {
 				{Name: "timeout", In: "body", Value: 10 * time.Second, Type: "xsd:duration"},
 			},
 			wantURI:  "http://localhost:9000/v1/entity",
-			wantBody: `{"exact":true,"id":25,"pct":12.25,"timeout":"PT10S","type":"service"}`,
+			wantBody: `{"exact":true,"id":25,"pct":12.25,"timeout":"PT10S","type":"service"}` + "\n",
 		},
 		{
 			name:    "mixed parameters",
@@ -148,7 +148,7 @@ func TestRequest_Prepare(t *testing.T) {
 			},
 			wantQuery: "count=25&format=application%2Fjson",
 			wantURI:   "http://localhost:9000/v1/entity/service/25?count=25&format=application%2Fjson",
-			wantBody:  `{"hello":"world"}`,
+			wantBody:  `{"hello":"world"}` + "\n",
 		},
 	}
 
@@ -269,7 +269,7 @@ func TestRequest_HTTPRequest(t *testing.T) {
 				{Name: "key", In: "body", Value: "hello", Type: "xsd:string"},
 			},
 			wantURI:  "http://localhost:9000/v1/attribute",
-			wantBody: `{"key":"hello"}`,
+			wantBody: `{"key":"hello"}` + "\n",
 			wantURI2: "http://localhost:9000/v1/attribute",
 		},
 		{
@@ -311,7 +311,7 @@ func TestRequest_HTTPRequest(t *testing.T) {
 				{Name: "timeout", In: "body", Value: 10 * time.Second, Type: "xsd:duration"},
 			},
 			wantURI:  "http://localhost:9000/v1/entity",
-			wantBody: `{"exact":true,"id":25,"pct":12.25,"timeout":"PT10S","type":"service"}`,
+			wantBody: `{"exact":true,"id":25,"pct":12.25,"timeout":"PT10S","type":"service"}` + "\n",
 			wantURI2: "http://localhost:9000/v1/entity",
 		},
 		{
@@ -328,7 +328,7 @@ func TestRequest_HTTPRequest(t *testing.T) {
 			},
 			wantQuery: "count=25&format=application%2Fjson",
 			wantURI:   "http://localhost:9000/v1/entity/service/25?count=25&format=application%2Fjson",
-			wantBody:  `{"hello":"world"}`,
+			wantBody:  `{"hello":"world"}` + "\n",
 			wantURI2:  "http://localhost:9000/v1/entity/service/25?count=25&format=application%2Fjson",
 		},
 	}

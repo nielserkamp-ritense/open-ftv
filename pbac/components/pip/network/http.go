@@ -2,18 +2,23 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"k8s.io/client-go/transport"
 )
 
-func (m *manager) execute(logger *slog.Logger, req *Request) {
+func (m *manager) execute(logger *slog.Logger, req *Request) error {
+	req.prepare()
+
 	ctx, cancel := context.WithTimeout(m.ctx, req.Timeout)
 	defer cancel()
 
 	r := runner{manager: m, ctx: ctx, logger: logger, req: req}
 	r.run()
+
+	return r.err
 }
 
 func (r *runner) run() {
@@ -32,9 +37,8 @@ func (r *runner) initClient() bool {
 	trans := http.DefaultClient.Transport
 
 	if cfg := r.req.TLSConfig(); cfg != nil {
-		var err error
-		if trans, err = transport.New(&transport.Config{TLS: *cfg, Transport: trans}); err != nil {
-			r.logger.Error("failed to setup TLS for http request", "error", err)
+		if trans, r.err = transport.New(&transport.Config{TLS: *cfg, Transport: trans}); r.err != nil {
+			r.logger.Error("failed to setup TLS for http request", "error", r.err)
 			return false
 		}
 	}
@@ -49,23 +53,16 @@ func (r *runner) initClient() bool {
 }
 
 func (r *runner) initRequest() bool {
-	var err error
-	r.httpReq, err = r.req.HTTPRequest(r.ctx, r.manager.get)
-
-	if err != nil {
-		r.logger.Error("failed to build http request", "error", err)
+	if r.httpReq, r.err = r.req.HTTPRequest(r.ctx, r.manager.get); r.err != nil {
+		r.logger.Error("failed to build http request", "error", r.err)
 		return false
 	}
-
 	return true
 }
 
 func (r *runner) doRequest() {
-	var err error
-	r.httpResp, err = r.httpClient.Do(r.httpReq)
-
-	if err != nil {
-		r.logger.Error("failed to execute http request", "error", err)
+	if r.httpResp, r.err = r.httpClient.Do(r.httpReq); r.err != nil {
+		r.logger.Error("failed to execute http request", "error", r.err)
 		return
 	}
 
@@ -85,6 +82,7 @@ func (r *runner) processResponse() {
 
 	default:
 		r.logger.Error("unexpected status code in http response", "code", r.httpResp.StatusCode, "status", r.httpResp.Status, "headers", r.httpResp.Header)
+		r.err = fmt.Errorf("unexpected status code %d in http response", r.httpResp.StatusCode)
 	}
 }
 
@@ -97,6 +95,7 @@ type runner struct {
 	httpClient *http.Client
 	httpReq    *http.Request
 	httpResp   *http.Response
+	err        error
 }
 
 const (

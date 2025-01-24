@@ -11,7 +11,7 @@ import (
 func NewCert(cfg *Config) ([]byte, *rsa.PrivateKey, error) {
 	cfg.fix()
 
-	out := x509.Certificate{
+	template := x509.Certificate{
 		SerialNumber:       big.NewInt(int64(cfg.Serial)),
 		Subject:            cfg.Name,
 		Issuer:             cfg.CA.Issuer,
@@ -26,5 +26,5 @@ func NewCert(cfg *Config) ([]byte, *rsa.PrivateKey, error) {
 		KeyUsage:           x509.KeyUsageDigitalSignature,
 	}
 
-	return generate(&out, cfg.CA, cfg.CAKey, cfg.KeySize*8)
+	return generate(&template, cfg.CA, cfg.CAKey, cfg.KeySize)
 }

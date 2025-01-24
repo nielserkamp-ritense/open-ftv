@@ -25,6 +25,7 @@ func TestConfig_LoadOptions(t *testing.T) {
 	testCases := []struct {
 		name         string
 		opts         []ServerOption
+		wantMTLS     bool
 		wantHost     string
 		wantPort     uint16
 		wantName     string
@@ -48,6 +49,11 @@ func TestConfig_LoadOptions(t *testing.T) {
 			opts: []ServerOption{},
 		},
 		{
+			name:     "mTLS",
+			opts:     []ServerOption{WithMutualTLS()},
+			wantMTLS: true,
+		},
+		{
 			name:     "host&port",
 			opts:     []ServerOption{WithHostPort("localhost", 8080)},
 			wantHost: "localhost",
@@ -66,9 +72,9 @@ func TestConfig_LoadOptions(t *testing.T) {
 		{
 			name:     "tls",
 			opts:     []ServerOption{WithTLS("file1", "file2", "file3")},
-			wantCert: "file1",
-			wantKey:  "file2",
-			wantCA:   "file3",
+			wantCA:   "file1",
+			wantCert: "file2",
+			wantKey:  "file3",
 		},
 		{
 			name:      "timeouts",
@@ -96,6 +102,7 @@ func TestConfig_LoadOptions(t *testing.T) {
 		{
 			name: "all",
 			opts: []ServerOption{
+				WithMutualTLS(),
 				WithHostPort("localhost", 8080),
 				WithAppName("My Fantastic App"),
 				WithMaxBody(12345),
@@ -105,13 +112,14 @@ func TestConfig_LoadOptions(t *testing.T) {
 				WithSecurity(),
 				WithCORS("*", "Cache-Control"),
 			},
+			wantMTLS:     true,
 			wantHost:     "localhost",
 			wantPort:     8080,
 			wantName:     "My Fantastic App",
 			wantMax:      12345,
-			wantCert:     "file1",
-			wantKey:      "file2",
-			wantCA:       "file3",
+			wantCA:       "file1",
+			wantCert:     "file2",
+			wantKey:      "file3",
 			wantRead:     time.Second * 4,
 			wantWrite:    time.Second * 8,
 			wantIdle:     time.Minute * 9,
@@ -137,6 +145,7 @@ func TestConfig_LoadOptions(t *testing.T) {
 			var c Config
 			c.LoadOptions(tc.opts...)
 
+			assert.Equal(t, tc.wantMTLS, c.MutualTLS)
 			assert.Equal(t, tc.wantHost, c.Host)
 			assert.Equal(t, tc.wantPort, c.Port)
 			assert.Equal(t, tc.wantName, c.AppName)

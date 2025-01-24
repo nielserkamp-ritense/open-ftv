@@ -5,6 +5,7 @@ import "time"
 
 // Config contains the configurable parameters for a service.
 type Config struct {
+	MutualTLS     bool          // turn on mTLS mode.
 	Port          uint16        // server port to listen on.
 	MaxBody       int           // maximum size of request bodies.
 	AppName       string        // application name.

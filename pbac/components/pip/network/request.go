@@ -172,15 +172,16 @@ func (r *Request) prepareBody(get models.GetAttribute) (io.Reader, int, bool) {
 		return nil, 0, true
 	}
 
-	var buf []byte
+	buf := &bytes.Buffer{}
 	switch r.ContentType {
 	case mime.MimeTypeYAML:
-		buf, _ = yaml.Marshal(m)
+		_ = yaml.NewEncoder(buf).Encode(m)
 	default:
-		buf, _ = json.Marshal(m)
+		_ = json.NewEncoder(buf).Encode(m)
+		r.ContentType = mime.MimeTypeJSON
 	}
 
-	return bytes.NewReader(buf), len(buf), static
+	return buf, buf.Len(), static
 }
 
 func (r *Request) prepare() {
@@ -206,7 +207,7 @@ func (r *Request) prepare() {
 		r.bodyLen = bodyLen
 	}
 
-	if r.CertFile != "" && r.KeyFile != "" {
+	if r.CAFile != "" || r.CertFile != "" || r.KeyFile != "" {
 		r.tls = &transport.TLSConfig{
 			CAFile:   r.CAFile,
 			CertFile: r.CertFile,

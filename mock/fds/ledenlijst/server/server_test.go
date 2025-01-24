@@ -46,6 +46,8 @@ func TestServe(t *testing.T) {
 		}()
 
 		wg.Wait()
+
+		assert.GreaterOrEqual(t, h.Count(), 3)
 	})
 }
 

@@ -17,9 +17,13 @@ func (s *service) run() {
 		address := fmt.Sprintf("%s:%d", s.Host, s.Port)
 
 		var err error
-		if s.TLSCert != "" && s.TLSKey != "" {
+
+		switch {
+		case s.MutualTLS:
+			err = s.svc.ListenMutualTLS(address, s.TLSCert, s.TLSKey, s.CA)
+		case s.TLSCert != "" && s.TLSKey != "":
 			err = s.svc.ListenTLS(address, s.TLSCert, s.TLSKey)
-		} else {
+		default:
 			err = s.svc.Listen(address)
 		}
 

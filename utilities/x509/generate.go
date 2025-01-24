@@ -1,36 +1,33 @@
 package x509
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 )
 
-func generate(cert, parent *x509.Certificate, parentKey *rsa.PrivateKey, keyBits int) ([]byte, *rsa.PrivateKey, error) {
-	if keyBits == 0 {
-		keyBits = 2048
+func generate(template, parent *x509.Certificate, parentKey *rsa.PrivateKey, keySize int) (certPEM []byte, key *rsa.PrivateKey, err error) {
+	if keySize == 0 {
+		keySize = 256
 	}
 
-	key, err := rsa.GenerateKey(rand.Reader, keyBits)
+	key, err = rsa.GenerateKey(rand.Reader, keySize*8)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	if parentKey == nil {
+		// self-signed.
 		parentKey = key
 	}
 
-	certBytes, err2 := x509.CreateCertificate(rand.Reader, cert, parent, &key.PublicKey, parentKey)
-	if err2 != nil {
-		return nil, nil, err2
+	var certBytes []byte
+	if certBytes, err = x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, parentKey); err != nil {
+		key = nil
+		return
 	}
 
-	pemBytes := &bytes.Buffer{}
-	if err = pem.Encode(pemBytes, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
-		return nil, nil, err
-	}
-
-	return pemBytes.Bytes(), key, nil
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
+	return
 }

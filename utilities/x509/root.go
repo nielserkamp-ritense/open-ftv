@@ -13,11 +13,17 @@ import (
 
 // RootCA returns a self-signed certificate to use as root CA.
 //
-// It is valid for 24 hours after initialization.
+// It is valid for at least 24 hours after initialization.
 // Use for test-purposes only!
 func RootCA() *x509.Certificate {
 	rootOnce.Do(initialize)
 	return rootCA
+}
+
+// RootPEM returns the PEM encoded data for the root CA.
+func RootPEM() []byte {
+	rootOnce.Do(initialize)
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rootCA.Raw})
 }
 
 // RootKey returns the private key for the root CA.
@@ -68,8 +74,8 @@ var rootTemplate = &x509.Certificate{
 	PublicKeyAlgorithm:    x509.RSA,
 	Version:               3,
 	IPAddresses:           []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-	NotBefore:             time.Now().UTC(),
-	NotAfter:              time.Now().UTC().Add(24 * time.Hour),
+	NotBefore:             time.Now().UTC().Truncate(24 * time.Hour),
+	NotAfter:              time.Now().UTC().Add(48 * time.Hour),
 	IsCA:                  true,
 	ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 	KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,

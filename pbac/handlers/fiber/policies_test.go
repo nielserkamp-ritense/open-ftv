@@ -248,7 +248,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
  "source": "s1",
  "target": "t1",
  "rvvaID": "id1",
- "url": "http://localhostx:100/policy/xyzqqq"
+ "url": "http://bad.url.xyz:1/policy/xyzqqq"
 }`
 
 	goodURL := `{
