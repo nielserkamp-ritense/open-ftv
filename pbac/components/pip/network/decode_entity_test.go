@@ -59,6 +59,7 @@ func TestProcessEntity(t *testing.T) {
 				assert.Equal(t, tc.wantCount, h.Count())
 			} else {
 				got := ent.GetEntity(tc.wantKey)
+				require.NotNil(t, got)
 				assert.EqualValues(t, tc.wantValue, got)
 			}
 		})
@@ -242,6 +243,8 @@ func TestDecodeEntityMap(t *testing.T) {
 				require.Zero(t, h.Count())
 
 				got := ent.GetEntity(tc.wantKey)
+				require.NotNil(t, got)
+
 				assert.Equal(t, tc.wantValue.UID(), got.UID())
 				assert.Equal(t, tc.wantValue.Type(), got.Type())
 				assert.Equal(t, tc.wantValue.ID(), got.ID())
@@ -321,8 +324,23 @@ func TestDecodeEntityData(t *testing.T) {
 				require.Zero(t, h.Count())
 
 				for k := range tc.want {
-					got := ent.GetEntity(k)
-					assert.EqualValues(t, tc.want[k], got)
+					want, got := tc.want[k], ent.GetEntity(k)
+					require.NotNil(t, got)
+
+					assert.Equal(t, want.UID(), got.UID())
+					assert.Equal(t, want.Type(), got.Type())
+					assert.Equal(t, want.ID(), got.ID())
+					assert.EqualValues(t, want.Parents(), got.Parents())
+
+					want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+						attr2 := got.Attributes().GetAttribute(attr1.Key())
+						assert.EqualValues(t, attr1, attr2)
+					})
+
+					got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+						attr2 := want.Attributes().GetAttribute(attr1.Key())
+						assert.EqualValues(t, attr1, attr2)
+					})
 				}
 			}
 		})
@@ -401,8 +419,23 @@ func TestDecodeEntity(t *testing.T) {
 				require.Zero(t, h.Count())
 
 				for k := range tc.want {
-					got := ent.GetEntity(k)
-					assert.EqualValues(t, tc.want[k], got)
+					want, got := tc.want[k], ent.GetEntity(k)
+					require.NotNil(t, got)
+
+					assert.Equal(t, want.UID(), got.UID())
+					assert.Equal(t, want.Type(), got.Type())
+					assert.Equal(t, want.ID(), got.ID())
+					assert.EqualValues(t, want.Parents(), got.Parents())
+
+					want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+						attr2 := got.Attributes().GetAttribute(attr1.Key())
+						assert.EqualValues(t, attr1, attr2)
+					})
+
+					got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+						attr2 := want.Attributes().GetAttribute(attr1.Key())
+						assert.EqualValues(t, attr1, attr2)
+					})
 				}
 			}
 		})
