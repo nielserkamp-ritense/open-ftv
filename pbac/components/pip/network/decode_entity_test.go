@@ -66,7 +66,7 @@ func TestProcessEntity(t *testing.T) {
 }
 
 func TestDecodeEntityMap(t *testing.T) {
-	a1 := []any{}
+	a1 := make([]any, 0)
 	a2 := map[string]any{"key": "code", "value": 1, "type": "xsd:string"}
 	a3 := []any{
 		map[string]any{"key": "code", "value": 1, "type": "xsd:integer"},
@@ -337,7 +337,7 @@ func TestDecodeEntity(t *testing.T) {
 
 	s1 := []any{m4, m2, m3}
 
-	mm1 := map[string]any{"first": "thiskey", "second": m2}
+	mm1 := map[string]any{"first": "this_key", "second": m2}
 	mm2 := map[string]any{"first": m2, "second": m1}
 	mm3 := map[string]any{"first": m3, "second": m3}
 	mm4 := map[string]any{"first": s1, "second": m4}
@@ -353,7 +353,7 @@ func TestDecodeEntity(t *testing.T) {
 			name: "ID from value",
 			data: mm1,
 			obj:  &EntityObject{Base: "first", TypeValue: "key", IdFromValue: true},
-			want: map[string]models.Entity{"key::thiskey": models.NewEntity("key", "thiskey", models.NewAttributeSet())},
+			want: map[string]models.Entity{"key::this_key": models.NewEntity("key", "this_key", models.NewAttributeSet())},
 		},
 		{
 			name: "not map and not slice",

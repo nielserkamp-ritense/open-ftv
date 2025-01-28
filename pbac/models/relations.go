@@ -13,7 +13,7 @@ type RelationIterator func(r Relation)
 type RelationSet interface {
 	AddRelation(r Relation)                               // add or replace a relation.
 	AddRelationFromUID(subject, predicate, object string) // add or replace a relation using the given keys.
-	GetRelation(uid string) any                           // retrieve a relation.
+	GetRelation(uid string) Relation                      // retrieve a relation.
 	RemoveRelation(uid string)                            // remove a relation.
 	IterateRelations(f RelationIterator)                  // iterate through all relations.
 	MergeRelations(in ...RelationSet)                     // merge the given relation sets into this one.
@@ -56,7 +56,7 @@ func (s *relations) AddRelationFromUID(subject, predicate, object string) {
 }
 
 // GetRelation implements the RelationSet interface.
-func (s *relations) GetRelation(uid string) any {
+func (s *relations) GetRelation(uid string) Relation {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	return s.set[uid]
