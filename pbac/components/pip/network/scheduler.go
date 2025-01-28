@@ -31,7 +31,7 @@ func (m *manager) schedule() {
 			}
 
 			if def != nil {
-				if _, err := scheduler.NewJob(def, gocron.NewTask(func() { m.execute(logger, request) })); err != nil {
+				if _, err := scheduler.NewJob(def, gocron.NewTask(func() { _ = m.execute(logger, request) })); err != nil {
 					logger.Error("failed to schedule job", "error", err)
 				}
 			}

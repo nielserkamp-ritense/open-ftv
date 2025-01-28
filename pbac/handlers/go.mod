@@ -5,14 +5,14 @@ go 1.23
 toolchain go1.23.2
 
 require (
-	github.com/goccy/go-json v0.10.4
+	github.com/goccy/go-json v0.10.5
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250123140703-7d11ad192c77
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250123140703-7d11ad192c77
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250123140703-7d11ad192c77
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250123140703-7d11ad192c77
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250124140818-df154b41a5a3
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250124140818-df154b41a5a3
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250124140818-df154b41a5a3
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250124140818-df154b41a5a3
 )
 
 require (

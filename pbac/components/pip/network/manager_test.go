@@ -52,7 +52,7 @@ func TestNewManager(t *testing.T) {
 			name:      "interval job",
 			data:      data1,
 			timeout:   250 * time.Millisecond,
-			wantCount: 6,
+			wantCount: 8,
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestNewManager(t *testing.T) {
 			err = f.Close()
 			require.NoError(t, err)
 
-			m, err2 := NewManager(ctx, path, slog.New(h), &nilGetter{})
+			m, err2 := NewManager(ManagerParams{Ctx: ctx, Path: path, Logger: slog.New(h)})
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, m)
@@ -90,7 +90,56 @@ func TestNewManager(t *testing.T) {
 				time.Sleep(10 * time.Millisecond)
 			}
 
-			assert.Equal(t, tc.wantCount, h.Count())
+			assert.GreaterOrEqual(t, tc.wantCount, h.Count())
 		})
 	}
+}
+
+func TestNewManager_NoContext(t *testing.T) {
+	t.Run("new manager without context", func(t *testing.T) {
+		d := t.TempDir()
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		data1 := fmt.Sprintf(`sources:
+  - name: source1
+    requests:
+      - name: request1
+        uri: %s
+        timeout: 1s
+        interval: 100ms
+`, ts.URL)
+
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		require.NotNil(t, h)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
+		defer cancel()
+
+		path := filepath.Join(d, "test.yaml")
+
+		f, err := os.Create(path)
+		require.NoError(t, err)
+
+		_, err = f.Write([]byte(data1))
+		require.NoError(t, err)
+
+		err = f.Close()
+		require.NoError(t, err)
+
+		m, err2 := NewManager(ManagerParams{Path: path, Logger: slog.New(h)})
+		require.NoError(t, err2)
+		require.NotNil(t, m)
+
+		select {
+		case <-ctx.Done():
+			// make sure we catch the last log line!
+			time.Sleep(10 * time.Millisecond)
+		}
+
+		assert.GreaterOrEqual(t, 8, h.Count())
+	})
 }

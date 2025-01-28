@@ -53,7 +53,7 @@ func (r *runner) initClient() bool {
 }
 
 func (r *runner) initRequest() bool {
-	if r.httpReq, r.err = r.req.HTTPRequest(r.ctx, r.manager.get); r.err != nil {
+	if r.httpReq, r.err = r.req.HTTPRequest(r.ctx, r.manager.attributes); r.err != nil {
 		r.logger.Error("failed to build http request", "error", r.err)
 		return false
 	}
@@ -95,6 +95,7 @@ type runner struct {
 	httpClient *http.Client
 	httpReq    *http.Request
 	httpResp   *http.Response
+	data       any
 	err        error
 }
 

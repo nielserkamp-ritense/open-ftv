@@ -31,7 +31,7 @@ func LoadConfig(path string) (*Config, error) {
 	case io.MimeTypeTOML:
 		err = toml.NewDecoder(f).Decode(cfg)
 	default:
-		return nil, fmt.Errorf("invalid mime-type [%s] for config file", mime)
+		err = fmt.Errorf("invalid mime-type [%s]", mime)
 	}
 
 	if err != nil {

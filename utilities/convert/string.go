@@ -34,6 +34,9 @@ func AnyToString(in any) string {
 	case string:
 		return t
 
+	case nil:
+		return ""
+
 	case bool:
 		if t {
 			return "true"

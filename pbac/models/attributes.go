@@ -14,13 +14,14 @@ type AttributeIterator func(attr Attribute)
 //
 // An implementation must take care to protect against simultaneous use from concurrent go-routines.
 type AttributeSet interface {
-	AddAttribute(key string, value any)                    // add or replace an attribute without a specific type.
-	AddAttributeWithType(key string, value any, tp string) // add or replace an attribute with the specified type.
-	GetAttribute(key string) Attribute                     // retrieve an attribute.
-	GetAttributeValue(key string) any                      // retrieve an attribute value.
-	RemoveAttribute(key string)                            // remove an attribute.
-	IterateAttributes(f AttributeIterator)                 // iterate through all attributes.
-	MergeAttributes(in ...AttributeSet)                    // merge the given attribute sets into this one.
+	AddAttribute(key string, value any)                              // add or replace an attribute without a specific type.
+	AddAttributeWithType(key string, value any, tp string)           // add or replace an attribute with the specified type.
+	AddOriginalAttribute(key string, value, original any, tp string) // add or replace an attribute with the specified type and original value.
+	GetAttribute(key string) Attribute                               // retrieve an attribute.
+	GetAttributeValue(key string) any                                // retrieve an attribute value.
+	RemoveAttribute(key string)                                      // remove an attribute.
+	IterateAttributes(f AttributeIterator)                           // iterate through all attributes.
+	MergeAttributes(in ...AttributeSet)                              // merge the given attribute sets into this one.
 }
 
 // NewAttributeSet instantiates a new set of attributes.
@@ -70,6 +71,16 @@ func (a *attributes) AddAttribute(key string, value any) {
 func (a *attributes) AddAttributeWithType(key string, value any, tp string) {
 	a.mutex.Lock()
 	a.set[key] = NewAttributeWithType(key, value, tp)
+	a.mutex.Unlock()
+}
+
+// AddOriginalAttribute implements the AttributeSet interface.
+//
+// A duplicate key will overwrite the previous value.
+// E.g. only the last value with the duplicate key will be retained.
+func (a *attributes) AddOriginalAttribute(key string, value, original any, tp string) {
+	a.mutex.Lock()
+	a.set[key] = NewOriginalAttribute(key, value, original, tp)
 	a.mutex.Unlock()
 }
 

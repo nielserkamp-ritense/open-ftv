@@ -116,6 +116,13 @@ func (p *pip) AddAttributeWithType(key string, value any, tp string) {
 	p.attributes.AddAttributeWithType(key, value, tp)
 }
 
+// AddOriginalAttribute implements the AttributeSet interface.
+//
+// Use this to add a default attribute to the PIP.
+func (p *pip) AddOriginalAttribute(key string, value, original any, tp string) {
+	p.attributes.AddOriginalAttribute(key, value, original, tp)
+}
+
 // GetAttribute implements the AttributeSet interface.
 //
 // Use this to read a default attribute from the PIP.

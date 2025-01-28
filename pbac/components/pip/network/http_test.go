@@ -11,14 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestRunner_InitClient(t *testing.T) {
-	g := &getAttr{m: make(map[string]models.Attribute)}
-
 	_, caFile, caCert, caKey := makeIntermediate(t)
 	certFile, keyFile := makeCert(t, caCert, caKey)
 
@@ -70,7 +67,7 @@ func TestRunner_InitClient(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			m := &manager{ctx: ctx, cancel: cancel, logger: logger, get: g}
+			m := &manager{ctx: ctx, cancel: cancel, logger: logger}
 			r := &runner{manager: m, ctx: ctx, logger: logger, req: tc.req}
 
 			got := r.initClient()
@@ -87,12 +84,18 @@ func TestManager_Execute(t *testing.T) {
  {"id":"86af57a8-c9d6-4620-8511-e81498ff2df7","oin":"01726469365987449994","attributes":{"name":"RViG","isMember":true,"maturity":5}}
 ]`)
 
-	handler := func(req *fiber.Ctx) error {
+	handler1 := func(req *fiber.Ctx) error {
 		req.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 		return req.Send(data)
 	}
 
-	g := &getAttr{m: make(map[string]models.Attribute)}
+	handler2 := func(req *fiber.Ctx) error {
+		return req.SendStatus(fiber.StatusNotModified)
+	}
+
+	handler3 := func(req *fiber.Ctx) error {
+		return req.SendStatus(fiber.StatusInternalServerError)
+	}
 
 	_, caFile, caCert, caKey := makeIntermediate(t)
 	certFile1, keyFile1 := makeCert(t, caCert, caKey)
@@ -100,21 +103,44 @@ func TestManager_Execute(t *testing.T) {
 
 	h1 := slog2.NewDummyHandler(slog.LevelDebug)
 	l1 := slog.New(h1)
-	s1 := newService(t, l1, "", "", "", "ledenlijst", handler)
+	s1 := newService(t, l1, "", "", "", "ledenlijst", handler1)
 
 	h2 := slog2.NewDummyHandler(slog.LevelDebug)
 	l2 := slog.New(h2)
-	s2 := newService(t, l2, "", certFile1, keyFile1, "ledenlijst", handler)
+	s2 := newService(t, l2, "", certFile1, keyFile1, "ledenlijst", handler1)
 
 	h3 := slog2.NewDummyHandler(slog.LevelDebug)
 	l3 := slog.New(h3)
-	s3 := newService(t, l3, caFile, certFile1, keyFile1, "ledenlijst", handler)
+	s3 := newService(t, l3, caFile, certFile1, keyFile1, "ledenlijst", handler1)
+
+	h4 := slog2.NewDummyHandler(slog.LevelDebug)
+	l4 := slog.New(h4)
+	s4 := newService(t, l4, caFile, certFile1, keyFile1, "ledenlijst", handler2)
+
+	h5 := slog2.NewDummyHandler(slog.LevelDebug)
+	l5 := slog.New(h5)
+	s5 := newService(t, l5, caFile, certFile1, keyFile1, "ledenlijst", handler3)
+
+	h6 := slog2.NewDummyHandler(slog.LevelDebug)
+	l6 := slog.New(h6)
+	s6 := newService(t, l6, caFile, certFile1, keyFile1, "ledenlijst", handler1)
+
+	h7 := slog2.NewDummyHandler(slog.LevelDebug)
+	l7 := slog.New(h7)
+	s7 := newService(t, l7, caFile, certFile1, keyFile1, "ledenlijst", handler1)
+
+	h8 := slog2.NewDummyHandler(slog.LevelDebug)
+	l8 := slog.New(h8)
+	s8 := newService(t, l8, caFile, certFile1, keyFile1, "ledenlijst", handler1)
+
+	d1 := &Response{}
 
 	testCases := []struct {
-		name   string
-		logger *slog.Logger
-		svc    server.Service
-		req    *Request
+		name    string
+		logger  *slog.Logger
+		svc     server.Service
+		req     *Request
+		wantErr bool
 	}{
 		{
 			name:   "FDS ledenlijst - no TLS",
@@ -125,6 +151,7 @@ func TestManager_Execute(t *testing.T) {
 				Method:  "GET",
 				URI:     "http://127.0.0.1:9000/v1/ledenlijst",
 				Timeout: time.Minute,
+				Decoder: d1,
 			},
 		},
 		{
@@ -137,6 +164,7 @@ func TestManager_Execute(t *testing.T) {
 				URI:     "https://127.0.0.1:9000/v1/ledenlijst",
 				CAFile:  caFile,
 				Timeout: time.Minute,
+				Decoder: d1,
 			},
 		},
 		{
@@ -151,7 +179,86 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  time.Minute,
+				Decoder:  d1,
 			},
+		},
+		{
+			name:   "FDS ledenlijst - mTLS - not modified",
+			logger: l4,
+			svc:    s4,
+			req: &Request{
+				Name:     "FDS ledenlijst",
+				Method:   "GET",
+				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				CAFile:   caFile,
+				CertFile: certFile2,
+				KeyFile:  keyFile2,
+				Timeout:  time.Minute,
+				Decoder:  d1,
+			},
+		},
+		{
+			name:   "FDS ledenlijst - mTLS - server error",
+			logger: l5,
+			svc:    s5,
+			req: &Request{
+				Name:     "FDS ledenlijst",
+				Method:   "GET",
+				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				CAFile:   caFile,
+				CertFile: certFile2,
+				KeyFile:  keyFile2,
+				Timeout:  time.Minute,
+				Decoder:  d1,
+			},
+			wantErr: true,
+		},
+		{
+			name:   "bad URL",
+			logger: l6,
+			svc:    s6,
+			req: &Request{
+				Name:     "FDS ledenlijst",
+				Method:   "GET",
+				URI:      "https://127.0.0.1:9001/lijst",
+				CAFile:   caFile,
+				CertFile: certFile2,
+				KeyFile:  keyFile2,
+				Timeout:  200 * time.Millisecond,
+				Decoder:  d1,
+			},
+			wantErr: true,
+		},
+		{
+			name:   "bad ca",
+			logger: l7,
+			svc:    s7,
+			req: &Request{
+				Name:     "FDS ledenlijst",
+				Method:   "GET",
+				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				CertFile: certFile2,
+				KeyFile:  keyFile2,
+				Timeout:  100 * time.Millisecond,
+				Decoder:  d1,
+			},
+			wantErr: true,
+		},
+		{
+			name:   "bad method",
+			logger: l8,
+			svc:    s8,
+			req: &Request{
+				Name:     "FDS ledenlijst",
+				Method:   "/001/001/001",
+				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				CAFile:   caFile,
+				CertFile: certFile2,
+				KeyFile:  keyFile2,
+				Timeout:  100 * time.Millisecond,
+				Decoder:  d1,
+			},
+			wantErr: true,
 		},
 	}
 
@@ -168,7 +275,7 @@ func TestManager_Execute(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 			defer cancel()
 
-			m := &manager{ctx: ctx, cancel: cancel, logger: tc.logger, get: g}
+			m := &manager{ctx: ctx, cancel: cancel, logger: tc.logger}
 
 			var execErr error
 			go func(wg *sync.WaitGroup) {
@@ -181,18 +288,14 @@ func TestManager_Execute(t *testing.T) {
 
 			wg.Wait()
 
-			require.NoError(t, execErr)
+			if tc.wantErr {
+				require.Error(t, execErr)
+			} else {
+				require.NoError(t, execErr)
+			}
 
 			h1.Clear()
 			h2.Clear()
 		})
 	}
-}
-
-type getAttr struct {
-	m map[string]models.Attribute
-}
-
-func (g *getAttr) GetAttribute(name string) models.Attribute {
-	return g.m[name]
 }

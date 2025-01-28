@@ -49,7 +49,7 @@ func TestScheduleInterval(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Equal(t, h.Count(), 6)
+		assert.GreaterOrEqual(t, h.Count(), 8)
 	})
 }
 

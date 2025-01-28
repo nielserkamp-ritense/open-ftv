@@ -29,7 +29,8 @@ import (
 // ContentType defines the content type of the body (if any).
 // Timeout defines the timeout before the call is cancelled.
 //
-// CAFile, CertFile and KeyFile can be used to specify the client-side TLS configuration.
+// CAFile can be used to specify the certifacte authority for checking the server certificate.
+// CertFile and KeyFile can be used to specify the client-side TLS configuration.
 // Each field should contain the path to the corresponding file.
 //
 // Parameters defines zero, one, or more parameters to supply in the request.
@@ -37,7 +38,7 @@ import (
 // Either Interval or Schedule should be present.
 // If both are specified, Interval takes precedence.
 // The Interval defines how often the request should be made; e.g. the interval between subsequent requests.
-// The schedule can be used to define an arbitrary schedule to make this request.
+// The schedule can be used to define an arbitrary schedule to make the request.
 // It should be formatted according to standard crontab layout; e.g. "* * * * *" ;
 // Where:
 // - the first parameter represents the minute(s).
@@ -59,6 +60,7 @@ type Request struct {
 	Parameters  []*Parameter      `json:"parameters,omitempty" yaml:"parameters,omitempty" toml:"parameters,omitempty"`
 	Interval    time.Duration     `json:"interval,omitempty" yaml:"interval,omitempty" toml:"interval,omitempty"`
 	Schedule    string            `json:"schedule,omitempty" yaml:"schedule,omitempty" toml:"schedule,omitempty"`
+	Decoder     *Response         `json:"response" yaml:"response" toml:"response"`
 	// hidden fields.
 	uri     string               // fully encoded uri.
 	query   string               // fully encoded query.

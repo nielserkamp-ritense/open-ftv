@@ -10,7 +10,7 @@ require (
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-co-op/gocron/v2 v2.14.2
-	github.com/goccy/go-json v0.10.4
+	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.15.15
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -22,9 +22,9 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250117140810-48be722a76e4
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250123140703-7d11ad192c77
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models v0.0.0-20250124140818-df154b41a5a3
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server v0.0.0-20250123140703-7d11ad192c77
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250123140703-7d11ad192c77
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250124140818-df154b41a5a3
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
 	go.uber.org/zap v1.27.0

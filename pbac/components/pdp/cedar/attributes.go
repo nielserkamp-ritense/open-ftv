@@ -45,7 +45,14 @@ func (a *attributes) AddAttribute(key string, value any) {
 }
 
 // AddAttributeWithType implements the AttributeSet interface.
-func (a *attributes) AddAttributeWithType(key string, value any, tp string) {
+func (a *attributes) AddAttributeWithType(key string, value any, _ string) {
+	a.mutex.Lock()
+	a.set[cedar.String(key)] = a.anyToValue(value)
+	a.mutex.Unlock()
+}
+
+// AddOriginalAttribute implements the AttributeSet interface.
+func (a *attributes) AddOriginalAttribute(key string, value, _ any, _ string) {
 	a.mutex.Lock()
 	a.set[cedar.String(key)] = a.anyToValue(value)
 	a.mutex.Unlock()
