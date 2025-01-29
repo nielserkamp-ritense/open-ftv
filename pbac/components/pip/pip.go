@@ -75,11 +75,6 @@ func New(cfg Config) PIP {
 		entities:      cfg.NewEntities(),
 	}
 
-	fdsStore, _ := filepath.Abs(filepath.Join(cfg.Store, "fds"))
-	if validPath(fdsStore) {
-		p.loadFDS(fdsStore)
-	}
-
 	p.loadFromStore()
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
@@ -199,7 +194,6 @@ type pip struct {
 	entityStore      string
 	logger           *slog.Logger
 	ctx              context.Context
-	fds              FDS
 	newAttributes    models.AttributesBuilder
 	attributes       models.AttributeSet
 	newEntities      models.EntitiesBuilder
