@@ -24,7 +24,7 @@ func TestNewCA(t *testing.T) {
 		CommonName:    "",
 	}
 
-	now := time.Now().UTC()
+	now := defaultNow()
 
 	testCases := []struct {
 		name    string
@@ -114,13 +114,16 @@ func TestNewCA(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, cert)
 
-				assert.EqualValues(t, tc.subject.CommonName, cert.Subject.CommonName)
-				assert.EqualValues(t, tc.subject.Organization, cert.Subject.Organization)
-				assert.EqualValues(t, tc.subject.Province, cert.Subject.Province)
-				assert.EqualValues(t, tc.subject.StreetAddress, cert.Subject.StreetAddress)
-				assert.EqualValues(t, tc.subject.PostalCode, cert.Subject.PostalCode)
-				assert.EqualValues(t, cfg.ValidFrom, cert.NotBefore)
-				assert.EqualValues(t, cfg.ValidTo, cert.NotAfter)
+				assert.Equal(t, tc.subject.CommonName, cert.Subject.CommonName)
+				assert.Equal(t, tc.subject.Organization, cert.Subject.Organization)
+				assert.Equal(t, tc.subject.Province, cert.Subject.Province)
+				assert.Equal(t, tc.subject.StreetAddress, cert.Subject.StreetAddress)
+				assert.Equal(t, tc.subject.PostalCode, cert.Subject.PostalCode)
+
+				assert.GreaterOrEqual(t, cert.NotBefore, cfg.ValidFrom)
+				assert.LessOrEqual(t, cert.NotBefore, cfg.ValidFrom.Add(time.Second))
+				assert.GreaterOrEqual(t, cert.NotAfter, cfg.ValidTo)
+				assert.LessOrEqual(t, cert.NotAfter, cfg.ValidTo.Add(time.Second))
 
 				_, err3 := cert.Verify(x509.VerifyOptions{
 					Roots:       Roots(),

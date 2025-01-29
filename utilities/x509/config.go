@@ -45,17 +45,23 @@ func (cfg *Config) fix() {
 	}
 
 	if cfg.ValidFrom.IsZero() {
-		cfg.ValidFrom = time.Now().UTC()
+		cfg.ValidFrom = defaultNow()
 	}
 
 	if cfg.ExpiresAfter == 0 {
-		cfg.ExpiresAfter = 5 * time.Second
+		cfg.ExpiresAfter = defaultExpires
 	}
 
 	if cfg.ValidTo.IsZero() {
 		cfg.ValidTo = cfg.ValidFrom.Add(cfg.ExpiresAfter)
 	}
 
-	cfg.ValidFrom = cfg.ValidFrom.Truncate(time.Second)
-	cfg.ValidTo = cfg.ValidTo.Truncate(time.Second)
+	cfg.ValidFrom = cfg.ValidFrom.Truncate(defaultTruncate)
+	cfg.ValidTo = cfg.ValidTo.Truncate(defaultTruncate)
 }
+
+var (
+	defaultNow      = func() time.Time { return time.Now().UTC().Truncate(defaultTruncate).Add(-5 * time.Second) }
+	defaultExpires  = 10 * time.Second
+	defaultTruncate = time.Second
+)

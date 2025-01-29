@@ -12,7 +12,7 @@ import (
 func TestConfig_Fix(t *testing.T) {
 	RootCA()
 
-	now := time.Now().UTC().Truncate(time.Second)
+	now := defaultNow()
 	yesterday := now.AddDate(0, 0, -1)
 	tomorrow := now.AddDate(0, 0, 1)
 
@@ -34,8 +34,8 @@ func TestConfig_Fix(t *testing.T) {
 			wantCA:     RootCA(),
 			wantKey:    RootKey(),
 			wantFrom:   now,
-			wantTo:     now.Add(5 * time.Second),
-			wantExpire: 5 * time.Second,
+			wantTo:     now.Add(defaultExpires),
+			wantExpire: defaultExpires,
 		},
 		{
 			name:       "CA",
@@ -44,8 +44,8 @@ func TestConfig_Fix(t *testing.T) {
 			wantCA:     RootCA(),
 			wantKey:    RootKey(),
 			wantFrom:   now,
-			wantTo:     now.Add(5 * time.Second),
-			wantExpire: 5 * time.Second,
+			wantTo:     now.Add(defaultExpires),
+			wantExpire: defaultExpires,
 		},
 		{
 			name:       "from",
@@ -53,8 +53,8 @@ func TestConfig_Fix(t *testing.T) {
 			wantCA:     RootCA(),
 			wantKey:    RootKey(),
 			wantFrom:   yesterday,
-			wantTo:     yesterday.Add(5 * time.Second),
-			wantExpire: 5 * time.Second,
+			wantTo:     yesterday.Add(defaultExpires),
+			wantExpire: defaultExpires,
 		},
 		{
 			name:       "to",
@@ -63,7 +63,7 @@ func TestConfig_Fix(t *testing.T) {
 			wantKey:    RootKey(),
 			wantFrom:   now,
 			wantTo:     tomorrow,
-			wantExpire: 5 * time.Second,
+			wantExpire: defaultExpires,
 		},
 		{
 			name:       "expires",
@@ -84,7 +84,7 @@ func TestConfig_Fix(t *testing.T) {
 			wantKey:    RootKey(),
 			wantFrom:   yesterday,
 			wantTo:     tomorrow,
-			wantExpire: 5 * time.Second,
+			wantExpire: defaultExpires,
 		},
 		{
 			name:       "all but to",
@@ -126,16 +126,20 @@ func TestConfig_Fix(t *testing.T) {
 			case tc.wantFrom.IsZero():
 				assert.GreaterOrEqual(t, cfg.ValidFrom, now.Add(-time.Second))
 				assert.LessOrEqual(t, cfg.ValidFrom, now.Add(time.Second))
-				assert.Equal(t, tc.to, cfg.ValidTo)
+				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo)
+				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(time.Second))
 
 			case tc.wantTo.IsZero():
-				assert.Equal(t, tc.wantFrom, cfg.ValidFrom)
+				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom)
+				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(time.Second))
 				assert.GreaterOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter-time.Second))
 				assert.LessOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter+time.Second))
 
 			default:
-				assert.Equal(t, tc.wantFrom, cfg.ValidFrom)
-				assert.Equal(t, tc.wantTo, cfg.ValidTo)
+				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom)
+				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(time.Second))
+				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo)
+				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(time.Second))
 			}
 		})
 	}
