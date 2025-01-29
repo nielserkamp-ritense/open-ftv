@@ -13,7 +13,7 @@ import (
 )
 
 func (r *runner) decodeResponse() {
-	dec := r.req.Decoder
+	dec := r.req.Mapping
 	if dec == nil {
 		r.err = fmt.Errorf("no response decoder defined")
 		r.logger.Error("failed to process http response body", "error", r.err)
@@ -52,7 +52,7 @@ func (r *runner) decodeResponse() {
 	r.decodeData(dec)
 }
 
-func (r *runner) decodeData(dec *Response) {
+func (r *runner) decodeData(dec *ResponseMapping) {
 	for _, obj := range dec.Attributes {
 		r.decodeAttribute(obj)
 	}

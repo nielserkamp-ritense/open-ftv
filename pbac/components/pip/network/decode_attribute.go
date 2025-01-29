@@ -6,47 +6,53 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
-func (r *runner) decodeAttribute(obj *AttributeObject) {
+func (r *runner) decodeAttribute(obj *AttributesMapping) {
 	if data := findElement(splitKeys(obj.Base), r.data); data != nil {
-		r.decodeAttributeData(data, obj, r.manager.attributes)
+		r.decodeAttributesData(data, obj, r.manager.attributes)
 	}
 }
 
-func (r *runner) decodeAttributeData(data any, obj *AttributeObject, set models.AttributeSet) {
+func (r *runner) decodeAttributesData(data any, obj *AttributesMapping, set models.AttributeSet) {
+	for k := range obj.Map {
+		r.decodeAttributeData(obj.Base, data, obj.Map[k], set)
+	}
+}
+
+func (r *runner) decodeAttributeData(base string, data any, obj *AttributeMapping, set models.AttributeSet) {
 	if obj.ValueAsIs {
-		r.processAttribute(obj.KeyValue, data, obj.TypeValue, obj, set)
+		r.processAttribute(base, obj.KeyValue, data, obj.TypeValue, set)
 	} else {
 		switch t := data.(type) {
 		case []any:
-			r.decodeAttributesSlice(t, obj, set)
+			r.decodeAttributesSlice(base, t, obj, set)
 		case map[string]any:
-			r.decodeAttributeMap(t, obj, set)
+			r.decodeAttributeMap(base, t, obj, set)
 		default:
-			r.processAttribute(obj.KeyValue, data, obj.TypeValue, obj, set)
+			r.processAttribute(base, obj.KeyValue, data, obj.TypeValue, set)
 		}
 	}
 }
 
-func (r *runner) decodeAttributesSlice(m []any, obj *AttributeObject, set models.AttributeSet) {
+func (r *runner) decodeAttributesSlice(base string, m []any, obj *AttributeMapping, set models.AttributeSet) {
 	for i := range m {
-		r.decodeAttributeData(m[i], obj, set)
+		r.decodeAttributeData(base, m[i], obj, set)
 	}
 }
 
-func (r *runner) decodeAttributeMap(m map[string]any, obj *AttributeObject, set models.AttributeSet) {
-	key := codeOrValueString(obj.KeyCode, obj.KeyValue, m)
-	value := m[obj.ValueCode]
-	tp := codeOrValueString(obj.TypeCode, obj.TypeValue, m)
-	r.processAttribute(key, value, tp, obj, set)
+func (r *runner) decodeAttributeMap(base string, m map[string]any, obj *AttributeMapping, set models.AttributeSet) {
+	key := codeOrValueString(obj.KeyField, obj.KeyValue, m)
+	value := m[obj.ValueField]
+	tp := codeOrValueString(obj.TypeField, obj.TypeValue, m)
+	r.processAttribute(base, key, value, tp, set)
 }
 
-func (r *runner) processAttribute(key string, value any, tp string, obj *AttributeObject, set models.AttributeSet) {
+func (r *runner) processAttribute(base, key string, value any, tp string, set models.AttributeSet) {
 	if key == "" {
-		r.logger.Warn("attribute key is required", "attribute.base", obj.Base, "value", value, "type", tp)
+		r.logger.Warn("attribute key is required", "attribute.base", base, "value", value, "type", tp)
 		return
 	}
 	if value == nil {
-		r.logger.Warn("attribute value is required", "attribute.base", obj.Base, "key", key, "type", tp)
+		r.logger.Warn("attribute value is required", "attribute.base", base, "key", key, "type", tp)
 		return
 	}
 

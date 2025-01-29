@@ -2,6 +2,29 @@ package network
 
 import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 
+func findElement(keys []string, data any) any {
+	if len(keys) == 0 {
+		return data
+	}
+
+	if m, ok := data.(map[string]any); ok {
+		return findElementInMap(keys, m)
+	}
+	return nil
+}
+
+func findElementInMap(keys []string, m map[string]any) any {
+	switch len(keys) {
+	case 1:
+		return m[keys[0]]
+	default:
+		if m2, ok := m[keys[0]].(map[string]any); ok {
+			return findElementInMap(keys[1:], m2)
+		}
+		return nil
+	}
+}
+
 func splitKeys(base string) []string {
 	var out []string
 
@@ -38,29 +61,6 @@ func splitKeys(base string) []string {
 		out = append(out, string(key))
 	}
 	return out
-}
-
-func findElement(keys []string, data any) any {
-	if len(keys) == 0 {
-		return data
-	}
-
-	if m, ok := data.(map[string]any); ok {
-		return findElementInMap(keys, m)
-	}
-	return nil
-}
-
-func findElementInMap(keys []string, m map[string]any) any {
-	switch len(keys) {
-	case 1:
-		return m[keys[0]]
-	default:
-		if m2, ok := m[keys[0]].(map[string]any); ok {
-			return findElement(keys[1:], m2)
-		}
-		return nil
-	}
 }
 
 func codeOrValue(code string, value any, data map[string]any) any {

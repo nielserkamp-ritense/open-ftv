@@ -39,7 +39,7 @@ func TestDecodeData(t *testing.T) {
 	testCases := []struct {
 		name     string
 		data     any
-		dec      *Response
+		dec      *ResponseMapping
 		wantAttr map[string]models.Attribute
 		wantEnt  map[string]models.Entity
 		wantRel  map[string]models.Relation
@@ -47,15 +47,15 @@ func TestDecodeData(t *testing.T) {
 		{
 			name: "dummy decoder",
 			data: "anything",
-			dec:  &Response{},
+			dec:  &ResponseMapping{},
 		},
 		{
 			name: "attributes",
 			data: mm1,
-			dec: &Response{
-				Attributes: map[string]*AttributeObject{
-					"first":     {Base: "first", KeyCode: "hello", ValueCode: "int", TypeCode: "type"},
-					"third.sub": {Base: "third.sub", KeyCode: "hello", ValueCode: "bool", TypeCode: "type"},
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "first", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "int", TypeField: "type"}}},
+					{Base: "third.sub", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "bool", TypeField: "type"}}},
 				},
 			},
 			wantAttr: map[string]models.Attribute{
@@ -69,10 +69,10 @@ func TestDecodeData(t *testing.T) {
 		{
 			name: "entities",
 			data: mm2,
-			dec: &Response{
-				Entities: map[string]*EntityObject{
-					"third.sub": {Base: "third.sub", TypeCode: "hello", IdCode: "bool"},
-					"first":     {Base: "first", TypeCode: "hello", IdCode: "int"},
+			dec: &ResponseMapping{
+				Entities: []*EntityMapping{
+					{Base: "third.sub", TypeField: "hello", IdField: "bool"},
+					{Base: "first", TypeField: "hello", IdField: "int"},
 				},
 			},
 			wantEnt: map[string]models.Entity{
@@ -84,9 +84,9 @@ func TestDecodeData(t *testing.T) {
 		{
 			name: "relations",
 			data: map[string]any{"rel": mm3},
-			dec: &Response{
-				Relations: map[string]*RelationObject{
-					"rel.second": {Base: "rel.second", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			dec: &ResponseMapping{
+				Relations: []*RelationMapping{
+					{Base: "rel.second", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 				},
 			},
 			wantRel: map[string]models.Relation{
@@ -110,17 +110,17 @@ func TestDecodeData(t *testing.T) {
 		{
 			name: "all",
 			data: mm4,
-			dec: &Response{
-				Relations: map[string]*RelationObject{
-					"rel.second": {Base: "rel.second", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			dec: &ResponseMapping{
+				Relations: []*RelationMapping{
+					{Base: "rel.second", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 				},
-				Attributes: map[string]*AttributeObject{
-					"attr.third.sub": {Base: "attr.third.sub", KeyCode: "hello", ValueCode: "bool", TypeCode: "type"},
-					"attr.first":     {Base: "attr.first", KeyCode: "hello", ValueCode: "int", TypeCode: "type"},
+				Attributes: []*AttributesMapping{
+					{Base: "attr.third.sub", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "bool", TypeField: "type"}}},
+					{Base: "attr.first", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "int", TypeField: "type"}}},
 				},
-				Entities: map[string]*EntityObject{
-					"ent.first":     {Base: "ent.first", TypeCode: "hello", IdCode: "int"},
-					"ent.third.sub": {Base: "ent.third.sub", TypeCode: "hello", IdCode: "bool"},
+				Entities: []*EntityMapping{
+					{Base: "ent.first", TypeField: "hello", IdField: "int"},
+					{Base: "ent.third.sub", TypeField: "hello", IdField: "bool"},
 				},
 			},
 			wantAttr: map[string]models.Attribute{
@@ -245,7 +245,7 @@ value = "first code"
 		name     string
 		data     string
 		content  string
-		dec      *Response
+		dec      *ResponseMapping
 		wantErr  bool
 		wantAttr map[string]models.Attribute
 		wantEnt  map[string]models.Entity
@@ -255,43 +255,43 @@ value = "first code"
 			name:    "bad content-type",
 			data:    "haha",
 			content: "x-bad-data",
-			dec:     &Response{},
+			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
 		{
 			name:    "bad yaml",
 			data:    "- 6 : - : \000",
 			content: "application/yaml",
-			dec:     &Response{},
+			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
 		{
 			name:    "bad toml",
 			data:    "- 6 : - : \000",
 			content: "application/toml",
-			dec:     &Response{},
+			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
 		{
 			name:    "bad json",
 			data:    "} not json !",
 			content: "application/json",
-			dec:     &Response{},
+			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
 		{
 			name:    "no content-type - bad json",
 			data:    "} not json !",
-			dec:     &Response{},
+			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
 		{
 			name:    "good yaml",
 			data:    goodYAML,
 			content: "application/yaml",
-			dec: &Response{
-				Attributes: map[string]*AttributeObject{
-					"attributes": {Base: "attributes", KeyCode: "key", ValueCode: "value", TypeCode: "type"},
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
 			wantAttr: map[string]models.Attribute{
@@ -302,9 +302,9 @@ value = "first code"
 		{
 			name: "good json",
 			data: goodJSON,
-			dec: &Response{
-				Attributes: map[string]*AttributeObject{
-					"attributes": {Base: "attributes", KeyCode: "key", ValueCode: "value", TypeCode: "type"},
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
 			wantAttr: map[string]models.Attribute{
@@ -316,9 +316,9 @@ value = "first code"
 			name:    "good toml",
 			data:    goodTOML,
 			content: "application/toml",
-			dec: &Response{
-				Attributes: map[string]*AttributeObject{
-					"attributes": {Base: "attributes", KeyCode: "key", ValueCode: "value", TypeCode: "type"},
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
 			wantAttr: map[string]models.Attribute{
@@ -360,7 +360,7 @@ value = "first code"
 				Method:  "GET",
 				URI:     "http://localhost:9000/v1/data",
 				Timeout: 100 * time.Millisecond,
-				Decoder: tc.dec,
+				Mapping: tc.dec,
 			}
 
 			r := &runner{logger: logger, data: tc.data, manager: m, req: req}

@@ -23,13 +23,13 @@ import (
 
 // Request defines a request to retrieve external attributes, entities and/or relations.
 //
-// Method defines the http method to use for the call.
-// URI defines the API endpoint to call.
-// Headers defines optional headers to send with the call.
-// ContentType defines the content type of the body (if any).
-// Timeout defines the timeout before the call is cancelled.
+// Method defines the http method to use for the request.
+// URI defines the API endpoint to handle the request.
+// Headers defines optional headers to send with the request.
+// ContentType defines the content type of the request body (if any).
+// Timeout defines the timeout before the request is cancelled.
 //
-// CAFile can be used to specify the certifacte authority for checking the server certificate.
+// CAFile can be used to specify the certificate authority for checking the server certificate.
 // CertFile and KeyFile can be used to specify the client-side TLS configuration.
 // Each field should contain the path to the corresponding file.
 //
@@ -46,6 +46,8 @@ import (
 // - the third parameter represents day(s) of the month.
 // - the forth parameter represents the month(s).
 // - the fifth parameter represents the day(s) of week.
+//
+// Mapping defines how to map the retrieved data to attributes, entities and/or relations.
 type Request struct {
 	Name        string            `json:"name" yaml:"name" toml:"name"`
 	Description string            `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
@@ -60,7 +62,7 @@ type Request struct {
 	Parameters  []*Parameter      `json:"parameters,omitempty" yaml:"parameters,omitempty" toml:"parameters,omitempty"`
 	Interval    time.Duration     `json:"interval,omitempty" yaml:"interval,omitempty" toml:"interval,omitempty"`
 	Schedule    string            `json:"schedule,omitempty" yaml:"schedule,omitempty" toml:"schedule,omitempty"`
-	Decoder     *Response         `json:"response" yaml:"response" toml:"response"`
+	Mapping     *ResponseMapping  `json:"mapping" yaml:"mapping" toml:"mapping"`
 	// hidden fields.
 	uri     string               // fully encoded uri.
 	query   string               // fully encoded query.
@@ -69,6 +71,7 @@ type Request struct {
 	tls     *transport.TLSConfig // TLS configuration.
 }
 
+// HTTPRequest returns an HTTP request for retrieving the external data.
 func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttribute) (*http.Request, error) {
 	query, static := r.prepareQuery(get)
 	uri, _ := r.prepareURI(query, static, get)
@@ -191,7 +194,9 @@ func (r *Request) prepare() {
 		r.Method = http.MethodGet
 	}
 
-	query, static := r.prepareQuery(&dummyGetter{})
+	dummy := &dummyGetter{}
+
+	query, static := r.prepareQuery(dummy)
 	if static {
 		r.query = query
 	}
@@ -199,12 +204,12 @@ func (r *Request) prepare() {
 	// if there is a non-static query, the URI will also not be static.
 	// so we can only have a static URI if there is no query, or if it is static.
 	if query == "" || static {
-		if uri, static2 := r.prepareURI(query, true, &dummyGetter{}); static2 {
+		if uri, static2 := r.prepareURI(query, true, dummy); static2 {
 			r.uri = uri
 		}
 	}
 
-	if body, bodyLen, static2 := r.prepareBody(&dummyGetter{}); static2 {
+	if body, bodyLen, static2 := r.prepareBody(dummy); static2 {
 		r.body = body
 		r.bodyLen = bodyLen
 	}

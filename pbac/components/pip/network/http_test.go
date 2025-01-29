@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/goccy/go-yaml"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -133,7 +135,7 @@ func TestManager_Execute(t *testing.T) {
 	l8 := slog.New(h8)
 	s8 := newService(t, l8, caFile, certFile1, keyFile1, "ledenlijst", handler1)
 
-	d1 := &Response{}
+	d1 := &ResponseMapping{}
 
 	testCases := []struct {
 		name    string
@@ -151,7 +153,7 @@ func TestManager_Execute(t *testing.T) {
 				Method:  "GET",
 				URI:     "http://127.0.0.1:9000/v1/ledenlijst",
 				Timeout: time.Minute,
-				Decoder: d1,
+				Mapping: d1,
 			},
 		},
 		{
@@ -164,7 +166,7 @@ func TestManager_Execute(t *testing.T) {
 				URI:     "https://127.0.0.1:9000/v1/ledenlijst",
 				CAFile:  caFile,
 				Timeout: time.Minute,
-				Decoder: d1,
+				Mapping: d1,
 			},
 		},
 		{
@@ -179,7 +181,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  time.Minute,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 		},
 		{
@@ -194,7 +196,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  time.Minute,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 		},
 		{
@@ -209,7 +211,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  time.Minute,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 			wantErr: true,
 		},
@@ -225,7 +227,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  200 * time.Millisecond,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 			wantErr: true,
 		},
@@ -240,7 +242,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  100 * time.Millisecond,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 			wantErr: true,
 		},
@@ -256,7 +258,7 @@ func TestManager_Execute(t *testing.T) {
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  100 * time.Millisecond,
-				Decoder:  d1,
+				Mapping:  d1,
 			},
 			wantErr: true,
 		},
@@ -298,4 +300,126 @@ func TestManager_Execute(t *testing.T) {
 			h2.Clear()
 		})
 	}
+}
+
+func TestManager_Execute_WithDecode(t *testing.T) {
+	var data = []byte(`[
+ {"id":"dfa58ae2-0dd4-471d-8863-08147944e641","oin":"01726477373371538205","attributes":{"name":"FSC controller","isMember":true,"maturity":4}},
+ {"id":"f8d73ae9-f3a7-4521-a6c0-28422b056cbb","oin":"01726469521943092351","attributes":{"name":"RDW","isMember":true,"maturity":3}},
+ {"id":"86af57a8-c9d6-4620-8511-e81498ff2df7","oin":"01726469365987449994","attributes":{"name":"RViG","isMember":true,"maturity":5}}
+]`)
+
+	var decData = `
+entities:
+  - typeValue: fds_member
+    idField: id
+    attributes:
+      - base: ""
+        map:
+          - keyValue: oin
+            valueField: oin
+            typeValue: xsd:string
+      - base: attributes
+        map:
+          - keyValue: name
+            valueField: name
+            typeValue: xsd:string
+          - keyValue: isMember
+            valueField: isMember
+            typeValue: xsd:boolean
+          - keyValue: maturity
+            valueField: maturity
+            typeValue: xsd:short
+`
+
+	t.Run("execute with decoding", func(t *testing.T) {
+		_, caFile, caCert, caKey := makeIntermediate(t)
+		certFile1, keyFile1 := makeCert(t, caCert, caKey)
+		certFile2, keyFile2 := makeCert(t, caCert, caKey)
+
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		handler := func(req *fiber.Ctx) error {
+			req.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			return req.Send(data)
+		}
+
+		svc := newService(t, logger, caFile, certFile1, keyFile1, "ledenlijst", handler)
+
+		var dec ResponseMapping
+		err := yaml.Unmarshal([]byte(decData), &dec)
+		require.NoError(t, err)
+
+		req := &Request{
+			Name:        "ledenlijst",
+			Description: "retrieve FDS ledenlijst",
+			Method:      "GET",
+			URI:         "https://127.0.0.1:9000/v1/ledenlijst",
+			Headers:     map[string]string{fiber.HeaderAcceptEncoding: fiber.MIMEApplicationJSON},
+			Timeout:     5 * time.Second,
+			CAFile:      caFile,
+			CertFile:    certFile2,
+			KeyFile:     keyFile2,
+			Mapping:     &dec,
+		}
+
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+
+		go func(wg *sync.WaitGroup) {
+			svc.Serve()
+			wg.Done()
+		}(&wg)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		m := &manager{
+			ctx:           ctx,
+			cancel:        cancel,
+			logger:        logger,
+			entities:      models.NewEntitySet(),
+			newAttributes: models.NewAttributeSet,
+		}
+
+		var execErr error
+		go func(wg *sync.WaitGroup) {
+			time.Sleep(25 * time.Millisecond)
+
+			execErr = m.execute(logger, req)
+			svc.Shutdown()
+			wg.Done()
+		}(&wg)
+
+		wg.Wait()
+
+		require.NoError(t, execErr)
+
+		var count int
+		m.entities.IterateEntities(func(e models.Entity) {
+			count++
+
+			assert.Equal(t, "fds_member", e.Type())
+
+			switch e.ID() {
+			case "dfa58ae2-0dd4-471d-8863-08147944e641":
+				a := e.Attributes().GetAttribute("oin")
+				require.NotNil(t, a)
+				assert.Equal(t, "01726477373371538205", a.Value())
+
+			case "f8d73ae9-f3a7-4521-a6c0-28422b056cbb":
+				a := e.Attributes().GetAttribute("isMember")
+				require.NotNil(t, a)
+				assert.Equal(t, true, a.Value())
+
+			case "86af57a8-c9d6-4620-8511-e81498ff2df7":
+				a := e.Attributes().GetAttribute("maturity")
+				require.NotNil(t, a)
+				assert.Equal(t, int64(5), a.Value())
+			}
+		})
+
+		assert.Equal(t, 3, count)
+	})
 }

@@ -5,13 +5,13 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (r *runner) decodeEntity(obj *EntityObject) {
+func (r *runner) decodeEntity(obj *EntityMapping) {
 	if data := findElement(splitKeys(obj.Base), r.data); data != nil {
 		r.decodeEntityData(data, obj)
 	}
 }
 
-func (r *runner) decodeEntityData(data any, obj *EntityObject) {
+func (r *runner) decodeEntityData(data any, obj *EntityMapping) {
 	if obj.IdFromValue {
 		r.processEntity(obj.TypeValue, convert.AnyToString(data), nil, nil, obj)
 	} else {
@@ -26,21 +26,21 @@ func (r *runner) decodeEntityData(data any, obj *EntityObject) {
 	}
 }
 
-func (r *runner) decodeEntitiesSlice(m []any, obj *EntityObject) {
+func (r *runner) decodeEntitiesSlice(m []any, obj *EntityMapping) {
 	for i := range m {
 		r.decodeEntityData(m[i], obj)
 	}
 }
 
-func (r *runner) decodeEntityMap(m map[string]any, obj *EntityObject) {
-	tp := codeOrValueString(obj.TypeCode, obj.TypeValue, m)
-	id := codeOrValueString(obj.IdCode, obj.IdValue, m)
+func (r *runner) decodeEntityMap(m map[string]any, obj *EntityMapping) {
+	tp := codeOrValueString(obj.TypeField, obj.TypeValue, m)
+	id := codeOrValueString(obj.IdField, obj.IdValue, m)
 
 	// determine optional attributes.
 	attrs := r.manager.newAttributes()
 	for _, attrObj := range obj.Attributes {
 		if data := findElement(splitKeys(attrObj.Base), m); data != nil {
-			r.decodeAttributeData(data, attrObj, attrs)
+			r.decodeAttributesData(data, attrObj, attrs)
 		}
 	}
 
@@ -62,7 +62,7 @@ func (r *runner) decodeEntityMap(m map[string]any, obj *EntityObject) {
 	r.processEntity(tp, id, attrs, parents, obj)
 }
 
-func (r *runner) processEntity(tp string, id string, attrs models.AttributeSet, parents []string, obj *EntityObject) {
+func (r *runner) processEntity(tp string, id string, attrs models.AttributeSet, parents []string, obj *EntityMapping) {
 	if tp == "" {
 		r.logger.Warn("entity type is required", "entity.base", obj.Base, "id", id)
 		return

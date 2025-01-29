@@ -18,7 +18,7 @@ func TestProcessEntity(t *testing.T) {
 		id        string
 		attrs     models.AttributeSet
 		parents   []string
-		obj       *EntityObject
+		obj       *EntityMapping
 		wantCount int
 		wantKey   string
 		wantValue models.Entity
@@ -26,20 +26,20 @@ func TestProcessEntity(t *testing.T) {
 		{
 			name:      "no type",
 			id:        "oops",
-			obj:       &EntityObject{Base: "first"},
+			obj:       &EntityMapping{Base: "first"},
 			wantCount: 1,
 		},
 		{
 			name:      "no id",
 			tp:        "oops",
-			obj:       &EntityObject{Base: "first"},
+			obj:       &EntityMapping{Base: "first"},
 			wantCount: 1,
 		},
 		{
 			name:      "all filled",
 			tp:        "third",
 			id:        "999",
-			obj:       &EntityObject{Base: "first"},
+			obj:       &EntityMapping{Base: "first"},
 			wantKey:   "third::999",
 			wantValue: models.NewEntity("third", "999", models.NewAttributeSet()),
 		},
@@ -84,16 +84,13 @@ func TestDecodeEntityMap(t *testing.T) {
 	m7 := map[string]any{"type": "service", "id": "this_id7", "attr": a2}
 	m8 := map[string]any{"type": "service", "id": "this_id8", "attr": a3}
 
-	attr1 := &AttributeObject{Base: "attr", KeyCode: "key", ValueCode: "value", TypeCode: "type"}
-
-	attrMap := map[string]*AttributeObject{
-		attr1.Base: attr1,
-	}
+	attr1 := &AttributesMapping{Base: "attr", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}}
+	attrs1 := []*AttributesMapping{attr1}
 
 	testCases := []struct {
 		name      string
 		m         map[string]any
-		obj       *EntityObject
+		obj       *EntityMapping
 		wantCount int
 		wantKey   string
 		wantValue models.Entity
@@ -101,114 +98,114 @@ func TestDecodeEntityMap(t *testing.T) {
 		{
 			name:      "no type code, no type value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", IdCode: "id"},
+			obj:       &EntityMapping{Base: "first", IdField: "id"},
 			wantCount: 1,
 		},
 		{
 			name:      "invalid type code, no type value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "abc", IdCode: "id"},
+			obj:       &EntityMapping{Base: "first", TypeField: "abc", IdField: "id"},
 			wantCount: 1,
 		},
 		{
 			name:      "no type code, type value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeValue: "hello", IdCode: "id"},
+			obj:       &EntityMapping{Base: "first", TypeValue: "hello", IdField: "id"},
 			wantKey:   "hello::my_id",
 			wantValue: models.NewEntity("hello", "my_id", models.NewAttributeSet()),
 		},
 		{
 			name:      "invalid type code, type value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "abc", TypeValue: "good", IdCode: "int"},
+			obj:       &EntityMapping{Base: "first", TypeField: "abc", TypeValue: "good", IdField: "int"},
 			wantKey:   "good::123",
 			wantValue: models.NewEntity("good", "123", models.NewAttributeSet()),
 		},
 		{
 			name:      "valid type code, type value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "hello", TypeValue: "good", IdCode: "int"},
+			obj:       &EntityMapping{Base: "first", TypeField: "hello", TypeValue: "good", IdField: "int"},
 			wantKey:   "world::123",
 			wantValue: models.NewEntity("world", "123", models.NewAttributeSet()),
 		},
 		{
 			name:      "empty map",
 			m:         map[string]any{},
-			obj:       &EntityObject{Base: "first", TypeCode: "hello", IdCode: "bool"},
+			obj:       &EntityMapping{Base: "first", TypeField: "hello", IdField: "bool"},
 			wantCount: 1,
 		},
 		{
 			name:      "no id code, no id value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "int"},
+			obj:       &EntityMapping{Base: "first", TypeField: "int"},
 			wantCount: 1,
 		},
 		{
 			name:      "no id code, id value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "hello", IdValue: "key1"},
+			obj:       &EntityMapping{Base: "first", TypeField: "hello", IdValue: "key1"},
 			wantKey:   "world::key1",
 			wantValue: models.NewEntity("world", "key1", models.NewAttributeSet()),
 		},
 		{
 			name:      "invalid id code, no id value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "int", IdCode: "oops"},
+			obj:       &EntityMapping{Base: "first", TypeField: "int", IdField: "oops"},
 			wantCount: 1,
 		},
 		{
 			name:      "invalid id code, id value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "int", IdCode: "nope", IdValue: "key1"},
+			obj:       &EntityMapping{Base: "first", TypeField: "int", IdField: "nope", IdValue: "key1"},
 			wantKey:   "123::key1",
 			wantValue: models.NewEntity("123", "key1", models.NewAttributeSet()),
 		},
 		{
 			name:      "valid id code, id value",
 			m:         m1,
-			obj:       &EntityObject{Base: "first", TypeCode: "hello", IdCode: "int", IdValue: "key1"},
+			obj:       &EntityMapping{Base: "first", TypeField: "hello", IdField: "int", IdValue: "key1"},
 			wantKey:   "world::123",
 			wantValue: models.NewEntity("world", "123", models.NewAttributeSet()),
 		},
 		{
 			name:      "parents slice of string",
 			m:         m2,
-			obj:       &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", ParentsCode: "parents"},
+			obj:       &EntityMapping{Base: "first", TypeField: "type", IdField: "id", ParentsCode: "parents"},
 			wantKey:   "service::this_id2",
 			wantValue: models.NewEntity("service", "this_id2", models.NewAttributeSet(), "a", "b", "c"),
 		},
 		{
 			name:      "parents string",
 			m:         m3,
-			obj:       &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", ParentsCode: "parents"},
+			obj:       &EntityMapping{Base: "first", TypeField: "type", IdField: "id", ParentsCode: "parents"},
 			wantKey:   "service::this_id3",
 			wantValue: models.NewEntity("service", "this_id3", models.NewAttributeSet(), "type::id"),
 		},
 		{
 			name:      "parents slice of any",
 			m:         m4,
-			obj:       &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", ParentsCode: "parents"},
+			obj:       &EntityMapping{Base: "first", TypeField: "type", IdField: "id", ParentsCode: "parents"},
 			wantKey:   "service::this_id4",
 			wantValue: models.NewEntity("service", "this_id4", models.NewAttributeSet(), "a", "123", "true"),
 		},
 		{
 			name:      "parents float",
 			m:         m5,
-			obj:       &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", ParentsCode: "parents"},
+			obj:       &EntityMapping{Base: "first", TypeField: "type", IdField: "id", ParentsCode: "parents"},
 			wantKey:   "service::this_id5",
 			wantValue: models.NewEntity("service", "this_id5", models.NewAttributeSet(), "123.99"),
 		},
 		{
 			name:      "no attributes",
 			m:         m6,
-			obj:       &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", Attributes: attrMap},
+			obj:       &EntityMapping{Base: "first", TypeField: "type", IdField: "id", Attributes: attrs1},
 			wantKey:   "service::this_id6",
 			wantValue: models.NewEntity("service", "this_id6", models.NewAttributeSet()),
 		},
 		{
 			name:    "one attribute",
 			m:       m7,
-			obj:     &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", Attributes: attrMap},
+			obj:     &EntityMapping{Base: "first", TypeField: "type", IdField: "id", Attributes: attrs1},
 			wantKey: "service::this_id7",
 			wantValue: models.NewEntity("service", "this_id7", models.NewAttributeSet(
 				models.NewOriginalAttribute("code", "1", 1, "xsd:string"),
@@ -217,7 +214,7 @@ func TestDecodeEntityMap(t *testing.T) {
 		{
 			name:    "few attributes",
 			m:       m8,
-			obj:     &EntityObject{Base: "first", TypeCode: "type", IdCode: "id", Attributes: attrMap},
+			obj:     &EntityMapping{Base: "first", TypeField: "type", IdField: "id", Attributes: attrs1},
 			wantKey: "service::this_id8",
 			wantValue: models.NewEntity("service", "this_id8", models.NewAttributeSet(
 				models.NewOriginalAttribute("code", int64(1), 1, "xsd:integer"),
@@ -274,32 +271,32 @@ func TestDecodeEntityData(t *testing.T) {
 	testCases := []struct {
 		name      string
 		data      any
-		obj       *EntityObject
+		obj       *EntityMapping
 		wantCount int
 		want      map[string]models.Entity
 	}{
 		{
 			name: "ID from value",
 			data: "my_key_2",
-			obj:  &EntityObject{Base: "first", TypeValue: "key", IdFromValue: true},
+			obj:  &EntityMapping{Base: "first", TypeValue: "key", IdFromValue: true},
 			want: map[string]models.Entity{"key::my_key_2": models.NewEntity("key", "my_key_2", models.NewAttributeSet())},
 		},
 		{
 			name: "map (1)",
 			data: m1,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "int"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "int"},
 			want: map[string]models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
 		},
 		{
 			name: "map (2)",
 			data: m2,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "bool"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "bool"},
 			want: map[string]models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
 		},
 		{
 			name: "slice",
 			data: s1,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "int"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "int"},
 			want: map[string]models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::321":     models.NewEntity("mars", "321", models.NewAttributeSet()),
@@ -363,38 +360,38 @@ func TestDecodeEntity(t *testing.T) {
 	testCases := []struct {
 		name      string
 		data      any
-		obj       *EntityObject
+		obj       *EntityMapping
 		wantCount int
 		want      map[string]models.Entity
 	}{
 		{
 			name: "ID from value",
 			data: mm1,
-			obj:  &EntityObject{Base: "first", TypeValue: "key", IdFromValue: true},
+			obj:  &EntityMapping{Base: "first", TypeValue: "key", IdFromValue: true},
 			want: map[string]models.Entity{"key::this_key": models.NewEntity("key", "this_key", models.NewAttributeSet())},
 		},
 		{
 			name: "not map and not slice",
 			data: map[string]any{"first": 987654321},
-			obj:  &EntityObject{Base: "first", TypeValue: "key"},
+			obj:  &EntityMapping{Base: "first", TypeValue: "key"},
 			want: map[string]models.Entity{"key::987654321": models.NewEntity("key", "987654321", models.NewAttributeSet())},
 		},
 		{
 			name: "map (1)",
 			data: mm2,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "int"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "int"},
 			want: map[string]models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
 		},
 		{
 			name: "map (2)",
 			data: mm3,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "bool"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "bool"},
 			want: map[string]models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
 		},
 		{
 			name: "slice",
 			data: mm4,
-			obj:  &EntityObject{Base: "first", TypeCode: "hello", IdCode: "int"},
+			obj:  &EntityMapping{Base: "first", TypeField: "hello", IdField: "int"},
 			want: map[string]models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::321":     models.NewEntity("mars", "321", models.NewAttributeSet()),

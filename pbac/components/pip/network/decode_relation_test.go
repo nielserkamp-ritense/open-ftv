@@ -20,17 +20,17 @@ func TestProcessRelation(t *testing.T) {
 		pID       string
 		oType     string
 		oID       string
-		obj       *RelationObject
+		obj       *RelationMapping
 		wantCount int
 		wantKey   string
 		wantValue models.Relation
 	}{
-		{name: "no subject type", sID: "alice", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationObject{Base: "first"}, wantCount: 1},
-		{name: "no subject id", sType: "user", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationObject{Base: "first"}, wantCount: 1},
-		{name: "no predicate type", sType: "user", sID: "alice", pID: "knows", oType: "user", oID: "bob", obj: &RelationObject{Base: "first"}, wantCount: 1},
-		{name: "no predicate id", sType: "user", sID: "alice", pType: "rel", oType: "user", oID: "bob", obj: &RelationObject{Base: "first"}, wantCount: 1},
-		{name: "no object type", sType: "user", sID: "alice", pType: "rel", pID: "knows", oID: "bob", obj: &RelationObject{Base: "first"}, wantCount: 1},
-		{name: "no object id", sType: "user", sID: "alice", pType: "rel", pID: "knows", oType: "user", obj: &RelationObject{Base: "first"}, wantCount: 1},
+		{name: "no subject type", sID: "alice", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
+		{name: "no subject id", sType: "user", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
+		{name: "no predicate type", sType: "user", sID: "alice", pID: "knows", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
+		{name: "no predicate id", sType: "user", sID: "alice", pType: "rel", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
+		{name: "no object type", sType: "user", sID: "alice", pType: "rel", pID: "knows", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
+		{name: "no object id", sType: "user", sID: "alice", pType: "rel", pID: "knows", oType: "user", obj: &RelationMapping{Base: "first"}, wantCount: 1},
 		{
 			name:    "all ok",
 			sType:   "user",
@@ -39,7 +39,7 @@ func TestProcessRelation(t *testing.T) {
 			pID:     "knows",
 			oType:   "user",
 			oID:     "bob",
-			obj:     &RelationObject{Base: "first"},
+			obj:     &RelationMapping{Base: "first"},
 			wantKey: "user::alice|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -76,7 +76,7 @@ func TestDecodeRelationMap(t *testing.T) {
 	testCases := []struct {
 		name      string
 		m         map[string]any
-		obj       *RelationObject
+		obj       *RelationMapping
 		wantCount int
 		wantKey   string
 		wantValue models.Relation
@@ -84,19 +84,19 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:      "no subject type code, no subject type value",
 			m:         m1,
-			obj:       &RelationObject{Base: "first", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:       &RelationMapping{Base: "first", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantCount: 1,
 		},
 		{
 			name:      "invalid type code, no type value",
 			m:         m1,
-			obj:       &RelationObject{Base: "first", SubjectTypeCode: "abc", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:       &RelationMapping{Base: "first", SubjectTypeField: "abc", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantCount: 1,
 		},
 		{
 			name:    "no type code, type value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeValue: "admin", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeValue: "admin", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "admin::alice|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("admin", "alice", models.NewAttributeSet()),
@@ -107,7 +107,7 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:    "invalid type code, type value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeCode: "abc", SubjectTypeValue: "admin", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeField: "abc", SubjectTypeValue: "admin", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "admin::alice|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("admin", "alice", models.NewAttributeSet()),
@@ -118,7 +118,7 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:    "valid type code, type value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectTypeValue: "admin", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectTypeValue: "admin", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "user::alice|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -129,19 +129,19 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:      "empty map",
 			m:         map[string]any{},
-			obj:       &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:       &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantCount: 1,
 		},
 		{
 			name:      "no subject id code, no subject id value",
 			m:         m1,
-			obj:       &RelationObject{Base: "first", SubjectTypeCode: "t1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:       &RelationMapping{Base: "first", SubjectTypeField: "t1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantCount: 1,
 		},
 		{
 			name:    "no id code, id value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdValue: "jasper", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdValue: "jasper", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "user::jasper|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("user", "jasper", models.NewAttributeSet()),
@@ -152,13 +152,13 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:      "invalid id code, no id value",
 			m:         m1,
-			obj:       &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "oops", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:       &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "oops", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantCount: 1,
 		},
 		{
 			name:    "invalid id code, id value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "nope", SubjectIdValue: "henk", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "nope", SubjectIdValue: "henk", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "user::henk|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("user", "henk", models.NewAttributeSet()),
@@ -169,7 +169,7 @@ func TestDecodeRelationMap(t *testing.T) {
 		{
 			name:    "valid id code, id value",
 			m:       m1,
-			obj:     &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", SubjectIdValue: "pieter", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:     &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", SubjectIdValue: "pieter", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			wantKey: "user::alice|rel::knows|user::bob",
 			wantValue: models.NewRelation(
 				models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -216,14 +216,14 @@ func TestDecodeRelationData(t *testing.T) {
 	testCases := []struct {
 		name      string
 		data      any
-		obj       *RelationObject
+		obj       *RelationMapping
 		wantCount int
 		want      map[string]models.Relation
 	}{
 		{
 			name: "ID from value",
 			data: "my_key_2",
-			obj:  &RelationObject{Base: "first", SubjectTypeValue: "t1", SubjectIdValue: "id1", PredicateTypeValue: "t2", PredicateIdValue: "id2", ObjectTypeValue: "t3", ObjectIdValue: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeValue: "t1", SubjectIdValue: "id1", PredicateTypeValue: "t2", PredicateIdValue: "id2", ObjectTypeValue: "t3", ObjectIdValue: "id3"},
 			want: map[string]models.Relation{
 				"t1::id1|t2::id2|t3::id3": models.NewRelation(
 					models.NewEntity("t1", "id1", models.NewAttributeSet()),
@@ -235,7 +235,7 @@ func TestDecodeRelationData(t *testing.T) {
 		{
 			name: "map (1)",
 			data: m1,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -247,7 +247,7 @@ func TestDecodeRelationData(t *testing.T) {
 		{
 			name: "map (2)",
 			data: m2,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::janice|rel::knows|admin::danny": models.NewRelation(
 					models.NewEntity("user", "janice", models.NewAttributeSet()),
@@ -259,7 +259,7 @@ func TestDecodeRelationData(t *testing.T) {
 		{
 			name: "slice",
 			data: s1,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -324,14 +324,14 @@ func TestDecodeRelation(t *testing.T) {
 	testCases := []struct {
 		name      string
 		data      any
-		obj       *RelationObject
+		obj       *RelationMapping
 		wantCount int
 		want      map[string]models.Relation
 	}{
 		{
 			name: "not map and not slice",
 			data: map[string]any{"first": 987654321},
-			obj:  &RelationObject{Base: "first", SubjectTypeValue: "t1", SubjectIdValue: "id1", PredicateTypeValue: "t2", PredicateIdValue: "id2", ObjectTypeValue: "t3", ObjectIdValue: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeValue: "t1", SubjectIdValue: "id1", PredicateTypeValue: "t2", PredicateIdValue: "id2", ObjectTypeValue: "t3", ObjectIdValue: "id3"},
 			want: map[string]models.Relation{
 				"t1::id1|t2::id2|t3::id3": models.NewRelation(
 					models.NewEntity("t1", "id1", models.NewAttributeSet()),
@@ -343,7 +343,7 @@ func TestDecodeRelation(t *testing.T) {
 		{
 			name: "map (1)",
 			data: mm2,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
@@ -355,7 +355,7 @@ func TestDecodeRelation(t *testing.T) {
 		{
 			name: "map (2)",
 			data: mm3,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::janice|rel::knows|admin::danny": models.NewRelation(
 					models.NewEntity("user", "janice", models.NewAttributeSet()),
@@ -367,7 +367,7 @@ func TestDecodeRelation(t *testing.T) {
 		{
 			name: "slice",
 			data: mm4,
-			obj:  &RelationObject{Base: "first", SubjectTypeCode: "t1", SubjectIdCode: "id1", PredicateTypeCode: "t2", PredicateIdCode: "id2", ObjectTypeCode: "t3", ObjectIdCode: "id3"},
+			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
 			want: map[string]models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),

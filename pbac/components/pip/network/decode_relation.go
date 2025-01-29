@@ -4,13 +4,13 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/models"
 )
 
-func (r *runner) decodeRelation(obj *RelationObject) {
+func (r *runner) decodeRelation(obj *RelationMapping) {
 	if data := findElement(splitKeys(obj.Base), r.data); data != nil {
 		r.decodeRelationData(data, obj)
 	}
 }
 
-func (r *runner) decodeRelationData(data any, obj *RelationObject) {
+func (r *runner) decodeRelationData(data any, obj *RelationMapping) {
 	switch t := data.(type) {
 	case []any:
 		r.decodeRelationsSlice(t, obj)
@@ -25,26 +25,26 @@ func (r *runner) decodeRelationData(data any, obj *RelationObject) {
 	}
 }
 
-func (r *runner) decodeRelationsSlice(m []any, obj *RelationObject) {
+func (r *runner) decodeRelationsSlice(m []any, obj *RelationMapping) {
 	for i := range m {
 		r.decodeRelationData(m[i], obj)
 	}
 }
 
-func (r *runner) decodeRelationMap(m map[string]any, obj *RelationObject) {
-	sType := codeOrValueString(obj.SubjectTypeCode, obj.SubjectTypeValue, m)
-	sID := codeOrValueString(obj.SubjectIdCode, obj.SubjectIdValue, m)
+func (r *runner) decodeRelationMap(m map[string]any, obj *RelationMapping) {
+	sType := codeOrValueString(obj.SubjectTypeField, obj.SubjectTypeValue, m)
+	sID := codeOrValueString(obj.SubjectIdField, obj.SubjectIdValue, m)
 
-	pType := codeOrValueString(obj.PredicateTypeCode, obj.PredicateTypeValue, m)
-	pID := codeOrValueString(obj.PredicateIdCode, obj.PredicateIdValue, m)
+	pType := codeOrValueString(obj.PredicateTypeField, obj.PredicateTypeValue, m)
+	pID := codeOrValueString(obj.PredicateIdField, obj.PredicateIdValue, m)
 
-	oType := codeOrValueString(obj.ObjectTypeCode, obj.ObjectTypeValue, m)
-	oID := codeOrValueString(obj.ObjectIdCode, obj.ObjectIdValue, m)
+	oType := codeOrValueString(obj.ObjectTypeField, obj.ObjectTypeValue, m)
+	oID := codeOrValueString(obj.ObjectIdField, obj.ObjectIdValue, m)
 
 	r.processRelation(sType, sID, pType, pID, oType, oID, obj)
 }
 
-func (r *runner) processRelation(sType, sID, pType, pID, oType, oID string, obj *RelationObject) {
+func (r *runner) processRelation(sType, sID, pType, pID, oType, oID string, obj *RelationMapping) {
 	if sType == "" {
 		r.logger.Warn("subject type is required", "relation.base", obj.Base, "id", sID)
 		return
