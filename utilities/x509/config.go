@@ -61,7 +61,8 @@ func (cfg *Config) fix() {
 }
 
 var (
-	defaultNow      = func() time.Time { return time.Now().UTC().Truncate(defaultTruncate).Add(-5 * time.Second) }
-	defaultExpires  = 10 * time.Second
+	defaultNow      = func() time.Time { return time.Now().UTC().Truncate(defaultTruncate).Add(-30 * time.Second) }
+	defaultExpires  = time.Minute
 	defaultTruncate = time.Second
+	defaultMargin   = 5 * time.Second
 )

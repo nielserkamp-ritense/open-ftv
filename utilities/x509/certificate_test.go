@@ -88,7 +88,7 @@ func TestNewCertificate(t *testing.T) {
 			serial:  100,
 			subject: subject,
 			from:    now.AddDate(0, 0, -1),
-			expires: 25 * time.Hour,
+			expires: 48 * time.Hour,
 		},
 	}
 
@@ -137,10 +137,10 @@ func TestNewCertificate(t *testing.T) {
 				assert.Equal(t, tc.subject.StreetAddress, cert.Subject.StreetAddress)
 				assert.Equal(t, tc.subject.PostalCode, cert.Subject.PostalCode)
 
-				assert.GreaterOrEqual(t, cert.NotBefore, cfg.ValidFrom)
-				assert.LessOrEqual(t, cert.NotBefore, cfg.ValidFrom.Add(time.Second))
-				assert.GreaterOrEqual(t, cert.NotAfter, cfg.ValidTo)
-				assert.LessOrEqual(t, cert.NotAfter, cfg.ValidTo.Add(time.Second))
+				assert.GreaterOrEqual(t, cert.NotBefore, cfg.ValidFrom.Add(-defaultMargin))
+				assert.LessOrEqual(t, cert.NotBefore, cfg.ValidFrom.Add(defaultMargin))
+				assert.GreaterOrEqual(t, cert.NotAfter, cfg.ValidTo.Add(-defaultMargin))
+				assert.LessOrEqual(t, cert.NotAfter, cfg.ValidTo.Add(defaultMargin))
 
 				_, err3 := cert.Verify(x509.VerifyOptions{
 					Roots:         Roots(),

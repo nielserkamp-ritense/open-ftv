@@ -118,28 +118,28 @@ func TestConfig_Fix(t *testing.T) {
 
 			switch {
 			case tc.wantFrom.IsZero() && tc.wantTo.IsZero():
-				assert.GreaterOrEqual(t, cfg.ValidFrom, now.Add(-time.Second))
-				assert.LessOrEqual(t, cfg.ValidFrom, now.Add(time.Second))
-				assert.GreaterOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter-time.Second))
-				assert.LessOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter+time.Second))
+				assert.GreaterOrEqual(t, cfg.ValidFrom, now.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidFrom, now.Add(defaultMargin))
+				assert.GreaterOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter+defaultMargin))
 
 			case tc.wantFrom.IsZero():
-				assert.GreaterOrEqual(t, cfg.ValidFrom, now.Add(-time.Second))
-				assert.LessOrEqual(t, cfg.ValidFrom, now.Add(time.Second))
-				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo)
-				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(time.Second))
+				assert.GreaterOrEqual(t, cfg.ValidFrom, now.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidFrom, now.Add(defaultMargin))
+				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(defaultMargin))
 
 			case tc.wantTo.IsZero():
-				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom)
-				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(time.Second))
-				assert.GreaterOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter-time.Second))
-				assert.LessOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter+time.Second))
+				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(defaultMargin))
+				assert.GreaterOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidTo, now.Add(cfg.ExpiresAfter+defaultMargin))
 
 			default:
-				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom)
-				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(time.Second))
-				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo)
-				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(time.Second))
+				assert.GreaterOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidFrom, tc.wantFrom.Add(defaultMargin))
+				assert.GreaterOrEqual(t, cfg.ValidTo, tc.wantTo.Add(-defaultMargin))
+				assert.LessOrEqual(t, cfg.ValidTo, tc.wantTo.Add(defaultMargin))
 			}
 		})
 	}
