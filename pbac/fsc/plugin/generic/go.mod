@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/components v0.0.0-20250129111654-3f2057fcd0c7
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers v0.0.0-20250128154503-0ad756793594
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/handlers v0.0.0-20250129111654-3f2057fcd0c7
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server v0.0.0-20250123140703-7d11ad192c77
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250129111654-3f2057fcd0c7
 	gitlab.com/gjuyn/go-config v1.0.1
