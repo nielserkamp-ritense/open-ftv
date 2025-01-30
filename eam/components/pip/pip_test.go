@@ -1,0 +1,203 @@
+package pip
+
+import (
+	"log/slog"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+)
+
+func TestValidPath(t *testing.T) {
+	testCases := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{name: "empty"},
+		{name: "dot", path: ".", want: true},
+		{name: "dot dot", path: "..", want: true},
+		{name: "invalid", path: "/not/really/a/valid/path"},
+		{name: "valid", path: "/usr/sbin", want: true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := validPath(tc.path)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestNew(t *testing.T) {
+	testCases := []struct {
+		name           string
+		level          slog.Level
+		path           string
+		recurse        bool
+		wantLog        int
+		wantAttributes models.AttributeSet
+		wantEntities   models.EntitySet
+	}{
+		{
+			name:           "no store",
+			recurse:        true,
+			wantLog:        1,
+			wantAttributes: models.NewAttributeSet(),
+			wantEntities:   models.NewEntitySet(),
+		},
+		{
+			name:           "invalid store",
+			path:           "/not/a/valid/path",
+			recurse:        true,
+			wantLog:        1,
+			wantAttributes: models.NewAttributeSet(),
+			wantEntities:   models.NewEntitySet(),
+		},
+		{
+			name:    "with store, no recurse",
+			level:   slog.LevelDebug,
+			path:    "../../../testdata/unittest/pip",
+			wantLog: 1,
+			wantAttributes: models.NewAttributeSet(
+				models.NewAttribute("maandag", 1),
+				models.NewAttribute("dinsdag", 2),
+				models.NewAttribute("woensdag", 3),
+				models.NewAttribute("donderdag", 4),
+				models.NewAttribute("vrijdag", 5),
+			),
+			wantEntities: models.NewEntitySet(
+				models.NewEntity("app", "app1", models.NewAttributeSet(
+					models.NewAttribute("code", "app1"),
+					models.NewAttribute("name", "App-1"),
+				)),
+				models.NewEntity("app", "app2", models.NewAttributeSet(
+					models.NewAttribute("code", "app2"),
+					models.NewAttribute("name", "App-2"),
+				)),
+				models.NewEntity("app", "app3", models.NewAttributeSet(
+					models.NewAttribute("code", "app3"),
+					models.NewAttribute("name", "App-3"),
+				), "app::app1", "app::app2",
+				),
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := util.NewDummyHandler(tc.level)
+
+			p := New(Config{Store: tc.path, Recurse: tc.recurse, Logger: slog.New(h)})
+			require.NotNil(t, p)
+
+			p2, ok := p.(*pip)
+			require.True(t, ok)
+			require.NotNil(t, p2)
+
+			assert.Equal(t, tc.wantLog, h.Count())
+
+			if tc.wantAttributes != nil {
+				tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
+					v2 := p2.attributes.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
+				})
+
+				p2.attributes.IterateAttributes(func(attr models.Attribute) {
+					v2 := tc.wantAttributes.GetAttributeValue(attr.Key())
+					assert.EqualValues(t, attr.Value(), v2)
+				})
+			}
+
+			if tc.wantEntities != nil {
+				tc.wantEntities.IterateEntities(func(e1 models.Entity) {
+					e2 := p2.entities.GetEntity(e1.UID())
+					require.NotNil(t, e2)
+					assert.EqualValues(t, e1, e2)
+				})
+
+				p2.entities.IterateEntities(func(e1 models.Entity) {
+					e2 := tc.wantEntities.GetEntity(e1.UID())
+					require.NotNil(t, e2)
+					assert.EqualValues(t, e1, e2)
+				})
+			}
+		})
+	}
+}
+
+func TestPIP_Attributes(t *testing.T) {
+	t.Run("pip as AttributeSet", func(t *testing.T) {
+		p := &pip{attributes: models.NewAttributeSet()}
+		require.NotNil(t, p)
+
+		p.AddAttribute("hello", "world")
+		p.AddAttribute("int", "987")
+		p.AddAttribute("float", "987.789")
+
+		assert.Equal(t, "world", p.GetAttributeValue("hello"))
+		assert.Nil(t, p.GetAttribute("bool"))
+
+		p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true))}
+		p.MergeAttributes(p2)
+
+		assert.Equal(t, "world2", p.GetAttributeValue("hello"))
+		assert.Equal(t, true, p.GetAttributeValue("bool"))
+
+		p.RemoveAttribute("bool")
+		p.RemoveAttribute("int")
+		assert.Nil(t, p.GetAttributeValue("bool"))
+		assert.Nil(t, p.GetAttributeValue("int"))
+
+		var count int
+		p.IterateAttributes(func(models.Attribute) {
+			count++
+		})
+		assert.Equal(t, 2, count)
+	})
+}
+
+func TestPIP_Entities(t *testing.T) {
+	t.Run("pip as EntitySet", func(t *testing.T) {
+		p := &pip{entities: models.NewEntitySet()}
+		require.NotNil(t, p)
+
+		p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
+		p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
+
+		p.MergeEntities(
+			models.NewEntitySet(
+				models.NewEntity("q", "x", models.NewAttributeSet()),
+				models.NewEntity("q", "y", models.NewAttributeSet()),
+				models.NewEntity("q", "z", models.NewAttributeSet()),
+			),
+		)
+
+		var count int
+		p.IterateEntities(func(entity models.Entity) {
+			count++
+		})
+		assert.Equal(t, 5, count)
+
+		e := p.GetEntity("x::y")
+		require.NotNil(t, e)
+
+		e = p.GetEntity("x::x")
+		require.Nil(t, e)
+
+		p.RemoveEntity("q::y")
+		p.RemoveEntity("q::x")
+
+		count = 0
+		p.IterateEntities(func(entity models.Entity) {
+			count++
+		})
+		assert.Equal(t, 3, count)
+
+		e = p.GetEntity("q::y")
+		require.Nil(t, e)
+	})
+}

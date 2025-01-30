@@ -1,0 +1,40 @@
+// Package server handles the HTTP service component of the FSC Auth plugin.
+package server
+
+import (
+	"context"
+	"log/slog"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+)
+
+// NewService initializes the HTTP service (implemented with fiber & fasthttp).
+func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server.Service {
+	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, logboek: logboek}
+
+	s.Service = fiber.New(
+		logger,
+		s.initRoutes,
+		server.WithDefaults(),
+		server.WithHostPort(cfg.Host, cfg.Port),
+		server.WithAppName(config.AppName),
+		server.WithTLS(cfg.Cert, cfg.Key, cfg.CA),
+		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
+		server.WithMaxBody(cfg.MaxBody),
+		server.WithRecovery(),
+		server.WithSecurity(),
+	)
+
+	return s
+}
+
+type service struct {
+	server.Service
+	ctx     context.Context
+	cfg     *config.Config
+	logger  *slog.Logger
+	logboek ldv.LDV
+}

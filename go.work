@@ -1,14 +1,14 @@
-go 1.23
+go 1.23.0
 
 toolchain go1.23.2
 
 use (
+	./eam/components
+	./eam/fsc/plugin/generic
+	./eam/handlers
+	./eam/models
+	./eam/server
 	./mock/fds/ledenlijst
 	./oas
 	./utilities
-	./pbac/models
-	./pbac/components
-	./pbac/handlers
-	./pbac/server
-	./pbac/fsc/plugin/generic
 )

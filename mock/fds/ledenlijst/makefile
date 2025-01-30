@@ -17,7 +17,7 @@ dep-up: ## upgrade all dependencies
 dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas@latest
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities@latest
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/pbac/server@latest
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server@latest
 	@go mod tidy
 
 fmt: dep ${GO_FILES}  ## format source code
