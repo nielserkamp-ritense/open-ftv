@@ -3,17 +3,29 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for AuthZEN spec.
-  version: "1.1.0"
+  version: 1.1.0
   title: "AuthZEN"
+  contact:
+    name: G. Juijn
 
 servers:
   - url: https://localhost:8080/authzen/v1
     description: Local server.
 
+tags:
+  - name: authZEN
+    description: AuthZEN specification.
+  - name: policy
+    description: Operations on policies.
+
 paths:
   /evaluation:
     post:
+      operationId: "auth-request"
       summary: Authorization request.
+      description: Endpoint to evaluate the authorize of a request.
+      tags:
+        - authZEN
       parameters:
         - in: header
           name: "Authorization"
@@ -28,45 +40,58 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        "200":
           description: |
             The authorization request has been handled successfully.
             This does not mean the request is authorized, it means that the request has been processed successfully.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthorizationResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
       requestBody:
         $ref: "#/components/requestBodies/AuthorizationRequest"
 
   /policies:
     get:
+      operationId: "get-policies"
       summary: Retrieve policies.
-      description: Retrieve a list of all cached policies.
+      description: Endpoint to retrieve a list of all cached policies.
+      tags:
+        - policy
       responses:
-        200:
+        "200":
           description: Policies found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PoliciesResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
   /policy/{id}:
@@ -74,33 +99,44 @@ paths:
       - $ref: "#/components/parameters/PolicyID"
 
     get:
+      operationId: "get-policy"
       summary: Retrieve policy.
       description: |
-        Retrieve a specific cached policy.
+        Endpoint to retrieve a specific cached policy.
         If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      tags:
+        - policy
       responses:
-        200:
+        "200":
           description: Policy found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     put:
+      operationId: "add-policy"
       summary: Add policy.
       description: |
-        Add a new policy to the cache.
+        Endpoint to add a new policy to the cache.
         If the unique identifier of the policy already exists, a 409 status code will be returned.
+      tags:
+        - policy
       requestBody:
         description: Definition of the new policy.
         content:
@@ -108,28 +144,36 @@ paths:
             schema:
               $ref: "#/components/schemas/Policy"
       responses:
-        201:
+        "201":
           description: Policy created.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        409:
+        "409":
           $ref: "#/components/responses/AlreadyExists"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     post:
+      operationId: "replace-policy"
       summary: Replace policy.
       description: |
-        Replace an existing policy in teh cache.
+        Endpoint to replace an existing policy in teh cache.
         If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      tags:
+        - policy
       requestBody:
         description: Definition of the new policy.
         content:
@@ -137,44 +181,57 @@ paths:
             schema:
               $ref: "#/components/schemas/Policy"
       responses:
-        200:
+        "200":
           description: Policy replaced.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     delete:
+      operationId: "delete-policy"
       summary: Remove policy.
       description: |
-        Remove an existing policy from the cache.
+        Endpoint to remove an existing policy from the cache.
         If the unique identifier of the policy does not exist, a 404 status code will be returned.
+      tags:
+        - policy
       responses:
-        200:
+        "200":
           description: Policy removed.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
 components:
@@ -199,36 +256,66 @@ components:
   responses:
     BadRequest:
       description: The request has failed due to malformed or invalid input data.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotAuthorized:
       description: The request has failed due to an unauthorized request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     AccessDenied:
       description: The request has failed due to being forbidden.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
       description: The request has failed due to the resource not existing.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     AlreadyExists:
       description: The request has failed due to the resource existing.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     UnexpectedError:
       description: The request has failed due to an unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -281,15 +368,16 @@ components:
         id:
           type: string
           description: Unique identifier of the reason.
-        reason_admin:
+        reasonAdmin:
           $ref: "#/components/schemas/ReasonField"
-        reason_user:
+        reasonUser:
           $ref: "#/components/schemas/ReasonField"
       required:
         - id
 
     AuthorizationRequest:
       type: object
+      description: Authorization request model.
       properties:
         subject:
           $ref: "#/components/schemas/Entity"
@@ -298,6 +386,7 @@ components:
         resource:
           $ref: "#/components/schemas/Entity"
         context:
+          description: Optional context of the request.
           type: object
       required:
         - subject
@@ -306,6 +395,7 @@ components:
 
     AuthorizationResponse:
       type: object
+      description: Authorization response model.
       properties:
         decision:
           type: boolean
@@ -329,7 +419,7 @@ components:
         target:
           type: string
           description: The unique identifier of the target.
-        rvvaID:
+        rvvaId:
           type: string
           description: The unique identifier of the Register of Activities (RvVA).
         language:
@@ -345,6 +435,7 @@ components:
         - url
 
     PoliciesResponse:
+      description: A set of policies.
       type: array
       items:
         $ref: "#/components/schemas/Policy"
@@ -354,12 +445,22 @@ components:
 
     ErrorResponse:
       type: object
+      description: Error response model (as defined by RFC9457).
       properties:
-        message:
+        type:
           type: string
-          description: An optional message detailing the error.
-        data:
-          type: object
-          description: Optional extra context of the error.
-      required:
-        - message
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

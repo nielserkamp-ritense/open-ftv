@@ -18,7 +18,7 @@ func SendBasicResponse(req *fiber.Ctx, status int) error {
 
 // SendMessageResponse sends a basic response corresponding with the given status code.
 func SendMessageResponse(req *fiber.Ctx, status int, msg string) error {
-	return req.Status(status).JSON(&authzen.ErrorResponse{Message: msg})
+	return req.Status(status).JSON(&authzen.ErrorResponse{Title: msg})
 }
 
 var (
@@ -38,6 +38,6 @@ var (
 
 func init() {
 	for _, status := range supportedStatus {
-		responseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Message: utils.StatusMessage(status)})
+		responseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Title: utils.StatusMessage(status)})
 	}
 }

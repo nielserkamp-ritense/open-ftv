@@ -5,31 +5,46 @@ info:
     OpenAPI specification for maintaining policies.
   version: 1.1.0
   title: Policy management
+  contact:
+    name: G. Juijn
 
 servers:
   - url: https://localhost:8080/v1
     description: Local server.
 
+tags:
+  - name: policy
+    description: Operations on policies.
+
 paths:
   /policies:
     get:
+      operationId: "get-policies"
       summary: Retrieve policies.
+      description: Endpoint to retrieve all policy keys.
+      tags:
+        - policy
       responses:
-        200:
+        "200":
           description: Policies found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PoliciesResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
   /policy/{id}:
@@ -37,31 +52,42 @@ paths:
       - $ref: "#/components/parameters/PolicyID"
 
     get:
+      operationId: "get-policy"
       summary: Retrieve policy.
       description: Retrieve a specified cached policy.
+      tags:
+        - policy
       responses:
-        200:
+        "200":
           description: Policy found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     put:
+      operationId: "add-policy"
       summary: Add policy.
       description: |
         If the unique identifier of the policy already exists, a 409 status code will be returned.        
         You can override this behavior by passing the 'force' parameter in the query.
+      tags:
+        - policy
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
       requestBody:
@@ -71,28 +97,36 @@ paths:
             schema:
               $ref: "#/components/schemas/Policy"
       responses:
-        201:
+        "201":
           description: Policy created.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        409:
+        "409":
           $ref: "#/components/responses/AlreadyExists"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     post:
+      operationId: "replace-policy"
       summary: Replace policy.
       description: |
         If the unique identifier of the policy does not exist, a 404 status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
+      tags:
+        - policy
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
       requestBody:
@@ -102,46 +136,59 @@ paths:
             schema:
               $ref: "#/components/schemas/Policy"
       responses:
-        200:
+        "200":
           description: Policy replaced.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
     delete:
+      operationId: "delete-policy"
       summary: Remove policy.
       description: |
         If the unique identifier of the policy does not exist, a 404 status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
+      tags:
+        - policy
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
       responses:
-        200:
+        "200":
           description: Policy removed.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PolicyResponse"
-        400:
+        "400":
           $ref: "#/components/responses/BadRequest"
-        401:
+        "401":
           $ref: "#/components/responses/NotAuthorized"
-        403:
+        "403":
           $ref: "#/components/responses/AccessDenied"
-        404:
+        "404":
           $ref: "#/components/responses/NotFound"
-        5XX:
+        "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
 components:
@@ -173,6 +220,11 @@ components:
   responses:
     BadRequest:
       description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -180,6 +232,11 @@ components:
 
     NotAuthorized:
       description: Not authorized.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -187,6 +244,11 @@ components:
 
     AccessDenied:
       description: Access denied.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -194,6 +256,11 @@ components:
 
     NotFound:
       description: Resource not found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -201,6 +268,11 @@ components:
 
     AlreadyExists:
       description: Resource already exists.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -208,6 +280,11 @@ components:
 
     UnexpectedError:
       description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
       content:
         application/json:
           schema:
@@ -234,7 +311,7 @@ components:
         target:
           type: string
           description: The unique identifier of the target.
-        rvvaID:
+        rvvaId:
           type: string
           description: The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
       required:
@@ -252,12 +329,22 @@ components:
 
     ErrorResponse:
       type: object
+      description: The response for an error (as defined by RFC9457).
       properties:
-        message:
+        type:
           type: string
-          description: An optional message detailing the error.
-        data:
-          type: object
-          description: Optional extra context of the error.
-      required:
-        - message
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

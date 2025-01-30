@@ -88,7 +88,7 @@ func newPolicy(p *policies.Policy, path string, d []byte) Policy {
 		language: p.Language,
 		source:   p.Source,
 		target:   p.Target,
-		rvvaID:   p.RvvaID,
+		rvvaID:   p.RvvaId,
 		uri:      p.Url,
 		path:     path,
 		content:  d,

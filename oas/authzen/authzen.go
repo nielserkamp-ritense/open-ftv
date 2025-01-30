@@ -12,10 +12,12 @@ type Action struct {
 	Properties map[string]any `json:"properties,omitempty"`
 }
 
-// AuthorizationRequest defines model for AuthorizationRequest.
+// AuthorizationRequest Authorization request model.
 type AuthorizationRequest struct {
 	// Action The action associated with an authorization request.
-	Action  Action         `json:"action"`
+	Action Action `json:"action"`
+
+	// Context Optional context of the request.
 	Context map[string]any `json:"context,omitempty"`
 
 	// Resource The entity associated with an authorization request.
@@ -27,7 +29,7 @@ type AuthorizationRequest struct {
 	Subject Entity `json:"subject"`
 }
 
-// AuthorizationResponse defines model for AuthorizationResponse.
+// AuthorizationResponse Authorization response model.
 type AuthorizationResponse struct {
 	// Context Optional context returned by the policy engine.
 	Context map[string]any `json:"context,omitempty"`
@@ -49,16 +51,25 @@ type Entity struct {
 	Type string `json:"type"`
 }
 
-// ErrorResponse defines model for ErrorResponse.
+// ErrorResponse Error response model (as defined by RFC9457).
 type ErrorResponse struct {
-	// Data Optional extra context of the error.
-	Data map[string]any `json:"data,omitempty"`
+	// Detail Detailed description of the problem.
+	Detail string `json:"detail,omitempty"`
 
-	// Message An optional message detailing the error.
-	Message string `json:"message"`
+	// Instance Identification of the problem instance.
+	Instance string `json:"instance,omitempty"`
+
+	// Status Status code of the problem.
+	Status *int `json:"status,omitempty"`
+
+	// Title Summary of the problem.
+	Title string `json:"title,omitempty"`
+
+	// Type Identification of the problem.
+	Type string `json:"type,omitempty"`
 }
 
-// PoliciesResponse defines model for PoliciesResponse.
+// PoliciesResponse A set of policies.
 type PoliciesResponse = []Policy
 
 // Policy The content of a policy.
@@ -69,8 +80,8 @@ type Policy struct {
 	// Language The language of the policy.
 	Language string `json:"language"`
 
-	// RvvaID The unique identifier of the Register of Activities (RvVA).
-	RvvaID string `json:"rvvaID,omitempty"`
+	// RvvaId The unique identifier of the Register of Activities (RvVA).
+	RvvaId string `json:"rvvaId,omitempty"`
 
 	// Source The unique identifier of the source.
 	Source string `json:"source,omitempty"`
@@ -94,35 +105,35 @@ type ReasonObject struct {
 	Id string `json:"id"`
 
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
-	ReasonAdmin ReasonField `json:"reason_admin,omitempty"`
+	ReasonAdmin ReasonField `json:"reasonAdmin,omitempty"`
 
 	// ReasonUser Map of one or more reasons, with a language-identifier as the key.
-	ReasonUser ReasonField `json:"reason_user,omitempty"`
+	ReasonUser ReasonField `json:"reasonUser,omitempty"`
 }
 
 // PolicyID defines model for PolicyID.
 type PolicyID = string
 
-// AccessDenied defines model for AccessDenied.
+// AccessDenied Error response model (as defined by RFC9457).
 type AccessDenied = ErrorResponse
 
-// AlreadyExists defines model for AlreadyExists.
+// AlreadyExists Error response model (as defined by RFC9457).
 type AlreadyExists = ErrorResponse
 
-// BadRequest defines model for BadRequest.
+// BadRequest Error response model (as defined by RFC9457).
 type BadRequest = ErrorResponse
 
-// NotAuthorized defines model for NotAuthorized.
+// NotAuthorized Error response model (as defined by RFC9457).
 type NotAuthorized = ErrorResponse
 
-// NotFound defines model for NotFound.
+// NotFound Error response model (as defined by RFC9457).
 type NotFound = ErrorResponse
 
-// UnexpectedError defines model for UnexpectedError.
+// UnexpectedError Error response model (as defined by RFC9457).
 type UnexpectedError = ErrorResponse
 
-// PostEvaluationParams defines parameters for PostEvaluation.
-type PostEvaluationParams struct {
+// AuthRequestParams defines parameters for AuthRequest.
+type AuthRequestParams struct {
 	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
 	Authorization string `json:"Authorization,omitempty"`
 
@@ -131,11 +142,11 @@ type PostEvaluationParams struct {
 	XRequestID string `json:"X-Request-ID,omitempty"`
 }
 
-// PostEvaluationJSONRequestBody defines body for PostEvaluation for application/json ContentType.
-type PostEvaluationJSONRequestBody = AuthorizationRequest
+// AuthRequestJSONRequestBody defines body for AuthRequest for application/json ContentType.
+type AuthRequestJSONRequestBody = AuthorizationRequest
 
-// PostPolicyIdJSONRequestBody defines body for PostPolicyId for application/json ContentType.
-type PostPolicyIdJSONRequestBody = Policy
+// ReplacePolicyJSONRequestBody defines body for ReplacePolicy for application/json ContentType.
+type ReplacePolicyJSONRequestBody = Policy
 
-// PutPolicyIdJSONRequestBody defines body for PutPolicyId for application/json ContentType.
-type PutPolicyIdJSONRequestBody = Policy
+// AddPolicyJSONRequestBody defines body for AddPolicy for application/json ContentType.
+type AddPolicyJSONRequestBody = Policy
