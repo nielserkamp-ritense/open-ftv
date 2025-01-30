@@ -1,13 +1,13 @@
 openapi:
-  stage: Tests
+  stage: Linters
   image:
     name: stoplight/spectral:latest
     entrypoint: [""]
   script:
     - cd oas
-    - spectral lint -r .spectral.yaml authzen/openapi.yaml
-    - spectral lint -r .spectral.yaml policies/openapi.yaml
-    - spectral lint -r .spectral.yaml attributes/openapi.yaml
+    - spectral lint -r .spectral.yml authzen/openapi.yaml
+    - spectral lint -r .spectral.yml policies/openapi.yaml
+    - spectral lint -r .spectral.yml attributes/openapi.yaml
     - cd -
   needs: [ ]
   rules:
