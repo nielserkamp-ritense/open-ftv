@@ -1,0 +1,7 @@
+sources:
+  - provider: filesystem
+    provides:
+      - fsc/auth/openapi.yaml
+      - authzen/openapi.yaml
+      - policies/openapi.yaml
+      - attributes/openapi.yaml

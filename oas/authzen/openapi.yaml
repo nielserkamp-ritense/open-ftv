@@ -27,18 +27,19 @@ paths:
       tags:
         - authZEN
       parameters:
-        - in: header
-          name: "Authorization"
+        - name: "Authorization"
+          in: header
           description: Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
           schema:
             type: string
-        - in: header
-          name: "X-Request-ID"
+        - name: "X-Request-ID"
+          in: header
           description: |
             Request header containing the unique ID of the request.
             This will be returned in the response.
           schema:
             type: string
+
       responses:
         "200":
           description: |

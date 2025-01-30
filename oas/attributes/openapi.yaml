@@ -48,7 +48,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /attribute:
@@ -88,7 +88,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "409":
           $ref: "#/components/responses/AlreadyExists"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /attribute/{key}:
@@ -113,6 +113,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AttributeResponse"
+              examples:
+                GET_WERKTIJDEN_200_OK:
+                  summary: Successful retrieval of attribute 'werktijden'.
+                  value:
+                    key: werktijden
+                    value: x
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -121,7 +127,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     post:
@@ -160,7 +166,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     delete:
@@ -193,7 +199,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /entities:
@@ -223,7 +229,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /entity:
@@ -263,7 +269,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "409":
           $ref: "#/components/responses/AlreadyExists"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /entity/{type}/{id}:
@@ -297,7 +303,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     post:
@@ -336,7 +342,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     delete:
@@ -369,7 +375,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
 
@@ -400,7 +406,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /relation:
@@ -440,7 +446,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "409":
           $ref: "#/components/responses/AlreadyExists"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
   /relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}:
@@ -477,7 +483,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     post:
@@ -516,7 +522,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
     delete:
@@ -549,7 +555,7 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
-        "5XX":
+        "500":
           $ref: "#/components/responses/UnexpectedError"
 
 components:
@@ -559,14 +565,23 @@ components:
       name: key
       schema:
         type: string
+        minLength: 3
+        maxLength: 500
       required: true
       description: Unique key of an attribute.
+      examples:
+        GET_ATTRIBUTE_WERKTIJDEN_200_OK:
+          value: "werktijden"
+        GET_ATTRIBUTE_404_NOTFOUND:
+          value: "abc98def76"
 
     EntityType:
       in: path
       name: type
       schema:
         type: string
+        minLength: 3
+        maxLength: 100
       required: true
       description: Type of entity.
 
@@ -575,6 +590,8 @@ components:
       name: id
       schema:
         type: string
+        minLength: 3
+        maxLength: 500
       required: true
       description: ID of an entity.
 
@@ -583,6 +600,8 @@ components:
       name: subjectType
       schema:
         type: string
+        minLength: 3
+        maxLength: 100
       required: true
       description: Type of subject of a relation.
 
@@ -591,6 +610,8 @@ components:
       name: subjectID
       schema:
         type: string
+        minLength: 3
+        maxLength: 500
       required: true
       description: ID of the subject of a relation.
 
@@ -599,6 +620,8 @@ components:
       name: relation
       schema:
         type: string
+        minLength: 3
+        maxLength: 100
       required: true
       description: Type of relation.
 
@@ -607,6 +630,8 @@ components:
       name: objectType
       schema:
         type: string
+        minLength: 3
+        maxLength: 100
       required: true
       description: Type of object of a relation.
 
@@ -615,6 +640,8 @@ components:
       name: objectID
       schema:
         type: string
+        minLength: 3
+        maxLength: 500
       required: true
       description: ID of the object of a relation.
 
@@ -682,6 +709,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            GET_ATTRIBUTE_404_NOTFOUND:
+              summary: Unsuccessful retrieval of unknown attribute.
+              value:
+                title: Not found
 
     AlreadyExists:
       description: Resource already exists.
