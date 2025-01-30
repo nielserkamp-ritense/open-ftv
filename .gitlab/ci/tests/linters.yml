@@ -1,0 +1,22 @@
+openapi:
+  stage: Tests
+  image:
+    name: stoplight/spectral:latest
+    entrypoint: [""]
+  script:
+    - cd oas
+    - spectral lint -r .spectral.yaml authzen/openapi.yaml
+    - spectral lint -r .spectral.yaml policies/openapi.yaml
+    - spectral lint -r .spectral.yaml attributes/openapi.yaml
+    - cd -
+  needs: [ ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - oas/**/*
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

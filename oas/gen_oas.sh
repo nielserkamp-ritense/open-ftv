@@ -1,7 +1,5 @@
 #!/bin/bash
 
-curl https://developer.overheid.nl/static/adr/ruleset.yaml > .spectral.yml
-
 function fix_code {
   sed -i -e "s/*string/string/" $1.go
   sed -i -e "s/*map/map/" $1.go
@@ -33,7 +31,7 @@ cd ..
 ##### FSC #####
 # clone repo
 cd fsc
-git clone --depth 1 https://gitlab.com/commonground/fsc/open-fsc.git
+git clone -q --depth 1 https://gitlab.com/commonground/fsc/open-fsc.git
 cp open-fsc/outway/authorization-interface.yaml auth/openapi.yaml
 
 # generate

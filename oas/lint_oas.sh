@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker run --rm -it -v .:/tmp stoplight/spectral lint -r "/tmp/.spectral.yml" "/tmp/attributes/oas-attributes.yaml"
-docker run --rm -it -v .:/tmp stoplight/spectral lint -r "/tmp/.spectral.yml" "/tmp/policies/oas-policies.yaml"
-docker run --rm -it -v .:/tmp stoplight/spectral lint -r "/tmp/.spectral.yml" "/tmp/authzen/oas-authzen.yaml"
-docker run --rm -it -v .:/tmp stoplight/spectral lint -r "/tmp/.spectral.yml" "/tmp/fds/ledenlijst/oas-leden.yaml"
-docker run --rm -it -v .:/tmp stoplight/spectral lint -r "/tmp/.spectral.yml" "/tmp/fsc/auth/oas-auth.yaml"
+curl -s https://developer.overheid.nl/static/adr/ruleset.yaml > .spectral.yml
+
+spectral lint -r .spectral.yml attributes/openapi.yaml
+spectral lint -r .spectral.yml policies/openapi.yaml
+spectral lint -r .spectral.yml authzen/openapi.yaml
