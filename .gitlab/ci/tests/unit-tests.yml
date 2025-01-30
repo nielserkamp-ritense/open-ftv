@@ -33,7 +33,7 @@ utilities:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-models:
+eam-models:
   stage: Tests
   image: golang:1.23
   variables:
@@ -70,45 +70,7 @@ pbac-models:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-components:
-  stage: Tests
-  image: golang:1.23
-  variables:
-    GOPATH: ${CI_PROJECT_DIR}/eam/components/.go-cache
-  before_script:
-    - mkdir -p eam/components/.go-cache
-  script:
-    - cd eam/components
-    - /usr/local/go/bin/go mod download
-    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
-    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
-    - /usr/local/go/bin/go tool cover -func=cover.out
-    - cd -
-  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
-  cache:
-    key: testcache
-    paths:
-      - eam/components/.go-cache
-  artifacts:
-    expire_in: 1 month
-    paths:
-      - eam/components/cover.html
-  needs: [ ]
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: "main"
-        paths:
-          - utilities/**/*
-          - testdata/**/*
-          - eam/models/**/*
-          - eam/components/**/*
-          - .golang-ci.yml
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
-
-pbac-handlers:
+eam-handlers:
   stage: Tests
   image: golang:1.23
   variables:
@@ -148,7 +110,7 @@ pbac-handlers:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-server:
+eam-server:
   stage: Tests
   image: golang:1.23
   variables:
@@ -188,7 +150,45 @@ pbac-server:
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
-pbac-fsc-plugin-generic:
+eam-components:
+  stage: Tests
+  image: golang:1.23
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/eam/components/.go-cache
+  before_script:
+    - mkdir -p eam/components/.go-cache
+  script:
+    - cd eam/components
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: testcache
+    paths:
+      - eam/components/.go-cache
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - eam/components/cover.html
+  needs: [ ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/**/*
+          - testdata/**/*
+          - eam/models/**/*
+          - eam/components/**/*
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+eam-fsc-plugin-generic:
   stage: Tests
   image: golang:1.23
   variables:
