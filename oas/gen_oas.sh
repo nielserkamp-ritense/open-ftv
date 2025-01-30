@@ -14,27 +14,27 @@ function fix_code {
 
 ##### AuthZEN #####
 cd authzen
-oapi-codegen -config cfg-authzen.yaml oas-authzen.yaml
+oapi-codegen -config config.yaml openapi.yaml
 fix_code "authzen"
 cd ..
 
 ##### Policies #####
 cd policies
-oapi-codegen -config cfg-policies.yaml oas-policies.yaml
+oapi-codegen -config config.yaml openapi.yaml
 fix_code "policies"
 cd ..
 
 ##### Attributes #####
 cd attributes
-oapi-codegen -config cfg-attributes.yaml oas-attributes.yaml
+oapi-codegen -config config.yaml openapi.yaml
 fix_code "attributes"
 cd ..
 
 ##### FSC #####
 # clone repo
 cd fsc
-git clone --depth 1 https://gitlab.com/commonground/nlx/fsc-nlx.git
-cp fsc-nlx/outway/authorization-interface.yaml auth/openapi.yaml
+git clone --depth 1 https://gitlab.com/commonground/fsc/open-fsc.git
+cp open-fsc/outway/authorization-interface.yaml auth/openapi.yaml
 
 # generate
 cd auth
@@ -42,22 +42,5 @@ oapi-codegen -config config.yaml openapi.yaml
 cd ..
 
 # remove repo
-rm -Rf fsc-nlx
-cd ..
-
-##### FDS #####
-# clone repo
-cd fds
-git clone --depth 1 https://gitlab.com/digilab.overheid.nl/ecosystem/fdsdemo.git
-cp fdsdemo/fds/ledenlijst/api/openapi.yaml ledenlijst/
-
-# generate
-cd ledenlijst
-oapi-codegen -config config.yaml oopenapi.yaml
-sed -i '6,8d' ledenlijst.go
-sed -i -e "s/openapi_types.UUID/string      /" ledenlijst.go
-cd ..
-
-# remove repo
-rm -Rf fdsdemo
+rm -Rf open-fsc
 cd ..

@@ -1,0 +1,6 @@
+package: policies
+output: policies.go
+generate:
+  models: true
+output-options:
+  skip-prune: true
