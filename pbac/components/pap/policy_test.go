@@ -31,7 +31,7 @@ func TestNewPolicy(t *testing.T) {
 		},
 		{
 			name: "all meta",
-			p:    &policies.Policy{Id: "x3", Language: "opa", Source: "s3", Target: "t3", RvvaID: "e3", Url: "https://some.site/policies/x3"},
+			p:    &policies.Policy{Id: "x3", Language: "opa", Source: "s3", Target: "t3", RvvaId: "e3", Url: "https://some.site/policies/x3"},
 			data: "policy-3",
 		},
 	}
@@ -50,7 +50,7 @@ func TestNewPolicy(t *testing.T) {
 				assert.Equal(t, tc.p.Language, got.Language())
 				assert.Equal(t, tc.p.Source, got.Source())
 				assert.Equal(t, tc.p.Target, got.Target())
-				assert.Equal(t, tc.p.RvvaID, got.RvvaID())
+				assert.Equal(t, tc.p.RvvaId, got.RvvaID())
 				assert.Equal(t, tc.p.Url, got.URI())
 
 				r := got.Content()

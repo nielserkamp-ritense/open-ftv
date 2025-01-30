@@ -1,6 +1,6 @@
 {
  "language": "OpenFGA",
- "rvvaID": "rvva2",
+ "rvvaId": "rvva2",
  "source": "source2",
  "target": "target2",
  "url": "https://my.site/openfga/doelbinding.model"

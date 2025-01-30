@@ -113,7 +113,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 
 func TestAuthHandler_FSC_Fail2(t *testing.T) {
 	in := `{"input":{}}`
-	out := `{"message":"invalid method"}`
+	out := `{"title":"invalid method"}`
 
 	t.Run("fsc handler fail (2)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -159,7 +159,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 
 func TestAuthHandler_FSC_Fail3(t *testing.T) {
 	in := `[]`
-	out := `{"message":"invalid input data"}`
+	out := `{"title":"invalid input data"}`
 
 	t.Run("fsc handler fail (3)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -205,7 +205,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 
 func TestAuthHandler_FSC_Fail4(t *testing.T) {
 	in := `{"input":{"method":"POST"}}`
-	out := `{"message":"invalid path"}`
+	out := `{"title":"invalid path"}`
 
 	t.Run("fsc handler fail (4)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
