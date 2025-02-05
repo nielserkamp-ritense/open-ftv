@@ -11,4 +11,5 @@ use (
 	./mock/fds/ledenlijst
 	./oas
 	./utilities
+	./utilities-no-ci
 )
