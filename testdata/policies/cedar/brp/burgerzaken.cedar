@@ -1,7 +1,7 @@
 permit (
-    principal == Doelbinding::"burgerzaken",
-    action == Action::"POST",
-    resource is Service
+    principal == doelbinding::"burgerzaken",
+    action == action::"POST",
+    resource is service
 )
 when {
     principal has brpPersonen &&

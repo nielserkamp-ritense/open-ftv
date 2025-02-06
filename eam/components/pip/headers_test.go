@@ -155,9 +155,9 @@ func TestProcessHeaders(t *testing.T) {
 			}
 
 			if tc.wantAID != "" {
-				assert.Equal(t, tc.wantAID, a.GetAttributeValue(models.AttrActivityID))
+				assert.Equal(t, tc.wantAID, a.GetAttributeValue(models.AttrRvvaID))
 			} else {
-				assert.Nil(t, a.GetAttributeValue(models.AttrActivityID))
+				assert.Nil(t, a.GetAttributeValue(models.AttrRvvaID))
 			}
 
 			if tc.wantCU != "" {

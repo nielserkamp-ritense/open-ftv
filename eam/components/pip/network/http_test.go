@@ -151,7 +151,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:    "FDS ledenlijst",
 				Method:  "GET",
-				URI:     "http://127.0.0.1:9000/v1/ledenlijst",
+				URI:     "http://127.0.0.1:9900/v1/ledenlijst",
 				Timeout: time.Minute,
 				Mapping: d1,
 			},
@@ -163,7 +163,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:    "FDS ledenlijst",
 				Method:  "GET",
-				URI:     "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:     "https://127.0.0.1:9900/v1/ledenlijst",
 				CAFile:  caFile,
 				Timeout: time.Minute,
 				Mapping: d1,
@@ -176,7 +176,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:     "FDS ledenlijst",
 				Method:   "GET",
-				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:      "https://127.0.0.1:9900/v1/ledenlijst",
 				CAFile:   caFile,
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
@@ -191,7 +191,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:     "FDS ledenlijst",
 				Method:   "GET",
-				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:      "https://127.0.0.1:9900/v1/ledenlijst",
 				CAFile:   caFile,
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
@@ -206,7 +206,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:     "FDS ledenlijst",
 				Method:   "GET",
-				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:      "https://127.0.0.1:9900/v1/ledenlijst",
 				CAFile:   caFile,
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
@@ -238,7 +238,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:     "FDS ledenlijst",
 				Method:   "GET",
-				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:      "https://127.0.0.1:9900/v1/ledenlijst",
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
 				Timeout:  100 * time.Millisecond,
@@ -253,7 +253,7 @@ func TestManager_Execute(t *testing.T) {
 			req: &Request{
 				Name:     "FDS ledenlijst",
 				Method:   "/001/001/001",
-				URI:      "https://127.0.0.1:9000/v1/ledenlijst",
+				URI:      "https://127.0.0.1:9900/v1/ledenlijst",
 				CAFile:   caFile,
 				CertFile: certFile2,
 				KeyFile:  keyFile2,
@@ -355,7 +355,7 @@ entities:
 			Name:        "ledenlijst",
 			Description: "retrieve FDS ledenlijst",
 			Method:      "GET",
-			URI:         "https://127.0.0.1:9000/v1/ledenlijst",
+			URI:         "https://127.0.0.1:9900/v1/ledenlijst",
 			Headers:     map[string]string{fiber.HeaderAcceptEncoding: fiber.MIMEApplicationJSON},
 			Timeout:     5 * time.Second,
 			CAFile:      caFile,

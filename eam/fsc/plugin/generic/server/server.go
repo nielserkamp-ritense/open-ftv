@@ -21,7 +21,7 @@ func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
 		server.WithAppName(config.AppName),
-		server.WithTLS(cfg.Cert, cfg.Key, cfg.CA),
+		server.WithTLS(cfg.CA, cfg.Cert, cfg.Key),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
 		server.WithRecovery(),

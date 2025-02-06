@@ -24,11 +24,11 @@ func (p *pip) testHeaders(req *components.Request, a models.AttributeSet) string
 				newURI = p.processFSC(req, list[0], a)
 			case models.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
 				a.AddAttribute(models.AttrApiKey, list[0])
-			case models.HeaderRvaActivityID:
+			case models.HeaderRvvaID, models.HeaderObsoleteRvvaID:
 				activityID = list[0]
-				a.AddAttribute(models.AttrActivityID, activityID)
+				a.AddAttribute(models.AttrRvvaID, activityID)
 				p.convertActivityID(activityID, a)
-			case models.HeaderCoreUser:
+			case models.HeaderCoreUser, models.HeaderObsoleteCoreUser:
 				a.AddAttribute(models.AttrCoreUser, list[0])
 			case models.HeaderGrondslag:
 				a.AddAttribute(models.AttrGrondslag, list[0])

@@ -52,6 +52,25 @@ func TestDeterminePrincipal(t *testing.T) {
 			want1: "user",
 			want2: "bob",
 		},
+		{
+			name:  "rvva",
+			a:     NewAttributeSet(NewAttribute("rvva-id", "7fc3d429-2435-4d5f-864e-62e444fcd906")),
+			want1: "activity",
+			want2: "7fc3d429-2435-4d5f-864e-62e444fcd906",
+		},
+		{
+			name: "mixed",
+			a: NewAttributeSet(
+				NewAttribute("doelbinding", "subsidie"),
+				NewAttribute("zaak-type", "zaak2"),
+				NewAttribute("principal", "user::bob"),
+				NewAttribute("api-key", "12cd45ef"),
+				NewAttribute("rvva-id", "7fc3d429-2435-4d5f-864e-62e444fcd906"),
+				NewAttribute("taak", "controle"),
+			),
+			want1: "activity",
+			want2: "7fc3d429-2435-4d5f-864e-62e444fcd906",
+		},
 	}
 
 	for _, tc := range testCases {

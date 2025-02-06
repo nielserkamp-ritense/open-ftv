@@ -48,15 +48,15 @@ func WithMaxBody(maxBody int) ServerOption {
 // WithTLS sets TLS parameters for the service.
 func WithTLS(caFile, certFile, keyFile string) ServerOption {
 	return func(c *Config) {
+		c.CA = caFile
 		c.TLSCert = certFile
 		c.TLSKey = keyFile
-		c.CA = caFile
 	}
 }
 
 // WithMutualTLS switches to mutual TLS for the service.
 //
-// The service will require and verify a certificate from every client.
+// The service will require and verify a certificate from clients.
 func WithMutualTLS() ServerOption {
 	return func(c *Config) {
 		c.MutualTLS = true

@@ -5,18 +5,20 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
-	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
+	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/fsc/plugin/generic/config"
 )
@@ -30,16 +32,25 @@ type AuthHandler interface {
 
 // New instantiates an authorization handler.
 func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
-	h, err := newController(ctx, cfg, logger, logboek)
-	if h == nil {
-		logger.Error("configuration error", "error", err)
+	controller, err := newController(ctx, cfg, logger, logboek)
+	if controller == nil {
+		logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
 	}
 
-	fsc := handle.NewAuthHandlerFSC(logger, h)
-	zen := handle.NewAuthHandlerZEN(logger, h)
+	var authLogger authlog.Logger
+	if cfg.OpenSearchIndex != "" {
+		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearchIndex, cfg.OpenSearchUser, cfg.OpenSearchPswd, strings.Split(cfg.OpenSearchEndpoints, ",")...)
+		if err != nil {
+			logger.Error("failed to initialize authlog", "index", cfg.OpenSearchIndex, "user", cfg.OpenSearchUser, "endpoints", cfg.OpenSearchEndpoints, "error", err)
+			return nil
+		}
+	}
 
-	return &authHandler{logger: logger, controller: h, fsc: fsc, zen: zen}
+	fsc := handlers.NewAuthHandlerFSC(logger, authLogger, controller)
+	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller)
+
+	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
 }
 
 func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
@@ -91,6 +102,6 @@ func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
-	fsc        handle.FSCAuthorizer
-	zen        handle.AuthZENAuthorizer
+	fsc        handlers.FSCAuthorizer
+	zen        handlers.AuthZENAuthorizer
 }

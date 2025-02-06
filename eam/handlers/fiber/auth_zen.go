@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
@@ -20,14 +21,15 @@ type AuthZENAuthorizer interface {
 }
 
 // NewAuthHandlerZEN instantiates a new AuthZEN authorization handler.
-func NewAuthHandlerZEN(logger *slog.Logger, controller pdp.Controller) AuthZENAuthorizer {
-	return &authZEN{logger: logger, controller: controller}
+func NewAuthHandlerZEN(logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) AuthZENAuthorizer {
+	return &authZEN{logger: logger, authLogger: authLogger, controller: controller}
 }
 
 // Authorize implements the AuthZENAuthorizer interface.
 func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 	p := &authProcess{
 		logger:     h.logger,
+		authLogger: h.authLogger,
 		controller: h.controller,
 		fc:         fc,
 		status:     fiber.StatusInternalServerError,
@@ -36,6 +38,9 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		defer p.log()
+	}
+	if p.authLogger != nil {
+		defer p.authLog()
 	}
 
 	req := p.verifyRequestAuthZEN()
@@ -131,5 +136,6 @@ func (p *authProcess) authorizeAuthZEN() error {
 
 type authZEN struct {
 	logger     *slog.Logger
+	authLogger authlog.Logger
 	controller pdp.Controller
 }

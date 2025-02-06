@@ -15,7 +15,7 @@ func newService(t *testing.T, logger *slog.Logger, ca, cert, key string, path st
 	cfg := []server.ServerOption{
 		server.WithDefaults(),
 		server.WithAppName("mock service"),
-		server.WithHostPort("127.0.0.1", 9000),
+		server.WithHostPort("127.0.0.1", 9900),
 		server.WithRecovery(),
 		server.WithSecurity(),
 	}

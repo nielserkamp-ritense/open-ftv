@@ -14,34 +14,38 @@ import (
 
 // Config represents our configuration variables.
 type Config struct {
-	Host               string        `yaml:"svc.host,omitempty" env:"ADDRESS,HOST" flag:"address,a" default:"0.0.0.0" desc:"Address to use for service"`
-	Port               uint16        `yaml:"svc.port,omitempty" env:"PORT" flag:"port,p" default:"8443" desc:"Port to use for https service"`
-	CA                 string        `yaml:"svc.tls.ca,omitempty" env:"TLS_CA" flag:"tls-ca,ca" desc:"TLS Certificate authority to use for https service"`
-	Cert               string        `yaml:"svc.tls.cert,omitempty" env:"TLS_CERT" flag:"tls-cert,cert" desc:"TLS certificate to use for https service"`
-	Key                string        `yaml:"svc.tls.key,omitempty" env:"TLS_KEY" flag:"tls-key,key" desc:"TLS key authority to use for https service"`
-	ReadTimeout        time.Duration `yaml:"svc.timeout.read,omitempty" env:"READ_TIMEOUT" flag:"read-timeout" default:"30s" desc:"Read timeout for API requests"`
-	WriteTimeout       time.Duration `yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
-	IdleTimeout        time.Duration `yaml:"svc.timeout.idle,omitempty" env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
-	MaxBody            int           `yaml:"svc.maxBody,omitempty" env:"MAX_BODY_SIZE" flag:"max-body" default:"65536" desc:"Maximum size of request body"`
-	LogOutput          string        `yaml:"log.output,omitempty" env:"LOG_OUTPUT" flag:"log-output" default:"stdout" desc:"File for writing log data"`
-	LogFormat          string        `yaml:"log.format,omitempty" env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
-	LogLevel           string        `yaml:"log.level,omitempty" env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`
-	LogSource          bool          `yaml:"log.source,omitempty" env:"LOG_SOURCE" flag:"log-source" default:"true" desc:"Include source-location when writing log data"`
-	OpenTelURL         string        `yaml:"ldv.url,omitempty" env:"LDV_URL" flag:"ldv-url" desc:"OpenTelemetry target URL for LDV"`
-	OpenTelServiceName string        `yaml:"ldv.service,omitempty" env:"LDV_SERVICE_NAME" flag:"ldv-service" desc:"OpenTelemetry service name for LDV"`
-	OpenTelActivityID  string        `yaml:"ldv.activityID,omitempty" env:"LDV_ACTIVITY_ID" flag:"ldv-activity-id" desc:"OpenTelemetry activity-id for LDV"`
-	OpenTelTimeout     time.Duration `yaml:"ldv.timeout,omitempty" env:"LDV_TIMEOUT" flag:"ldv-timeout" default:"5s" desc:"OpenTelemetry batch timeout for LDV"`
-	OpenTelPretty      bool          `yaml:"ldv.prettyPrint,omitempty" env:"LDV_PRETTY_PRINT" flag:"ldv-pretty-print" desc:"Facilitate pretty printing of OpenTelemetry log events"`
-	PolicyLanguage     string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
-	PolicyStore        string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
-	PolicyStoreRecurse bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
-	PipStore           string        `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
-	PipStoreRecurse    bool          `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
-	CerbosAddress      string        `yaml:"pdp.cerbos.address,omitempty" env:"CERBOS_ADDRESS" flag:"cerbos-address" desc:"Address of the Cerbos client interface"`
-	CerbosAdmin        string        `yaml:"pdp.cerbos.adminAddress,omitempty" env:"CERBOS_ADMIN" flag:"cerbos-admin" desc:"Address of the Cerbos admin interface"`
-	CerbosCA           string        `yaml:"pdp.cerbos.ca,omitempty" env:"CERBOS_CA" flag:"cerbos-ca" desc:"File containing the CA certificate for the Cerbos interfaces"`
-	CerbosUser         string        `yaml:"pdp.cerbos.adminUser,omitempty" env:"CERBOS_USER" flag:"cerbos-user" desc:"User-id for the Cerbos admin interface"`
-	CerbosPswd         string        `yaml:"pdp.cerbos.adminPassword,omitempty" env:"CERBOS_PSWD" flag:"cerbos-pswd" desc:"Password for the Cerbos admin interface"`
+	Host                string        `yaml:"svc.host,omitempty" env:"ADDRESS,HOST" flag:"address,a" default:"0.0.0.0" desc:"Address to use for service"`
+	Port                uint16        `yaml:"svc.port,omitempty" env:"PORT" flag:"port,p" default:"8443" desc:"Port to use for https service"`
+	CA                  string        `yaml:"svc.tls.ca,omitempty" env:"TLS_CA" flag:"tls-ca,ca" desc:"TLS Certificate authority to use for https service"`
+	Cert                string        `yaml:"svc.tls.cert,omitempty" env:"TLS_CERT" flag:"tls-cert,cert" desc:"TLS certificate to use for https service"`
+	Key                 string        `yaml:"svc.tls.key,omitempty" env:"TLS_KEY" flag:"tls-key,key" desc:"TLS key authority to use for https service"`
+	ReadTimeout         time.Duration `yaml:"svc.timeout.read,omitempty" env:"READ_TIMEOUT" flag:"read-timeout" default:"30s" desc:"Read timeout for API requests"`
+	WriteTimeout        time.Duration `yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
+	IdleTimeout         time.Duration `yaml:"svc.timeout.idle,omitempty" env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
+	MaxBody             int           `yaml:"svc.maxBody,omitempty" env:"MAX_BODY_SIZE" flag:"max-body" default:"65536" desc:"Maximum size of request body"`
+	LogOutput           string        `yaml:"log.output,omitempty" env:"LOG_OUTPUT" flag:"log-output" default:"stdout" desc:"File for writing log data"`
+	LogFormat           string        `yaml:"log.format,omitempty" env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
+	LogLevel            string        `yaml:"log.level,omitempty" env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`
+	LogSource           bool          `yaml:"log.source,omitempty" env:"LOG_SOURCE" flag:"log-source" default:"true" desc:"Include source-location when writing log data"`
+	OpenSearchIndex     string        `yaml:"authlog.index,omitempty" env:"AUTHLOG_INDEX" flag:"authlog-index" desc:"OpenSearch index for authorisation log"`
+	OpenSearchUser      string        `yaml:"authlog.user,omitempty" env:"AUTHLOG_USER" flag:"authlog-user" desc:"OpenSearch username for authorisation log"`
+	OpenSearchPswd      string        `yaml:"authlog.password,omitempty" env:"AUTHLOG_PASSWORD" flag:"authlog-password" desc:"OpenSearch password for authorisation log"`
+	OpenSearchEndpoints string        `yaml:"authlog.endpoints,omitempty" env:"AUTHLOG_ENDPOINTS" flag:"authlog-endpoints" desc:"OpenSearch endpoints for authorisation log"`
+	OpenTelURL          string        `yaml:"ldv.url,omitempty" env:"LDV_URL" flag:"ldv-url" desc:"OpenTelemetry target URL for LDV"`
+	OpenTelServiceName  string        `yaml:"ldv.service,omitempty" env:"LDV_SERVICE_NAME" flag:"ldv-service" desc:"OpenTelemetry service name for LDV"`
+	OpenTelActivityID   string        `yaml:"ldv.activityID,omitempty" env:"LDV_ACTIVITY_ID" flag:"ldv-activity-id" desc:"OpenTelemetry activity-id for LDV"`
+	OpenTelTimeout      time.Duration `yaml:"ldv.timeout,omitempty" env:"LDV_TIMEOUT" flag:"ldv-timeout" default:"5s" desc:"OpenTelemetry batch timeout for LDV"`
+	OpenTelPretty       bool          `yaml:"ldv.prettyPrint,omitempty" env:"LDV_PRETTY_PRINT" flag:"ldv-pretty-print" desc:"Facilitate pretty printing of OpenTelemetry log events"`
+	PolicyLanguage      string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
+	PolicyStore         string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
+	PolicyStoreRecurse  bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
+	PipStore            string        `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
+	PipStoreRecurse     bool          `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
+	CerbosAddress       string        `yaml:"pdp.cerbos.address,omitempty" env:"CERBOS_ADDRESS" flag:"cerbos-address" desc:"Address of the Cerbos client interface"`
+	CerbosAdmin         string        `yaml:"pdp.cerbos.adminAddress,omitempty" env:"CERBOS_ADMIN" flag:"cerbos-admin" desc:"Address of the Cerbos admin interface"`
+	CerbosCA            string        `yaml:"pdp.cerbos.ca,omitempty" env:"CERBOS_CA" flag:"cerbos-ca" desc:"File containing the CA certificate for the Cerbos interfaces"`
+	CerbosUser          string        `yaml:"pdp.cerbos.adminUser,omitempty" env:"CERBOS_USER" flag:"cerbos-user" desc:"User-id for the Cerbos admin interface"`
+	CerbosPswd          string        `yaml:"pdp.cerbos.adminPassword,omitempty" env:"CERBOS_PSWD" flag:"cerbos-pswd" desc:"Password for the Cerbos admin interface"`
 }
 
 const (

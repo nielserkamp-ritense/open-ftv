@@ -2,6 +2,8 @@ package models
 
 import (
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // AttributesBuilder is the function prototype for creating a new set of attributes.
@@ -42,6 +44,11 @@ func NewAttributeSet(in ...any) AttributeSet {
 			t.IterateAttributes(func(attr Attribute) {
 				out.set[attr.Key()] = attr
 			})
+		case []Attribute:
+			for i := range t {
+				attr := t[i]
+				out.set[attr.Key()] = attr
+			}
 		case map[string]any:
 			out.addMap(t)
 		case *map[string]any:
@@ -134,6 +141,15 @@ func (a *attributes) MergeAttributes(in ...AttributeSet) {
 		})
 	}
 	a.mutex.Unlock()
+}
+
+// MarshalJSON implements the json.Marshaller interface.
+func (a *attributes) MarshalJSON() ([]byte, error) {
+	out := make(map[string]any, len(a.set))
+	for k := range a.set {
+		out[k] = a.set[k].Value()
+	}
+	return json.Marshal(out)
 }
 
 // MapFromAttributes returns a standard map from the given attribute set.

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
@@ -24,14 +25,15 @@ type FSCAuthorizer interface {
 }
 
 // NewAuthHandlerFSC instantiates a new FSC authorization handler.
-func NewAuthHandlerFSC(logger *slog.Logger, controller pdp.Controller) FSCAuthorizer {
-	return &authFSC{logger: logger, controller: controller}
+func NewAuthHandlerFSC(logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) FSCAuthorizer {
+	return &authFSC{logger: logger, authLogger: authLogger, controller: controller}
 }
 
 // Authorize implements the FSCAuthorizer interface.
 func (h *authFSC) Authorize(fc *fiber.Ctx) error {
 	p := authProcess{
 		logger:     h.logger,
+		authLogger: h.authLogger,
 		controller: h.controller,
 		fc:         fc,
 		status:     fiber.StatusInternalServerError,
@@ -40,6 +42,9 @@ func (h *authFSC) Authorize(fc *fiber.Ctx) error {
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		defer p.log()
+	}
+	if p.authLogger != nil {
+		defer p.authLog()
 	}
 
 	req := p.verifyRequestFSC()
@@ -106,8 +111,8 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 		URL:         u,
 		Method:      req.Input.Method,
 		RequestTime: &now,
-		Body:        d,
 		Headers:     req.Input.Headers,
+		Body:        d,
 		Attributes:  make(map[string]any),
 	}
 }
@@ -139,5 +144,6 @@ func (p *authProcess) authorizeFSC() error {
 
 type authFSC struct {
 	logger     *slog.Logger
+	authLogger authlog.Logger
 	controller pdp.Controller
 }

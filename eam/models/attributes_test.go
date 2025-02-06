@@ -3,6 +3,7 @@ package models
 import (
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -171,6 +172,63 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 	}
 }
 
+func TestAttributes_AddOriginalAttribute(t *testing.T) {
+	testCases := []struct {
+		name  string
+		in    AttributeSet
+		key   string
+		value any
+		orig  any
+		tp    string
+		want  map[string]any
+	}{
+		{
+			name:  "empty",
+			in:    &attributes{set: make(map[string]Attribute)},
+			key:   "hello",
+			value: 12345,
+			orig:  int32(12345),
+			tp:    "xsd:integer",
+			want:  map[string]any{"hello": 12345},
+		},
+		{
+			name:  "new key",
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:   "float",
+			value: 12345.6789,
+			orig:  "12345.6789",
+			tp:    "xsd:double",
+			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
+		},
+		{
+			name:  "duplicate key",
+			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:   "int",
+			value: 12345.6789,
+			orig:  "12345.6789",
+			tp:    "xsd:double",
+			want:  map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			a := tc.in
+			a.AddOriginalAttribute(tc.key, tc.value, tc.orig, tc.tp)
+
+			got := MapFromAttributes(a)
+			require.NotNil(t, got)
+			assert.EqualValues(t, tc.want, got)
+
+			attr := a.GetAttribute(tc.key)
+			require.NotNil(t, attr)
+			assert.Equal(t, tc.value, attr.Value())
+			assert.Equal(t, tc.orig, attr.Original())
+			assert.Equal(t, tc.tp, attr.Type())
+		})
+	}
+}
+
 func TestAttributes_RemoveAttribute(t *testing.T) {
 	testCases := []struct {
 		name string
@@ -250,6 +308,44 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 			got := MapFromAttributes(a)
 			require.NotNil(t, got)
 			assert.EqualValues(t, tc.want, got)
+		})
+	}
+}
+
+func TestAttributes_MarshalJSON(t *testing.T) {
+	testCases := []struct {
+		name string
+		attr []Attribute
+		want string
+	}{
+		{
+			name: "empty",
+			want: "{}",
+		},
+		{
+			name: "single",
+			attr: []Attribute{NewAttribute("hello", "world")},
+			want: `{"hello":"world"}`,
+		},
+		{
+			name: "few",
+			attr: []Attribute{
+				NewAttribute("int", 999),
+				NewAttribute("hello", "world"),
+				NewAttribute("double", 123.456),
+			},
+			want: `{"double":123.456,"hello":"world","int":999}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := NewAttributeSet(tc.attr)
+			require.NotNil(t, s)
+
+			got, err := json.Marshal(s)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, string(got))
 		})
 	}
 }

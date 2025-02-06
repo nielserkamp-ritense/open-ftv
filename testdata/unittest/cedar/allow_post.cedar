@@ -1,5 +1,5 @@
 permit (
     principal,
-    action == Action::"POST",
+    action == action::"POST",
     resource
 );

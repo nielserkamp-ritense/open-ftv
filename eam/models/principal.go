@@ -11,11 +11,16 @@ const (
 	PrincipalDoelbinding = "doelbinding"
 	PrincipalInvalid     = "invalid"
 	PrincipalJWT         = "jwt"
+	PrincipalRVVA        = "activity"
 	PrincipalZaak        = "zaak"
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.
 func DeterminePrincipal(a AttributeSet) (string, string) {
+	if rvvaID, ok := a.GetAttributeValue(AttrRvvaID).(string); ok {
+		return PrincipalRVVA, rvvaID
+	}
+
 	if principal, ok := a.GetAttributeValue(AttrPrincipal).(string); ok && strings.Contains(principal, "::") {
 		parts := strings.Split(principal, "::")
 		return parts[0], parts[1]

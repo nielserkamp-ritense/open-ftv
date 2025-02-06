@@ -11,7 +11,7 @@ import (
 // Indexer represents the interface to manipulate OpenSearch indexes.
 type Indexer interface {
 	CreateIndex(ctx context.Context, name string, shards, replicas int) error
-	DeleteIndexes(ctx context.Context, name ...string) error
+	DeleteIndexes(ctx context.Context, names ...string) error
 }
 
 // CreateIndex creates a new OpenSearch index.

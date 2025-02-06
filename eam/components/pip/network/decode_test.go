@@ -358,7 +358,7 @@ value = "first code"
 			req := &Request{
 				Name:    "test",
 				Method:  "GET",
-				URI:     "http://localhost:9000/v1/data",
+				URI:     "http://localhost:9900/v1/data",
 				Timeout: 100 * time.Millisecond,
 				Mapping: tc.dec,
 			}

@@ -41,6 +41,13 @@ func (p *pip) CollectAttributesFromRequest(req *components.Request) (models.Attr
 		}
 	}
 
+	if attr := a.GetAttribute(models.AttrClientIP); attr != nil {
+		req.Attributes[models.AttrClientIP] = attr.Value()
+	}
+	if attr := a.GetAttribute(models.AttrRvvaID); attr != nil {
+		req.Attributes[models.AttrRvvaID] = attr.Value()
+	}
+
 	if p.logger.Enabled(nil, slog.LevelDebug) {
 		kv := make(map[string]any)
 		a.IterateAttributes(func(attr models.Attribute) {

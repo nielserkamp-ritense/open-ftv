@@ -16,8 +16,10 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
 	}
 
+	req2 := c.buildCedarRequest(req)
+
 	started := time.Now()
-	decision, diagnostic := c.pdp.IsAuthorized(c.entities, c.buildCedarRequest(req))
+	decision, diagnostic := c.pdp.IsAuthorized(c.entities, req2)
 	duration := time.Since(started)
 
 	if decision {

@@ -36,7 +36,7 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -82,7 +82,7 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/opa", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -128,7 +128,7 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -174,7 +174,7 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -220,7 +220,7 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -266,7 +266,7 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()

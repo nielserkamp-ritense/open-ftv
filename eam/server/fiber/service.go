@@ -16,7 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 )
 
-// Router is the function signature for setting up the service endpoints.
+// Router is the function signature for setting up the service endpoints and custom middleware.
 type Router func(svc *fiber.App)
 
 // New initializes an HTTP service (implemented with fiber and fasthttp).

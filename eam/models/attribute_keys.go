@@ -3,7 +3,6 @@ package models
 // List of standard attribute keys.
 const (
 	AttrAction      = "action"
-	AttrActivityID  = "activity-id"
 	AttrApiKey      = "api-key"
 	AttrClaims      = "claims"
 	AttrClientIP    = "client-ip"
@@ -24,6 +23,7 @@ const (
 	AttrQuery       = "query"
 	AttrRequestTime = "request-time"
 	AttrResource    = "resource"
+	AttrRvvaID      = "rvva-id"
 	AttrScheme      = "scheme"
 	AttrTaak        = "taak"
 	AttrValid       = "valid"
