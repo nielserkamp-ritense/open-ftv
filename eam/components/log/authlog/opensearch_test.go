@@ -37,7 +37,7 @@ func TestNewOpenSearchAndLog(t *testing.T) {
 		err = l3.CreateIndex(ctx, "index", 1, 1)
 		require.NoError(t, err)
 
-		err = l.Log(ctx, &AuthRecord{
+		err = l.Log(ctx, false, &AuthRecord{
 			RvvaID:          "abc",
 			Principal:       models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttribute("oin", "12345678901234567890"))),
 			Action:          models.NewEntity("http", "GET", nil),
@@ -88,7 +88,7 @@ func (m *mockOS) DeleteIndexes(_ context.Context, names ...string) error {
 	return nil
 }
 
-func (m *mockOS) Log(_ context.Context, rec opensearch.LogRecord) error {
+func (m *mockOS) Log(_ context.Context, _ bool, rec opensearch.LogRecord) error {
 	if _, ok := m.indexes[rec.Index]; !ok {
 		return fmt.Errorf("not exists: [%s]", rec.Index)
 	}
@@ -96,9 +96,9 @@ func (m *mockOS) Log(_ context.Context, rec opensearch.LogRecord) error {
 	return nil
 }
 
-func (m *mockOS) LogBulk(ctx context.Context, records ...opensearch.LogRecord) error {
+func (m *mockOS) LogBulk(ctx context.Context, wait bool, records ...opensearch.LogRecord) error {
 	for i := range records {
-		if err := m.Log(ctx, records[i]); err != nil {
+		if err := m.Log(ctx, wait, records[i]); err != nil {
 			return err
 		}
 	}

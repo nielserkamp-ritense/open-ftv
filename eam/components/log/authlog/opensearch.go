@@ -17,8 +17,8 @@ func NewOpenSearch(index, user, pswd string, endpoints ...string) (Logger, error
 }
 
 // Log implements the Logger interface.
-func (l *os) Log(ctx context.Context, record *AuthRecord) error {
-	return l.sink.Log(ctx, opensearch.LogRecord{Index: l.index, Data: record})
+func (l *os) Log(ctx context.Context, wait bool, record *AuthRecord) error {
+	return l.sink.Log(ctx, wait, opensearch.LogRecord{Index: l.index, Data: record})
 }
 
 type os struct {

@@ -78,7 +78,7 @@ func (p *authProcess) authLog() {
 		rec.DecisionContext.AddAttribute("policyHash", p.resp.PolicyHash)
 	}
 
-	if err := p.authLogger.Log(context.Background(), rec); err != nil {
+	if err := p.authLogger.Log(context.Background(), false, rec); err != nil {
 		p.logger.Error("failed to write authlog", "record", rec, "error", err)
 	}
 }
