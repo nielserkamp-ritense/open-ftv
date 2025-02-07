@@ -19,8 +19,8 @@ type LogRecord struct {
 // Logger represents the interface to log records in OpenSearch.
 type Logger interface {
 	Indexer
-	Log(ctx context.Context, rec LogRecord) error
-	LogBulk(ctx context.Context, records ...LogRecord) error
+	Log(ctx context.Context, wait bool, rec LogRecord) error
+	LogBulk(ctx context.Context, wait bool, records ...LogRecord) error
 }
 
 // NewLogger instantiates a new OpenSearch logger.
@@ -35,7 +35,7 @@ func NewLogger(user, pswd string, endpoints []string) (Logger, error) {
 // Log writes the given record to the given OpenSearch index.
 //
 // If the ID field in the record is empty, a new uuid will be generated for it.
-func (l *logger) Log(ctx context.Context, rec LogRecord) error {
+func (l *logger) Log(ctx context.Context, wait bool, rec LogRecord) error {
 	if rec.ID == "" {
 		rec.ID = newID()
 	}
@@ -46,13 +46,17 @@ func (l *logger) Log(ctx context.Context, rec LogRecord) error {
 	}
 
 	req := opensearchapi.IndexRequest{Index: rec.Index, DocumentID: rec.ID, Body: bytes.NewReader(b)}
+	if wait {
+		req.Refresh = "wait_for"
+	}
+
 	return l.checkResponse(ctx, "write log", req.Do)
 }
 
 // LogBulk writes the given records to the given OpenSearch index, using a bulk operation.
 //
 // If the ID field in a record is empty, a new uuid will be generated for it.
-func (l *logger) LogBulk(ctx context.Context, records ...LogRecord) error {
+func (l *logger) LogBulk(ctx context.Context, wait bool, records ...LogRecord) error {
 	var buf bytes.Buffer
 
 	for i := range records {
@@ -79,6 +83,10 @@ func (l *logger) LogBulk(ctx context.Context, records ...LogRecord) error {
 	}
 
 	req := opensearchapi.BulkRequest{Body: bytes.NewReader(buf.Bytes())}
+	if wait {
+		req.Refresh = "wait_for"
+	}
+
 	return l.checkResponse(ctx, "bulk-write log", req.Do)
 }
 
