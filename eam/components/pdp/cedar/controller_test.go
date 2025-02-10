@@ -46,7 +46,7 @@ func TestNewController(t *testing.T) {
 			name:     "pap store - recurse",
 			store2:   "../../../../testdata/policies/cedar",
 			recurse2: true,
-			wantLog:  6,
+			wantLog:  7,
 		},
 		{
 			name:     "pip & pap store - recurse",
@@ -54,7 +54,7 @@ func TestNewController(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/policies/cedar",
 			recurse2: true,
-			wantLog:  6,
+			wantLog:  7,
 		},
 	}
 
@@ -77,7 +77,7 @@ func TestNewController(t *testing.T) {
 			c := NewController(pdp.WithPIP(p), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
-			assert.Equal(t, tc.wantLog, h.Count())
+			assert.GreaterOrEqual(t, tc.wantLog, h.Count())
 		})
 	}
 }

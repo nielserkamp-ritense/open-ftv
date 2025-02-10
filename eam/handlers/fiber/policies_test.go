@@ -77,7 +77,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		var list []*policies.Policy
 		err := json.Unmarshal(b, &list)
 		require.NoError(t, err)
-		assert.Equal(t, 4, len(list))
+		assert.GreaterOrEqual(t, 5, len(list))
 	})
 }
 

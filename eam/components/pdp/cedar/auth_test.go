@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cedar-policy/cedar-go/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +51,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 4,
-			want:    components.Response{Message: "not authorized"},
+			want:    components.Response{Message: "not authorized", Attributes: map[string]any{"diagnostic": types.Diagnostic{}}},
 		},
 		{
 			name:     "good request",

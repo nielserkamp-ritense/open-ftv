@@ -8,10 +8,11 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components v0.0.0-20250207131838-94e2e1f4053c
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers v0.0.0-20250207131838-94e2e1f4053c
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components v0.0.0-20250210143846-e85c583631ae
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers v0.0.0-20250210143846-e85c583631ae
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server v0.0.0-20250123140703-7d11ad192c77
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250207131838-94e2e1f4053c
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250210143846-e85c583631ae
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000
 	gitlab.com/gjuyn/go-config v1.0.1
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/trace v1.34.0
@@ -54,7 +55,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goccy/go-yaml v1.15.17 // indirect
+	github.com/goccy/go-yaml v1.15.19 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/cel-go v0.22.1 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -121,9 +122,8 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250207131838-94e2e1f4053c // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250207131838-94e2e1f4053c // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250210143846-e85c583631ae // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250210143846-e85c583631ae // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.33.0 // indirect

@@ -8,8 +8,8 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers v0.0.0-20250207131838-94e2e1f4053c
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250207131838-94e2e1f4053c
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers v0.0.0-20250210143846-e85c583631ae
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250210143846-e85c583631ae
 )
 
 require (
@@ -20,7 +20,7 @@ require (
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/goccy/go-yaml v1.15.17 // indirect
+	github.com/goccy/go-yaml v1.15.19 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
@@ -36,9 +36,9 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.58.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components v0.0.0-20250207131838-94e2e1f4053c // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250207131838-94e2e1f4053c // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250207131838-94e2e1f4053c // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components v0.0.0-20250210143846-e85c583631ae // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250210143846-e85c583631ae // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250210143846-e85c583631ae // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
