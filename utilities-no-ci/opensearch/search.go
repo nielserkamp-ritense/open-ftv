@@ -2,6 +2,7 @@ package opensearch
 
 import (
 	"context"
+	"strings"
 
 	"github.com/defensestation/osquery"
 	"github.com/goccy/go-json"
@@ -11,7 +12,8 @@ import (
 // Searcher represents the interface to execute queries on OpenSearch.
 type Searcher interface {
 	SearchByQuery(ctx context.Context, index string, query *osquery.SearchRequest) (*SearchResponse, error)
-	SearchBySQL(ctx context.Context, index string, query string) (*SearchResponse, error)
+	SearchBySQL(ctx context.Context, index string, query string, max int) (*SearchResponse, error)
+	SearchByLucene(ctx context.Context, index string, query string, max int) (*SearchResponse, error)
 }
 
 // NewSearcher instantiates a new OpenSearch query executor.
@@ -46,8 +48,26 @@ func (s *search) SearchByQuery(ctx context.Context, index string, query *osquery
 // SearchBySQL implements the Searcher interface.
 //
 // It can be used to execute a search with an OpenSearch SQL statement.
-func (s *search) SearchBySQL(ctx context.Context, index string, query string) (*SearchResponse, error) {
-	req := opensearchapi.SearchRequest{Index: []string{index}, Query: query}
+func (s *search) SearchBySQL(ctx context.Context, index string, query string, max int) (*SearchResponse, error) {
+	req := opensearchapi.SearchRequest{Index: []string{index}, Body: strings.NewReader(query), Size: &max}
+
+	resp, err := req.Do(ctx, s.client)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	out := new(SearchResponse)
+	err = json.NewDecoder(resp.Body).Decode(out)
+	return out, err
+}
+
+// SearchByLucene implements the Searcher interface.
+//
+// It can be used to execute a search with a Lucene query statement.
+func (s *search) SearchByLucene(ctx context.Context, index string, query string, max int) (*SearchResponse, error) {
+	req := opensearchapi.SearchRequest{Index: []string{index}, Query: query, Size: &max}
 
 	resp, err := req.Do(ctx, s.client)
 	if err != nil {
@@ -72,6 +92,7 @@ type SearchResponse struct {
 			Source map[string]any `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
+	Aggregations map[string]any `json:"aggregations"`
 }
 
 type search struct {

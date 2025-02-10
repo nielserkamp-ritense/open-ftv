@@ -9,4 +9,6 @@ const (
 	PathEntity     = "/entity/:type/:id"
 	PathRelations  = "/relations"
 	PathRelation   = "/relation/:subjectType/:subjectId/:relation/:objectType/:objectId"
+	PathAuthlog    = "/authlog"
+	PathResource   = "/resource/:resource"
 )

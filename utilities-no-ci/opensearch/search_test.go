@@ -48,7 +48,7 @@ func TestSearcher_SearchBySQL(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, s)
 
-		got, err3 := s.SearchBySQL(ctx, index, fmt.Sprintf("select 'hello' from %s;", index))
+		got, err3 := s.SearchBySQL(ctx, index, fmt.Sprintf("select 'hello' from %s;", index), 999)
 		require.NoError(t, err3)
 		require.NotNil(t, got)
 		assert.Equal(t, int64(3), got.Hits.Total.Value)

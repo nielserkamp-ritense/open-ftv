@@ -1,0 +1,168 @@
+openapi: 3.0.0
+
+info:
+  title: Authorisation log queries.
+  version: 1.1.0
+  description: |
+    OpenAPI specification for retrieving data and statistics from the authorisation log.
+  contact:
+    name: G. Juijn
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server.
+
+tags:
+  - name: authlog
+    description: Queries on the authorisation log.
+
+paths:
+  /authlog/resource/{resource}:
+    get:
+      operationId: "get-authlog-resource"
+      summary: Retrieve authorisation log summary by resource.
+      description: Endpoint to retrieve the authorisation log summary for a specific resource.
+      tags:
+        - authlog
+      parameters:
+        - $ref: "#/components/parameters/ResourceKey"
+      responses:
+        "200":
+          description: Log found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthlogResourceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  parameters:
+    ResourceKey:
+      in: path
+      name: resource
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 500
+      required: true
+      description: Unique id of a resource.
+
+
+  responses:
+    BadRequest:
+      description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotAuthorized:
+      description: Not authorized.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    AccessDenied:
+      description: Access denied.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    NotFound:
+      description: Resource not found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            GET_ATTRIBUTE_404_NOTFOUND:
+              summary: Unsuccessful retrieval of unknown attribute.
+              value:
+                title: Not found
+
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    AuthlogResourceResponse:
+      type: object
+      description: The response for retrieving an authorisation log resource summary.
+      properties:
+        total:
+          type: integer
+          description: Total count.
+        rvva:
+          type: array
+          items:
+            properties:
+              rvvaId:
+                type: string
+              count:
+                type: integer
+
+    ErrorResponse:
+      type: object
+      description: The response for an error (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

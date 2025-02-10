@@ -11,7 +11,7 @@ type Attribute struct {
 	// Type The optional type of a value. By default a value is stored as-is.
 	//
 	// The following codes for type are supported:
-	// "string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
+	// "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
 	// Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
 	//
 	// An *integer* value is stored as a 64-bit signed integer.
@@ -66,7 +66,7 @@ type ErrorResponse struct {
 	Instance string `json:"instance,omitempty"`
 
 	// Status Status code of the problem.
-	Status *int `json:"status,omitempty"`
+	Status int `json:"status,omitempty"`
 
 	// Title Summary of the problem.
 	Title string `json:"title,omitempty"`

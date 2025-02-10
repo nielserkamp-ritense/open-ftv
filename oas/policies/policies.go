@@ -12,7 +12,7 @@ type ErrorResponse struct {
 	Instance string `json:"instance,omitempty"`
 
 	// Status Status code of the problem.
-	Status *int `json:"status,omitempty"`
+	Status int `json:"status,omitempty"`
 
 	// Title Summary of the problem.
 	Title string `json:"title,omitempty"`

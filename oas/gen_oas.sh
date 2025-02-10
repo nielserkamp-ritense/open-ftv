@@ -1,8 +1,9 @@
 #!/bin/bash
 
 function fix_code {
-  sed -i -e "s/*string/string/" $1.go
+  sed -i -e "s/*string /string /" $1.go
   sed -i -e "s/*map/map/" $1.go
+  sed -i -e "s/*int /int /" $1.go
   sed -i -e "s/*\[\]/\[\]/" $1.go
   sed -i -e "s/*IgnoreMissing/IgnoreMissing/" $1.go
   sed -i -e "s/*ForceUpsert/ForceUpsert/" $1.go
@@ -26,6 +27,12 @@ cd ..
 cd attributes
 oapi-codegen -config config.yaml openapi.yaml
 fix_code "attributes"
+cd ..
+
+##### Authlog #####
+cd authlog
+oapi-codegen -config config.yaml openapi.yaml
+fix_code "authlog"
 cd ..
 
 ##### FSC #####
