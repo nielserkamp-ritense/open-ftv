@@ -8,14 +8,16 @@ const (
 	HeaderAuthorization    = "authorization"
 	HeaderContentType      = "content-type"
 	HeaderCoreUser         = "dpl-core-user"
-	HeaderObsoleteCoreUser = "x-dpl-core-user"
 	HeaderDoelbinding      = "doelbinding"
 	HeaderFSCAuthorization = "fsc-authorization"
 	HeaderForwarded        = "forwarded"
 	HeaderGrondslag        = "grondslag"
-	HeaderRvvaID           = "dpl-processing-activity-id"
+	HeaderObsoleteCoreUser = "x-dpl-core-user"
 	HeaderObsoleteRvvaID   = "x-dpl-rva-activity-id"
+	HeaderRvvaID           = "dpl-processing-activity-id"
 	HeaderTaak             = "taak"
+	HeaderTraceParent      = "traceparent" // https://www.w3.org/TR/trace-context/
+	HeaderTraceState       = "tracestate"  // https://www.w3.org/TR/trace-context/
 	HeaderXForwardedFor    = "x-forwarded-for"
 	HeaderZaakType         = "zaak-type"
 )

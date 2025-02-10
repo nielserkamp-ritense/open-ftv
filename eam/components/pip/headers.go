@@ -42,6 +42,10 @@ func (p *pip) testHeaders(req *components.Request, a models.AttributeSet) string
 				fwd1 = strings.Join(list, ",")
 			case models.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
+			case models.HeaderTraceParent:
+				a.AddAttribute(models.AttrTraceParent, list[0])
+			case models.HeaderTraceState:
+				a.AddAttribute(models.AttrTraceState, list[0])
 			case "new-uri":
 				newURI = list[0]
 			default:

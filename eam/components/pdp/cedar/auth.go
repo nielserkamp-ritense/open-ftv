@@ -7,6 +7,7 @@ import (
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
@@ -33,7 +34,7 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
-	return &components.Response{Allowed: false, Message: "not authorized"}, nil
+	return &components.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
 }
 
 func (c *controller) buildCedarRequest(req *components.Request) cedar.Request {
@@ -48,12 +49,16 @@ func (c *controller) buildCedarRequest(req *components.Request) cedar.Request {
 		ca, _ = a.(*attributes)
 	}
 
-	p1, p2 := DeterminePrincipal(ca)
+	p1, p2 := models.DeterminePrincipal(a)
+
+	req.Principal = models.NewEntity(p1, p2, nil)
+	req.Action = models.NewEntity(TypeAction, req.Method, nil)
+	req.Resource = models.NewEntity(TypeService, uri, nil)
 
 	return cedar.Request{
-		Principal: cedar.NewEntityUID(p1, p2),
-		Action:    cedar.NewEntityUID(TypeAction, cedar.String(req.Method)),
-		Resource:  cedar.NewEntityUID(TypeService, cedar.String(uri)),
+		Principal: cedar.NewEntityUID(cedar.EntityType(req.Principal.Type()), cedar.String(req.Principal.ID())),
+		Action:    cedar.NewEntityUID(cedar.EntityType(req.Action.Type()), cedar.String(req.Action.ID())),
+		Resource:  cedar.NewEntityUID(cedar.EntityType(req.Resource.Type()), cedar.String(req.Resource.ID())),
 		Context:   cedar.NewRecord(ca.set),
 	}
 }

@@ -14,6 +14,8 @@ type AuthRecord struct {
 	Principal       models.Entity       `json:"principal,omitempty"`
 	Action          models.Entity       `json:"action,omitempty"`
 	Resource        models.Entity       `json:"resource,omitempty"`
-	Decision        bool                `json:"decision,omitempty"`
+	Decision        bool                `json:"decision"`
 	DecisionContext models.AttributeSet `json:"decisionContext,omitempty"`
+	TraceParent     string              `json:"traceparent,omitempty"` // https://www.w3.org/TR/trace-context/
+	TraceState      string              `json:"tracestate,omitempty"`  // https://www.w3.org/TR/trace-context/
 }

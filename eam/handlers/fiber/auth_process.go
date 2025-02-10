@@ -11,6 +11,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 func (p *authProcess) log() {
@@ -66,6 +67,8 @@ func (p *authProcess) authLog() {
 		Resource:        p.req.Resource,
 		Decision:        p.resp.Allowed,
 		DecisionContext: models.NewAttributeSet(),
+		TraceParent:     convert.AnyToString(p.req.Attributes[models.AttrTraceParent]),
+		TraceState:      convert.AnyToString(p.req.Attributes[models.AttrTraceState]),
 	}
 
 	if p.resp.Message != "" {
@@ -76,6 +79,9 @@ func (p *authProcess) authLog() {
 	}
 	if p.resp.PolicyHash != "" {
 		rec.DecisionContext.AddAttribute("policyHash", p.resp.PolicyHash)
+	}
+	if diag := p.resp.Attributes["diagnostic"]; diag != nil {
+		rec.DecisionContext.AddAttribute("diagnostic", diag)
 	}
 
 	if err := p.authLogger.Log(context.Background(), false, rec); err != nil {

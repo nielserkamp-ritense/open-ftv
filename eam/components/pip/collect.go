@@ -41,11 +41,11 @@ func (p *pip) CollectAttributesFromRequest(req *components.Request) (models.Attr
 		}
 	}
 
-	if attr := a.GetAttribute(models.AttrClientIP); attr != nil {
-		req.Attributes[models.AttrClientIP] = attr.Value()
-	}
-	if attr := a.GetAttribute(models.AttrRvvaID); attr != nil {
-		req.Attributes[models.AttrRvvaID] = attr.Value()
+	// copy important key attributes.
+	for _, key := range []string{models.AttrClientIP, models.AttrRvvaID, models.AttrTraceParent, models.AttrTraceState} {
+		if attr := a.GetAttribute(key); attr != nil {
+			req.Attributes[key] = attr.Value()
+		}
 	}
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {

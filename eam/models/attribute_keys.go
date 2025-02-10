@@ -26,6 +26,8 @@ const (
 	AttrRvvaID      = "rvva-id"
 	AttrScheme      = "scheme"
 	AttrTaak        = "taak"
+	AttrTraceParent = "traceparent" // https://www.w3.org/TR/trace-context/
+	AttrTraceState  = "tracestate"  // https://www.w3.org/TR/trace-context/
 	AttrValid       = "valid"
 	AttrZaakType    = "zaak-type"
 )
