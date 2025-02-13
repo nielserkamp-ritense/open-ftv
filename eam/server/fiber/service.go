@@ -12,12 +12,11 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 
-	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 )
 
 // Router is the function signature for setting up the service endpoints and custom middleware.
-type Router func(svc *fiber.App)
+type Router func(ctx context.Context, svc *fiber.App)
 
 // New initializes an HTTP service (implemented with fiber and fasthttp).
 func New(logger *slog.Logger, initRoutes Router, opts ...server.ServerOption) server.Service {
@@ -44,7 +43,7 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.ServerOption) se
 		ReadTimeout:           s.ReadTimeout,
 		WriteTimeout:          s.WriteTimeout,
 		IdleTimeout:           s.IdleTimeout,
-		ErrorHandler:          handlers.ErrorHandler(logger),
+		ErrorHandler:          ErrorHandler(logger),
 		JSONEncoder:           json.Marshal,
 		JSONDecoder:           json.Unmarshal,
 	})
@@ -52,7 +51,7 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.ServerOption) se
 	s.defaultMiddleware()
 
 	if initRoutes != nil {
-		initRoutes(s.svc)
+		initRoutes(s.ctx, s.svc)
 	}
 
 	return s

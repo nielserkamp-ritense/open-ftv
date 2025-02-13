@@ -9,6 +9,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/attributes"
 )
 
@@ -34,7 +35,7 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	})
 
 	if len(resp) == 0 {
-		return SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 	return req.JSON(&resp)
 }
@@ -48,7 +49,7 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 
 	e := h.cache.GetEntity(models.EntityUID(ns, id))
 	if e == nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 	return req.JSON(handlers.EntityToOAS(e))
 }
@@ -69,7 +70,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 	value := h.cache.GetEntity(e2.UID())
 	if value != nil && !req.QueryBool("forceUpsert") {
-		return SendMessageResponse(req, fiber.StatusConflict, entityExists)
+		return fiber2.SendMessageResponse(req, fiber.StatusConflict, entityExists)
 	}
 
 	h.cache.AddEntity(e2)
@@ -92,7 +93,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 	e3 := h.cache.GetEntity(e2.UID())
 	if e3 == nil && !req.QueryBool("forceUpsert") {
-		return SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 
 	h.cache.AddEntity(e2)
@@ -110,7 +111,7 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 	e := h.cache.GetEntity(uid)
 	if e == nil && !req.QueryBool("ignoreMissing") {
-		return SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 
 	if e == nil {
@@ -124,12 +125,12 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {
 	ns := req.Params("type")
 	if ns == "" || len(ns) > 500 {
-		return "", "", false, SendMessageResponse(req, fiber.StatusBadRequest, entityTypeError)
+		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeError)
 	}
 
 	id := req.Params("id")
 	if id == "" || len(id) > 500 {
-		return "", "", false, SendMessageResponse(req, fiber.StatusBadRequest, entityIDError)
+		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityIDError)
 	}
 
 	return ns, id, true, nil
@@ -138,19 +139,19 @@ func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error)
 func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*attributes.Entity, bool, error) {
 	var a attributes.Entity
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	if a.Type != ns {
 		if a.Type != "" {
-			return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, entityTypeMismatch)
+			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeMismatch)
 		}
 		a.Type = ns
 	}
 
 	if a.Id != id {
 		if a.Id != "" {
-			return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, entityIDMismatch)
+			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityIDMismatch)
 		}
 		a.Id = id
 	}

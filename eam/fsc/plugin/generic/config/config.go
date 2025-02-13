@@ -41,6 +41,7 @@ type Config struct {
 	PolicyStoreRecurse  bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
 	PipStore            string        `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
 	PipStoreRecurse     bool          `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
+	PipPullConfigs      string        `yaml:"pip.pull.configPath,omitempty" env:"PIP_PULL_CONFIGS" flag:"pip-pull-configs" desc:"Path where PIP pull configuration files are stored"`
 	CerbosAddress       string        `yaml:"pdp.cerbos.address,omitempty" env:"CERBOS_ADDRESS" flag:"cerbos-address" desc:"Address of the Cerbos client interface"`
 	CerbosAdmin         string        `yaml:"pdp.cerbos.adminAddress,omitempty" env:"CERBOS_ADMIN" flag:"cerbos-admin" desc:"Address of the Cerbos admin interface"`
 	CerbosCA            string        `yaml:"pdp.cerbos.ca,omitempty" env:"CERBOS_CA" flag:"cerbos-ca" desc:"File containing the CA certificate for the Cerbos interfaces"`

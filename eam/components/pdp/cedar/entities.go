@@ -47,7 +47,7 @@ func (e *WrappedEntity) ID() string {
 
 // Attributes implements the Entity interface.
 func (e *WrappedEntity) Attributes() models.AttributeSet {
-	return &attributes{logger: e.logger, set: e.ce.Attributes.Map()}
+	return NewAttributeSet(e.logger, e.ce.Attributes)
 }
 
 // Parents implements the Entity interface.
@@ -174,13 +174,12 @@ func entityToCedar(in models.Entity) *cedar.Entity {
 		parents[i] = uidToCedar(in.Parents()[i])
 	}
 
-	attrs := attributes{set: make(cedar.RecordMap)}
-	attrs.MergeAttributes(in.Attributes())
+	attrs, _ := NewAttributeSet(nil, in.Attributes()).(*attributes)
 
 	return &cedar.Entity{
 		UID:        uidToCedar(in.UID()),
 		Parents:    cedar.NewEntityUIDSet(parents...),
-		Attributes: cedar.NewRecord(attrs.set),
+		Attributes: cedar.NewRecord(attrs.cedarSet),
 	}
 }
 

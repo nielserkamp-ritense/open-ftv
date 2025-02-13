@@ -1,6 +1,8 @@
 package network
 
 import (
+	"strings"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
@@ -20,7 +22,7 @@ func (r *runner) decodeAttributesData(data any, obj *AttributesMapping, set mode
 
 func (r *runner) decodeAttributeData(base string, data any, obj *AttributeMapping, set models.AttributeSet) {
 	if obj.ValueAsIs {
-		r.processAttribute(base, obj.KeyValue, data, obj.TypeValue, set)
+		r.processAttribute(base, r.addParents(obj.KeyValue, obj.KeyParents), data, obj.TypeValue, set)
 	} else {
 		switch t := data.(type) {
 		case []any:
@@ -28,7 +30,7 @@ func (r *runner) decodeAttributeData(base string, data any, obj *AttributeMappin
 		case map[string]any:
 			r.decodeAttributeMap(base, t, obj, set)
 		default:
-			r.processAttribute(base, obj.KeyValue, data, obj.TypeValue, set)
+			r.processAttribute(base, r.addParents(obj.KeyValue, obj.KeyParents), data, obj.TypeValue, set)
 		}
 	}
 }
@@ -41,9 +43,13 @@ func (r *runner) decodeAttributesSlice(base string, m []any, obj *AttributeMappi
 
 func (r *runner) decodeAttributeMap(base string, m map[string]any, obj *AttributeMapping, set models.AttributeSet) {
 	key := codeOrValueString(obj.KeyField, obj.KeyValue, m)
-	value := m[obj.ValueField]
+	value := codeOrValue(obj.ValueField, obj.ValueValue, m)
 	tp := codeOrValueString(obj.TypeField, obj.TypeValue, m)
-	r.processAttribute(base, key, value, tp, set)
+	r.processAttribute(base, r.addParents(key, obj.KeyParents), value, tp, set)
+}
+
+func (r *runner) addParents(key string, parents []string) string {
+	return strings.Join(append(parents, key), ".")
 }
 
 func (r *runner) processAttribute(base, key string, value any, tp string, set models.AttributeSet) {

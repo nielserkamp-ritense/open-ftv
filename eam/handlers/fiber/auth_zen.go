@@ -12,6 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
 )
 
@@ -46,7 +47,7 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 	req := p.verifyRequestAuthZEN()
 	if p.err != nil {
 		p.logger.Error("AuthZEN authorization handler failed", "error", p.err)
-		return SendMessageResponse(fc, p.status, p.msg)
+		return fiber2.SendMessageResponse(fc, p.status, p.msg)
 	}
 
 	p.newAuthRequestAuthZEN(req, fc.GetReqHeaders())
@@ -116,7 +117,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 func (p *authProcess) authorizeAuthZEN() error {
 	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
 		p.msg = "AuthZEN authorization process failed"
-		return SendMessageResponse(p.fc, p.status, p.msg)
+		return fiber2.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
 	allowed, msg := p.resp.Allowed, p.resp.Message

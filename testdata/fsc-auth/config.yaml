@@ -1,0 +1,74 @@
+description: FSC auth plugin example
+
+sources:
+  - name: FDS
+    description: Retrieve central FDS data, entities & relations.
+    requests:
+      - name: Ledenlijst
+        description: Retrieve central FDS ledenlijst.
+        method: GET
+        uri: http://localhost:8090/v1/ledenlijst
+        timeout: 30s
+        interval: 5m
+        initialInterval: 3s
+        mapping:
+          entities:
+            - typeValue: fds_member
+              idField: id
+              attributes:
+                - base: ""
+                  map:
+                    - keyValue: oin
+                      valueField: oin
+                      typeValue: xsd:string
+                - base: attributes
+                  map:
+                    - keyValue: name
+                      valueField: name
+                      typeValue: xsd:string
+                    - keyValue: isMember
+                      valueField: isMember
+                      typeValue: xsd:boolean
+                    - keyValue: maturity
+                      valueField: maturity
+                      typeValue: xsd:short
+      - name: Policies
+        description: Determine policies endpoint is accessible.
+        method: GET
+        uri: https://localhost:8080/v1/policies
+        insecure: true
+        timeout: 30s
+        interval: 5m
+        initialInterval: 1s
+        mapping:
+          statusCodes:
+            - code: 2xx
+              attributes:
+                  map:
+                    - keyValue: fds.policy-endpoint
+                      valueValue: true
+            - code: xxx
+              attributes:
+                  map:
+                    - keyValue: fds.policy-endpoint
+                      valueValue: false
+      - name: Authlog
+        description: Determine authlog endpoint is accessible.
+        method: GET
+        uri: https://localhost:8080/v1/authlog/resource/https%3A%2F%2Finway-fsc-nlx-inway%3A443%2Fbrp-personen
+        insecure: true
+        timeout: 30s
+        interval: 5m
+        initialInterval: 2s
+        mapping:
+          statusCodes:
+            - code: 2xx
+              attributes:
+                map:
+                  - keyValue: fds.authlog-endpoint
+                    valueValue: true
+            - code: xxx
+              attributes:
+                map:
+                  - keyValue: fds.authlog-endpoint
+                    valueValue: false

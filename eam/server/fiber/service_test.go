@@ -1,6 +1,7 @@
 package fiber
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -63,7 +64,7 @@ func TestErrorHandler(t *testing.T) {
 			server.WithCORS("*", "Cache-Control"),
 		}
 
-		s := New(logger, func(svc *fiber.App) {
+		s := New(logger, func(_ context.Context, svc *fiber.App) {
 			svc.Get("/healthz", func(c *fiber.Ctx) error {
 				return c.SendStatus(fiber.StatusOK)
 			})
@@ -108,7 +109,7 @@ func TestRecovery(t *testing.T) {
 			server.WithRecovery(),
 		}
 
-		router := func(svc *fiber.App) {
+		router := func(_ context.Context, svc *fiber.App) {
 			svc.Get("/healthz", func(req *fiber.Ctx) error {
 				panic("oops")
 			})
@@ -155,7 +156,7 @@ func TestInvalidHostPort(t *testing.T) {
 			server.WithRecovery(),
 		}
 
-		router := func(svc *fiber.App) {
+		router := func(_ context.Context, svc *fiber.App) {
 			svc.Get("/healthz", func(req *fiber.Ctx) error {
 				return req.SendStatus(fiber.StatusOK)
 			})
@@ -193,7 +194,7 @@ func TestForceAbort(t *testing.T) {
 			server.WithRecovery(),
 		}
 
-		router := func(svc *fiber.App) {
+		router := func(_ context.Context, svc *fiber.App) {
 			svc.Get("/healthz", func(req *fiber.Ctx) error {
 				return req.SendStatus(fiber.StatusOK)
 			})

@@ -15,6 +15,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
@@ -50,7 +51,7 @@ func (h *authFSC) Authorize(fc *fiber.Ctx) error {
 	req := p.verifyRequestFSC()
 	if p.err != nil {
 		p.logger.Error("FSC authorization handler failed", "error", p.err)
-		return SendMessageResponse(fc, p.status, p.msg)
+		return fiber2.SendMessageResponse(fc, p.status, p.msg)
 	}
 
 	p.newAuthRequestFSC(req)
@@ -120,7 +121,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 func (p *authProcess) authorizeFSC() error {
 	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
 		p.msg = "FSC authorization process failed"
-		return SendMessageResponse(p.fc, p.status, p.msg)
+		return fiber2.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
 	allowed, msg := p.resp.Allowed, p.resp.Message

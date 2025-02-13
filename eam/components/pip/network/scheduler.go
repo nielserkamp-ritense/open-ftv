@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-co-op/gocron/v2"
 )
@@ -19,6 +20,11 @@ func (m *manager) schedule() {
 			request := source.Requests[j]
 			logger := m.logger.With("source", source.Name, "request", request.Name)
 
+			if request.Mapping == nil {
+				logger.Error("failed to schedule task", "error", fmt.Errorf("no decoder defined"))
+				continue
+			}
+
 			var def gocron.JobDefinition
 
 			switch {
@@ -27,24 +33,39 @@ func (m *manager) schedule() {
 			case request.Schedule != "":
 				def = gocron.CronJob(request.Schedule, false)
 			default:
-				logger.Error("failed to schedule job", "error", fmt.Errorf("no interval or schedule defined"))
+				logger.Error("failed to schedule task", "error", fmt.Errorf("no interval or schedule defined"))
 			}
 
 			if def != nil {
-				if _, err := scheduler.NewJob(def, gocron.NewTask(func() { _ = m.execute(logger, request) })); err != nil {
-					logger.Error("failed to schedule job", "error", err)
+				task := func() { _ = m.execute(logger, request) }
+
+				schedule := func() {
+					if _, err := scheduler.NewJob(def, gocron.NewTask(task)); err != nil {
+						logger.Error("failed to schedule task", "error", err)
+					}
+				}
+
+				if request.InitialInterval > 0 {
+					time.AfterFunc(request.InitialInterval, func() {
+						task()
+						schedule()
+					})
+				} else {
+					schedule()
 				}
 			}
 		}
 	}
 
-	select {
-	case <-m.ctx.Done():
-		if err := scheduler.Shutdown(); err != nil {
-			m.logger.Info("request scheduler failed to stop", "error", err)
-		} else {
-			m.logger.Info("request scheduler stopped successfully")
+	for {
+		select {
+		case <-m.ctx.Done():
+			if err := scheduler.Shutdown(); err != nil {
+				m.logger.Info("request scheduler failed to stop", "error", err)
+			} else {
+				m.logger.Info("request scheduler stopped successfully")
+			}
+			return
 		}
-		return
 	}
 }

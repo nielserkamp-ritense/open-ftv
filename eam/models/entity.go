@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/goccy/go-json"
 )
@@ -67,6 +68,13 @@ func (e *entity) MarshalJSON() ([]byte, error) {
 		Attributes: e.attrs,
 		Parents:    e.parents,
 	})
+}
+
+// EntityEqual returns true if the entities match exactly.
+func EntityEqual(e1, e2 Entity) bool {
+	return e1.UID() == e2.UID() &&
+		AttributesEqual(e1.Attributes(), e2.Attributes()) &&
+		reflect.DeepEqual(e1.Parents(), e2.Parents())
 }
 
 type entity struct {

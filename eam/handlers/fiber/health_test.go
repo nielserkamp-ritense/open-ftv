@@ -8,6 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 )
 
 func TestHealth(t *testing.T) {
@@ -26,6 +28,6 @@ func TestHealth(t *testing.T) {
 
 		b, err3 := io.ReadAll(resp.Body)
 		assert.NoError(t, err3)
-		assert.EqualValues(t, responseBody[200], b)
+		assert.EqualValues(t, server.ResponseBody[200], b)
 	})
 }

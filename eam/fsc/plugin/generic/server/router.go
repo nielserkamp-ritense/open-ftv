@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,7 +11,9 @@ import (
 )
 
 // initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes(svc *fiber.App) {
+func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
+	s.ctx = ctx
+
 	s.initHealth(svc)
 
 	auth := New(s.ctx, s.cfg, s.logger, s.logboek)

@@ -38,7 +38,7 @@ func TestNewAttributeBuilder(t *testing.T) {
 		require.NotNil(t, got3)
 
 		assert.Equal(t, logger, got3.logger)
-		assert.Equal(t, 4, len(got3.set))
+		assert.Equal(t, 4, len(got3.cedarSet))
 	})
 }
 
@@ -94,7 +94,7 @@ func TestNewAttributeSet(t *testing.T) {
 				"hello":    "world",
 				"float":    123.456,
 				"bool":     false,
-				"int":      int64(456),
+				"int":      456,
 				"int64":    int64(987654321),
 				"time":     now,
 				"duration": time.Second,
@@ -148,7 +148,7 @@ func TestNewAttributeSet(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, got2)
 
-			assert.Equal(t, tc.wantCount, len(got2.set))
+			assert.Equal(t, tc.wantCount, len(got2.cedarSet))
 
 			for key := range tc.want {
 				got3 := got.GetAttributeValue(key)
@@ -184,7 +184,7 @@ func TestAttributes_AddAttribute(t *testing.T) {
 			name:      "few",
 			add:       map[string]any{"hello": "world", "int": 9, "bool": false},
 			wantCount: 3,
-			want:      map[string]any{"hello": "world", "bool": false, "int": int64(9)},
+			want:      map[string]any{"hello": "world", "bool": false, "int": 9},
 		},
 	}
 
@@ -204,7 +204,7 @@ func TestAttributes_AddAttribute(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, got2)
 
-			assert.Equal(t, tc.wantCount, len(got2.set))
+			assert.Equal(t, tc.wantCount, len(got2.cedarSet))
 
 			for key := range tc.want {
 				got3 := got.GetAttributeValue(key)
@@ -242,7 +242,7 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 				"hello":    "world",
 				"float":    123.456,
 				"bool":     false,
-				"int":      int64(456),
+				"int":      456,
 				"int64":    int64(987654321),
 				"time":     now,
 				"duration": time.Second,
@@ -256,7 +256,7 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 				"hello":    "world",
 				"float":    123.456,
 				"bool":     false,
-				"int":      int64(456),
+				"int":      456,
 				"time":     now,
 				"duration": time.Second,
 			},
@@ -268,7 +268,7 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 			want: map[string]any{
 				"hello":    "world",
 				"bool":     false,
-				"int":      int64(456),
+				"int":      456,
 				"duration": time.Second,
 			},
 		},
@@ -290,7 +290,7 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, got2)
 
-			assert.Equal(t, tc.wantCount, len(got2.set))
+			assert.Equal(t, tc.wantCount, len(got2.cedarSet))
 
 			for key := range tc.want {
 				got3 := got.GetAttributeValue(key)

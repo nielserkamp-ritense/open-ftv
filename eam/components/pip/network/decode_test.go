@@ -167,7 +167,7 @@ func TestDecodeData(t *testing.T) {
 			m := &manager{logger: logger, attributes: attr, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}
 
 			r := &runner{logger: logger, data: tc.data, manager: m}
-			r.decodeData(tc.dec)
+			r.decodeData(tc.dec, 200)
 
 			for k := range tc.wantAttr {
 				want, got := tc.wantAttr[k], attr.GetAttribute(k)
@@ -384,36 +384,22 @@ value = "first code"
 				for k := range tc.wantAttr {
 					want, got := tc.wantAttr[k], attr.GetAttribute(k)
 					require.NotNil(t, got)
-					require.EqualValues(t, want, got)
+					require.True(t, models.AttributeEqual(want, got))
 				}
 
 				for k := range tc.wantEnt {
 					want, got := tc.wantEnt[k], ent.GetEntity(k)
 					require.NotNil(t, got)
-
-					assert.Equal(t, want.UID(), got.UID())
-					assert.Equal(t, want.Type(), got.Type())
-					assert.Equal(t, want.ID(), got.ID())
-					assert.EqualValues(t, want.Parents(), got.Parents())
-
-					want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
-						attr2 := got.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
-					})
-
-					got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
-						attr2 := want.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
-					})
+					assert.True(t, models.EntityEqual(want, got))
 				}
 
 				for k := range tc.wantRel {
 					want, got := tc.wantRel[k], rel.GetRelation(k)
 					require.NotNil(t, got)
 					assert.Equal(t, want.UID(), got.UID())
-					assert.EqualValues(t, want.Subject(), got.Subject())
-					assert.EqualValues(t, want.Predicate(), got.Predicate())
-					assert.EqualValues(t, want.Object(), got.Object())
+					assert.True(t, models.EntityEqual(want.Subject(), got.Subject()))
+					assert.True(t, models.EntityEqual(want.Predicate(), got.Predicate()))
+					assert.True(t, models.EntityEqual(want.Object(), got.Object()))
 				}
 			}
 		})

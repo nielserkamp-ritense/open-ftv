@@ -2,7 +2,7 @@ package server
 
 import "github.com/gofiber/fiber/v2"
 
-// ledenlijst returns a fictive ledenlijst.
+// ledenlijst returns a fictional ledenlijst.
 func ledenlijst(req *fiber.Ctx) error {
 	req.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	return req.Send(data)

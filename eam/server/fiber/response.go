@@ -13,7 +13,7 @@ import (
 // If the given status code is not in the supported statuses list, an empty body will be sent.
 func SendBasicResponse(req *fiber.Ctx, status int) error {
 	req.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	return req.Status(status).Send(responseBody[status])
+	return req.Status(status).Send(ResponseBody[status])
 }
 
 // SendMessageResponse sends a basic response corresponding with the given status code.
@@ -33,11 +33,13 @@ var (
 		fiber.StatusConflict,
 		fiber.StatusInternalServerError,
 	}
-	responseBody = make(map[int][]byte, len(supportedStatus))
+
+	// ResponseBody contains preformatted response bodies for supported status codes.
+	ResponseBody = make(map[int][]byte, len(supportedStatus))
 )
 
 func init() {
 	for _, status := range supportedStatus {
-		responseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Title: utils.StatusMessage(status)})
+		ResponseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Title: utils.StatusMessage(status)})
 	}
 }

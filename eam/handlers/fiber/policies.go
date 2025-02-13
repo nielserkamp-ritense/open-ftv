@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 )
 
@@ -40,7 +41,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	}
 
 	if len(resp) == 0 {
-		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 	return req.JSON(resp)
 }
@@ -54,7 +55,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 
 	pol, err2 := h.cache.Get(id)
 	if err2 != nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol))
 }
@@ -84,7 +85,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		if _, err = h.cache.Get(p.Id); err == nil {
 			pol2, err2 := h.cache.Replace(pol)
 			if err2 != nil {
-				return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+				return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 			}
 			return req.JSON(h.convertPolicy(pol2))
 		}
@@ -92,7 +93,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 
 	pol2, err2 := h.cache.Add(pol)
 	if err2 != nil {
-		return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol2))
 }
@@ -122,7 +123,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		if _, err = h.cache.Get(p.Id); err != nil {
 			pol2, err2 := h.cache.Add(pol)
 			if err2 != nil {
-				return SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+				return fiber2.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 			}
 			return req.JSON(h.convertPolicy(pol2))
 		}
@@ -130,7 +131,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 
 	pol2, err2 := h.cache.Replace(pol)
 	if err2 != nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol2))
 }
@@ -148,12 +149,12 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 		if ignore {
 			return req.JSON(&policies.Policy{Id: id})
 		}
-		return SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
 	pol, err2 := h.cache.Remove(id)
 	if err2 != nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(h.convertPolicy(pol))
 }
@@ -161,7 +162,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) checkID(req *fiber.Ctx) (string, bool, error) {
 	id := req.Params("id")
 	if id == "" || len(id) > 500 {
-		return "", false, SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled or nit more than 500 characters")
+		return "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled or nit more than 500 characters")
 	}
 	return id, true, nil
 }
@@ -169,12 +170,12 @@ func (h *policiesHandler) checkID(req *fiber.Ctx) (string, bool, error) {
 func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*policies.Policy, bool, error) {
 	var p policies.Policy
 	if err := req.BodyParser(&p); err != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	if p.Id != id {
 		if p.Id != "" {
-			return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy id")
+			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy id")
 		}
 		p.Id = id
 	}
@@ -188,19 +189,19 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.P
 
 	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Url, nil)
 	if err != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	resp, err2 := http.DefaultClient.Do(req2)
 	if err2 != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
 	}
 
 	defer resp.Body.Close()
 
 	pol, err3 := pap.NewPolicy(p, resp.Body)
 	if err3 != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 	}
 	return pol, true, nil
 }

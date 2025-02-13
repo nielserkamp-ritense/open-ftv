@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSearcher_SearchBySQL(t *testing.T) {
-	t.Run("search by sql", func(t *testing.T) {
+func TestSearcher_SearchByLucene(t *testing.T) {
+	t.Run("search by lucene", func(t *testing.T) {
 		l, err := NewLogger(user, pswd, endpoints)
 		require.NoError(t, err)
 		require.NotNil(t, l)
@@ -48,7 +48,7 @@ func TestSearcher_SearchBySQL(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, s)
 
-		got, err3 := s.SearchBySQL(ctx, index, fmt.Sprintf("select 'hello' from %s;", index), 999)
+		got, err3 := s.SearchByLucene(ctx, index, fmt.Sprintf("select 'hello' from %s;", index), 999)
 		require.NoError(t, err3)
 		require.NotNil(t, got)
 		assert.Equal(t, int64(3), got.Hits.Total.Value)

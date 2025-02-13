@@ -13,7 +13,7 @@ import (
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
 func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server.Service {
-	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, logboek: logboek}
+	s := &service{cfg: cfg, logger: logger, logboek: logboek}
 
 	s.Service = fiber.New(
 		logger,

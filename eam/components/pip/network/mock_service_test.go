@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -27,7 +28,7 @@ func newService(t *testing.T, logger *slog.Logger, ca, cert, key string, path st
 		}
 	}
 
-	router := func(app *fiber.App) {
+	router := func(_ context.Context, app *fiber.App) {
 		v1 := app.Group("/v1")
 		v1.Get(path, h)
 	}

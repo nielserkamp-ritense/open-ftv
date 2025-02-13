@@ -38,8 +38,8 @@ func TestLoadEntityMap(t *testing.T) {
 			want: models.NewEntitySet(
 				models.NewEntity("service", "myService",
 					models.NewAttributeSet(
-						models.NewAttribute("int", 999),
-						models.NewAttribute("hello", "world"),
+						models.NewOriginalAttribute("int", 999, 999, ""),
+						models.NewOriginalAttribute("hello", "world", "world", ""),
 					),
 				),
 			),
@@ -66,8 +66,8 @@ func TestLoadEntityMap(t *testing.T) {
 			want: models.NewEntitySet(
 				models.NewEntity("service", "myService",
 					models.NewAttributeSet(
-						models.NewAttribute("int", 999),
-						models.NewAttribute("hello", "world"),
+						models.NewOriginalAttribute("int", 999, 999, ""),
+						models.NewOriginalAttribute("hello", "world", "world", ""),
 					), "first", "second"),
 			),
 		},
@@ -125,7 +125,7 @@ func TestLoadEntitiesAny(t *testing.T) {
 			name: "single",
 			in:   map[string]any{"type": "user", "id": "alice", "attributes": map[string]any{"security": "medium"}},
 			want: models.NewEntitySet(
-				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttribute("security", "medium"))),
+				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewOriginalAttribute("security", "medium", "medium", ""))),
 			),
 		},
 		{
@@ -136,9 +136,9 @@ func TestLoadEntitiesAny(t *testing.T) {
 				{"type": "user", "id": "bob", "attributes": map[string]any{"security": "high"}},
 			},
 			want: models.NewEntitySet(
-				models.NewEntity("user", "bob", models.NewAttributeSet(models.NewAttribute("security", "high"))),
-				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttribute("security", "medium"))),
-				models.NewEntity("user", "charlie", models.NewAttributeSet(models.NewAttribute("security", "low"))),
+				models.NewEntity("user", "bob", models.NewAttributeSet(models.NewOriginalAttribute("security", "high", "high", ""))),
+				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewOriginalAttribute("security", "medium", "medium", ""))),
+				models.NewEntity("user", "charlie", models.NewAttributeSet(models.NewOriginalAttribute("security", "low", "low", ""))),
 			),
 		},
 		{
@@ -149,9 +149,9 @@ func TestLoadEntitiesAny(t *testing.T) {
 				map[string]any{"type": "user", "id": "bob", "attributes": map[string]any{"security": "high"}},
 			},
 			want: models.NewEntitySet(
-				models.NewEntity("user", "bob", models.NewAttributeSet(models.NewAttribute("security", "high"))),
-				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttribute("security", "medium"))),
-				models.NewEntity("user", "charlie", models.NewAttributeSet(models.NewAttribute("security", "low"))),
+				models.NewEntity("user", "bob", models.NewAttributeSet(models.NewOriginalAttribute("security", "high", "high", ""))),
+				models.NewEntity("user", "alice", models.NewAttributeSet(models.NewOriginalAttribute("security", "medium", "medium", ""))),
+				models.NewEntity("user", "charlie", models.NewAttributeSet(models.NewOriginalAttribute("security", "low", "low", ""))),
 			),
 		},
 	}
@@ -178,12 +178,12 @@ func TestLoadEntitiesAny(t *testing.T) {
 
 			tc.want.IterateEntities(func(e1 models.Entity) {
 				e2 := p.GetEntity(e1.UID())
-				assert.EqualValues(t, e1, e2)
+				assert.True(t, models.EntityEqual(e1, e2))
 			})
 
 			p.IterateEntities(func(e1 models.Entity) {
 				e2 := tc.want.GetEntity(e1.UID())
-				assert.EqualValues(t, e1, e2)
+				assert.True(t, models.EntityEqual(e1, e2))
 			})
 		})
 	}
@@ -217,8 +217,8 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip/entities/entity.yaml",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 			),
 		},
@@ -227,8 +227,8 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip2/misc/entity.toml",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 			),
 		},
@@ -237,8 +237,8 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip2/misc/entity.json",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 			),
 		},
@@ -247,8 +247,8 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip2/misc/entity.yaml-text",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 			),
 		},
@@ -257,8 +257,8 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip2/misc/entity.ttl",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 			),
 		},
@@ -267,16 +267,16 @@ func TestLoadEntities(t *testing.T) {
 			path: "../../../testdata/unittest/pip/entities/entities.yaml",
 			want: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 				models.NewEntity("app", "app2", models.NewAttributeSet(
-					models.NewAttribute("code", "app2"),
-					models.NewAttribute("name", "App-2"),
+					models.NewOriginalAttribute("code", "app2", "app2", ""),
+					models.NewOriginalAttribute("name", "App-2", "App-2", ""),
 				)),
 				models.NewEntity("app", "app3", models.NewAttributeSet(
-					models.NewAttribute("code", "app3"),
-					models.NewAttribute("name", "App-3"),
+					models.NewOriginalAttribute("code", "app3", "app3", ""),
+					models.NewOriginalAttribute("name", "App-3", "App-3", ""),
 				), "app::app1", "app::app2",
 				),
 			),

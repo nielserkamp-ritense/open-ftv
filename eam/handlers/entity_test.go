@@ -35,7 +35,7 @@ func TestEntityFromOAS(t *testing.T) {
 				"type",
 				"id",
 				models.NewAttributeSet(
-					models.NewAttributeWithType("key1", "value", "xsd:string"),
+					models.NewOriginalAttribute("key1", "value", "value", "xsd:string"),
 				),
 			),
 		},
@@ -54,9 +54,9 @@ func TestEntityFromOAS(t *testing.T) {
 				"type",
 				"id",
 				models.NewAttributeSet(
-					models.NewAttributeWithType("key1", "value", "xsd:string"),
-					models.NewAttributeWithType("key2", 123.456, "xsd:float"),
-					models.NewAttributeWithType("key3", int64(123456), "xsd:nonNegativeInteger"),
+					models.NewOriginalAttribute("key1", "value", "value", "xsd:string"),
+					models.NewOriginalAttribute("key2", 123.456, "123.456", "xsd:float"),
+					models.NewOriginalAttribute("key3", int64(123456), "123456", "xsd:nonNegativeInteger"),
 				),
 			),
 		},
@@ -65,7 +65,10 @@ func TestEntityFromOAS(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := EntityFromOAS(tc.in, models.NewAttributeSet())
-			assert.EqualValues(t, tc.want, got)
+			assert.Equal(t, tc.want.Type(), got.Type())
+			assert.Equal(t, tc.want.ID(), got.ID())
+			assert.True(t, models.AttributesEqual(tc.want.Attributes(), got.Attributes()))
+			assert.EqualValues(t, tc.want.Parents(), got.Parents())
 		})
 	}
 }

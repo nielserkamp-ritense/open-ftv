@@ -59,6 +59,6 @@ func (c *controller) buildCedarRequest(req *components.Request) cedar.Request {
 		Principal: cedar.NewEntityUID(cedar.EntityType(req.Principal.Type()), cedar.String(req.Principal.ID())),
 		Action:    cedar.NewEntityUID(cedar.EntityType(req.Action.Type()), cedar.String(req.Action.ID())),
 		Resource:  cedar.NewEntityUID(cedar.EntityType(req.Resource.Type()), cedar.String(req.Resource.ID())),
-		Context:   cedar.NewRecord(ca.set),
+		Context:   cedar.NewRecord(ca.cedarSet),
 	}
 }

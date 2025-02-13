@@ -12,6 +12,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -35,6 +36,7 @@ type Config struct {
 	Ctx           context.Context
 	Store         string
 	Recurse       bool
+	PullConfigs   string
 	Logger        *slog.Logger
 	NewAttributes models.AttributesBuilder
 	NewEntities   models.EntitiesBuilder
@@ -73,6 +75,21 @@ func New(cfg Config) PIP {
 		attributes:    cfg.NewAttributes(),
 		newEntities:   cfg.NewEntities,
 		entities:      cfg.NewEntities(),
+	}
+
+	if cfg.PullConfigs != "" {
+		if pullManager, err := network.NewManager(network.ManagerParams{
+			Ctx:           p.ctx,
+			Path:          cfg.PullConfigs,
+			Logger:        p.logger,
+			NewAttributes: p.newAttributes,
+			Attributes:    p.attributes,
+			Entities:      p.entities,
+		}); err != nil {
+			p.logger.Error("failed to initialize pull manager", "path", cfg.PullConfigs, "error", err)
+		} else {
+			p.pullManager = pullManager
+		}
 	}
 
 	p.loadFromStore()
@@ -188,6 +205,11 @@ func (p *pip) MergeEntities(in ...models.EntitySet) {
 	p.entities.MergeEntities(in...)
 }
 
+// MarshalJSON implements the json.Marshaller interface.
+func (p *pip) MarshalJSON() ([]byte, error) {
+	return []byte("null"), nil
+}
+
 type pip struct {
 	recurse          bool
 	attrStore        string
@@ -198,6 +220,7 @@ type pip struct {
 	attributes       models.AttributeSet
 	newEntities      models.EntitiesBuilder
 	entities         models.EntitySet
+	pullManager      network.Manager
 	attributeWatcher *fsnotify.Watcher
 	attributeTimer   *time.Timer
 	attributeUpdates []string

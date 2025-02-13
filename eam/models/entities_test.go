@@ -63,11 +63,11 @@ func TestNewEntitySet(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := got.GetEntity(k)
-				assert.EqualValues(t, v, v2)
+				assert.True(t, EntityEqual(v, v2))
 			}
 
 			got.IterateEntities(func(entity Entity) {
-				assert.EqualValues(t, tc.want[entity.UID()], entity)
+				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
 			})
 		})
 	}
@@ -113,17 +113,17 @@ func TestEntities_AddEntity(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.EqualValues(t, v, v2)
+				assert.True(t, EntityEqual(v, v2))
 			}
 
 			e.IterateEntities(func(entity Entity) {
-				assert.EqualValues(t, tc.want[entity.UID()], entity)
+				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
 			})
 		})
 	}
 }
 
-func TestEntities_RemoveEnmtity(t *testing.T) {
+func TestEntities_RemoveEntity(t *testing.T) {
 	e1 := NewEntity("entity", "x1", NewAttributeSet())
 	e2 := NewEntity("entity", "x2", NewAttributeSet())
 	e3 := NewEntity("entity", "x3", NewAttributeSet())
@@ -162,11 +162,11 @@ func TestEntities_RemoveEnmtity(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.EqualValues(t, v, v2)
+				assert.True(t, EntityEqual(v, v2))
 			}
 
 			e.IterateEntities(func(entity Entity) {
-				assert.EqualValues(t, tc.want[entity.UID()], entity)
+				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
 			})
 		})
 	}
@@ -212,11 +212,11 @@ func TestEntities_MergeEntities(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.EqualValues(t, v, v2)
+				assert.True(t, EntityEqual(v, v2))
 			}
 
 			e.IterateEntities(func(entity Entity) {
-				assert.EqualValues(t, tc.want[entity.UID()], entity)
+				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
 			})
 		})
 	}

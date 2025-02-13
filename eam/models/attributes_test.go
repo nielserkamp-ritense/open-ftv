@@ -320,12 +320,12 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			want: "{}",
+			want: `[]`,
 		},
 		{
 			name: "single",
 			attr: []Attribute{NewAttribute("hello", "world")},
-			want: `{"hello":"world"}`,
+			want: `[{"key":"hello","value":"world"}]`,
 		},
 		{
 			name: "few",
@@ -334,7 +334,7 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 				NewAttribute("hello", "world"),
 				NewAttribute("double", 123.456),
 			},
-			want: `{"double":123.456,"hello":"world","int":999}`,
+			want: `[{"key":"double","value":123.456},{"key":"hello","value":"world"},{"key":"int","value":999}]`,
 		},
 	}
 

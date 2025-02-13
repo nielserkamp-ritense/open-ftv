@@ -78,6 +78,14 @@ func (a *attribute) MarshalYAML() ([]byte, error) {
 	})
 }
 
+// AttributeEqual returns true if the given attributes are equal.
+func AttributeEqual(a1, a2 Attribute) bool {
+	return a1.Key() == a2.Key() &&
+		a1.Value() == a2.Value() &&
+		a1.Original() == a2.Original() &&
+		a1.Type() == a2.Type()
+}
+
 type attribute struct {
 	key      string
 	value    any

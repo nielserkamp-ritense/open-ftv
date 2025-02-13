@@ -9,7 +9,7 @@ import (
 func EntityFromOAS(in *attributes.Entity, attrs models.AttributeSet) models.Entity {
 	for i := range in.Attributes {
 		a := AttributeFromOAS(&in.Attributes[i])
-		attrs.AddAttributeWithType(a.Key(), a.Value(), a.Type())
+		attrs.AddOriginalAttribute(a.Key(), a.Value(), a.Original(), a.Type())
 	}
 	return models.NewEntity(in.Type, in.Id, attrs)
 }

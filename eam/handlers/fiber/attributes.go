@@ -9,6 +9,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/attributes"
 )
 
@@ -34,7 +35,7 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	})
 
 	if len(resp) == 0 {
-		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 	return req.JSON(resp)
 }
@@ -46,11 +47,11 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 		return err
 	}
 
-	value := h.cache.GetAttribute(key)
-	if value == nil {
-		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+	attr := h.cache.GetAttribute(key)
+	if attr == nil {
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
-	return req.JSON(handlers.AttributeToOAS(models.NewAttribute(key, value)))
+	return req.JSON(handlers.AttributeToOAS(attr))
 }
 
 // PutAttribute implements the AttributesHandler interface.
@@ -67,7 +68,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(p.Key)
 	if value != nil && !req.QueryBool("forceUpsert") {
-		return SendMessageResponse(req, fiber.StatusConflict, attrExists)
+		return fiber2.SendMessageResponse(req, fiber.StatusConflict, attrExists)
 	}
 
 	a := handlers.AttributeFromOAS(p)
@@ -89,7 +90,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(p.Key)
 	if value == nil && !req.QueryBool("forceUpsert") {
-		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
 	a := handlers.AttributeFromOAS(p)
@@ -106,7 +107,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(key)
 	if value == nil && !req.QueryBool("ignoreMissing") {
-		return SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
 	h.cache.RemoveAttribute(key)
@@ -116,7 +117,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	key := req.Params("key")
 	if key == "" || len(key) > 500 {
-		return "", false, SendMessageResponse(req, fiber.StatusBadRequest, attrKeyError)
+		return "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyError)
 	}
 	return key, true, nil
 }
@@ -124,12 +125,12 @@ func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*attributes.Attribute, bool, error) {
 	var a attributes.Attribute
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	if a.Key != key {
 		if a.Key != "" {
-			return nil, false, SendMessageResponse(req, fiber.StatusBadRequest, attrKeyMismatch)
+			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyMismatch)
 		}
 		a.Key = key
 	}

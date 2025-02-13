@@ -1,4 +1,3 @@
-// Package main contains the code for building an FSC Auth plugin.
 package main
 
 import (

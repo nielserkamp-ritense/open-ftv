@@ -1,9 +1,10 @@
 package cedar
 
 import (
+	"fmt"
 	"log/slog"
-	"maps"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,17 +22,28 @@ func NewAttributeBuilder(logger *slog.Logger) models.AttributesBuilder {
 
 // NewAttributeSet instantiates a new Cedar based attribute set.
 func NewAttributeSet(logger *slog.Logger, in ...any) models.AttributeSet {
-	a := &attributes{logger: logger, set: make(cedar.RecordMap)}
+	a := &attributes{
+		logger:   logger,
+		set:      models.NewAttributeSet(),
+		cedarSet: make(cedar.RecordMap),
+	}
+
 	for _, p := range in {
 		switch t := p.(type) {
+		case cedar.Record:
+			for k, v := range t.Map() {
+				k2, v2 := string(k), a.valueToAny(v)
+				a.addOriginalAttribute(k2, v2, v2, "")
+			}
 		case cedar.RecordMap:
-			for k := range t {
-				a.set[k] = t[k]
+			for k, v := range t {
+				k2, v2 := string(k), a.valueToAny(v)
+				a.addOriginalAttribute(k2, v2, v2, "")
 			}
 		case models.AttributeSet:
 			a.MergeAttributes(t)
 		case models.Attribute:
-			a.AddAttribute(t.Key(), t.Value())
+			a.addOriginalAttribute(t.Key(), t.Value(), t.Original(), t.Type())
 		}
 	}
 	return a
@@ -39,76 +51,72 @@ func NewAttributeSet(logger *slog.Logger, in ...any) models.AttributeSet {
 
 // AddAttribute implements the AttributeSet interface.
 func (a *attributes) AddAttribute(key string, value any) {
-	a.mutex.Lock()
-	a.set[cedar.String(key)] = a.anyToValue(value)
-	a.mutex.Unlock()
+	a.AddOriginalAttribute(key, value, value, "")
 }
 
 // AddAttributeWithType implements the AttributeSet interface.
-func (a *attributes) AddAttributeWithType(key string, value any, _ string) {
-	a.mutex.Lock()
-	a.set[cedar.String(key)] = a.anyToValue(value)
-	a.mutex.Unlock()
+func (a *attributes) AddAttributeWithType(key string, value any, tp string) {
+	a.AddOriginalAttribute(key, value, value, tp)
 }
 
 // AddOriginalAttribute implements the AttributeSet interface.
-func (a *attributes) AddOriginalAttribute(key string, value, _ any, _ string) {
+func (a *attributes) AddOriginalAttribute(key string, value, original any, tp string) {
 	a.mutex.Lock()
-	a.set[cedar.String(key)] = a.anyToValue(value)
+	a.addOriginalAttribute(key, value, original, tp)
 	a.mutex.Unlock()
+}
+
+func (a *attributes) addOriginalAttribute(key string, value, original any, tp string) {
+	if key == "" {
+		return
+	}
+
+	a.set.AddOriginalAttribute(key, value, original, tp)
+
+	keys := strings.Split(key, ".")
+	k := cedar.String(keys[0])
+	v := a.set.GetAttributeValue(keys[0])
+
+	a.cedarSet[k] = a.anyToValue(v)
 }
 
 // GetAttribute implements the AttributeSet interface.
 func (a *attributes) GetAttribute(key string) models.Attribute {
-	a.mutex.RLock()
-	v := a.set[cedar.String(key)]
-	a.mutex.RUnlock()
-
-	if v == nil {
-		return nil
-	}
-	return models.NewAttribute(key, a.valueToAny(v))
+	return a.set.GetAttribute(key)
 }
 
 // GetAttributeValue implements the AttributeSet interface.
 func (a *attributes) GetAttributeValue(key string) any {
-	a.mutex.RLock()
-	v := a.set[cedar.String(key)]
-	a.mutex.RUnlock()
-	return a.valueToAny(v)
+	return a.set.GetAttributeValue(key)
 }
 
 // RemoveAttribute implements the AttributeSet interface.
 func (a *attributes) RemoveAttribute(key string) {
 	a.mutex.Lock()
-	delete(a.set, cedar.String(key))
+	a.set.RemoveAttribute(key)
+	delete(a.cedarSet, cedar.String(key))
 	a.mutex.Unlock()
 }
 
 // IterateAttributes implements the AttributeSet interface.
 func (a *attributes) IterateAttributes(f models.AttributeIterator) {
-	a.mutex.RLock()
-	for k := range a.set {
-		f(models.NewAttribute(string(k), a.valueToAny(a.set[k])))
-	}
-	a.mutex.RUnlock()
+	a.set.IterateAttributes(f)
 }
 
 // MergeAttributes implements the AttributeSet interface.
 func (a *attributes) MergeAttributes(in ...models.AttributeSet) {
-	a.mutex.Lock()
 	for i := range in {
-		if set, ok := in[i].(*attributes); ok {
-			set.mutex.RLock()
-			maps.Copy(a.set, set.set)
-			set.mutex.RUnlock()
-		} else {
-			in[i].IterateAttributes(func(attr models.Attribute) {
-				a.set[cedar.String(attr.Key())] = a.anyToValue(attr.Value())
-			})
-		}
+		a.mutex.Lock()
+		in[i].IterateAttributes(func(attr models.Attribute) {
+			a.addOriginalAttribute(attr.Key(), attr.Value(), attr.Original(), attr.Type())
+		})
+		a.mutex.Unlock()
 	}
-	a.mutex.Unlock()
+}
+
+// MarshalJSON implements the json.Marshaller interface.
+func (a *attributes) MarshalJSON() ([]byte, error) {
+	return a.set.MarshalJSON()
 }
 
 func (a *attributes) valueToAny(in cedar.Value) any {
@@ -213,14 +221,22 @@ func (a *attributes) anyToValue(in any) cedar.Value {
 		}
 		return cedar.NewRecord(s)
 
+	case models.AttributeSet:
+		s := make(cedar.RecordMap, 0)
+		t.IterateAttributes(func(attr models.Attribute) {
+			s[cedar.String(attr.Key())] = a.anyToValue(attr.Value())
+		})
+		return cedar.NewRecord(s)
+
 	default:
-		a.logger.Warn("unsupported attribute conversion to Cedar", "type", t)
+		a.logger.Warn("unsupported attribute conversion to Cedar", "type", fmt.Sprintf("%T", in))
 		return nil
 	}
 }
 
 type attributes struct {
-	logger *slog.Logger
-	set    cedar.RecordMap
-	mutex  sync.RWMutex
+	logger   *slog.Logger
+	set      models.AttributeSet
+	cedarSet cedar.RecordMap
+	mutex    sync.RWMutex
 }

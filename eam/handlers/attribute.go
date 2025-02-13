@@ -51,6 +51,8 @@ func AttributeToOAS(in models.Attribute) *attributes.Attribute {
 				a.Value, a.Type = t.Format(time.RFC3339Nano), "datetime"
 			case time.Duration:
 				a.Value, a.Type = t.String(), "duration"
+			case models.AttributeSet:
+				a.Value = models.MapFromAttributes(t)
 			case []any, map[string]any: // leave value and type as-is!
 			default:
 				a.Value, a.Type = fmt.Sprintf("%v", t), "string"

@@ -33,6 +33,8 @@ import (
 // CertFile and KeyFile can be used to specify the client-side TLS configuration.
 // Each field should contain the path to the corresponding file.
 //
+// Insecure turns off server certificate validation. DO NOT USE FOR PRODUCTION!
+//
 // Parameters defines zero, one, or more parameters to supply in the request.
 //
 // Either Interval or Schedule should be present.
@@ -47,27 +49,31 @@ import (
 // - the forth parameter represents the month(s).
 // - the fifth parameter represents the day(s) of week.
 //
+// InitialInterval can be used to define an initial interval for the first request after the services has started.
+//
 // Mapping defines how to map the retrieved data to attributes, entities and/or relations.
 type Request struct {
-	Name        string            `json:"name" yaml:"name" toml:"name"`
-	Description string            `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
-	Method      string            `json:"method,omitempty" yaml:"method,omitempty" toml:"method,omitempty"`
-	URI         string            `json:"uri" yaml:"uri" toml:"uri"`
-	Headers     map[string]string `json:"headers,omitempty" yaml:"headers,omitempty" toml:"headers,omitempty"`
-	ContentType string            `json:"contentType,omitempty" yaml:"contentType,omitempty" toml:"contentType,omitempty"`
-	Timeout     time.Duration     `json:"timeout,omitempty" yaml:"timeout,omitempty" toml:"timeout,omitempty"`
-	CAFile      string            `json:"tlsCA,omitempty" yaml:"tlsCA,omitempty" toml:"tlsCA,omitempty"`
-	CertFile    string            `json:"tlsCert,omitempty" yaml:"tlsCert,omitempty" toml:"tlsCert,omitempty"`
-	KeyFile     string            `json:"tlsKey,omitempty" yaml:"tlsKey,omitempty" toml:"tlsKey,omitempty"`
-	Parameters  []*Parameter      `json:"parameters,omitempty" yaml:"parameters,omitempty" toml:"parameters,omitempty"`
-	Interval    time.Duration     `json:"interval,omitempty" yaml:"interval,omitempty" toml:"interval,omitempty"`
-	Schedule    string            `json:"schedule,omitempty" yaml:"schedule,omitempty" toml:"schedule,omitempty"`
-	Mapping     *ResponseMapping  `json:"mapping" yaml:"mapping" toml:"mapping"`
+	Name            string            `json:"name" yaml:"name" toml:"name"`
+	Description     string            `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
+	Method          string            `json:"method,omitempty" yaml:"method,omitempty" toml:"method,omitempty"`
+	URI             string            `json:"uri" yaml:"uri" toml:"uri"`
+	Headers         map[string]string `json:"headers,omitempty" yaml:"headers,omitempty" toml:"headers,omitempty"`
+	ContentType     string            `json:"contentType,omitempty" yaml:"contentType,omitempty" toml:"contentType,omitempty"`
+	Timeout         time.Duration     `json:"timeout,omitempty" yaml:"timeout,omitempty" toml:"timeout,omitempty"`
+	CAFile          string            `json:"tlsCA,omitempty" yaml:"tlsCA,omitempty" toml:"tlsCA,omitempty"`
+	CertFile        string            `json:"tlsCert,omitempty" yaml:"tlsCert,omitempty" toml:"tlsCert,omitempty"`
+	KeyFile         string            `json:"tlsKey,omitempty" yaml:"tlsKey,omitempty" toml:"tlsKey,omitempty"`
+	Insecure        bool              `json:"insecure,omitempty" yaml:"insecure,omitempty" toml:"insecure,omitempty"`
+	Parameters      []*Parameter      `json:"parameters,omitempty" yaml:"parameters,omitempty" toml:"parameters,omitempty"`
+	Interval        time.Duration     `json:"interval,omitempty" yaml:"interval,omitempty" toml:"interval,omitempty"`
+	InitialInterval time.Duration     `json:"initialInterval,omitempty" yaml:"initialInterval,omitempty" toml:"initialInterval,omitempty"`
+	Schedule        string            `json:"schedule,omitempty" yaml:"schedule,omitempty" toml:"schedule,omitempty"`
+	Mapping         *ResponseMapping  `json:"mapping,omitempty" yaml:"mapping,omitempty" toml:"mapping,omitempty"`
 	// hidden fields.
-	uri     string               // fully encoded uri.
-	query   string               // fully encoded query.
-	body    io.Reader            // fully encoded body.
-	bodyLen int                  // length of fully encoded body.
+	uri     string               // Fully encoded uri.
+	query   string               // Fully encoded query.
+	body    io.Reader            // Fully encoded body.
+	bodyLen int                  // Length of fully encoded body.
 	tls     *transport.TLSConfig // TLS configuration.
 }
 
@@ -214,11 +220,12 @@ func (r *Request) prepare() {
 		r.bodyLen = bodyLen
 	}
 
-	if r.CAFile != "" || r.CertFile != "" || r.KeyFile != "" {
+	if r.CAFile != "" || r.CertFile != "" || r.KeyFile != "" || r.Insecure {
 		r.tls = &transport.TLSConfig{
 			CAFile:   r.CAFile,
 			CertFile: r.CertFile,
 			KeyFile:  r.KeyFile,
+			Insecure: r.Insecure,
 		}
 	}
 }

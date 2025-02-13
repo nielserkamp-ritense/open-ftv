@@ -8,8 +8,7 @@ import (
 )
 
 // Manager represents the interface to manage external sources.
-type Manager interface {
-}
+type Manager interface{}
 
 // ManagerParams defines the parameters to instantiate a new external sources manager.
 type ManagerParams struct {

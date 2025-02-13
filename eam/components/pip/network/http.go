@@ -34,11 +34,11 @@ func (r *runner) run() {
 }
 
 func (r *runner) initClient() bool {
-	trans := http.DefaultClient.Transport
+	trans := http.DefaultTransport
 
 	if cfg := r.req.TLSConfig(); cfg != nil {
-		if trans, r.err = transport.New(&transport.Config{TLS: *cfg, Transport: trans}); r.err != nil {
-			r.logger.Error("failed to setup TLS for http request", "error", r.err)
+		if trans, r.err = transport.New(&transport.Config{TLS: *cfg}); r.err != nil {
+			r.logger.Error("failed to setup TLS for https request", "error", r.err)
 			return false
 		}
 	}
@@ -71,9 +71,14 @@ func (r *runner) doRequest() {
 }
 
 func (r *runner) processResponse() {
+	if len(r.req.Mapping.StatusCodes) > 0 {
+		r.decodeResponse()
+		return
+	}
+
 	switch r.httpResp.StatusCode {
 	case http.StatusOK:
-		// precess the returned data.
+		// process the returned data.
 		r.decodeResponse()
 
 	case http.StatusNotModified:
@@ -81,8 +86,8 @@ func (r *runner) processResponse() {
 		r.msg = msgOK
 
 	default:
-		r.logger.Error("unexpected status code in http response", "code", r.httpResp.StatusCode, "status", r.httpResp.Status, "headers", r.httpResp.Header)
-		r.err = fmt.Errorf("unexpected status code %d in http response", r.httpResp.StatusCode)
+		r.logger.Error("unexpected response status code", "code", r.httpResp.StatusCode, "status", r.httpResp.Status, "headers", r.httpResp.Header)
+		r.err = fmt.Errorf("unexpected response status code %d", r.httpResp.StatusCode)
 	}
 }
 

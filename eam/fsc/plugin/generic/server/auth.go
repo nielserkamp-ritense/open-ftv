@@ -60,16 +60,19 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 
 	l := components.LanguageFromString(cfg.PolicyLanguage)
 
+	pipCfg := pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, PullConfigs: cfg.PipPullConfigs}
+
 	var p pip.PIP
 	switch l {
 	case components.CEDAR:
-		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		pipCfg.NewAttributes, pipCfg.NewEntities = cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)
+		p = pip.New(pipCfg)
 	case components.REGO:
-		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
+		p = pip.New(pipCfg)
 	case components.OPENFGA:
-		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
+		p = pip.New(pipCfg)
 	case components.CERBOS:
-		p = pip.New(pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger})
+		p = pip.New(pipCfg)
 	default:
 	}
 

@@ -35,7 +35,7 @@ func TestNewEntity(t *testing.T) {
 			id:       "x2",
 			attr:     NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 			wantUID:  "entity::x2",
-			wantJSON: `{"type":"entity","id":"x2","attributes":{"hello":"world","int":123}}`,
+			wantJSON: `{"type":"entity","id":"x2","attributes":[{"key":"hello","value":"world"},{"key":"int","value":123}]}`,
 		},
 		{
 			name:     "just parents",
@@ -52,7 +52,7 @@ func TestNewEntity(t *testing.T) {
 			attr:     NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 			parents:  []string{"entity::x3", "entity::x2"},
 			wantUID:  "entity::x4",
-			wantJSON: `{"type":"entity","id":"x4","attributes":{"hello":"world","int":123},"parents":["entity::x3","entity::x2"]}`,
+			wantJSON: `{"type":"entity","id":"x4","attributes":[{"key":"hello","value":"world"},{"key":"int","value":123}],"parents":["entity::x3","entity::x2"]}`,
 		},
 	}
 

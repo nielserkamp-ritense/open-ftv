@@ -49,7 +49,7 @@ func TestScheduleInterval(t *testing.T) {
 
 		wg.Wait()
 
-		assert.GreaterOrEqual(t, h.Count(), 8)
+		assert.GreaterOrEqual(t, h.Count(), 3)
 	})
 }
 
@@ -87,7 +87,7 @@ func TestScheduleSchedule(t *testing.T) {
 
 		wg.Wait()
 
-		assert.Equal(t, h.Count(), 2)
+		assert.GreaterOrEqual(t, h.Count(), 3)
 	})
 }
 

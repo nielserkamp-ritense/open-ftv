@@ -13,7 +13,7 @@ import (
 
 type Config struct {
 	Host         string        `yaml:"svc.host,omitempty" env:"ADDRESS,HOST" flag:"address,a" default:"0.0.0.0" desc:"Address to use for service"`
-	Port         uint16        `yaml:"svc.port,omitempty" env:"PORT" flag:"port,p" default:"8443" desc:"Port to use for https service"`
+	Port         uint16        `yaml:"svc.port,omitempty" env:"PORT" flag:"port,p" default:"8090" desc:"Port to use for https service"`
 	CA           string        `yaml:"svc.tls.ca,omitempty" env:"TLS_CA" flag:"tls-ca,ca" desc:"TLS Certificate authority to use for https service"`
 	Cert         string        `yaml:"svc.tls.cert,omitempty" env:"TLS_CERT" flag:"tls-cert,cert" desc:"TLS certificate to use for https service"`
 	Key          string        `yaml:"svc.tls.key,omitempty" env:"TLS_KEY" flag:"tls-key,key" desc:"TLS key authority to use for https service"`

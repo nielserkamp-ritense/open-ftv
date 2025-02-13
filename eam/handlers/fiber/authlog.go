@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci/opensearch"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
@@ -30,18 +31,15 @@ func (h *authlogHandler) GetAuthlogResource(req *fiber.Ctx) error {
 	resource := req.Params("resource")
 	unescaped, err := url.QueryUnescape(resource)
 	if err != nil {
-		return SendMessageResponse(req, fiber.StatusBadRequest, "invalid resource id")
+		return fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "invalid resource id")
 	}
-
-	// q := osquery.Search().Query(osquery.Term("resource.id.keyword", unescaped)).Aggs(osquery.CustomAgg("principal.id", map[string]any{"field": "principal.id.keyword", "size": 999999}))
-	// m, err2 := h.os.SearchByQuery(context.Background(), h.index, q)
 
 	q := fmt.Sprintf(`{"size":0,"query":{"term":{"resource.id.keyword":{"value":"%s"}}},"aggs":{"principal.id":{"terms":{"field":"principal.id.keyword","size":999999}}}}`, unescaped)
 	m, err2 := h.os.SearchBySQL(context.Background(), h.index, q, 0)
 
 	if err2 != nil {
 		h.logger.Error("failed to query index", "index", h.index, "q", q, "err", err2)
-		return SendMessageResponse(req, fiber.StatusInternalServerError, "failed to query authlog")
+		return fiber2.SendMessageResponse(req, fiber.StatusInternalServerError, "failed to query authlog")
 	}
 
 	if m2, ok := m.Aggregations["principal.id"].(map[string]any); ok {
@@ -66,7 +64,7 @@ func (h *authlogHandler) GetAuthlogResource(req *fiber.Ctx) error {
 	}
 
 	if len(resp.Rvva) == 0 {
-		return SendMessageResponse(req, fiber.StatusNotFound, authlogResourceNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, authlogResourceNotFound)
 	}
 	return req.JSON(resp)
 }

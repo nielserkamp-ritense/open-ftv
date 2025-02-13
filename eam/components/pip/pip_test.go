@@ -63,24 +63,24 @@ func TestNew(t *testing.T) {
 			path:    "../../../testdata/unittest/pip",
 			wantLog: 1,
 			wantAttributes: models.NewAttributeSet(
-				models.NewAttribute("maandag", 1),
-				models.NewAttribute("dinsdag", 2),
-				models.NewAttribute("woensdag", 3),
-				models.NewAttribute("donderdag", 4),
-				models.NewAttribute("vrijdag", 5),
+				models.NewOriginalAttribute("maandag", uint64(1), uint64(1), ""),
+				models.NewOriginalAttribute("dinsdag", uint64(2), uint64(2), ""),
+				models.NewOriginalAttribute("woensdag", uint64(3), uint64(3), ""),
+				models.NewOriginalAttribute("donderdag", uint64(4), uint64(4), ""),
+				models.NewOriginalAttribute("vrijdag", uint64(5), uint64(5), ""),
 			),
 			wantEntities: models.NewEntitySet(
 				models.NewEntity("app", "app1", models.NewAttributeSet(
-					models.NewAttribute("code", "app1"),
-					models.NewAttribute("name", "App-1"),
+					models.NewOriginalAttribute("code", "app1", "app1", ""),
+					models.NewOriginalAttribute("name", "App-1", "App-1", ""),
 				)),
 				models.NewEntity("app", "app2", models.NewAttributeSet(
-					models.NewAttribute("code", "app2"),
-					models.NewAttribute("name", "App-2"),
+					models.NewOriginalAttribute("code", "app2", "app2", ""),
+					models.NewOriginalAttribute("name", "App-2", "App-2", ""),
 				)),
 				models.NewEntity("app", "app3", models.NewAttributeSet(
-					models.NewAttribute("code", "app3"),
-					models.NewAttribute("name", "App-3"),
+					models.NewOriginalAttribute("code", "app3", "app3", ""),
+					models.NewOriginalAttribute("name", "App-3", "App-3", ""),
 				), "app::app1", "app::app2",
 				),
 			),
@@ -101,28 +101,20 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantAttributes != nil {
-				tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
-					v2 := p2.attributes.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
-				})
-
-				p2.attributes.IterateAttributes(func(attr models.Attribute) {
-					v2 := tc.wantAttributes.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
-				})
+				assert.True(t, models.AttributesEqual(tc.wantAttributes, p2.attributes))
 			}
 
 			if tc.wantEntities != nil {
 				tc.wantEntities.IterateEntities(func(e1 models.Entity) {
 					e2 := p2.entities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.EqualValues(t, e1, e2)
+					assert.True(t, models.EntityEqual(e1, e2))
 				})
 
 				p2.entities.IterateEntities(func(e1 models.Entity) {
 					e2 := tc.wantEntities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.EqualValues(t, e1, e2)
+					assert.True(t, models.EntityEqual(e1, e2))
 				})
 			}
 		})
