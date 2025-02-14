@@ -5,6 +5,7 @@ toolchain go1.23.2
 use (
 	apps/manager
 	apps/pap
+	apps/pip
 	eam/components
 	eam/fsc/plugin/generic
 	eam/handlers
