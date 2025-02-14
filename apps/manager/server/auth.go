@@ -1,59 +1,38 @@
-// Package server contains the HTTP request handlers for the FSC Auth plugin.
+// Package server contains the HTTP request handlers for the app.
 package server
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
-	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/fsc/plugin/generic/config"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
 type AuthHandler interface {
 	Controller() pdp.Controller
-	AuthFSC(req *fiber.Ctx) error
-	AuthZEN(req *fiber.Ctx) error
 }
 
 // New instantiates an authorization handler.
-func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
-	controller, err := newController(ctx, cfg, logger, logboek)
+func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandler {
+	controller, err := newController(ctx, cfg, logger)
 	if controller == nil {
 		logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
 	}
 
-	var authLogger authlog.Logger
-	if cfg.OpenSearchIndex != "" {
-		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearchIndex, cfg.OpenSearchUser, cfg.OpenSearchPswd, strings.Split(cfg.OpenSearchEndpoints, ",")...)
-		if err != nil {
-			logger.Error("failed to initialize authlog", "index", cfg.OpenSearchIndex, "user", cfg.OpenSearchUser, "endpoints", cfg.OpenSearchEndpoints, "error", err)
-			return nil
-		}
-	}
-
-	fsc := handlers.NewAuthHandlerFSC(logger, authLogger, controller)
-	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller)
-
-	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
+	return &authHandler{logger: logger, controller: controller}
 }
 
-func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
+func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pdp.Controller, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -76,7 +55,7 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 	default:
 	}
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger), pdp.WithLogboek(logboek)}
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger)}
 
 	switch l {
 	case components.CEDAR:
@@ -96,15 +75,7 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 // Controller returns the PDP controller.
 func (h *authHandler) Controller() pdp.Controller { return h.controller }
 
-// AuthFSC handles an FSC Authorization request.
-func (h *authHandler) AuthFSC(req *fiber.Ctx) error { return h.fsc.Authorize(req) }
-
-// AuthZEN authorizes an AuthZEN authorization request.
-func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req) }
-
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
-	fsc        handlers.FSCAuthorizer
-	zen        handlers.AuthZENAuthorizer
 }

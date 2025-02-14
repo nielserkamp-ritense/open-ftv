@@ -16,14 +16,13 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.initHealth(svc)
 
-	auth := New(s.ctx, s.cfg, s.logger, s.logboek)
+	auth := New(s.ctx, s.cfg, s.logger)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
 	// API v1.
 	v1 := svc.Group("/v1")
-	s.initAuth(svc, v1, auth)
 	s.initPolicies(v1, auth)
 	s.initAttributes(v1, auth)
 	s.initEntities(v1, auth)
@@ -36,16 +35,6 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 func (s *service) initHealth(svc *fiber.App) {
 	// liveness & readiness.
 	svc.Get("/healthz", handle.HealthZ)
-}
-
-func (s *service) initAuth(svc *fiber.App, v1 fiber.Router, auth AuthHandler) {
-	// FSC authorization.
-	v1.Post("/auth", auth.AuthFSC)
-
-	// AuthZEN
-	authZen := svc.Group("/authzen")
-	authZenV1 := authZen.Group("/v1")
-	authZenV1.Post("/evaluation", auth.AuthZEN)
 }
 
 func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {

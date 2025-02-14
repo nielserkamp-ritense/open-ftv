@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -30,7 +30,7 @@ func TestServe(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -69,7 +69,7 @@ func TestServe_FailPDP(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		_ = NewService(cfg, logger, nil)
+		_ = NewService(cfg, logger)
 
 		require.True(t, false) // should never trigger
 	})
@@ -90,7 +90,7 @@ func TestErrorHandler(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -116,7 +116,7 @@ func TestErrorHandler(t *testing.T) {
 
 		wg.Wait()
 
-		assert.GreaterOrEqual(t, h.Count(), 7)
+		assert.GreaterOrEqual(t, 8, h.Count())
 	})
 }
 
@@ -139,12 +139,9 @@ func TestOpenSearchFail1(t *testing.T) {
 			OpenSearchEndpoints: "http://localhost:9876",
 		}
 
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
-
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 		require.NotNil(t, s)
+
+		assert.GreaterOrEqual(t, h.Count(), 4)
 	})
 }

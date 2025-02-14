@@ -3,13 +3,14 @@ go 1.23.0
 toolchain go1.23.2
 
 use (
-	./eam/components
-	./eam/fsc/plugin/generic
-	./eam/handlers
-	./eam/models
-	./eam/server
-	./mock/fds/ledenlijst
-	./oas
-	./utilities
-	./utilities-no-ci
+	apps/manager
+	eam/components
+	eam/fsc/plugin/generic
+	eam/handlers
+	eam/models
+	eam/server
+	mock/fds/ledenlijst
+	oas
+	utilities
+	utilities-no-ci
 )

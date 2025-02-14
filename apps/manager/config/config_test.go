@@ -83,9 +83,9 @@ func TestNew(t *testing.T) {
 			defer func() {
 				e := recover()
 				if tc.wantErr {
-					assert.NotNil(t, e)
+					require.NotNil(t, e)
 				} else {
-					assert.Nil(t, e)
+					require.Nil(t, e)
 				}
 			}()
 
