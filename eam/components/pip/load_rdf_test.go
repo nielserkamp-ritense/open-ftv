@@ -573,7 +573,7 @@ type fakeTerm struct {
 	URI string
 }
 
-func (tt *fakeTerm) Equal(term rdf2go.Term) bool {
+func (tt *fakeTerm) Equal(rdf2go.Term) bool {
 	return false
 }
 func (tt *fakeTerm) String() string {

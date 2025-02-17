@@ -29,7 +29,7 @@ func TestTimePtrsEqual(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := TimePtrsEqual(tc.d1, tc.d2)
+			got := TimePtrEqual(tc.d1, tc.d2)
 			assert.Equal(t, tc.want, got)
 		})
 	}

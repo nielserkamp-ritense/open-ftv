@@ -40,5 +40,5 @@ func (p *pip) determineURL(req *components.Request, a models.AttributeSet) {
 		}
 	}
 
-	a.AddAttribute(models.AttrHttp, m)
+	a.AddAttribute(models.AttrHTTP, m)
 }

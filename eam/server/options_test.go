@@ -24,7 +24,7 @@ func TestConfig_LoadDefaults(t *testing.T) {
 func TestConfig_LoadOptions(t *testing.T) {
 	testCases := []struct {
 		name         string
-		opts         []ServerOption
+		opts         []Option
 		wantMTLS     bool
 		wantHost     string
 		wantPort     uint16
@@ -46,62 +46,62 @@ func TestConfig_LoadOptions(t *testing.T) {
 		},
 		{
 			name: "empty",
-			opts: []ServerOption{},
+			opts: []Option{},
 		},
 		{
 			name:     "mTLS",
-			opts:     []ServerOption{WithMutualTLS()},
+			opts:     []Option{WithMutualTLS()},
 			wantMTLS: true,
 		},
 		{
 			name:     "host&port",
-			opts:     []ServerOption{WithHostPort("localhost", 8080)},
+			opts:     []Option{WithHostPort("localhost", 8080)},
 			wantHost: "localhost",
 			wantPort: 8080,
 		},
 		{
 			name:     "app name",
-			opts:     []ServerOption{WithAppName("My Fantastic App")},
+			opts:     []Option{WithAppName("My Fantastic App")},
 			wantName: "My Fantastic App",
 		},
 		{
 			name:    "max body",
-			opts:    []ServerOption{WithMaxBody(12345)},
+			opts:    []Option{WithMaxBody(12345)},
 			wantMax: 12345,
 		},
 		{
 			name:     "tls",
-			opts:     []ServerOption{WithTLS("file1", "file2", "file3")},
+			opts:     []Option{WithTLS("file1", "file2", "file3")},
 			wantCA:   "file1",
 			wantCert: "file2",
 			wantKey:  "file3",
 		},
 		{
 			name:      "timeouts",
-			opts:      []ServerOption{WithTimeouts(time.Second*4, time.Second*8, time.Minute*9)},
+			opts:      []Option{WithTimeouts(time.Second*4, time.Second*8, time.Minute*9)},
 			wantRead:  time.Second * 4,
 			wantWrite: time.Second * 8,
 			wantIdle:  time.Minute * 9,
 		},
 		{
 			name:        "panic recovery",
-			opts:        []ServerOption{WithRecovery()},
+			opts:        []Option{WithRecovery()},
 			wantRecover: true,
 		},
 		{
 			name:         "high security",
-			opts:         []ServerOption{WithSecurity()},
+			opts:         []Option{WithSecurity()},
 			wantSecurity: true,
 		},
 		{
 			name:        "cors",
-			opts:        []ServerOption{WithCORS("*", "Cache-Control")},
+			opts:        []Option{WithCORS("*", "Cache-Control")},
 			wantOrigins: "*",
 			wantHeaders: "Cache-Control",
 		},
 		{
 			name: "all",
-			opts: []ServerOption{
+			opts: []Option{
 				WithMutualTLS(),
 				WithHostPort("localhost", 8080),
 				WithAppName("My Fantastic App"),
@@ -130,7 +130,7 @@ func TestConfig_LoadOptions(t *testing.T) {
 		},
 		{
 			name:      "defaults",
-			opts:      []ServerOption{WithDefaults()},
+			opts:      []Option{WithDefaults()},
 			wantHost:  "0.0.0.0",
 			wantPort:  8080,
 			wantMax:   65536,

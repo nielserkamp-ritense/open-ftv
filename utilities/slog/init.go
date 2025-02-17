@@ -1,3 +1,4 @@
+// Package slog contains functionality for working with standard Golang structured logging.
 package slog
 
 import (

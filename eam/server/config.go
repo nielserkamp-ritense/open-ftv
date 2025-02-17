@@ -1,4 +1,3 @@
-// Package config contains the service configuration.
 package server
 
 import "time"
@@ -38,7 +37,7 @@ func (c *Config) LoadDefaults() {
 }
 
 // LoadOptions loads the given options into the service configuration.
-func (c *Config) LoadOptions(opts ...ServerOption) {
+func (c *Config) LoadOptions(opts ...Option) {
 	for i := range opts {
 		opts[i](c)
 	}

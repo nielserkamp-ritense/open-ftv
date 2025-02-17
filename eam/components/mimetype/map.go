@@ -15,7 +15,7 @@ func ContainsRelation(data map[string]any) bool {
 	return data != nil && data["subject"] != nil && data["predicate"] != nil && data["object"] != nil
 }
 
-// ContainsJsonLD detects if the given data map is likely to contains JSON-LD formatted RDF data.
-func ContainsJsonLD(data map[string]any) bool {
+// ContainsJSONLD detects if the given data map is likely to contains JSON-LD formatted RDF data.
+func ContainsJSONLD(data map[string]any) bool {
 	return data != nil && (data["@context"] != nil || data["@id"] != nil || data["@graph"] != nil)
 }

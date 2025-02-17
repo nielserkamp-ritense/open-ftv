@@ -21,7 +21,7 @@ func TestServe(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		opts := []server.ServerOption{
+		opts := []server.Option{
 			server.WithDefaults(),
 			server.WithHostPort("127.0.0.1", 20000),
 		}
@@ -56,7 +56,7 @@ func TestErrorHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		opts := []server.ServerOption{
+		opts := []server.Option{
 			server.WithDefaults(),
 			server.WithHostPort("127.0.0.1", 20002),
 			server.WithRecovery(),
@@ -103,7 +103,7 @@ func TestRecovery(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		opts := []server.ServerOption{
+		opts := []server.Option{
 			server.WithDefaults(),
 			server.WithHostPort("127.0.0.1", 20003),
 			server.WithRecovery(),
@@ -150,7 +150,7 @@ func TestInvalidHostPort(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		opts := []server.ServerOption{
+		opts := []server.Option{
 			server.WithDefaults(),
 			server.WithHostPort("what-is-it?", 1),
 			server.WithRecovery(),
@@ -188,7 +188,7 @@ func TestForceAbort(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		opts := []server.ServerOption{
+		opts := []server.Option{
 			server.WithDefaults(),
 			server.WithHostPort("0.0.0.0", 20005),
 			server.WithRecovery(),

@@ -1,3 +1,4 @@
+// Package csv contains functionality to work with CSV files.
 package csv
 
 import (

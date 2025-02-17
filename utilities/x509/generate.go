@@ -1,3 +1,4 @@
+// Package x509 contains functionality for working with X509 certificates.
 package x509
 
 import (

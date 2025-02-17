@@ -302,18 +302,12 @@ components:
           type: string
           description: The language of the policy.
           example: "rego"
-        url:
-          type: string
-          description: Link to the actual policy.
-        source:
-          type: string
-          description: The unique identifier of the source.
-        target:
-          type: string
-          description: The unique identifier of the target.
         rvvaId:
           type: string
           description: The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+        url:
+          type: string
+          description: Link to the actual policy.
       required:
         - id
         - language

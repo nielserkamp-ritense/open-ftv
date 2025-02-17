@@ -51,7 +51,7 @@ func (c *controller) Authorize(req *components.Request) (resp *components.Respon
 	return
 }
 
-func (c *controller) startLog(req *components.Request) func(resp *components.Response) {
+func (c *controller) startLog(_ *components.Request) func(resp *components.Response) {
 	ldv := c.Logboek()
 	if ldv == nil {
 		return func(*components.Response) {}

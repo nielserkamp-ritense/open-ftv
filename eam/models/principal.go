@@ -56,7 +56,7 @@ func DeterminePrincipal(a AttributeSet) (string, string) {
 	// 	}
 	// }
 
-	if apikey, ok := a.GetAttributeValue(AttrApiKey).(string); ok && apikey != "" {
+	if apikey, ok := a.GetAttributeValue(AttrAPIKey).(string); ok && apikey != "" {
 		return PrincipalApp, apikey
 	}
 

@@ -1,3 +1,4 @@
+// Package turtle contains functionality for working with RDF files in Turtle format.
 package turtle
 
 import (

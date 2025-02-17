@@ -18,9 +18,9 @@ func (r *runner) decodeRelationData(data any, obj *RelationMapping) {
 		r.decodeRelationMap(t, obj)
 	default:
 		r.processRelation(
-			obj.SubjectTypeValue, obj.SubjectIdValue,
-			obj.PredicateTypeValue, obj.PredicateIdValue,
-			obj.ObjectTypeValue, obj.ObjectIdValue,
+			obj.SubjectTypeValue, obj.SubjectIDValue,
+			obj.PredicateTypeValue, obj.PredicateIDValue,
+			obj.ObjectTypeValue, obj.ObjectIDValue,
 			obj)
 	}
 }
@@ -33,13 +33,13 @@ func (r *runner) decodeRelationsSlice(m []any, obj *RelationMapping) {
 
 func (r *runner) decodeRelationMap(m map[string]any, obj *RelationMapping) {
 	sType := codeOrValueString(obj.SubjectTypeField, obj.SubjectTypeValue, m)
-	sID := codeOrValueString(obj.SubjectIdField, obj.SubjectIdValue, m)
+	sID := codeOrValueString(obj.SubjectIDField, obj.SubjectIDValue, m)
 
 	pType := codeOrValueString(obj.PredicateTypeField, obj.PredicateTypeValue, m)
-	pID := codeOrValueString(obj.PredicateIdField, obj.PredicateIdValue, m)
+	pID := codeOrValueString(obj.PredicateIDField, obj.PredicateIDValue, m)
 
 	oType := codeOrValueString(obj.ObjectTypeField, obj.ObjectTypeValue, m)
-	oID := codeOrValueString(obj.ObjectIdField, obj.ObjectIdValue, m)
+	oID := codeOrValueString(obj.ObjectIDField, obj.ObjectIDValue, m)
 
 	r.processRelation(sType, sID, pType, pID, oType, oID, obj)
 }

@@ -59,9 +59,9 @@ type EntityMapping struct {
 	Base        string               `json:"base" yaml:"base" toml:"base"`                                                       // The unique base key for processing an entity.
 	TypeField   string               `json:"typeField,omitempty" yaml:"typeField,omitempty" toml:"typeField,omitempty"`          // Code of the field containing the entity type. Mutually exclusive with TypeValue.
 	TypeValue   string               `json:"typeValue,omitempty" yaml:"typeValue,omitempty" toml:"typeValue,omitempty"`          // Fixed value for the entity type. Mutually exclusive with TypeField.
-	IdField     string               `json:"idField,omitempty" yaml:"idField,omitempty" toml:"idField,omitempty"`                // Code of the field containing the entity ID. Mutually exclusive with IdValue and IdFromValue.
-	IdValue     string               `json:"idValue,omitempty" yaml:"idValue,omitempty" toml:"idValue,omitempty"`                // Fixed value for the entity ID. Mutually exclusive with IdField and IdFromValue.
-	IdFromValue bool                 `json:"idFromValue,omitempty" yaml:"valueAsIs,omitempty" toml:"valueAsIs,omitempty"`        // Indicates the response object itself is the value for the ID. Mutually exclusive with IdValue and IdField.
+	IDField     string               `json:"idField,omitempty" yaml:"idField,omitempty" toml:"idField,omitempty"`                // Code of the field containing the entity ID. Mutually exclusive with IDValue and IDFromValue.
+	IDValue     string               `json:"idValue,omitempty" yaml:"idValue,omitempty" toml:"idValue,omitempty"`                // Fixed value for the entity ID. Mutually exclusive with IDField and IDFromValue.
+	IDFromValue bool                 `json:"idFromValue,omitempty" yaml:"valueAsIs,omitempty" toml:"valueAsIs,omitempty"`        // Indicates the response object itself is the value for the ID. Mutually exclusive with IDValue and IDField.
 	Attributes  []*AttributesMapping `json:"attributes,omitempty" yaml:"attributes,omitempty" toml:"attributes,omitempty"`       // Relative base(s) for processing attributes for the entity.
 	ParentsCode string               `json:"parentsField,omitempty" yaml:"parentsField,omitempty" toml:"parentsField,omitempty"` // Code of the field containing the optional parent keys for the entity.
 }
@@ -71,14 +71,14 @@ type RelationMapping struct {
 	Base               string `json:"base" yaml:"base" toml:"base"`                                                                         // The unique base key for processing a relation.
 	SubjectTypeField   string `json:"subjectTypeField,omitempty" yaml:"subjectTypeField,omitempty" toml:"subjectTypeField,omitempty"`       // Code of the field containing the subject type. Mutually exclusive with SubjectTypeValue.
 	SubjectTypeValue   string `json:"subjectTypeValue,omitempty" yaml:"subjectTypeValue,omitempty" toml:"subjectTypeValue,omitempty"`       // Fixed value for the subject type. Mutually exclusive with SubjectTypeField.
-	SubjectIdField     string `json:"subjectIdField,omitempty" yaml:"subjectIdField,omitempty" toml:"subjectIdField,omitempty"`             // Code of the field containing the subject ID. Mutually exclusive with SubjectIdValue.
-	SubjectIdValue     string `json:"subjectIdValue,omitempty" yaml:"subjectIdValue,omitempty" toml:"subjectIdValue,omitempty"`             // Fixed value for the subject ID. Mutually exclusive with SubjectIdField.
+	SubjectIDField     string `json:"subjectIdField,omitempty" yaml:"subjectIdField,omitempty" toml:"subjectIdField,omitempty"`             // Code of the field containing the subject ID. Mutually exclusive with SubjectIDValue.
+	SubjectIDValue     string `json:"subjectIdValue,omitempty" yaml:"subjectIdValue,omitempty" toml:"subjectIdValue,omitempty"`             // Fixed value for the subject ID. Mutually exclusive with SubjectIDField.
 	PredicateTypeField string `json:"predicateTypeField,omitempty" yaml:"predicateTypeField,omitempty" toml:"predicateTypeField,omitempty"` // Code of the field containing the predicate type. Mutually exclusive with PredicateTypeValue.
 	PredicateTypeValue string `json:"predicateTypeValue,omitempty" yaml:"predicateTypeValue,omitempty" toml:"predicateTypeValue,omitempty"` // Fixed value for the predicate type. Mutually exclusive with PredicateTypeField.
-	PredicateIdField   string `json:"predicateIdField,omitempty" yaml:"predicateIdField,omitempty" toml:"predicateIdField,omitempty"`       // Code of the field containing the predicate ID. Mutually exclusive with PredicateIdValue.
-	PredicateIdValue   string `json:"predicateIdValue,omitempty" yaml:"predicateIdValue,omitempty" toml:"predicateIdValue,omitempty"`       // Fixed value for the predicate ID. Mutually exclusive with PredicateIdField.
+	PredicateIDField   string `json:"predicateIdField,omitempty" yaml:"predicateIdField,omitempty" toml:"predicateIdField,omitempty"`       // Code of the field containing the predicate ID. Mutually exclusive with PredicateIDValue.
+	PredicateIDValue   string `json:"predicateIdValue,omitempty" yaml:"predicateIdValue,omitempty" toml:"predicateIdValue,omitempty"`       // Fixed value for the predicate ID. Mutually exclusive with PredicateIDField.
 	ObjectTypeField    string `json:"objectTypeField,omitempty" yaml:"objectTypeField,omitempty" toml:"objectTypeField,omitempty"`          // Code of the field containing the object type. Mutually exclusive with ObjectTypeValue.
 	ObjectTypeValue    string `json:"objectTypeValue,omitempty" yaml:"objectTypeValue,omitempty" toml:"objectTypeValue,omitempty"`          // Fixed value for the object type. Mutually exclusive with ObjectTypeField.
-	ObjectIdField      string `json:"objectIdField,omitempty" yaml:"objectIdField,omitempty" toml:"objectIdField,omitempty"`                // Code of the field containing the object ID. Mutually exclusive with ObjectIdValue.
-	ObjectIdValue      string `json:"objectIdValue,omitempty" yaml:"objectIdValue,omitempty" toml:"objectIdValue,omitempty"`                // Fixed value for the object ID. Mutually exclusive with ObjectIdField.
+	ObjectIDField      string `json:"objectIdField,omitempty" yaml:"objectIdField,omitempty" toml:"objectIdField,omitempty"`                // Code of the field containing the object ID. Mutually exclusive with ObjectIDValue.
+	ObjectIDValue      string `json:"objectIdValue,omitempty" yaml:"objectIdValue,omitempty" toml:"objectIdValue,omitempty"`                // Fixed value for the object ID. Mutually exclusive with ObjectIDField.
 }

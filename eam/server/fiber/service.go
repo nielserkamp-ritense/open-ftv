@@ -19,7 +19,7 @@ import (
 type Router func(ctx context.Context, svc *fiber.App)
 
 // New initializes an HTTP service (implemented with fiber and fasthttp).
-func New(logger *slog.Logger, initRoutes Router, opts ...server.ServerOption) server.Service {
+func New(logger *slog.Logger, initRoutes Router, opts ...server.Option) server.Service {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	s := &service{

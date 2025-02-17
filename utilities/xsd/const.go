@@ -1,3 +1,4 @@
+// Package xsd contains functionality for working with XSD with regard to RDF data.
 package xsd
 
 // Prefix is the well-known prefix for XSD.

@@ -1,3 +1,4 @@
+// Package mimetype contains functionality for determining types of data.
 package mimetype
 
 import (
@@ -77,7 +78,7 @@ func detectTypeFromJSON(f io.ReadSeeker) (FileType, string, any) {
 	case []any:
 		return detectTypeFromSlice(t, mime.MimeTypeJSON)
 	case map[string]any:
-		if ContainsJsonLD(t) {
+		if ContainsJSONLD(t) {
 			return CollectionFile, mime.MimeTypeJSONLD, data
 		}
 		return detectTypeFromMap(t, mime.MimeTypeJSON)

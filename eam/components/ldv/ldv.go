@@ -1,3 +1,4 @@
+// Package ldv contains functionality regarding Logboek Dataverwerkingen.
 package ldv
 
 import (

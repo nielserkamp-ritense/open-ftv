@@ -155,7 +155,7 @@ func TestContainsJsonLD(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			got := ContainsJsonLD(m)
+			got := ContainsJSONLD(m)
 			assert.Equal(t, tc.want, got)
 		})
 	}

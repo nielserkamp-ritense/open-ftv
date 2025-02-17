@@ -1,4 +1,4 @@
-// Package types contains generic definitions for working with policies.
+// Package components contains generic definitions for working External Access Management (EAM).
 package components
 
 import (

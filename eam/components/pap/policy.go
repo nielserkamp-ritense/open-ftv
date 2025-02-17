@@ -2,6 +2,7 @@ package pap
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"io"
 	"os"
@@ -19,12 +20,12 @@ import (
 type Policy interface {
 	ID() string
 	Language() string
-	Source() string
-	Target() string
 	RvvaID() string
 	URI() string
 	Path() string
 	Content() io.Reader
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON(data []byte) error
 }
 
 // NewPolicy instantiates a new policy from the given OAS model.
@@ -38,7 +39,7 @@ func NewPolicy(p *policies.Policy, content io.Reader) (Policy, error) {
 }
 
 // NewPolicyFromData instantiates a new policy from the given details.
-func NewPolicyFromData(id, language, source, target, rvvaID, uri string, content io.Reader) (Policy, error) {
+func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
@@ -47,8 +48,6 @@ func NewPolicyFromData(id, language, source, target, rvvaID, uri string, content
 	return &policy{
 		id:       id,
 		language: language,
-		source:   source,
-		target:   target,
 		rvvaID:   rvvaID,
 		uri:      uri,
 		content:  d,
@@ -86,8 +85,6 @@ func newPolicy(p *policies.Policy, path string, d []byte) Policy {
 	return &policy{
 		id:       p.Id,
 		language: p.Language,
-		source:   p.Source,
-		target:   p.Target,
 		rvvaID:   p.RvvaId,
 		uri:      p.Url,
 		path:     path,
@@ -114,16 +111,6 @@ func (p *policy) Language() string {
 	return p.language
 }
 
-// Source implements the Policy interface.
-func (p *policy) Source() string {
-	return p.source
-}
-
-// Target implements the Policy interface.
-func (p *policy) Target() string {
-	return p.target
-}
-
 // RvvaID implements the Policy interface.
 func (p *policy) RvvaID() string {
 	return p.rvvaID
@@ -144,13 +131,49 @@ func (p *policy) Content() io.Reader {
 	return bytes.NewReader(p.content)
 }
 
+// MarshalJSON implements the json.Marshaller interface.
+func (p *policy) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&policyJSON{
+		ID:       p.id,
+		Language: p.language,
+		RvvaID:   p.rvvaID,
+		URI:      p.uri,
+		Path:     p.path,
+		Content:  base64.StdEncoding.EncodeToString(p.content),
+	})
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (p *policy) UnmarshalJSON(data []byte) error {
+	p2 := &policyJSON{}
+	if err := json.Unmarshal(data, p2); err != nil {
+		return err
+	}
+
+	p.id = p2.ID
+	p.language = p2.Language
+	p.rvvaID = p2.RvvaID
+	p.uri = p2.URI
+	p.path = p2.Path
+	p.content, _ = base64.StdEncoding.DecodeString(p2.Content)
+
+	return nil
+}
+
 type policy struct {
-	id       string ``
+	id       string
 	language string
-	source   string
-	target   string
 	rvvaID   string
 	uri      string
 	path     string
 	content  []byte
+}
+
+type policyJSON struct {
+	ID       string `json:"id"`
+	Language string `json:"language"`
+	RvvaID   string `json:"rvvaID,omitempty"`
+	URI      string `json:"uri,omitempty"`
+	Path     string `json:"path,omitempty"`
+	Content  string `json:"content"`
 }

@@ -1,5 +1,6 @@
 package fiber
 
+// List of API paths.
 const (
 	PathPolicies   = "/policies"
 	PathPolicy     = "/policy/:id"

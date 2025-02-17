@@ -4,7 +4,7 @@ package models
 //
 // NOTE: keep values in lower-case as comparison is always done in lower-case!
 const (
-	HeaderApiKey           = "api-key"
+	HeaderAPIKey           = "api-key"
 	HeaderAuthorization    = "authorization"
 	HeaderContentType      = "content-type"
 	HeaderCoreUser         = "dpl-core-user"

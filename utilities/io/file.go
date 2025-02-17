@@ -1,3 +1,4 @@
+// Package io contains functionality for working with files.
 package io
 
 import (

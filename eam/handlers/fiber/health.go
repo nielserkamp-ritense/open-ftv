@@ -1,3 +1,4 @@
+// Package fiber contains functionality for handling HTTP requests using Fiber/FastHTTP.
 package fiber
 
 import (

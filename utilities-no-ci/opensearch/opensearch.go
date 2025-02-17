@@ -1,3 +1,4 @@
+// Package opensearch contains functionality to communicate with an OpenSearch cluster.
 package opensearch
 
 import (

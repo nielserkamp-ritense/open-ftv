@@ -1,3 +1,4 @@
+// Package module contains functionality to work with runtime info regarding Golang models.
 package module
 
 import "runtime/debug"

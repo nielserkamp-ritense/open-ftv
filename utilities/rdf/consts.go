@@ -1,3 +1,4 @@
+// Package rdf contains functionality for working with RDF data.
 package rdf
 
 import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
@@ -20,193 +21,193 @@ const (
 
 // List of well-known RDF uri's.
 const (
-	UriCC      = "https://creativecommons.org/ns#"
-	UriDCTerms = "http://purl.org/dc/terms/"
-	UriFOAF    = "http://xmlns.com/foaf/0.1/"
-	UriFTV     = "https://ftv.nl/rdf/ftv#"
-	UriODRL    = "http://www.w3.org/ns/odrl/2/"
-	UriOWL     = "http://www.w3.org/2002/07/owl#"
-	UriRDF     = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	UriRDFS    = "http://www.w3.org/2000/01/rdf-schema#"
-	UriSKOS    = "http://www.w3.org/2004/02/skos/core#"
-	UriSchema  = "http://schema.org/"
-	UriVCard   = "http://www.w3.org/2006/vcard/ns#"
+	URICC      = "https://creativecommons.org/ns#"
+	URIDCTerms = "http://purl.org/dc/terms/"
+	URIFOAF    = "http://xmlns.com/foaf/0.1/"
+	URIFTV     = "https://ftv.nl/rdf/ftv#"
+	URIODRL    = "http://www.w3.org/ns/odrl/2/"
+	URIOWL     = "http://www.w3.org/2002/07/owl#"
+	URIRDF     = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	URIRDFS    = "http://www.w3.org/2000/01/rdf-schema#"
+	URISKOS    = "http://www.w3.org/2004/02/skos/core#"
+	URISchema  = "http://schema.org/"
+	URIVCard   = "http://www.w3.org/2006/vcard/ns#"
 )
 
-// PrefixUri can be used to convert a well-known prefix into the corresponding URI.
-var PrefixUri = map[string]string{
-	PrefixCC:      UriCC,
-	PrefixDCT:     UriDCTerms,
-	PrefixDCTerms: UriDCTerms,
-	PrefixFOAF:    UriFOAF,
-	PrefixFTV:     UriFTV,
-	PrefixODRL:    UriODRL,
-	PrefixOWL:     UriOWL,
-	PrefixRDF:     UriRDF,
-	PrefixRDFS:    UriRDFS,
-	PrefixSKOS:    UriSKOS,
-	PrefixSchema:  UriSchema,
-	PrefixVCard:   UriVCard,
+// PrefixURI can be used to convert a well-known prefix into the corresponding URI.
+var PrefixURI = map[string]string{
+	PrefixCC:      URICC,
+	PrefixDCT:     URIDCTerms,
+	PrefixDCTerms: URIDCTerms,
+	PrefixFOAF:    URIFOAF,
+	PrefixFTV:     URIFTV,
+	PrefixODRL:    URIODRL,
+	PrefixOWL:     URIOWL,
+	PrefixRDF:     URIRDF,
+	PrefixRDFS:    URIRDFS,
+	PrefixSKOS:    URISKOS,
+	PrefixSchema:  URISchema,
+	PrefixVCard:   URIVCard,
 	xsd.Prefix:    xsd.URI,
 }
 
-// UriPrefix can be used to convert a well-known URI into the corresponding prefix.
-var UriPrefix = map[string]string{
-	UriCC:      PrefixCC,
-	UriDCTerms: PrefixDCTerms,
-	UriFOAF:    PrefixFOAF,
-	UriFTV:     PrefixFTV,
-	UriODRL:    PrefixODRL,
-	UriOWL:     PrefixOWL,
-	UriRDF:     PrefixRDF,
-	UriRDFS:    PrefixRDFS,
-	UriSKOS:    PrefixSKOS,
-	UriSchema:  PrefixSchema,
-	UriVCard:   PrefixVCard,
+// URIPrefix can be used to convert a well-known URI into the corresponding prefix.
+var URIPrefix = map[string]string{
+	URICC:      PrefixCC,
+	URIDCTerms: PrefixDCTerms,
+	URIFOAF:    PrefixFOAF,
+	URIFTV:     PrefixFTV,
+	URIODRL:    PrefixODRL,
+	URIOWL:     PrefixOWL,
+	URIRDF:     PrefixRDF,
+	URIRDFS:    PrefixRDFS,
+	URISKOS:    PrefixSKOS,
+	URISchema:  PrefixSchema,
+	URIVCard:   PrefixVCard,
 	xsd.URI:    xsd.Prefix,
 }
 
 // List of standard RDF identifiers.
 const (
-	Bag        = UriRDF + "Bag"
-	HTML       = UriRDF + "HTML"
-	JSON       = UriRDF + "JSON"
-	List       = UriRDF + "List"
-	Property   = UriRDF + "Property"
-	Seq        = UriRDF + "Seq"
-	Type       = UriRDF + "type"
-	Value      = UriRDF + "value"
-	XMLLiteral = UriRDF + "XMLLiteral"
+	Bag        = URIRDF + "Bag"
+	HTML       = URIRDF + "HTML"
+	JSON       = URIRDF + "JSON"
+	List       = URIRDF + "List"
+	Property   = URIRDF + "Property"
+	Seq        = URIRDF + "Seq"
+	Type       = URIRDF + "type"
+	Value      = URIRDF + "value"
+	XMLLiteral = URIRDF + "XMLLiteral"
 )
 
 // List of standard RDFS identifiers.
 const (
-	Class       = UriRDFS + "Class"
-	Comment     = UriRDFS + "comment"
-	DataType    = UriRDFS + "DataType"
-	Domain      = UriRDFS + "domain"
-	Label       = UriRDFS + "label"
-	Literal     = UriRDFS + "Literal"
-	Range       = UriRDFS + "range"
-	Resource    = UriRDFS + "Resource"
-	SubClass    = UriRDFS + "subClassOf"
-	SubProperty = UriRDFS + "subPropertyOf"
+	Class       = URIRDFS + "Class"
+	Comment     = URIRDFS + "comment"
+	DataType    = URIRDFS + "DataType"
+	Domain      = URIRDFS + "domain"
+	Label       = URIRDFS + "label"
+	Literal     = URIRDFS + "Literal"
+	Range       = URIRDFS + "range"
+	Resource    = URIRDFS + "Resource"
+	SubClass    = URIRDFS + "subClassOf"
+	SubProperty = URIRDFS + "subPropertyOf"
 )
 
 // List of standard DC terms identifiers.
 const (
-	DCTermsDefined  = UriDCTerms + "isDefinedBy"
-	DCTermsTitle    = UriDCTerms + "title"
-	DCTermsRequired = UriDCTerms + "isRequiredBy"
-	DCTermsRequires = UriDCTerms + "requires"
+	DCTermsDefined  = URIDCTerms + "isDefinedBy"
+	DCTermsTitle    = URIDCTerms + "title"
+	DCTermsRequired = URIDCTerms + "isRequiredBy"
+	DCTermsRequires = URIDCTerms + "requires"
 )
 
 // List of standard OWL identifiers.
 const (
-	OWLClass = UriOWL + "Class"
-	OWLThing = UriOWL + "Thing"
+	OWLClass = URIOWL + "Class"
+	OWLThing = URIOWL + "Thing"
 )
 
 // List of standard SKOS identifiers.
 const (
-	SKOSAltLabel  = UriSKOS + "altLabel"
-	SKOSConcept   = UriSKOS + "Concept"
-	SKOSExample   = UriSKOS + "example"
-	SKOSPrefLabel = UriSKOS + "prefLabel"
+	SKOSAltLabel  = URISKOS + "altLabel"
+	SKOSConcept   = URISKOS + "Concept"
+	SKOSExample   = URISKOS + "example"
+	SKOSPrefLabel = URISKOS + "prefLabel"
 )
 
 // List of FTV identifiers.
 const (
-	FTVAction          = UriFTV + "action"
-	FTVAttribute       = UriFTV + "Attribute"
-	FTVAttributeKey    = UriFTV + "attributeKey"
-	FTVAttributeValue  = UriFTV + "attributeValue"
-	FTVContext         = UriFTV + "context"
-	FTVEntity          = UriFTV + "Entity"
-	FTVEntityAttribute = UriFTV + "entityAttribute"
-	FTVEntityID        = UriFTV + "entityID"
-	FTVEntityType      = UriFTV + "entityType"
-	FTVObject          = UriFTV + "object"
-	FTVPrincipal       = UriFTV + "principal"
-	FTVRelation        = UriFTV + "Relation"
-	FTVRelationType    = UriFTV + "relationType"
-	FTVResource        = UriFTV + "resource"
-	FTVSubject         = UriFTV + "subject"
+	FTVAction          = URIFTV + "action"
+	FTVAttribute       = URIFTV + "Attribute"
+	FTVAttributeKey    = URIFTV + "attributeKey"
+	FTVAttributeValue  = URIFTV + "attributeValue"
+	FTVContext         = URIFTV + "context"
+	FTVEntity          = URIFTV + "Entity"
+	FTVEntityAttribute = URIFTV + "entityAttribute"
+	FTVEntityID        = URIFTV + "entityID"
+	FTVEntityType      = URIFTV + "entityType"
+	FTVObject          = URIFTV + "object"
+	FTVPrincipal       = URIFTV + "principal"
+	FTVRelation        = URIFTV + "Relation"
+	FTVRelationType    = URIFTV + "relationType"
+	FTVResource        = URIFTV + "resource"
+	FTVSubject         = URIFTV + "subject"
 )
 
 // List of ODRL identifiers.
 const (
-	ODRLPolicy                = UriODRL + "Policy"
-	ODRLIdentifier            = UriODRL + "uid"
-	ODRLProfile               = UriODRL + "profile"
-	ODRLInheritFrom           = UriODRL + "inheritFrom"
-	ODRLAgreement             = UriODRL + "Agreement"
-	ODRLOffer                 = UriODRL + "Offer"
-	ODRLSet                   = UriODRL + "Set"
-	ODRLRule                  = UriODRL + "Rule"
-	ODRLRelation              = UriODRL + "relation"
-	ODRLFunction              = UriODRL + "function"
-	ODRLFailure               = UriODRL + "failure"
-	ODRLAsset                 = UriODRL + "Asset"
-	ODRLAssetCollection       = UriODRL + "AssetCollection"
-	ODRLTarget                = UriODRL + "Target"
-	ODRLTargetPolicy          = UriODRL + "TargetPolicy"
-	ODRLParty                 = UriODRL + "Party"
-	ODRLPartyCollection       = UriODRL + "PartyCollection"
-	ODRLAssignee              = UriODRL + "assignee"
-	ODRLAssigner              = UriODRL + "assigner"
-	ODRLAssigneeOf            = UriODRL + "assigneeOf"
-	ODRLAssignerOf            = UriODRL + "assignerOf"
-	ODRLPartOf                = UriODRL + "partOf"
-	ODRLSource                = UriODRL + "source"
-	ODRLPermission            = UriODRL + "Permission"
-	ODRLHasPermission         = UriODRL + "permission"
-	ODRLProhibition           = UriODRL + "Prohibition"
-	ODRLHasProhibition        = UriODRL + "prohibition"
-	ODRLAction                = UriODRL + "Action"
-	ODRLHasAction             = UriODRL + "action"
-	ODRLIncludedIn            = UriODRL + "includedIn"
-	ODRLImplies               = UriODRL + "implies"
-	ODRLUse                   = UriODRL + "use"
-	ODRLTransferOwnership     = UriODRL + "transfer"
-	ODRLDuty                  = UriODRL + "Duty"
-	ODRLHasDuty               = UriODRL + "duty"
-	ODRLObligation            = UriODRL + "obligation"
-	ODRLConsequence           = UriODRL + "consequence"
-	ODRLRemedy                = UriODRL + "remedy"
-	ODRLConstraint            = UriODRL + "Constraint"
-	ODRLHasConstraint         = UriODRL + "constraint"
-	ODRLRefinement            = UriODRL + "refinement"
-	ODRLOperator              = UriODRL + "operator"
-	ODRLRightOperand          = UriODRL + "RightOperand"
-	ODRLHasRightOperand       = UriODRL + "rightOperand"
-	ODRLHasRightOperandRef    = UriODRL + "rightOperandReference"
-	ODRLLeftOperand           = UriODRL + "LeftOperand"
-	ODRLHasLeftOperand        = UriODRL + "leftOperand"
-	ODRLUnit                  = UriODRL + "unit"
-	ODRLDatatype              = UriODRL + "datatype"
-	ODRLStatus                = UriODRL + "status"
-	ODRLLogicalConstraint     = UriODRL + "LogicalConstraint"
-	ODRLOperand               = UriODRL + "operand"
-	ODRLEqualTo               = UriODRL + "eq"
-	ODRLGreaterThan           = UriODRL + "gt"
-	ODRLGreaterThanOrEqual    = UriODRL + "gteq"
-	ODRLLessThan              = UriODRL + "lt"
-	ODRLLessThanOrEqual       = UriODRL + "lteq"
-	ODRLNotEqualTo            = UriODRL + "neq"
-	ODRLIsA                   = UriODRL + "isA"
-	ODRLHasPart               = UriODRL + "hasPart"
-	ODRLIsPartOf              = UriODRL + "isPartOf"
-	ODRLIsAllOf               = UriODRL + "isAllOf"
-	ODRLIsAnyOf               = UriODRL + "isAnyOf"
-	ODRLIsNoneOf              = UriODRL + "isNoneOf"
-	ODRLOr                    = UriODRL + "or"
-	ODRLOnlyOne               = UriODRL + "xone"
-	ODRLAnd                   = UriODRL + "and"
-	ODRLAndSequence           = UriODRL + "andSequence"
-	ODRLConflictStrategyPref  = UriODRL + "ConflictTerm"
-	ODRLHandlePolicyConflicts = UriODRL + "conflict"
-	ODRLPreferPermissions     = UriODRL + "perm"
-	ODRLPreferProhibitions    = UriODRL + "prohibit"
-	ODRLVoidPolicy            = UriODRL + "invalid"
+	ODRLPolicy                = URIODRL + "Policy"
+	ODRLIdentifier            = URIODRL + "uid"
+	ODRLProfile               = URIODRL + "profile"
+	ODRLInheritFrom           = URIODRL + "inheritFrom"
+	ODRLAgreement             = URIODRL + "Agreement"
+	ODRLOffer                 = URIODRL + "Offer"
+	ODRLSet                   = URIODRL + "Set"
+	ODRLRule                  = URIODRL + "Rule"
+	ODRLRelation              = URIODRL + "relation"
+	ODRLFunction              = URIODRL + "function"
+	ODRLFailure               = URIODRL + "failure"
+	ODRLAsset                 = URIODRL + "Asset"
+	ODRLAssetCollection       = URIODRL + "AssetCollection"
+	ODRLTarget                = URIODRL + "Target"
+	ODRLTargetPolicy          = URIODRL + "TargetPolicy"
+	ODRLParty                 = URIODRL + "Party"
+	ODRLPartyCollection       = URIODRL + "PartyCollection"
+	ODRLAssignee              = URIODRL + "assignee"
+	ODRLAssigner              = URIODRL + "assigner"
+	ODRLAssigneeOf            = URIODRL + "assigneeOf"
+	ODRLAssignerOf            = URIODRL + "assignerOf"
+	ODRLPartOf                = URIODRL + "partOf"
+	ODRLSource                = URIODRL + "source"
+	ODRLPermission            = URIODRL + "Permission"
+	ODRLHasPermission         = URIODRL + "permission"
+	ODRLProhibition           = URIODRL + "Prohibition"
+	ODRLHasProhibition        = URIODRL + "prohibition"
+	ODRLAction                = URIODRL + "Action"
+	ODRLHasAction             = URIODRL + "action"
+	ODRLIncludedIn            = URIODRL + "includedIn"
+	ODRLImplies               = URIODRL + "implies"
+	ODRLUse                   = URIODRL + "use"
+	ODRLTransferOwnership     = URIODRL + "transfer"
+	ODRLDuty                  = URIODRL + "Duty"
+	ODRLHasDuty               = URIODRL + "duty"
+	ODRLObligation            = URIODRL + "obligation"
+	ODRLConsequence           = URIODRL + "consequence"
+	ODRLRemedy                = URIODRL + "remedy"
+	ODRLConstraint            = URIODRL + "Constraint"
+	ODRLHasConstraint         = URIODRL + "constraint"
+	ODRLRefinement            = URIODRL + "refinement"
+	ODRLOperator              = URIODRL + "operator"
+	ODRLRightOperand          = URIODRL + "RightOperand"
+	ODRLHasRightOperand       = URIODRL + "rightOperand"
+	ODRLHasRightOperandRef    = URIODRL + "rightOperandReference"
+	ODRLLeftOperand           = URIODRL + "LeftOperand"
+	ODRLHasLeftOperand        = URIODRL + "leftOperand"
+	ODRLUnit                  = URIODRL + "unit"
+	ODRLDatatype              = URIODRL + "datatype"
+	ODRLStatus                = URIODRL + "status"
+	ODRLLogicalConstraint     = URIODRL + "LogicalConstraint"
+	ODRLOperand               = URIODRL + "operand"
+	ODRLEqualTo               = URIODRL + "eq"
+	ODRLGreaterThan           = URIODRL + "gt"
+	ODRLGreaterThanOrEqual    = URIODRL + "gteq"
+	ODRLLessThan              = URIODRL + "lt"
+	ODRLLessThanOrEqual       = URIODRL + "lteq"
+	ODRLNotEqualTo            = URIODRL + "neq"
+	ODRLIsA                   = URIODRL + "isA"
+	ODRLHasPart               = URIODRL + "hasPart"
+	ODRLIsPartOf              = URIODRL + "isPartOf"
+	ODRLIsAllOf               = URIODRL + "isAllOf"
+	ODRLIsAnyOf               = URIODRL + "isAnyOf"
+	ODRLIsNoneOf              = URIODRL + "isNoneOf"
+	ODRLOr                    = URIODRL + "or"
+	ODRLOnlyOne               = URIODRL + "xone"
+	ODRLAnd                   = URIODRL + "and"
+	ODRLAndSequence           = URIODRL + "andSequence"
+	ODRLConflictStrategyPref  = URIODRL + "ConflictTerm"
+	ODRLHandlePolicyConflicts = URIODRL + "conflict"
+	ODRLPreferPermissions     = URIODRL + "perm"
+	ODRLPreferProhibitions    = URIODRL + "prohibit"
+	ODRLVoidPolicy            = URIODRL + "invalid"
 )

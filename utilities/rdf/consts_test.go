@@ -16,23 +16,23 @@ func TestPrefixUri(t *testing.T) {
 	}{
 		{name: "empty"},
 		{name: "invalid", prefix: "abc"},
-		{name: "DC terms", prefix: PrefixDCTerms, want: UriDCTerms},
-		{name: "FTV", prefix: PrefixFTV, want: UriFTV},
-		{name: "OWL", prefix: PrefixOWL, want: UriOWL},
-		{name: "RDF", prefix: PrefixRDF, want: UriRDF},
-		{name: "RDFS", prefix: PrefixRDFS, want: UriRDFS},
-		{name: "SKOS", prefix: PrefixSKOS, want: UriSKOS},
+		{name: "DC terms", prefix: PrefixDCTerms, want: URIDCTerms},
+		{name: "FTV", prefix: PrefixFTV, want: URIFTV},
+		{name: "OWL", prefix: PrefixOWL, want: URIOWL},
+		{name: "RDF", prefix: PrefixRDF, want: URIRDF},
+		{name: "RDFS", prefix: PrefixRDFS, want: URIRDFS},
+		{name: "SKOS", prefix: PrefixSKOS, want: URISKOS},
 		{name: "XSD", prefix: xsd.Prefix, want: xsd.URI},
-		{name: "VCard", prefix: PrefixVCard, want: UriVCard},
-		{name: "Schema", prefix: PrefixSchema, want: UriSchema},
-		{name: "ODRL", prefix: PrefixODRL, want: UriODRL},
-		{name: "CC", prefix: PrefixCC, want: UriCC},
-		{name: "FOAF", prefix: PrefixFOAF, want: UriFOAF},
+		{name: "VCard", prefix: PrefixVCard, want: URIVCard},
+		{name: "Schema", prefix: PrefixSchema, want: URISchema},
+		{name: "ODRL", prefix: PrefixODRL, want: URIODRL},
+		{name: "CC", prefix: PrefixCC, want: URICC},
+		{name: "FOAF", prefix: PrefixFOAF, want: URIFOAF},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := PrefixUri[tc.prefix]
+			got := PrefixURI[tc.prefix]
 			assert.Equal(t, tc.want, got)
 		})
 	}
@@ -46,23 +46,23 @@ func TestUriPrefix(t *testing.T) {
 	}{
 		{name: "empty"},
 		{name: "invalid", prefix: "abc"},
-		{name: "DC terms", prefix: UriDCTerms, want: PrefixDCTerms},
-		{name: "FTV", prefix: UriFTV, want: PrefixFTV},
-		{name: "OWL", prefix: UriOWL, want: PrefixOWL},
-		{name: "RDF", prefix: UriRDF, want: PrefixRDF},
-		{name: "RDFS", prefix: UriRDFS, want: PrefixRDFS},
-		{name: "SKOS", prefix: UriSKOS, want: PrefixSKOS},
+		{name: "DC terms", prefix: URIDCTerms, want: PrefixDCTerms},
+		{name: "FTV", prefix: URIFTV, want: PrefixFTV},
+		{name: "OWL", prefix: URIOWL, want: PrefixOWL},
+		{name: "RDF", prefix: URIRDF, want: PrefixRDF},
+		{name: "RDFS", prefix: URIRDFS, want: PrefixRDFS},
+		{name: "SKOS", prefix: URISKOS, want: PrefixSKOS},
 		{name: "XSD", prefix: xsd.URI, want: xsd.Prefix},
-		{name: "FOAF", prefix: UriFOAF, want: PrefixFOAF},
-		{name: "CC", prefix: UriCC, want: PrefixCC},
-		{name: "ODRL", prefix: UriODRL, want: PrefixODRL},
-		{name: "VCard", prefix: UriVCard, want: PrefixVCard},
-		{name: "Schema", prefix: UriSchema, want: PrefixSchema},
+		{name: "FOAF", prefix: URIFOAF, want: PrefixFOAF},
+		{name: "CC", prefix: URICC, want: PrefixCC},
+		{name: "ODRL", prefix: URIODRL, want: PrefixODRL},
+		{name: "VCard", prefix: URIVCard, want: PrefixVCard},
+		{name: "Schema", prefix: URISchema, want: PrefixSchema},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := UriPrefix[tc.prefix]
+			got := URIPrefix[tc.prefix]
 			assert.Equal(t, tc.want, got)
 		})
 	}

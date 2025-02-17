@@ -149,9 +149,9 @@ func TestProcessHeaders(t *testing.T) {
 			}
 
 			if tc.wantKey != "" {
-				assert.Equal(t, tc.wantKey, a.GetAttributeValue(models.AttrApiKey))
+				assert.Equal(t, tc.wantKey, a.GetAttributeValue(models.AttrAPIKey))
 			} else {
-				assert.Nil(t, a.GetAttributeValue(models.AttrApiKey))
+				assert.Nil(t, a.GetAttributeValue(models.AttrAPIKey))
 			}
 
 			if tc.wantAID != "" {

@@ -46,7 +46,7 @@ func (h *authlogHandler) GetAuthlogResource(req *fiber.Ctx) error {
 		if list, ok2 := m2["buckets"].([]any); ok2 {
 			for i := range list {
 				if m3, ok3 := list[i].(map[string]any); ok3 {
-					rvvaId := convert.AnyToString(m3["key"])
+					rvvaID := convert.AnyToString(m3["key"])
 					count := int(convert.AnyToInt64(m3["doc_count"]))
 
 					resp.Total += count
@@ -56,7 +56,7 @@ func (h *authlogHandler) GetAuthlogResource(req *fiber.Ctx) error {
 						RvvaId string `json:"rvvaId,omitempty"`
 					}{
 						Count:  count,
-						RvvaId: rvvaId,
+						RvvaId: rvvaID,
 					})
 				}
 			}

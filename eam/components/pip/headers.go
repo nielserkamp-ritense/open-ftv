@@ -22,8 +22,8 @@ func (p *pip) testHeaders(req *components.Request, a models.AttributeSet) string
 				p.processAuth(req, list[0], a)
 			case models.HeaderFSCAuthorization:
 				newURI = p.processFSC(req, list[0], a)
-			case models.HeaderApiKey, "apikey", "x-apikey", "x-api-key":
-				a.AddAttribute(models.AttrApiKey, list[0])
+			case models.HeaderAPIKey, "apikey", "x-apikey", "x-api-key":
+				a.AddAttribute(models.AttrAPIKey, list[0])
 			case models.HeaderRvvaID, models.HeaderObsoleteRvvaID:
 				activityID = list[0]
 				a.AddAttribute(models.AttrRvvaID, activityID)

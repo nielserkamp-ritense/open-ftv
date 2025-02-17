@@ -71,8 +71,8 @@ func TestDecodeData(t *testing.T) {
 			data: mm2,
 			dec: &ResponseMapping{
 				Entities: []*EntityMapping{
-					{Base: "third.sub", TypeField: "hello", IdField: "bool"},
-					{Base: "first", TypeField: "hello", IdField: "int"},
+					{Base: "third.sub", TypeField: "hello", IDField: "bool"},
+					{Base: "first", TypeField: "hello", IDField: "int"},
 				},
 			},
 			wantEnt: map[string]models.Entity{
@@ -86,7 +86,7 @@ func TestDecodeData(t *testing.T) {
 			data: map[string]any{"rel": mm3},
 			dec: &ResponseMapping{
 				Relations: []*RelationMapping{
-					{Base: "rel.second", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
+					{Base: "rel.second", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
 				},
 			},
 			wantRel: map[string]models.Relation{
@@ -112,15 +112,15 @@ func TestDecodeData(t *testing.T) {
 			data: mm4,
 			dec: &ResponseMapping{
 				Relations: []*RelationMapping{
-					{Base: "rel.second", SubjectTypeField: "t1", SubjectIdField: "id1", PredicateTypeField: "t2", PredicateIdField: "id2", ObjectTypeField: "t3", ObjectIdField: "id3"},
+					{Base: "rel.second", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
 				},
 				Attributes: []*AttributesMapping{
 					{Base: "attr.third.sub", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "bool", TypeField: "type"}}},
 					{Base: "attr.first", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "int", TypeField: "type"}}},
 				},
 				Entities: []*EntityMapping{
-					{Base: "ent.first", TypeField: "hello", IdField: "int"},
-					{Base: "ent.third.sub", TypeField: "hello", IdField: "bool"},
+					{Base: "ent.first", TypeField: "hello", IDField: "int"},
+					{Base: "ent.third.sub", TypeField: "hello", IDField: "bool"},
 				},
 			},
 			wantAttr: map[string]models.Attribute{

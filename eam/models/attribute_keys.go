@@ -3,7 +3,7 @@ package models
 // List of standard attribute keys.
 const (
 	AttrAction      = "action"
-	AttrApiKey      = "api-key"
+	AttrAPIKey      = "api-key"
 	AttrClaims      = "claims"
 	AttrClientIP    = "client-ip"
 	AttrContentType = "content-type"
@@ -13,7 +13,7 @@ const (
 	AttrGrondslag   = "grondslag"
 	AttrHeaders     = "headers"
 	AttrHost        = "host"
-	AttrHttp        = "http"
+	AttrHTTP        = "http"
 	AttrJWT         = "jwt"
 	AttrMethod      = "method"
 	AttrOutwayCerts = "outway-certs"

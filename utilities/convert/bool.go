@@ -1,3 +1,4 @@
+// Package convert contains conversion routines.
 package convert
 
 import (

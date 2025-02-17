@@ -35,12 +35,6 @@ type Policy struct {
 	// RvvaId The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
 	RvvaId string `json:"rvvaId,omitempty"`
 
-	// Source The unique identifier of the source.
-	Source string `json:"source,omitempty"`
-
-	// Target The unique identifier of the target.
-	Target string `json:"target,omitempty"`
-
 	// Url Link to the actual policy.
 	Url string `json:"url"`
 }

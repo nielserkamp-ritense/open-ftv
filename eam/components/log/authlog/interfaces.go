@@ -1,3 +1,4 @@
+// Package authlog contains functionality for logging authorization decisions.
 package authlog
 
 import "context"

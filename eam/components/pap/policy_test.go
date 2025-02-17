@@ -26,12 +26,12 @@ func TestNewPolicy(t *testing.T) {
 		},
 		{
 			name: "some meta",
-			p:    &policies.Policy{Id: "x2", Source: "s1", Target: "t1"},
+			p:    &policies.Policy{Id: "x2"},
 			data: "policy-2",
 		},
 		{
 			name: "all meta",
-			p:    &policies.Policy{Id: "x3", Language: "opa", Source: "s3", Target: "t3", RvvaId: "e3", Url: "https://some.site/policies/x3"},
+			p:    &policies.Policy{Id: "x3", Language: "opa", RvvaId: "e3", Url: "https://some.site/policies/x3"},
 			data: "policy-3",
 		},
 	}
@@ -48,8 +48,6 @@ func TestNewPolicy(t *testing.T) {
 
 				assert.Equal(t, tc.p.Id, got.ID())
 				assert.Equal(t, tc.p.Language, got.Language())
-				assert.Equal(t, tc.p.Source, got.Source())
-				assert.Equal(t, tc.p.Target, got.Target())
 				assert.Equal(t, tc.p.RvvaId, got.RvvaID())
 				assert.Equal(t, tc.p.Url, got.URI())
 
@@ -66,8 +64,6 @@ func TestNewPolicyFromData(t *testing.T) {
 		name     string
 		id       string
 		language string
-		source   string
-		target   string
 		rvvaID   string
 		uri      string
 		data     string
@@ -79,18 +75,14 @@ func TestNewPolicyFromData(t *testing.T) {
 			data: "policy-1",
 		},
 		{
-			name:   "some meta",
-			id:     "x2",
-			source: "s1",
-			target: "t1",
-			data:   "policy-2",
+			name: "some meta",
+			id:   "x2",
+			data: "policy-2",
 		},
 		{
 			name:     "all meta",
 			id:       "x3",
 			language: "opa",
-			source:   "s3",
-			target:   "t3",
 			rvvaID:   "e3",
 			uri:      "https://some.site/policies/x3",
 			data:     "policy-3",
@@ -99,7 +91,7 @@ func TestNewPolicyFromData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := NewPolicyFromData(tc.id, tc.language, tc.source, tc.target, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
+			got, err := NewPolicyFromData(tc.id, tc.language, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -109,8 +101,6 @@ func TestNewPolicyFromData(t *testing.T) {
 
 				assert.Equal(t, tc.id, got.ID())
 				assert.Equal(t, tc.language, got.Language())
-				assert.Equal(t, tc.source, got.Source())
-				assert.Equal(t, tc.target, got.Target())
 				assert.Equal(t, tc.rvvaID, got.RvvaID())
 				assert.Equal(t, tc.uri, got.URI())
 
@@ -138,8 +128,6 @@ func TestNewPolicyFromStore(t *testing.T) {
 		wantErr      bool
 		wantID       string
 		wantLanguage string
-		wantSource   string
-		wantTarget   string
 		wantRvva     string
 		wantURI      string
 		wantPath     string
@@ -170,8 +158,6 @@ func TestNewPolicyFromStore(t *testing.T) {
 			content:      bytes.NewBufferString("some data"),
 			wantID:       "subsidies",
 			wantLanguage: "Rego",
-			wantSource:   "source1",
-			wantTarget:   "target1",
 			wantRvva:     "rvva1",
 			wantURI:      "https://my.site/pol/x1",
 			wantPath:     path2,
@@ -183,8 +169,6 @@ func TestNewPolicyFromStore(t *testing.T) {
 			content:      bytes.NewBufferString("some data"),
 			wantID:       "doelbinding.model",
 			wantLanguage: "OpenFGA",
-			wantSource:   "source2",
-			wantTarget:   "target2",
 			wantRvva:     "rvva2",
 			wantURI:      "https://my.site/openfga/doelbinding.model",
 			wantPath:     path3,
@@ -204,8 +188,6 @@ func TestNewPolicyFromStore(t *testing.T) {
 
 				assert.Equal(t, tc.wantID, got.ID())
 				assert.Equal(t, tc.wantLanguage, got.Language())
-				assert.Equal(t, tc.wantSource, got.Source())
-				assert.Equal(t, tc.wantTarget, got.Target())
 				assert.Equal(t, tc.wantRvva, got.RvvaID())
 				assert.Equal(t, tc.wantURI, got.URI())
 				assert.Equal(t, tc.wantPath, got.Path())

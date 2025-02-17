@@ -1,3 +1,4 @@
+// Package server contains functionality for running a http/https service.
 package server
 
 import (

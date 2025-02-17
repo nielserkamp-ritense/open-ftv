@@ -12,7 +12,7 @@ func (r *runner) decodeEntity(obj *EntityMapping) {
 }
 
 func (r *runner) decodeEntityData(data any, obj *EntityMapping) {
-	if obj.IdFromValue {
+	if obj.IDFromValue {
 		r.processEntity(obj.TypeValue, convert.AnyToString(data), nil, nil, obj)
 	} else {
 		switch t := data.(type) {
@@ -34,7 +34,7 @@ func (r *runner) decodeEntitiesSlice(m []any, obj *EntityMapping) {
 
 func (r *runner) decodeEntityMap(m map[string]any, obj *EntityMapping) {
 	tp := codeOrValueString(obj.TypeField, obj.TypeValue, m)
-	id := codeOrValueString(obj.IdField, obj.IdValue, m)
+	id := codeOrValueString(obj.IDField, obj.IDValue, m)
 
 	// determine optional attributes.
 	attrs := r.manager.newAttributes()

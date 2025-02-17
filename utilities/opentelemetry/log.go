@@ -1,3 +1,4 @@
+// Package opentelemetry contains functionality for working with OpenTelemetry modules.
 package opentelemetry
 
 import (

@@ -13,7 +13,7 @@ import (
 )
 
 func newService(t *testing.T, logger *slog.Logger, ca, cert, key string, path string, h func(req *fiber.Ctx) error) server.Service {
-	cfg := []server.ServerOption{
+	cfg := []server.Option{
 		server.WithDefaults(),
 		server.WithAppName("mock service"),
 		server.WithHostPort("127.0.0.1", 9900),
