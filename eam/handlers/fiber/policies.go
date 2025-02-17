@@ -211,8 +211,6 @@ func (h *policiesHandler) convertPolicy(pol pap.Policy) *policies.Policy {
 		Id:       pol.ID(),
 		Language: pol.Language(),
 		RvvaId:   pol.RvvaID(),
-		Source:   pol.Source(),
-		Target:   pol.Target(),
 		Url:      pol.URI(),
 	}
 }
