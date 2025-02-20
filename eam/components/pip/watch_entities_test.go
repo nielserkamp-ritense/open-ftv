@@ -276,8 +276,11 @@ func TestWatchEntityFiles(t *testing.T) {
 			wg.Wait()
 
 			assert.Nil(t, p.entityWatcher)
+
+			p.mutex.RLock()
 			assert.Empty(t, p.entityUpdates)
 			assert.Empty(t, p.entityDeletes)
+			p.mutex.RUnlock()
 
 			var count int
 			p.entities.IterateEntities(func(models.Entity) {

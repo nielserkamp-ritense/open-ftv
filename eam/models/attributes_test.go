@@ -192,8 +192,21 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 			want:  map[string]any{"hello": 12345},
 		},
 		{
-			name:  "new key",
-			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			name:  "blank key",
+			in:    &attributes{set: make(map[string]Attribute)},
+			key:   "",
+			value: 12345,
+			orig:  int32(12345),
+			tp:    "xsd:integer",
+			want:  map[string]any{},
+		},
+		{
+			name: "new key",
+			in: NewAttributeSet(
+				NewAttribute("hello", "world"),
+				NewAttribute("int", 123),
+				NewAttribute("bool", true),
+			),
 			key:   "float",
 			value: 12345.6789,
 			orig:  "12345.6789",
@@ -201,8 +214,12 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
 		},
 		{
-			name:  "duplicate key",
-			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			name: "duplicate key",
+			in: NewAttributeSet(
+				NewAttribute("hello", "world"),
+				NewAttribute("int", 123),
+				NewAttribute("bool", true),
+			),
 			key:   "int",
 			value: 12345.6789,
 			orig:  "12345.6789",
@@ -220,13 +237,56 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 			require.NotNil(t, got)
 			assert.EqualValues(t, tc.want, got)
 
-			attr := a.GetAttribute(tc.key)
-			require.NotNil(t, attr)
-			assert.Equal(t, tc.value, attr.Value())
-			assert.Equal(t, tc.orig, attr.Original())
-			assert.Equal(t, tc.tp, attr.Type())
+			if tc.key != "" {
+				attr := a.GetAttribute(tc.key)
+				require.NotNil(t, attr)
+				assert.Equal(t, tc.value, attr.Value())
+				assert.Equal(t, tc.orig, attr.Original())
+				assert.Equal(t, tc.tp, attr.Type())
+			}
 		})
 	}
+}
+
+func TestAddAttributePath(t *testing.T) {
+	t.Run("add attribute with path", func(t *testing.T) {
+		s := NewAttributeSet(
+			NewAttribute("c", "hello world"),
+			NewAttribute("a", 123),
+			NewAttribute("b", true),
+		)
+		require.NotNil(t, s)
+
+		s.AddAttribute("a.b.c", "hello world")
+		s.AddAttribute("a.b.d", true)
+		s.AddAttribute("a.e", 123.456)
+
+		attr := s.GetAttribute("a")
+		require.NotNil(t, attr)
+
+		s2, ok2 := attr.Value().(AttributeSet)
+		require.True(t, ok2)
+		require.NotNil(t, s2)
+
+		attr2 := s2.GetAttribute("b")
+		require.NotNil(t, attr2)
+
+		s3, ok3 := attr2.Value().(AttributeSet)
+		require.True(t, ok3)
+		require.NotNil(t, s3)
+
+		attr3 := s3.GetAttribute("c")
+		require.NotNil(t, attr3)
+		assert.Equal(t, "hello world", attr3.Value())
+
+		attr3 = s3.GetAttribute("d")
+		require.NotNil(t, attr3)
+		assert.Equal(t, true, attr3.Value())
+
+		attr2 = s2.GetAttribute("e")
+		require.NotNil(t, attr2)
+		assert.Equal(t, 123.456, attr2.Value())
+	})
 }
 
 func TestAttributes_RemoveAttribute(t *testing.T) {
@@ -378,3 +438,80 @@ func TestMapFromAttributes(t *testing.T) {
 		})
 	}
 }
+
+func TestAttributesEqual(t *testing.T) {
+	testCases := []struct {
+		name string
+		s1   AttributeSet
+		s2   AttributeSet
+		want bool
+	}{
+		{
+			name: "both empty",
+			s1:   NewAttributeSet(),
+			s2:   NewAttributeSet(),
+			want: true,
+		},
+		{
+			name: "s1 empty",
+			s1:   NewAttributeSet(),
+			s2:   NewAttributeSet(NewAttribute("hello", "world")),
+		},
+		{
+			name: "s2 empty",
+			s1:   NewAttributeSet(NewAttribute("hello", "world")),
+			s2:   NewAttributeSet(),
+		},
+		{
+			name: "s1 bad",
+			s1:   &badSet{},
+			s2:   NewAttributeSet(),
+		},
+		{
+			name: "equal",
+			s1: NewAttributeSet(
+				NewAttribute("hello", "world"),
+				NewAttribute("int", 123456),
+				NewAttribute("bool", true),
+			),
+			s2: NewAttributeSet(
+				NewAttribute("int", 123456),
+				NewAttribute("bool", true),
+				NewAttribute("hello", "world"),
+			),
+			want: true,
+		},
+		{
+			name: "almost equal",
+			s1: NewAttributeSet(
+				NewAttribute("hello", "world"),
+				NewAttribute("bool", true),
+				NewAttribute("float", 123456.66),
+			),
+			s2: NewAttributeSet(
+				NewAttribute("float", 123456.67),
+				NewAttribute("bool", true),
+				NewAttribute("hello", "world"),
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := AttributesEqual(tc.s1, tc.s2)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+type badSet struct{}
+
+func (s *badSet) AddAttribute(string, any)                      {}
+func (s *badSet) AddAttributeWithType(string, any, string)      {}
+func (s *badSet) AddOriginalAttribute(string, any, any, string) {}
+func (s *badSet) GetAttribute(string) Attribute                 { return nil }
+func (s *badSet) GetAttributeValue(string) any                  { return nil }
+func (s *badSet) RemoveAttribute(string)                        {}
+func (s *badSet) IterateAttributes(AttributeIterator)           {}
+func (s *badSet) MergeAttributes(...AttributeSet)               {}
+func (s *badSet) MarshalJSON() ([]byte, error)                  { return nil, nil }

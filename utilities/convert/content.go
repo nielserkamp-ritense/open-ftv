@@ -10,7 +10,7 @@ const DefaultContentType = "application/octet-stream"
 // ContentType represents a content-type.
 type ContentType uint8
 
-// ListAllKeys of supported content-types.
+// List of supported content-types.
 const (
 	ApplicationOctets ContentType = iota
 	ApplicationXML

@@ -11,6 +11,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 func TestClearWatcher(t *testing.T) {
@@ -57,25 +59,32 @@ func TestClearWatcher(t *testing.T) {
 func TestProcessDeletes(t *testing.T) {
 	testCases := []struct {
 		name  string
-		files []string
+		files map[string]struct{}
 	}{
 		{
 			name:  "empty",
-			files: []string{},
+			files: map[string]struct{}{},
 		},
 		{
 			name:  "one",
-			files: []string{"x.txt"},
+			files: map[string]struct{}{"x.txt": {}},
 		},
 		{
 			name:  "few",
-			files: []string{"a.txt", "b.txt", "c.txt"},
+			files: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			p := &pap{deletes: tc.files}
+			s := memory.New()
+
+			p := &pap{
+				deletes: tc.files,
+				store:   s,
+				persist: NewStore(nil, s, ""),
+			}
+
 			p.processDeletes()
 			assert.Empty(t, p.deletes)
 		})
@@ -85,25 +94,32 @@ func TestProcessDeletes(t *testing.T) {
 func TestProcessUpdates(t *testing.T) {
 	testCases := []struct {
 		name  string
-		files []string
+		files map[string]struct{}
 	}{
 		{
 			name:  "empty",
-			files: []string{},
+			files: map[string]struct{}{},
 		},
 		{
 			name:  "one",
-			files: []string{"x.txt"},
+			files: map[string]struct{}{"x.txt": {}},
 		},
 		{
 			name:  "few",
-			files: []string{"a.txt", "b.txt", "c.txt"},
+			files: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			p := &pap{updates: tc.files}
+			s := memory.New()
+
+			p := &pap{
+				updates: tc.files,
+				store:   s,
+				persist: NewStore(nil, s, ""),
+			}
+
 			p.processUpdates()
 			assert.Empty(t, p.updates)
 		})
@@ -117,31 +133,37 @@ func TestPolicyModified(t *testing.T) {
 		write       []string
 		rename      []string
 		remove      []string
-		wantUpdates []string
-		wantDeletes []string
+		wantUpdates map[string]struct{}
+		wantDeletes map[string]struct{}
 	}{
 		{
-			name: "none",
+			name:        "none",
+			wantUpdates: map[string]struct{}{},
+			wantDeletes: map[string]struct{}{},
 		},
 		{
 			name:        "create",
 			create:      []string{"a.txt", "b.txt", "c.txt"},
-			wantUpdates: []string{"a.txt", "b.txt", "c.txt"},
+			wantUpdates: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
+			wantDeletes: map[string]struct{}{},
 		},
 		{
 			name:        "write",
 			write:       []string{"a.txt", "b.txt", "c.txt"},
-			wantUpdates: []string{"a.txt", "b.txt", "c.txt"},
+			wantUpdates: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
+			wantDeletes: map[string]struct{}{},
 		},
 		{
 			name:        "rename",
 			rename:      []string{"a.txt", "b.txt", "c.txt"},
-			wantUpdates: []string{"a.txt", "b.txt", "c.txt"},
+			wantUpdates: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
+			wantDeletes: map[string]struct{}{},
 		},
 		{
 			name:        "remove",
 			remove:      []string{"a.txt", "b.txt", "c.txt"},
-			wantDeletes: []string{"a.txt", "b.txt", "c.txt"},
+			wantUpdates: map[string]struct{}{},
+			wantDeletes: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}},
 		},
 		{
 			name:        "mixed",
@@ -149,14 +171,21 @@ func TestPolicyModified(t *testing.T) {
 			write:       []string{"c.txt", "d.txt", "f.txt"},
 			rename:      []string{"f.txt", "e.txt", "c.txt"},
 			remove:      []string{"a.txt", "f.txt", "c.txt"},
-			wantUpdates: []string{"a.txt", "b.txt", "c.txt", "d.txt", "e.txt", "f.txt"},
-			wantDeletes: []string{"a.txt", "c.txt", "f.txt"},
+			wantUpdates: map[string]struct{}{"a.txt": {}, "b.txt": {}, "c.txt": {}, "d.txt": {}, "e.txt": {}, "f.txt": {}},
+			wantDeletes: map[string]struct{}{"a.txt": {}, "c.txt": {}, "f.txt": {}},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			p := &pap{}
+			s := memory.New()
+
+			p := &pap{
+				store:   s,
+				persist: NewStore(nil, s, ""),
+				updates: map[string]struct{}{},
+				deletes: map[string]struct{}{},
+			}
 
 			for i := range tc.create {
 				p.policyModified(fsnotify.Event{Name: tc.create[i], Op: fsnotify.Create})
@@ -232,7 +261,16 @@ func TestWatchFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := &pap{ctx: ctx, watcher: w, policies: make(map[string]Policy)}
+			s := memory.New()
+
+			p := &pap{
+				ctx:     ctx,
+				watcher: w,
+				store:   s,
+				persist: NewStore(nil, s, ""),
+				updates: map[string]struct{}{},
+				deletes: map[string]struct{}{},
+			}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
@@ -270,9 +308,11 @@ func TestWatchFiles(t *testing.T) {
 			wg.Wait()
 
 			assert.Nil(t, p.watcher)
+
+			p.mutex.Lock()
 			assert.Empty(t, p.updates)
 			assert.Empty(t, p.deletes)
-			assert.Equal(t, tc.want, len(p.policies))
+			p.mutex.Unlock()
 		})
 	}
 }

@@ -51,6 +51,9 @@ type IgnoreMissing = bool
 // PolicyID defines model for PolicyID.
 type PolicyID = string
 
+// PolicyLanguage defines model for PolicyLanguage.
+type PolicyLanguage = string
+
 // AccessDenied The response for an error (as defined by RFC9457).
 type AccessDenied = ErrorResponse
 

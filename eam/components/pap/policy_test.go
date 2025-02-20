@@ -157,7 +157,7 @@ func TestNewPolicyFromStore(t *testing.T) {
 			path:         path2,
 			content:      bytes.NewBufferString("some data"),
 			wantID:       "subsidies",
-			wantLanguage: "Rego",
+			wantLanguage: "rego",
 			wantRvva:     "rvva1",
 			wantURI:      "https://my.site/pol/x1",
 			wantPath:     path2,
@@ -168,7 +168,7 @@ func TestNewPolicyFromStore(t *testing.T) {
 			path:         path3,
 			content:      bytes.NewBufferString("some data"),
 			wantID:       "doelbinding.model",
-			wantLanguage: "OpenFGA",
+			wantLanguage: "openfga",
 			wantRvva:     "rvva2",
 			wantURI:      "https://my.site/openfga/doelbinding.model",
 			wantPath:     path3,
@@ -178,7 +178,7 @@ func TestNewPolicyFromStore(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err2 := NewPolicyFromStore(tc.path, tc.content)
+			got, err2 := NewPolicyFromStore("", tc.path, tc.content)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, got)

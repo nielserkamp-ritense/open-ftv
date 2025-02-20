@@ -2,35 +2,47 @@ package cerbos
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(event models.EventType, key string) {
 	if c.admin == nil {
-		c.logger.Error("failed to process event; admin client not initialized", "policy-key", key)
+		c.logger.Error("failed to process event; admin client not initialized", "policy-id", key)
 		return
 	}
 
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
-		id := c.getPolicyID(key)
+		language, id := pap.SplitPolicyKey(key)
+		if !strings.EqualFold(language, "cerbos") {
+			return
+		}
 
-		oldID, ok := c.policyIDs[key]
-		if ok && oldID != id {
+		id2 := c.getPolicyID(language, id)
+
+		oldID, ok := c.policyIDs[id]
+		if ok && oldID != id2 {
 			c.deletePolicy(key, oldID)
 		}
 
-		c.upsertPolicy(key, id)
+		c.upsertPolicy(language, id, id2)
 
 	case models.PolicyRemoved:
-		if id, ok := c.policyIDs[key]; ok && id != "" {
-			c.deletePolicy(key, id)
+		language, id := pap.SplitPolicyKey(key)
+		if !strings.EqualFold(language, "cerbos") {
+			return
+		}
+
+		if id2, ok := c.policyIDs[id]; ok && id2 != "" {
+			c.deletePolicy(id, id2)
 		}
 
 	default:
@@ -38,35 +50,35 @@ func (c *controller) Handle(event models.EventType, key string) {
 	}
 }
 
-func (c *controller) upsertPolicy(key, id string) {
-	policy, err := c.PAP().Get(key)
+func (c *controller) upsertPolicy(language, id, id2 string) {
+	policy, err := c.PAP().Read(language, id)
 	if err != nil {
-		c.logger.Error("failed to get policy", "policy-key", key, "error", err)
+		c.logger.Error("failed to get policy", "policy-id", id, "error", err)
 		return
 	}
 
 	set := cerbos.NewPolicySet().AddPolicyFromReader(policy.Content())
 	if err = set.Validate(); err != nil {
-		c.logger.Error("failed to decode policy", "policy-key", key, "error", err)
+		c.logger.Error("failed to decode policy", "policy-id", id, "error", err)
 	} else if err = c.admin.AddOrUpdatePolicy(c.Context(), set); err != nil {
-		c.logger.Error("failed to add/replace policy", "policy-key", key, "error", err)
+		c.logger.Error("failed to add/replace policy", "policy-id", id, "error", err)
 	} else {
-		c.policyIDs[key] = id
-		c.logger.Info("policy added/replaced", "policy-key", key, "policy-id", id)
+		c.policyIDs[id] = id2
+		c.logger.Info("policy added/replaced", "policy-id", id, "policy-key", id2)
 	}
 }
 
-func (c *controller) deletePolicy(key, id string) {
-	if _, err := c.admin.DisablePolicy(c.Context(), id); err != nil {
-		c.logger.Error("failed to remove policy", "policy-key", key, "policy-id", id, "error", err)
+func (c *controller) deletePolicy(id, id2 string) {
+	if _, err := c.admin.DisablePolicy(c.Context(), id2); err != nil {
+		c.logger.Error("failed to remove policy", "policy-id", id, "policy-key", id2, "error", err)
 	} else {
-		delete(c.policyIDs, key)
-		c.logger.Info("policy removed", "policy-key", key, "policy-id", id)
+		delete(c.policyIDs, id)
+		c.logger.Info("policy removed", "policy-id", id, "policy-key", id2)
 	}
 }
 
-func (c *controller) getPolicyID(key string) string {
-	policy, err := c.PAP().Get(key)
+func (c *controller) getPolicyID(language, id string) string {
+	policy, err := c.PAP().Read(language, id)
 	if err != nil {
 		return ""
 	}

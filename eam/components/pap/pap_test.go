@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,6 @@ func TestNew(t *testing.T) {
 
 		assert.NotNil(t, p2.logger)
 		assert.Nil(t, p2.events)
-		assert.NotNil(t, p2.policies)
 	})
 }
 
@@ -65,7 +65,7 @@ func TestPap_Add(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				pol2, err3 := p.Add(pol)
+				pol2, err3 := p.Create(pol)
 				require.NoError(t, err3)
 				require.NotNil(t, pol2)
 
@@ -76,8 +76,6 @@ func TestPap_Add(t *testing.T) {
 				p2, ok := p.(*pap)
 				require.True(t, ok)
 				require.NotNil(t, p2)
-
-				assert.Equal(t, tc.wantCount, len(p2.policies))
 			}
 		})
 	}
@@ -91,7 +89,7 @@ func TestPap_Replace(t *testing.T) {
 	testCases := []struct {
 		name      string
 		cached    []string
-		id        string
+		key       string
 		data      io.Reader
 		wantErr   bool
 		wantCount int
@@ -99,21 +97,21 @@ func TestPap_Replace(t *testing.T) {
 	}{
 		{
 			name:    "empty cache",
-			id:      "x1.txt",
+			key:     "rego/x1.txt",
 			data:    bytes.NewReader([]byte("some data")),
 			wantErr: true,
 		},
 		{
 			name:    "key missing",
-			cached:  []string{"x2.txt", "x3.txt"},
-			id:      "x1.txt",
+			cached:  []string{"rego/x2.txt", "rego/x3.txt"},
+			key:     "rego/x1.txt",
 			data:    bytes.NewReader([]byte("some data")),
 			wantErr: true,
 		},
 		{
 			name:      "key found",
-			cached:    []string{"x2.txt", "x3.txt", "x1.txt"},
-			id:        "x1.txt",
+			cached:    []string{"rego/x2.txt", "rego/x3.txt", "rego/x1.txt"},
+			key:       "rego/x1.txt",
 			data:      bytes.NewReader([]byte("some data")),
 			wantCount: 3,
 			want:      "some data",
@@ -129,26 +127,33 @@ func TestPap_Replace(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				id := tc.cached[i]
+				key := tc.cached[i]
+				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 
-			pol, err2 := NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
+			parts := strings.Split(tc.key, "/")
+
+			prev, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 			require.NoError(t, err2)
+			require.NotNil(t, prev)
+
+			pol, err3 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, tc.data)
+			require.NoError(t, err3)
 			require.NotNil(t, pol)
 
-			pol2, err3 := p.Replace(pol)
+			pol2, err4 := p.Update(prev, pol)
 			if tc.wantErr {
-				require.Error(t, err3)
+				require.Error(t, err4)
 				require.Nil(t, pol2)
 			} else {
-				require.NoError(t, err3)
+				require.NoError(t, err4)
 				require.NotNil(t, pol2)
 
 				assert.Equal(t, len(tc.cached), e.added)
@@ -159,14 +164,12 @@ func TestPap_Replace(t *testing.T) {
 				require.True(t, ok)
 				require.NotNil(t, p2)
 
-				assert.Equal(t, tc.wantCount, len(p2.policies))
-
-				f, err4 := p.Get(tc.id)
-				require.NoError(t, err4)
+				f, err5 := p.Read(parts[0], parts[1])
+				require.NoError(t, err5)
 				require.NotNil(t, f)
 
-				data, err5 := io.ReadAll(f.Content())
-				require.NoError(t, err5)
+				data, err6 := io.ReadAll(f.Content())
+				require.NoError(t, err6)
 				require.Equal(t, tc.want, string(data))
 			}
 		})
@@ -181,9 +184,9 @@ func TestPap_Remove(t *testing.T) {
 		wantErr   bool
 		wantCount int
 	}{
-		{name: "empty cache", key: "x1.txt", wantErr: true},
-		{name: "key missing", cached: []string{"x2.txt", "x3.txt"}, key: "x1.txt", wantErr: true},
-		{name: "key found", cached: []string{"x2.txt", "x3.txt", "x1.txt"}, key: "x1.txt", wantCount: 2},
+		{name: "empty cache", key: "rego/x1.txt", wantErr: true},
+		{name: "key missing", cached: []string{"rego/x2.txt", "rego/x3.txt"}, key: "rego/x1.txt", wantErr: true},
+		{name: "key found", cached: []string{"rego/x2.txt", "rego/x3.txt", "rego/x1.txt"}, key: "rego/x1.txt", wantCount: 2},
 	}
 
 	for _, tc := range testCases {
@@ -195,22 +198,28 @@ func TestPap_Remove(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				id := tc.cached[i]
+				key := tc.cached[i]
+				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 
-			pol, err2 := p.Remove(tc.key)
+			parts := strings.Split(tc.key, "/")
+			prev, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+			require.NoError(t, err2)
+			require.NotNil(t, prev)
+
+			pol, err3 := p.Delete(prev)
 			if tc.wantErr {
-				require.Error(t, err2)
+				require.Error(t, err3)
 				require.Nil(t, pol)
 			} else {
-				require.NoError(t, err2)
+				require.NoError(t, err3)
 				require.NotNil(t, pol)
 
 				assert.Equal(t, len(tc.cached), e.added)
@@ -221,9 +230,7 @@ func TestPap_Remove(t *testing.T) {
 				require.True(t, ok)
 				require.NotNil(t, p2)
 
-				assert.Equal(t, tc.wantCount, len(p2.policies))
-
-				f, err4 := p.Get(tc.key)
+				f, err4 := p.Read("", tc.key)
 				require.Error(t, err4)
 				require.Nil(t, f)
 			}
@@ -235,11 +242,11 @@ func TestPap_ListAllKeys(t *testing.T) {
 	testCases := []struct {
 		name   string
 		cached []string
-		want   []string
+		want   map[string]bool
 	}{
-		{name: "empty", want: []string{}},
-		{name: "one", cached: []string{"x2.txt"}, want: []string{"x2.txt"}},
-		{name: "few", cached: []string{"x2.txt", "x3.txt", "x1.txt"}, want: []string{"x1.txt", "x2.txt", "x3.txt"}},
+		{name: "empty", want: map[string]bool{}},
+		{name: "one", cached: []string{"rego/x2.txt"}, want: map[string]bool{"rego/x2.txt": true}},
+		{name: "few", cached: []string{"rego/x2.txt", "rego/x3.txt", "rego/x1.txt"}, want: map[string]bool{"rego/x1.txt": true, "rego/x2.txt": true, "rego/x3.txt": true}},
 	}
 
 	for _, tc := range testCases {
@@ -250,18 +257,27 @@ func TestPap_ListAllKeys(t *testing.T) {
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
-				id := tc.cached[i]
+				key := tc.cached[i]
+				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Id: id}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 
-			got := p.ListAllKeys()
-			assert.EqualValues(t, tc.want, got)
+			got, err := p.List("")
+			require.NoError(t, err)
+			assert.Equal(t, len(tc.want), len(got))
+
+			for i := range got {
+				pol := got[i]
+
+				_, ok := tc.want[pol.Key()]
+				assert.True(t, ok)
+			}
 		})
 	}
 }

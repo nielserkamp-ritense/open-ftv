@@ -3,7 +3,7 @@ package models
 // EventType indicates the type of PAP/PIP event.
 type EventType uint8
 
-// ListAllKeys of possible PAP/PIP events.
+// List of possible PAP/PIP events.
 const (
 	PolicyAdded EventType = iota + 1
 	PolicyReplaced

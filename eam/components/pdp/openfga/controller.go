@@ -30,7 +30,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	c.SetPAP(pap.New(nil, c.Logger(), c))
+	c.SetPAP(pap.New(nil, c.Logger(), c, pap.WithLanguage(components.OPENFGA.String())))
 
 	if store, recurse := c.Store(); store != "" {
 		store, _ = filepath.Abs(store)

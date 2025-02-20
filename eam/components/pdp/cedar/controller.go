@@ -31,7 +31,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		}
 	})
 
-	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
+	c.SetPAP(pap.New(c.Context(), c.Logger(), c, pap.WithLanguage(components.CEDAR.String())))
 
 	store, recurse := c.Store()
 	if store != "" {

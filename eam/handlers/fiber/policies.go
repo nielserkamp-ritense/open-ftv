@@ -29,31 +29,25 @@ func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP) PoliciesHandler {
 
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
-	list := h.cache.ListAllKeys()
-	resp := make([]*policies.Policy, 0, len(list))
-
-	for i := range list {
-		key := list[i]
-		if pol, err := h.cache.Get(key); err == nil {
-			// we ignore policies that got deleted after we retrieved the list of keys.
-			resp = append(resp, h.convertPolicy(pol))
-		}
+	list, err := h.cache.List("")
+	if err != nil {
+		return fiber2.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
 	}
 
-	if len(resp) == 0 {
+	if len(list) == 0 {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
-	return req.JSON(resp)
+	return req.JSON(list)
 }
 
 // GetPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
-	id, ok, err := h.checkID(req)
+	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
 	}
 
-	pol, err2 := h.cache.Get(id)
+	pol, err2 := h.cache.Read(language, id)
 	if err2 != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -62,7 +56,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 
 // PutPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
-	id, ok, err := h.checkID(req)
+	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
 	}
@@ -70,7 +64,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	upsert := req.QueryBool("forceUpsert")
 
 	var p *policies.Policy
-	if p, ok, err = h.checkBody(req, id); !ok {
+	if p, ok, err = h.checkBody(req, language, id); !ok {
 		return err
 	}
 
@@ -82,16 +76,16 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if upsert {
 		// for upsert we check if the policy exists.
 		// if it exists, we replace it, otherwise we add it.
-		if _, err = h.cache.Get(p.Id); err == nil {
-			pol2, err2 := h.cache.Replace(pol)
-			if err2 != nil {
-				return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+		if prev, err2 := h.cache.Read(p.Language, p.Id); err2 == nil {
+			pol2, err3 := h.cache.Update(prev, pol)
+			if err3 != nil {
+				return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 			}
 			return req.JSON(h.convertPolicy(pol2))
 		}
 	}
 
-	pol2, err2 := h.cache.Add(pol)
+	pol2, err2 := h.cache.Create(pol)
 	if err2 != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 	}
@@ -100,7 +94,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
-	id, ok, err := h.checkID(req)
+	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
 	}
@@ -108,7 +102,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	upsert := req.QueryBool("forceUpsert")
 
 	var p *policies.Policy
-	if p, ok, err = h.checkBody(req, id); !ok {
+	if p, ok, err = h.checkBody(req, language, id); !ok {
 		return err
 	}
 
@@ -117,60 +111,76 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	if upsert {
-		// for upsert we check if the policy exists.
-		// if it doesn't exist, we add it, otherwise we replace it.
-		if _, err = h.cache.Get(p.Id); err != nil {
-			pol2, err2 := h.cache.Add(pol)
-			if err2 != nil {
-				return fiber2.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+	prev, err2 := h.cache.Read(p.Language, p.Id)
+	if err2 != nil {
+		if upsert {
+			// for upsert we check if the policy exists.
+			// if it doesn't exist, we add it, otherwise we replace it.
+			pol2, err3 := h.cache.Create(pol)
+			if err3 != nil {
+				return fiber2.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
 			}
 			return req.JSON(h.convertPolicy(pol2))
 		}
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 
-	pol2, err2 := h.cache.Replace(pol)
-	if err2 != nil {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+	pol2, err3 := h.cache.Update(prev, pol)
+	if err3 != nil {
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}
 	return req.JSON(h.convertPolicy(pol2))
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
-	id, ok, err := h.checkID(req)
+	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
 	}
 
 	ignore := req.QueryBool("ignoreMissing")
 
-	if _, err = h.cache.Get(id); err != nil {
+	prev, err2 := h.cache.Read(language, id)
+	if err2 != nil {
 		if ignore {
-			return req.JSON(&policies.Policy{Id: id})
+			return req.JSON(&policies.Policy{Language: language, Id: id})
 		}
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 
-	pol, err2 := h.cache.Remove(id)
-	if err2 != nil {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+	pol, err3 := h.cache.Delete(prev)
+	if err3 != nil {
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}
 	return req.JSON(h.convertPolicy(pol))
 }
 
-func (h *policiesHandler) checkID(req *fiber.Ctx) (string, bool, error) {
+func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, string, bool, error) {
+	language := req.Params("language")
+	if language == "" || len(language) > 100 {
+		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "language must be filled and not more than 100 characters")
+	}
+
 	id := req.Params("id")
 	if id == "" || len(id) > 500 {
-		return "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled or nit more than 500 characters")
+		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled and not more than 500 characters")
 	}
-	return id, true, nil
+
+	return language, id, true, nil
 }
 
-func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*policies.Policy, bool, error) {
+func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*policies.Policy, bool, error) {
 	var p policies.Policy
 	if err := req.BodyParser(&p); err != nil {
 		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	if p.Language != language {
+		if p.Language != "" {
+			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy language")
+		}
+		p.Language = language
 	}
 
 	if p.Id != id {

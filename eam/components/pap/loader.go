@@ -51,10 +51,10 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 	defer f.Close()
 
 	var pol Policy
-	if pol, err2 = NewPolicyFromStore(path, f); err2 != nil {
+	if pol, err2 = NewPolicyFromStore(p.language, path, f); err2 != nil {
 		return err2
 	}
 
-	_, err2 = p.Add(pol)
+	_, err2 = p.Create(pol)
 	return err2
 }

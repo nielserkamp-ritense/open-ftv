@@ -43,7 +43,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
+	c.SetPAP(pap.New(c.Context(), c.Logger(), c, pap.WithLanguage("rego")))
 
 	// wait for OPA to be ready, before loading other data!
 	select {

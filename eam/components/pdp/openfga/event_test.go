@@ -3,6 +3,7 @@ package openfga
 import (
 	"bytes"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,94 +35,94 @@ func TestController_HandleModel(t *testing.T) {
 		{
 			name:       "add model - not found",
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "failed to get file",
 		},
 		{
 			name:       "replace model - not found",
 			event1:     models.PolicyReplaced,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "failed to get file",
 		},
 		{
 			name:       "add model - bad store name",
-			policies:   map[string]string{"s3.model": store1},
+			policies:   map[string]string{"openfga/s3.model": store1},
 			event1:     models.PolicyAdded,
-			key1:       "s3.model",
+			key1:       "openfga/s3.model",
 			wantLog1:   1,
 			logPrefix1: "failed to create store",
 		},
 		{
 			name:       "add model - bad model",
-			policies:   map[string]string{"store2.model": store2},
+			policies:   map[string]string{"openfga/store2.model": store2},
 			event1:     models.PolicyAdded,
-			key1:       "store2.model",
+			key1:       "openfga/store2.model",
 			wantLog1:   1,
 			logPrefix1: "failed to compile model",
 		},
 		{
 			name:       "add model - new key",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 		},
 		{
 			name:       "add model - duplicate",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyAdded,
-			key2:       "store1.model",
+			key2:       "openfga/store1.model",
 			wantLog2:   1,
 			logPrefix2: "model added/replaced",
 		},
 		{
 			name:       "add & replace model",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "store1.model",
+			key2:       "openfga/store1.model",
 			wantLog2:   1,
 			logPrefix2: "model added/replaced",
 		},
 		{
 			name:       "replace model - new key",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyReplaced,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 		},
 		{
 			name:       "replace model - duplicate",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyReplaced,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "store1.model",
+			key2:       "openfga/store1.model",
 			wantLog2:   1,
 			logPrefix2: "model added/replaced",
 		},
 		{
 			name:       "remove model - found",
-			policies:   map[string]string{"store1.model": store1},
+			policies:   map[string]string{"openfga/store1.model": store1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyRemoved,
-			key2:       "store1.model",
+			key2:       "openfga/store1.model",
 			wantLog2:   1,
 			logPrefix2: "store removed",
 		},
@@ -146,14 +147,16 @@ func TestController_HandleModel(t *testing.T) {
 			}
 
 			p := pap.New(nil, logger, nil)
-			for id := range tc.policies {
-				data := []byte(tc.policies[id])
 
-				pol, err2 := pap.NewPolicy(&policies.Policy{Id: id}, bytes.NewReader(data))
+			for key := range tc.policies {
+				data := []byte(tc.policies[key])
+				parts := strings.Split(key, "/")
+
+				pol, err2 := pap.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 
@@ -214,118 +217,118 @@ func TestController_HandleRelations(t *testing.T) {
 		{
 			name:       "add relations - not found",
 			event2:     models.PolicyAdded,
-			key2:       "store1.relations",
+			key2:       "openfga/store1.relations",
 			wantLog2:   1,
 			logPrefix2: "failed to get file",
 		},
 		{
 			name:       "replace relations - not found",
 			event2:     models.PolicyReplaced,
-			key2:       "store1.relations",
+			key2:       "openfga/store1.relations",
 			wantLog2:   1,
 			logPrefix2: "failed to get file",
 		},
 		{
 			name:       "add relation - bad store name",
-			policies:   map[string]string{"s3.relations": relations1},
+			policies:   map[string]string{"openfga/s3.relations": relations1},
 			event2:     models.PolicyAdded,
-			key2:       "s3.relations",
+			key2:       "openfga/s3.relations",
 			wantLog2:   1,
 			logPrefix2: "failed to create store",
 		},
 		{
 			name:       "add relation - bad",
-			policies:   map[string]string{"store2.relations": relations2},
+			policies:   map[string]string{"openfga/store2.relations": relations2},
 			event2:     models.PolicyAdded,
-			key2:       "store2.relations",
+			key2:       "openfga/store2.relations",
 			wantLog2:   1,
 			logPrefix2: "failed to decode relations",
 		},
 		{
 			name:       "add relation - new key",
-			policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+			policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyAdded,
-			key2:       "store1.relations",
+			key2:       "openfga/store1.relations",
 			wantLog2:   1,
 			logPrefix2: "relations added/replaced",
 		},
 		// {
 		// 	name:       "add relation - duplicate",
-		// 	policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+		// 	policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 		// 	event1:     models.PolicyAdded,
-		// 	key1:       "store1.model",
+		// 	key1:       "openfga/store1.model",
 		// 	wantLog1:   1,
 		// 	logPrefix1: "model added/replaced",
 		// 	event2:     models.PolicyAdded,
-		// 	key2:       "store1.relations",
+		// 	key2:       "openfga/store1.relations",
 		// 	wantLog2:   1,
 		// 	logPrefix2: "relations added/replaced",
 		// 	event3:     models.PolicyAdded,
-		// 	key3:       "store1.relations",
+		// 	key3:       "openfga/store1.relations",
 		// 	wantLog3:   1,
 		// 	logPrefix3: "relations added/replaced",
 		// },
 		// {
 		// 	name:       "add & replace relation",
-		// 	policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+		// 	policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 		// 	event1:     models.PolicyAdded,
-		// 	key1:       "store1.model",
+		// 	key1:       "openfga/store1.model",
 		// 	wantLog1:   1,
 		// 	logPrefix1: "model added/replaced",
 		// 	event2:     models.PolicyAdded,
-		// 	key2:       "store1.relations",
+		// 	key2:       "openfga/store1.relations",
 		// 	wantLog2:   1,
 		// 	logPrefix2: "relations added/replaced",
 		// 	event3:     models.PolicyReplaced,
-		// 	key3:       "store1.relations",
+		// 	key3:       "openfga/store1.relations",
 		// 	wantLog3:   1,
 		// 	logPrefix3: "relations added/replaced",
 		// },
 		{
 			name:       "replace relation - new key",
-			policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+			policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 			event1:     models.PolicyAdded,
-			key1:       "store1.model",
+			key1:       "openfga/store1.model",
 			wantLog1:   1,
 			logPrefix1: "model added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "store1.relations",
+			key2:       "openfga/store1.relations",
 			wantLog2:   1,
 			logPrefix2: "relations added/replaced",
 		},
 		// {
 		// 	name:       "replace relation - duplicate",
-		// 	policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+		// 	policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 		// 	event1:     models.PolicyAdded,
-		// 	key1:       "store1.model",
+		// 	key1:       "openfga/store1.model",
 		// 	wantLog1:   1,
 		// 	logPrefix1: "model added/replaced",
 		// 	event2:     models.PolicyReplaced,
-		// 	key2:       "store1.relations",
+		// 	key2:       "openfga/store1.relations",
 		// 	wantLog2:   1,
 		// 	logPrefix2: "relations added/replaced",
 		// 	event3:     models.PolicyReplaced,
-		// 	key3:       "store1.relations",
+		// 	key3:       "openfga/store1.relations",
 		// 	wantLog3:   1,
 		// 	logPrefix3: "relations added/replaced",
 		// },
 		// {
 		// 	name:       "remove relation - found",
-		// 	policies:   map[string]string{"store1.model": store1, "store1.relations": relations1},
+		// 	policies:   map[string]string{"openfga/store1.model": store1, "openfga/store1.relations": relations1},
 		// 	event1:     models.PolicyAdded,
-		// 	key1:       "store1.model",
+		// 	key1:       "openfga/vstore1.model",
 		// 	wantLog1:   1,
 		// 	logPrefix1: "model added/replaced",
 		// 	event2:     models.PolicyAdded,
-		// 	key2:       "store1.relations",
+		// 	key2:       "openfga/store1.relations",
 		// 	wantLog2:   1,
 		// 	logPrefix2: "relations added/replaced",
 		// 	event3:     models.PolicyRemoved,
-		// 	key3:       "store1.relations",
+		// 	key3:       "openfga/store1.relations",
 		// 	wantLog3:   1,
 		// 	logPrefix3: "relations removed",
 		// },
@@ -350,14 +353,16 @@ func TestController_HandleRelations(t *testing.T) {
 			}
 
 			p := pap.New(nil, logger, nil)
-			for id := range tc.policies {
-				data := []byte(tc.policies[id])
 
-				pol, err2 := pap.NewPolicy(&policies.Policy{Id: id}, bytes.NewReader(data))
+			for key := range tc.policies {
+				data := []byte(tc.policies[key])
+				parts := strings.Split(key, "/")
+
+				pol, err2 := pap.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 

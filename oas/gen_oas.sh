@@ -9,6 +9,7 @@ function fix_code {
   sed -i -e "s/*ForceUpsert/ForceUpsert/" $1.go
   sed -i -e "s/*ReasonField/ReasonField/" $1.go
   sed -i -e "s/interface{}/any/" $1.go
+  go fmt $1.go
 }
 
 ##### AuthZEN #####

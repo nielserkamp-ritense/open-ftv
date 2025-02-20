@@ -46,7 +46,7 @@ func LanguageFromString(in string) Language {
 // Format represents the format for policy files.
 type Format uint8
 
-// ListAllKeys of supported policy file formats.
+// List of supported policy file formats.
 //
 // Note that the policy language (Language) limits the choices for the file format of a policy.
 const (

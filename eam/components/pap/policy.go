@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -18,8 +20,9 @@ import (
 //
 // A policy is designed to be read-only, so it is safe to use across concurrent go-routines.
 type Policy interface {
-	ID() string
+	Key() string
 	Language() string
+	ID() string
 	RvvaID() string
 	URI() string
 	Path() string
@@ -47,7 +50,7 @@ func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Pol
 
 	return &policy{
 		id:       id,
-		language: language,
+		language: strings.ToLower(language),
 		rvvaID:   rvvaID,
 		uri:      uri,
 		content:  d,
@@ -58,7 +61,7 @@ func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Pol
 //
 // The function will also attempt to load the policy's corresponding metadata from the same location.
 // This file can be encoded as YAML or as JSON.
-func NewPolicyFromStore(path string, content io.Reader) (Policy, error) {
+func NewPolicyFromStore(language, path string, content io.Reader) (Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
@@ -75,16 +78,21 @@ func NewPolicyFromStore(path string, content io.Reader) (Policy, error) {
 		}
 	}
 
+	if p.Language == "" {
+		p.Language = language
+	}
+
 	if p.Id == "" {
 		p.Id = id
 	}
+
 	return newPolicy(&p, path, d), nil
 }
 
 func newPolicy(p *policies.Policy, path string, d []byte) Policy {
 	return &policy{
 		id:       p.Id,
-		language: p.Language,
+		language: strings.ToLower(p.Language),
 		rvvaID:   p.RvvaId,
 		uri:      p.Url,
 		path:     path,
@@ -101,14 +109,19 @@ func testContent(content io.Reader) ([]byte, error) {
 	return io.ReadAll(content)
 }
 
-// ID implements the Policy interface.
-func (p *policy) ID() string {
-	return p.id
+// Key implements the Policy interface.
+func (p *policy) Key() string {
+	return fmt.Sprintf("%s/%s", strings.ToLower(p.language), p.id)
 }
 
 // Language implements the Policy interface.
 func (p *policy) Language() string {
 	return p.language
+}
+
+// ID implements the Policy interface.
+func (p *policy) ID() string {
+	return p.id
 }
 
 // RvvaID implements the Policy interface.
@@ -134,8 +147,8 @@ func (p *policy) Content() io.Reader {
 // MarshalJSON implements the json.Marshaller interface.
 func (p *policy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&policyJSON{
-		ID:       p.id,
 		Language: p.language,
+		ID:       p.id,
 		RvvaID:   p.rvvaID,
 		URI:      p.uri,
 		Path:     p.path,
@@ -150,8 +163,8 @@ func (p *policy) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	p.language = strings.ToLower(p2.Language)
 	p.id = p2.ID
-	p.language = p2.Language
 	p.rvvaID = p2.RvvaID
 	p.uri = p2.URI
 	p.path = p2.Path
@@ -160,9 +173,18 @@ func (p *policy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// SplitPolicyKey splits a policy-key into language and id.
+func SplitPolicyKey(key string) (string, string) {
+	parts := strings.Split(key, "/")
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return "", key
+}
+
 type policy struct {
-	id       string
 	language string
+	id       string
 	rvvaID   string
 	uri      string
 	path     string
@@ -170,8 +192,8 @@ type policy struct {
 }
 
 type policyJSON struct {
-	ID       string `json:"id"`
 	Language string `json:"language"`
+	ID       string `json:"id"`
 	RvvaID   string `json:"rvvaID,omitempty"`
 	URI      string `json:"uri,omitempty"`
 	Path     string `json:"path,omitempty"`

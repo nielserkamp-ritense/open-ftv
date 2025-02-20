@@ -3,32 +3,34 @@ package pap
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"slices"
 	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 // PAP represents the interface for caching and retrieving policies.
 type PAP interface {
-	Add(in Policy) (Policy, error)
-	Replace(in Policy) (Policy, error)
-	Remove(id string) (Policy, error)
-	Get(id string) (Policy, error)
-	ListAllKeys() []string
+	Create(in Policy) (Policy, error)
+	Read(language, id string) (Policy, error)
+	Update(prev, in Policy) (Policy, error)
+	Delete(prev Policy) (Policy, error)
+	List(language string) ([]Policy, error)
 	LoadFromStore(path string, recurse bool)
 }
 
 // New instantiates a new policy cache.
 //
-// The optional context can be used to signal app shutdown by closing it,
-// so the PAP can clean up long-running go-routines and other resources.
-func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP {
+// The optional context can be used to signal an orderly shutdown.
+//
+// By default, a PAP uses an in-memory KV-cache.
+// Use the WithPersistence() option to connect a PAP to persistent storage.
+func New(ctx context.Context, logger *slog.Logger, events models.EventSink, options ...Option) PAP {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		w = nil // this means file handles are exhausted!
@@ -38,12 +40,22 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 		ctx = context.Background()
 	}
 
+	// by default, we have an in-memory KV-cache.
+	s := memory.New()
+
 	p := &pap{
-		ctx:      ctx,
-		logger:   logger,
-		events:   events,
-		policies: make(map[string]Policy),
-		watcher:  w,
+		ctx:     ctx,
+		logger:  logger,
+		events:  events,
+		watcher: w,
+		store:   s,
+		persist: NewStore(ctx, s, ""),
+		updates: make(map[string]struct{}),
+		deletes: make(map[string]struct{}),
+	}
+
+	for i := range options {
+		options[i](p)
 	}
 
 	if w != nil {
@@ -54,99 +66,82 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink) PAP 
 	return p
 }
 
-// Add adds a policy to the cache.
+// Create adds a policy to cache/storage.
 //
-// An error is returned if the policy key already exists.
-func (p *pap) Add(in Policy) (out Policy, err error) {
+// An error is returned if the policy-id already exists.
+func (p *pap) Create(in Policy) (out Policy, err error) {
 	p.mutex.Lock()
-	if _, ok := p.policies[in.ID()]; ok {
-		err = fmt.Errorf("cache policy '%s' already exists", in.ID())
-	} else {
-		out = in
-		p.policies[out.ID()] = out
-	}
+	out, err = p.persist.Create(in)
 	p.mutex.Unlock()
 
-	if out != nil && p.events != nil {
-		p.events.Handle(models.PolicyAdded, out.ID())
+	if err == nil && out != nil && p.events != nil {
+		p.events.Handle(models.PolicyAdded, out.Key())
 	}
 	return
 }
 
-// Replace modifies a policy in the cache with a newer version.
+// Read retrieves a policy from cache/storage.
 //
-// An error is returned if the policy key doesn't exist.
-func (p *pap) Replace(in Policy) (out Policy, err error) {
-	p.mutex.Lock()
-	if _, ok := p.policies[in.ID()]; !ok {
-		err = fmt.Errorf("cache policy '%s' not found", in.ID())
-	} else {
-		out = in
-		p.policies[out.ID()] = out
-	}
-	p.mutex.Unlock()
-
-	if out != nil && p.events != nil {
-		p.events.Handle(models.PolicyReplaced, out.ID())
-	}
-	return
-}
-
-// Remove removes a policy from the cache.
-//
-// An error is returned if the policy key doesn't exist.
-func (p *pap) Remove(id string) (out Policy, err error) {
-	p.mutex.Lock()
-	if old, ok := p.policies[id]; !ok {
-		err = fmt.Errorf("cache policy '%s' not found", id)
-	} else {
-		out = old
-		delete(p.policies, id)
-	}
-	p.mutex.Unlock()
-
-	if out != nil && p.events != nil {
-		p.events.Handle(models.PolicyRemoved, out.ID())
-	}
-	return
-}
-
-// Get retrieves a policy from the cache, or an error if the policy key doesn't exist.
-func (p *pap) Get(id string) (Policy, error) {
+// An error is returned if the policy-id doesn't exist.
+func (p *pap) Read(language, id string) (Policy, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
-
-	if data, ok := p.policies[id]; ok {
-		return data, nil
-	}
-
-	return nil, fmt.Errorf("cache policy '%s' not found", id)
+	return p.persist.Read(language, id)
 }
 
-// ListAllKeys returns a list of all cached policy keys.
-func (p *pap) ListAllKeys() []string {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
+// Update modifies a policy in cache/storage with a newer version.
+//
+// An error is returned if the policy-id doesn't exist.
+func (p *pap) Update(prev, in Policy) (out Policy, err error) {
+	p.mutex.Lock()
+	out, err = p.persist.Update(prev, in)
+	p.mutex.Unlock()
 
-	out := make([]string, 0, len(p.policies))
-	for k := range p.policies {
-		out = append(out, k)
+	if err == nil && out != nil && p.events != nil {
+		p.events.Handle(models.PolicyReplaced, out.Key())
 	}
 
-	slices.Sort(out)
-	return out
+	return
+}
+
+// Delete removes a policy from cache/storage.
+//
+// An error is returned if the policy key doesn't exist.
+func (p *pap) Delete(prev Policy) (out Policy, err error) {
+	p.mutex.Lock()
+	out, err = p.persist.Delete(prev)
+	p.mutex.Unlock()
+
+	if err == nil && out != nil && p.events != nil {
+		p.events.Handle(models.PolicyRemoved, out.Key())
+	}
+
+	return
+}
+
+// List returns a sorted list of all cached/stored policy keys.
+//
+// If the optional language parameter is supplied,
+// the function lists all policies with that language.
+// Otherwise, all policies, regardless of language, will be listed.
+func (p *pap) List(language string) ([]Policy, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.persist.List(language)
 }
 
 type pap struct {
 	recurse  bool
 	path     string
+	language string
 	ctx      context.Context
 	logger   *slog.Logger
 	watcher  *fsnotify.Watcher
 	wTimer   *time.Timer
-	policies map[string]Policy
-	updates  []string
-	deletes  []string
+	updates  map[string]struct{}
+	deletes  map[string]struct{}
 	events   models.EventSink
+	store    store.Store
+	persist  Persistence
 	mutex    sync.RWMutex
 }

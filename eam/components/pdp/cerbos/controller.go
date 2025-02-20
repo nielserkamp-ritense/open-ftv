@@ -33,7 +33,7 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
 	c.logger = c.Logger().With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)
 
-	c.SetPAP(pap.New(c.Context(), c.Logger(), c))
+	c.SetPAP(pap.New(c.Context(), c.Logger(), c, pap.WithLanguage("cerbos")))
 	c.initClients()
 
 	if store, recurse := c.Store(); store != "" {

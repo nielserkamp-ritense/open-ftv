@@ -3,7 +3,6 @@ package pap
 import (
 	"bytes"
 	"os"
-	"slices"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -49,21 +48,15 @@ func (p *pap) policyModified(e fsnotify.Event) {
 	}
 
 	switch e.Op {
-	case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
-		p.mutex.Lock()
-		p.updates = append(p.updates, e.Name)
-		slices.Sort(p.updates)
-		p.updates = slices.Compact(p.updates)
-		p.mutex.Unlock()
-
 	case fsnotify.Remove:
 		p.mutex.Lock()
-		p.deletes = append(p.deletes, e.Name)
-		slices.Sort(p.deletes)
-		p.deletes = slices.Compact(p.deletes)
+		p.deletes[e.Name] = struct{}{}
 		p.mutex.Unlock()
 
 	default:
+		p.mutex.Lock()
+		p.updates[e.Name] = struct{}{}
+		p.mutex.Unlock()
 	}
 }
 
@@ -72,22 +65,20 @@ func (p *pap) processUpdates() {
 		var path string
 
 		p.mutex.Lock()
-		l := len(p.updates)
-		if l > 0 {
-			path = p.updates[0]
-			p.updates = p.updates[1:]
+		for k := range p.updates {
+			path = k
+			delete(p.updates, k)
+			break
 		}
 		p.mutex.Unlock()
 
-		if l == 0 {
+		if path == "" {
 			return
 		}
 
-		if path != "" {
-			info, err := os.Stat(path)
-			if err == nil && !info.IsDir() {
-				go p.processUpdate(path)
-			}
+		info, err := os.Stat(path)
+		if err == nil && !info.IsDir() {
+			go p.processUpdate(path)
 		}
 	}
 }
@@ -99,19 +90,15 @@ func (p *pap) processUpdate(path string) {
 	}
 	defer f.Close()
 
-	pol, err2 := NewPolicyFromStore(path, f)
+	pol, err2 := NewPolicyFromStore(p.language, path, f)
 	if err2 != nil {
 		return
 	}
 
-	p.mutex.RLock()
-	_, ok := p.policies[pol.ID()]
-	p.mutex.RUnlock()
-
-	if ok {
-		_, _ = p.Replace(pol)
+	if prev, err3 := p.Read(pol.Language(), pol.ID()); err3 == nil {
+		_, _ = p.Update(prev, pol)
 	} else {
-		_, _ = p.Add(pol)
+		_, _ = p.Create(pol)
 	}
 }
 
@@ -120,20 +107,19 @@ func (p *pap) processDeletes() {
 		var path string
 
 		p.mutex.Lock()
-		l := len(p.deletes)
-		if l > 0 {
-			path = p.deletes[0]
-			p.deletes = p.deletes[1:]
+		for k := range p.deletes {
+			path = k
+			delete(p.deletes, k)
+			break
 		}
 		p.mutex.Unlock()
 
-		if l == 0 {
+		if path == "" {
 			return
 		}
 
-		pol, err2 := NewPolicyFromStore(path, bytes.NewReader([]byte{}))
-		if err2 == nil {
-			_, _ = p.Remove(pol.ID())
+		if pol, err2 := NewPolicyFromStore(p.language, path, bytes.NewReader([]byte{})); err2 == nil {
+			_, _ = p.Delete(pol)
 		}
 	}
 }

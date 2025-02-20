@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,85 +39,85 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "add - not found",
 			event1:     models.PolicyAdded,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
 		},
 		{
 			name:       "add - new key",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 		},
 		{
 			name:       "add - duplicate",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyAdded,
-			key2:       "p1",
+			key2:       "rego/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "add & replace",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "p1",
+			key2:       "rego/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "replace - not found",
 			event1:     models.PolicyReplaced,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
 		},
 		{
 			name:       "replace - new key",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyReplaced,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 		},
 		{
 			name:       "replace - duplicate",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyReplaced,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "p1",
+			key2:       "rego/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "remove - not found",
 			event1:     models.PolicyRemoved,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "failed to remove policy",
 		},
 		{
 			name:       "remove - found",
-			policies:   map[string]string{"p1": p1},
+			policies:   map[string]string{"rego/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "p1",
+			key1:       "rego/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyRemoved,
-			key2:       "p1",
+			key2:       "rego/p1",
 			wantLog2:   1,
 			logPrefix2: "policy removed",
 		},
@@ -146,14 +147,16 @@ func TestController_Handle(t *testing.T) {
 			}
 
 			p := pap.New(nil, logger, nil)
-			for id := range tc.policies {
-				data := []byte(tc.policies[id])
 
-				pol, err2 := pap.NewPolicy(&policies.Policy{Id: id}, bytes.NewReader(data))
+			for key := range tc.policies {
+				data := []byte(tc.policies[key])
+				parts := strings.Split(key, "/")
+
+				pol, err2 := pap.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Add(pol)
+				_, err2 = p.Create(pol)
 				require.NoError(t, err2)
 			}
 

@@ -11,21 +11,28 @@ import (
 	"github.com/openfga/language/pkg/go/transformer"
 	tuple2 "github.com/openfga/openfga/pkg/tuple"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(t models.EventType, key string) {
-	ext := filepath.Ext(key)
-	store := strings.Replace(filepath.Base(key), ext, "", 1)
-
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
-		f, err := c.PAP().Get(key)
-		if err != nil {
-			c.Logger().Error("failed to get file", "controller", c.String(), "key", key, "error", err)
+		language, id := pap.SplitPolicyKey(key)
+		if !strings.EqualFold(language, components.OPENFGA.String()) {
 			return
 		}
+
+		f, err := c.PAP().Read(language, id)
+		if err != nil {
+			c.Logger().Error("failed to get file", "controller", c.String(), "policy-id", id, "error", err)
+			return
+		}
+
+		ext := filepath.Ext(id)
+		store := strings.Replace(filepath.Base(id), ext, "", 1)
 
 		switch ext {
 		case ".mdl", ".model":
@@ -35,6 +42,14 @@ func (c *controller) Handle(t models.EventType, key string) {
 		}
 
 	case models.PolicyRemoved:
+		language, id := pap.SplitPolicyKey(key)
+		if !strings.EqualFold(language, components.OPENFGA.String()) {
+			return
+		}
+
+		ext := filepath.Ext(id)
+		store := strings.Replace(filepath.Base(id), ext, "", 1)
+
 		switch ext {
 		case ".mdl", ".model":
 			c.removeModel(store)

@@ -63,7 +63,7 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)

@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for maintaining policies.
-  version: 1.1.0
+  version: 1.2.0
   title: Policy management
   contact:
     name: G. Juijn
@@ -47,8 +47,9 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
-  /policy/{id}:
+  /policy/{language}/{id}:
     parameters:
+      - $ref: "#/components/parameters/PolicyLanguage"
       - $ref: "#/components/parameters/PolicyID"
 
     get:
@@ -193,6 +194,14 @@ paths:
 
 components:
   parameters:
+    PolicyLanguage:
+      in: path
+      name: language
+      schema:
+        type: string
+      required: true
+      description: Language of a policy.
+
     PolicyID:
       in: path
       name: id

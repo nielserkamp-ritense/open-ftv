@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 func TestCache_LoadFromStore(t *testing.T) {
@@ -49,15 +50,17 @@ func TestCache_LoadFromStore(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
+
+			s := memory.New()
+
 			c := &pap{
-				logger:   slog.New(h),
-				policies: make(map[string]Policy),
+				logger:  slog.New(h),
+				persist: NewStore(nil, s, ""),
 			}
 
 			c.LoadFromStore(tc.path, tc.recurse)
 
 			assert.GreaterOrEqual(t, tc.wantLog, h.Count())
-			assert.GreaterOrEqual(t, tc.wantPolicies, len(c.policies))
 		})
 	}
 }
