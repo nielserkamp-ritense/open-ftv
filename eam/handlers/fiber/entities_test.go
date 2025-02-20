@@ -35,10 +35,10 @@ func TestNewEntitiesHandler(t *testing.T) {
 		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 		require.NotNil(t, p2)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		eh := NewEntitiesHandler(logger, controller)
@@ -57,10 +57,10 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger})
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/opa", true))
 		require.NotNil(t, p2)
 
-		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		eh := NewEntitiesHandler(logger, controller)
@@ -106,10 +106,10 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/non_existing_folder", Logger: logger})
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/opa", true))
 		require.NotNil(t, p2)
 
-		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		eh := NewEntitiesHandler(logger, controller)
@@ -156,10 +156,10 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			eh := NewEntitiesHandler(logger, controller)
@@ -231,10 +231,10 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			eh := NewEntitiesHandler(logger, controller)
@@ -308,10 +308,10 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewEntitiesHandler(logger, controller)
@@ -373,10 +373,10 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewEntitiesHandler(logger, controller)

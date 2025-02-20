@@ -29,8 +29,6 @@ type Base struct {
 	name     string
 	version  string
 	fullName string
-	store    string
-	recurse  bool
 	pap      pap.PAP
 	pip      pip.PIP
 }
@@ -79,11 +77,6 @@ func (b *Base) Context() context.Context {
 // Logboek returns the LDV logger used by the controller.
 func (b *Base) Logboek() ldv.LDV {
 	return b.logboek
-}
-
-// Store returns the file storage location.
-func (b *Base) Store() (string, bool) {
-	return b.store, b.recurse
 }
 
 // PAP returns the PAP used by the controller.

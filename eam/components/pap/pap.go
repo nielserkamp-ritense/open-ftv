@@ -16,13 +16,13 @@ import (
 
 // PAP represents the interface for caching and retrieving policies.
 type PAP interface {
-	Create(in Policy) (Policy, error)
-	Read(language, id string) (Policy, error)
-	Update(prev, in Policy) (Policy, error)
-	Delete(prev Policy) (Policy, error)
-	List(language string) ([]Policy, error)
-	LoadFromStore(path string, recurse bool)
-	AddEventSink(events models.EventSink)
+	Create(in Policy) (Policy, error)         // create a new policy.
+	Read(language, id string) (Policy, error) // retrieve a policy.
+	Update(prev, in Policy) (Policy, error)   // replace an existing policy.
+	Delete(prev Policy) (Policy, error)       // remove an existing policy.
+	List(language string) ([]Policy, error)   // list all policies.
+	AddEventSink(events models.EventSink)     // add a closure to receive change events.
+	LoadFiles()                               // load policies from a given path.
 }
 
 // New instantiates a new policy cache.
@@ -147,7 +147,7 @@ func (p *pap) sendEvent(eventType models.EventType, key string) {
 
 type pap struct {
 	recurse    bool
-	path       string
+	fileStore  string
 	language   string
 	ctx        context.Context
 	logger     *slog.Logger

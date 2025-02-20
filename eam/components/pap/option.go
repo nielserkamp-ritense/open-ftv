@@ -5,6 +5,8 @@ import "github.com/kvtools/valkeyrie/store"
 // Option represents the function signature for options when creating a new PAP.
 type Option func(p *pap)
 
+// WithStore
+
 // WithLanguage sets the default policy language fopr the PAP.
 func WithLanguage(language string) Option {
 	return func(p *pap) {
@@ -20,5 +22,13 @@ func WithPersistence(store store.Store, basePath string) Option {
 		_ = p.store.Close()
 		p.store = store
 		p.persist = NewStore(p.ctx, store, basePath)
+	}
+}
+
+// WithFileStore adds a file storage location to the controller.
+func WithFileStore(fileStore string, recurse bool) Option {
+	return func(p *pap) {
+		p.fileStore = fileStore
+		p.recurse = recurse
 	}
 }

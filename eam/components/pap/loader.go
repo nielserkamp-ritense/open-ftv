@@ -7,18 +7,17 @@ import (
 	"strings"
 )
 
-// LoadFromStore loads all policies from the local store.
-func (p *pap) LoadFromStore(path string, recurse bool) {
-	p.path, _ = filepath.Abs(path)
-	p.recurse = recurse
-	p.clearWatcher()
-
-	if path == "" {
+// LoadFiles loads all policies from the local file store.
+func (p *pap) LoadFiles() {
+	if p.fileStore == "" {
 		return
 	}
 
-	if err := filepath.WalkDir(path, p.loadPolicy); err != nil {
-		p.logger.Error("pap: error loading policies", "path", path, "err", err)
+	p.fileStore, _ = filepath.Abs(p.fileStore)
+	p.clearWatcher()
+
+	if err := filepath.WalkDir(p.fileStore, p.loadPolicy); err != nil {
+		p.logger.Error("pap: error loading policies", "fileStore", p.fileStore, "err", err)
 	}
 }
 
@@ -28,7 +27,7 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 	}
 
 	if d.IsDir() {
-		if p.recurse || path == p.path {
+		if p.recurse || path == p.fileStore {
 			if p.watcher != nil {
 				_ = p.watcher.Add(path)
 			}

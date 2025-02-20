@@ -55,11 +55,3 @@ func WithPIP(p pip.PIP) Option {
 		c.pip = p
 	}
 }
-
-// WithStore adds a file storage location to the controller.
-func WithStore(store string, recurse bool) Option {
-	return func(c *Base) {
-		c.store = store
-		c.recurse = recurse
-	}
-}

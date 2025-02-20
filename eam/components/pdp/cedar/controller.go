@@ -3,8 +3,6 @@
 package cedar
 
 import (
-	"path/filepath"
-
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
@@ -19,25 +17,24 @@ const Version = "1.0.0"
 // NewController instantiates a new Cedar controller.
 func NewController(options ...pdp.Option) pdp.Controller {
 	options = append(options, pdp.WithNameVersion(components.CEDAR.String(), Version))
-	c := &controller{Base: pdp.NewBase(options...)}
 
-	c.pdp = cedar.NewPolicySet()
-	c.entities = make(cedar.EntityMap)
+	c := &controller{
+		Base:     pdp.NewBase(options...),
+		pdp:      cedar.NewPolicySet(),
+		entities: make(cedar.EntityMap),
+	}
 
-	c.PIP().IterateEntities(func(entity models.Entity) {
-		if wrapped, ok := entity.(*WrappedEntity); ok {
-			c.entities[wrapped.ce.UID] = *wrapped.ce
-		}
-	})
+	if c.PIP() != nil {
+		c.PIP().IterateEntities(func(entity models.Entity) {
+			if wrapped, ok := entity.(*WrappedEntity); ok {
+				c.entities[wrapped.ce.UID] = *wrapped.ce
+			}
+		})
+	}
 
 	if c.PAP() != nil {
 		c.PAP().AddEventSink(c)
-	}
-
-	store, recurse := c.Store()
-	if store != "" {
-		store, _ = filepath.Abs(store)
-		c.PAP().LoadFromStore(store, recurse)
+		c.PAP().LoadFiles()
 	}
 
 	mod := "github.com/cedar-policy/cedar-go"

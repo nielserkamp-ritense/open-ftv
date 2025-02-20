@@ -50,8 +50,6 @@ func TestOptions(t *testing.T) {
 		wantName    string
 		wantVersion string
 		wantFull    string
-		wantStore   string
-		wantRecurse bool
 		wantLogger  *slog.Logger
 		wantLogboek ldv.LDV
 		wantPIP     pip.PIP
@@ -66,12 +64,6 @@ func TestOptions(t *testing.T) {
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
-		},
-		{
-			name:        "store + recurse",
-			options:     []Option{WithStore("/etc", true)},
-			wantStore:   "/etc",
-			wantRecurse: true,
 		},
 		{
 			name:       "logger",
@@ -95,12 +87,10 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:        "all",
-			options:     []Option{WithPAP(p2), WithLogger(logger), WithStore("/etc", true), WithPIP(p1), WithLogboek(logboek), WithNameVersion("x1", "v1")},
+			options:     []Option{WithPAP(p2), WithLogger(logger), WithPIP(p1), WithLogboek(logboek), WithNameVersion("x1", "v1")},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
-			wantStore:   "/etc",
-			wantRecurse: true,
 			wantLogger:  logger,
 			wantLogboek: logboek,
 			wantPIP:     p1,
@@ -116,8 +106,6 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantName, got.Name())
 			assert.Equal(t, tc.wantVersion, got.Version())
 			assert.Equal(t, tc.wantFull, got.String())
-			assert.Equal(t, tc.wantStore, got.store)
-			assert.Equal(t, tc.wantRecurse, got.recurse)
 			assert.Equal(t, tc.wantLogger, got.Logger())
 			assert.Equal(t, tc.wantLogboek, got.Logboek())
 			assert.Equal(t, tc.wantPIP, got.PIP())

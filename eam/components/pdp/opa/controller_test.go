@@ -70,12 +70,12 @@ func TestNewController(t *testing.T) {
 			})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(nil, logger, pap.WithLanguage("rego"))
+			p2 := pap.New(nil, logger, pap.WithLanguage("rego"), pap.WithFileStore(tc.store2, tc.recurse2))
 			require.NotNil(t, p2)
 
 			h.Clear()
 
-			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
+			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)

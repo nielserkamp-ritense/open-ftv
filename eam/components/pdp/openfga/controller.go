@@ -7,7 +7,6 @@
 package openfga
 
 import (
-	"path/filepath"
 	"sync"
 
 	"github.com/openfga/openfga/pkg/server"
@@ -31,11 +30,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	if c.PAP() != nil {
 		c.PAP().AddEventSink(c)
-	}
-
-	if store, recurse := c.Store(); store != "" {
-		store, _ = filepath.Abs(store)
-		c.PAP().LoadFromStore(store, recurse)
+		c.PAP().LoadFiles()
 	}
 
 	mod := "github.com/openfga/openfga"

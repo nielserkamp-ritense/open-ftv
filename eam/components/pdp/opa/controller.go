@@ -5,7 +5,6 @@ package opa
 import (
 	"bytes"
 	"context"
-	"path/filepath"
 
 	"github.com/open-policy-agent/opa/hooks"
 	"github.com/open-policy-agent/opa/sdk"
@@ -42,10 +41,6 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-	}
-
 	// wait for OPA to be ready, before loading other data!
 	select {
 	case <-wait:
@@ -53,10 +48,9 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	c.loadEntities()
 
-	store, recurse := c.Store()
-	if store != "" {
-		store, _ = filepath.Abs(store)
-		c.PAP().LoadFromStore(store, recurse)
+	if c.PAP() != nil {
+		c.PAP().AddEventSink(c)
+		c.PAP().LoadFiles()
 	}
 
 	c.Logger().Info("pbac controller initialized", "controller", c.String())

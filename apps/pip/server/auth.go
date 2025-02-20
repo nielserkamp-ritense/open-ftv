@@ -46,10 +46,10 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	}
 	p1 := pip.New(pipCfg)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language())}
+	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
 	p2 := pap.New(ctx, logger, papOpts...)
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger)}
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
 
 	switch l {
 	case components.CEDAR:

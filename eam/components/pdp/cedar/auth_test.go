@@ -87,10 +87,10 @@ func TestController_Authorize(t *testing.T) {
 			})
 			require.NotNil(t, p1)
 
-			p2 := pap.New(nil, logger, pap.WithLanguage("cedar"))
+			p2 := pap.New(nil, logger, pap.WithLanguage("cedar"), pap.WithFileStore(tc.store2, tc.recurse2))
 			require.NotNil(t, p2)
 
-			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
+			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
 			h.Clear()

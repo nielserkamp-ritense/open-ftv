@@ -5,7 +5,6 @@ package cerbos
 import (
 	"errors"
 	"log/slog"
-	"path/filepath"
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
@@ -32,15 +31,11 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
 	c.logger = c.Logger().With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-	}
-
 	c.initClients()
 
-	if store, recurse := c.Store(); store != "" {
-		store, _ = filepath.Abs(store)
-		c.PAP().LoadFromStore(store, recurse)
+	if c.PAP() != nil {
+		c.PAP().AddEventSink(c)
+		c.PAP().LoadFiles()
 	}
 
 	c.logger.Info("pbac controller initialized")
