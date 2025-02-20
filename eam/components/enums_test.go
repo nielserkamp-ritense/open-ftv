@@ -29,6 +29,29 @@ func TestLanguage_String(t *testing.T) {
 	}
 }
 
+func TestLanguage_Language(t *testing.T) {
+	testCases := []struct {
+		name string
+		in   Language
+		want string
+	}{
+		{name: "zero", want: "<unknown>"},
+		{name: "XACML", in: XACML, want: "xacml"},
+		{name: "ODRL", in: ODRL, want: "odrl"},
+		{name: "OPA", in: REGO, want: "rego"},
+		{name: "Cedar", in: CEDAR, want: "cedar"},
+		{name: "Cerbos", in: CERBOS, want: "cerbos"},
+		{name: "high", in: 255, want: "<unknown>"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := tc.in.Language()
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestLanguageFromString(t *testing.T) {
 	testCases := []struct {
 		name string

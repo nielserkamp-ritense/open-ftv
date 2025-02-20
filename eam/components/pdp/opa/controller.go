@@ -13,7 +13,6 @@ import (
 	"github.com/open-policy-agent/opa/storage/inmem"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -43,7 +42,9 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	c.SetPAP(pap.New(c.Context(), c.Logger(), c, pap.WithLanguage("rego")))
+	if c.PAP() != nil {
+		c.PAP().AddEventSink(c)
+	}
 
 	// wait for OPA to be ready, before loading other data!
 	select {

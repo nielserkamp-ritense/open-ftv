@@ -146,7 +146,7 @@ func TestController_Handle(t *testing.T) {
 				mem:  mem,
 			}
 
-			p := pap.New(nil, logger, nil)
+			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])

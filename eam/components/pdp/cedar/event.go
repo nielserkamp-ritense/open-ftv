@@ -16,7 +16,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.CEDAR.String()) {
+		if !strings.EqualFold(language, components.CEDAR.Language()) {
 			return
 		}
 

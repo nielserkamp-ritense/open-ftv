@@ -41,7 +41,7 @@ func TestOptions(t *testing.T) {
 	})
 	require.NotNil(t, p1)
 
-	p2 := pap.New(nil, logger, nil)
+	p2 := pap.New(nil, logger)
 	require.NotNil(t, p2)
 
 	testCases := []struct {

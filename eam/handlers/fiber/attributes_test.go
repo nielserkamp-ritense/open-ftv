@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
@@ -31,10 +32,13 @@ func TestNewAttributesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		ah := NewAttributesHandler(logger, controller)
@@ -50,10 +54,13 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger})
+		require.NotNil(t, p1)
 
-		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("rego"))
+		require.NotNil(t, p2)
+
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		ah := NewAttributesHandler(logger, controller)
@@ -90,10 +97,13 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/non_existing_folder", Logger: logger})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/non_existing_folder", Logger: logger})
+		require.NotNil(t, p1)
 
-		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("rego"))
+		require.NotNil(t, p2)
+
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/opa", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		ah := NewAttributesHandler(logger, controller)
@@ -133,10 +143,13 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-			require.NotNil(t, p)
+			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p1)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			require.NotNil(t, p2)
+
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewAttributesHandler(logger, controller)
@@ -201,10 +214,13 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-			require.NotNil(t, p)
+			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p1)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			require.NotNil(t, p2)
+
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewAttributesHandler(logger, controller)
@@ -271,10 +287,13 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-			require.NotNil(t, p)
+			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p1)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			require.NotNil(t, p2)
+
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewAttributesHandler(logger, controller)
@@ -330,10 +349,13 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-			require.NotNil(t, p)
+			p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+			require.NotNil(t, p1)
 
-			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			require.NotNil(t, p2)
+
+			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/policies/cedar", true), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
 			ah := NewAttributesHandler(logger, controller)

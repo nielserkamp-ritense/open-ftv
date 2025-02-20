@@ -14,7 +14,6 @@ import (
 	"github.com/openfga/openfga/pkg/storage/memory"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
@@ -30,7 +29,9 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	c.SetPAP(pap.New(nil, c.Logger(), c, pap.WithLanguage(components.OPENFGA.String())))
+	if c.PAP() != nil {
+		c.PAP().AddEventSink(c)
+	}
 
 	if store, recurse := c.Store(); store != "" {
 		store, _ = filepath.Abs(store)

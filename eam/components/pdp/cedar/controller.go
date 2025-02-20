@@ -8,7 +8,6 @@ import (
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
@@ -31,7 +30,9 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		}
 	})
 
-	c.SetPAP(pap.New(c.Context(), c.Logger(), c, pap.WithLanguage(components.CEDAR.String())))
+	if c.PAP() != nil {
+		c.PAP().AddEventSink(c)
+	}
 
 	store, recurse := c.Store()
 	if store != "" {

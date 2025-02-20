@@ -20,7 +20,7 @@ func TestNew(t *testing.T) {
 	t.Run("new PAP", func(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 
-		p := New(nil, slog.New(h), nil)
+		p := New(nil, slog.New(h))
 		require.NotNil(t, p)
 
 		p2, ok := p.(*pap)
@@ -28,7 +28,9 @@ func TestNew(t *testing.T) {
 		require.NotNil(t, p2)
 
 		assert.NotNil(t, p2.logger)
-		assert.Nil(t, p2.events)
+		assert.NotNil(t, p2.eventSinks)
+		assert.NotNil(t, p2.updates)
+		assert.NotNil(t, p2.deletes)
 	})
 }
 
@@ -54,8 +56,10 @@ func TestPap_Add(t *testing.T) {
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h), e)
+			p := New(nil, slog.New(h))
 			require.NotNil(t, p)
+
+			p.AddEventSink(e)
 
 			pol, err2 := NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
 			if tc.wantErr {
@@ -123,8 +127,10 @@ func TestPap_Replace(t *testing.T) {
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h), e)
+			p := New(nil, slog.New(h))
 			require.NotNil(t, p)
+
+			p.AddEventSink(e)
 
 			for i := range tc.cached {
 				key := tc.cached[i]
@@ -194,8 +200,10 @@ func TestPap_Remove(t *testing.T) {
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h), e)
+			p := New(nil, slog.New(h))
 			require.NotNil(t, p)
+
+			p.AddEventSink(e)
 
 			for i := range tc.cached {
 				key := tc.cached[i]
@@ -253,7 +261,7 @@ func TestPap_ListAllKeys(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(0)
 
-			p := New(nil, slog.New(h), nil)
+			p := New(nil, slog.New(h))
 			require.NotNil(t, p)
 
 			for i := range tc.cached {

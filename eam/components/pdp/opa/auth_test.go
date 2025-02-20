@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -81,16 +82,19 @@ func TestController_Authorize(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := pip.New(pip.Config{
+			p1 := pip.New(pip.Config{
 				Store:         tc.store1,
 				Recurse:       tc.recurse1,
 				Logger:        logger,
 				NewAttributes: models.NewAttributeSet,
 				NewEntities:   models.NewEntitySet,
 			})
-			require.NotNil(t, p)
+			require.NotNil(t, p1)
 
-			c := NewController(pdp.WithPIP(p), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
+			p2 := pap.New(nil, logger)
+			require.NotNil(t, p2)
+
+			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore(tc.store2, tc.recurse2), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
 			h.Clear()

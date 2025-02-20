@@ -22,6 +22,7 @@ type PAP interface {
 	Delete(prev Policy) (Policy, error)
 	List(language string) ([]Policy, error)
 	LoadFromStore(path string, recurse bool)
+	AddEventSink(events models.EventSink)
 }
 
 // New instantiates a new policy cache.
@@ -30,7 +31,7 @@ type PAP interface {
 //
 // By default, a PAP uses an in-memory KV-cache.
 // Use the WithPersistence() option to connect a PAP to persistent storage.
-func New(ctx context.Context, logger *slog.Logger, events models.EventSink, options ...Option) PAP {
+func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		w = nil // this means file handles are exhausted!
@@ -44,14 +45,14 @@ func New(ctx context.Context, logger *slog.Logger, events models.EventSink, opti
 	s := memory.New()
 
 	p := &pap{
-		ctx:     ctx,
-		logger:  logger,
-		events:  events,
-		watcher: w,
-		store:   s,
-		persist: NewStore(ctx, s, ""),
-		updates: make(map[string]struct{}),
-		deletes: make(map[string]struct{}),
+		ctx:        ctx,
+		logger:     logger,
+		watcher:    w,
+		store:      s,
+		persist:    NewStore(ctx, s, ""),
+		updates:    make(map[string]struct{}),
+		deletes:    make(map[string]struct{}),
+		eventSinks: make([]models.EventSink, 0),
 	}
 
 	for i := range options {
@@ -74,8 +75,8 @@ func (p *pap) Create(in Policy) (out Policy, err error) {
 	out, err = p.persist.Create(in)
 	p.mutex.Unlock()
 
-	if err == nil && out != nil && p.events != nil {
-		p.events.Handle(models.PolicyAdded, out.Key())
+	if err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyAdded, out.Key())
 	}
 	return
 }
@@ -97,8 +98,8 @@ func (p *pap) Update(prev, in Policy) (out Policy, err error) {
 	out, err = p.persist.Update(prev, in)
 	p.mutex.Unlock()
 
-	if err == nil && out != nil && p.events != nil {
-		p.events.Handle(models.PolicyReplaced, out.Key())
+	if err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyReplaced, out.Key())
 	}
 
 	return
@@ -112,8 +113,8 @@ func (p *pap) Delete(prev Policy) (out Policy, err error) {
 	out, err = p.persist.Delete(prev)
 	p.mutex.Unlock()
 
-	if err == nil && out != nil && p.events != nil {
-		p.events.Handle(models.PolicyRemoved, out.Key())
+	if err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyRemoved, out.Key())
 	}
 
 	return
@@ -130,18 +131,32 @@ func (p *pap) List(language string) ([]Policy, error) {
 	return p.persist.List(language)
 }
 
+func (p *pap) AddEventSink(events models.EventSink) {
+	p.mutex.Lock()
+	p.eventSinks = append(p.eventSinks, events)
+	p.mutex.Unlock()
+}
+
+func (p *pap) sendEvent(eventType models.EventType, key string) {
+	p.mutex.RLock()
+	for i := range p.eventSinks {
+		p.eventSinks[i].Handle(eventType, key)
+	}
+	p.mutex.RUnlock()
+}
+
 type pap struct {
-	recurse  bool
-	path     string
-	language string
-	ctx      context.Context
-	logger   *slog.Logger
-	watcher  *fsnotify.Watcher
-	wTimer   *time.Timer
-	updates  map[string]struct{}
-	deletes  map[string]struct{}
-	events   models.EventSink
-	store    store.Store
-	persist  Persistence
-	mutex    sync.RWMutex
+	recurse    bool
+	path       string
+	language   string
+	ctx        context.Context
+	logger     *slog.Logger
+	watcher    *fsnotify.Watcher
+	wTimer     *time.Timer
+	updates    map[string]struct{}
+	deletes    map[string]struct{}
+	eventSinks []models.EventSink
+	store      store.Store
+	persist    Persistence
+	mutex      sync.RWMutex
 }

@@ -130,7 +130,7 @@ func TestController_Handle(t *testing.T) {
 				pdp:  engine,
 			}
 
-			p := pap.New(nil, logger, nil)
+			p := pap.New(nil, logger)
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")

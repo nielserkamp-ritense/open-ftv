@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
@@ -30,10 +31,13 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)
@@ -76,10 +80,13 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/opa", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("rego"))
+		require.NotNil(t, p2)
+
+		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/opa", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)
@@ -122,10 +129,13 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)
@@ -168,10 +178,13 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)
@@ -214,10 +227,13 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)
@@ -260,10 +276,13 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
-		require.NotNil(t, p)
+		p1 := pip.New(pip.Config{Ctx: ctx, Store: "../../../testdata/pip", Recurse: true, Logger: logger, NewAttributes: cedar.NewAttributeBuilder(logger), NewEntities: cedar.NewEntityBuilder(logger)})
+		require.NotNil(t, p1)
 
-		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		require.NotNil(t, p2)
+
+		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore("../../../testdata/unittest/cedar", true), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
 		auth := NewAuthHandlerZEN(logger, nil, controller)

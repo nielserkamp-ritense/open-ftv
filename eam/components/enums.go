@@ -38,6 +38,26 @@ func (l Language) String() string {
 	}
 }
 
+// Language returns the common language name for the policy language.
+func (l Language) Language() string {
+	switch l {
+	case XACML:
+		return "xacml"
+	case ODRL:
+		return "odrl"
+	case REGO:
+		return "rego"
+	case CEDAR:
+		return "cedar"
+	case CERBOS:
+		return "cerbos"
+	case OPENFGA:
+		return "openfga"
+	default:
+		return "<unknown>"
+	}
+}
+
 // LanguageFromString returns the corresponding Language type from the given input.
 func LanguageFromString(in string) Language {
 	return languages[strings.ToLower(in)]

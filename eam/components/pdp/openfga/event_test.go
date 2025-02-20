@@ -146,7 +146,7 @@ func TestController_HandleModel(t *testing.T) {
 				stores: make(map[string]*details),
 			}
 
-			p := pap.New(nil, logger, nil)
+			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
@@ -352,7 +352,7 @@ func TestController_HandleRelations(t *testing.T) {
 				stores: make(map[string]*details),
 			}
 
-			p := pap.New(nil, logger, nil)
+			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
