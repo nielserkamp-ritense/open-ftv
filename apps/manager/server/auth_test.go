@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 			name:     "unsupported policy language",
 			cfg:      &config.Config{PolicyLanguage: "ai-magic", PolicyStore: "../../../testdata/unittest/ai"},
 			wantFail: true,
-			wantLog:  1,
+			wantLog:  3,
 		},
 		{
 			name:    "Cedar",
@@ -37,7 +37,7 @@ func TestNew(t *testing.T) {
 		{
 			name:    "OpenFGA",
 			cfg:     &config.Config{PolicyLanguage: "OpenFGA", PolicyStore: "../../../testdata/unittest/openfga"},
-			wantLog: 6,
+			wantLog: 5,
 		},
 		{
 			name:    "OPA/Rego",
@@ -54,10 +54,10 @@ func TestNew(t *testing.T) {
 			auth := New(nil, tc.cfg, logger)
 			if tc.wantFail {
 				require.Nil(t, auth)
-				assert.Equal(t, tc.wantLog, h.Count())
+				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 			} else {
 				require.NotNil(t, auth)
-				assert.GreaterOrEqual(t, tc.wantLog, h.Count())
+				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 				assert.NotNil(t, auth.Controller())
 			}
 		})

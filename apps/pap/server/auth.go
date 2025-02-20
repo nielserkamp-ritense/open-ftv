@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
@@ -40,22 +41,15 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	l := components.LanguageFromString(cfg.PolicyLanguage)
 
 	pipCfg := pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, PullConfigs: cfg.PipPullConfigs}
-
-	var p pip.PIP
-	switch l {
-	case components.CEDAR:
+	if l == components.CEDAR {
 		pipCfg.NewAttributes, pipCfg.NewEntities = cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)
-		p = pip.New(pipCfg)
-	case components.REGO:
-		p = pip.New(pipCfg)
-	case components.OPENFGA:
-		p = pip.New(pipCfg)
-	case components.CERBOS:
-		p = pip.New(pipCfg)
-	default:
 	}
+	p1 := pip.New(pipCfg)
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger)}
+	papOpts := []pap.Option{pap.WithLanguage(l.Language())}
+	p2 := pap.New(ctx, logger, papOpts...)
+
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithStore(cfg.PolicyStore, cfg.PolicyStoreRecurse), pdp.WithLogger(logger)}
 
 	switch l {
 	case components.CEDAR:
