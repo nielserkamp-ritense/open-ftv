@@ -48,12 +48,6 @@ func NewStore(ctx context.Context, client store.Store, basePath string) Persiste
 // Create implements the Persistence interface.
 func (s *wrapper) Create(p Policy) (Policy, error) {
 	key := s.makeKey(p.Language(), p.ID())
-
-	if err := s.lock(key); err != nil {
-		return s.failure("create", p.ID(), err, false)
-	}
-	defer s.unlock()
-
 	if _, _, err := s.client.AtomicPut(s.ctx, key, s.mustMarshal(p), nil, writeOptions); err != nil {
 		return s.failure("create", p.ID(), err, false)
 	}

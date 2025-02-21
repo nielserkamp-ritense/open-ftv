@@ -12,25 +12,30 @@ import (
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 
-	s.initHealth(svc)
-
-	auth := New(s.ctx, s.cfg, s.logger)
-	if auth == nil {
+	s.auth = New(s.ctx, s.cfg, s.logger)
+	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
+	p, err := NewPAP(s.ctx, s.cfg, s.logger)
+	if err != nil {
+		panic("failed to initialize PAP handler")
+	}
+	s.pap = p
+
+	s.initHealth(svc)
+
 	// API v1.
 	v1 := svc.Group("/v1")
-	s.initPolicies(v1, auth)
+	s.initPolicies(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
-	// liveness & readiness.
 	svc.Get("/healthz", handle.HealthZ)
 }
 
-func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {
-	policies := handle.NewPoliciesHandler(s.logger, auth.Controller().PAP())
+func (s *service) initPolicies(v1 fiber.Router) {
+	policies := handle.NewPoliciesHandler(s.logger, s.pap)
 
 	// policies.
 	v1.Get(handle.PathPolicies, policies.GetPolicies)

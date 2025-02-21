@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/persistence"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
@@ -34,10 +35,6 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandl
 }
 
 func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pdp.Controller, error) {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
 	l := models.LanguageFromString(cfg.PolicyLanguage)
 
 	pipCfg := pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, PullConfigs: cfg.PipPullConfigs}
@@ -47,6 +44,13 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	p1 := pip.New(pipCfg)
 
 	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
+	if cfg.PersistType != "" {
+		s, err := persistence.New(ctx, cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create persistence store: %w", err)
+		}
+		papOpts = append(papOpts, pap.WithPersistence(s, cfg.PersistBase))
+	}
 	p2 := pap.New(ctx, logger, papOpts...)
 
 	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
