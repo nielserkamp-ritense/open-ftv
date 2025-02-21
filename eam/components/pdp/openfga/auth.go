@@ -9,14 +9,13 @@ import (
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/openfga/pkg/tuple"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *components.Request) (*components.Response, error) {
+func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
-	out := &components.Response{Allowed: false}
+	out := &models.Response{Allowed: false}
 
 	fgaReq, msg := c.buildCheckRequest(req)
 	if msg != "" {
@@ -49,7 +48,7 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 	return out, nil
 }
 
-func (c *controller) buildCheckRequest(req *components.Request) (*openfgav1.CheckRequest, string) {
+func (c *controller) buildCheckRequest(req *models.Request) (*openfgav1.CheckRequest, string) {
 	a, uri := c.PIP().CollectAttributesFromRequest(req)
 	if uri == "" && req.URL != nil {
 		uri = req.URL.String()

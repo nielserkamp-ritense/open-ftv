@@ -7,12 +7,11 @@ import (
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *components.Request) (*components.Response, error) {
+func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.logger.Debug("authorization request", "request-uid", req.UID)
@@ -31,7 +30,7 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 			if debug {
 				c.logger.Debug("authorization granted", "request-uid", req.UID, "pdp elapsed", duration.String())
 			}
-			return &components.Response{Allowed: true}, nil
+			return &models.Response{Allowed: true}, nil
 		}
 
 		c.logger.Debug("authorization not granted", "request-uid", req.UID, "pdp elapsed", duration.String(), "diagnostic", match)
@@ -41,10 +40,10 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 		c.logger.Error("authorization failed", "request-uid", req.UID, "pdp elapsed", duration.String(), "error", err)
 
 	}
-	return &components.Response{Allowed: false, Message: "not authorized"}, nil
+	return &models.Response{Allowed: false, Message: "not authorized"}, nil
 }
 
-func (c *controller) buildCerbosRequest(req *components.Request) (*cerbos.Principal, *cerbos.Resource, string) {
+func (c *controller) buildCerbosRequest(req *models.Request) (*cerbos.Principal, *cerbos.Resource, string) {
 	a, uri := c.PIP().CollectAttributesFromRequest(req)
 	if uri == "" && req.URL != nil {
 		uri = req.URL.String()

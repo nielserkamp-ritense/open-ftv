@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -53,7 +52,7 @@ func TestProcessAuth(t *testing.T) {
 			p := &pip{logger: slog.New(h)}
 
 			uid := uuid.New()
-			req := &components.Request{UID: &uid}
+			req := &models.Request{UID: &uid}
 
 			a := models.NewAttributeSet()
 			require.NotNil(t, a)

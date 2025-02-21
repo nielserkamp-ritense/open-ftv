@@ -11,7 +11,6 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -23,7 +22,7 @@ type PIP interface {
 
 	NewAttributeSet() models.AttributeSet
 	NewEntitySet() models.EntitySet
-	CollectAttributesFromRequest(req *components.Request) (a models.AttributeSet, newURI string)
+	CollectAttributesFromRequest(req *models.Request) (a models.AttributeSet, newURI string)
 }
 
 // Config represents the configuration parameters for instantiating a new Policy Information Point.

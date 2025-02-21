@@ -8,11 +8,10 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-func (p *pip) processFSC(req *components.Request, auth string, a models.AttributeSet) string {
+func (p *pip) processFSC(req *models.Request, auth string, a models.AttributeSet) string {
 	if strings.HasPrefix(auth, "Bearer ") {
 		return p.processFSCBearer(req, auth[7:], a)
 	}
@@ -21,7 +20,7 @@ func (p *pip) processFSC(req *components.Request, auth string, a models.Attribut
 	return ""
 }
 
-func (p *pip) processFSCBearer(req *components.Request, bearer string, a models.AttributeSet) string {
+func (p *pip) processFSCBearer(req *models.Request, bearer string, a models.AttributeSet) string {
 	token, err := jwt.Parse(
 		bearer,
 		func(token *jwt.Token) (interface{}, error) {

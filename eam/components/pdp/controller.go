@@ -5,10 +5,10 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Controller represents the interface for a PBAC controller component.
@@ -16,7 +16,7 @@ type Controller interface {
 	String() string
 	Name() string
 	Version() string
-	Authorize(req *components.Request) (*components.Response, error)
+	Authorize(req *models.Request) (*models.Response, error)
 	PAP() pap.PAP
 	PIP() pip.PIP
 }

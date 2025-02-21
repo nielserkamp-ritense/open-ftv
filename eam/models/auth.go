@@ -1,13 +1,11 @@
 // Package components contains generic definitions for working External Access Management (EAM).
-package components
+package models
 
 import (
 	"net/url"
 	"time"
 
 	"github.com/google/uuid"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Request contains the details of an access control request.
@@ -16,9 +14,9 @@ type Request struct {
 	URL         *url.URL            `json:"url,omitempty"`
 	Method      string              `json:"method,omitempty"`
 	RequestTime *time.Time          `json:"requestTime,omitempty"`
-	Principal   models.Entity       `json:"principal,omitempty"`
-	Action      models.Entity       `json:"action,omitempty"`
-	Resource    models.Entity       `json:"resource,omitempty"`
+	Principal   Entity              `json:"principal,omitempty"`
+	Action      Entity              `json:"action,omitempty"`
+	Resource    Entity              `json:"resource,omitempty"`
 	Headers     map[string][]string `json:"headers,omitempty"`
 	Body        []byte              `json:"body,omitempty"`
 	Attributes  map[string]any      `json:"attributes,omitempty"`

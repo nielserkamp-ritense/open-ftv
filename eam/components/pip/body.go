@@ -8,12 +8,11 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *pip) decodeBody(req *components.Request, a models.AttributeSet) {
+func (p *pip) decodeBody(req *models.Request, a models.AttributeSet) {
 	if req.Body == nil {
 		return
 	}

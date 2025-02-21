@@ -6,12 +6,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // See RFC-6750 for the OAuth2 Authorization bearer scheme!
-func (p *pip) processAuth(req *components.Request, auth string, a models.AttributeSet) {
+func (p *pip) processAuth(req *models.Request, auth string, a models.AttributeSet) {
 	if strings.HasPrefix(auth, "Bearer ") {
 		p.processBearer(req, auth[7:], a)
 	} else {
@@ -19,7 +18,7 @@ func (p *pip) processAuth(req *components.Request, auth string, a models.Attribu
 	}
 }
 
-func (p *pip) processBearer(req *components.Request, bearer string, a models.AttributeSet) {
+func (p *pip) processBearer(req *models.Request, bearer string, a models.AttributeSet) {
 	token, err := jwt.Parse(bearer, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

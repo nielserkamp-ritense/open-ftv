@@ -12,9 +12,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
@@ -107,7 +107,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &components.Request{
+	p.req = &models.Request{
 		UID:         &uid,
 		URL:         u,
 		Method:      req.Input.Method,

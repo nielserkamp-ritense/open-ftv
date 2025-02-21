@@ -8,7 +8,6 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -23,7 +22,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.CERBOS.Language()) {
+		if !strings.EqualFold(language, models.CERBOS.Language()) {
 			return
 		}
 
@@ -38,7 +37,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 
 	case models.PolicyRemoved:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.CERBOS.Language()) {
+		if !strings.EqualFold(language, models.CERBOS.Language()) {
 			return
 		}
 

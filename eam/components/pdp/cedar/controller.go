@@ -5,7 +5,6 @@ package cedar
 import (
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
@@ -16,7 +15,7 @@ const Version = "1.0.0"
 
 // NewController instantiates a new Cedar controller.
 func NewController(options ...pdp.Option) pdp.Controller {
-	options = append(options, pdp.WithNameVersion(components.CEDAR.String(), Version))
+	options = append(options, pdp.WithNameVersion(models.CEDAR.String(), Version))
 
 	c := &controller{
 		Base:     pdp.NewBase(options...),

@@ -6,7 +6,6 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -16,7 +15,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.CEDAR.Language()) {
+		if !strings.EqualFold(language, models.CEDAR.Language()) {
 			return
 		}
 
@@ -38,7 +37,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 	case models.PolicyRemoved:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.CEDAR.String()) {
+		if !strings.EqualFold(language, models.CEDAR.String()) {
 			return
 		}
 

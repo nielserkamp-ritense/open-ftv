@@ -10,12 +10,11 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *components.Request) (resp *components.Response, err error) {
+func (c *controller) Authorize(req *models.Request) (resp *models.Response, err error) {
 	finish := c.startLog(req)
 	defer func() { finish(resp) }()
 
@@ -37,7 +36,7 @@ func (c *controller) Authorize(req *components.Request) (resp *components.Respon
 				if debug {
 					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 				}
-				resp = &components.Response{Allowed: true}
+				resp = &models.Response{Allowed: true}
 				return
 			}
 		}
@@ -47,14 +46,14 @@ func (c *controller) Authorize(req *components.Request) (resp *components.Respon
 		}
 	}
 
-	resp = &components.Response{Allowed: false, Message: "not authorized"}
+	resp = &models.Response{Allowed: false, Message: "not authorized"}
 	return
 }
 
-func (c *controller) startLog(_ *components.Request) func(resp *components.Response) {
+func (c *controller) startLog(_ *models.Request) func(resp *models.Response) {
 	ldv := c.Logboek()
 	if ldv == nil {
-		return func(*components.Response) {}
+		return func(*models.Response) {}
 	}
 
 	_, span := ldv.StartSpan(
@@ -62,12 +61,12 @@ func (c *controller) startLog(_ *components.Request) func(resp *components.Respo
 		attribute.String("authz.policy.engine", c.String()),
 	)
 
-	return func(result *components.Response) {
+	return func(result *models.Response) {
 		c.endLog(span, result)
 	}
 }
 
-func (c *controller) endLog(span trace.Span, result *components.Response) {
+func (c *controller) endLog(span trace.Span, result *models.Response) {
 	span.SetAttributes(
 		attribute.Bool("authz.policy.allowed", result.Allowed),
 		attribute.String("authz.policy.message", result.Message),
@@ -78,7 +77,7 @@ func (c *controller) endLog(span trace.Span, result *components.Response) {
 	span.End()
 }
 
-func (c *controller) buildDecisionOptions(req *components.Request) sdk.DecisionOptions {
+func (c *controller) buildDecisionOptions(req *models.Request) sdk.DecisionOptions {
 	a, newURI := c.PIP().CollectAttributesFromRequest(req)
 	m := models.MapFromAttributes(a)
 

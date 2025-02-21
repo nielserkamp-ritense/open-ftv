@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"time"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -13,7 +12,7 @@ import (
 //
 // The default attributes stored in the PIP will be collected first.
 // AttributeSet from the request will overwrite default attributes when the keys are equal.
-func (p *pip) CollectAttributesFromRequest(req *components.Request) (models.AttributeSet, string) {
+func (p *pip) CollectAttributesFromRequest(req *models.Request) (models.AttributeSet, string) {
 	a := p.newAttributes(p.attributes)
 	a.AddAttribute(models.AttrRequestTime, time.Now().UTC())
 

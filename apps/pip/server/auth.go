@@ -7,7 +7,6 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pip/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
@@ -15,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -38,10 +38,10 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 		ctx = context.Background()
 	}
 
-	l := components.LanguageFromString(cfg.PolicyLanguage)
+	l := models.LanguageFromString(cfg.PolicyLanguage)
 
 	pipCfg := pip.Config{Ctx: ctx, Store: cfg.PipStore, Recurse: cfg.PipStoreRecurse, Logger: logger, PullConfigs: cfg.PipPullConfigs}
-	if l == components.CEDAR {
+	if l == models.CEDAR {
 		pipCfg.NewAttributes, pipCfg.NewEntities = cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)
 	}
 	p1 := pip.New(pipCfg)
@@ -52,13 +52,13 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
 
 	switch l {
-	case components.CEDAR:
+	case models.CEDAR:
 		return cedar.NewController(options...), nil
-	case components.REGO:
+	case models.REGO:
 		return opa.NewController(options...), nil
-	case components.OPENFGA:
+	case models.OPENFGA:
 		return openfga.NewController(options...), nil
-	case components.CERBOS:
+	case models.CERBOS:
 		cerbosCFG := cerbos.Config{Addr1: cfg.CerbosAddress, Addr2: cfg.CerbosAdmin, CA: cfg.CerbosCA, User: cfg.CerbosUser, Pswd: cfg.CerbosPswd}
 		return cerbos.NewController(cerbosCFG, options...), nil
 	default:

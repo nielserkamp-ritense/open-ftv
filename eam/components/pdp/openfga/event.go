@@ -11,7 +11,6 @@ import (
 	"github.com/openfga/language/pkg/go/transformer"
 	tuple2 "github.com/openfga/openfga/pkg/tuple"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -21,7 +20,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.OPENFGA.Language()) {
+		if !strings.EqualFold(language, models.OPENFGA.Language()) {
 			return
 		}
 
@@ -43,7 +42,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 	case models.PolicyRemoved:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.OPENFGA.Language()) {
+		if !strings.EqualFold(language, models.OPENFGA.Language()) {
 			return
 		}
 

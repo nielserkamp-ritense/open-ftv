@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -216,7 +215,7 @@ func TestProcessBody(t *testing.T) {
 
 			h.Clear()
 
-			req := &components.Request{Body: tc.body}
+			req := &models.Request{Body: tc.body}
 
 			p2, ok := p.(*pip)
 			require.True(t, ok)

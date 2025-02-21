@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -121,7 +120,7 @@ func TestProcessHeaders(t *testing.T) {
 			a := models.NewAttributeSet()
 			require.NotNil(t, a)
 
-			req := &components.Request{Headers: tc.headers}
+			req := &models.Request{Headers: tc.headers}
 			newURI := p.testHeaders(req, a)
 
 			if tc.wantURI != "" {

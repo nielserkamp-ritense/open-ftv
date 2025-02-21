@@ -11,7 +11,6 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -23,7 +22,7 @@ const Version = "1.0.0"
 func NewController(options ...pdp.Option) pdp.Controller {
 	wait := make(chan struct{})
 
-	options = append(options, pdp.WithNameVersion(components.REGO.String(), Version))
+	options = append(options, pdp.WithNameVersion(models.REGO.String(), Version))
 	c := &controller{Base: pdp.NewBase(options...), mem: inmem.New()}
 
 	var err error

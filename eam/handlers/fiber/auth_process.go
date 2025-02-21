@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -92,8 +91,8 @@ func (p *authProcess) authLog() {
 type authProcess struct {
 	status     int
 	fc         *fiber.Ctx
-	req        *components.Request
-	resp       *components.Response
+	req        *models.Request
+	resp       *models.Response
 	logger     *slog.Logger
 	authLogger authlog.Logger
 	controller pdp.Controller

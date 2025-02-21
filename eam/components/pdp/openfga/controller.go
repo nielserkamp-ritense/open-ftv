@@ -12,8 +12,8 @@ import (
 	"github.com/openfga/openfga/pkg/server"
 	"github.com/openfga/openfga/pkg/storage/memory"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
 )
 
@@ -22,7 +22,7 @@ const Version = "1.0.0"
 
 // NewController instantiates a new OpenFGA controller.
 func NewController(options ...pdp.Option) pdp.Controller {
-	options = append(options, pdp.WithNameVersion(components.OPENFGA.String(), Version))
+	options = append(options, pdp.WithNameVersion(models.OPENFGA.String(), Version))
 	c := &controller{Base: pdp.NewBase(options...), stores: make(map[string]*details)}
 	if c.newServer(); c.engine == nil {
 		return nil

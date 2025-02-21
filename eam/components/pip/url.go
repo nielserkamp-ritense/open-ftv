@@ -3,11 +3,10 @@ package pip
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-func (p *pip) determineURL(req *components.Request, a models.AttributeSet) {
+func (p *pip) determineURL(req *models.Request, a models.AttributeSet) {
 	m := make(map[string]any, 8)
 
 	if req.Method != "" {

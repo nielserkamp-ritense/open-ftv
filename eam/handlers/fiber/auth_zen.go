@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -102,7 +101,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &components.Request{
+	p.req = &models.Request{
 		UID:         &uid,
 		RequestTime: &now,
 		Method:      method,

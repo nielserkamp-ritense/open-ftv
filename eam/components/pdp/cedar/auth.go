@@ -6,12 +6,11 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *components.Request) (*components.Response, error) {
+func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
@@ -27,17 +26,17 @@ func (c *controller) Authorize(req *components.Request) (*components.Response, e
 		if debug {
 			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 		}
-		return &components.Response{Allowed: true}, nil
+		return &models.Response{Allowed: true}, nil
 	}
 
 	if debug {
 		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
-	return &components.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
+	return &models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
 }
 
-func (c *controller) buildCedarRequest(req *components.Request) cedar.Request {
+func (c *controller) buildCedarRequest(req *models.Request) cedar.Request {
 	a, uri := c.PIP().CollectAttributesFromRequest(req)
 	if uri == "" && req.URL != nil {
 		uri = req.URL.String()

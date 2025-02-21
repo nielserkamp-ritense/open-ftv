@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
@@ -31,10 +30,10 @@ func TestController_Authorize(t *testing.T) {
 		recurse1 bool
 		store2   string
 		recurse2 bool
-		req      components.Request
+		req      models.Request
 		wantErr  bool
 		wantLog  int
-		want     components.Response
+		want     models.Response
 	}{
 		{
 			name:     "bad request",
@@ -42,7 +41,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/openfga",
 			recurse2: true,
-			req: components.Request{
+			req: models.Request{
 				UID:         &uid,
 				URL:         u1,
 				Method:      "GET",
@@ -51,7 +50,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 3,
-			want:    components.Response{Message: "store not found; invalid principal type 'invalid'"},
+			want:    models.Response{Message: "store not found; invalid principal type 'invalid'"},
 		},
 		{
 			name:     "good request",
@@ -59,7 +58,7 @@ func TestController_Authorize(t *testing.T) {
 			recurse1: true,
 			store2:   "../../../../testdata/unittest/openfga",
 			recurse2: true,
-			req: components.Request{
+			req: models.Request{
 				UID:         &uid,
 				URL:         u2,
 				Method:      "POST",
@@ -68,7 +67,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        b1,
 			},
 			wantLog: 2,
-			want:    components.Response{Allowed: true},
+			want:    models.Response{Allowed: true},
 		},
 	}
 

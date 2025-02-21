@@ -8,8 +8,8 @@ import (
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Version defines the version of this Cerbos/CEL PDP.
@@ -26,7 +26,7 @@ type Config struct {
 
 // NewController instantiates a new Cerbos/CEL controller.
 func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
-	options = append(options, pdp.WithNameVersion(components.CERBOS.String(), Version))
+	options = append(options, pdp.WithNameVersion(models.CERBOS.String(), Version))
 
 	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
 	c.logger = c.Logger().With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)

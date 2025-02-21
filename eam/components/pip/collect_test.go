@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -20,7 +19,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 	testCases := []struct {
 		name    string
 		level   slog.Level
-		req     components.Request
+		req     models.Request
 		attr    models.AttributeSet
 		wantLog int
 		wantURI string
@@ -28,13 +27,13 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 	}{
 		{
 			name: "empty",
-			req:  components.Request{},
+			req:  models.Request{},
 			attr: models.NewAttributeSet(),
 			want: models.NewAttributeSet(emptyHTTP, emptyHeaders),
 		},
 		{
 			name: "method",
-			req:  components.Request{Method: "POST"},
+			req:  models.Request{Method: "POST"},
 			attr: models.NewAttributeSet(),
 			want: models.NewAttributeSet(
 				emptyHeaders,
@@ -45,7 +44,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "url",
-			req: components.Request{URL: &url.URL{
+			req: models.Request{URL: &url.URL{
 				Scheme:   "https://",
 				Host:     "www.disney.land",
 				Path:     "/donald/duck",
@@ -67,7 +66,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "headers",
-			req:  components.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
+			req:  models.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
 			attr: models.NewAttributeSet(),
 			want: models.NewAttributeSet(
 				emptyHTTP,
@@ -77,7 +76,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		},
 		{
 			name: "attributes",
-			req:  components.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
+			req:  models.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
 			attr: models.NewAttributeSet(),
 			want: models.NewAttributeSet(
 				emptyHTTP,
@@ -91,7 +90,7 @@ func TestPip_CollectAttributesFromRequest(t *testing.T) {
 		{
 			name:  "all with log",
 			level: slog.LevelDebug,
-			req: components.Request{
+			req: models.Request{
 				Method: "POST",
 				URL: &url.URL{
 					Scheme:   "https://",

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-func (p *pip) testHeaders(req *components.Request, a models.AttributeSet) string {
+func (p *pip) testHeaders(req *models.Request, a models.AttributeSet) string {
 	other := make(map[string]string)
 
 	var activityID, newURI, fwd1, fwd2 string

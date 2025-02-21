@@ -6,7 +6,6 @@ import (
 
 	"github.com/open-policy-agent/opa/storage"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -16,7 +15,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.REGO.Language()) {
+		if !strings.EqualFold(language, models.REGO.Language()) {
 			return
 		}
 
@@ -41,7 +40,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 
 	case models.PolicyRemoved:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, components.REGO.Language()) {
+		if !strings.EqualFold(language, models.REGO.Language()) {
 			return
 		}
 
