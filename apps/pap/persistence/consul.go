@@ -1,3 +1,4 @@
+// Package persistence handles persistent storage for the PAP.
 package persistence
 
 import (

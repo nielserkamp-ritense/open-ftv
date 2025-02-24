@@ -1,4 +1,4 @@
-// Package components contains generic definitions for working External Access Management (EAM).
+// Package models contains generic definitions for working External Access Management (EAM).
 package models
 
 import (

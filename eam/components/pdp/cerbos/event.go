@@ -51,7 +51,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 }
 
 func (c *controller) upsertPolicy(language, id, id2 string) {
-	policy, err := c.PAP().Read(language, id)
+	policy, _, err := c.PAP().Read(language, id)
 	if err != nil {
 		c.logger.Error("failed to get policy", "policy-id", id, "error", err)
 		return
@@ -78,7 +78,7 @@ func (c *controller) deletePolicy(id, id2 string) {
 }
 
 func (c *controller) getPolicyID(language, id string) string {
-	policy, err := c.PAP().Read(language, id)
+	policy, _, err := c.PAP().Read(language, id)
 	if err != nil {
 		return ""
 	}

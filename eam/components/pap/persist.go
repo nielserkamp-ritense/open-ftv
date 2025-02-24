@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/goccy/go-json"
+	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 )
 
@@ -16,9 +17,9 @@ const pathSeparator = "/"
 // Persistence represents the interface to manage persistent storage for policies.
 type Persistence interface {
 	Create(p Policy) (Policy, error)
-	Read(language, id string) (Policy, error)
-	Update(prev, p Policy) (Policy, error)
-	Delete(prev Policy) (Policy, error)
+	Read(language, id string) (Policy, uint64, error)
+	Update(prev Policy, lastIndex uint64, p Policy) (Policy, error)
+	Delete(prev Policy, lastIndex uint64) (Policy, error)
 	List(language string) ([]Policy, error)
 }
 
@@ -48,6 +49,10 @@ func NewStore(ctx context.Context, client store.Store, basePath string) Persiste
 // Create implements the Persistence interface.
 func (s *wrapper) Create(p Policy) (Policy, error) {
 	key := s.makeKey(p.Language(), p.ID())
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	if _, _, err := s.client.AtomicPut(s.ctx, key, s.mustMarshal(p), nil, writeOptions); err != nil {
 		return s.failure("create", p.ID(), err, false)
 	}
@@ -55,34 +60,35 @@ func (s *wrapper) Create(p Policy) (Policy, error) {
 }
 
 // Read implements the Persistence interface.
-func (s *wrapper) Read(language, id string) (Policy, error) {
-	key := s.makeKey(language, id)
+func (s *wrapper) Read(language, id string) (Policy, uint64, error) {
+	key := s.bugFix(s.makeKey(language, id))
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
 	kv, err := s.client.Get(s.ctx, key, readOptions)
 	if err != nil || kv == nil {
-		return s.failure("read", id, err, true)
+		p, err2 := s.failure("read", id, err, true)
+		return p, 0, err2
 	}
 
 	p, err2 := s.unmarshal(id, kv)
 	if err2 != nil {
-		return s.failure("read", id, err2, true)
+		p, err2 = s.failure("read", id, err2, true)
+		return p, 0, err2
 	}
-	return p, nil
+
+	return p, kv.LastIndex, nil
 }
 
 // Update implements the Persistence interface.
-func (s *wrapper) Update(prev, p Policy) (Policy, error) {
+func (s *wrapper) Update(prev Policy, lastIndex uint64, p Policy) (Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
-	if err := s.lock(key); err != nil {
-		return s.failure("update", prev.ID(), err, true)
-	}
-	defer s.unlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev)}
+	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev), LastIndex: lastIndex}
 	if _, _, err := s.client.AtomicPut(s.ctx, key, s.mustMarshal(p), &kv, writeOptions); err != nil {
 		return s.failure("update", prev.ID(), err, true)
 	}
@@ -90,15 +96,13 @@ func (s *wrapper) Update(prev, p Policy) (Policy, error) {
 }
 
 // Delete implements the Persistence interface.
-func (s *wrapper) Delete(prev Policy) (Policy, error) {
+func (s *wrapper) Delete(prev Policy, lastIndex uint64) (Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
-	if err := s.lock(key); err != nil {
-		return s.failure("delete", prev.ID(), err, true)
-	}
-	defer s.unlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
-	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev)}
+	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev), LastIndex: lastIndex}
 	if _, err := s.client.AtomicDelete(s.ctx, key, &kv); err != nil {
 		return s.failure("delete", prev.ID(), err, true)
 	}
@@ -112,12 +116,16 @@ func (s *wrapper) List(language string) ([]Policy, error) {
 	if language != "" {
 		key = fmt.Sprintf("%s%s%s", key, language, pathSeparator)
 	}
+	key = s.bugFix(key)
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
 	list, err := s.client.List(s.ctx, key, readOptions)
 	if err != nil {
+		if errors.Is(err, store.ErrKeyNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("failed to read policies: %w", err)
 	}
 
@@ -150,35 +158,35 @@ func (s *wrapper) unmarshal(id string, kv *store.KVPair) (Policy, error) {
 	return p, nil
 }
 
-func (s *wrapper) lock(key string) error {
-	s.mutex.Lock()
-	if !s.canLock {
-		return nil
-	}
-
-	lock, err := s.client.NewLock(s.ctx, key, lockOptions)
-	if err != nil {
-		s.mutex.Unlock()
-		return err
-	}
-
-	_, err = lock.Lock(s.ctx)
-	if err != nil {
-		s.mutex.Unlock()
-		return err
-	}
-
-	s.storeLock = lock
-	return nil
-}
-
-func (s *wrapper) unlock() {
-	if s.storeLock != nil {
-		s.storeLock.Unlock(s.ctx)
-		s.storeLock = nil
-	}
-	s.mutex.Unlock()
-}
+// func (s *wrapper) lock(key string) error {
+// 	s.mutex.Lock()
+// 	if !s.canLock {
+// 		return nil
+// 	}
+//
+// 	lock, err := s.client.NewLock(s.ctx, key, lockOptions)
+// 	if err != nil {
+// 		s.mutex.Unlock()
+// 		return err
+// 	}
+//
+// 	_, err = lock.Lock(s.ctx)
+// 	if err != nil {
+// 		s.mutex.Unlock()
+// 		return err
+// 	}
+//
+// 	s.storeLock = lock
+// 	return nil
+// }
+//
+// func (s *wrapper) unlock() {
+// 	if s.storeLock != nil {
+// 		s.storeLock.Unlock(s.ctx)
+// 		s.storeLock = nil
+// 	}
+// 	s.mutex.Unlock()
+// }
 
 func (s *wrapper) failure(op, id string, err error, mustFind bool) (Policy, error) {
 	if err != nil {
@@ -188,6 +196,14 @@ func (s *wrapper) failure(op, id string, err error, mustFind bool) (Policy, erro
 		return nil, fmt.Errorf("policy '%s' not found", id)
 	}
 	return nil, fmt.Errorf("policy '%s' already exists", id)
+}
+
+func (s *wrapper) bugFix(in string) string {
+	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
+	if _, ok := s.client.(*etcdv3.Store); ok {
+		return "/" + in
+	}
+	return in
 }
 
 type wrapper struct {
@@ -200,7 +216,8 @@ type wrapper struct {
 }
 
 var (
-	readOptions  = &store.ReadOptions{Consistent: true}
+	// readOptions = &store.ReadOptions{Consistent: true}
+	readOptions  = &store.ReadOptions{}
 	writeOptions = &store.WriteOptions{}
-	lockOptions  = &store.LockOptions{}
+	// lockOptions  = &store.LockOptions{}
 )

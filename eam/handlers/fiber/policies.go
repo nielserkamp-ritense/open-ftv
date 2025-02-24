@@ -35,9 +35,15 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	}
 
 	if len(list) == 0 {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, "no policies found")
 	}
-	return req.JSON(list)
+
+	list2 := make([]*policies.Policy, len(list))
+	for i := range list {
+		list2[i] = h.convertPolicy(list[i])
+	}
+
+	return req.JSON(list2)
 }
 
 // GetPolicy implements the PoliciesHandler interface.
@@ -47,7 +53,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	pol, err2 := h.cache.Read(language, id)
+	pol, _, err2 := h.cache.Read(language, id)
 	if err2 != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -76,8 +82,8 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if upsert {
 		// for upsert we check if the policy exists.
 		// if it exists, we replace it, otherwise we add it.
-		if prev, err2 := h.cache.Read(p.Language, p.Id); err2 == nil {
-			pol2, err3 := h.cache.Update(prev, pol)
+		if prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id); err2 == nil && prev != nil {
+			pol2, err3 := h.cache.Update(prev, lastIndex, pol)
 			if err3 != nil {
 				return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 			}
@@ -111,8 +117,8 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	prev, err2 := h.cache.Read(p.Language, p.Id)
-	if err2 != nil {
+	prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id)
+	if err2 != nil || prev == nil {
 		if upsert {
 			// for upsert we check if the policy exists.
 			// if it doesn't exist, we add it, otherwise we replace it.
@@ -125,7 +131,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 
-	pol2, err3 := h.cache.Update(prev, pol)
+	pol2, err3 := h.cache.Update(prev, lastIndex, pol)
 	if err3 != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}
@@ -141,15 +147,15 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 
 	ignore := req.QueryBool("ignoreMissing")
 
-	prev, err2 := h.cache.Read(language, id)
-	if err2 != nil {
+	prev, lastIndex, err2 := h.cache.Read(language, id)
+	if err2 != nil || prev == nil {
 		if ignore {
 			return req.JSON(&policies.Policy{Language: language, Id: id})
 		}
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 
-	pol, err3 := h.cache.Delete(prev)
+	pol, err3 := h.cache.Delete(prev, lastIndex)
 	if err3 != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}

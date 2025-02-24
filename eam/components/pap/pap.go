@@ -16,13 +16,13 @@ import (
 
 // PAP represents the interface for caching and retrieving policies.
 type PAP interface {
-	Create(in Policy) (Policy, error)         // create a new policy.
-	Read(language, id string) (Policy, error) // retrieve a policy.
-	Update(prev, in Policy) (Policy, error)   // replace an existing policy.
-	Delete(prev Policy) (Policy, error)       // remove an existing policy.
-	List(language string) ([]Policy, error)   // list all policies.
-	AddEventSink(events models.EventSink)     // add a closure to receive change events.
-	LoadFiles()                               // load policies from a given path.
+	Create(in Policy) (Policy, error)                                // create a new policy.
+	Read(language, id string) (Policy, uint64, error)                // retrieve a policy.
+	Update(prev Policy, lastIndex uint64, in Policy) (Policy, error) // replace an existing policy.
+	Delete(prev Policy, lastIndex uint64) (Policy, error)            // remove an existing policy.
+	List(language string) ([]Policy, error)                          // list all policies.
+	AddEventSink(events models.EventSink)                            // add a closure to receive change events.
+	LoadFiles()                                                      // load policies from a given path.
 }
 
 // New instantiates a new policy cache.
@@ -84,7 +84,7 @@ func (p *pap) Create(in Policy) (out Policy, err error) {
 // Read retrieves a policy from cache/storage.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *pap) Read(language, id string) (Policy, error) {
+func (p *pap) Read(language, id string) (Policy, uint64, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.Read(language, id)
@@ -93,9 +93,9 @@ func (p *pap) Read(language, id string) (Policy, error) {
 // Update modifies a policy in cache/storage with a newer version.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *pap) Update(prev, in Policy) (out Policy, err error) {
+func (p *pap) Update(prev Policy, lastIndex uint64, in Policy) (out Policy, err error) {
 	p.mutex.Lock()
-	out, err = p.persist.Update(prev, in)
+	out, err = p.persist.Update(prev, lastIndex, in)
 	p.mutex.Unlock()
 
 	if err == nil && out != nil && p.eventSinks != nil {
@@ -108,9 +108,9 @@ func (p *pap) Update(prev, in Policy) (out Policy, err error) {
 // Delete removes a policy from cache/storage.
 //
 // An error is returned if the policy key doesn't exist.
-func (p *pap) Delete(prev Policy) (out Policy, err error) {
+func (p *pap) Delete(prev Policy, lastIndex uint64) (out Policy, err error) {
 	p.mutex.Lock()
-	out, err = p.persist.Delete(prev)
+	out, err = p.persist.Delete(prev, lastIndex)
 	p.mutex.Unlock()
 
 	if err == nil && out != nil && p.eventSinks != nil {

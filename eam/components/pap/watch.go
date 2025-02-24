@@ -1,7 +1,6 @@
 package pap
 
 import (
-	"bytes"
 	"os"
 	"time"
 
@@ -95,8 +94,8 @@ func (p *pap) processUpdate(path string) {
 		return
 	}
 
-	if prev, err3 := p.Read(pol.Language(), pol.ID()); err3 == nil {
-		_, _ = p.Update(prev, pol)
+	if prev, lastIndex, err3 := p.Read(pol.Language(), pol.ID()); err3 == nil {
+		_, _ = p.Update(prev, lastIndex, pol)
 	} else {
 		_, _ = p.Create(pol)
 	}
@@ -118,8 +117,8 @@ func (p *pap) processDeletes() {
 			return
 		}
 
-		if pol, err2 := NewPolicyFromStore(p.language, path, bytes.NewReader([]byte{})); err2 == nil {
-			_, _ = p.Delete(pol)
+		if prev, lastIndex, err := p.Read(p.language, path); err == nil {
+			_, _ = p.Delete(prev, lastIndex)
 		}
 	}
 }

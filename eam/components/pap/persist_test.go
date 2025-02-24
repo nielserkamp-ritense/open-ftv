@@ -33,7 +33,7 @@ func TestNewStore(t *testing.T) {
 		require.NotNil(t, p2)
 		assert.EqualValues(t, p, p2)
 
-		p3, err3 := s.Read(p.Language(), p.ID())
+		p3, _, err3 := s.Read(p.Language(), p.ID())
 		require.NoError(t, err3)
 		require.NotNil(t, p3)
 		assert.EqualValues(t, p, p3)
@@ -42,12 +42,12 @@ func TestNewStore(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p4, err4 := s.Update(p3, p)
+		p4, err4 := s.Update(p3, 0, p)
 		require.NoError(t, err4)
 		require.NotNil(t, p4)
 		assert.EqualValues(t, p, p4)
 
-		p5, err5 := s.Delete(p)
+		p5, err5 := s.Delete(p, 0)
 		require.NoError(t, err5)
 		require.NotNil(t, p5)
 		assert.EqualValues(t, p, p5)
@@ -95,7 +95,7 @@ func TestNewStore_Create_NotFound(t *testing.T) {
 		s := NewStore(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p2, err2 := s.Read("none", "bad")
+		p2, _, err2 := s.Read("none", "bad")
 		require.Error(t, err2)
 		require.Nil(t, p2)
 	})
@@ -118,7 +118,7 @@ func TestNewStore_Update_NotFound(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Update(p, p)
+		p2, err2 := s.Update(p, 0, p)
 		require.Error(t, err2)
 		require.Nil(t, p2)
 	})
@@ -141,7 +141,7 @@ func TestNewStore_Delete_NotFound(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, p)
 
-		p2, err3 := s.Delete(p)
+		p2, err3 := s.Delete(p, 0)
 		require.Error(t, err3)
 		require.Nil(t, p2)
 	})

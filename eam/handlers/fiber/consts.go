@@ -3,7 +3,7 @@ package fiber
 // List of API paths.
 const (
 	PathPolicies   = "/policies"
-	PathPolicy     = "/policy/:id"
+	PathPolicy     = "/policy/:language/:id"
 	PathAttributes = "/attributes"
 	PathAttribute  = "/attribute/:key"
 	PathEntities   = "/entities"

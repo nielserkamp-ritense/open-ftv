@@ -19,7 +19,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 			return
 		}
 
-		f, err := c.PAP().Read(language, id)
+		f, _, err := c.PAP().Read(language, id)
 		if err != nil {
 			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-id", id, "error", err)
 			return

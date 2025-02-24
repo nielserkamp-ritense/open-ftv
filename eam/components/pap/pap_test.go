@@ -154,7 +154,7 @@ func TestPap_Replace(t *testing.T) {
 			require.NoError(t, err3)
 			require.NotNil(t, pol)
 
-			pol2, err4 := p.Update(prev, pol)
+			pol2, err4 := p.Update(prev, 0, pol)
 			if tc.wantErr {
 				require.Error(t, err4)
 				require.Nil(t, pol2)
@@ -170,7 +170,7 @@ func TestPap_Replace(t *testing.T) {
 				require.True(t, ok)
 				require.NotNil(t, p2)
 
-				f, err5 := p.Read(parts[0], parts[1])
+				f, _, err5 := p.Read(parts[0], parts[1])
 				require.NoError(t, err5)
 				require.NotNil(t, f)
 
@@ -222,7 +222,7 @@ func TestPap_Remove(t *testing.T) {
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
-			pol, err3 := p.Delete(prev)
+			pol, err3 := p.Delete(prev, 0)
 			if tc.wantErr {
 				require.Error(t, err3)
 				require.Nil(t, pol)
@@ -238,7 +238,7 @@ func TestPap_Remove(t *testing.T) {
 				require.True(t, ok)
 				require.NotNil(t, p2)
 
-				f, err4 := p.Read("", tc.key)
+				f, _, err4 := p.Read("", tc.key)
 				require.Error(t, err4)
 				require.Nil(t, f)
 			}
