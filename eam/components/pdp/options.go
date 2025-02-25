@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 )
 
@@ -39,6 +40,13 @@ func WithLogger(logger *slog.Logger) Option {
 func WithLogboek(ldv ldv.LDV) Option {
 	return func(c *Base) {
 		c.logboek = ldv
+	}
+}
+
+// WithPEP adds a Policy Enforcement Point to the controller.
+func WithPEP(p pep.PEP) Option {
+	return func(c *Base) {
+		c.pep = p
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/opentelemetry"
@@ -44,6 +45,9 @@ func TestOptions(t *testing.T) {
 	p2 := pap.New(nil, logger)
 	require.NotNil(t, p2)
 
+	p3 := pep.New(nil, logger)
+	require.NotNil(t, p3)
+
 	testCases := []struct {
 		name        string
 		options     []Option
@@ -52,8 +56,9 @@ func TestOptions(t *testing.T) {
 		wantFull    string
 		wantLogger  *slog.Logger
 		wantLogboek ldv.LDV
-		wantPIP     pip.PIP
+		wantPEP     pep.PEP
 		wantPAP     pap.PAP
+		wantPIP     pip.PIP
 	}{
 		{
 			name: "no options",
@@ -76,6 +81,11 @@ func TestOptions(t *testing.T) {
 			wantLogboek: logboek,
 		},
 		{
+			name:    "pep",
+			options: []Option{WithPEP(p3)},
+			wantPEP: p3,
+		},
+		{
 			name:    "pip",
 			options: []Option{WithPIP(p1)},
 			wantPIP: p1,
@@ -87,14 +97,15 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:        "all",
-			options:     []Option{WithPAP(p2), WithLogger(logger), WithPIP(p1), WithLogboek(logboek), WithNameVersion("x1", "v1")},
+			options:     []Option{WithPAP(p2), WithLogger(logger), WithPIP(p1), WithLogboek(logboek), WithNameVersion("x1", "v1"), WithPEP(p3)},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
 			wantLogger:  logger,
 			wantLogboek: logboek,
-			wantPIP:     p1,
+			wantPEP:     p3,
 			wantPAP:     p2,
+			wantPIP:     p1,
 		},
 	}
 
@@ -108,6 +119,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantFull, got.String())
 			assert.Equal(t, tc.wantLogger, got.Logger())
 			assert.Equal(t, tc.wantLogboek, got.Logboek())
+			assert.Equal(t, tc.wantPEP, got.PEP())
 			assert.Equal(t, tc.wantPIP, got.PIP())
 			assert.Equal(t, tc.wantPAP, got.PAP())
 		})

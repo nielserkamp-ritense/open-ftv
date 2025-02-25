@@ -11,6 +11,8 @@ import (
 )
 
 // New instantiates a memory mapped Valkeyrie Store.
+//
+// See https://github.com/kvtools/valkeyrie.
 func New() store.Store {
 	return &kv{kv: make(map[string][]byte, 64)}
 }

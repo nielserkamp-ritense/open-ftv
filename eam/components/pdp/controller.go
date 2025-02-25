@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -17,6 +18,7 @@ type Controller interface {
 	Name() string
 	Version() string
 	Authorize(req *models.Request) (*models.Response, error)
+	PEP() pep.PEP
 	PAP() pap.PAP
 	PIP() pip.PIP
 }
@@ -29,6 +31,7 @@ type Base struct {
 	name     string
 	version  string
 	fullName string
+	pep      pep.PEP
 	pap      pap.PAP
 	pip      pip.PIP
 }
@@ -77,6 +80,16 @@ func (b *Base) Context() context.Context {
 // Logboek returns the LDV logger used by the controller.
 func (b *Base) Logboek() ldv.LDV {
 	return b.logboek
+}
+
+// PEP returns the PEP used by the controller.
+func (b *Base) PEP() pep.PEP {
+	return b.pep
+}
+
+// SetPEP sets the PEP for the controller.
+func (b *Base) SetPEP(pep pep.PEP) {
+	b.pep = pep
 }
 
 // PAP returns the PAP used by the controller.

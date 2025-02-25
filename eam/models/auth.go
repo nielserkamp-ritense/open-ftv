@@ -8,6 +8,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// PARC contains the details for an authorization control request.
+type PARC struct {
+	Principal Entity       `json:"principal,omitempty"`
+	Action    Entity       `json:"action,omitempty"`
+	Resource  Entity       `json:"resource,omitempty"`
+	Context   AttributeSet `json:"context,omitempty"`
+}
+
 // Request contains the details of an access control request.
 type Request struct {
 	UID         *uuid.UUID          `json:"uid,omitempty"`

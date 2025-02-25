@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -48,6 +49,7 @@ func TestNewBase(t *testing.T) {
 			assert.Equal(t, tc.id, b.Name())
 			assert.Equal(t, tc.version, b.Version())
 			assert.Equal(t, logger, b.Logger())
+			assert.Nil(t, b.pep)
 			assert.Nil(t, b.pap)
 			assert.Nil(t, b.pip)
 			assert.Nil(t, b.logboek)
@@ -64,7 +66,11 @@ func TestNewBase(t *testing.T) {
 			b.SetPIP(p2)
 			assert.Equal(t, p2, b.PIP())
 
-			assert.Nil(t, b.Logboek())
+			p3 := pep.New(nil, logger)
+			require.NotNil(t, p3)
+
+			b.SetPEP(p3)
+			assert.Equal(t, p3, b.PEP())
 
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
