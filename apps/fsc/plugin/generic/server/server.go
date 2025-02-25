@@ -5,15 +5,14 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/fsc/plugin/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 )
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server.Service {
-	s := &service{cfg: cfg, logger: logger, logboek: logboek}
+func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
+	s := &service{cfg: cfg, logger: logger}
 
 	s.Service = fiber.New(
 		logger,
@@ -33,8 +32,7 @@ func NewService(cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) server
 
 type service struct {
 	server.Service
-	ctx     context.Context
-	cfg     *config.Config
-	logger  *slog.Logger
-	logboek ldv.LDV
+	ctx    context.Context
+	cfg    *config.Config
+	logger *slog.Logger
 }

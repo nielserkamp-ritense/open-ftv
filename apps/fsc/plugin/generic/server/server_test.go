@@ -30,7 +30,7 @@ func TestServe(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -69,7 +69,7 @@ func TestServe_FailPDP(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		_ = NewService(cfg, logger, nil)
+		_ = NewService(cfg, logger)
 
 		require.True(t, false) // should never trigger
 	})
@@ -90,7 +90,7 @@ func TestErrorHandler(t *testing.T) {
 			PolicyLanguage: "cedar",
 		}
 
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -144,7 +144,7 @@ func TestOpenSearchFail1(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		s := NewService(cfg, logger, nil)
+		s := NewService(cfg, logger)
 		require.NotNil(t, s)
 	})
 }

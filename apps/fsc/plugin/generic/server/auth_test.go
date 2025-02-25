@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			auth := New(nil, tc.cfg, logger, nil)
+			auth := New(nil, tc.cfg, logger)
 			if tc.wantFail {
 				require.Nil(t, auth)
 				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)

@@ -7,17 +7,12 @@ import (
 	"time"
 
 	"github.com/open-policy-agent/opa/sdk"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(req *models.Request) (resp *models.Response, err error) {
-	finish := c.startLog(req)
-	defer func() { finish(resp) }()
-
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
@@ -48,33 +43,6 @@ func (c *controller) Authorize(req *models.Request) (resp *models.Response, err 
 
 	resp = &models.Response{Allowed: false, Message: "not authorized"}
 	return
-}
-
-func (c *controller) startLog(_ *models.Request) func(resp *models.Response) {
-	ldv := c.Logboek()
-	if ldv == nil {
-		return func(*models.Response) {}
-	}
-
-	_, span := ldv.StartSpan(
-		context.Background(),
-		attribute.String("authz.policy.engine", c.String()),
-	)
-
-	return func(result *models.Response) {
-		c.endLog(span, result)
-	}
-}
-
-func (c *controller) endLog(span trace.Span, result *models.Response) {
-	span.SetAttributes(
-		attribute.Bool("authz.policy.allowed", result.Allowed),
-		attribute.String("authz.policy.message", result.Message),
-		attribute.String("authz.policy.key", result.PolicyKey),
-		attribute.String("authz.policy.hash", result.PolicyHash),
-	)
-
-	span.End()
 }
 
 func (c *controller) buildDecisionOptions(req *models.Request) sdk.DecisionOptions {

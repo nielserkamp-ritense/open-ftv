@@ -52,7 +52,6 @@ func TestNewBase(t *testing.T) {
 			assert.Nil(t, b.pep)
 			assert.Nil(t, b.pap)
 			assert.Nil(t, b.pip)
-			assert.Nil(t, b.logboek)
 
 			p1 := pap.New(nil, logger)
 			require.NotNil(t, p1)

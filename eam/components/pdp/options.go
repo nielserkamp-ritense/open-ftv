@@ -5,7 +5,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
@@ -33,13 +32,6 @@ func WithNameVersion(name, version string) Option {
 func WithLogger(logger *slog.Logger) Option {
 	return func(c *Base) {
 		c.logger = logger
-	}
-}
-
-// WithLogboek adds an interface for the Logboek Dataverwerkingen to the controller.
-func WithLogboek(ldv ldv.LDV) Option {
-	return func(c *Base) {
-		c.logboek = ldv
 	}
 }
 

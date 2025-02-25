@@ -5,7 +5,6 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
@@ -27,7 +26,6 @@ type Controller interface {
 type Base struct {
 	ctx      context.Context
 	logger   *slog.Logger
-	logboek  ldv.LDV
 	name     string
 	version  string
 	fullName string
@@ -75,11 +73,6 @@ func (b *Base) Logger() *slog.Logger {
 // Context returns the context used by the controller.
 func (b *Base) Context() context.Context {
 	return b.ctx
-}
-
-// Logboek returns the LDV logger used by the controller.
-func (b *Base) Logboek() ldv.LDV {
-	return b.logboek
 }
 
 // PEP returns the PEP used by the controller.

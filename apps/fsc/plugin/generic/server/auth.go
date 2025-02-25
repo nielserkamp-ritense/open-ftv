@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/ldv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
@@ -32,8 +31,8 @@ type AuthHandler interface {
 }
 
 // New instantiates an authorization handler.
-func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) AuthHandler {
-	controller, err := newController(ctx, cfg, logger, logboek)
+func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandler {
+	controller, err := newController(ctx, cfg, logger)
 	if controller == nil {
 		logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
@@ -54,7 +53,7 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek l
 	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
 }
 
-func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger, logboek ldv.LDV) (pdp.Controller, error) {
+func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pdp.Controller, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -70,7 +69,7 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger,
 	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
 	p2 := pap.New(ctx, logger, papOpts...)
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger), pdp.WithLogboek(logboek)}
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
 
 	switch l {
 	case models.CEDAR:

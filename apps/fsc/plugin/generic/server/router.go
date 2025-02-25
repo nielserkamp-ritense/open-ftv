@@ -16,7 +16,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.initHealth(svc)
 
-	auth := New(s.ctx, s.cfg, s.logger, s.logboek)
+	auth := New(s.ctx, s.cfg, s.logger)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
