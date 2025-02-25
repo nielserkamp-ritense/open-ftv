@@ -7,7 +7,7 @@ use (
 	apps/pap
 	apps/pip
 	eam/components
-	eam/fsc/plugin/generic
+	./apps/fsc/plugin/generic
 	eam/handlers
 	eam/models
 	eam/server
