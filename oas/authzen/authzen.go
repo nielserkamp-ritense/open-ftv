@@ -31,8 +31,8 @@ type AuthorizationRequest struct {
 
 // AuthorizationResponse Authorization response model.
 type AuthorizationResponse struct {
-	// Context Optional context returned by the policy engine.
-	Context map[string]any `json:"context,omitempty"`
+	// Context Specifies a particular reason.
+	Context *ReasonObject `json:"context,omitempty"`
 
 	// Decision true if the request is authorized.
 	Decision bool `json:"decision"`
@@ -69,33 +69,6 @@ type ErrorResponse struct {
 	Type string `json:"type,omitempty"`
 }
 
-// PoliciesResponse A set of policies.
-type PoliciesResponse = []Policy
-
-// Policy The content of a policy.
-type Policy struct {
-	// Id The unique identifier of the policy.
-	Id string `json:"id"`
-
-	// Language The language of the policy.
-	Language string `json:"language"`
-
-	// RvvaId The unique identifier of the Register of Activities (RvVA).
-	RvvaId string `json:"rvvaId,omitempty"`
-
-	// Source The unique identifier of the source.
-	Source string `json:"source,omitempty"`
-
-	// Target The unique identifier of the target.
-	Target string `json:"target,omitempty"`
-
-	// Url Link to the actual policy.
-	Url string `json:"url"`
-}
-
-// PolicyResponse The content of a policy.
-type PolicyResponse = Policy
-
 // ReasonField Map of one or more reasons, with a language-identifier as the key.
 type ReasonField = map[string]any
 
@@ -111,14 +84,8 @@ type ReasonObject struct {
 	ReasonUser ReasonField `json:"reasonUser,omitempty"`
 }
 
-// PolicyID defines model for PolicyID.
-type PolicyID = string
-
 // AccessDenied Error response model (as defined by RFC9457).
 type AccessDenied = ErrorResponse
-
-// AlreadyExists Error response model (as defined by RFC9457).
-type AlreadyExists = ErrorResponse
 
 // BadRequest Error response model (as defined by RFC9457).
 type BadRequest = ErrorResponse
@@ -126,14 +93,11 @@ type BadRequest = ErrorResponse
 // NotAuthorized Error response model (as defined by RFC9457).
 type NotAuthorized = ErrorResponse
 
-// NotFound Error response model (as defined by RFC9457).
-type NotFound = ErrorResponse
-
 // UnexpectedError Error response model (as defined by RFC9457).
 type UnexpectedError = ErrorResponse
 
-// AuthRequestParams defines parameters for AuthRequest.
-type AuthRequestParams struct {
+// AccessEvaluationParams defines parameters for AccessEvaluation.
+type AccessEvaluationParams struct {
 	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
 	Authorization string `json:"Authorization,omitempty"`
 
@@ -142,11 +106,5 @@ type AuthRequestParams struct {
 	XRequestID string `json:"X-Request-ID,omitempty"`
 }
 
-// AuthRequestJSONRequestBody defines body for AuthRequest for application/json ContentType.
-type AuthRequestJSONRequestBody = AuthorizationRequest
-
-// ReplacePolicyJSONRequestBody defines body for ReplacePolicy for application/json ContentType.
-type ReplacePolicyJSONRequestBody = Policy
-
-// AddPolicyJSONRequestBody defines body for AddPolicy for application/json ContentType.
-type AddPolicyJSONRequestBody = Policy
+// AccessEvaluationJSONRequestBody defines body for AccessEvaluation for application/json ContentType.
+type AccessEvaluationJSONRequestBody = AuthorizationRequest

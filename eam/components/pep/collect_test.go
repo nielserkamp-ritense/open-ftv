@@ -15,7 +15,6 @@ import (
 
 func TestPip_PARCFromRequest(t *testing.T) {
 	emptyHTTP := models.NewAttribute("http", map[string]any{})
-	emptyHeaders := models.NewAttribute("headers", map[string]string{})
 
 	testCases := []struct {
 		name    string
@@ -28,15 +27,15 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		{
 			name: "empty",
 			req:  models.Request{},
-			want: models.NewAttributeSet(emptyHTTP, emptyHeaders),
+			want: models.NewAttributeSet(emptyHTTP),
 		},
 		{
 			name: "method",
 			req:  models.Request{Method: "POST"},
 			want: models.NewAttributeSet(
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("http", map[string]any{"method": "POST"}),
+					models.NewAttribute("action", "name::can_update"),
 				),
 			),
 		},
@@ -49,7 +48,6 @@ func TestPip_PARCFromRequest(t *testing.T) {
 				RawQuery: "x=y&q=www",
 			}},
 			want: models.NewAttributeSet(
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("http", map[string]any{
 						"scheme":     "https",
@@ -75,7 +73,6 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			req:  models.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
 			want: models.NewAttributeSet(
 				emptyHTTP,
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("hello", "world"),
 					models.NewAttribute("int", 4567),
@@ -99,23 +96,20 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			},
 			wantLog: 1,
 			want: models.NewAttributeSet(
-				models.NewAttributeSet(models.NewAttribute("content-type", "text/json")),
-				models.NewAttributeSet(models.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
-				models.NewAttributeSet(
-					models.NewAttribute("http", map[string]any{
-						"method":     "POST",
-						"scheme":     "https",
-						"host":       "www.disney.land",
-						"path":       "/donald/duck",
-						"path-parts": []string{"donald", "duck"},
-						"query":      map[string]string{"x": "y", "q": "www"},
-					}),
-				),
-				models.NewAttributeSet(
-					models.NewAttribute("hello", "world"),
-					models.NewAttribute("int", 765),
-					models.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
-				),
+				models.NewAttribute("content-type", "text/json"),
+				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
+				models.NewAttribute("http", map[string]any{
+					"method":     "POST",
+					"scheme":     "https",
+					"host":       "www.disney.land",
+					"path":       "/donald/duck",
+					"path-parts": []string{"donald", "duck"},
+					"query":      map[string]string{"x": "y", "q": "www"},
+				}),
+				models.NewAttribute("hello", "world"),
+				models.NewAttribute("int", 765),
+				models.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
+				models.NewAttribute("action", "name::can_update"),
 			),
 		},
 	}
@@ -133,10 +127,9 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			got, newURI := p.PARCFromRequest(&tc.req, e)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantURI, newURI)
-
 			assert.Equal(t, tc.wantLog, h.Count())
 
-			got.Context.RemoveAttribute("request-time")
+			got.Context.RemoveAttribute("time")
 
 			tc.want.IterateAttributes(func(attr models.Attribute) {
 				v2 := got.Context.GetAttributeValue(attr.Key())
@@ -153,7 +146,6 @@ func TestPip_PARCFromRequest(t *testing.T) {
 
 func TestPip_PARCFromHTTP(t *testing.T) {
 	emptyHTTP := models.NewAttribute("http", map[string]any{})
-	emptyHeaders := models.NewAttribute("headers", map[string]string{})
 
 	testCases := []struct {
 		name    string
@@ -167,15 +159,15 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 		{
 			name: "empty",
 			req:  models.HTTPRequest{},
-			want: models.NewAttributeSet(emptyHTTP, emptyHeaders),
+			want: models.NewAttributeSet(emptyHTTP),
 		},
 		{
 			name: "method",
 			req:  models.HTTPRequest{Method: "POST"},
 			want: models.NewAttributeSet(
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("http", map[string]any{"method": "POST"}),
+					models.NewAttribute("action", "name::can_update"),
 				),
 			),
 		},
@@ -188,7 +180,6 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 				RawQuery: "x=y&q=www",
 			}},
 			want: models.NewAttributeSet(
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("http", map[string]any{
 						"scheme":     "https",
@@ -215,7 +206,6 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			attrs: models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 4567)),
 			want: models.NewAttributeSet(
 				emptyHTTP,
-				emptyHeaders,
 				models.NewAttributeSet(
 					models.NewAttribute("hello", "world"),
 					models.NewAttribute("int", 4567),
@@ -239,23 +229,20 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			attrs:   models.NewAttributeSet(models.NewAttribute("int", 765), models.NewAttribute("hello", "world")),
 			wantLog: 1,
 			want: models.NewAttributeSet(
-				models.NewAttributeSet(models.NewAttribute("content-type", "text/json")),
-				models.NewAttributeSet(models.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
-				models.NewAttributeSet(
-					models.NewAttribute("http", map[string]any{
-						"method":     "POST",
-						"scheme":     "https",
-						"host":       "www.disney.land",
-						"path":       "/donald/duck",
-						"path-parts": []string{"donald", "duck"},
-						"query":      map[string]string{"x": "y", "q": "www"},
-					}),
-				),
-				models.NewAttributeSet(
-					models.NewAttribute("hello", "world"),
-					models.NewAttribute("int", 765),
-					models.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
-				),
+				models.NewAttribute("content-type", "text/json"),
+				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
+				models.NewAttribute("http", map[string]any{
+					"method":     "POST",
+					"scheme":     "https",
+					"host":       "www.disney.land",
+					"path":       "/donald/duck",
+					"path-parts": []string{"donald", "duck"},
+					"query":      map[string]string{"x": "y", "q": "www"},
+				}),
+				models.NewAttribute("hello", "world"),
+				models.NewAttribute("int", 765),
+				models.NewAttribute("body", map[string]any{"float": 12.12, "bool": false, "hello": "kitty"}),
+				models.NewAttribute("action", "name::can_update"),
 			),
 		},
 	}
@@ -272,10 +259,9 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			got, newURI := p.PARCFromHTTP(uid, &tc.req, tc.attrs, e)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantURI, newURI)
-
 			assert.Equal(t, tc.wantLog, h.Count())
 
-			got.Context.RemoveAttribute("request-time")
+			got.Context.RemoveAttribute("time")
 
 			tc.want.IterateAttributes(func(attr models.Attribute) {
 				v2 := got.Context.GetAttributeValue(attr.Key())

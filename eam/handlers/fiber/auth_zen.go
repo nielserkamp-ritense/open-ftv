@@ -90,7 +90,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	method, _ := actionAttrs.GetAttributeValue(models.AttrMethod).(string)
 
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
-	action := models.NewEntity(models.EntityAction, req.Action.Name, actionAttrs)
+	action := models.NewEntity(models.EntityTypeAction, req.Action.Name, actionAttrs)
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
@@ -130,7 +130,7 @@ func (p *authProcess) authorizeAuthZEN() error {
 
 	return p.fc.JSON(&authzen.AuthorizationResponse{
 		Decision: allowed,
-		Context:  map[string]any{"en": msg},
+		Context:  &authzen.ReasonObject{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}},
 	})
 }
 

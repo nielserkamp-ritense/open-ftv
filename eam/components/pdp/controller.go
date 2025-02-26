@@ -11,15 +11,18 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-// Controller represents the interface for a PBAC controller component.
+// Controller represents the interface for an EAM controller component,
+// which may encompass a PEP, PIP, PAP and/or PDP.
+//
+// Each policy language specific PDP (in the submodules) must be represented by a Controller interface.
 type Controller interface {
-	String() string
+	String() string // name & version.
 	Name() string
 	Version() string
-	Authorize(req *models.Request) (*models.Response, error)
 	PEP() pep.PEP
 	PAP() pap.PAP
 	PIP() pip.PIP
+	Authorize(req *models.Request) (*models.Response, error)
 }
 
 // Base contains the common attributes of a controller.
@@ -80,27 +83,12 @@ func (b *Base) PEP() pep.PEP {
 	return b.pep
 }
 
-// SetPEP sets the PEP for the controller.
-func (b *Base) SetPEP(pep pep.PEP) {
-	b.pep = pep
-}
-
 // PAP returns the PAP used by the controller.
 func (b *Base) PAP() pap.PAP {
 	return b.pap
 }
 
-// SetPAP sets the PAP for the controller.
-func (b *Base) SetPAP(pap pap.PAP) {
-	b.pap = pap
-}
-
 // PIP returns the PIP used by the controller.
 func (b *Base) PIP() pip.PIP {
 	return b.pip
-}
-
-// SetPIP sets the PIP for the controller.
-func (b *Base) SetPIP(pip pip.PIP) {
-	b.pip = pip
 }

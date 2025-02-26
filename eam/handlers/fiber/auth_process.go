@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
@@ -46,7 +47,7 @@ func (p *authProcess) authLog() {
 	clientIP, _ := p.req.Attributes[models.AttrClientIP].(string)
 
 	rvvaID, _ := p.req.Attributes[models.AttrRvvaID].(string)
-	if rvvaID == "" && p.req.Principal != nil && p.req.Principal.Type() == models.PrincipalRVVA {
+	if rvvaID == "" && p.req.Principal != nil && p.req.Principal.Type() == pep.PrincipalRVVA {
 		rvvaID = p.req.Principal.ID()
 	}
 

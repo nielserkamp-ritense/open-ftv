@@ -22,7 +22,7 @@ import (
 
 func TestAuthHandler_AuthZEN1(t *testing.T) {
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"en":"ok"},"decision":true}`
+	out := `{"context":{"id":"0","reasonUser":{"en":"ok"}},"decision":true}`
 
 	t.Run("authzen handler (1)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -71,7 +71,7 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 
 func TestAuthHandler_AuthZEN2(t *testing.T) {
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"en":"ok"},"decision":true}`
+	out := `{"context":{"id":"0","reasonUser":{"en":"ok"}},"decision":true}`
 
 	t.Run("authzen handler (2)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -120,7 +120,7 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 
 func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"GET"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"en":"not authorized"},"decision":false}`
+	out := `{"context":{"id":"0","reasonUser":{"en":"not authorized"}},"decision":false}`
 
 	t.Run("authzen handler fail (1)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())

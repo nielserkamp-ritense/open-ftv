@@ -6,6 +6,7 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -30,7 +31,7 @@ func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 	}
 
 	if debug {
-		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
+		c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
 	return &models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
@@ -48,7 +49,7 @@ func (c *controller) buildCedarRequest(req *models.Request) cedar.Request {
 		ca, _ = a.(*attributes)
 	}
 
-	p1, p2 := models.DeterminePrincipal(a)
+	p1, p2 := pep.DeterminePrincipal(a)
 
 	req.Principal = models.NewEntity(p1, p2, nil)
 	req.Action = models.NewEntity(TypeAction, req.Method, nil)

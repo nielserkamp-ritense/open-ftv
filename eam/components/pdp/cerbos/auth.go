@@ -7,6 +7,7 @@ import (
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -37,7 +38,7 @@ func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 	}
 
 	if err != nil {
-		c.logger.Error("authorization failed", "request-uid", req.UID, "pdp elapsed", duration.String(), "error", err)
+		c.logger.Warn("authorization failed", "request-uid", req.UID, "pdp elapsed", duration.String(), "error", err)
 
 	}
 	return &models.Response{Allowed: false, Message: "not authorized"}, nil
@@ -49,7 +50,7 @@ func (c *controller) buildCerbosRequest(req *models.Request) (*cerbos.Principal,
 		uri = req.URL.String()
 	}
 
-	p1, p2 := models.DeterminePrincipal(a)
+	p1, p2 := pep.DeterminePrincipal(a)
 
 	principal := cerbos.NewPrincipal(fmt.Sprintf("%s:%s", p1, p2), "doelbinding").WithAttributes(models.MapFromAttributes(a))
 	resource := cerbos.NewResource(uri, uri)

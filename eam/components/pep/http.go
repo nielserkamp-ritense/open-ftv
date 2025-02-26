@@ -6,7 +6,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-func (c *collector) determineURL() {
+func (c *collector) processHTTP() {
 	m := make(map[string]any, 8)
 
 	if c.req.Method != "" {

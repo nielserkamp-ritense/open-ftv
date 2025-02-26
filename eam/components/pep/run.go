@@ -9,6 +9,7 @@ import (
 func (c *collector) run() {
 	parc, attrs := c.parc, c.parc.Context
 
+	// all objects must be instantiated before processing.
 	if parc.Principal == nil {
 		parc.Principal = models.NewEntity("", "", models.NewAttributeSet())
 	}
@@ -19,17 +20,25 @@ func (c *collector) run() {
 		parc.Resource = models.NewEntity("", "", models.NewAttributeSet())
 	}
 
-	attrs.AddAttribute(models.AttrRequestTime, time.Now().UTC())
+	// See AuthZEN spec Information Model - Context (link is subject to change):
+	// https://openid.net/specs/authorization-api-1_0-01.html#name-context
+	c.parc.Context.AddAttribute(models.AttrTime, time.Now().UTC())
 
-	c.testHeaders()
+	// process the HTTP request data.
+	c.processHeaders()
 	if c.newURI == "" && parc.Resource != nil {
 		c.newURI = parc.Resource.ID()
 	}
-
-	c.determineURL()
+	c.processHTTP()
 	c.decodeBody()
 
-	if parc.Principal.ID() != "" {
+	// let's make sure our principal, action & resource are properly filled.
+	c.determinePrincipal()
+	c.determineAction()
+	c.determineResource()
+
+	// TODO: are these duplications really needed?
+	if p := parc.Principal; p.ID() != "" && p.ID() != PrincipalInvalid {
 		attrs.AddAttribute(models.AttrPrincipal, parc.Principal.UID())
 	}
 	if parc.Action.ID() != "" {

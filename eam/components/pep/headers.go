@@ -7,7 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
-func (c *collector) testHeaders() {
+func (c *collector) processHeaders() {
 	attrs := c.parc.Context
 	other := make(map[string]string)
 
@@ -44,6 +44,8 @@ func (c *collector) testHeaders() {
 				fwd1 = strings.Join(list, ",")
 			case models.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
+			case models.HeaderDeviceID, models.HeaderObsoleteDeviceID:
+				c.parc.Principal.Attributes().AddAttribute(models.AttrDeviceID, first)
 			case models.HeaderTraceParent:
 				attrs.AddAttribute(models.AttrTraceParent, first)
 			case models.HeaderTraceState:
@@ -60,7 +62,9 @@ func (c *collector) testHeaders() {
 		c.processForwarded(fwd1, fwd2)
 	}
 
-	attrs.AddAttribute(models.AttrHeaders, other)
+	if len(other) > 0 {
+		attrs.AddAttribute(models.AttrHeaders, other)
+	}
 }
 
 func (c *collector) convertActivityID(id string) {

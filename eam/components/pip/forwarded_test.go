@@ -84,7 +84,7 @@ func TestForwardedList(t *testing.T) {
 			p := pip{}
 			p.processForwardedList(tc.list, a)
 
-			got := a.GetAttributeValue("client-ip")
+			got := a.GetAttributeValue("ip-address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}
@@ -168,7 +168,7 @@ func TestForwarded(t *testing.T) {
 			p := pip{}
 			p.processForwarded(tc.fwd1, tc.fwd2, a)
 
-			got := a.GetAttributeValue("client-ip")
+			got := a.GetAttributeValue("ip-address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}

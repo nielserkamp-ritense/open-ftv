@@ -140,12 +140,6 @@ func TestController_HandleModel(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, engine)
 
-			c := &controller{
-				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
-				engine: engine,
-				stores: make(map[string]*details),
-			}
-
 			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
@@ -160,7 +154,11 @@ func TestController_HandleModel(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			c.SetPAP(p)
+			c := &controller{
+				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger), pdp.WithPAP(p)),
+				engine: engine,
+				stores: make(map[string]*details),
+			}
 
 			h.Clear()
 			c.Handle(tc.event1, tc.key1)
@@ -346,12 +344,6 @@ func TestController_HandleRelations(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, engine)
 
-			c := &controller{
-				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
-				engine: engine,
-				stores: make(map[string]*details),
-			}
-
 			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
@@ -366,7 +358,11 @@ func TestController_HandleRelations(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			c.SetPAP(p)
+			c := &controller{
+				Base:   pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger), pdp.WithPAP(p)),
+				engine: engine,
+				stores: make(map[string]*details),
+			}
 
 			if tc.event1 > 0 {
 				h.Clear()

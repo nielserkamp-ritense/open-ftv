@@ -81,11 +81,11 @@ func TestForwardedList(t *testing.T) {
 			c := &collector{
 				debug: true,
 				req:   &models.HTTPRequest{},
-				parc:  &models.PARC{Context: models.NewAttributeSet()},
+				parc:  &models.PARC{Principal: models.NewEntity("", "", models.NewAttributeSet()), Context: models.NewAttributeSet()},
 			}
 			c.processForwardedList(tc.list)
 
-			got := c.parc.Context.GetAttributeValue("client-ip")
+			got := c.parc.Principal.Attributes().GetAttributeValue("ip-address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}
@@ -166,11 +166,11 @@ func TestForwarded(t *testing.T) {
 			c := &collector{
 				debug: true,
 				req:   &models.HTTPRequest{},
-				parc:  &models.PARC{Context: models.NewAttributeSet()},
+				parc:  &models.PARC{Principal: models.NewEntity("", "", models.NewAttributeSet()), Context: models.NewAttributeSet()},
 			}
 			c.processForwarded(tc.fwd1, tc.fwd2)
 
-			got := c.parc.Context.GetAttributeValue("client-ip")
+			got := c.parc.Principal.Attributes().GetAttributeValue("ip-address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}

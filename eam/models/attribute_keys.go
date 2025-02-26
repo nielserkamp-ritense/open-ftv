@@ -5,9 +5,10 @@ const (
 	AttrAction      = "action"
 	AttrAPIKey      = "api-key"
 	AttrClaims      = "claims"
-	AttrClientIP    = "client-ip"
+	AttrClientIP    = "ip-address"
 	AttrContentType = "content-type"
 	AttrCoreUser    = "core-user"
+	AttrDeviceID    = "device-id"
 	AttrDoelbinding = "doelbinding"
 	AttrFSC         = "fsc"
 	AttrGrondslag   = "grondslag"
@@ -16,7 +17,6 @@ const (
 	AttrHTTP        = "http"
 	AttrJWT         = "jwt"
 	AttrMethod      = "method"
-	AttrOutwayCerts = "outway-certs"
 	AttrPath        = "path"
 	AttrPathParts   = "path-parts"
 	AttrPrincipal   = "principal"
@@ -26,6 +26,7 @@ const (
 	AttrRvvaID      = "rvva-id"
 	AttrScheme      = "scheme"
 	AttrTaak        = "taak"
+	AttrTime        = "time"
 	AttrTraceParent = "traceparent" // https://www.w3.org/TR/trace-context/
 	AttrTraceState  = "tracestate"  // https://www.w3.org/TR/trace-context/
 	AttrValid       = "valid"

@@ -125,11 +125,6 @@ func TestController_Handle(t *testing.T) {
 			engine := cedar.NewPolicySet()
 			require.NotNil(t, engine)
 
-			c := &controller{
-				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
-				pdp:  engine,
-			}
-
 			p := pap.New(nil, logger)
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
@@ -143,7 +138,10 @@ func TestController_Handle(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			c.SetPAP(p)
+			c := &controller{
+				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger), pdp.WithPAP(p)),
+				pdp:  engine,
+			}
 
 			h.Clear()
 			c.Handle(tc.event1, tc.key1)

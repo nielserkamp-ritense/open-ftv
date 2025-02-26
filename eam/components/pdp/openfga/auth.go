@@ -9,6 +9,7 @@ import (
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/openfga/pkg/tuple"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -41,7 +42,7 @@ func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 		if out.Allowed {
 			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 		} else {
-			c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "message", out.Message, "pdp elapsed", duration.String())
+			c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", req.UID, "message", out.Message, "pdp elapsed", duration.String())
 		}
 	}
 
@@ -54,7 +55,7 @@ func (c *controller) buildCheckRequest(req *models.Request) (*openfgav1.CheckReq
 		uri = req.URL.String()
 	}
 
-	p1, p2 := models.DeterminePrincipal(a)
+	p1, p2 := pep.DeterminePrincipal(a)
 
 	dtl, ok := c.stores[p1]
 	if !ok || dtl == nil {
@@ -64,7 +65,7 @@ func (c *controller) buildCheckRequest(req *models.Request) (*openfgav1.CheckReq
 	t := tupleKeyFromBasicTuple(basicTuple{
 		Subject:   basicEntity{Type: p1, ID: p2},
 		Predicate: "call",
-		Object:    basicEntity{Type: models.EntityService, ID: normalize(uri)},
+		Object:    basicEntity{Type: models.EntityTypeService, ID: normalize(uri)},
 	})
 
 	out := &openfgav1.CheckRequest{}

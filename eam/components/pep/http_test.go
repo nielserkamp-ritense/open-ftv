@@ -68,7 +68,7 @@ func TestProcessURL(t *testing.T) {
 				req:   &models.HTTPRequest{URL: tc.url, Method: tc.method, RequestTime: &now},
 				parc:  &models.PARC{Context: models.NewAttributeSet()},
 			}
-			c.determineURL()
+			c.processHTTP()
 
 			m, ok := c.parc.Context.GetAttributeValue("http").(map[string]any)
 			require.True(t, ok)

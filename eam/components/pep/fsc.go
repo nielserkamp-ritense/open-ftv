@@ -36,7 +36,9 @@ func (c *collector) processFSCBearer(bearer string) {
 	// NOTE: FSC seems to generate an unverifiable token, so we skip validation (for now).
 	// It means this JWT is flagged as NOT VALID, but we can access the data that we need,
 	// and it can only affect the outcome of the authorisation;
-	// e.g. the authorisation will fail if the JWT claims are invalid, which is what we want anyway.
+	// e.g. the authorisation may fail if the JWT claims are invalid, which is what we want anyway.
+	// if a black-hat is capable of changing the FSC parameters, they would also be able to change the answer
+	// from the authorisation process, so all bets are off in that case anyway.
 	if err != nil && c.debug {
 		c.logger.Warn("failed to parse FSC token", "error", err)
 	}

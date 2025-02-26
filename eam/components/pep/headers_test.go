@@ -152,9 +152,9 @@ func TestProcessHeaders(t *testing.T) {
 				debug:  true,
 				logger: slog.New(h),
 				req:    &models.HTTPRequest{Headers: tc.headers},
-				parc:   &models.PARC{Context: models.NewAttributeSet()},
+				parc:   &models.PARC{Principal: models.NewEntity("", "", models.NewAttributeSet()), Context: models.NewAttributeSet()},
 			}
-			c.testHeaders()
+			c.processHeaders()
 
 			if tc.wantURI != "" {
 				assert.Equal(t, tc.wantURI, c.newURI)
@@ -225,9 +225,9 @@ func TestProcessHeaders(t *testing.T) {
 			}
 
 			if tc.wantFwd != "" {
-				assert.Equal(t, tc.wantFwd, a.GetAttributeValue(models.AttrClientIP))
+				assert.Equal(t, tc.wantFwd, c.parc.Principal.Attributes().GetAttributeValue(models.AttrClientIP))
 			} else {
-				assert.Nil(t, a.GetAttributeValue(models.AttrClientIP))
+				assert.Nil(t, c.parc.Principal.Attributes().GetAttributeValue(models.AttrClientIP))
 			}
 
 			if tc.wantParent != "" {
@@ -242,14 +242,13 @@ func TestProcessHeaders(t *testing.T) {
 				assert.Nil(t, a.GetAttributeValue(models.AttrTraceState))
 			}
 
-			other, ok := a.GetAttributeValue(models.AttrHeaders).(map[string]string)
-			require.True(t, ok)
-			require.NotNil(t, other)
-
 			if tc.wantHeaders != nil {
+				other, ok := a.GetAttributeValue(models.AttrHeaders).(map[string]string)
+				require.True(t, ok)
+				require.NotNil(t, other)
 				assert.EqualValues(t, tc.wantHeaders, other)
 			} else {
-				assert.Empty(t, other)
+				assert.Empty(t, a.GetAttributeValue(models.AttrHeaders))
 			}
 		})
 	}

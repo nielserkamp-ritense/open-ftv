@@ -8,6 +8,7 @@ import (
 
 	"github.com/open-policy-agent/opa/sdk"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -37,7 +38,7 @@ func (c *controller) Authorize(req *models.Request) (resp *models.Response, err 
 		}
 
 		if debug {
-			c.Logger().Debug("authorization not granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+			c.Logger().Warn("authorization not granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
 		}
 	}
 
@@ -53,7 +54,7 @@ func (c *controller) buildDecisionOptions(req *models.Request) sdk.DecisionOptio
 		m["uri"] = newURI
 	}
 
-	p1, p2 := models.DeterminePrincipal(a)
+	p1, p2 := pep.DeterminePrincipal(a)
 
 	return sdk.DecisionOptions{
 		Now:        *req.RequestTime,

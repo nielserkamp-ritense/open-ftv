@@ -140,12 +140,6 @@ func TestController_Handle(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			c := &controller{
-				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger)),
-				pdp:  engine,
-				mem:  mem,
-			}
-
 			p := pap.New(nil, logger)
 
 			for key := range tc.policies {
@@ -160,7 +154,11 @@ func TestController_Handle(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			c.SetPAP(p)
+			c := &controller{
+				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger), pdp.WithPAP(p)),
+				pdp:  engine,
+				mem:  mem,
+			}
 
 			h.Clear()
 			c.Handle(tc.event1, tc.key1)
