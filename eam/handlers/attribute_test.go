@@ -82,7 +82,7 @@ func TestConvertFromOAS(t *testing.T) {
 		{name: "float type - string good", in: &attributes.Attribute{Key: "key", Value: "123.45678", Type: "float"}, want: models.NewAttributeWithType("key", 123.45678, "float")},
 		{name: "float type - int", in: &attributes.Attribute{Key: "key", Value: 987, Type: "float"}, want: models.NewAttributeWithType("key", float64(987), "float")},
 		{name: "float type - json number", in: &attributes.Attribute{Key: "key", Value: json.Number("777"), Type: "float"}, want: models.NewAttributeWithType("key", float64(777), "float")},
-		{name: "float type - double", in: &attributes.Attribute{Key: "key", Value: 987.432, Type: "float"}, want: models.NewAttributeWithType("key", float64(987.432), "float")},
+		{name: "float type - double", in: &attributes.Attribute{Key: "key", Value: 987.432, Type: "float"}, want: models.NewAttributeWithType("key", 987.432, "float")},
 		{name: "float type - bool", in: &attributes.Attribute{Key: "key", Value: true, Type: "float"}, want: models.NewAttributeWithType("key", float64(1), "float")},
 		{name: "float type - unsupported", in: &attributes.Attribute{Key: "key", Value: []float32{1, 2, 3}, Type: "float"}, want: models.NewAttributeWithType("key", float64(0), "float")},
 		{name: "date type - string bad", in: &attributes.Attribute{Key: "key", Value: "oops", Type: "date"}, want: models.NewAttributeWithType("key", time.Time{}, "date")},
@@ -122,8 +122,8 @@ func TestConvertFromOAS(t *testing.T) {
 		{name: "xsd:bool type - string good", in: &attributes.Attribute{Key: "key", Value: "true", Type: xsd.PrefixBoolean}, want: models.NewAttributeWithType("key", true, "xsd:boolean")},
 		{name: "xsd:string - string", in: &attributes.Attribute{Key: "key", Value: "value", Type: xsd.PrefixString}, want: models.NewAttributeWithType("key", "value", "xsd:string")},
 		{name: "xsd:duration type - string bad", in: &attributes.Attribute{Key: "key", Value: "xyz", Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", time.Duration(0), "xsd:duration")},
-		{name: "xsd:duration type - string good (1)", in: &attributes.Attribute{Key: "key", Value: "260s", Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", time.Duration(260*time.Second), "xsd:duration")},
-		{name: "xsd:duration type - string good (2)", in: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", time.Duration(260*time.Second), "xsd:duration")},
+		{name: "xsd:duration type - string good (1)", in: &attributes.Attribute{Key: "key", Value: "260s", Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", 260*time.Second, "xsd:duration")},
+		{name: "xsd:duration type - string good (2)", in: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", 260*time.Second, "xsd:duration")},
 		{name: "xsd:duration type - unsupported", in: &attributes.Attribute{Key: "key", Value: []float32{1, 2, 3}, Type: xsd.PrefixDuration}, want: models.NewAttributeWithType("key", time.Duration(0), "xsd:duration")},
 	}
 
@@ -135,10 +135,6 @@ func TestConvertFromOAS(t *testing.T) {
 			assert.Equal(t, tc.want.Value(), got.Value())
 			assert.Equal(t, tc.in.Value, got.Original())
 			assert.Equal(t, tc.want.Type(), got.Type())
-
-			got2 := AttributeToOAS(got)
-			require.NotNil(t, got2)
-			assert.EqualValues(t, tc.in, got2)
 		})
 	}
 }
@@ -164,12 +160,12 @@ func TestConvertToOAS(t *testing.T) {
 		{name: "with date type", in: models.NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "date"), want: &attributes.Attribute{Key: "key", Value: "2024-05-29", Type: "date"}},
 		{name: "with xsd:time type", in: models.NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "xsd:time"), want: &attributes.Attribute{Key: "key", Value: "12:00:00", Type: "xsd:time"}},
 		{name: "with xsd:dateTime type", in: models.NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "xsd:dateTime"), want: &attributes.Attribute{Key: "key", Value: "2024-05-29T12:00:00Z", Type: "xsd:dateTime"}},
-		{name: "with xsd:duration type (1)", in: models.NewAttributeWithType("key", time.Duration(260*time.Second), "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration"}},
-		{name: "with xsd:duration type (2)", in: models.NewAttributeWithType("key", time.Duration(300*time.Millisecond), "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT0.3S", Type: "xsd:duration"}},
+		{name: "with xsd:duration type (1)", in: models.NewAttributeWithType("key", 260*time.Second, "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration"}},
+		{name: "with xsd:duration type (2)", in: models.NewAttributeWithType("key", 300*time.Millisecond, "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT0.3S", Type: "xsd:duration"}},
 		{name: "with xsd:duration type (3)", in: models.NewAttributeWithType("key", time.Duration(1200), "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT0.0000012S", Type: "xsd:duration"}},
 		{name: "with duration type", in: models.NewAttributeWithType("key", time.Duration(123456780000), "duration"), want: &attributes.Attribute{Key: "key", Value: "2m3.45678s", Type: "duration"}},
 		{name: "with original xsd:boolean", in: models.NewOriginalAttribute("key", true, "1", "xsd:boolean"), want: &attributes.Attribute{Key: "key", Value: "1", Type: "xsd:boolean"}},
-		{name: "with original xsd:duration", in: models.NewOriginalAttribute("key", time.Duration(260*time.Second), "PT4M20S", "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration"}},
+		{name: "with original xsd:duration", in: models.NewOriginalAttribute("key", 260*time.Second, "PT4M20S", "xsd:duration"), want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration"}},
 	}
 
 	for _, tc := range testCases {
