@@ -7,5 +7,7 @@ func (c *collector) determineResource() {
 		return
 	}
 
-	c.parc.Resource = models.NewEntity(models.EntityTypeService, c.newURI, models.NewAttributeSet(c.parc.Resource.Attributes()))
+	if c.newURI != "" {
+		c.parc.Resource = models.NewEntity(models.EntityTypeService, c.newURI, models.NewAttributeSet(c.parc.Resource.Attributes()))
+	}
 }

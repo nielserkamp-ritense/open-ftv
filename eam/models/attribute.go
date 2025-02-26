@@ -2,6 +2,8 @@
 package models
 
 import (
+	"reflect"
+
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 )
@@ -25,12 +27,12 @@ type Attribute interface {
 
 // NewAttribute instantiates a new attribute without a specific type.
 func NewAttribute(key string, value any) Attribute {
-	return &attribute{key: key, value: value}
+	return NewOriginalAttribute(key, value, value, "")
 }
 
 // NewAttributeWithType instantiates a new attribute with the specified type.
 func NewAttributeWithType(key string, value any, tp string) Attribute {
-	return &attribute{key: key, value: value, tp: tp}
+	return NewOriginalAttribute(key, value, value, tp)
 }
 
 // NewOriginalAttribute instantiates a new attribute with the specified type and original value.
@@ -60,29 +62,36 @@ func (a *attribute) Type() string {
 
 // MarshalJSON implements the json.Marshaller interface.
 func (a *attribute) MarshalJSON() ([]byte, error) {
-	return json.Marshal(marshalAttr{
-		Key:      a.key,
-		Value:    a.value,
-		Original: a.original,
-		Type:     a.tp,
-	})
+	m := marshalAttr{
+		Key:   a.key,
+		Value: a.value,
+		Type:  a.tp,
+	}
+	if a.original != a.value {
+		m.Original = a.original
+	}
+	return json.Marshal(m)
 }
 
 // MarshalYAML implements the yaml.Marshaller interface.
 func (a *attribute) MarshalYAML() ([]byte, error) {
-	return yaml.Marshal(marshalAttr{
+	m := marshalAttr{
 		Key:      a.key,
 		Value:    a.value,
 		Original: a.original,
 		Type:     a.tp,
-	})
+	}
+	if a.original != a.value {
+		m.Original = a.original
+	}
+	return yaml.Marshal(m)
 }
 
 // AttributeEqual returns true if the given attributes are equal.
 func AttributeEqual(a1, a2 Attribute) bool {
 	return a1.Key() == a2.Key() &&
-		a1.Value() == a2.Value() &&
-		a1.Original() == a2.Original() &&
+		reflect.DeepEqual(a1.Value(), a2.Value()) &&
+		reflect.DeepEqual(a1.Original(), a2.Original()) &&
 		a1.Type() == a2.Type()
 }
 

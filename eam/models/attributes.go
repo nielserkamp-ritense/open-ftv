@@ -233,9 +233,9 @@ func AttributesEqual(s1, s2 AttributeSet) bool {
 		}
 	}
 
-	for _, a2 := range as2.set {
-		a1 := as1.getAttribute(a2.Key())
-		if a1 == nil || !AttributeEqual(a1, a2) {
+	for _, a1 := range as2.set {
+		a2 := as1.getAttribute(a1.Key())
+		if a2 == nil || !AttributeEqual(a1, a2) {
 			return false
 		}
 	}

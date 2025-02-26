@@ -20,13 +20,15 @@ func (c *collector) run() {
 		parc.Resource = models.NewEntity("", "", models.NewAttributeSet())
 	}
 
-	// See AuthZEN spec Information Model - Context (link is subject to change):
-	// https://openid.net/specs/authorization-api-1_0-01.html#name-context
-	c.parc.Context.AddAttribute(models.AttrTime, time.Now().UTC())
+	if a := attrs.GetAttribute(models.AttrTime); a == nil {
+		// See AuthZEN spec Information Model - Context (link is subject to change):
+		// https://openid.net/specs/authorization-api-1_0-01.html#name-context
+		attrs.AddAttribute(models.AttrTime, time.Now().UTC())
+	}
 
 	// process the HTTP request data.
 	c.processHeaders()
-	if c.newURI == "" && parc.Resource != nil {
+	if c.newURI == "" {
 		c.newURI = parc.Resource.ID()
 	}
 	c.processHTTP()

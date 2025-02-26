@@ -73,6 +73,12 @@ func TestNewAttributeSet(t *testing.T) {
 			got.IterateAttributes(func(attr Attribute) {
 				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
+
+			bad := got.GetAttribute("does.not.exist.dude")
+			assert.Nil(t, bad)
+
+			badValue := got.GetAttributeValue("does.not.exist.dude")
+			assert.Nil(t, badValue)
 		})
 	}
 }

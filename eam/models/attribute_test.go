@@ -26,7 +26,7 @@ func TestNewAttribute(t *testing.T) {
 			got := NewAttribute(tc.key, tc.value)
 			assert.Equal(t, tc.key, got.Key())
 			assert.Equal(t, tc.value, got.Value())
-			assert.Nil(t, got.Original())
+			assert.Equal(t, tc.value, got.Original())
 			assert.Empty(t, got.Type())
 		})
 	}
@@ -37,12 +37,13 @@ func TestNewAttributeWithType(t *testing.T) {
 		name     string
 		key      string
 		value    any
+		original any
 		t        string
 		wantJSON string
 	}{
 		{name: "nil", key: "nil", wantJSON: `{"key":"nil","value":null}`},
 		{name: "string", key: "s1", value: "v1", t: "string", wantJSON: `{"key":"s1","value":"v1","type":"string"}`},
-		{name: "int", key: "i1", value: 123, t: "xsd:long", wantJSON: `{"key":"i1","value":123,"type":"xsd:long"}`},
+		{name: "int", key: "i1", value: 123, original: "123", t: "xsd:long", wantJSON: `{"key":"i1","value":123,"original":"123","type":"xsd:long"}`},
 		{name: "bool", key: "b1", value: true, t: "xsd:boolean", wantJSON: `{"key":"b1","value":true,"type":"xsd:boolean"}`},
 	}
 
@@ -51,8 +52,15 @@ func TestNewAttributeWithType(t *testing.T) {
 			got := NewAttributeWithType(tc.key, tc.value, tc.t)
 			assert.Equal(t, tc.key, got.Key())
 			assert.Equal(t, tc.value, got.Value())
-			assert.Nil(t, got.Original())
+			assert.Equal(t, tc.value, got.Original())
 			assert.Equal(t, tc.t, got.Type())
+
+			if tc.original != nil {
+				a, ok := got.(*attribute)
+				require.True(t, ok)
+				require.NotNil(t, a)
+				a.original = tc.original
+			}
 
 			b, err := json.Marshal(got)
 			require.NoError(t, err)
