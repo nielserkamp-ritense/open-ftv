@@ -13,6 +13,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
 )
 
 // AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
@@ -91,34 +93,22 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 }
 
 func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
-	actionAttrs := models.NewAttributeSet(req.Action.Properties)
-	method, _ := actionAttrs.GetAttributeValue(models.AttrMethod).(string)
-
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
-	action := models.NewEntity(models.EntityTypeName, req.Action.Name, actionAttrs)
+	action := models.NewEntity(models.EntityTypeName, req.Action.Name, models.NewAttributeSet(req.Action.Properties))
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
+	ctx := models.NewAttributeSet(req.Context)
 
-	var attr map[string]any
-	if req.Context != nil {
-		attr = req.Context
-	} else {
-		attr = make(map[string]any)
+	if t := convert.AnyToDateTime(ctx.GetAttributeValue(models.AttrTime)); t.IsZero() {
+		ctx.AddAttributeWithType(models.AttrTime, time.Now().UTC(), xsd.PrefixDateTime)
 	}
 
-	uid, now := uuid.New(), time.Now().UTC()
-	authReq := &models.Request{
-		UID:         &uid,
-		RequestTime: &now,
-		Method:      method,
-		Headers:     headers,
-		Principal:   principal,
-		Action:      action,
-		Resource:    resource,
-		Attributes:  attr,
+	p.reqUID = uuid.New().String()
+	p.parc = &models.PARC{
+		Principal: principal,
+		Action:    action,
+		Resource:  resource,
+		Context:   ctx,
 	}
-
-	p.reqUID = uid.String()
-	p.req = p.controller.PEP().PARCFromRequest(authReq, p.controller.PIP())
 }
 
 func (p *authProcess) authorizeAuthZEN() error {
@@ -126,7 +116,7 @@ func (p *authProcess) authorizeAuthZEN() error {
 		p.fc.Set("X-Request-ID", reqID)
 	}
 
-	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.req); p.err != nil {
+	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc); p.err != nil {
 		p.msg = "AuthZEN authorization process failed"
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}

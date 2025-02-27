@@ -17,8 +17,8 @@ import (
 func (p *authProcess) log() {
 	args := make([]any, 0, 16)
 
-	if p.req != nil {
-		args = append(args, "method", convert.AnyToString(p.req.Action.Attributes().GetAttribute(models.AttrMethod)))
+	if p.parc != nil {
+		args = append(args, "method", convert.AnyToString(p.parc.Action.Attributes().GetAttribute(models.AttrMethod)))
 		args = append(args, "request-uid", p.reqUID)
 	}
 
@@ -44,14 +44,14 @@ func (p *authProcess) log() {
 }
 
 func (p *authProcess) authLog() {
-	clientIP := convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrClientIP))
+	clientIP := convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrClientIP))
 
-	rvvaID := convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrRvvaID))
-	if rvvaID == "" && p.req.Principal != nil && p.req.Principal.Type() == pep.PrincipalRVVA {
-		rvvaID = p.req.Principal.ID()
+	rvvaID := convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrRvvaID))
+	if rvvaID == "" && p.parc.Principal != nil && p.parc.Principal.Type() == pep.PrincipalRVVA {
+		rvvaID = p.parc.Principal.ID()
 	}
 
-	t := convert.AnyToDateTime(p.req.Context.GetAttributeValue(models.AttrTime))
+	t := convert.AnyToDateTime(p.parc.Context.GetAttributeValue(models.AttrTime))
 	if t.IsZero() {
 		t = time.Now().UTC()
 	}
@@ -60,13 +60,13 @@ func (p *authProcess) authLog() {
 		ClientIP:        clientIP,
 		RequestTime:     &t,
 		RvvaID:          rvvaID,
-		Principal:       p.req.Principal,
-		Action:          p.req.Action,
-		Resource:        p.req.Resource,
+		Principal:       p.parc.Principal,
+		Action:          p.parc.Action,
+		Resource:        p.parc.Resource,
 		Decision:        p.resp.Allowed,
 		DecisionContext: models.NewAttributeSet(),
-		TraceParent:     convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrTraceParent)),
-		TraceState:      convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrTraceState)),
+		TraceParent:     convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrTraceParent)),
+		TraceState:      convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrTraceState)),
 	}
 
 	if p.resp.Message != "" {
@@ -91,7 +91,7 @@ type authProcess struct {
 	status     int
 	fc         *fiber.Ctx
 	reqUID     string
-	req        *models.PARC
+	parc       *models.PARC
 	resp       *models.Response
 	logger     *slog.Logger
 	authLogger authlog.Logger

@@ -31,25 +31,20 @@ func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.P
 			Principal: req.Principal,
 			Action:    req.Action,
 			Resource:  req.Resource,
-			Context:   models.NewAttributeSet(),
+			Context:   models.NewAttributeSet(req.PARC.Context),
 		},
 		entities: e,
-	}
-
-	for k := range req.Attributes {
-		v := req.Attributes[k]
-		c.parc.Context.AddAttribute(k, v)
 	}
 
 	c.run()
 
 	// TODO: move this into caller code; here is the wrong place for such hidden side-effects.
 	// copy back important key attributes.
-	for _, key := range []string{models.AttrClientIP, models.AttrRvvaID, models.AttrTraceParent, models.AttrTraceState} {
-		if attr := c.parc.Context.GetAttribute(key); attr != nil {
-			req.Attributes[key] = attr.Value()
-		}
-	}
+	// for _, key := range []string{models.AttrClientIP, models.AttrRvvaID, models.AttrTraceParent, models.AttrTraceState} {
+	// 	if attr := c.parc.Context.GetAttribute(key); attr != nil {
+	// 		req.Context[key] = attr.Value()
+	// 	}
+	// }
 
 	return c.parc
 }

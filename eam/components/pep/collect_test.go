@@ -68,7 +68,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		},
 		{
 			name: "attributes",
-			req:  models.Request{Attributes: map[string]any{"hello": "world", "int": 4567}},
+			req:  models.Request{PARC: models.PARC{Context: models.NewAttributeSet(map[string]any{"hello": "world", "int": 4567})}},
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttributeSet(
@@ -88,9 +88,9 @@ func TestPip_PARCFromRequest(t *testing.T) {
 					Path:     "/donald/duck",
 					RawQuery: "x=y&q=www",
 				},
-				Headers:    map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}},
-				Body:       []byte(`{"float": 12.12, "bool": false, "hello": "kitty"}`),
-				Attributes: map[string]any{"hello": "world", "int": 765},
+				Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}},
+				Body:    []byte(`{"float": 12.12, "bool": false, "hello": "kitty"}`),
+				PARC:    models.PARC{Context: models.NewAttributeSet(map[string]any{"hello": "world", "int": 765})},
 			},
 			wantLog: 1,
 			want: models.NewAttributeSet(

@@ -18,16 +18,13 @@ type PARC struct {
 
 // Request contains the details of an access control request.
 type Request struct {
+	PARC
 	UID         *uuid.UUID          `json:"uid,omitempty"`
 	URL         *url.URL            `json:"url,omitempty"`
 	Method      string              `json:"method,omitempty"`
 	RequestTime *time.Time          `json:"requestTime,omitempty"`
-	Principal   Entity              `json:"principal,omitempty"`
-	Action      Entity              `json:"action,omitempty"`
-	Resource    Entity              `json:"resource,omitempty"`
 	Headers     map[string][]string `json:"headers,omitempty"`
 	Body        []byte              `json:"body,omitempty"`
-	Attributes  map[string]any      `json:"attributes,omitempty"`
 }
 
 // Response contains the result of an access control request.

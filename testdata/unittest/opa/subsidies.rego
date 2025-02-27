@@ -5,5 +5,5 @@ import rego.v1
 default allow := false
 
 allow if {
-    input.http.method == "POST"
+    input.action.attributes.method == "POST"
 }

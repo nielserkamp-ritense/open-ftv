@@ -54,14 +54,17 @@ func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.Dec
 		t = time.Now().UTC()
 	}
 
-	m := models.MapFromAttributes(parc.Context)
-
-	// TODO: pass the action and resource in the context.
+	data := map[string]any{
+		"principal": models.EntityToAttribute(parc.Principal).Value(),
+		"action":    models.EntityToAttribute(parc.Action).Value(),
+		"resource":  models.EntityToAttribute(parc.Resource).Value(),
+		"context":   models.MapFromAttributes(parc.Context),
+	}
 
 	return sdk.DecisionOptions{
 		DecisionID: uid,
 		Now:        t,
 		Path:       fmt.Sprintf("/%s/%s", parc.Principal.Type(), parc.Principal.ID()),
-		Input:      m,
+		Input:      data,
 	}
 }
