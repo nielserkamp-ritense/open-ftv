@@ -59,6 +59,21 @@ func (r *relation) Object() Entity {
 	return r.object
 }
 
+// RelationToAttribute can be used to convert a relation into an attribute.
+func RelationToAttribute(r Relation) Attribute {
+	s := mapFromEntity(r.Subject())
+	p := mapFromEntity(r.Predicate())
+	o := mapFromEntity(r.Object())
+
+	m := map[string]any{
+		"subject":   s,
+		"predicate": p,
+		"object":    o,
+	}
+
+	return NewAttribute(r.UID(), m)
+}
+
 type relation struct {
 	uid       string
 	subject   Entity

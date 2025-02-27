@@ -72,6 +72,10 @@ func (e *entity) MarshalJSON() ([]byte, error) {
 
 // EntityToAttribute can be used to convert an entity into an attribute.
 func EntityToAttribute(e Entity) Attribute {
+	return NewAttribute(e.UID(), mapFromEntity(e))
+}
+
+func mapFromEntity(e Entity) map[string]any {
 	m := map[string]any{"type": e.Type(), "id": e.ID()}
 
 	if attr := MapFromAttributes(e.Attributes()); len(attr) > 0 {
@@ -81,7 +85,7 @@ func EntityToAttribute(e Entity) Attribute {
 		m["parents"] = p
 	}
 
-	return NewAttribute(e.UID(), m)
+	return m
 }
 
 // EntityEqual returns true if the entities match exactly.

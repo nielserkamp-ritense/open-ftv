@@ -82,3 +82,24 @@ func TestNewRelationFromUID(t *testing.T) {
 		})
 	}
 }
+
+func TestRelationToAttribute(t *testing.T) {
+	t.Run("relation to attribute", func(t *testing.T) {
+		s := NewEntity("user", "alice", nil)
+		p := NewEntity("action", "read", nil)
+		o := NewEntity("book", "123456", nil)
+
+		r := NewRelation(s, p, o)
+		require.NotNil(t, r)
+
+		got := RelationToAttribute(r)
+		assert.Equal(t, "user::alice|action::read|book::123456", got.Key())
+
+		m := map[string]any{
+			"subject":   map[string]any{"type": "user", "id": "alice"},
+			"predicate": map[string]any{"type": "action", "id": "read"},
+			"object":    map[string]any{"type": "book", "id": "123456"},
+		}
+		assert.EqualValues(t, m, got.Value())
+	})
+}
