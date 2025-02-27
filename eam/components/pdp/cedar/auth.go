@@ -6,15 +6,14 @@ import (
 
 	"github.com/cedar-policy/cedar-go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
+func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
+		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", uid)
 	}
 
 	req2 := c.buildCedarRequest(req)
@@ -25,40 +24,29 @@ func (c *controller) Authorize(req *models.Request) (*models.Response, error) {
 
 	if decision {
 		if debug {
-			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 		}
 		return &models.Response{Allowed: true}, nil
 	}
 
 	if debug {
-		c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", req.UID, "diagnostic", diagnostic, "pdp elapsed", duration.String())
+		c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", uid, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
 	return &models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
 }
 
-func (c *controller) buildCedarRequest(req *models.Request) cedar.Request {
-	a, uri := c.PIP().CollectAttributesFromRequest(req)
-	if uri == "" && req.URL != nil {
-		uri = req.URL.String()
-	}
-
-	ca, ok := a.(*attributes)
+func (c *controller) buildCedarRequest(parc *models.PARC) cedar.Request {
+	ca, ok := parc.Context.(*attributes)
 	if !ok {
-		a = NewAttributeSet(c.Logger(), a)
+		a := NewAttributeSet(c.Logger(), parc.Context)
 		ca, _ = a.(*attributes)
 	}
 
-	p1, p2 := pep.DeterminePrincipal(a)
-
-	req.Principal = models.NewEntity(p1, p2, nil)
-	req.Action = models.NewEntity(TypeAction, req.Method, nil)
-	req.Resource = models.NewEntity(TypeService, uri, nil)
-
 	return cedar.Request{
-		Principal: cedar.NewEntityUID(cedar.EntityType(req.Principal.Type()), cedar.String(req.Principal.ID())),
-		Action:    cedar.NewEntityUID(cedar.EntityType(req.Action.Type()), cedar.String(req.Action.ID())),
-		Resource:  cedar.NewEntityUID(cedar.EntityType(req.Resource.Type()), cedar.String(req.Resource.ID())),
+		Principal: cedar.NewEntityUID(cedar.EntityType(parc.Principal.Type()), cedar.String(parc.Principal.ID())),
+		Action:    cedar.NewEntityUID(cedar.EntityType(parc.Action.Type()), cedar.String(parc.Action.ID())),
+		Resource:  cedar.NewEntityUID(cedar.EntityType(parc.Resource.Type()), cedar.String(parc.Resource.ID())),
 		Context:   cedar.NewRecord(ca.cedarSet),
 	}
 }

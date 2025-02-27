@@ -18,8 +18,8 @@ func (p *authProcess) log() {
 	args := make([]any, 0, 16)
 
 	if p.req != nil {
-		args = append(args, "method", p.req.Method)
-		args = append(args, "request-uid", p.req.UID)
+		args = append(args, "method", convert.AnyToString(p.req.Action.Attributes().GetAttribute(models.AttrMethod)))
+		args = append(args, "request-uid", p.reqUID)
 	}
 
 	var allowed bool
@@ -44,17 +44,15 @@ func (p *authProcess) log() {
 }
 
 func (p *authProcess) authLog() {
-	clientIP, _ := p.req.Attributes[models.AttrClientIP].(string)
+	clientIP := convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrClientIP))
 
-	rvvaID, _ := p.req.Attributes[models.AttrRvvaID].(string)
+	rvvaID := convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrRvvaID))
 	if rvvaID == "" && p.req.Principal != nil && p.req.Principal.Type() == pep.PrincipalRVVA {
 		rvvaID = p.req.Principal.ID()
 	}
 
-	var t time.Time
-	if p.req.RequestTime != nil {
-		t = *p.req.RequestTime
-	} else {
+	t := convert.AnyToDateTime(p.req.Context.GetAttributeValue(models.AttrTime))
+	if t.IsZero() {
 		t = time.Now().UTC()
 	}
 
@@ -67,8 +65,8 @@ func (p *authProcess) authLog() {
 		Resource:        p.req.Resource,
 		Decision:        p.resp.Allowed,
 		DecisionContext: models.NewAttributeSet(),
-		TraceParent:     convert.AnyToString(p.req.Attributes[models.AttrTraceParent]),
-		TraceState:      convert.AnyToString(p.req.Attributes[models.AttrTraceState]),
+		TraceParent:     convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrTraceParent)),
+		TraceState:      convert.AnyToString(p.req.Context.GetAttributeValue(models.AttrTraceState)),
 	}
 
 	if p.resp.Message != "" {
@@ -92,7 +90,8 @@ func (p *authProcess) authLog() {
 type authProcess struct {
 	status     int
 	fc         *fiber.Ctx
-	req        *models.Request
+	reqUID     string
+	req        *models.PARC
 	resp       *models.Response
 	logger     *slog.Logger
 	authLogger authlog.Logger

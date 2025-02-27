@@ -18,6 +18,10 @@ func (c *collector) processHTTP() {
 	}
 
 	if c.req.URL != nil {
+		if c.newURI == "" {
+			c.newURI = c.req.URL.String()
+		}
+
 		s, _ := strings.CutSuffix(c.req.URL.Scheme, "//")
 		s, _ = strings.CutSuffix(s, ":")
 

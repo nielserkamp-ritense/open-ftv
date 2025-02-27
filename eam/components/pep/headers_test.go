@@ -30,6 +30,7 @@ func TestProcessHeaders(t *testing.T) {
 		wantFwd     string
 		wantParent  string
 		wantState   string
+		wantDevice  string
 		wantHeaders map[string]string
 	}{
 		{
@@ -132,6 +133,11 @@ func TestProcessHeaders(t *testing.T) {
 			name:      "Trace state",
 			headers:   map[string][]string{"TraceState": {"hihi"}},
 			wantState: "hihi",
+		},
+		{
+			name:       "Device",
+			headers:    map[string][]string{"device-id": {"android"}},
+			wantDevice: "android",
 		},
 		{
 			name:        "one other",
@@ -240,6 +246,12 @@ func TestProcessHeaders(t *testing.T) {
 				assert.Equal(t, tc.wantState, a.GetAttributeValue(models.AttrTraceState))
 			} else {
 				assert.Nil(t, a.GetAttributeValue(models.AttrTraceState))
+			}
+
+			if tc.wantDevice != "" {
+				assert.Equal(t, tc.wantDevice, c.parc.Principal.Attributes().GetAttributeValue(models.AttrDeviceID))
+			} else {
+				assert.Nil(t, c.parc.Principal.Attributes().GetAttributeValue(models.AttrDeviceID))
 			}
 
 			if tc.wantHeaders != nil {

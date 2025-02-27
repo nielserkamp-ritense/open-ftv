@@ -22,7 +22,6 @@ type PIP interface {
 
 	NewAttributeSet() models.AttributeSet
 	NewEntitySet() models.EntitySet
-	CollectAttributesFromRequest(req *models.Request) (a models.AttributeSet, newURI string)
 }
 
 // Config represents the configuration parameters for instantiating a new Policy Information Point.

@@ -112,7 +112,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &models.Request{
+	authReq := &models.Request{
 		UID:         &uid,
 		URL:         u,
 		Method:      req.Input.Method,
@@ -121,10 +121,13 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 		Body:        d,
 		Attributes:  make(map[string]any),
 	}
+
+	p.reqUID = uid.String()
+	p.req = p.controller.PEP().PARCFromRequest(authReq, p.controller.PIP())
 }
 
 func (p *authProcess) authorizeFSC() error {
-	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
+	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.req); p.err != nil {
 		p.msg = "FSC authorization process failed"
 		return fiber2.SendMessageResponse(p.fc, p.status, p.msg)
 	}

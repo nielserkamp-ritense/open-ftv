@@ -22,7 +22,7 @@ type Controller interface {
 	PEP() pep.PEP
 	PAP() pap.PAP
 	PIP() pip.PIP
-	Authorize(req *models.Request) (*models.Response, error)
+	Authorize(uid string, req *models.PARC) (*models.Response, error)
 }
 
 // Base contains the common attributes of a controller.

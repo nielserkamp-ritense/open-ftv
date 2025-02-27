@@ -1,5 +1,5 @@
 permit (
     principal,
-    action == action::"POST",
+    action == name::"can_update",
     resource
 );

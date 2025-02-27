@@ -8,29 +8,31 @@ import (
 
 	"github.com/open-policy-agent/opa/sdk"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // Authorize implements the Controller interface.
-func (c *controller) Authorize(req *models.Request) (resp *models.Response, err error) {
+func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Response, err error) {
 	debug := c.Logger().Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", req.UID)
+		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", uid)
 	}
+
+	opts := c.buildDecisionOptions(uid, parc)
 
 	var decision *sdk.DecisionResult
 	started := time.Now()
-	decision, err = c.pdp.Decision(context.Background(), c.buildDecisionOptions(req))
+	decision, err = c.pdp.Decision(context.Background(), opts)
 	duration := time.Since(started)
 
 	if err != nil {
-		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", req.UID, "err", err, "pdp elapsed", duration.String())
+		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", uid, "err", err, "pdp elapsed", duration.String())
 	} else {
 		if m, ok := decision.Result.(map[string]any); ok {
 			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 				if debug {
-					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 				}
 				resp = &models.Response{Allowed: true}
 				return
@@ -38,7 +40,7 @@ func (c *controller) Authorize(req *models.Request) (resp *models.Response, err 
 		}
 
 		if debug {
-			c.Logger().Warn("authorization not granted", "controller", c.String(), "request-uid", req.UID, "pdp elapsed", duration.String())
+			c.Logger().Warn("authorization not granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 		}
 	}
 
@@ -46,20 +48,20 @@ func (c *controller) Authorize(req *models.Request) (resp *models.Response, err 
 	return
 }
 
-func (c *controller) buildDecisionOptions(req *models.Request) sdk.DecisionOptions {
-	a, newURI := c.PIP().CollectAttributesFromRequest(req)
-	m := models.MapFromAttributes(a)
-
-	if newURI != "" {
-		m["uri"] = newURI
+func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.DecisionOptions {
+	t := convert.AnyToDateTime(parc.Context.GetAttributeValue(models.AttrTime))
+	if t.IsZero() {
+		t = time.Now().UTC()
 	}
 
-	p1, p2 := pep.DeterminePrincipal(a)
+	m := models.MapFromAttributes(parc.Context)
+
+	// TODO: pass the action and resource in the context.
 
 	return sdk.DecisionOptions{
-		Now:        *req.RequestTime,
-		Path:       fmt.Sprintf("/%s/%s", p1, p2),
+		DecisionID: uid,
+		Now:        t,
+		Path:       fmt.Sprintf("/%s/%s", parc.Principal.Type(), parc.Principal.ID()),
 		Input:      m,
-		DecisionID: req.UID.String(),
 	}
 }

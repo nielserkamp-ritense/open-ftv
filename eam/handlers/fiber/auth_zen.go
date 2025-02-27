@@ -95,7 +95,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	method, _ := actionAttrs.GetAttributeValue(models.AttrMethod).(string)
 
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
-	action := models.NewEntity(models.EntityTypeAction, req.Action.Name, actionAttrs)
+	action := models.NewEntity(models.EntityTypeName, req.Action.Name, actionAttrs)
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
 
 	var attr map[string]any
@@ -106,7 +106,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 	}
 
 	uid, now := uuid.New(), time.Now().UTC()
-	p.req = &models.Request{
+	authReq := &models.Request{
 		UID:         &uid,
 		RequestTime: &now,
 		Method:      method,
@@ -116,6 +116,9 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 		Resource:    resource,
 		Attributes:  attr,
 	}
+
+	p.reqUID = uid.String()
+	p.req = p.controller.PEP().PARCFromRequest(authReq, p.controller.PIP())
 }
 
 func (p *authProcess) authorizeAuthZEN() error {
@@ -123,7 +126,7 @@ func (p *authProcess) authorizeAuthZEN() error {
 		p.fc.Set("X-Request-ID", reqID)
 	}
 
-	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
+	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.req); p.err != nil {
 		p.msg = "AuthZEN authorization process failed"
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}

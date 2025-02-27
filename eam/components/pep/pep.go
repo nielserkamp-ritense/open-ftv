@@ -12,8 +12,8 @@ import (
 
 // PEP represents the interface for a Policy Enforcement Point.
 type PEP interface {
-	PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) (*models.PARC, string)
-	PARCFromRequest(req *models.Request, e models.EntitySet) (*models.PARC, string)
+	PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) *models.PARC
+	PARCFromRequest(req *models.Request, e models.EntitySet) *models.PARC
 }
 
 // New instantiates a new Policy Enforcement Point.

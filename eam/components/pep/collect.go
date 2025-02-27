@@ -10,7 +10,7 @@ import (
 
 // PARCFromRequest uses the given authorization request and other inputs
 // to collect the principal, action, resource and context to be used by the Policy Decision Point.
-func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) (*models.PARC, string) {
+func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.PARC {
 	logger := p.logger
 	if req.UID != nil {
 		logger = p.logger.With("uid", req.UID.String())
@@ -51,12 +51,12 @@ func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) (*models.
 		}
 	}
 
-	return c.parc, c.newURI
+	return c.parc
 }
 
 // PARCFromHTTP uses the given HTTP request and other inputs
 // to collect the principal, action, resource and context to be used by the Policy Decision Point.
-func (p *pep) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) (*models.PARC, string) {
+func (p *pep) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) *models.PARC {
 	logger := p.logger.With("uid", uid.String())
 	debug := logger.Enabled(nil, slog.LevelDebug)
 
@@ -69,7 +69,7 @@ func (p *pep) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.
 	}
 
 	c.run()
-	return c.parc, c.newURI
+	return c.parc
 }
 
 type collector struct {

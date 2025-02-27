@@ -5,4 +5,4 @@ type doelbinding
 
 type service
   relations
-    define call: [doelbinding]
+    define can_update: [doelbinding]
