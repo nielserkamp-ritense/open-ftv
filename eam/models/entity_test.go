@@ -78,3 +78,67 @@ func TestNewEntity(t *testing.T) {
 		})
 	}
 }
+
+func TestEntityToAttribute(t *testing.T) {
+	testCases := []struct {
+		name      string
+		e         Entity
+		wantKey   string
+		wantValue map[string]any
+	}{
+		{
+			name:    "simple",
+			e:       NewEntity("type", "id", NewAttributeSet()),
+			wantKey: "type::id",
+			wantValue: map[string]any{
+				"type": "type",
+				"id":   "id",
+			},
+		},
+		{
+			name:    "with attributes",
+			e:       NewEntity("service", "http://localhost", NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123))),
+			wantKey: "service::http://localhost",
+			wantValue: map[string]any{
+				"type": "service",
+				"id":   "http://localhost",
+				"attributes": map[string]any{
+					"hello": "world",
+					"int":   123,
+				},
+			},
+		},
+		{
+			name:    "with parents",
+			e:       NewEntity("user", "alice", NewAttributeSet(), "admin::bob"),
+			wantKey: "user::alice",
+			wantValue: map[string]any{
+				"type":    "user",
+				"id":      "alice",
+				"parents": []string{"admin::bob"},
+			},
+		},
+		{
+			name:    "with all",
+			e:       NewEntity("user", "alice", NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 456)), "admin::bob"),
+			wantKey: "user::alice",
+			wantValue: map[string]any{
+				"type": "user",
+				"id":   "alice",
+				"attributes": map[string]any{
+					"int":   456,
+					"hello": "world",
+				},
+				"parents": []string{"admin::bob"},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := EntityToAttribute(tc.e)
+			assert.Equal(t, tc.wantKey, got.Key())
+			assert.EqualValues(t, tc.wantValue, got.Value())
+		})
+	}
+}
