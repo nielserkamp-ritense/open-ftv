@@ -13,6 +13,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/attributes"
 )
 
+// AttributesVersion is the full semantic API version for the attribute endpoints.
+const AttributesVersion = "1.0.0"
+
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
 	GetAttributes(req *fiber.Ctx) error
@@ -29,6 +32,8 @@ func NewAttributesHandler(logger *slog.Logger, controller pdp.Controller) Attrib
 
 // GetAttributes implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
 	resp := make([]*attributes.Attribute, 0, 32)
 	h.cache.IterateAttributes(func(attr models.Attribute) {
 		resp = append(resp, handlers.AttributeToOAS(attr))
@@ -42,6 +47,8 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 
 // GetAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
 	key, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -56,6 +63,8 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 
 // PutAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
 	key, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -78,6 +87,8 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 // PostAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
 	key, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -100,6 +111,8 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
 	key, ok, err := h.checkKey(req)
 	if !ok {
 		return err

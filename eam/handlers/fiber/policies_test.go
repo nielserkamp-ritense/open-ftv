@@ -76,6 +76,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		require.NotNil(t, resp)
 		defer resp.Body.Close()
 
+		assert.Equal(t, PoliciesVersion, resp.Header.Get(HeaderVersion))
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		b, err3 := io.ReadAll(resp.Body)
@@ -119,6 +120,7 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		require.NotNil(t, resp)
 		defer resp.Body.Close()
 
+		assert.Equal(t, PoliciesVersion, resp.Header.Get(HeaderVersion))
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	})
 }
@@ -129,12 +131,13 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 		language   string
 		id         string
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", language: "cedar", wantStatus: fiber.StatusNotFound},
 		{name: "no language", id: "xyz", wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
-		{name: "bad ID", language: "cedar", id: "xyz", wantStatus: fiber.StatusNotFound},
-		{name: "good ID", language: "cedar", id: "subsidies.cedar", wantStatus: fiber.StatusOK},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad ID", language: "cedar", id: "xyz", wantStatus: fiber.StatusNotFound, wantVer: PoliciesVersion},
+		{name: "good ID", language: "cedar", id: "subsidies.cedar", wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -167,6 +170,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -205,15 +209,16 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 		body       io.Reader
 		timeout    time.Duration
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
 		{name: "no language", id: "xyz", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "no body", language: "cedar", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
-		{name: "duplicate id", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict},
-		{name: "all good", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no body", language: "cedar", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "duplicate id", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: PoliciesVersion},
+		{name: "all good", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -248,6 +253,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -286,15 +292,16 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 		body       io.Reader
 		timeout    time.Duration
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
 		{name: "no language", id: "xyz", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "no body", language: "cedar", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
-		{name: "not found", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound},
-		{name: "all good", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no body", language: "cedar", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "not found", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: PoliciesVersion},
+		{name: "all good", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -329,6 +336,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -351,12 +359,13 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 		language   string
 		id         string
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", language: "cedar", wantStatus: fiber.StatusNotFound},
 		{name: "no language", id: "xyz", wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
-		{name: "not found", language: "cedar", id: "xyz", wantStatus: fiber.StatusNotFound},
-		{name: "all good", language: "cedar", id: "subsidies.cedar", wantStatus: fiber.StatusOK},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "not found", language: "cedar", id: "xyz", wantStatus: fiber.StatusNotFound, wantVer: PoliciesVersion},
+		{name: "all good", language: "cedar", id: "subsidies.cedar", wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -391,6 +400,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {

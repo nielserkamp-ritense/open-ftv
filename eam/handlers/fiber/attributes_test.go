@@ -77,6 +77,7 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		defer resp.Body.Close()
 
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
+		assert.Equal(t, AttributesVersion, resp.Header.Get(HeaderVersion))
 
 		b, err3 := io.ReadAll(resp.Body)
 		require.NoError(t, err3)
@@ -119,6 +120,7 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		require.NotNil(t, resp)
 		defer resp.Body.Close()
 
+		assert.Equal(t, AttributesVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	})
 }
@@ -128,11 +130,12 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 		name       string
 		key        string
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
-		{name: "bad ID", key: "qqq99", wantStatus: fiber.StatusNotFound},
-		{name: "good ID", key: "werktijden", wantStatus: fiber.StatusOK},
+		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "bad ID", key: "qqq99", wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
+		{name: "good ID", key: "werktijden", wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -165,6 +168,7 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -196,14 +200,15 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 		body       io.Reader
 		timeout    time.Duration
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "duplicate key", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict},
-		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
-		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
+		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "duplicate key", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: AttributesVersion},
+		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -238,6 +243,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -269,14 +275,15 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 		body       io.Reader
 		timeout    time.Duration
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "bad body", key: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest},
-		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest},
-		{name: "not found", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound},
-		{name: "all good", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK},
+		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "bad body", key: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "not found", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
+		{name: "all good", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -311,6 +318,7 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {
@@ -334,11 +342,12 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 		name       string
 		key        string
 		wantStatus int
+		wantVer    string
 	}{
 		{name: "no ID", wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest},
-		{name: "not found", key: "xyz", wantStatus: fiber.StatusNotFound},
-		{name: "all good", key: "werktijden", wantStatus: fiber.StatusOK},
+		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "not found", key: "xyz", wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
+		{name: "all good", key: "werktijden", wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -373,6 +382,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
 
+			assert.Equal(t, tc.wantVer, resp.Header.Get(HeaderVersion))
 			assert.Equal(t, tc.wantStatus, resp.StatusCode)
 
 			if tc.wantStatus == fiber.StatusOK {

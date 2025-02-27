@@ -7,6 +7,7 @@ info:
     OpenAPI specification for retrieving data and statistics from the authorisation log.
   contact:
     name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie
 
 servers:
   - url: https://localhost:8080/v1

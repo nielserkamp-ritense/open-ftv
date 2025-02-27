@@ -13,3 +13,6 @@ const (
 	PathAuthlog    = "/authlog"
 	PathResource   = "/resource/:resource"
 )
+
+// HeaderVersion is the header for reporting the full semantic API version.
+const HeaderVersion = "API-Version"

@@ -9,9 +9,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/attributes"
 )
+
+// EntitiesVersion is the full semantic API version for the entity endpoints.
+const EntitiesVersion = "1.0.0"
 
 // EntitiesHandler represents the interface for handling requests about entities.
 type EntitiesHandler interface {
@@ -29,19 +32,23 @@ func NewEntitiesHandler(logger *slog.Logger, controller pdp.Controller) Entities
 
 // GetEntities implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
 	resp := make([]*attributes.Entity, 0, 32)
 	h.cache.IterateEntities(func(e models.Entity) {
 		resp = append(resp, handlers.EntityToOAS(e))
 	})
 
 	if len(resp) == 0 {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 	return req.JSON(&resp)
 }
 
 // GetEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
 		return err
@@ -49,13 +56,15 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 
 	e := h.cache.GetEntity(models.EntityUID(ns, id))
 	if e == nil {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 	return req.JSON(handlers.EntityToOAS(e))
 }
 
 // PutEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
 		return err
@@ -70,7 +79,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 	value := h.cache.GetEntity(e2.UID())
 	if value != nil && !req.QueryBool("forceUpsert") {
-		return fiber2.SendMessageResponse(req, fiber.StatusConflict, entityExists)
+		return server.SendMessageResponse(req, fiber.StatusConflict, entityExists)
 	}
 
 	h.cache.AddEntity(e2)
@@ -79,6 +88,8 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 // PostEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
 		return err
@@ -93,7 +104,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 	e3 := h.cache.GetEntity(e2.UID())
 	if e3 == nil && !req.QueryBool("forceUpsert") {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 
 	h.cache.AddEntity(e2)
@@ -102,6 +113,8 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 // DeleteEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
 		return err
@@ -111,7 +124,7 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 	e := h.cache.GetEntity(uid)
 	if e == nil && !req.QueryBool("ignoreMissing") {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 
 	if e == nil {
@@ -125,12 +138,12 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {
 	ns := req.Params("type")
 	if ns == "" || len(ns) > 500 {
-		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeError)
+		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeError)
 	}
 
 	id := req.Params("id")
 	if id == "" || len(id) > 500 {
-		return "", "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityIDError)
+		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityIDError)
 	}
 
 	return ns, id, true, nil
@@ -139,19 +152,19 @@ func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error)
 func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*attributes.Entity, bool, error) {
 	var a attributes.Entity
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	if a.Type != ns {
 		if a.Type != "" {
-			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeMismatch)
+			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeMismatch)
 		}
 		a.Type = ns
 	}
 
 	if a.Id != id {
 		if a.Id != "" {
-			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, entityIDMismatch)
+			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityIDMismatch)
 		}
 		a.Id = id
 	}

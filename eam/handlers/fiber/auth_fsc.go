@@ -20,6 +20,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
+// AuthFSCVersion is the full semantic API version for the FSC authorization endpoint.
+const AuthFSCVersion = "1.0.0"
+
 // FSCAuthorizer represents the interface for handling FSC authorization requests.
 type FSCAuthorizer interface {
 	Authorize(req *fiber.Ctx) error
@@ -47,6 +50,8 @@ func (h *authFSC) Authorize(fc *fiber.Ctx) error {
 	if p.authLogger != nil {
 		defer p.authLog()
 	}
+
+	p.fc.Set(HeaderVersion, AuthFSCVersion)
 
 	req := p.verifyRequestFSC()
 	if p.err != nil {

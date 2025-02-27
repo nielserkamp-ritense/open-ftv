@@ -24,6 +24,7 @@ func TestHealth(t *testing.T) {
 		require.NotNil(t, resp)
 		defer resp.Body.Close()
 
+		assert.Equal(t, HealthVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		b, err3 := io.ReadAll(resp.Body)

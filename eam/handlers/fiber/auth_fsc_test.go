@@ -57,6 +57,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
+		assert.Equal(t, AuthFSCVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		defer resp.Body.Close()
@@ -106,6 +107,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
+		assert.Equal(t, AuthFSCVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		defer resp.Body.Close()
@@ -155,6 +157,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
+		assert.Equal(t, AuthFSCVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		defer resp.Body.Close()
@@ -204,6 +207,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
+		assert.Equal(t, AuthFSCVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		defer resp.Body.Close()
@@ -253,6 +257,7 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		require.NoError(t, err3)
 		require.NotNil(t, resp)
 
+		assert.Equal(t, AuthFSCVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		defer resp.Body.Close()

@@ -13,6 +13,9 @@ import (
 // If the error does not embed a status code, InternalServerError will be used as the status.
 func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 	return func(req *fiber.Ctx, err error) error {
+		// we can't be sure of the requested route, so a generic version number will have to do.
+		req.Set("API-Version", "1.0.0")
+
 		status := fiber.StatusInternalServerError
 
 		var e *fiber.Error

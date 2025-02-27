@@ -13,6 +13,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 )
 
+// PoliciesVersion is the full semantic API version for the policy endpoints.
+const PoliciesVersion = "1.0.0"
+
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
 	GetPolicies(req *fiber.Ctx) error
@@ -29,6 +32,8 @@ func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP) PoliciesHandler {
 
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
 	list, err := h.cache.List("")
 	if err != nil {
 		return fiber2.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
@@ -48,6 +53,8 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 // GetPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
 	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -62,6 +69,8 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 
 // PutPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
 	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -100,6 +109,8 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
 	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
@@ -140,6 +151,8 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
 	language, id, ok, err := h.checkKey(req)
 	if !ok {
 		return err

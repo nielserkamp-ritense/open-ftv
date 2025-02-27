@@ -58,6 +58,7 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
@@ -107,6 +108,7 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
@@ -156,6 +158,7 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
@@ -205,6 +208,7 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
@@ -254,6 +258,7 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)
@@ -303,6 +308,7 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 
 		defer resp.Body.Close()
 
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
 		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 		data, err4 := io.ReadAll(resp.Body)

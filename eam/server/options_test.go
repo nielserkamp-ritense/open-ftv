@@ -160,7 +160,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 			assert.Equal(t, tc.wantSecurity, c.HighSecurity)
 			assert.Equal(t, tc.wantOrigins, c.CorsOrigins)
 			assert.Equal(t, tc.wantHeaders, c.CorsHeaders)
-
 		})
 	}
 }

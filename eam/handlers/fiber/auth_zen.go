@@ -11,9 +11,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
 )
+
+// AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
+const AuthZENVersion = "1.0.0"
 
 // AuthZENAuthorizer represents the interface for handling AuthZEN authorization requests.
 type AuthZENAuthorizer interface {
@@ -43,10 +46,12 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 		defer p.authLog()
 	}
 
+	p.fc.Set(HeaderVersion, AuthZENVersion)
+
 	req := p.verifyRequestAuthZEN()
 	if p.err != nil {
 		p.logger.Error("AuthZEN authorization handler failed", "error", p.err)
-		return fiber2.SendMessageResponse(fc, p.status, p.msg)
+		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
 
 	p.newAuthRequestAuthZEN(req, fc.GetReqHeaders())
@@ -114,9 +119,13 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, h
 }
 
 func (p *authProcess) authorizeAuthZEN() error {
+	if reqID := p.fc.Get("X-Request-ID"); reqID != "" {
+		p.fc.Set("X-Request-ID", reqID)
+	}
+
 	if p.resp, p.err = p.controller.Authorize(p.req); p.err != nil {
 		p.msg = "AuthZEN authorization process failed"
-		return fiber2.SendMessageResponse(p.fc, p.status, p.msg)
+		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
 	allowed, msg := p.resp.Allowed, p.resp.Message
