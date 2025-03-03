@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 func TestLoad(t *testing.T) {
@@ -138,14 +140,18 @@ func TestLoad(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := util.NewDummyHandler(slog.LevelDebug)
 
+			s := memory.New()
+			ap := NewAttributeStore(context.Background(), s, "")
+
 			p := &pip{
-				attrStore:     tc.path1,
-				entityStore:   tc.path2,
-				recurse:       tc.recurse,
-				logger:        slog.New(h),
-				attributes:    models.NewAttributeSet(),
-				entities:      models.NewEntitySet(),
-				newAttributes: models.NewAttributeSet,
+				attrStore:        tc.path1,
+				entityStore:      tc.path2,
+				recurse:          tc.recurse,
+				logger:           slog.New(h),
+				entities:         models.NewEntitySet(),
+				newAttributes:    models.NewAttributeSet,
+				store:            s,
+				attributePersist: ap,
 			}
 
 			p.loadFromStore()
@@ -155,11 +161,11 @@ func TestLoad(t *testing.T) {
 			if tc.wantLog == 0 {
 				if tc.wantAttributes != nil {
 					tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
-						v2 := p.attributes.GetAttribute(attr.Key())
+						v2 := p.GetAttribute(attr.Key())
 						assert.EqualValues(t, attr.Value(), v2)
 					})
 
-					p.attributes.IterateAttributes(func(attr models.Attribute) {
+					p.IterateAttributes(func(attr models.Attribute) {
 						v2 := tc.wantAttributes.GetAttribute(attr.Key())
 						assert.EqualValues(t, attr.Value(), v2)
 					})

@@ -35,8 +35,8 @@ func WithPullConfigs(path string) Option {
 			Path:          path,
 			Logger:        p.logger,
 			NewAttributes: p.newAttributes,
-			Attributes:    p.attributes,
-			Entities:      p.entities,
+			Attributes:    p,
+			Entities:      p,
 		}); err != nil {
 			p.logger.Error("failed to initialize pull manager", "path", path, "error", err)
 		} else {

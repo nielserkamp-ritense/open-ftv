@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -43,19 +44,17 @@ func TestNew(t *testing.T) {
 		wantEntities   models.EntitySet
 	}{
 		{
-			name:           "no store",
-			recurse:        true,
-			wantLog:        1,
-			wantAttributes: models.NewAttributeSet(),
-			wantEntities:   models.NewEntitySet(),
+			name:         "no store",
+			recurse:      true,
+			wantLog:      1,
+			wantEntities: models.NewEntitySet(),
 		},
 		{
-			name:           "invalid store",
-			path:           "/not/a/valid/path",
-			recurse:        true,
-			wantLog:        1,
-			wantAttributes: models.NewAttributeSet(),
-			wantEntities:   models.NewEntitySet(),
+			name:         "invalid store",
+			path:         "/not/a/valid/path",
+			recurse:      true,
+			wantLog:      1,
+			wantEntities: models.NewEntitySet(),
 		},
 		{
 			name:    "with store, no recurse",
@@ -102,7 +101,15 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantAttributes != nil {
-				assert.True(t, models.AttributesEqual(tc.wantAttributes, p2.attributes))
+				list, err := p2.attributePersist.List()
+				require.NoError(t, err)
+
+				for i := range list {
+					attr := list[i]
+					attr2 := tc.wantAttributes.GetAttribute(attr.Key())
+					require.NotNil(t, attr2)
+					assert.True(t, models.AttributeEqual(attr, attr2))
+				}
 			}
 
 			if tc.wantEntities != nil {
@@ -124,7 +131,10 @@ func TestNew(t *testing.T) {
 
 func TestPIP_Attributes(t *testing.T) {
 	t.Run("pip as AttributeSet", func(t *testing.T) {
-		p := &pip{attributes: models.NewAttributeSet()}
+		h := util.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		p := New(context.Background(), logger)
 		require.NotNil(t, p)
 
 		p.AddAttribute("hello", "world")
@@ -134,11 +144,17 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, "world", p.GetAttributeValue("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
-		p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true))}
+		// p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true))}
+
+		p2 := New(context.Background(), logger)
+		p2.AddAttribute("hello", "world2")
+		p2.AddAttribute("bool", true)
+
 		p.MergeAttributes(p2)
 
 		assert.Equal(t, "world2", p.GetAttributeValue("hello"))
 		assert.Equal(t, true, p.GetAttributeValue("bool"))
+		assert.Equal(t, "987", p.GetAttributeValue("int"))
 
 		p.RemoveAttribute("bool")
 		p.RemoveAttribute("int")

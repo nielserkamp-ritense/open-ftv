@@ -38,11 +38,12 @@ func NewManager(params ManagerParams) (Manager, error) {
 		relations:     params.Relations,
 	}
 
+	ctx := params.Ctx
 	if params.Ctx == nil {
-		params.Ctx = context.Background()
+		ctx = context.Background()
 	}
 
-	m.ctx, m.cancel = context.WithCancel(params.Ctx)
+	m.ctx, m.cancel = context.WithCancel(ctx)
 
 	go m.schedule()
 	return m, nil

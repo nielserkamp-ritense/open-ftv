@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -14,6 +15,7 @@ import (
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/rdf"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/turtle"
 )
 
@@ -45,19 +47,23 @@ func TestLoadRDF(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			s := memory.New()
+			ap := NewAttributeStore(context.Background(), s, "")
+
 			p := &pip{
-				logger:        slog.New(h),
-				newAttributes: models.NewAttributeSet,
-				newEntities:   models.NewEntitySet,
-				attributes:    models.NewAttributeSet(),
-				entities:      models.NewEntitySet(),
+				logger:           slog.New(h),
+				newAttributes:    models.NewAttributeSet,
+				newEntities:      models.NewEntitySet,
+				entities:         models.NewEntitySet(),
+				store:            s,
+				attributePersist: ap,
 			}
 
 			p.loadRDF(f, tc.path, tc.mime)
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			var count int
-			p.attributes.IterateAttributes(func(attribute models.Attribute) {
+			p.IterateAttributes(func(attribute models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.wantAttributes, count)

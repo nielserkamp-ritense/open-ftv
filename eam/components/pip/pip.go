@@ -35,6 +35,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 	}
 
 	s := memory.New()
+	ap := NewAttributeStore(ctx, s, "")
 
 	p := &pip{
 		ctx:              ctx,
@@ -42,21 +43,21 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 		newAttributes:    models.NewAttributeSet,
 		newEntities:      models.NewEntitySet,
 		store:            s,
-		attributePersist: NewAttributeStore(ctx, s, ""),
+		attributePersist: ap,
 	}
 
 	for i := range options {
 		options[i](p)
 	}
 
-	p.attributes = p.newAttributes()
-	p.entities = p.newEntities()
+	p.entities = p.NewEntitySet()
 
 	p.loadFromStore()
 
 	if p.logger.Enabled(nil, slog.LevelDebug) {
+		attrs, _ := p.attributePersist.List()
 		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore,
-			"attributes", models.MapFromAttributes(p.attributes), "entities", p.entitiesToMap())
+			"attributes", attrs, "entities", p.entitiesToMap())
 	} else {
 		p.logger.Info("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore)
 	}
@@ -78,56 +79,80 @@ func (p *pip) NewEntitySet() models.EntitySet {
 //
 // Use this to add a default attribute to the PIP.
 func (p *pip) AddAttribute(key string, value any) {
-	p.attributes.AddAttribute(key, value)
+	_ = p.addAttribute(models.NewAttribute(key, value))
 }
 
 // AddAttributeWithType implements the AttributeSet interface.
 //
 // Use this to add a default attribute to the PIP.
 func (p *pip) AddAttributeWithType(key string, value any, tp string) {
-	p.attributes.AddAttributeWithType(key, value, tp)
+	_ = p.addAttribute(models.NewAttributeWithType(key, value, tp))
 }
 
 // AddOriginalAttribute implements the AttributeSet interface.
 //
 // Use this to add a default attribute to the PIP.
 func (p *pip) AddOriginalAttribute(key string, value, original any, tp string) {
-	p.attributes.AddOriginalAttribute(key, value, original, tp)
+	_ = p.addAttribute(models.NewOriginalAttribute(key, value, original, tp))
+}
+
+func (p *pip) addAttribute(a models.Attribute) error {
+	prev, ix, err := p.attributePersist.Read(a.Key())
+	if err != nil || prev == nil {
+		_, err = p.attributePersist.Create(a)
+	} else {
+		_, err = p.attributePersist.Update(prev, ix, a)
+	}
+	return err
 }
 
 // GetAttribute implements the AttributeSet interface.
 //
 // Use this to read a default attribute from the PIP.
 func (p *pip) GetAttribute(key string) models.Attribute {
-	return p.attributes.GetAttribute(key)
+	a, _, _ := p.attributePersist.Read(key)
+	return a
 }
 
 // GetAttributeValue implements the AttributeSet interface.
 //
 // Use this to read a default attribute value from the PIP.
 func (p *pip) GetAttributeValue(key string) any {
-	return p.attributes.GetAttributeValue(key)
+	if a, _, _ := p.attributePersist.Read(key); a != nil {
+		return a.Value()
+	}
+	return nil
 }
 
 // RemoveAttribute implements the AttributeSet interface.
 //
 // Use this to remove a default attribute from the PIP.
 func (p *pip) RemoveAttribute(key string) {
-	p.attributes.RemoveAttribute(key)
+	if prev, ix, err := p.attributePersist.Read(key); err == nil {
+		_, _ = p.attributePersist.Delete(prev, ix)
+	}
 }
 
 // IterateAttributes implements the AttributeSet interface.
 //
 // Use this to iterate through all default attributes from the PIP.
 func (p *pip) IterateAttributes(f models.AttributeIterator) {
-	p.attributes.IterateAttributes(f)
+	if list, err := p.attributePersist.List(); err == nil {
+		for i := range list {
+			f(list[i])
+		}
+	}
 }
 
 // MergeAttributes implements the AttributeSet interface.
 //
 // Use this to merge an attribute set into the default attributes of the PIP.
 func (p *pip) MergeAttributes(in ...models.AttributeSet) {
-	p.attributes.MergeAttributes(in...)
+	for i := range in {
+		in[i].IterateAttributes(func(attr models.Attribute) {
+			_ = p.addAttribute(attr)
+		})
+	}
 }
 
 // AddEntity implements the EntitySet interface.
@@ -177,7 +202,6 @@ type pip struct {
 	logger           *slog.Logger
 	ctx              context.Context
 	newAttributes    models.AttributesBuilder
-	attributes       models.AttributeSet
 	newEntities      models.EntitiesBuilder
 	entities         models.EntitySet
 	pullManager      network.Manager

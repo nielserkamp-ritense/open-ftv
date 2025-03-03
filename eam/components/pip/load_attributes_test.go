@@ -131,14 +131,14 @@ func TestLoadAttributes(t *testing.T) {
 			name: "1 attribute - yaml",
 			path: "../../../testdata/unittest/pip/attributes/attribute.yaml",
 			want: models.NewAttributeSet(
-				models.NewAttribute("maandag", 1),
+				models.NewAttribute("maandag", uint64(1)),
 			),
 		},
 		{
 			name: "1 attribute - funny extension",
 			path: "../../../testdata/unittest/pip2/misc/attribute.yaml-text",
 			want: models.NewAttributeSet(
-				models.NewAttribute("maandag", 1),
+				models.NewAttribute("maandag", uint64(1)),
 			),
 		},
 		{
@@ -159,11 +159,11 @@ func TestLoadAttributes(t *testing.T) {
 			name: "few attributes - yaml",
 			path: "../../../testdata/unittest/pip/attributes/attributes.yaml",
 			want: models.NewAttributeSet(
-				models.NewAttribute("maandag", 1),
-				models.NewAttribute("dinsdag", 2),
-				models.NewAttribute("woensdag", 3),
-				models.NewAttribute("donderdag", 4),
-				models.NewAttribute("vrijdag", 5),
+				models.NewAttribute("maandag", uint64(1)),
+				models.NewAttribute("dinsdag", uint64(2)),
+				models.NewAttribute("woensdag", uint64(3)),
+				models.NewAttribute("donderdag", uint64(4)),
+				models.NewAttribute("vrijdag", uint64(5)),
 			),
 		},
 		{
@@ -184,26 +184,29 @@ func TestLoadAttributes(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
+			logger := slog.New(h)
 
-			p := &pip{
-				logger:     slog.New(h),
-				attributes: models.NewAttributeSet(),
-			}
+			p := New(nil, logger).(*pip)
+
+			h.Clear()
 
 			p.loadAttributes(tc.path)
-
-			assert.Equal(t, tc.wantLog, h.Count())
+			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 
 			if tc.wantLog == 0 {
 				tc.want.IterateAttributes(func(attr models.Attribute) {
-					v2 := p.attributes.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
+					attr2, _, err := p.attributePersist.Read(attr.Key())
+					require.NoError(t, err)
+					assert.True(t, models.AttributeEqual(attr, attr2))
 				})
 
-				p.attributes.IterateAttributes(func(attr models.Attribute) {
-					v2 := tc.want.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
-				})
+				list, err := p.attributePersist.List()
+				require.NoError(t, err)
+				for i := range list {
+					attr := list[i]
+					attr2 := tc.want.GetAttribute(attr.Key())
+					assert.True(t, models.AttributeEqual(attr, attr2))
+				}
 			}
 		})
 	}

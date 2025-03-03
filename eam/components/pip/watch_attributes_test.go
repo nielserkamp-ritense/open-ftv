@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 func TestClearAttributeWatcher(t *testing.T) {
@@ -236,7 +237,10 @@ func TestWatchAttributeFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := &pip{ctx: ctx, attributeWatcher: w, attributes: models.NewAttributeSet()}
+			s := memory.New()
+			ap := NewAttributeStore(ctx, s, "")
+
+			p := &pip{ctx: ctx, attributeWatcher: w, store: s, attributePersist: ap}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
@@ -283,7 +287,7 @@ func TestWatchAttributeFiles(t *testing.T) {
 			p.mutex.RUnlock()
 
 			var count int
-			p.attributes.IterateAttributes(func(attribute models.Attribute) {
+			p.IterateAttributes(func(attribute models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.want, count)
