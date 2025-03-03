@@ -154,12 +154,6 @@ type NotFound = ErrorResponse
 // UnexpectedError The response for an error (as defined by RFC9457).
 type UnexpectedError = ErrorResponse
 
-// AddAttributeParams defines parameters for AddAttribute.
-type AddAttributeParams struct {
-	// Force Force upsert during a put/post operation.
-	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
-}
-
 // RemoveAttributeParams defines parameters for RemoveAttribute.
 type RemoveAttributeParams struct {
 	// Force Ignore missing data during a delete operation.
@@ -172,8 +166,8 @@ type ReplaceAttributeParams struct {
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// AddEntityParams defines parameters for AddEntity.
-type AddEntityParams struct {
+// AddAttributeParams defines parameters for AddAttribute.
+type AddAttributeParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
@@ -190,8 +184,8 @@ type RemoveEntityParams struct {
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// AddRelationParams defines parameters for AddRelation.
-type AddRelationParams struct {
+// AddEntityParams defines parameters for AddEntity.
+type AddEntityParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
@@ -208,20 +202,26 @@ type ReplaceRelationParams struct {
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// AddAttributeJSONRequestBody defines body for AddAttribute for application/json ContentType.
-type AddAttributeJSONRequestBody = Attribute
+// AddRelationParams defines parameters for AddRelation.
+type AddRelationParams struct {
+	// Force Force upsert during a put/post operation.
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
 
 // ReplaceAttributeJSONRequestBody defines body for ReplaceAttribute for application/json ContentType.
 type ReplaceAttributeJSONRequestBody = Attribute
 
-// AddEntityJSONRequestBody defines body for AddEntity for application/json ContentType.
-type AddEntityJSONRequestBody = Entity
+// AddAttributeJSONRequestBody defines body for AddAttribute for application/json ContentType.
+type AddAttributeJSONRequestBody = Attribute
 
 // RemoveEntityJSONRequestBody defines body for RemoveEntity for application/json ContentType.
 type RemoveEntityJSONRequestBody = Entity
 
-// AddRelationJSONRequestBody defines body for AddRelation for application/json ContentType.
-type AddRelationJSONRequestBody = Relation
+// AddEntityJSONRequestBody defines body for AddEntity for application/json ContentType.
+type AddEntityJSONRequestBody = Entity
 
 // ReplaceRelationJSONRequestBody defines body for ReplaceRelation for application/json ContentType.
 type ReplaceRelationJSONRequestBody = Relation
+
+// AddRelationJSONRequestBody defines body for AddRelation for application/json ContentType.
+type AddRelationJSONRequestBody = Relation

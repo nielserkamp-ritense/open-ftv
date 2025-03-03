@@ -52,46 +52,6 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-  /attribute:
-    put:
-      operationId: "add-attribute"
-      summary: Add attribute.
-      description: |
-        If the unique key of the attribute already exists, a 409 response status code will be returned.
-        You can override this behavior by passing the 'force' parameter in the query.
-      tags:
-        - attribute
-      parameters:
-        - $ref: "#/components/parameters/ForceUpsert"
-      requestBody:
-        description: Content of the new attribute.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Attribute"
-      responses:
-        "201":
-          description: Attribute created.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/NotAuthorized"
-        "403":
-          $ref: "#/components/responses/AccessDenied"
-        "409":
-          $ref: "#/components/responses/AlreadyExists"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
   /attribute/{key}:
     parameters:
       - $ref: "#/components/parameters/AttributeKey"
@@ -128,6 +88,45 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+    put:
+      operationId: "add-attribute"
+      summary: Add attribute.
+      description: |
+        If the unique key of the attribute already exists, a 409 response status code will be returned.
+        You can override this behavior by passing the 'force' parameter in the query.
+      tags:
+        - attribute
+      parameters:
+        - $ref: "#/components/parameters/ForceUpsert"
+      requestBody:
+        description: Content of the new attribute.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Attribute"
+      responses:
+        "201":
+          description: Attribute created.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttributeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "409":
+          $ref: "#/components/responses/AlreadyExists"
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -233,7 +232,40 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-  /entity:
+  /entity/{type}/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+
+    get:
+      operationId: "get-entity"
+      summary: Retrieve entity.
+      description: Retrieve a specified cached entity.
+      tags:
+        - entity
+      responses:
+        "200":
+          description: Entity found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
     put:
       operationId: "add-entity"
       summary: Add entity.
@@ -270,40 +302,6 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "409":
           $ref: "#/components/responses/AlreadyExists"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /entity/{type}/{id}:
-    parameters:
-      - $ref: "#/components/parameters/EntityType"
-      - $ref: "#/components/parameters/EntityID"
-
-    get:
-      operationId: "get-entity"
-      summary: Retrieve entity.
-      description: Retrieve a specified cached entity.
-      tags:
-        - entity
-      responses:
-        "200":
-          description: Entity found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/NotAuthorized"
-        "403":
-          $ref: "#/components/responses/AccessDenied"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -410,7 +408,43 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-  /relation:
+  /relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}:
+    parameters:
+      - $ref: "#/components/parameters/SubjectType"
+      - $ref: "#/components/parameters/SubjectID"
+      - $ref: "#/components/parameters/RelationType"
+      - $ref: "#/components/parameters/ObjectType"
+      - $ref: "#/components/parameters/ObjectID"
+
+    get:
+      operationId: "get-relation"
+      summary: Retrieve relation.
+      description: Retrieve a specified cached relation.
+      tags:
+        - relation
+      responses:
+        "200":
+          description: Relation found.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RelationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
     put:
       operationId: "add-relation"
       summary: Add relation.
@@ -447,43 +481,6 @@ paths:
           $ref: "#/components/responses/AccessDenied"
         "409":
           $ref: "#/components/responses/AlreadyExists"
-        "500":
-          $ref: "#/components/responses/UnexpectedError"
-
-  /relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}:
-    parameters:
-      - $ref: "#/components/parameters/SubjectType"
-      - $ref: "#/components/parameters/SubjectID"
-      - $ref: "#/components/parameters/RelationType"
-      - $ref: "#/components/parameters/ObjectType"
-      - $ref: "#/components/parameters/ObjectID"
-
-    get:
-      operationId: "get-relation"
-      summary: Retrieve relation.
-      description: Retrieve a specified cached relation.
-      tags:
-        - relation
-      responses:
-        "200":
-          description: Relation found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/NotAuthorized"
-        "403":
-          $ref: "#/components/responses/AccessDenied"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
