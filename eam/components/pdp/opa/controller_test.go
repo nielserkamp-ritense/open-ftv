@@ -63,19 +63,15 @@ func TestNewController(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(pip.Config{
-				Store:   tc.store1,
-				Recurse: tc.recurse1,
-				Logger:  logger,
-			})
-			require.NotNil(t, p1)
+			ip := pip.New(nil, logger, pip.WithFileStore(tc.store1, tc.recurse1))
+			require.NotNil(t, ip)
 
-			p2 := pap.New(nil, logger, pap.WithLanguage("rego"), pap.WithFileStore(tc.store2, tc.recurse2))
-			require.NotNil(t, p2)
+			ap := pap.New(nil, logger, pap.WithLanguage("rego"), pap.WithFileStore(tc.store2, tc.recurse2))
+			require.NotNil(t, ap)
 
 			h.Clear()
 
-			c := NewController(pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
+			c := NewController(pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 			require.NotNil(t, c)
 
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)

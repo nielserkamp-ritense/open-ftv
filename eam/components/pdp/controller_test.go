@@ -42,25 +42,25 @@ func TestNewBase(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pap.New(nil, logger)
-			require.NotNil(t, p1)
+			ap := pap.New(nil, logger)
+			require.NotNil(t, ap)
 
-			p2 := pip.New(pip.Config{Logger: logger})
-			require.NotNil(t, p2)
+			ip := pip.New(nil, logger)
+			require.NotNil(t, ip)
 
-			p3 := pep.New(nil, logger)
-			require.NotNil(t, p3)
+			ep := pep.New(nil, logger)
+			require.NotNil(t, ep)
 
-			b := NewBase(WithNameVersion(tc.id, tc.version), WithLogger(logger), WithPAP(p1), WithPIP(p2), WithPEP(p3))
+			b := NewBase(WithNameVersion(tc.id, tc.version), WithLogger(logger), WithPAP(ap), WithPIP(ip), WithPEP(ep))
 			require.NotNil(t, b)
 
 			assert.Equal(t, tc.want, b.String())
 			assert.Equal(t, tc.id, b.Name())
 			assert.Equal(t, tc.version, b.Version())
 			assert.Equal(t, logger, b.Logger())
-			assert.Equal(t, p1, b.PAP())
-			assert.Equal(t, p2, b.PIP())
-			assert.Equal(t, p3, b.PEP())
+			assert.Equal(t, ap, b.PAP())
+			assert.Equal(t, ip, b.PIP())
+			assert.Equal(t, ep, b.PEP())
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
 	}

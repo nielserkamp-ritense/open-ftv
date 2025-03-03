@@ -82,8 +82,8 @@ func TestNewStore_DupError(t *testing.T) {
 	})
 }
 
-func TestNewStore_Create_NotFound(t *testing.T) {
-	t.Run("new store - create - not found", func(t *testing.T) {
+func TestNewStore_Read_NotFound(t *testing.T) {
+	t.Run("new store - read - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 

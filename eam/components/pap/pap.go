@@ -32,16 +32,15 @@ type PAP interface {
 // By default, a PAP uses an in-memory KV-cache.
 // Use the WithPersistence() option to connect a PAP to persistent storage.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		w = nil // this means file handles are exhausted!
 	}
 
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	// by default, we have an in-memory KV-cache.
 	s := memory.New()
 
 	p := &pap{

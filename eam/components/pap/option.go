@@ -1,11 +1,11 @@
 package pap
 
-import "github.com/kvtools/valkeyrie/store"
+import (
+	"github.com/kvtools/valkeyrie/store"
+)
 
 // Option represents the function signature for options when creating a new PAP.
 type Option func(p *pap)
-
-// WithStore
 
 // WithLanguage sets the default policy language fopr the PAP.
 func WithLanguage(language string) Option {

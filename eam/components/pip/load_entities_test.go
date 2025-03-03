@@ -76,12 +76,9 @@ func TestLoadEntityMap(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
 
-			p := New(Config{
-				Logger:        slog.New(h),
-				NewAttributes: models.NewAttributeSet,
-				NewEntities:   models.NewEntitySet,
-			})
+			p := New(nil, logger)
 			require.NotNil(t, p)
 
 			h.Clear()
@@ -159,17 +156,14 @@ func TestLoadEntitiesAny(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
 
-			p := New(Config{
-				Logger:        slog.New(h),
-				NewAttributes: models.NewAttributeSet,
-				NewEntities:   models.NewEntitySet,
-			})
-			require.NotNil(t, p)
+			p1 := New(nil, logger)
+			require.NotNil(t, p1)
 
 			h.Clear()
 
-			p2, ok := p.(*pip)
+			p2, ok := p1.(*pip)
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
@@ -177,11 +171,11 @@ func TestLoadEntitiesAny(t *testing.T) {
 			require.Zero(t, h.Count())
 
 			tc.want.IterateEntities(func(e1 models.Entity) {
-				e2 := p.GetEntity(e1.UID())
+				e2 := p1.GetEntity(e1.UID())
 				assert.True(t, models.EntityEqual(e1, e2))
 			})
 
-			p.IterateEntities(func(e1 models.Entity) {
+			p1.IterateEntities(func(e1 models.Entity) {
 				e2 := tc.want.GetEntity(e1.UID())
 				assert.True(t, models.EntityEqual(e1, e2))
 			})

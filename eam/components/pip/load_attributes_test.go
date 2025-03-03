@@ -24,22 +24,19 @@ func TestLoadAttributeMap(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
 
-			p := New(Config{
-				Logger:        slog.New(h),
-				NewAttributes: models.NewAttributeSet,
-				NewEntities:   models.NewEntitySet,
-			})
-			require.NotNil(t, p)
+			p1 := New(nil, logger)
+			require.NotNil(t, p1)
 
-			p2, ok := p.(*pip)
+			p2, ok := p1.(*pip)
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
 			p2.loadAttributeMap(tc.in)
 
 			if k, ok2 := tc.in["key"].(string); ok2 {
-				got := p.GetAttributeValue(k)
+				got := p1.GetAttributeValue(k)
 				require.NotNil(t, got)
 				assert.EqualValues(t, tc.in["value"], got)
 			}
@@ -87,22 +84,19 @@ func TestLoadAttributesAny(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
 
-			p := New(Config{
-				Logger:        slog.New(h),
-				NewAttributes: models.NewAttributeSet,
-				NewEntities:   models.NewEntitySet,
-			})
-			require.NotNil(t, p)
+			p1 := New(nil, logger)
+			require.NotNil(t, p1)
 
-			p2, ok := p.(*pip)
+			p2, ok := p1.(*pip)
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
 			p2.loadAttributesAny(tc.in)
 
 			for k := range tc.want {
-				got := p.GetAttributeValue(k)
+				got := p1.GetAttributeValue(k)
 				require.NotNil(t, got)
 				assert.EqualValues(t, tc.want[k], got)
 			}

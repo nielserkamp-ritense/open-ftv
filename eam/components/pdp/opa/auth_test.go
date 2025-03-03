@@ -84,13 +84,7 @@ func TestController_Authorize(t *testing.T) {
 
 			ep := pep.New(nil, logger)
 
-			ip := pip.New(pip.Config{
-				Store:         tc.store1,
-				Recurse:       tc.recurse1,
-				Logger:        logger,
-				NewAttributes: models.NewAttributeSet,
-				NewEntities:   models.NewEntitySet,
-			})
+			ip := pip.New(nil, logger, pip.WithFileStore(tc.store1, tc.recurse1))
 			require.NotNil(t, ip)
 
 			ap := pap.New(nil, logger, pap.WithLanguage("rego"), pap.WithFileStore(tc.store2, tc.recurse2))

@@ -269,13 +269,7 @@ func TestProcessHeaders(t *testing.T) {
 func TestProcessActivityID(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	p1 := pip.New(pip.Config{
-		Store:         "../../../testdata/unittest/pip2",
-		Recurse:       true,
-		Logger:        logger,
-		NewAttributes: models.NewAttributeSet,
-		NewEntities:   models.NewEntitySet,
-	})
+	ip := pip.New(nil, logger, pip.WithFileStore("../../../testdata/unittest/pip2", true))
 
 	testCases := []struct {
 		name string
@@ -288,22 +282,22 @@ func TestProcessActivityID(t *testing.T) {
 		},
 		{
 			name: "empty",
-			e:    p1,
+			e:    ip,
 		},
 		{
 			name: "not found",
 			id:   "abc",
-			e:    p1,
+			e:    ip,
 		},
 		{
 			name: "found, invalid",
-			e:    p1,
+			e:    ip,
 			id:   "bad",
 		},
 		{
 			name: "found, valid",
 			id:   "good",
-			e:    p1,
+			e:    ip,
 			want: "zorgtoeslag",
 		},
 	}

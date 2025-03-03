@@ -5,14 +5,15 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
 // PIP represents the interface for a Policy Information Point.
@@ -24,71 +25,32 @@ type PIP interface {
 	NewEntitySet() models.EntitySet
 }
 
-// Config represents the configuration parameters for instantiating a new Policy Information Point.
-//
-// The Logger parameter must not be nil!
-//
-// If the NewAttributes parameter is nil, the default attribute set builder will be used.
-// If the NewEntities parameter is nil, the default entity set builder will be used.
-type Config struct {
-	Ctx           context.Context
-	Store         string
-	Recurse       bool
-	PullConfigs   string
-	Logger        *slog.Logger
-	NewAttributes models.AttributesBuilder
-	NewEntities   models.EntitiesBuilder
-}
-
 // New instantiates a new Policy Information Point.
-func New(cfg Config) PIP {
-	var attrStore, entityStore string
-
-	if cfg.Store != "" {
-		attrStore, _ = filepath.Abs(filepath.Join(cfg.Store, "attributes"))
-		entityStore, _ = filepath.Abs(filepath.Join(cfg.Store, "entities"))
-
-		if !validPath(attrStore) {
-			attrStore = ""
-		}
-		if !validPath(entityStore) {
-			entityStore = ""
-		}
+//
+// By default, a PIP uses an in-memory KV-cache.
+// Use the WithPersistence() option to connect a PIP to persistent storage.
+func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
-	if cfg.NewAttributes == nil {
-		cfg.NewAttributes = models.NewAttributeSet
-	}
-	if cfg.NewEntities == nil {
-		cfg.NewEntities = models.NewEntitySet
-	}
+	s := memory.New()
 
 	p := &pip{
-		ctx:           cfg.Ctx,
-		recurse:       cfg.Recurse,
-		attrStore:     attrStore,
-		entityStore:   entityStore,
-		logger:        cfg.Logger,
-		newAttributes: cfg.NewAttributes,
-		attributes:    cfg.NewAttributes(),
-		newEntities:   cfg.NewEntities,
-		entities:      cfg.NewEntities(),
+		ctx:              ctx,
+		logger:           logger,
+		newAttributes:    models.NewAttributeSet,
+		newEntities:      models.NewEntitySet,
+		store:            s,
+		attributePersist: NewAttributeStore(ctx, s, ""),
 	}
 
-	if cfg.PullConfigs != "" {
-		if pullManager, err := network.NewManager(network.ManagerParams{
-			Ctx:           p.ctx,
-			Path:          cfg.PullConfigs,
-			Logger:        p.logger,
-			NewAttributes: p.newAttributes,
-			Attributes:    p.attributes,
-			Entities:      p.entities,
-		}); err != nil {
-			p.logger.Error("failed to initialize pull manager", "path", cfg.PullConfigs, "error", err)
-		} else {
-			p.pullManager = pullManager
-		}
+	for i := range options {
+		options[i](p)
 	}
+
+	p.attributes = p.newAttributes()
+	p.entities = p.newEntities()
 
 	p.loadFromStore()
 
@@ -228,6 +190,8 @@ type pip struct {
 	entityUpdates    []string
 	entityDeletes    []string
 	events           models.EventSink
+	store            store.Store
+	attributePersist AttributePersistence
 	mutex            sync.RWMutex
 }
 

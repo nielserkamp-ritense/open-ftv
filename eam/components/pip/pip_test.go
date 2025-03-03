@@ -90,11 +90,12 @@ func TestNew(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
+			logger := slog.New(h)
 
-			p := New(Config{Store: tc.path, Recurse: tc.recurse, Logger: slog.New(h)})
-			require.NotNil(t, p)
+			p1 := New(nil, logger, WithFileStore(tc.path, tc.recurse))
+			require.NotNil(t, p1)
 
-			p2, ok := p.(*pip)
+			p2, ok := p1.(*pip)
 			require.True(t, ok)
 			require.NotNil(t, p2)
 

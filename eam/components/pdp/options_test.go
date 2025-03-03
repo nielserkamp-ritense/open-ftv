@@ -10,7 +10,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -18,18 +17,14 @@ func TestOptions(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	p1 := pip.New(pip.Config{
-		Logger:        logger,
-		NewAttributes: models.NewAttributeSet,
-		NewEntities:   models.NewEntitySet,
-	})
-	require.NotNil(t, p1)
+	ip := pip.New(nil, logger)
+	require.NotNil(t, ip)
 
-	p2 := pap.New(nil, logger)
-	require.NotNil(t, p2)
+	ap := pap.New(nil, logger)
+	require.NotNil(t, ap)
 
-	p3 := pep.New(nil, logger)
-	require.NotNil(t, p3)
+	ep := pep.New(nil, logger)
+	require.NotNil(t, ep)
 
 	testCases := []struct {
 		name        string
@@ -59,29 +54,29 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:    "pep",
-			options: []Option{WithPEP(p3)},
-			wantPEP: p3,
+			options: []Option{WithPEP(ep)},
+			wantPEP: ep,
 		},
 		{
 			name:    "pip",
-			options: []Option{WithPIP(p1)},
-			wantPIP: p1,
+			options: []Option{WithPIP(ip)},
+			wantPIP: ip,
 		},
 		{
 			name:    "pap",
-			options: []Option{WithPAP(p2)},
-			wantPAP: p2,
+			options: []Option{WithPAP(ap)},
+			wantPAP: ap,
 		},
 		{
 			name:        "all",
-			options:     []Option{WithPAP(p2), WithLogger(logger), WithPIP(p1), WithNameVersion("x1", "v1"), WithPEP(p3)},
+			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep)},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
 			wantLogger:  logger,
-			wantPEP:     p3,
-			wantPAP:     p2,
-			wantPIP:     p1,
+			wantPEP:     ep,
+			wantPAP:     ap,
+			wantPIP:     ip,
 		},
 	}
 

@@ -15,7 +15,7 @@ type GetAttribute interface {
 
 // Attribute represents the interface for an attribute.
 //
-// Attribute is an immutable object and is by design safe for use in concurrent go-routines.
+// Attribute is designed to be immutable and is thus safe for use in concurrent go-routines.
 type Attribute interface {
 	Key() string   // retrieve the unique key of the attribute.
 	Value() any    // retrieve the derived value of the attribute.
@@ -80,9 +80,6 @@ func (a *attribute) MarshalYAML() ([]byte, error) {
 		Value:    a.value,
 		Original: a.original,
 		Type:     a.tp,
-	}
-	if a.original != a.value {
-		m.Original = a.original
 	}
 	return yaml.Marshal(m)
 }
