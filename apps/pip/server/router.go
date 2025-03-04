@@ -19,6 +19,12 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
+	p, err := NewPIP(s.ctx, s.cfg, s.logger)
+	if err != nil {
+		panic("failed to initialize PIP handler")
+	}
+	s.pip = p
+
 	// API v1.
 	v1 := svc.Group("/v1")
 	s.initAttributes(v1, auth)
@@ -31,7 +37,7 @@ func (s *service) initHealth(svc *fiber.App) {
 }
 
 func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
-	attributes := handle.NewAttributesHandler(s.logger, auth.Controller())
+	attributes := handle.NewAttributesHandler(s.logger, s.pip)
 
 	// attributes.
 	v1.Get(handle.PathAttributes, attributes.GetAttributes)
@@ -42,7 +48,7 @@ func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
 }
 
 func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
-	entities := handle.NewEntitiesHandler(s.logger, auth.Controller())
+	entities := handle.NewEntitiesHandler(s.logger, s.pip)
 
 	// entities.
 	v1.Get(handle.PathEntities, entities.GetEntities)

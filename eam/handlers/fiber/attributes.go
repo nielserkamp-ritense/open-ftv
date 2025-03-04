@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -26,8 +25,8 @@ type AttributesHandler interface {
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, controller pdp.Controller) AttributesHandler {
-	return &attributesHandler{logger: logger, controller: controller, cache: controller.PIP()}
+func NewAttributesHandler(logger *slog.Logger, pip pip.PIP) AttributesHandler {
+	return &attributesHandler{logger: logger, cache: pip}
 }
 
 // GetAttributes implements the AttributesHandler interface.
@@ -152,9 +151,8 @@ func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*attributes.A
 }
 
 type attributesHandler struct {
-	logger     *slog.Logger
-	controller pdp.Controller
-	cache      pip.PIP
+	logger *slog.Logger
+	cache  pip.PIP
 }
 
 const (

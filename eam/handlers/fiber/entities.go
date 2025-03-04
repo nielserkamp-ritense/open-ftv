@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -26,8 +25,8 @@ type EntitiesHandler interface {
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, controller pdp.Controller) EntitiesHandler {
-	return &entitiesHandler{logger: logger, controller: controller, cache: controller.PIP()}
+func NewEntitiesHandler(logger *slog.Logger, pip pip.PIP) EntitiesHandler {
+	return &entitiesHandler{logger: logger, cache: pip}
 }
 
 // GetEntities implements the EntitiesHandler interface.
@@ -173,9 +172,8 @@ func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*attributes.
 }
 
 type entitiesHandler struct {
-	logger     *slog.Logger
-	controller pdp.Controller
-	cache      pip.PIP
+	logger *slog.Logger
+	cache  pip.PIP
 }
 
 const (

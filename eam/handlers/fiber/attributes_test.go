@@ -41,7 +41,7 @@ func TestNewAttributesHandler(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ah := NewAttributesHandler(logger, controller)
+		ah := NewAttributesHandler(logger, controller.PIP())
 		require.NotNil(t, ah)
 	})
 }
@@ -63,7 +63,7 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ah := NewAttributesHandler(logger, controller)
+		ah := NewAttributesHandler(logger, controller.PIP())
 		require.NotNil(t, ah)
 
 		srv := fiber.New()
@@ -107,7 +107,7 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		controller := opa.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ah := NewAttributesHandler(logger, controller)
+		ah := NewAttributesHandler(logger, controller.PIP())
 		require.NotNil(t, ah)
 
 		srv := fiber.New()
@@ -155,7 +155,7 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller)
+			ah := NewAttributesHandler(logger, controller.PIP())
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -228,7 +228,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller)
+			ah := NewAttributesHandler(logger, controller.PIP())
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -303,7 +303,7 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller)
+			ah := NewAttributesHandler(logger, controller.PIP())
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -367,7 +367,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller)
+			ah := NewAttributesHandler(logger, controller.PIP())
 			require.NotNil(t, ah)
 
 			srv := fiber.New()

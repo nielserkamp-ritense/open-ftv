@@ -32,6 +32,15 @@ type Config struct {
 	PolicyLanguage     string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
 	PolicyStore        string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
 	PolicyStoreRecurse bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
+	PersistType        string        `yaml:"persist.type,omitempty" env:"PERSIST_TYPE" flag:"persist-type" desc:"Persistence backend type (etcd, consul)"`
+	PersistAddresses   string        `yaml:"persist.addresses,omitempty" env:"PERSIST_ADDRESSES" flag:"persist-addresses" desc:"Persistence backend addresses"`
+	PersistBase        string        `yaml:"persist.prefix,omitempty" env:"PERSIST_PREFIX" flag:"persist-prefix" desc:"Persistence backend key prefix"`
+	PersistTimeout     time.Duration `yaml:"persist.timeout,omitempty" env:"PERSIST_TIMEOUT" flag:"persist-timeout" desc:"Persistence backend connection timeout"`
+	EtcdSync           time.Duration `yaml:"persist.etcd.sync,omitempty" env:"PERSIST_ETCD_SYNC" flag:"persist-etcd-sync" desc:"ETCD persistence backend sync period"`
+	EtcdUser           string        `yaml:"persist.etcd.user,omitempty" env:"PERSIST_ETCD_USER" flag:"persist-etcd-user" desc:"ETCD persistence backend user"`
+	EtcdPswd           string        `yaml:"persist.etcd.password,omitempty" env:"PERSIST_ETCD_PASSWORD" flag:"persist-etcd-password" desc:"ETCD persistence backend password"`
+	ConsulToken        string        `yaml:"persist.consul.token,omitempty" env:"PERSIST_CONSUL_TOKEN" flag:"persist-consul-token" desc:"Consul persistence backend token"`
+	ConsulNamespace    string        `yaml:"persist.consul.namespace,omitempty" env:"PERSIST_CONSUL_NAMESPACE" flag:"persist-consul-namespace" desc:"Consul persistence backend namespace"`
 	PipStore           string        `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
 	PipStoreRecurse    bool          `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
 	PipPullConfigs     string        `yaml:"pip.pull.configPath,omitempty" env:"PIP_PULL_CONFIGS" flag:"pip-pull-configs" desc:"Path where PIP pull configuration files are stored"`

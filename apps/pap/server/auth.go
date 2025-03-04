@@ -7,13 +7,13 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/persistence"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -30,30 +30,17 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandl
 		logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
 	}
-
 	return &authHandler{logger: logger, controller: controller}
 }
 
 func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pdp.Controller, error) {
 	l := models.LanguageFromString(cfg.PolicyLanguage)
 
-	pipOpts := []pip.Option{pip.WithFileStore(cfg.PipStore, cfg.PipStoreRecurse), pip.WithPullConfigs(cfg.PipPullConfigs)}
-	if l == models.CEDAR {
-		pipOpts = append(pipOpts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
-	}
-	p1 := pip.New(ctx, logger, pipOpts...)
+	ep := pep.New(ctx, logger)
+	ip := pip.New(ctx, logger, pipOptions(cfg, l, logger)...)
+	ap := pap.New(ctx, logger, papOptions(cfg, l)...)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
-	if cfg.PersistType != "" {
-		s, err := persistence.New(ctx, cfg)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create persistence store: %w", err)
-		}
-		papOpts = append(papOpts, pap.WithPersistence(s, cfg.PersistBase))
-	}
-	p2 := pap.New(ctx, logger, papOpts...)
-
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
+	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithLogger(logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap)}
 
 	switch l {
 	case models.CEDAR:
@@ -68,6 +55,24 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
 	}
+}
+
+func pipOptions(cfg *config.Config, l models.Language, logger *slog.Logger) []pip.Option {
+	opts := []pip.Option{pip.WithFileStore(cfg.PipStore, cfg.PipStoreRecurse)}
+
+	if cfg.PipPullConfigs != "" {
+		opts = append(opts, pip.WithPullConfigs(cfg.PipPullConfigs))
+	}
+
+	if l == models.CEDAR {
+		opts = append(opts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
+	}
+
+	return opts
+}
+
+func papOptions(cfg *config.Config, l models.Language) []pap.Option {
+	return []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
 }
 
 // Controller returns the PDP controller.

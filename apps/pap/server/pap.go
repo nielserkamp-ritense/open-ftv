@@ -14,7 +14,9 @@ import (
 // NewPAP instantiates a vanilla PAP with an optional persistent storage backend.
 func NewPAP(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pap.PAP, error) {
 	l := models.LanguageFromString(cfg.PolicyLanguage)
-	opts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
+
+	opts := make([]pap.Option, 0)
+	opts = append(opts, pap.WithLanguage(l.Language()))
 
 	if cfg.PersistType != "" {
 		s, err := persistence.New(ctx, cfg)

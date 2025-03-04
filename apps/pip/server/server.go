@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pip/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 )
@@ -35,4 +36,5 @@ type service struct {
 	ctx    context.Context
 	cfg    *config.Config
 	logger *slog.Logger
+	pip    pip.PIP
 }
