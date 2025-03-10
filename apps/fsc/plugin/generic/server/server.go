@@ -5,9 +5,10 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic/config"
 )
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).

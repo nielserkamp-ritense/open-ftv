@@ -3,11 +3,11 @@ go 1.23.0
 toolchain go1.23.2
 
 use (
+	apps/fsc/plugin/generic
 	apps/manager
 	apps/pap
 	apps/pip
 	eam/components
-	./apps/fsc/plugin/generic
 	eam/handlers
 	eam/models
 	eam/server
