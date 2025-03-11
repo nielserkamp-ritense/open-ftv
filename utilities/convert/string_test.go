@@ -78,3 +78,68 @@ func TestAnyToString(t *testing.T) {
 		})
 	}
 }
+
+func TestForceSuffix(t *testing.T) {
+	testCases := []struct {
+		name   string
+		in     string
+		suffix string
+		want   string
+	}{
+		{
+			name:   "empty - no suffix",
+			in:     "",
+			suffix: "",
+			want:   "",
+		},
+		{
+			name:   "empty - slash",
+			in:     "",
+			suffix: "/",
+			want:   "/",
+		},
+		{
+			name:   "empty - text",
+			in:     "",
+			suffix: "abc",
+			want:   "abc",
+		},
+		{
+			name:   "not empty - no suffix",
+			in:     "abc",
+			suffix: "",
+			want:   "abc",
+		},
+		{
+			name:   "not empty - slash missing",
+			in:     "abc",
+			suffix: "/",
+			want:   "abc/",
+		},
+		{
+			name:   "not empty - slash found",
+			in:     "abc/",
+			suffix: "/",
+			want:   "abc/",
+		},
+		{
+			name:   "not empty - text missing",
+			in:     "abc",
+			suffix: ".def",
+			want:   "abc.def",
+		},
+		{
+			name:   "not empty - text found",
+			in:     "abc/def",
+			suffix: "def",
+			want:   "abc/def",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ForceSuffix(tc.in, tc.suffix)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

@@ -7,13 +7,11 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
@@ -40,14 +38,15 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 
 	l := models.LanguageFromString(cfg.PolicyLanguage)
 
-	pipOpts := []pip.Option{pip.WithFileStore(cfg.PipStore, cfg.PipStoreRecurse), pip.WithPullConfigs(cfg.PipPullConfigs)}
-	if l == models.CEDAR {
-		pipOpts = append(pipOpts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
+	p1, err := NewPIP(ctx, cfg, logger, l)
+	if err != nil {
+		return nil, err
 	}
-	p1 := pip.New(ctx, logger, pipOpts...)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
-	p2 := pap.New(ctx, logger, papOpts...)
+	p2, err2 := NewPAP(ctx, cfg, logger, l)
+	if err2 != nil {
+		return nil, err2
+	}
 
 	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger)}
 

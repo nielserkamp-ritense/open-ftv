@@ -59,3 +59,11 @@ func AnyToString(in any) string {
 		return fmt.Sprintf("%v", in)
 	}
 }
+
+// ForceSuffix returns the input with an appended suffix, regardless of whether the input contained the suffix or not.
+func ForceSuffix(in, suffix string) string {
+	if !strings.HasSuffix(in, suffix) {
+		return in + suffix
+	}
+	return in
+}

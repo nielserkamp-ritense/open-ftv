@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // Option represents the function signature for options when creating a new PAP.
@@ -52,8 +53,10 @@ func WithPersistence(store store.Store, basePath string) Option {
 	return func(p *pip) {
 		_ = p.store.Close()
 		p.store = store
-		p.attributePersist = NewAttributeStore(p.ctx, store, basePath)
-		p.entityPersist = NewEntityStore(p.ctx, store, basePath)
+
+		base := convert.ForceSuffix(basePath, "/")
+		p.attributePersist = NewAttributeStore(p.ctx, store, base+"attribute/")
+		p.entityPersist = NewEntityStore(p.ctx, store, base+"entity/")
 	}
 }
 
