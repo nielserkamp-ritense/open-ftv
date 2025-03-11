@@ -3,6 +3,7 @@ package pip
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestClearEntityWatcher(t *testing.T) {
@@ -224,6 +226,9 @@ func TestWatchEntityFiles(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			h := util.NewDummyHandler(slog.LevelInfo)
+			logger := slog.New(h)
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -236,7 +241,10 @@ func TestWatchEntityFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := &pip{ctx: ctx, entityWatcher: w, entities: models.NewEntitySet(), newAttributes: models.NewAttributeSet}
+			p := New(ctx, logger).(*pip)
+			require.NotNil(t, p)
+
+			p.entityWatcher = w
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
@@ -283,7 +291,7 @@ func TestWatchEntityFiles(t *testing.T) {
 			p.mutex.RUnlock()
 
 			var count int
-			p.entities.IterateEntities(func(models.Entity) {
+			p.IterateEntities(func(models.Entity) {
 				count++
 			})
 			assert.Equal(t, tc.want, count)

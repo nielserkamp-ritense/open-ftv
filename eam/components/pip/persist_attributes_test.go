@@ -62,10 +62,10 @@ func TestMarshalUnmarshal(t *testing.T) {
 				}
 			}()
 
-			data := mustMarshal(tc.a)
+			data := marshalAttribute(tc.a)
 			require.NotNil(t, data)
 
-			got, err := unmarshal(data)
+			got, err := unmarshalAttribute(data)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -136,7 +136,7 @@ func TestUnmarshal_Fail(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := unmarshal(tc.data)
+			got, err := unmarshalAttribute(tc.data)
 			require.Error(t, err)
 			require.Nil(t, got)
 		})

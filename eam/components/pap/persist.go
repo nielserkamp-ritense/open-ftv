@@ -27,7 +27,7 @@ type Persistence interface {
 //
 // It creates a CRUD wrapper around the given Valkeyrie Store interface.
 // This means it can be used with various distributed KV backends,
-// such as Consul, etcd, Zookeeper, BoltDB, DynamoDB.
+// such as Consul, Etcd, Zookeeper, BoltDB, DynamoDB.
 // See https://github.com/kvtools/valkeyrie.
 //
 // Use basePath to define the key prefix to use for the backend KV store.

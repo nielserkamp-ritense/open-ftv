@@ -213,6 +213,10 @@ func MapFromAttributes(in AttributeSet) map[string]any {
 
 // AttributesEqual returns true if the given sets of attributes match exactly.
 func AttributesEqual(s1, s2 AttributeSet) bool {
+	if s1 == nil && s2 == nil {
+		return true
+	}
+
 	as1, ok1 := s1.(*attributes)
 	as2, ok2 := s2.(*attributes)
 

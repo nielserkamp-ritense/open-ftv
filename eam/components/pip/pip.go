@@ -35,7 +35,8 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 	}
 
 	s := memory.New()
-	ap := NewAttributeStore(ctx, s, "")
+	ap := NewAttributeStore(ctx, s, "attribute")
+	ep := NewEntityStore(ctx, s, "entity")
 
 	p := &pip{
 		ctx:              ctx,
@@ -44,13 +45,12 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 		newEntities:      models.NewEntitySet,
 		store:            s,
 		attributePersist: ap,
+		entityPersist:    ep,
 	}
 
 	for i := range options {
 		options[i](p)
 	}
-
-	p.entities = p.NewEntitySet()
 
 	p.loadFromStore()
 
@@ -159,35 +159,51 @@ func (p *pip) MergeAttributes(in ...models.AttributeSet) {
 //
 // Use this to add an entity to the PIP.
 func (p *pip) AddEntity(entity models.Entity) {
-	p.entities.AddEntity(entity)
+	prev, ix, err := p.entityPersist.Read(entity.UID())
+	if err != nil || prev == nil {
+		_, err = p.entityPersist.Create(entity)
+	} else {
+		_, err = p.entityPersist.Update(prev, ix, entity)
+	}
 }
 
 // GetEntity implements the EntitySet interface.
 //
 // Use this to read an entity from the PIP.
 func (p *pip) GetEntity(uid string) models.Entity {
-	return p.entities.GetEntity(uid)
+	e, _, _ := p.entityPersist.Read(uid)
+	return e
 }
 
 // RemoveEntity implements the EntitySet interface.
 //
 // Use this to remove an entity from the PIP.
 func (p *pip) RemoveEntity(uid string) {
-	p.entities.RemoveEntity(uid)
+	if prev, ix, err := p.entityPersist.Read(uid); err == nil {
+		_, _ = p.entityPersist.Delete(prev, ix)
+	}
 }
 
 // IterateEntities implements the EntitySet interface.
 //
 // Use this to iterate through all entities from the PIP.
 func (p *pip) IterateEntities(f models.EntityIterator) {
-	p.entities.IterateEntities(f)
+	if list, err := p.entityPersist.List(); err == nil {
+		for i := range list {
+			f(list[i])
+		}
+	}
 }
 
 // MergeEntities implements the EntitySet interface.
 //
 // Use this to merge an attribute set into the entities of the PIP.
 func (p *pip) MergeEntities(in ...models.EntitySet) {
-	p.entities.MergeEntities(in...)
+	for i := range in {
+		in[i].IterateEntities(func(e models.Entity) {
+			p.AddEntity(e)
+		})
+	}
 }
 
 // MarshalJSON implements the json.Marshaller interface.
@@ -203,7 +219,6 @@ type pip struct {
 	ctx              context.Context
 	newAttributes    models.AttributesBuilder
 	newEntities      models.EntitiesBuilder
-	entities         models.EntitySet
 	pullManager      network.Manager
 	attributeWatcher *fsnotify.Watcher
 	attributeTimer   *time.Timer
@@ -216,6 +231,7 @@ type pip struct {
 	events           models.EventSink
 	store            store.Store
 	attributePersist AttributePersistence
+	entityPersist    EntityPersistence
 	mutex            sync.RWMutex
 }
 
@@ -227,7 +243,7 @@ func validPath(path string) bool {
 func (p *pip) entitiesToMap() map[string]any {
 	out := make(map[string]any)
 
-	p.entities.IterateEntities(func(entity models.Entity) {
+	p.IterateEntities(func(entity models.Entity) {
 		out[entity.UID()] = struct {
 			UID        string         `json:"UID,omitempty"`
 			Attributes map[string]any `json:"attributes,omitempty"`

@@ -48,15 +48,16 @@ func TestLoadRDF(t *testing.T) {
 			}
 
 			s := memory.New()
-			ap := NewAttributeStore(context.Background(), s, "")
+			ap := NewAttributeStore(context.Background(), s, "attribute")
+			ep := NewEntityStore(context.Background(), s, "entity")
 
 			p := &pip{
 				logger:           slog.New(h),
 				newAttributes:    models.NewAttributeSet,
 				newEntities:      models.NewEntitySet,
-				entities:         models.NewEntitySet(),
 				store:            s,
 				attributePersist: ap,
+				entityPersist:    ep,
 			}
 
 			p.loadRDF(f, tc.path, tc.mime)

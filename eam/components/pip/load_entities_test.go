@@ -280,24 +280,23 @@ func TestLoadEntities(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
+			logger := slog.New(h)
 
-			p := &pip{
-				logger:        slog.New(h),
-				entities:      models.NewEntitySet(),
-				newAttributes: models.NewAttributeSet,
-			}
+			p := New(nil, logger).(*pip)
+
+			h.Clear()
 
 			p.loadEntities(tc.path)
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantLog == 0 {
 				tc.want.IterateEntities(func(e1 models.Entity) {
-					e2 := p.entities.GetEntity(e1.UID())
+					e2 := p.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)
 				})
 
-				p.entities.IterateEntities(func(e1 models.Entity) {
+				p.IterateEntities(func(e1 models.Entity) {
 					e2 := tc.want.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.EqualValues(t, e1, e2)

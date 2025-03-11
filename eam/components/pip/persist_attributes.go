@@ -8,10 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/goccy/go-json"
-	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -21,10 +19,10 @@ const pathSeparator = "/"
 
 // AttributePersistence represents the interface to manage persistent storage for attributes.
 type AttributePersistence interface {
-	Create(p models.Attribute) (models.Attribute, error)
-	Read(id string) (models.Attribute, uint64, error)
-	Update(prev models.Attribute, lastIndex uint64, p models.Attribute) (models.Attribute, error)
-	Delete(prev models.Attribute, lastIndex uint64) (models.Attribute, error)
+	Create(models.Attribute) (models.Attribute, error)
+	Read(string) (models.Attribute, uint64, error)
+	Update(models.Attribute, uint64, models.Attribute) (models.Attribute, error)
+	Delete(models.Attribute, uint64) (models.Attribute, error)
 	List() ([]models.Attribute, error)
 }
 
@@ -32,7 +30,7 @@ type AttributePersistence interface {
 //
 // It creates a CRUD wrapper around the given Valkeyrie Store interface.
 // This means it can be used with various distributed KV backends,
-// such as Consul, etcd, Zookeeper, BoltDB, DynamoDB.
+// such as Consul, Etcd, Zookeeper, BoltDB, DynamoDB.
 // See https://github.com/kvtools/valkeyrie.
 //
 // Use basePath to define the key prefix to use for the backend KV store.
@@ -44,24 +42,24 @@ func NewAttributeStore(ctx context.Context, client store.Store, basePath string)
 	if basePath != "" && !strings.HasSuffix(basePath, pathSeparator) {
 		basePath += pathSeparator
 	}
-	return &wrapper{ctx: ctx, client: client, basePath: basePath}
+	return &attributeStore{wrapper{ctx: ctx, client: client, basePath: basePath}}
 }
 
 // Create implements the AttributePersistence interface.
-func (s *wrapper) Create(p models.Attribute) (models.Attribute, error) {
-	key := s.makeKey(p.Key())
+func (s *attributeStore) Create(a models.Attribute) (models.Attribute, error) {
+	key := s.makeKey(a.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if _, _, err := s.client.AtomicPut(s.ctx, key, mustMarshal(p), nil, writeOptions); err != nil {
-		return nil, s.failure("create", p.Key(), err, false)
+	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalAttribute(a), nil, writeOptions); err != nil {
+		return nil, s.failure("create", a.Key(), err, false)
 	}
-	return p, nil
+	return a, nil
 }
 
 // Read implements the AttributePersistence interface.
-func (s *wrapper) Read(id string) (models.Attribute, uint64, error) {
+func (s *attributeStore) Read(id string) (models.Attribute, uint64, error) {
 	key := s.bugFix(s.makeKey(id))
 
 	s.mutex.RLock()
@@ -72,36 +70,36 @@ func (s *wrapper) Read(id string) (models.Attribute, uint64, error) {
 		return nil, 0, s.failure("read", id, err, true)
 	}
 
-	p, err2 := unmarshal(kv.Value)
+	a, err2 := unmarshalAttribute(kv.Value)
 	if err2 != nil {
 		return nil, 0, s.failure("read", id, err2, true)
 	}
 
-	return p, kv.LastIndex, nil
+	return a, kv.LastIndex, nil
 }
 
 // Update implements the AttributePersistence interface.
-func (s *wrapper) Update(prev models.Attribute, lastIndex uint64, p models.Attribute) (models.Attribute, error) {
+func (s *attributeStore) Update(prev models.Attribute, lastIndex uint64, a models.Attribute) (models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	kv := store.KVPair{Key: key, Value: mustMarshal(prev), LastIndex: lastIndex}
-	if _, _, err := s.client.AtomicPut(s.ctx, key, mustMarshal(p), &kv, writeOptions); err != nil {
+	kv := store.KVPair{Key: key, Value: marshalAttribute(prev), LastIndex: lastIndex}
+	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalAttribute(a), &kv, writeOptions); err != nil {
 		return nil, s.failure("update", prev.Key(), err, true)
 	}
-	return p, nil
+	return a, nil
 }
 
 // Delete implements the AttributePersistence interface.
-func (s *wrapper) Delete(prev models.Attribute, lastIndex uint64) (models.Attribute, error) {
+func (s *attributeStore) Delete(prev models.Attribute, lastIndex uint64) (models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	kv := store.KVPair{Key: key, Value: mustMarshal(prev), LastIndex: lastIndex}
+	kv := store.KVPair{Key: key, Value: marshalAttribute(prev), LastIndex: lastIndex}
 	if _, err := s.client.AtomicDelete(s.ctx, key, &kv); err != nil {
 		return nil, s.failure("delete", prev.Key(), err, true)
 	}
@@ -110,7 +108,7 @@ func (s *wrapper) Delete(prev models.Attribute, lastIndex uint64) (models.Attrib
 }
 
 // List implements the AttributePersistence interface.
-func (s *wrapper) List() ([]models.Attribute, error) {
+func (s *attributeStore) List() ([]models.Attribute, error) {
 	key := s.bugFix(s.basePath)
 
 	s.mutex.RLock()
@@ -126,21 +124,22 @@ func (s *wrapper) List() ([]models.Attribute, error) {
 
 	out := make([]models.Attribute, 0, len(list))
 	for _, kv := range list {
-		p, err2 := unmarshal(kv.Value)
+		a, err2 := unmarshalAttribute(kv.Value)
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to unmarshal attributes: %w", err2)
 		}
-		out = append(out, p)
+		out = append(out, a)
 	}
 
 	return out, nil
 }
 
-func (s *wrapper) makeKey(key string) string {
-	return fmt.Sprintf("%s%s", s.basePath, key)
+func marshalAttribute(a models.Attribute) []byte {
+	b, _ := json.Marshal(toAttribute(a))
+	return b
 }
 
-func mustMarshal(a models.Attribute) []byte {
+func toAttribute(a models.Attribute) *attribute {
 	buf := &bytes.Buffer{}
 	enc := gob.NewEncoder(buf)
 
@@ -162,18 +161,20 @@ func mustMarshal(a models.Attribute) []byte {
 		o = ""
 	}
 
-	b, _ := json.Marshal(&attribute{Key: a.Key(), Value: v, Original: o, Type: a.Type()})
-	return b
+	return &attribute{Key: a.Key(), Value: v, Original: o, Type: a.Type()}
 }
 
-func unmarshal(data []byte) (models.Attribute, error) {
-	buf := &bytes.Buffer{}
-	dec := gob.NewDecoder(buf)
-
+func unmarshalAttribute(data []byte) (models.Attribute, error) {
 	a := &attribute{}
 	if err := json.Unmarshal(data, a); err != nil {
 		return nil, err
 	}
+	return fromAttribute(a)
+}
+
+func fromAttribute(a *attribute) (models.Attribute, error) {
+	buf := &bytes.Buffer{}
+	dec := gob.NewDecoder(buf)
 
 	d, err := base64.StdEncoding.DecodeString(a.Value)
 	if err != nil {
@@ -204,7 +205,7 @@ func unmarshal(data []byte) (models.Attribute, error) {
 	return models.NewOriginalAttribute(a.Key, v, o, a.Type), nil
 }
 
-func (s *wrapper) failure(op, id string, err error, mustFind bool) error {
+func (s *attributeStore) failure(op, id string, err error, mustFind bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to %s attribute '%s': %w", op, id, err)
 	}
@@ -214,25 +215,9 @@ func (s *wrapper) failure(op, id string, err error, mustFind bool) error {
 	return fmt.Errorf("attribute '%s' already exists", id)
 }
 
-func (s *wrapper) bugFix(in string) string {
-	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
-	if _, ok := s.client.(*etcdv3.Store); ok {
-		return "/" + in
-	}
-	return in
+type attributeStore struct {
+	wrapper
 }
-
-type wrapper struct {
-	ctx      context.Context
-	client   store.Store
-	basePath string
-	mutex    sync.RWMutex
-}
-
-var (
-	readOptions  = &store.ReadOptions{}
-	writeOptions = &store.WriteOptions{}
-)
 
 type attribute struct {
 	Key      string `json:"key"`

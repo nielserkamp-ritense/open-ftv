@@ -238,7 +238,7 @@ func TestWatchAttributeFiles(t *testing.T) {
 			require.NoError(t, err)
 
 			s := memory.New()
-			ap := NewAttributeStore(ctx, s, "")
+			ap := NewAttributeStore(ctx, s, "attribute")
 
 			p := &pip{ctx: ctx, attributeWatcher: w, store: s, attributePersist: ap}
 

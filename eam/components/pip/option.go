@@ -53,6 +53,7 @@ func WithPersistence(store store.Store, basePath string) Option {
 		_ = p.store.Close()
 		p.store = store
 		p.attributePersist = NewAttributeStore(p.ctx, store, basePath)
+		p.entityPersist = NewEntityStore(p.ctx, store, basePath)
 	}
 }
 

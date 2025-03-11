@@ -141,17 +141,18 @@ func TestLoad(t *testing.T) {
 			h := util.NewDummyHandler(slog.LevelDebug)
 
 			s := memory.New()
-			ap := NewAttributeStore(context.Background(), s, "")
+			ap := NewAttributeStore(context.Background(), s, "attribute")
+			ep := NewEntityStore(context.Background(), s, "entity")
 
 			p := &pip{
 				attrStore:        tc.path1,
 				entityStore:      tc.path2,
 				recurse:          tc.recurse,
 				logger:           slog.New(h),
-				entities:         models.NewEntitySet(),
 				newAttributes:    models.NewAttributeSet,
 				store:            s,
 				attributePersist: ap,
+				entityPersist:    ep,
 			}
 
 			p.loadFromStore()
@@ -173,12 +174,12 @@ func TestLoad(t *testing.T) {
 
 				if tc.wantEntities != nil {
 					tc.wantEntities.IterateEntities(func(e1 models.Entity) {
-						e2 := p.entities.GetEntity(e1.UID())
+						e2 := p.GetEntity(e1.UID())
 						require.NotNil(t, e2)
 						assert.EqualValues(t, e1, e2)
 					})
 
-					p.entities.IterateEntities(func(e1 models.Entity) {
+					p.IterateEntities(func(e1 models.Entity) {
 						e2 := tc.wantEntities.GetEntity(e1.UID())
 						require.NotNil(t, e2)
 						assert.EqualValues(t, e1, e2)

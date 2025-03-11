@@ -114,12 +114,12 @@ func TestNew(t *testing.T) {
 
 			if tc.wantEntities != nil {
 				tc.wantEntities.IterateEntities(func(e1 models.Entity) {
-					e2 := p2.entities.GetEntity(e1.UID())
+					e2 := p2.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.True(t, models.EntityEqual(e1, e2))
 				})
 
-				p2.entities.IterateEntities(func(e1 models.Entity) {
+				p2.IterateEntities(func(e1 models.Entity) {
 					e2 := tc.wantEntities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
 					assert.True(t, models.EntityEqual(e1, e2))
@@ -171,7 +171,10 @@ func TestPIP_Attributes(t *testing.T) {
 
 func TestPIP_Entities(t *testing.T) {
 	t.Run("pip as EntitySet", func(t *testing.T) {
-		p := &pip{entities: models.NewEntitySet()}
+		h := util.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		p := New(nil, logger).(*pip)
 		require.NotNil(t, p)
 
 		p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
