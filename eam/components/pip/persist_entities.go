@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/goccy/go-json"
@@ -143,6 +144,10 @@ func marshalEntity(e models.Entity) []byte {
 		q := make([]*attribute, 0)
 		e.Attributes().IterateAttributes(func(attr models.Attribute) {
 			q = append(q, toAttribute(attr))
+		})
+
+		slices.SortFunc(q, func(a, b *attribute) int {
+			return strings.Compare(a.Key, b.Key)
 		})
 
 		if err := enc.Encode(&q); err != nil {

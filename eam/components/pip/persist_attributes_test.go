@@ -16,7 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/storage/valkeyrie/memory"
 )
 
-func TestMarshalUnmarshal(t *testing.T) {
+func TestMarshalUnmarshalAttributes(t *testing.T) {
 	testCases := []struct {
 		name      string
 		a         models.Attribute
@@ -78,7 +78,20 @@ func TestMarshalUnmarshal(t *testing.T) {
 	}
 }
 
-func TestUnmarshal_Fail(t *testing.T) {
+func TestMarshalAttribute_Repeated(t *testing.T) {
+	t.Run("marshal repeated", func(t *testing.T) {
+		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
+
+		b1 := marshalAttribute(a)
+
+		for i := range 100 {
+			b2 := marshalAttribute(a)
+			assert.EqualValuesf(t, b1, b2, fmt.Sprintf("repeated entity %d", i))
+		}
+	})
+}
+
+func TestUnmarshalAttribute_Fail(t *testing.T) {
 	d1, _ := json.Marshal(&attribute{
 		Key:   "k1",
 		Value: "this is not base64! \000\001",

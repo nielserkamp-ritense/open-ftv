@@ -16,29 +16,29 @@ import (
 func TestMarshalUnmarshalEntities(t *testing.T) {
 	testCases := []struct {
 		name      string
-		a         models.Entity
+		e         models.Entity
 		wantPanic bool
 		wantErr   bool
 	}{
 		{
 			name: "simple",
-			a:    models.NewEntity("cedar", "12345", models.NewAttributeSet()),
+			e:    models.NewEntity("cedar", "12345", models.NewAttributeSet()),
 		},
 		{
 			name: "with attributes",
-			a:    models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345))),
+			e:    models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345))),
 		},
 		{
 			name: "with parents",
-			a:    models.NewEntity("cedar", "12345", models.NewAttributeSet(), "cedar:456", "cedar:789"),
+			e:    models.NewEntity("cedar", "12345", models.NewAttributeSet(), "cedar:456", "cedar:789"),
 		},
 		{
 			name: "original with attributes&parents",
-			a:    models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789"),
+			e:    models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789"),
 		},
 		{
 			name:      "panic (1)",
-			a:         models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("bad", make(chan byte)))),
+			e:         models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("bad", make(chan byte)))),
 			wantPanic: true,
 		},
 	}
@@ -54,7 +54,7 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 				}
 			}()
 
-			data := marshalEntity(tc.a)
+			data := marshalEntity(tc.e)
 			require.NotNil(t, data)
 
 			got, err := unmarshalEntity(data)
@@ -64,10 +64,23 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-				assert.True(t, models.EntityEqual(got, tc.a))
+				assert.True(t, models.EntityEqual(got, tc.e))
 			}
 		})
 	}
+}
+
+func TestMarshalEntity_Repeated(t *testing.T) {
+	t.Run("marshal repeated", func(t *testing.T) {
+		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
+
+		b1 := marshalEntity(e)
+
+		for i := range 100 {
+			b2 := marshalEntity(e)
+			assert.EqualValuesf(t, b1, b2, fmt.Sprintf("repeated entity %d", i))
+		}
+	})
 }
 
 func TestUnmarshalEntity_Fail(t *testing.T) {
@@ -136,18 +149,18 @@ func TestNewEntityStore(t *testing.T) {
 		require.NotNil(t, e3)
 		assert.EqualValues(t, e, e3)
 
-		e = models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true)), "cedar:654")
-		require.NotNil(t, e)
-
-		e4, err4 := s.Update(e3, ix, e)
-		require.NoError(t, err4)
+		e4 := models.NewEntity(e3.Type(), e3.ID(), models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true)), "cedar:654")
 		require.NotNil(t, e4)
-		assert.EqualValues(t, e, e4)
 
-		e5, err5 := s.Delete(e, ix)
-		require.NoError(t, err5)
+		e5, err4 := s.Update(e3, ix, e4)
+		require.NoError(t, err4)
 		require.NotNil(t, e5)
-		assert.EqualValues(t, e, e5)
+		assert.EqualValues(t, e4, e5)
+
+		e6, err5 := s.Delete(e4, ix)
+		require.NoError(t, err5)
+		require.NotNil(t, e6)
+		assert.EqualValues(t, e4, e6)
 	})
 }
 
