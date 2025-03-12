@@ -45,6 +45,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	case <-wait:
 	}
 
+	c.loadAttributes()
 	c.loadEntities()
 
 	if c.PAP() != nil {
@@ -54,6 +55,14 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	c.Logger().Info("pdp controller initialized", "controller", c.String())
 	return c
+}
+
+func (c *controller) loadAttributes() {
+	m := make(map[string]any)
+	c.PIP().IterateAttributes(func(attr models.Attribute) {
+		m[attr.Key()] = attr.Value()
+	})
+	c.loadData(m, "attributes")
 }
 
 func (c *controller) loadEntities() {
@@ -66,21 +75,22 @@ func (c *controller) loadEntities() {
 		m2[entity.ID()] = models.MapFromAttributes(entity.Attributes())
 		m[entity.Type()] = m2
 	})
+	c.loadData(m, "entities")
+}
 
+func (c *controller) loadData(m map[string]any, key string) {
 	if len(m) == 0 {
 		return
 	}
 
-	key := "entities"
-
 	t, _ := c.mem.NewTransaction(c.Context(), storage.TransactionParams{Write: true})
 	if err := c.mem.Write(c.Context(), t, storage.AddOp, storage.Path{key}, m); err != nil {
-		c.Logger().Error("failed to upsert entities", "controller", c.String(), "document-key", key, "error", err)
+		c.Logger().Error("failed to add/replace data", "controller", c.String(), "document-key", key, "error", err)
 	}
 	if err := c.mem.Commit(c.Context(), t); err != nil {
-		c.Logger().Error("failed to commit transaction", "controller", c.String(), "document-key", key, "error", err)
+		c.Logger().Error("failed to commit transaction to add/replace data", "controller", c.String(), "document-key", key, "error", err)
 	} else {
-		c.Logger().Info("entities added/replaced", "controller", c.String(), "document-key", key)
+		c.Logger().Info("data added/replaced successfully", "controller", c.String(), "document-key", key)
 	}
 }
 

@@ -121,7 +121,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.GreaterOrEqual(t, 10, h.Count())
+		assert.GreaterOrEqual(t, h.Count(), 11)
 	})
 }
 
@@ -171,7 +171,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.GreaterOrEqual(t, 6, h.Count())
+		assert.GreaterOrEqual(t, h.Count(), 6)
 	})
 }
 
@@ -221,7 +221,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.GreaterOrEqual(t, 6, h.Count())
+		assert.GreaterOrEqual(t, h.Count(), 6)
 	})
 }
 
@@ -271,6 +271,6 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.GreaterOrEqual(t, 6, h.Count())
+		assert.GreaterOrEqual(t, h.Count(), 6)
 	})
 }
