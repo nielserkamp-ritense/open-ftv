@@ -52,7 +52,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.PAP().LoadFiles()
 	}
 
-	c.Logger().Info("pbac controller initialized", "controller", c.String())
+	c.Logger().Info("pdp controller initialized", "controller", c.String())
 	return c
 }
 
@@ -70,12 +70,6 @@ func (c *controller) loadEntities() {
 	if len(m) == 0 {
 		return
 	}
-
-	// d, err := json.Marshal(m)
-	// if err != nil {
-	// 	c.Logger().Error("failed to marshal entities", "controller", c.String(), "error", err)
-	// 	return
-	// }
 
 	key := "entities"
 

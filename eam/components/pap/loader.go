@@ -9,15 +9,15 @@ import (
 
 // LoadFiles loads all policies from the local file store.
 func (p *pap) LoadFiles() {
-	if p.fileStore == "" {
+	if p.policyStore == "" {
 		return
 	}
 
-	p.fileStore, _ = filepath.Abs(p.fileStore)
+	p.policyStore, _ = filepath.Abs(p.policyStore)
 	p.clearWatcher()
 
-	if err := filepath.WalkDir(p.fileStore, p.loadPolicy); err != nil {
-		p.logger.Error("pap: error loading policies", "fileStore", p.fileStore, "err", err)
+	if err := filepath.WalkDir(p.policyStore, p.loadPolicy); err != nil {
+		p.logger.Error("pap: error loading policies", "policyStore", p.policyStore, "err", err)
 	}
 }
 
@@ -27,7 +27,7 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 	}
 
 	if d.IsDir() {
-		if p.recurse || path == p.fileStore {
+		if p.recurse || path == p.policyStore {
 			if p.watcher != nil {
 				_ = p.watcher.Add(path)
 			}

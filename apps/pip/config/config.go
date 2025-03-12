@@ -102,6 +102,9 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 
 	if logger.Enabled(context.TODO(), slog.LevelInfo) {
 		sanitized := *cfg
+		sanitized.EtcdUser = ""
+		sanitized.EtcdPswd = ""
+		sanitized.ConsulToken = ""
 		sanitized.CerbosUser = ""
 		sanitized.CerbosPswd = ""
 		logger.Info("configuration loaded successfully", "config", sanitized)

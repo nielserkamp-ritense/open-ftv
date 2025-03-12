@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-const pathSeparator = "/"
+// PathSeparator is the standard separator character to use with multi-level keys.
+const PathSeparator = "/"
 
 // Persistence represents the interface to manage persistent storage for policies.
 type Persistence interface {
@@ -32,18 +34,11 @@ type Persistence interface {
 //
 // Use basePath to define the key prefix to use for the backend KV store.
 // All policy id's will be prefixed with the value of basePath as the KV store's key.
-// A trailing pathSeparator character in basePath is automatically appended if it is missing from the input.
+// A trailing PathSeparator character in basePath is automatically appended if it is missing from the input.
 //
 // The given context is passed in every call to the KV backend.
 func NewStore(ctx context.Context, client store.Store, basePath string) Persistence {
-	_, err := client.NewLock(ctx, "", &store.LockOptions{})
-	canLock := !errors.Is(err, store.ErrCallNotSupported)
-
-	if basePath != "" && !strings.HasSuffix(basePath, pathSeparator) {
-		basePath += pathSeparator
-	}
-
-	return &wrapper{ctx: ctx, client: client, canLock: canLock, basePath: basePath}
+	return &wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}
 }
 
 // Create implements the Persistence interface.
@@ -114,7 +109,7 @@ func (s *wrapper) Delete(prev Policy, lastIndex uint64) (Policy, error) {
 func (s *wrapper) List(language string) ([]Policy, error) {
 	key := s.basePath
 	if language != "" {
-		key = fmt.Sprintf("%s%s%s", key, language, pathSeparator)
+		key = fmt.Sprintf("%s%s%s", key, language, PathSeparator)
 	}
 	key = s.bugFix(key)
 
@@ -142,7 +137,7 @@ func (s *wrapper) List(language string) ([]Policy, error) {
 }
 
 func (s *wrapper) makeKey(language, id string) string {
-	return fmt.Sprintf("%s%s%s%s", s.basePath, language, pathSeparator, id)
+	return fmt.Sprintf("%s%s%s%s", s.basePath, language, PathSeparator, id)
 }
 
 func (s *wrapper) mustMarshal(p Policy) []byte {
@@ -209,7 +204,6 @@ func (s *wrapper) bugFix(in string) string {
 type wrapper struct {
 	ctx       context.Context
 	client    store.Store
-	canLock   bool
 	basePath  string
 	mutex     sync.RWMutex
 	storeLock store.Locker

@@ -38,7 +38,7 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 		c.PAP().LoadFiles()
 	}
 
-	c.logger.Info("pbac controller initialized")
+	c.logger.Info("pdp controller initialized")
 	return c
 }
 

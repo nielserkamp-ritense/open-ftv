@@ -15,6 +15,7 @@ import (
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // EntityPersistence represents the interface to manage persistent storage for attributes.
@@ -39,10 +40,7 @@ type EntityPersistence interface {
 //
 // The given context is passed in every call to the KV backend.
 func NewEntityStore(ctx context.Context, client store.Store, basePath string) EntityPersistence {
-	if basePath != "" && !strings.HasSuffix(basePath, pathSeparator) {
-		basePath += pathSeparator
-	}
-	return &entityStore{wrapper{ctx: ctx, client: client, basePath: basePath}}
+	return &entityStore{wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
 }
 
 // Create implements the EntityPersistence interface.

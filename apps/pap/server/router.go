@@ -12,16 +12,15 @@ import (
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 
-	s.auth = New(s.ctx, s.cfg, s.logger)
+	s.auth = s.newAuth()
 	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
-	p, err := NewPAP(s.ctx, s.cfg, s.logger)
-	if err != nil {
+	var err error
+	if s.pap, err = s.newPAP(); err != nil {
 		panic("failed to initialize PAP handler")
 	}
-	s.pap = p
 
 	s.initHealth(svc)
 
@@ -31,16 +30,17 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 }
 
 func (s *service) initHealth(svc *fiber.App) {
+	// liveness & readiness.
 	svc.Get("/healthz", handle.HealthZ)
 }
 
-func (s *service) initPolicies(v1 fiber.Router) {
+func (s *service) initPolicies(group fiber.Router) {
 	policies := handle.NewPoliciesHandler(s.logger, s.pap)
 
-	// policies.
-	v1.Get(handle.PathPolicies, policies.GetPolicies)
-	v1.Get(handle.PathPolicy, policies.GetPolicy)
-	v1.Put(handle.PathPolicy, policies.PutPolicy)
-	v1.Post(handle.PathPolicy, policies.PostPolicy)
-	v1.Delete(handle.PathPolicy, policies.DeletePolicy)
+	// policies CRUD.
+	group.Get(handle.PathPolicies, policies.GetPolicies)
+	group.Get(handle.PathPolicy, policies.GetPolicy)
+	group.Put(handle.PathPolicy, policies.PutPolicy)
+	group.Post(handle.PathPolicy, policies.PostPolicy)
+	group.Delete(handle.PathPolicy, policies.DeletePolicy)
 }

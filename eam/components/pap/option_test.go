@@ -57,7 +57,7 @@ func TestWithFileStore(t *testing.T) {
 		p2, ok := p.(*pap)
 		require.True(t, ok)
 		require.NotNil(t, p2)
-		assert.Equal(t, path, p2.fileStore)
+		assert.Equal(t, path, p2.policyStore)
 		assert.Equal(t, recurse, p2.recurse)
 	})
 }

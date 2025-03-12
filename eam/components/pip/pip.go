@@ -4,7 +4,6 @@ package pip
 import (
 	"context"
 	"log/slog"
-	"os"
 	"sync"
 	"time"
 
@@ -54,14 +53,31 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 
 	p.loadFromStore()
 
-	if p.logger.Enabled(nil, slog.LevelDebug) {
-		attrs, _ := p.attributePersist.List()
-		p.logger.Debug("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore,
-			"attributes", attrs, "entities", p.entitiesToMap())
-	} else {
-		p.logger.Info("pip initialized", "attributeStore", p.attrStore, "entityStore", p.entityStore)
-	}
+	if p.logger.Enabled(nil, slog.LevelInfo) {
+		args := make([]any, 0, 8)
 
+		if p.attrStore != "" || p.entityStore != "" {
+			if p.attrStore != "" {
+				args = append(args, "attributeStore", p.attrStore)
+			}
+			if p.entityStore != "" {
+				args = append(args, "entityStore", p.entityStore)
+			}
+			args = append(args, "recurse", p.recurse)
+		}
+
+		if p.entityPersist != ep || p.attributePersist != ap {
+			args = append(args, "persistence", true)
+		}
+
+		if p.logger.Enabled(nil, slog.LevelDebug) {
+			attrs, _ := p.attributePersist.List()
+			args = append(args, "attributes", attrs, "entities", p.entitiesToMap())
+			p.logger.Debug("pip initialized", args...)
+		} else {
+			p.logger.Info("pip initialized", args...)
+		}
+	}
 	return p
 }
 
@@ -233,11 +249,6 @@ type pip struct {
 	attributePersist AttributePersistence
 	entityPersist    EntityPersistence
 	mutex            sync.RWMutex
-}
-
-func validPath(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
 }
 
 func (p *pip) entitiesToMap() map[string]any {

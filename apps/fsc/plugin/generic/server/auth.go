@@ -35,7 +35,7 @@ type AuthHandler interface {
 func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandler {
 	controller, err := newController(ctx, cfg, logger)
 	if controller == nil {
-		logger.Error("failed to initialize EAM controller", "error", err)
+		logger.Error("failed to initialize pdp controller", "error", err)
 		return nil
 	}
 

@@ -7,15 +7,13 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
-
-const pathSeparator = "/"
 
 // AttributePersistence represents the interface to manage persistent storage for attributes.
 type AttributePersistence interface {
@@ -39,10 +37,7 @@ type AttributePersistence interface {
 //
 // The given context is passed in every call to the KV backend.
 func NewAttributeStore(ctx context.Context, client store.Store, basePath string) AttributePersistence {
-	if basePath != "" && !strings.HasSuffix(basePath, pathSeparator) {
-		basePath += pathSeparator
-	}
-	return &attributeStore{wrapper{ctx: ctx, client: client, basePath: basePath}}
+	return &attributeStore{wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
 }
 
 // Create implements the AttributePersistence interface.

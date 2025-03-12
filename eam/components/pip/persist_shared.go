@@ -9,6 +9,9 @@ import (
 	"github.com/kvtools/valkeyrie/store"
 )
 
+// PathSeparator is the standard separator character to use with multi-level keys.
+const PathSeparator = "/"
+
 type wrapper struct {
 	ctx      context.Context
 	client   store.Store

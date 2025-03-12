@@ -1,6 +1,9 @@
 package pap
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/kvtools/valkeyrie/store"
 )
 
@@ -28,7 +31,14 @@ func WithPersistence(store store.Store, basePath string) Option {
 // WithFileStore adds a file storage location to the controller.
 func WithFileStore(fileStore string, recurse bool) Option {
 	return func(p *pap) {
-		p.fileStore = fileStore
-		p.recurse = recurse
+		if ps, _ := filepath.Abs(fileStore); validPath(ps) {
+			p.policyStore = ps
+			p.recurse = recurse
+		}
 	}
+}
+
+func validPath(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

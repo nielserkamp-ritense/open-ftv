@@ -2,34 +2,41 @@ package server
 
 import (
 	"context"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/persistence"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci/opensearch"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
+	s.l = models.LanguageFromString(s.cfg.PolicyLanguage)
 
-	s.initHealth(svc)
-
-	auth := New(s.ctx, s.cfg, s.logger)
-	if auth == nil {
+	s.auth = s.newAuth()
+	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
+	if s.cfg.PersistType != "" {
+		var err error
+		if s.store, err = persistence.New(ctx, s.cfg); err != nil {
+			panic("failed to create persistence store: " + err.Error())
+		}
+	}
+
+	s.pip = s.newPIP()
+	s.pap = s.newPAP()
+
+	s.initHealth(svc)
+
 	// API v1.
 	v1 := svc.Group("/v1")
-	s.initPolicies(v1, auth)
-	s.initAttributes(v1, auth)
-	s.initEntities(v1, auth)
-
-	if s.cfg.OpenSearchIndex != "" {
-		s.initAuthlog(v1)
-	}
+	s.initAttributes(v1)
+	s.initEntities(v1)
+	s.initPolicies(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -37,49 +44,35 @@ func (s *service) initHealth(svc *fiber.App) {
 	svc.Get("/healthz", handle.HealthZ)
 }
 
-func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {
-	policies := handle.NewPoliciesHandler(s.logger, auth.Controller().PAP())
+func (s *service) initAttributes(group fiber.Router) {
+	attributes := handle.NewAttributesHandler(s.logger, s.pip)
 
-	// policies.
-	v1.Get(handle.PathPolicies, policies.GetPolicies)
-	v1.Get(handle.PathPolicy, policies.GetPolicy)
-	v1.Put(handle.PathPolicy, policies.PutPolicy)
-	v1.Post(handle.PathPolicy, policies.PostPolicy)
-	v1.Delete(handle.PathPolicy, policies.DeletePolicy)
+	// attributes CRUD.
+	group.Get(handle.PathAttributes, attributes.GetAttributes)
+	group.Get(handle.PathAttribute, attributes.GetAttribute)
+	group.Put(handle.PathAttribute, attributes.PutAttribute)
+	group.Post(handle.PathAttribute, attributes.PostAttribute)
+	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
 }
 
-func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
-	attributes := handle.NewAttributesHandler(s.logger, auth.Controller().PIP())
+func (s *service) initEntities(group fiber.Router) {
+	entities := handle.NewEntitiesHandler(s.logger, s.pip)
 
-	// attributes.
-	v1.Get(handle.PathAttributes, attributes.GetAttributes)
-	v1.Get(handle.PathAttribute, attributes.GetAttribute)
-	v1.Put(handle.PathAttribute, attributes.PutAttribute)
-	v1.Post(handle.PathAttribute, attributes.PostAttribute)
-	v1.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+	// entities CRUD.
+	group.Get(handle.PathEntities, entities.GetEntities)
+	group.Get(handle.PathEntity, entities.GetEntity)
+	group.Put(handle.PathEntity, entities.PutEntity)
+	group.Post(handle.PathEntity, entities.PostEntity)
+	group.Delete(handle.PathEntity, entities.DeleteEntity)
 }
 
-func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
-	entities := handle.NewEntitiesHandler(s.logger, auth.Controller().PIP())
+func (s *service) initPolicies(group fiber.Router) {
+	policies := handle.NewPoliciesHandler(s.logger, s.pap)
 
-	// entities.
-	v1.Get(handle.PathEntities, entities.GetEntities)
-	v1.Get(handle.PathEntity, entities.GetEntity)
-	v1.Put(handle.PathEntity, entities.PutEntity)
-	v1.Post(handle.PathEntity, entities.PostEntity)
-	v1.Delete(handle.PathEntity, entities.DeleteEntity)
-}
-
-func (s *service) initAuthlog(v1 fiber.Router) {
-	searcher, err := opensearch.NewSearcher(s.cfg.OpenSearchUser, s.cfg.OpenSearchPswd, strings.Split(s.cfg.OpenSearchEndpoints, ","))
-	if err != nil {
-		s.logger.Error("failed to initialize OpenSearch", "user", s.cfg.OpenSearchUser, "endpoints", s.cfg.OpenSearchEndpoints, "error", err)
-		return
-	}
-
-	authlog := handle.NewAuthlogHandler(s.logger, s.cfg.OpenSearchIndex, searcher)
-
-	// authlog
-	auth := v1.Group(handle.PathAuthlog)
-	auth.Get(handle.PathResource, authlog.GetAuthlogResource)
+	// policies CRUD.
+	group.Get(handle.PathPolicies, policies.GetPolicies)
+	group.Get(handle.PathPolicy, policies.GetPolicy)
+	group.Put(handle.PathPolicy, policies.PutPolicy)
+	group.Post(handle.PathPolicy, policies.PostPolicy)
+	group.Delete(handle.PathPolicy, policies.DeletePolicy)
 }

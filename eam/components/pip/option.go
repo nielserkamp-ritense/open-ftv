@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/kvtools/valkeyrie/store"
@@ -16,12 +17,12 @@ type Option func(p *pip)
 // WithFileStore adds a file storage location to the PIP.
 func WithFileStore(fileStore string, recurse bool) Option {
 	return func(p *pip) {
-		if attrStore, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(attrStore) {
-			p.attrStore = attrStore
+		if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
+			p.attrStore = as
 		}
 
-		if entityStore, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(entityStore) {
-			p.entityStore = entityStore
+		if es, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(es) {
+			p.entityStore = es
 		}
 
 		p.recurse = recurse
@@ -66,4 +67,9 @@ func WithFactories(a models.AttributesBuilder, e models.EntitiesBuilder) Option 
 		p.newAttributes = a
 		p.newEntities = e
 	}
+}
+
+func validPath(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

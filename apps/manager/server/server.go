@@ -5,7 +5,12 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/kvtools/valkeyrie/store"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 )
@@ -35,4 +40,9 @@ type service struct {
 	ctx    context.Context
 	cfg    *config.Config
 	logger *slog.Logger
+	auth   AuthHandler
+	l      models.Language
+	store  store.Store
+	pap    pap.PAP
+	pip    pip.PIP
 }

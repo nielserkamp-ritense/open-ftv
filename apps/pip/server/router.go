@@ -14,16 +14,15 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.initHealth(svc)
 
-	auth := New(s.ctx, s.cfg, s.logger)
+	auth := s.newAuth()
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
-	p, err := NewPIP(s.ctx, s.cfg, s.logger)
-	if err != nil {
-		panic("failed to initialize PIP handler")
+	var err error
+	if s.pip, err = s.newPIP(); err != nil {
+		panic("failed to initialize PIP handler: " + err.Error())
 	}
-	s.pip = p
 
 	// API v1.
 	v1 := svc.Group("/v1")
@@ -36,24 +35,24 @@ func (s *service) initHealth(svc *fiber.App) {
 	svc.Get("/healthz", handle.HealthZ)
 }
 
-func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
+func (s *service) initAttributes(group fiber.Router, auth AuthHandler) {
 	attributes := handle.NewAttributesHandler(s.logger, s.pip)
 
-	// attributes.
-	v1.Get(handle.PathAttributes, attributes.GetAttributes)
-	v1.Get(handle.PathAttribute, attributes.GetAttribute)
-	v1.Put(handle.PathAttribute, attributes.PutAttribute)
-	v1.Post(handle.PathAttribute, attributes.PostAttribute)
-	v1.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+	// attributes CRUD.
+	group.Get(handle.PathAttributes, attributes.GetAttributes)
+	group.Get(handle.PathAttribute, attributes.GetAttribute)
+	group.Put(handle.PathAttribute, attributes.PutAttribute)
+	group.Post(handle.PathAttribute, attributes.PostAttribute)
+	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
 }
 
-func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
+func (s *service) initEntities(group fiber.Router, auth AuthHandler) {
 	entities := handle.NewEntitiesHandler(s.logger, s.pip)
 
-	// entities.
-	v1.Get(handle.PathEntities, entities.GetEntities)
-	v1.Get(handle.PathEntity, entities.GetEntity)
-	v1.Put(handle.PathEntity, entities.PutEntity)
-	v1.Post(handle.PathEntity, entities.PostEntity)
-	v1.Delete(handle.PathEntity, entities.DeleteEntity)
+	// entities CRUD.
+	group.Get(handle.PathEntities, entities.GetEntities)
+	group.Get(handle.PathEntity, entities.GetEntity)
+	group.Put(handle.PathEntity, entities.PutEntity)
+	group.Post(handle.PathEntity, entities.PostEntity)
+	group.Delete(handle.PathEntity, entities.DeleteEntity)
 }

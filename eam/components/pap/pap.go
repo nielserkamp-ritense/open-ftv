@@ -42,13 +42,14 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 	}
 
 	s := memory.New()
+	pp := NewStore(ctx, s, "")
 
 	p := &pap{
 		ctx:        ctx,
 		logger:     logger,
 		watcher:    w,
 		store:      s,
-		persist:    NewStore(ctx, s, ""),
+		persist:    pp,
 		updates:    make(map[string]struct{}),
 		deletes:    make(map[string]struct{}),
 		eventSinks: make([]models.EventSink, 0),
@@ -62,7 +63,18 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 		go p.watchFiles()
 	}
 
-	p.logger.Info("pap initialized")
+	if p.logger.Enabled(nil, slog.LevelInfo) {
+		args := make([]any, 0, 8)
+
+		if p.policyStore != "" {
+			args = append(args, "policyStore", p.policyStore, "recurse", p.recurse)
+		}
+		if p.persist != pp {
+			args = append(args, "persistence", true)
+		}
+
+		p.logger.Info("pap initialized", args...)
+	}
 	return p
 }
 
@@ -145,17 +157,17 @@ func (p *pap) sendEvent(eventType models.EventType, key string) {
 }
 
 type pap struct {
-	recurse    bool
-	fileStore  string
-	language   string
-	ctx        context.Context
-	logger     *slog.Logger
-	watcher    *fsnotify.Watcher
-	wTimer     *time.Timer
-	updates    map[string]struct{}
-	deletes    map[string]struct{}
-	eventSinks []models.EventSink
-	store      store.Store
-	persist    Persistence
-	mutex      sync.RWMutex
+	recurse     bool
+	policyStore string
+	language    string
+	ctx         context.Context
+	logger      *slog.Logger
+	watcher     *fsnotify.Watcher
+	wTimer      *time.Timer
+	updates     map[string]struct{}
+	deletes     map[string]struct{}
+	eventSinks  []models.EventSink
+	store       store.Store
+	persist     Persistence
+	mutex       sync.RWMutex
 }
