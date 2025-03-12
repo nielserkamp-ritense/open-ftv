@@ -6,11 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
+	s.l = models.LanguageFromString(s.cfg.PolicyLanguage)
 
 	s.auth = s.newAuth()
 	if s.auth == nil {

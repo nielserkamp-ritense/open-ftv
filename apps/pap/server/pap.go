@@ -5,14 +5,11 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pap/persistence"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 func (s *service) newPAP() (pap.PAP, error) {
-	l := models.LanguageFromString(s.cfg.PolicyLanguage)
-
 	opts := make([]pap.Option, 0)
-	opts = append(opts, pap.WithLanguage(l.Language()))
+	opts = append(opts, pap.WithLanguage(s.l.Language()))
 
 	if s.cfg.PersistType != "" {
 		store, err := persistence.New(s.ctx, s.cfg)

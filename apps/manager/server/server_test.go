@@ -126,17 +126,13 @@ func TestOpenSearchFail1(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:                "127.0.0.1",
-			Port:                20003,
-			ReadTimeout:         10 * time.Second,
-			WriteTimeout:        10 * time.Second,
-			IdleTimeout:         300 * time.Second,
-			MaxBody:             64536,
-			PolicyLanguage:      "cedar",
-			OpenSearchIndex:     "xyz",
-			OpenSearchUser:      "mickey",
-			OpenSearchPswd:      "mouse",
-			OpenSearchEndpoints: "http://localhost:9876",
+			Host:           "127.0.0.1",
+			Port:           20003,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			IdleTimeout:    300 * time.Second,
+			MaxBody:        64536,
+			PolicyLanguage: "cedar",
 		}
 
 		s := NewService(cfg, logger)

@@ -2,6 +2,7 @@ package pap
 
 import (
 	"log/slog"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,15 +50,18 @@ func TestWithFileStore(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		path, recurse := "/etc/ftv/policies", false
+		path := "../../../testdata/policies/opa"
 
-		p := New(nil, logger, WithFileStore(path, recurse))
+		p := New(nil, logger, WithFileStore(path, true))
 		require.NotNil(t, p)
+
+		path2, err := filepath.Abs(path)
+		require.NoError(t, err)
 
 		p2, ok := p.(*pap)
 		require.True(t, ok)
 		require.NotNil(t, p2)
-		assert.Equal(t, path, p2.policyStore)
-		assert.Equal(t, recurse, p2.recurse)
+		assert.Equal(t, path2, p2.policyStore)
+		assert.True(t, p2.recurse)
 	})
 }

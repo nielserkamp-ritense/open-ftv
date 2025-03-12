@@ -6,13 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
-
-	s.initHealth(svc)
+	s.l = models.LanguageFromString(s.cfg.PolicyLanguage)
 
 	auth := s.newAuth()
 	if auth == nil {
@@ -23,6 +23,8 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	if s.pip, err = s.newPIP(); err != nil {
 		panic("failed to initialize PIP handler: " + err.Error())
 	}
+
+	s.initHealth(svc)
 
 	// API v1.
 	v1 := svc.Group("/v1")

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pip/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -42,7 +44,7 @@ func TestNew(t *testing.T) {
 		{
 			name:    "OPA/Rego",
 			cfg:     &config.Config{PolicyLanguage: "opa", PolicyStore: "../../../testdata/unittest/rego"},
-			wantLog: 4,
+			wantLog: 3,
 		},
 	}
 
@@ -51,7 +53,10 @@ func TestNew(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			auth := newAuth(nil, tc.cfg, logger)
+			s := &service{ctx: context.Background(), logger: logger, cfg: tc.cfg}
+			s.l = models.LanguageFromString(tc.cfg.PolicyLanguage)
+
+			auth := s.newAuth()
 			if tc.wantFail {
 				require.Nil(t, auth)
 				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
