@@ -39,7 +39,7 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	})
 
 	if len(resp) == 0 {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, "no entities found")
 	}
 	return req.JSON(&resp)
 }

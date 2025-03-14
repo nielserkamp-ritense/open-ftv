@@ -39,7 +39,7 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	})
 
 	if len(resp) == 0 {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, "no attributes found")
 	}
 	return req.JSON(resp)
 }
