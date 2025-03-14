@@ -1,0 +1,4 @@
+---
+appID: 123456
+clientID: abcdef
+keyFile: ../crypto/key/pem
