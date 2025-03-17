@@ -22,9 +22,13 @@ require (
 	github.com/deiu/gon3 v0.0.0-20241212124032-93153c038193 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/google/go-github/v64 v64.0.0 // indirect
 	github.com/google/go-github/v69 v69.2.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1 // indirect
+	github.com/jferrl/go-githubauth v1.1.1 // indirect
 	github.com/linkeddata/gojsonld v0.0.0-20170418210642-4f5db6791326 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
@@ -33,6 +37,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250102185135-69823020774d // indirect

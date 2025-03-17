@@ -12,20 +12,9 @@ func TestLoadSecrets(t *testing.T) {
 		path    string
 		wantErr bool
 	}{
-		{
-			name:    "bad path",
-			path:    "",
-			wantErr: true,
-		},
-		{
-			name:    "bad content",
-			path:    "../../testdata/github/bad.yaml",
-			wantErr: true,
-		},
-		{
-			name: "good",
-			path: "../../testdata/github/github1.yaml",
-		},
+		{name: "bad path", path: "", wantErr: true},
+		{name: "bad content", path: "../../testdata/github/bad.yaml", wantErr: true},
+		{name: "good", path: "../../testdata/github/github1.yaml"},
 	}
 
 	for _, tc := range testCases {
@@ -41,3 +30,11 @@ func TestLoadSecrets(t *testing.T) {
 		})
 	}
 }
+
+var template = `
+---
+appID: %s
+clientID: %s
+installationID: %s
+keyFile: %s
+`

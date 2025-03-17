@@ -11,7 +11,7 @@ require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-co-op/gocron/v2 v2.15.0
 	github.com/goccy/go-json v0.10.5
-	github.com/goccy/go-yaml v1.15.23
+	github.com/goccy/go-yaml v1.16.0
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
@@ -23,10 +23,10 @@ require (
 	github.com/openfga/openfga v1.8.4
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250314094917-1d7196690384
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250317092413-14c2fcc596a4
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server v0.0.0-00010101000000-000000000000
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250312111600-62caff2597a8
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250314094917-1d7196690384
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250314094917-1d7196690384
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250317092413-14c2fcc596a4
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.34.0

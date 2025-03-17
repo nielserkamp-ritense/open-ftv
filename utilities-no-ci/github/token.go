@@ -3,10 +3,8 @@ package github
 import (
 	"crypto/rsa"
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/golang-jwt/jwt/v5"
 
 	rsa2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/crypto/rsa"
@@ -25,7 +23,7 @@ func GenerateToken(secretsPath string, start, end time.Time) (string, error) {
 	}
 
 	if end.Before(start) {
-		end = time.Now().UTC().Add(10 * time.Minute)
+		end = start.Add(10 * time.Minute)
 	}
 
 	t := jwt.NewWithClaims(
@@ -42,25 +40,4 @@ func GenerateToken(secretsPath string, start, end time.Time) (string, error) {
 		return "", fmt.Errorf("failed to sign token: %w", err)
 	}
 	return signed, nil
-}
-
-func loadSecrets(path string) (*secrets, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read seecrets file: %w", err)
-	}
-	defer f.Close()
-
-	s := secrets{}
-	if err = yaml.NewDecoder(f).Decode(&s); err != nil {
-		return nil, fmt.Errorf("failed to parse secrets file: %w", err)
-	}
-
-	return &s, nil
-}
-
-type secrets struct {
-	AppID    string `yaml:"appID,omitempty"`
-	ClientID string `yaml:"clientID,omitempty"`
-	KeyFile  string `yaml:"keyFile,omitempty"`
 }
