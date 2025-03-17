@@ -160,14 +160,14 @@ type RemoveAttributeParams struct {
 	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// ReplaceAttributeParams defines parameters for ReplaceAttribute.
-type ReplaceAttributeParams struct {
+// AddAttributeParams defines parameters for AddAttribute.
+type AddAttributeParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// AddAttributeParams defines parameters for AddAttribute.
-type AddAttributeParams struct {
+// ReplaceAttributeParams defines parameters for ReplaceAttribute.
+type ReplaceAttributeParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
@@ -178,14 +178,14 @@ type DeleteEntityParams struct {
 	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// RemoveEntityParams defines parameters for RemoveEntity.
-type RemoveEntityParams struct {
+// AddEntityParams defines parameters for AddEntity.
+type AddEntityParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// AddEntityParams defines parameters for AddEntity.
-type AddEntityParams struct {
+// RemoveEntityParams defines parameters for RemoveEntity.
+type RemoveEntityParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
@@ -196,32 +196,32 @@ type RemoveRelationParams struct {
 	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// ReplaceRelationParams defines parameters for ReplaceRelation.
-type ReplaceRelationParams struct {
-	// Force Force upsert during a put/post operation.
-	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
-}
-
 // AddRelationParams defines parameters for AddRelation.
 type AddRelationParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// ReplaceAttributeJSONRequestBody defines body for ReplaceAttribute for application/json ContentType.
-type ReplaceAttributeJSONRequestBody = Attribute
+// ReplaceRelationParams defines parameters for ReplaceRelation.
+type ReplaceRelationParams struct {
+	// Force Force upsert during a put/post operation.
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
 
 // AddAttributeJSONRequestBody defines body for AddAttribute for application/json ContentType.
 type AddAttributeJSONRequestBody = Attribute
 
-// RemoveEntityJSONRequestBody defines body for RemoveEntity for application/json ContentType.
-type RemoveEntityJSONRequestBody = Entity
+// ReplaceAttributeJSONRequestBody defines body for ReplaceAttribute for application/json ContentType.
+type ReplaceAttributeJSONRequestBody = Attribute
 
 // AddEntityJSONRequestBody defines body for AddEntity for application/json ContentType.
 type AddEntityJSONRequestBody = Entity
 
-// ReplaceRelationJSONRequestBody defines body for ReplaceRelation for application/json ContentType.
-type ReplaceRelationJSONRequestBody = Relation
+// RemoveEntityJSONRequestBody defines body for RemoveEntity for application/json ContentType.
+type RemoveEntityJSONRequestBody = Entity
 
 // AddRelationJSONRequestBody defines body for AddRelation for application/json ContentType.
 type AddRelationJSONRequestBody = Relation
+
+// ReplaceRelationJSONRequestBody defines body for ReplaceRelation for application/json ContentType.
+type ReplaceRelationJSONRequestBody = Relation

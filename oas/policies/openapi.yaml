@@ -82,7 +82,7 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
-    put:
+    post:
       operationId: "add-policy"
       summary: Add policy.
       description: |
@@ -121,7 +121,7 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
-    post:
+    put:
       operationId: "replace-policy"
       summary: Replace policy.
       description: |

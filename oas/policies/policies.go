@@ -78,20 +78,20 @@ type DeletePolicyParams struct {
 	Force IgnoreMissing `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// ReplacePolicyParams defines parameters for ReplacePolicy.
-type ReplacePolicyParams struct {
-	// Force Force upsert during a put/post operation.
-	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
-}
-
 // AddPolicyParams defines parameters for AddPolicy.
 type AddPolicyParams struct {
 	// Force Force upsert during a put/post operation.
 	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
 }
 
-// ReplacePolicyJSONRequestBody defines body for ReplacePolicy for application/json ContentType.
-type ReplacePolicyJSONRequestBody = Policy
+// ReplacePolicyParams defines parameters for ReplacePolicy.
+type ReplacePolicyParams struct {
+	// Force Force upsert during a put/post operation.
+	Force ForceUpsert `form:"force,omitempty" json:"force,omitempty"`
+}
 
 // AddPolicyJSONRequestBody defines body for AddPolicy for application/json ContentType.
 type AddPolicyJSONRequestBody = Policy
+
+// ReplacePolicyJSONRequestBody defines body for ReplacePolicy for application/json ContentType.
+type ReplacePolicyJSONRequestBody = Policy

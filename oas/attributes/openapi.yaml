@@ -91,7 +91,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    put:
+    post:
       operationId: "add-attribute"
       summary: Add attribute.
       description: |
@@ -130,7 +130,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    post:
+    put:
       operationId: "replace-attribute"
       summary: Replace attribute.
       description: |
@@ -266,7 +266,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    put:
+    post:
       operationId: "add-entity"
       summary: Add entity.
       description: |
@@ -305,7 +305,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    post:
+    put:
       operationId: "remove-entity"
       summary: Replace entity.
       description: |
@@ -445,7 +445,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    put:
+    post:
       operationId: "add-relation"
       summary: Add relation.
       tags:
@@ -484,7 +484,7 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-    post:
+    put:
       operationId: "replace-relation"
       summary: Replace relation.
       description: |
