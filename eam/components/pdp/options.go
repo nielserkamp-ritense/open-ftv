@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 )
@@ -53,5 +54,17 @@ func WithPAP(p pap.PAP) Option {
 func WithPIP(p pip.PIP) Option {
 	return func(c *Base) {
 		c.pip = p
+	}
+}
+
+// WithMappings adds one or more required mappings on PARC models.
+//
+// Note that for mappings which target the same property,
+// each match will overwrite a previous match, so the last match wins.
+// E.g. if mapping1 is more important than mapping2,
+// mapping1 should be supplied after mapping2: WithMappings(mapping2, mapping1).
+func WithMappings(mappers ...mapping.Mapper) Option {
+	return func(c *Base) {
+		c.mappers = mappers
 	}
 }

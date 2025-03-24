@@ -3,9 +3,9 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/$(PR
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape examples help
+.PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape app docker help
 
-all: vet lint test race examples
+all: vet lint test race app docker
 
 dep-up: ## upgrade all dependencies
 	@go get -u ./...
@@ -52,10 +52,12 @@ coverhtml: fmt ## run coverage report and display in browser (requires xdg-open 
 escape: fmt ## run escape analysis
 	@go build -gcflags "-m" ${PKG_LIST} 2>&1
 
-examples: fmt ## build example binaries
+app: fmt ## build binaries
+	@mkdir -f ../../bin
+	@go build -ldflags "-s -w" -o ../../bin/${PROJECT_NAME} cmd/*.go
 
 docker:
-	@docker build -t pap:1.0.0 .
+	@docker build -t ${PROJECT_NAME}:1.0.0 .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

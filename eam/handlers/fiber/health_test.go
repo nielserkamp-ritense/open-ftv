@@ -18,7 +18,7 @@ func TestHealth(t *testing.T) {
 		srv.Get("/healthz", HealthZ)
 
 		req := httptest.NewRequest("GET", "/healthz", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)

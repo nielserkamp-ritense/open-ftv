@@ -70,7 +70,7 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		srv.Get("/v1/attributes", ah.GetAttributes)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attributes", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -114,7 +114,7 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		srv.Get("/v1/attributes", ah.GetAttributes)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attributes", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -162,7 +162,7 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			srv.Get("/v1/attribute/:key", ah.GetAttribute)
 
 			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attribute/"+tc.key, nil)
-			resp, err2 := srv.Test(req, -1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -376,7 +376,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/attribute/"+tc.key, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

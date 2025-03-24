@@ -1,6 +1,3 @@
-# Copyright © VNG Realisatie 2024
-# Licensed under the EUPL
-
 variables:
   pattern_prerelease_tag: '/^v\d*\.\d*\.\d*-rc\.\d*$/'
   pattern_release_tag: '/^v\d*\.\d*\.\d*$/'
@@ -9,7 +6,7 @@ stages:
 #  - Version
   - Linters
   - Tests
-#  - Build
+  - Build
 #  - Deploy
 #  - Redeploy
 #  - Security

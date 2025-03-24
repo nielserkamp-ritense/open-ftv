@@ -5,7 +5,7 @@ GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
 .PHONY: all lint dep-up dep fmt test race cover coverhtml escape app docker help
 
-all: test
+all: vet lint test race app docker
 
 lint: ## lint all source code (requires 'revive' to be installed!)
 	@revive -set_exit_status ${PKG_LIST}
@@ -45,10 +45,10 @@ escape: fmt ## run escape analysis
 
 app: fmt ## build binaries
 	@mkdir -f ../../../../bin
-	@go build -ldflags "-s -w" -o ../../../../bin/fsc-auth cmd/*.go
+	@go build -ldflags "-s -w" -o ../../../../bin/${PROJECT_NAME} cmd/*.go
 
 docker:
-	@docker build -t fsc-auth:1.2.0 .
+	@docker build -t ${PROJECT_NAME}:1.2.0 .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

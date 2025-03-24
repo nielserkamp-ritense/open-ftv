@@ -3,8 +3,7 @@ FROM digilabpublic.azurecr.io/golang:1.23.6-alpine3.21 AS golang_builder
 
 WORKDIR /build
 
-RUN mkdir -p /scripts \
-    && mkdir -p /build/cmd
+RUN mkdir -p /scripts
 
 COPY ./remove_replace.sh /scripts/
 COPY ./go.* ./

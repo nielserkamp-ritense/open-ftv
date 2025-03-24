@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
@@ -36,6 +37,7 @@ func TestOptions(t *testing.T) {
 		wantPEP     pep.PEP
 		wantPAP     pap.PAP
 		wantPIP     pip.PIP
+		wantMapping []mapping.Mapper
 	}{
 		{
 			name: "no options",
@@ -68,8 +70,13 @@ func TestOptions(t *testing.T) {
 			wantPAP: ap,
 		},
 		{
+			name:        "mappings",
+			options:     []Option{WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
+			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
+		},
+		{
 			name:        "all",
-			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep)},
+			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep), WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
@@ -77,6 +84,7 @@ func TestOptions(t *testing.T) {
 			wantPEP:     ep,
 			wantPAP:     ap,
 			wantPIP:     ip,
+			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
 		},
 	}
 
@@ -92,6 +100,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantPEP, got.PEP())
 			assert.Equal(t, tc.wantPIP, got.PIP())
 			assert.Equal(t, tc.wantPAP, got.PAP())
+			assert.Equal(t, len(tc.wantMapping), len(got.mappers))
 		})
 	}
 }
