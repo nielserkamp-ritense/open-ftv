@@ -11,33 +11,6 @@ import (
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
-func TestParseJSON(t *testing.T) {
-	testCases := []struct {
-		name    string
-		body    string
-		wantErr bool
-	}{
-		{name: "empty"},
-		{name: "bad json", body: `this is not [] json`, wantErr: true},
-		{name: "array", body: `["hello", "world", 123, true, "well"]`, wantErr: true},
-		{name: "object", body: `{"hello": "world", "int": 123, "bool": true}`},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			a := models.NewAttributeSet()
-			require.NotNil(t, a)
-
-			err := parseJSON([]byte(tc.body), a)
-			if tc.wantErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
 func TestProcessBody(t *testing.T) {
 	testCases := []struct {
 		name    string
@@ -68,12 +41,18 @@ func TestProcessBody(t *testing.T) {
 			body: []byte("<start>hello world</start>"),
 			want: models.NewAttributeSet(
 				models.NewAttribute(
-					"body", []map[string]any{
-						{"start": map[string]any{
-							"attributes": []map[string]any{},
-							"cdata":      "hello world",
-							"nodes":      []map[string]any{},
-						}}},
+					"body",
+					map[string]any{
+						"nodes": []map[string]any{
+							{
+								"start": map[string]any{
+									"attributes": []map[string]any{},
+									"cdata":      "hello world",
+									"nodes":      []map[string]any{},
+								},
+							},
+						},
+					},
 				),
 			),
 		},
@@ -108,12 +87,17 @@ func TestProcessBody(t *testing.T) {
 			want: models.NewAttributeSet(
 				models.NewAttribute("content-type", "application/xml"),
 				models.NewAttribute(
-					"body", []map[string]any{
-						{"start": map[string]any{
-							"attributes": []map[string]any{},
-							"cdata":      "hello world",
-							"nodes":      []map[string]any{},
-						}}},
+					"body", map[string]any{
+						"nodes": []map[string]any{
+							{
+								"start": map[string]any{
+									"attributes": []map[string]any{},
+									"cdata":      "hello world",
+									"nodes":      []map[string]any{},
+								},
+							},
+						},
+					},
 				),
 			),
 		},

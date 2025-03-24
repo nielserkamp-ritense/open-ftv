@@ -37,6 +37,8 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 }
 
 func (c *controller) buildCedarRequest(parc *models.PARC) cedar.Request {
+	parc = c.Map(parc)
+
 	ca, ok := parc.Context.(*attributes)
 	if !ok {
 		a := NewAttributeSet(c.Logger(), parc.Context)

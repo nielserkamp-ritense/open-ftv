@@ -18,7 +18,7 @@ utilities:
     paths:
       - utilities/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - utilities/cover.html
   needs: [ ]
@@ -53,7 +53,7 @@ eam-models:
     paths:
       - eam/models/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - eam/models/cover.html
   needs: [ ]
@@ -90,7 +90,7 @@ eam-handlers:
     paths:
       - eam/handlers/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - eam/handlers/cover.html
   needs: [ ]
@@ -131,7 +131,7 @@ eam-server:
     paths:
       - eam/server/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - eam/server/cover.html
   needs: [ ]
@@ -171,7 +171,7 @@ eam-components:
     paths:
       - eam/components/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - eam/components/cover.html
   needs: [ ]
@@ -209,7 +209,7 @@ apps-fsc-plugin-generic:
     paths:
       - apps/fsc/plugin/generic/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - apps/fsc/plugin/generic/cover.html
   needs: [ ]
@@ -252,7 +252,7 @@ apps-manager:
     paths:
       - apps/manager/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - apps/manager/cover.html
   needs: [ ]
@@ -295,7 +295,7 @@ apps-pap:
     paths:
       - apps/pap/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - apps/pap/cover.html
   needs: [ ]
@@ -338,7 +338,7 @@ apps-pip:
     paths:
       - apps/pip/.go-cache
   artifacts:
-    expire_in: 1 month
+    expire_in: 2 weeks
     paths:
       - apps/pip/cover.html
   needs: [ ]

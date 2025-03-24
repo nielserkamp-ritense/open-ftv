@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/open-policy-agent/opa/sdk"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
@@ -49,6 +51,8 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 }
 
 func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.DecisionOptions {
+	parc = c.Map(parc)
+
 	t := convert.AnyToDateTime(parc.Context.GetAttributeValue(models.AttrTime))
 	if t.IsZero() {
 		t = time.Now().UTC()
@@ -64,7 +68,76 @@ func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.Dec
 	return sdk.DecisionOptions{
 		DecisionID: uid,
 		Now:        t,
-		Path:       fmt.Sprintf("/%s/%s", parc.Principal.Type(), parc.Principal.ID()),
+		Path:       c.determinePath(parc),
 		Input:      data,
 	}
+}
+
+func (c *controller) determinePath(parc *models.PARC) string {
+	rvvaID, doelbinding, ok := identifiersFromPrincipal(parc.Principal)
+	if !ok {
+		rvvaID, doelbinding, ok = identifiersFromContext(parc.Context)
+		if !ok {
+			rvvaID, doelbinding = identifiersFromHeaders(parc.Context.GetAttributeValue("headers"))
+		}
+	}
+
+	switch {
+	case rvvaID != "":
+		return fmt.Sprintf("/activity/%s", rvvaID)
+	case doelbinding != "":
+		return fmt.Sprintf("/doelbinding/%s", doelbinding)
+	default:
+		return "/authz"
+	}
+}
+
+func identifiersFromPrincipal(principal models.Entity) (string, string, bool) {
+	switch principal.Type() {
+	case pep.PrincipalRVVA:
+		return principal.ID(), "", true
+	case pep.PrincipalDoelbinding:
+		return "", principal.ID(), true
+	default:
+		return "", "", false
+	}
+}
+
+func identifiersFromContext(context models.AttributeSet) (string, string, bool) {
+	rvvaID := convert.AnyToString(context.GetAttributeValue(models.AttrRvvaID))
+	doelbinding := convert.AnyToString(context.GetAttributeValue(models.AttrDoelbinding))
+	return rvvaID, doelbinding, rvvaID != "" || doelbinding != ""
+}
+
+func identifiersFromHeaders(headers any) (string, string) {
+	if m, ok := headers.(map[string]any); ok {
+		for k := range m {
+			switch strings.ToLower(k) {
+			case models.HeaderRvvaID, models.HeaderObsoleteRvvaID:
+				return firstWord(convert.AnyToString(m[k])), ""
+			case models.HeaderDoelbinding:
+				return "", firstWord(convert.AnyToString(m[k]))
+			}
+		}
+	}
+
+	if m, ok := headers.(map[string]string); ok {
+		for k := range m {
+			switch strings.ToLower(k) {
+			case models.HeaderRvvaID, models.HeaderObsoleteRvvaID:
+				return firstWord(m[k]), ""
+			case models.HeaderDoelbinding:
+				return "", firstWord(m[k])
+			}
+		}
+	}
+
+	return "", ""
+}
+
+func firstWord(in string) string {
+	if i := strings.Index(in, ","); i > 0 {
+		return in[:i]
+	}
+	return in
 }

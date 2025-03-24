@@ -49,6 +49,8 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 }
 
 func (c *controller) buildCheckRequest(parc *models.PARC) (*openfgav1.CheckRequest, string) {
+	parc = c.Map(parc)
+
 	storeID := parc.Principal.Type()
 
 	dtl, ok := c.stores[storeID]

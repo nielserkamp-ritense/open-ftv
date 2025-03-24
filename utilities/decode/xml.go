@@ -1,4 +1,4 @@
-package pep
+package decode
 
 import "encoding/xml"
 

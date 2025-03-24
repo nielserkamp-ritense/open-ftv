@@ -70,7 +70,7 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -120,7 +120,7 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -172,7 +172,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			srv.Get("/v1/entity/:type/:id", eh.GetEntity)
 
 			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
-			resp, err2 := srv.Test(req, -1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -397,7 +397,7 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

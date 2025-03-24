@@ -70,7 +70,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		srv.Get("/v1/policies", ph.GetPolicies)
 
 		req := httptest.NewRequest(fiber.MethodGet, "/v1/policies", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -114,7 +114,7 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		srv.Get("/v1/policies", ph.GetPolicies)
 
 		req := httptest.NewRequest(fiber.MethodGet, "/v1/policies", nil)
-		resp, err2 := srv.Test(req, 1)
+		resp, err2 := srv.Test(req, 5)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -164,7 +164,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			srv.Get("/v1/policy/:language/:id", ph.GetPolicy)
 
 			req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), nil)
-			resp, err2 := srv.Test(req, 1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -394,7 +394,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 1)
+			resp, err2 := srv.Test(req, 5)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -35,6 +36,7 @@ type Base struct {
 	pep      pep.PEP
 	pap      pap.PAP
 	pip      pip.PIP
+	mappers  []mapping.Mapper
 }
 
 // NewBase instantiates a new controller base.
@@ -91,4 +93,13 @@ func (b *Base) PAP() pap.PAP {
 // PIP returns the PIP used by the controller.
 func (b *Base) PIP() pip.PIP {
 	return b.pip
+}
+
+// Map performs the configured mappings on the given PARC.
+func (b *Base) Map(parc *models.PARC) *models.PARC {
+	p := parc
+	for i := range b.mappers {
+		p = b.mappers[i](p)
+	}
+	return p
 }

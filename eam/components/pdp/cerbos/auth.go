@@ -44,6 +44,8 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 }
 
 func (c *controller) buildCerbosRequest(parc *models.PARC) (*cerbos.Principal, *cerbos.Resource, string) {
+	parc = c.Map(parc)
+
 	principal := cerbos.NewPrincipal(fmt.Sprintf("%s:%s", parc.Principal.Type(), parc.Principal.ID()), "doelbinding").WithAttributes(models.MapFromAttributes(parc.Principal.Attributes()))
 	resource := cerbos.NewResource(parc.Resource.Type(), parc.Resource.ID()).WithAttributes(models.MapFromAttributes(parc.Resource.Attributes()))
 	action := parc.Action.ID()

@@ -1,11 +1,9 @@
-package pep
+package decode
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
 
 func TestParseXML(t *testing.T) {
@@ -22,14 +20,13 @@ func TestParseXML(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := models.NewAttributeSet()
-			require.NotNil(t, a)
-
-			err := parseXML([]byte(tc.body), a)
+			a, err := parseXML([]byte(tc.body))
 			if tc.wantErr {
 				require.Error(t, err)
+				require.Nil(t, a)
 			} else {
 				require.NoError(t, err)
+				require.NotNil(t, a)
 			}
 		})
 	}
