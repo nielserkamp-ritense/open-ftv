@@ -6,7 +6,7 @@ stages:
 #  - Version
   - Linters
   - Tests
-  - Build
+#  - Build
 #  - Deploy
 #  - Redeploy
 #  - Security
