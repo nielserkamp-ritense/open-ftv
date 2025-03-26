@@ -360,3 +360,46 @@ apps-pip:
           - apps/pip/**/*
           - .golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+apps-pdp:
+  stage: Tests
+  image: golang:1.23
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/apps/pdp/.go-cache
+  before_script:
+    - mkdir -p apps/pdp/.go-cache
+  script:
+    - cd apps/pdp
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: testcache
+    paths:
+      - apps/pdp/.go-cache
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - apps/pdp/cover.html
+  needs: [ ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - oas/**/*
+          - utilities/**/*
+          - utilities-no-ci/**/*
+          - testdata/**/*
+          - eam/models/**/*
+          - eam/components/**/*
+          - eam/handlers/**/*
+          - eam/server/**/*
+          - apps/pdp/**/*
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
