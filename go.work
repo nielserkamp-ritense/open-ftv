@@ -6,6 +6,7 @@ use (
 	apps/fsc/plugin/generic
 	apps/manager
 	apps/pap
+	apps/pdp
 	apps/pip
 	eam/components
 	eam/handlers
