@@ -83,7 +83,7 @@ func TestRun(t *testing.T) {
 					models.NewAttribute("principal", "activity::abc"),
 					models.NewAttribute("action", "name::can_read"),
 					models.NewAttribute("resource", "service::http://localhost"),
-					models.NewAttribute("rvva-id", "abc"),
+					models.NewAttribute("rvva_id", "abc"),
 				),
 			},
 			wantURI: "http://localhost",

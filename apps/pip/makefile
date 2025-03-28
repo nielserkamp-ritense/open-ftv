@@ -1,7 +1,9 @@
 PROJECT_NAME := "pip"
+DOCKER_TAG := "1.0.0"
 PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
+ROOT_DIR := "../.."
 
 .PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape app docker help
 
@@ -43,21 +45,21 @@ msan: fmt ## run memory sanitizer
 	@go test -msan ${PKG_LIST}
 
 cover: fmt ## run coverage report
-	@../../scripts/coverage.sh
+	@${ROOT_DIR}/scripts/coverage.sh
 
 coverhtml: fmt ## run coverage report and display in browser (requires xdg-open tool)
-	@../../scripts/coverage.sh html
+	@${ROOT_DIR}/scripts/coverage.sh html
 	@xdg-open cover.html
 
 escape: fmt ## run escape analysis
 	@go build -gcflags "-m" ${PKG_LIST} 2>&1
 
 app: fmt ## build binaries
-	@mkdir -f ../../bin
-	@go build -ldflags "-s -w" -o ../../bin/${PROJECT_NAME} cmd/*.go
+	@mkdir -f ${ROOT_DIR}/bin
+	@go build -ldflags "-s -w" -o ${ROOT_DIR}/bin/${PROJECT_NAME} cmd/*.go
 
 docker:
-	@docker build -t ${PROJECT_NAME}:1.0.0 .
+	@cd ${ROOT_DIR} && docker build -t ${PROJECT_NAME}:${DOCKER_TAG} -f ./apps/pip/Dockerfile .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
