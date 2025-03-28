@@ -23,14 +23,14 @@ func TestDeterminePrincipal(t *testing.T) {
 		},
 		{
 			name:  "zaaktype",
-			a:     models.NewAttributeSet(models.NewAttribute("zaak-type", "zaak1")),
+			a:     models.NewAttributeSet(models.NewAttribute("zaak_type", "zaak1")),
 			want1: "zaak",
 			want2: "zaak1",
 		},
 		{
 			name: "zaaktype met taak",
 			a: models.NewAttributeSet(
-				models.NewAttribute("zaak-type", "zaak2"),
+				models.NewAttribute("zaak_type", "zaak2"),
 				models.NewAttribute("taak", "controle"),
 			),
 			want1: "zaak",
@@ -44,7 +44,7 @@ func TestDeterminePrincipal(t *testing.T) {
 		},
 		{
 			name:  "api-key",
-			a:     models.NewAttributeSet(models.NewAttribute("api-key", "12cd45ef")),
+			a:     models.NewAttributeSet(models.NewAttribute("api_key", "12cd45ef")),
 			want1: "app",
 			want2: "12cd45ef",
 		},
@@ -56,7 +56,7 @@ func TestDeterminePrincipal(t *testing.T) {
 		},
 		{
 			name:  "rvva",
-			a:     models.NewAttributeSet(models.NewAttribute("rvva-id", "7fc3d429-2435-4d5f-864e-62e444fcd906")),
+			a:     models.NewAttributeSet(models.NewAttribute("rvva_id", "7fc3d429-2435-4d5f-864e-62e444fcd906")),
 			want1: "activity",
 			want2: "7fc3d429-2435-4d5f-864e-62e444fcd906",
 		},
@@ -64,10 +64,10 @@ func TestDeterminePrincipal(t *testing.T) {
 			name: "mixed",
 			a: models.NewAttributeSet(
 				models.NewAttribute("doelbinding", "subsidie"),
-				models.NewAttribute("zaak-type", "zaak2"),
+				models.NewAttribute("zaak_type", "zaak2"),
 				models.NewAttribute("principal", "user::bob"),
-				models.NewAttribute("api-key", "12cd45ef"),
-				models.NewAttribute("rvva-id", "7fc3d429-2435-4d5f-864e-62e444fcd906"),
+				models.NewAttribute("api_key", "12cd45ef"),
+				models.NewAttribute("rvva_id", "7fc3d429-2435-4d5f-864e-62e444fcd906"),
 				models.NewAttribute("taak", "controle"),
 			),
 			want1: "activity",

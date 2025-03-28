@@ -10,7 +10,7 @@ import (
 //
 //   - if the principal is already a *doelbinding*, the given parc is returned unmodified.
 //   - if the *doelbinding* is present, a new PARC is based on the given PARC with the *doelbinding* as the principal.
-//     in this case, the old principal is stored in the context under the key "client-principal".
+//     in this case, the old principal is stored in the context under the key "client_principal".
 //   - if the *doelbinding* is not present, the given parc is returned unmodified.
 func DoelbindingToPrincipal(parc *models.PARC, opts ...Option) *models.PARC {
 	if parc.Principal.Type() == pep.PrincipalDoelbinding {

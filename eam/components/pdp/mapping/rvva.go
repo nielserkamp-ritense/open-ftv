@@ -10,7 +10,7 @@ import (
 //
 //   - if the principal is already an RvVA-ID, the given parc is returned unmodified.
 //   - if the RvVA-ID is present, a new PARC is based on the given PARC with the RvVA-ID as the principal.
-//     in this case, the old principal is stored in the context under the key "client-principal".
+//     in this case, the old principal is stored in the context under the key "client_principal".
 //   - if the RvVA-ID is not present, the given parc is returned unmodified.
 func RvvaToPrincipal(parc *models.PARC, opts ...Option) *models.PARC {
 	if parc.Principal.Type() == pep.PrincipalRVVA {

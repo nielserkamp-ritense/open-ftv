@@ -51,7 +51,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 					"scheme":     "https",
 					"host":       "www.disney.land",
 					"path":       "/donald/duck",
-					"path-parts": []string{"donald", "duck"},
+					"path_parts": []string{"donald", "duck"},
 					"query":      map[string]string{"x": "y", "q": "www"},
 				}),
 				models.NewAttribute("resource", "service::https://www.disney.land/donald/duck?x=y&q=www"),
@@ -63,7 +63,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttributeSet(models.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
-				models.NewAttributeSet(models.NewAttribute("content-type", "text/json")),
+				models.NewAttributeSet(models.NewAttribute("content_type", "text/json")),
 			),
 		},
 		{
@@ -94,14 +94,14 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			},
 			wantLog: 1,
 			want: models.NewAttributeSet(
-				models.NewAttribute("content-type", "text/json"),
+				models.NewAttribute("content_type", "text/json"),
 				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
 				models.NewAttribute("http", map[string]any{
 					"method":     "POST",
 					"scheme":     "https",
 					"host":       "www.disney.land",
 					"path":       "/donald/duck",
-					"path-parts": []string{"donald", "duck"},
+					"path_parts": []string{"donald", "duck"},
 					"query":      map[string]string{"x": "y", "q": "www"},
 				}),
 				models.NewAttribute("hello", "world"),
@@ -179,7 +179,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 					"scheme":     "https",
 					"host":       "www.disney.land",
 					"path":       "/donald/duck",
-					"path-parts": []string{"donald", "duck"},
+					"path_parts": []string{"donald", "duck"},
 					"query":      map[string]string{"x": "y", "q": "www"},
 				}),
 				models.NewAttribute("resource", "service::https://www.disney.land/donald/duck?x=y&q=www"),
@@ -191,7 +191,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
-				models.NewAttribute("content-type", "text/json"),
+				models.NewAttribute("content_type", "text/json"),
 			),
 		},
 		{
@@ -221,14 +221,14 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			attrs:   models.NewAttributeSet(models.NewAttribute("int", 765), models.NewAttribute("hello", "world")),
 			wantLog: 1,
 			want: models.NewAttributeSet(
-				models.NewAttribute("content-type", "text/json"),
+				models.NewAttribute("content_type", "text/json"),
 				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
 				models.NewAttribute("http", map[string]any{
 					"method":     "POST",
 					"scheme":     "https",
 					"host":       "www.disney.land",
 					"path":       "/donald/duck",
-					"path-parts": []string{"donald", "duck"},
+					"path_parts": []string{"donald", "duck"},
 					"query":      map[string]string{"x": "y", "q": "www"},
 				}),
 				models.NewAttribute("hello", "world"),

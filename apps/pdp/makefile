@@ -1,8 +1,9 @@
 PROJECT_NAME := "pdp"
+DOCKER_TAG := "1.0.0"
 PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
-DOCKER_TAG := "1.0.0"
+ROOT_DIR := "../.."
 
 .PHONY: all lint dep-up dep fmt test race cover coverhtml escape app docker help
 
@@ -40,22 +41,25 @@ bench: fmt ## run all benchmarks
 race: fmt ## run race detector
 	@go test -race ${PKG_LIST}
 
+msan: fmt ## run memory sanitizer
+	@go test -msan ${PKG_LIST}
+
 cover: fmt ## run coverage report
-	@../../scripts/coverage.sh
+	@${ROOT_DIR}/scripts/coverage.sh
 
 coverhtml: fmt ## run coverage report and display in browser (requires 'xdg-open' to be installed!)
-	@../../scripts/coverage.sh html
+	@${ROOT_DIR}/scripts/coverage.sh html
 	@xdg-open cover.html > /dev/null 2>&1
 
 escape: fmt ## run escape analysis
 	@go build -gcflags "-m" ${PKG_LIST} 2>&1
 
 app: fmt ## build binaries
-	@mkdir -f ../../bin
-	@go build -ldflags "-s -w" -o ../../bin/${PROJECT_NAME} cmd/*.go
+	@mkdir -f ${ROOT_DIR}/bin
+	@go build -ldflags "-s -w" -o ${ROOT_DIR}/bin/${PROJECT_NAME} cmd/*.go
 
 docker: fmt ## build docker container
-	@docker build -t ${PROJECT_NAME}:${DOCKER_TAG} .
+	@cd ${ROOT_DIR} && docker build -t ${PROJECT_NAME}:${DOCKER_TAG} -f ./apps/pdp/Dockerfile .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

@@ -85,7 +85,7 @@ func TestForwardedList(t *testing.T) {
 			}
 			c.processForwardedList(tc.list)
 
-			got := c.parc.Principal.Attributes().GetAttributeValue("ip-address")
+			got := c.parc.Principal.Attributes().GetAttributeValue("ip_address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}
@@ -170,7 +170,7 @@ func TestForwarded(t *testing.T) {
 			}
 			c.processForwarded(tc.fwd1, tc.fwd2)
 
-			got := c.parc.Principal.Attributes().GetAttributeValue("ip-address")
+			got := c.parc.Principal.Attributes().GetAttributeValue("ip_address")
 			assert.Equal(t, tc.wantIP, got)
 		})
 	}
