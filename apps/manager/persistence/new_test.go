@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -34,6 +35,25 @@ func TestNew(t *testing.T) {
 			cfg: &config.Config{
 				PersistType: "memory",
 			},
+		},
+		{
+			name: "postgres",
+			cfg: &config.Config{
+				PersistType: "pg",
+				PgURL:       "postgres://localhost:5432/myDB",
+				PgTable:     "myTable",
+				PgMaxLife:   60 * time.Second,
+				PgMaxConn:   10,
+			},
+			want: true,
+		},
+		{
+			name: "postgres fail",
+			cfg: &config.Config{
+				PersistType: "pg",
+				PgURL:       "postgres://localhost:5432/myDB",
+			},
+			fail: true,
 		},
 		{
 			name: "etcd",
