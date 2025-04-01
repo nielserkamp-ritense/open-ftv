@@ -28,6 +28,11 @@ func TestServe(t *testing.T) {
 			IdleTimeout:    300 * time.Second,
 			MaxBody:        64536,
 			PolicyLanguage: "cedar",
+			PersistType:    "postgres",
+			PgURL:          "postgres://127.0.0.1:5432/myDB",
+			PgTable:        "myTable",
+			PgMaxLife:      60 * time.Second,
+			PgMaxConn:      10,
 		}
 
 		s := NewService(cfg, logger)

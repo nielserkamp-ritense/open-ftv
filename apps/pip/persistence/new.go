@@ -14,7 +14,9 @@ import (
 func New(ctx context.Context, cfg *config.Config) (store.Store, error) {
 	switch strings.ToLower(cfg.PersistType) {
 	case "memory", "mem":
-		return nil, nil
+		return nil, nil // the default
+	case "postgres", "postgresql", "pg":
+		return newPG(ctx, cfg)
 	case "etcd", "etcdv3":
 		return newETCD(ctx, cfg)
 	case "consul":
