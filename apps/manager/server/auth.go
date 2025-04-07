@@ -45,18 +45,18 @@ func (s *service) newController() (pdp.Controller, error) {
 	case models.OPENFGA:
 		return openfga.NewController(options...), nil
 	case models.CERBOS:
-		cerbosCFG := cerbos.Config{Addr1: s.cfg.CerbosAddress, Addr2: s.cfg.CerbosAdmin, CA: s.cfg.CerbosCA, User: s.cfg.CerbosUser, Pswd: s.cfg.CerbosPswd}
+		cerbosCFG := cerbos.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}
 		return cerbos.NewController(cerbosCFG, options...), nil
 	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PolicyLanguage)
+		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
 	}
 }
 
 func (s *service) pipOptions() []pip.Option {
-	opts := []pip.Option{pip.WithFileStore(s.cfg.PipStore, s.cfg.PipStoreRecurse)}
+	opts := []pip.Option{pip.WithFileStore(s.cfg.PIP.Store, s.cfg.PIP.StoreRecurse)}
 
-	if s.cfg.PipPullConfigs != "" {
-		opts = append(opts, pip.WithPullConfigs(s.cfg.PipPullConfigs))
+	if s.cfg.PIP.PullConfigs != "" {
+		opts = append(opts, pip.WithPullConfigs(s.cfg.PIP.PullConfigs))
 	}
 
 	if s.l == models.CEDAR {
@@ -67,7 +67,7 @@ func (s *service) pipOptions() []pip.Option {
 }
 
 func (s *service) papOptions() []pap.Option {
-	return []pap.Option{pap.WithLanguage(s.l.Language()), pap.WithFileStore(s.cfg.PolicyStore, s.cfg.PolicyStoreRecurse)}
+	return []pap.Option{pap.WithLanguage(s.l.Language()), pap.WithFileStore(s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse)}
 }
 
 // Controller returns the PDP controller.

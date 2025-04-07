@@ -12,7 +12,7 @@ import (
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
-	s.l = models.LanguageFromString(s.cfg.PolicyLanguage)
+	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
 	auth := s.newAuth()
 	if auth == nil {

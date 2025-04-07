@@ -11,7 +11,7 @@ func (s *service) newPIP() pip.PIP {
 	var opts []pip.Option
 
 	if s.store != nil {
-		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.PersistBase, pip.PathSeparator), "data", pip.PathSeparator)
+		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Persist.Base, pip.PathSeparator), "data", pip.PathSeparator)
 		opts = append(opts, pip.WithPersistence(s.store, base))
 	}
 

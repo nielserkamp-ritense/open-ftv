@@ -9,6 +9,7 @@ use (
 	apps/pdp
 	apps/pip
 	eam/components
+	eam/config
 	eam/handlers
 	eam/models
 	eam/server

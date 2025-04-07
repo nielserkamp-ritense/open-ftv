@@ -41,10 +41,10 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandl
 	}
 
 	var authLogger authlog.Logger
-	if cfg.OpenSearchIndex != "" {
-		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearchIndex, cfg.OpenSearchUser, cfg.OpenSearchPswd, strings.Split(cfg.OpenSearchEndpoints, ",")...)
+	if cfg.OpenSearch.Index != "" {
+		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearch.Index, cfg.OpenSearch.User, cfg.OpenSearch.Pswd, strings.Split(cfg.OpenSearch.Endpoints, ",")...)
 		if err != nil {
-			logger.Error("failed to initialize authlog", "index", cfg.OpenSearchIndex, "user", cfg.OpenSearchUser, "endpoints", cfg.OpenSearchEndpoints, "error", err)
+			logger.Error("failed to initialize authlog", "index", cfg.OpenSearch.Index, "user", cfg.OpenSearch.User, "endpoints", cfg.OpenSearch.Endpoints, "error", err)
 			return nil
 		}
 	}
@@ -60,36 +60,36 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 		ctx = context.Background()
 	}
 
-	l := models.LanguageFromString(cfg.PolicyLanguage)
+	l := models.LanguageFromString(cfg.PAP.Language)
 
 	ep := pep.New(ctx, logger)
 
-	pipOpts := []pip.Option{pip.WithFileStore(cfg.PipStore, cfg.PipStoreRecurse), pip.WithPullConfigs(cfg.PipPullConfigs)}
+	pipOpts := []pip.Option{pip.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip.WithPullConfigs(cfg.PIP.PullConfigs)}
 	if l == models.CEDAR {
 		pipOpts = append(pipOpts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
 	}
 	ip := pip.New(ctx, logger, pipOpts...)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
+	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}
 	ap := pap.New(ctx, logger, papOpts...)
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger)}
+	pdpOpts := []pdp.Option{pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger)}
 	if cfg.RequestMappings != "" {
-		options = append(options, pdp.WithMappings(mapping.MappingsFromConfig(cfg.RequestMappings)...))
+		pdpOpts = append(pdpOpts, pdp.WithMappings(mapping.MappingsFromConfig(cfg.RequestMappings)...))
 	}
 
 	switch l {
 	case models.CEDAR:
-		return cedar.NewController(options...), nil
+		return cedar.NewController(pdpOpts...), nil
 	case models.REGO:
-		return opa.NewController(options...), nil
+		return opa.NewController(pdpOpts...), nil
 	case models.OPENFGA:
-		return openfga.NewController(options...), nil
+		return openfga.NewController(pdpOpts...), nil
 	case models.CERBOS:
-		cerbosCFG := cerbos.Config{Addr1: cfg.CerbosAddress, Addr2: cfg.CerbosAdmin, CA: cfg.CerbosCA, User: cfg.CerbosUser, Pswd: cfg.CerbosPswd}
-		return cerbos.NewController(cerbosCFG, options...), nil
+		cerbosCFG := cerbos.Config{Addr1: cfg.Cerbos.Address, Addr2: cfg.Cerbos.AdminAddress, CA: cfg.Cerbos.CA, User: cfg.Cerbos.User, Pswd: cfg.Cerbos.Pswd}
+		return cerbos.NewController(cerbosCFG, pdpOpts...), nil
 	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
+		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PAP.Language)
 	}
 }
 

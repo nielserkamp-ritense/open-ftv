@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic/config"
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci/opensearch"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
@@ -21,13 +24,19 @@ func TestServe(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20000,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20000,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{
+				Language: "cedar",
+			},
 		}
 
 		s := NewService(cfg, logger)
@@ -56,12 +65,19 @@ func TestServe_FailPDP(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:         "127.0.0.1",
-			Port:         20001,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			IdleTimeout:  300 * time.Second,
-			MaxBody:      64536,
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20001,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{
+				Language: "xyz",
+			},
 		}
 
 		defer func() {
@@ -70,7 +86,6 @@ func TestServe_FailPDP(t *testing.T) {
 		}()
 
 		_ = NewService(cfg, logger)
-
 		require.True(t, false) // should never trigger
 	})
 }
@@ -81,13 +96,19 @@ func TestErrorHandler(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20002,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20002,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{
+				Language: "cedar",
+			},
 		}
 
 		s := NewService(cfg, logger)
@@ -126,17 +147,25 @@ func TestOpenSearchFail1(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:                "127.0.0.1",
-			Port:                20003,
-			ReadTimeout:         10 * time.Second,
-			WriteTimeout:        10 * time.Second,
-			IdleTimeout:         300 * time.Second,
-			MaxBody:             64536,
-			PolicyLanguage:      "cedar",
-			OpenSearchIndex:     "xyz",
-			OpenSearchUser:      "mickey",
-			OpenSearchPswd:      "mouse",
-			OpenSearchEndpoints: "http://localhost:9876",
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20002,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{
+				Language: "cedar",
+			},
+			OpenSearch: config2.OpenSearch{
+				Endpoints: "http://localhost:9876",
+				Index:     "xyz",
+				User:      "mickey",
+				Pswd:      "mouse",
+			},
 		}
 
 		defer func() {
@@ -144,7 +173,14 @@ func TestOpenSearchFail1(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		s := NewService(cfg, logger)
-		require.NotNil(t, s)
+		_ = NewService(cfg, logger)
+		require.True(t, false) // should never trigger
 	})
 }
+
+type dummyIndex struct{}
+
+func (i *dummyIndex) CreateIndex(context.Context, string, int, int) error          { return nil }
+func (i *dummyIndex) DeleteIndexes(context.Context, ...string) error               { return nil }
+func (i *dummyIndex) Log(context.Context, bool, opensearch.LogRecord) error        { return nil }
+func (i *dummyIndex) LogBulk(context.Context, bool, ...opensearch.LogRecord) error { return nil }

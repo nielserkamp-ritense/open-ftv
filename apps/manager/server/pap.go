@@ -12,7 +12,7 @@ func (s *service) newPAP() pap.PAP {
 	opts := []pap.Option{pap.WithLanguage(s.l.Language())}
 
 	if s.store != nil {
-		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.PersistBase, pap.PathSeparator), "policies", pap.PathSeparator)
+		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.Persist.Base, pap.PathSeparator), "policies", pap.PathSeparator)
 		opts = append(opts, pap.WithPersistence(s.store, base))
 	}
 

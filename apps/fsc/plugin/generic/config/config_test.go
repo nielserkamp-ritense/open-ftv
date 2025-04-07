@@ -97,13 +97,13 @@ func TestNew(t *testing.T) {
 				require.NotNil(t, c)
 				require.NotNil(t, l)
 
-				assert.Equal(t, tc.wantHost, c.Host)
-				assert.Equal(t, tc.wantPort, c.Port)
-				assert.Equal(t, tc.wantMaxBody, c.MaxBody)
-				assert.Equal(t, tc.wantLogFmt, c.LogFormat)
-				assert.Equal(t, tc.wantLogLvl, c.LogLevel)
-				assert.Equal(t, tc.wantLogOut, c.LogOutput)
-				assert.True(t, c.LogSource)
+				assert.Equal(t, tc.wantHost, c.Server.Host)
+				assert.Equal(t, tc.wantPort, c.Server.Port)
+				assert.Equal(t, tc.wantMaxBody, c.Server.MaxBody)
+				assert.Equal(t, tc.wantLogFmt, c.Log.Format)
+				assert.Equal(t, tc.wantLogLvl, c.Log.Level)
+				assert.Equal(t, tc.wantLogOut, c.Log.Output)
+				assert.True(t, c.Log.Source)
 			}
 		})
 	}
