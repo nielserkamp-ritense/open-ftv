@@ -2,58 +2,14 @@
 package config
 
 import (
-	"context"
-	"fmt"
 	"log/slog"
 	"os"
-	"time"
 
 	"gitlab.com/gjuyn/go-config/config"
 	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/config"
 )
-
-// Config represents our configuration variables.
-type Config struct {
-	Host               string        `yaml:"svc.host,omitempty" env:"ADDRESS,HOST" flag:"address,a" default:"0.0.0.0" desc:"Address to use for service"`
-	Port               uint16        `yaml:"svc.port,omitempty" env:"PORT" flag:"port,p" default:"8443" desc:"Port to use for https service"`
-	CA                 string        `yaml:"svc.tls.ca,omitempty" env:"TLS_CA" flag:"tls-ca,ca" desc:"TLS Certificate authority to use for https service"`
-	Cert               string        `yaml:"svc.tls.cert,omitempty" env:"TLS_CERT" flag:"tls-cert,cert" desc:"TLS certificate to use for https service"`
-	Key                string        `yaml:"svc.tls.key,omitempty" env:"TLS_KEY" flag:"tls-key,key" desc:"TLS key authority to use for https service"`
-	ReadTimeout        time.Duration `yaml:"svc.timeout.read,omitempty" env:"READ_TIMEOUT" flag:"read-timeout" default:"30s" desc:"Read timeout for API requests"`
-	WriteTimeout       time.Duration `yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
-	IdleTimeout        time.Duration `yaml:"svc.timeout.idle,omitempty" env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
-	MaxBody            int           `yaml:"svc.maxBody,omitempty" env:"MAX_BODY_SIZE" flag:"max-body" default:"65536" desc:"Maximum size of request body"`
-	LogOutput          string        `yaml:"log.output,omitempty" env:"LOG_OUTPUT" flag:"log-output" default:"stdout" desc:"File for writing log data"`
-	LogFormat          string        `yaml:"log.format,omitempty" env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
-	LogLevel           string        `yaml:"log.level,omitempty" env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`
-	LogSource          bool          `yaml:"log.source,omitempty" env:"LOG_SOURCE" flag:"log-source" default:"true" desc:"Include source-location when writing log data"`
-	PolicyLanguage     string        `yaml:"policies.language,omitempty" env:"POLICIES_LANGUAGE" flag:"policies-language,language" default:"CEDAR" desc:"Language used for policy files"`
-	PolicyStore        string        `yaml:"policies.store.path,omitempty" env:"POLICIES_STORE" flag:"policies-store" desc:"Path where policy files are stored"`
-	PolicyStoreRecurse bool          `yaml:"policies.store.recurse,omitempty" env:"POLICIES_STORE_RECURSE" flag:"policies-store-recurse" desc:"Search policy file storage recursively"`
-	PersistType        string        `yaml:"persist.type,omitempty" env:"PERSIST_TYPE" flag:"persist-type" desc:"Persistence backend type (etcd, consul, postgres)"`
-	PersistAddresses   string        `yaml:"persist.addresses,omitempty" env:"PERSIST_ADDRESSES" flag:"persist-addresses" desc:"Persistence backend addresses"`
-	PersistBase        string        `yaml:"persist.prefix,omitempty" env:"PERSIST_PREFIX" flag:"persist-prefix" desc:"Persistence backend key prefix"`
-	PersistTimeout     time.Duration `yaml:"persist.timeout,omitempty" env:"PERSIST_TIMEOUT" flag:"persist-timeout" desc:"Persistence backend connection timeout"`
-	EtcdSync           time.Duration `yaml:"persist.etcd.sync,omitempty" env:"PERSIST_ETCD_SYNC" flag:"persist-etcd-sync" desc:"ETCD persistence backend sync period"`
-	EtcdUser           string        `yaml:"persist.etcd.user,omitempty" env:"PERSIST_ETCD_USER" flag:"persist-etcd-user" desc:"ETCD persistence backend user"`
-	EtcdPswd           string        `yaml:"persist.etcd.password,omitempty" env:"PERSIST_ETCD_PASSWORD" flag:"persist-etcd-password" desc:"ETCD persistence backend password"`
-	ConsulToken        string        `yaml:"persist.consul.token,omitempty" env:"PERSIST_CONSUL_TOKEN" flag:"persist-consul-token" desc:"Consul persistence backend token"`
-	ConsulNamespace    string        `yaml:"persist.consul.namespace,omitempty" env:"PERSIST_CONSUL_NAMESPACE" flag:"persist-consul-namespace" desc:"Consul persistence backend namespace"`
-	PgURL              string        `yaml:"persist.postgres.url,omitempty" env:"PERSIST_POSTGRES_URL" flag:"persist-postgres-url" desc:"Postgres persistence server url"`
-	PgTable            string        `yaml:"persist.postgres.table,omitempty" env:"PERSIST_POSTGRES_TABLE" flag:"persist-postgres-table" desc:"Postgres persistence database table"`
-	PgMaxLife          time.Duration `yaml:"persist.postgres.connection.ttl,omitempty" env:"PERSIST_POSTGRES_CONN_TTL" flag:"persist-postgres-conn-ttl" default:"5m" desc:"Postgres persistence inactive connections time-to-live"`
-	PgMaxConn          int32         `yaml:"persist.postgres.connection.max,omitempty" env:"PERSIST_POSTGRES_CONN_MAX" flag:"persist-postgres-conn-max" default:"100" desc:"Postgres persistence maximum connections"`
-	PipStore           string        `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
-	PipStoreRecurse    bool          `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
-	PipPullConfigs     string        `yaml:"pip.pull.configPath,omitempty" env:"PIP_PULL_CONFIGS" flag:"pip-pull-configs" desc:"Path where PIP pull configuration files are stored"`
-	CerbosAddress      string        `yaml:"pdp.cerbos.address,omitempty" env:"CERBOS_ADDRESS" flag:"cerbos-address" desc:"Address of the Cerbos client interface"`
-	CerbosAdmin        string        `yaml:"pdp.cerbos.adminAddress,omitempty" env:"CERBOS_ADMIN" flag:"cerbos-admin" desc:"Address of the Cerbos admin interface"`
-	CerbosCA           string        `yaml:"pdp.cerbos.ca,omitempty" env:"CERBOS_CA" flag:"cerbos-ca" desc:"File containing the CA certificate for the Cerbos interfaces"`
-	CerbosUser         string        `yaml:"pdp.cerbos.adminUser,omitempty" env:"CERBOS_USER" flag:"cerbos-user" desc:"User-id for the Cerbos admin interface"`
-	CerbosPswd         string        `yaml:"pdp.cerbos.adminPassword,omitempty" env:"CERBOS_PSWD" flag:"cerbos-pswd" desc:"Password for the Cerbos admin interface"`
-}
 
 const (
 	// AppName defines the name and version of this application.
@@ -64,23 +20,17 @@ const (
 	cfg3      = "./pap.yaml"
 )
 
-var files = []string{cfg1, cfg2, cfg3}
-
-// New instantiates a new configuration from one or more files, environment variables and command-line flags.
+// New instantiates a new configuration from one or more config files,
+// environment variables and/or command-line flags.
 func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	fail := func(msg string, err error) {
-		logger.Error(msg, "error", err)
-		panic(fmt.Errorf("%s: %w", msg, err).Error())
-	}
 
 	// put fixed and custom configuration options in appropriate order.
 	opts = append(
 		append(
 			[]config.Option{
-				yaml.FilesYAML(files...),
+				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
 				config.AppName(AppName),
 			},
@@ -89,30 +39,23 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 		config.NoHelpOnError(),
 	)
 
-	// perform initial loading to prefetch logger variables, ignoring the error.
-	_ = config.LoadConfig(cfg, opts...)
-
-	// initialize the logger.
-	if l, err := slog2.Init(cfg.LogOutput, cfg.LogFormat, cfg.LogLevel, cfg.LogSource); err != nil {
-		fail("failed to initialize logger", err)
-	} else {
-		logger = l
-	}
-
-	// perform second loading for error checking!
-	if err := config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
-		fail("failed to load configuration", err)
-	}
-
-	if logger.Enabled(context.TODO(), slog.LevelInfo) {
-		sanitized := *cfg
-		sanitized.EtcdUser = ""
-		sanitized.EtcdPswd = ""
-		sanitized.ConsulToken = ""
-		sanitized.CerbosUser = ""
-		sanitized.CerbosPswd = ""
-		logger.Info("configuration loaded successfully", "config", sanitized)
-	}
-
+	logger = config2.Load(cfg, opts...)
 	return cfg, logger
+}
+
+// LogSanitized implements the config.Printer interface.
+func (c *Config) LogSanitized(logger *slog.Logger) {
+	sanitized := *c
+	sanitized.Persist.Sanitized()
+	sanitized.Cerbos.Sanitized()
+	logger.Info("configuration loaded successfully", "config", sanitized)
+}
+
+// Config represents the full set of configuration variables.
+type Config struct {
+	config2.ServerApp
+	config2.PAP
+	config2.PIP
+	config2.Persist
+	config2.Cerbos
 }

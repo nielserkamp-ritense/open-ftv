@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/manager/persistence"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 )
@@ -13,16 +12,16 @@ import (
 // initRoutes sets up the routing table for HTTP requests.
 func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
-	s.l = models.LanguageFromString(s.cfg.PolicyLanguage)
+	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
 	s.auth = s.newAuth()
 	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
-	if s.cfg.PersistType != "" {
+	if s.cfg.Persist.Type != "" {
 		var err error
-		if s.store, err = persistence.New(ctx, s.cfg); err != nil {
+		if s.store, err = s.cfg.Persist.NewStore(ctx); err != nil {
 			panic("failed to create persistence store: " + err.Error())
 		}
 	}

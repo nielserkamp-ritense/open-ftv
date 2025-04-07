@@ -16,21 +16,24 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.initHealth(svc)
 
+	// API v1.
+	v1 := svc.Group("/v1")
+
+	// auth log.
+	if s.cfg.OpenSearch.Index != "" {
+		s.initAuthlog(v1)
+	}
+
+	// authorization.
 	auth := New(s.ctx, s.cfg, s.logger)
 	if auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
-	// API v1.
-	v1 := svc.Group("/v1")
 	s.initAuth(svc, v1, auth)
 	s.initPolicies(v1, auth)
 	s.initAttributes(v1, auth)
 	s.initEntities(v1, auth)
-
-	if s.cfg.OpenSearchIndex != "" {
-		s.initAuthlog(v1)
-	}
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -82,13 +85,13 @@ func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
 }
 
 func (s *service) initAuthlog(v1 fiber.Router) {
-	searcher, err := opensearch.NewSearcher(s.cfg.OpenSearchUser, s.cfg.OpenSearchPswd, strings.Split(s.cfg.OpenSearchEndpoints, ","))
+	searcher, err := opensearch.NewSearcher(s.cfg.OpenSearch.User, s.cfg.OpenSearch.Pswd, strings.Split(s.cfg.OpenSearch.Endpoints, ","))
 	if err != nil {
-		s.logger.Error("failed to initialize OpenSearch", "user", s.cfg.OpenSearchUser, "endpoints", s.cfg.OpenSearchEndpoints, "error", err)
+		s.logger.Error("failed to initialize OpenSearch", "user", s.cfg.OpenSearch.User, "endpoints", s.cfg.OpenSearch.Endpoints, "error", err)
 		return
 	}
 
-	authlog := handle.NewAuthlogHandler(s.logger, s.cfg.OpenSearchIndex, searcher)
+	authlog := handle.NewAuthlogHandler(s.logger, s.cfg.OpenSearch.Index, searcher)
 
 	// authlog
 	auth := v1.Group(handle.PathAuthlog)
