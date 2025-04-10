@@ -5,6 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization"
+	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
@@ -25,13 +27,18 @@ type EntitiesHandler interface {
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, pip pip.PIP) EntitiesHandler {
-	return &entitiesHandler{logger: logger, cache: pip}
+func NewEntitiesHandler(logger *slog.Logger, pip pip.PIP, authorizer authorization.Authorizer) EntitiesHandler {
+	return &entitiesHandler{logger: logger, cache: pip, authorizer: authorizer}
 }
 
 // GetEntities implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	resp := make([]*attributes.Entity, 0, 32)
 	h.cache.IterateEntities(func(e models.Entity) {
@@ -46,7 +53,12 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 
 // GetEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
@@ -62,7 +74,12 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 
 // PutEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
@@ -87,7 +104,12 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 // PostEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
@@ -112,7 +134,12 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 // DeleteEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	ns, id, ok, err := h.checkUID(req)
 	if !ok {
@@ -171,9 +198,22 @@ func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*attributes.
 	return &a, true, nil
 }
 
+func (h *entitiesHandler) authorize(req *fiber.Ctx) (bool, error) {
+	if h.authorizer == nil {
+		return true, nil
+	}
+
+	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+
+	// TODO: log authorization decision to audit log.
+
+	return authRequest.Check(req, resp, err)
+}
+
 type entitiesHandler struct {
-	logger *slog.Logger
-	cache  pip.PIP
+	logger     *slog.Logger
+	cache      pip.PIP
+	authorizer authorization.Authorizer
 }
 
 const (

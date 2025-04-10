@@ -5,10 +5,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization"
+	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/attributes"
 )
 
@@ -25,13 +27,18 @@ type AttributesHandler interface {
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, pip pip.PIP) AttributesHandler {
-	return &attributesHandler{logger: logger, cache: pip}
+func NewAttributesHandler(logger *slog.Logger, pip pip.PIP, authorizer authorization.Authorizer) AttributesHandler {
+	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer}
 }
 
 // GetAttributes implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	resp := make([]*attributes.Attribute, 0, 32)
 	h.cache.IterateAttributes(func(attr models.Attribute) {
@@ -39,14 +46,19 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	})
 
 	if len(resp) == 0 {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, "no attributes found")
+		return server.SendMessageResponse(req, fiber.StatusNotFound, "no attributes found")
 	}
 	return req.JSON(resp)
 }
 
 // GetAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	key, ok, err := h.checkKey(req)
 	if !ok {
@@ -55,14 +67,19 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 
 	attr := h.cache.GetAttribute(key)
 	if attr == nil {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 	return req.JSON(handlers.AttributeToOAS(attr))
 }
 
 // PutAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	key, ok, err := h.checkKey(req)
 	if !ok {
@@ -76,7 +93,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(p.Key)
 	if value != nil && !req.QueryBool("forceUpsert") {
-		return fiber2.SendMessageResponse(req, fiber.StatusConflict, attrExists)
+		return server.SendMessageResponse(req, fiber.StatusConflict, attrExists)
 	}
 
 	a := handlers.AttributeFromOAS(p)
@@ -86,7 +103,12 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 // PostAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	key, ok, err := h.checkKey(req)
 	if !ok {
@@ -100,7 +122,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(p.Key)
 	if value == nil && !req.QueryBool("forceUpsert") {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
 	a := handlers.AttributeFromOAS(p)
@@ -110,7 +132,12 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
 
 	key, ok, err := h.checkKey(req)
 	if !ok {
@@ -119,7 +146,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 
 	value := h.cache.GetAttribute(key)
 	if value == nil && !req.QueryBool("ignoreMissing") {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
+		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
 	h.cache.RemoveAttribute(key)
@@ -129,7 +156,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	key := req.Params("key")
 	if key == "" || len(key) > 500 {
-		return "", false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyError)
+		return "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyError)
 	}
 	return key, true, nil
 }
@@ -137,12 +164,12 @@ func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*attributes.Attribute, bool, error) {
 	var a attributes.Attribute
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
 	if a.Key != key {
 		if a.Key != "" {
-			return nil, false, fiber2.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyMismatch)
+			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, attrKeyMismatch)
 		}
 		a.Key = key
 	}
@@ -150,9 +177,22 @@ func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*attributes.A
 	return &a, true, nil
 }
 
+func (h *attributesHandler) authorize(req *fiber.Ctx) (bool, error) {
+	if h.authorizer == nil {
+		return true, nil
+	}
+
+	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+
+	// TODO: log authorization decision to audit log.
+
+	return authRequest.Check(req, resp, err)
+}
+
 type attributesHandler struct {
-	logger *slog.Logger
-	cache  pip.PIP
+	logger     *slog.Logger
+	cache      pip.PIP
+	authorizer authorization.Authorizer
 }
 
 const (

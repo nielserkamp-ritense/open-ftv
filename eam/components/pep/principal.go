@@ -13,6 +13,7 @@ const (
 	PrincipalDoelbinding = "doelbinding"
 	PrincipalInvalid     = "invalid"
 	PrincipalRVVA        = "activity"
+	PrincipalUser        = "user"
 	PrincipalZaak        = "zaak"
 )
 
@@ -40,6 +41,10 @@ func DeterminePrincipal(a models.AttributeSet) (string, string) {
 
 	if apikey, ok := a.GetAttributeValue(models.AttrAPIKey).(string); ok && apikey != "" {
 		return PrincipalApp, apikey
+	}
+
+	if user, ok := a.GetAttributeValue(models.AttrBasicUser).(string); ok && user != "" {
+		return PrincipalUser, user
 	}
 
 	return PrincipalInvalid, "invalid"

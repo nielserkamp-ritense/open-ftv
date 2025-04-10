@@ -20,6 +20,8 @@ type Controller interface {
 	String() string // name & version.
 	Name() string
 	Version() string
+	Context() context.Context
+	Logger() *slog.Logger
 	PEP() pep.PEP
 	PAP() pap.PAP
 	PIP() pip.PIP
@@ -70,14 +72,14 @@ func (b *Base) Version() string {
 	return b.version
 }
 
-// Logger returns the logger used by the controller.
-func (b *Base) Logger() *slog.Logger {
-	return b.logger
-}
-
 // Context returns the context used by the controller.
 func (b *Base) Context() context.Context {
 	return b.ctx
+}
+
+// Logger returns the logger used by the controller.
+func (b *Base) Logger() *slog.Logger {
+	return b.logger
 }
 
 // PEP returns the PEP used by the controller.

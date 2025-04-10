@@ -61,8 +61,15 @@ func TestDeterminePrincipal(t *testing.T) {
 			want2: "7fc3d429-2435-4d5f-864e-62e444fcd906",
 		},
 		{
+			name:  "user",
+			a:     models.NewAttributeSet(models.NewAttribute("basic_user", "alice")),
+			want1: "user",
+			want2: "alice",
+		},
+		{
 			name: "mixed",
 			a: models.NewAttributeSet(
+				models.NewAttribute("basic_user", "alice"),
 				models.NewAttribute("doelbinding", "subsidie"),
 				models.NewAttribute("zaak_type", "zaak2"),
 				models.NewAttribute("principal", "user::bob"),

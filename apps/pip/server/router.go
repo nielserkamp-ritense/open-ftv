@@ -14,8 +14,8 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
-	auth := s.newAuth()
-	if auth == nil {
+	s.auth = s.newAuth()
+	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
 
@@ -28,8 +28,8 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	// API v1.
 	v1 := svc.Group("/v1")
-	s.initAttributes(v1, auth)
-	s.initEntities(v1, auth)
+	s.initAttributes(v1)
+	s.initEntities(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -37,8 +37,8 @@ func (s *service) initHealth(svc *fiber.App) {
 	svc.Get("/healthz", handle.HealthZ)
 }
 
-func (s *service) initAttributes(group fiber.Router, auth AuthHandler) {
-	attributes := handle.NewAttributesHandler(s.logger, s.pip)
+func (s *service) initAttributes(group fiber.Router) {
+	attributes := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// attributes CRUD.
 	group.Get(handle.PathAttributes, attributes.GetAttributes)
@@ -48,8 +48,8 @@ func (s *service) initAttributes(group fiber.Router, auth AuthHandler) {
 	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
 }
 
-func (s *service) initEntities(group fiber.Router, auth AuthHandler) {
-	entities := handle.NewEntitiesHandler(s.logger, s.pip)
+func (s *service) initEntities(group fiber.Router) {
+	entities := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// entities CRUD.
 	group.Get(handle.PathEntities, entities.GetEntities)

@@ -27,6 +27,9 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.PIP().IterateEntities(func(entity models.Entity) {
 			if wrapped, ok := entity.(*WrappedEntity); ok {
 				c.entities[wrapped.ce.UID] = *wrapped.ce
+			} else {
+				e2 := entityToCedar(entity)
+				c.entities[e2.UID] = *e2
 			}
 		})
 	}
