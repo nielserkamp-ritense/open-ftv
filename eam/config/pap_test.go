@@ -1,6 +1,8 @@
 package config
 
 import (
+	"context"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -9,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
+
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestPAP(t *testing.T) {
@@ -89,4 +93,21 @@ policies:
 			}
 		})
 	}
+}
+
+func TestPAP_NewPAP(t *testing.T) {
+	t.Run("new pap", func(t *testing.T) {
+		p1 := &PAP{
+			Language:     "cedar",
+			Store:        "../../testdata/policies",
+			StoreRecurse: false,
+		}
+
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		p2, err := p1.NewPAP(context.Background(), logger)
+		require.NoError(t, err)
+		require.NotNil(t, p2)
+	})
 }

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"context"
+	"log/slog"
 	"os"
 	"testing"
 
@@ -9,6 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
 func TestPIP(t *testing.T) {
@@ -91,4 +96,21 @@ pip:
 			}
 		})
 	}
+}
+
+func TestPIP_NewPIP(t *testing.T) {
+	t.Run("new pip", func(t *testing.T) {
+		p1 := &PIP{
+			Store:        "../../testdata/unittest/pip2",
+			StoreRecurse: false,
+			PullConfigs:  "../../testdata/unittest/pip2/pull",
+		}
+
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		p2, err := p1.NewPIP(context.Background(), logger, models.CEDAR)
+		require.NoError(t, err)
+		require.NotNil(t, p2)
+	})
 }

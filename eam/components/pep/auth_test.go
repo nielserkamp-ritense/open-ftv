@@ -1,6 +1,8 @@
 package pep
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"log/slog"
 	"testing"
 
@@ -13,6 +15,9 @@ import (
 )
 
 func TestProcessAuth(t *testing.T) {
+	token1 := jwt.New(jwt.SigningMethodHS256)
+	token2 := jwt.New(jwt.SigningMethodPS256)
+
 	testCases := []struct {
 		name        string
 		auth        string
@@ -21,27 +26,50 @@ func TestProcessAuth(t *testing.T) {
 		wantValid   bool
 		wantHeaders map[string]any
 		wantClaims  map[string]any
+		wantUser    string
+		wantPswd    string
 	}{
 		{
 			name:    "empty",
 			wantLog: 1,
 		},
 		{
-			name:    "no bearer",
+			name:    "no type",
 			auth:    "abcdef",
 			wantLog: 1,
 		},
 		{
-			name:    "invalid token",
+			name:    "invalid bearer token data",
 			auth:    "Bearer abcdef",
 			wantLog: 1,
 		},
 		{
-			name:        "basic token",
-			auth:        "Bearer " + signed(token1),
+			name:    "invalid bearer token signature",
+			auth:    "Bearer " + signed2(token2),
+			wantLog: 1,
+		},
+		{
+			name:        "good bearer token",
+			auth:        "Bearer " + signed1(token1),
 			wantJWT:     true,
 			wantValid:   true,
 			wantHeaders: map[string]any{"alg": "HS256", "typ": "JWT"},
+		},
+		{
+			name:    "bad basic token encoding",
+			auth:    "Basic ****",
+			wantLog: 1,
+		},
+		{
+			name:    "bad basic token format",
+			auth:    "Basic YWRtaW4=",
+			wantLog: 1,
+		},
+		{
+			name:     "good basic token",
+			auth:     "Basic bWlja2V5Om1vdXNl",
+			wantUser: "mickey",
+			wantPswd: "mouse",
 		},
 	}
 
@@ -84,19 +112,43 @@ func TestProcessAuth(t *testing.T) {
 					assert.EqualValues(t, tc.wantClaims, got)
 				}
 			}
+
+			if tc.wantUser != "" {
+				user, ok := c.parc.Context.GetAttributeValue(models.AttrBasicUser).(string)
+				require.True(t, ok)
+				assert.Equal(t, tc.wantUser, user)
+			}
+
+			if tc.wantPswd != "" {
+				pswd, ok := c.parc.Context.GetAttributeValue(models.AttrBasicPswd).(string)
+				require.True(t, ok)
+				assert.Equal(t, tc.wantPswd, pswd)
+			}
 		})
 	}
 }
 
-func signed(token *jwt.Token) string {
-	s, err := token.SignedString(key1)
+func signed1(token *jwt.Token) string {
+	key := []byte("secret1!")
+
+	s, err := token.SignedString(key)
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 
-var (
-	key1   = []byte("secret1!")
-	token1 = jwt.New(jwt.SigningMethodHS256)
-)
+func signed2(token *jwt.Token) string {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(err)
+	}
+
+	s, err2 := token.SignedString(key)
+	if err2 != nil {
+		panic(err2)
+	}
+
+	return s
+}

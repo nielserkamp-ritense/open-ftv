@@ -52,7 +52,7 @@ func (s *service) initAuth(svc *fiber.App, v1 fiber.Router, auth AuthHandler) {
 }
 
 func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {
-	policies := handle.NewPoliciesHandler(s.logger, auth.Controller().PAP())
+	policies := handle.NewPoliciesHandler(s.logger, auth.Controller().PAP(), nil)
 
 	// policies.
 	v1.Get(handle.PathPolicies, policies.GetPolicies)
@@ -63,7 +63,7 @@ func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {
 }
 
 func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
-	attributes := handle.NewAttributesHandler(s.logger, auth.Controller().PIP())
+	attributes := handle.NewAttributesHandler(s.logger, auth.Controller().PIP(), nil)
 
 	// attributes.
 	v1.Get(handle.PathAttributes, attributes.GetAttributes)
@@ -74,7 +74,7 @@ func (s *service) initAttributes(v1 fiber.Router, auth AuthHandler) {
 }
 
 func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
-	entities := handle.NewEntitiesHandler(s.logger, auth.Controller().PIP())
+	entities := handle.NewEntitiesHandler(s.logger, auth.Controller().PIP(), nil)
 
 	// entities.
 	v1.Get(handle.PathEntities, entities.GetEntities)

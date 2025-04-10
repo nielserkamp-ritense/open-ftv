@@ -41,7 +41,7 @@ func TestNewPoliciesHandler(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ph := NewPoliciesHandler(logger, controller.PAP())
+		ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 		require.NotNil(t, ph)
 	})
 }
@@ -63,7 +63,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ph := NewPoliciesHandler(logger, controller.PAP())
+		ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 		require.NotNil(t, ph)
 
 		srv := fiber.New()
@@ -107,7 +107,7 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ph := NewPoliciesHandler(logger, controller.PAP())
+		ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 		require.NotNil(t, ph)
 
 		srv := fiber.New()
@@ -157,7 +157,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP())
+			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -238,7 +238,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP())
+			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -321,7 +321,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP())
+			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -385,7 +385,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			controller := cedar.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP())
+			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()

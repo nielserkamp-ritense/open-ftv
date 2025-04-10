@@ -4,6 +4,8 @@ package models
 const (
 	AttrAction          = "action"
 	AttrAPIKey          = "api_key"
+	AttrBasicUser       = "basic_user"
+	AttrBasicPswd       = "basic_pswd"
 	AttrBody            = "body"
 	AttrClaims          = "claims"
 	AttrClientIP        = "ip_address"

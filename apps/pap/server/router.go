@@ -37,7 +37,7 @@ func (s *service) initHealth(svc *fiber.App) {
 }
 
 func (s *service) initPolicies(group fiber.Router) {
-	policies := handle.NewPoliciesHandler(s.logger, s.pap)
+	policies := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
 	group.Get(handle.PathPolicies, policies.GetPolicies)

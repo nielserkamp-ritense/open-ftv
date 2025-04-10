@@ -57,4 +57,6 @@ type Config struct {
 	config2.PIP
 	config2.Persist
 	config2.Cerbos
+	config2.Authentication
+	config2.Authorization
 }

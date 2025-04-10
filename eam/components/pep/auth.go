@@ -1,6 +1,7 @@
 package pep
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -11,9 +12,12 @@ import (
 
 // See RFC-6750 for the OAuth2 Authorization bearer scheme!
 func (c *collector) processAuth(auth string) {
-	if strings.HasPrefix(auth, "Bearer ") {
+	switch {
+	case strings.HasPrefix(auth, "Bearer "):
 		c.processBearer(auth[7:])
-	} else {
+	case strings.HasPrefix(auth, "Basic "):
+		c.processBasic(auth[6:])
+	default:
 		c.logger.Warn("unsupported authorization header", "authorization", auth)
 	}
 }
@@ -42,4 +46,23 @@ func (c *collector) processBearer(bearer string) {
 	}
 
 	c.parc.Context.AddAttribute(models.AttrJWT, m)
+}
+
+func (c *collector) processBasic(basic string) {
+	dec, err := base64.StdEncoding.DecodeString(basic)
+	if err != nil {
+		c.logger.Error("failed to decode basic authentication", "error", err)
+		return
+	}
+
+	s := string(dec)
+
+	i := strings.Index(s, ":")
+	if i < 0 {
+		c.logger.Error("failed to parse basic authentication", "error", "no colon character found")
+		return
+	}
+
+	c.parc.Context.AddAttribute(models.AttrBasicUser, s[:i])
+	c.parc.Context.AddAttribute(models.AttrBasicPswd, s[i+1:])
 }

@@ -68,13 +68,13 @@ func TestNew(t *testing.T) {
 				srv.Get("/zen", auth.AuthZEN)
 
 				req := httptest.NewRequest("GET", "/fsc", nil)
-				resp, err := srv.Test(req, 5)
+				resp, err := srv.Test(req, 10)
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 				req = httptest.NewRequest("GET", "/zen", nil)
-				resp, err = srv.Test(req, 5)
+				resp, err = srv.Test(req, 10)
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)

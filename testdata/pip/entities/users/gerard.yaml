@@ -1,0 +1,7 @@
+- type: "user"
+  id: "gerard"
+  attributes:
+    name: "Gerard Juijn"
+    # bcrypt -nB gerard
+    password: "$2y$05$Ia4JeFSsWxqi2o4MdpqZUuL6bdGQWCM.crLaoof1IMRQLFo7y6eam"
+    roles: "admin"
