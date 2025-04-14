@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 
@@ -19,11 +20,11 @@ func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
 		logger,
 		s.initRoutes,
 		server.WithDefaults(),
-		server.WithHostPort(cfg.Host, cfg.Port),
+		server.WithHostPort(cfg.Server.Host, cfg.Server.Port),
 		server.WithAppName(config.AppName),
-		server.WithTLS(cfg.CA, cfg.Cert, cfg.Key),
-		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
-		server.WithMaxBody(cfg.MaxBody),
+		server.WithTLS(cfg.Server.CA, cfg.Server.Cert, cfg.Server.Key),
+		server.WithTimeouts(cfg.Server.ReadTimeout, cfg.Server.WriteTimeout, cfg.Server.IdleTimeout),
+		server.WithMaxBody(cfg.Server.MaxBody),
 		server.WithRecovery(),
 		server.WithSecurity(),
 	)
@@ -36,4 +37,6 @@ type service struct {
 	ctx    context.Context
 	cfg    *config.Config
 	logger *slog.Logger
+	l      models.Language
+	auth   AuthHandler
 }

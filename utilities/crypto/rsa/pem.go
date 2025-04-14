@@ -1,3 +1,4 @@
+// Package rsa contains functionality to handle private and/or public RSA keys.
 package rsa
 
 import (

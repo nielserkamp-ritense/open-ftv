@@ -1,3 +1,4 @@
+// Package decode contains functionality for decoding data in various formats.
 package decode
 
 import (

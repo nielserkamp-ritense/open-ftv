@@ -1,3 +1,4 @@
+// Package postgresql implements the Valkeyrie.Store interface for Postgres back-ends.
 package postgresql
 
 import (
@@ -5,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/kvtools/valkeyrie/store"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // make sure we have access to a Postgres driver.
 )
 
 // New instantiates a Valkeyrie Store using the pgx library to connect to a Postgres database as the storage engine.
@@ -26,22 +27,22 @@ func (db *pgDB) Close() error {
 
 // Watch implements the Valkeyrie Store interface.
 func (db *pgDB) Watch(_ context.Context, _ string, _ *store.ReadOptions) (<-chan *store.KVPair, error) {
-	return nil, ni
+	return nil, errNotImplemented
 }
 
 // WatchTree implements the Valkeyrie Store interface.
 func (db *pgDB) WatchTree(_ context.Context, _ string, _ *store.ReadOptions) (<-chan []*store.KVPair, error) {
-	return nil, ni
+	return nil, errNotImplemented
 }
 
 // DeleteTree implements the Valkeyrie Store interface.
 func (db *pgDB) DeleteTree(_ context.Context, _ string) error {
-	return ni
+	return errNotImplemented
 }
 
 // NewLock implements the Valkeyrie Store interface.
 func (db *pgDB) NewLock(_ context.Context, _ string, _ *store.LockOptions) (store.Locker, error) {
-	return nil, ni
+	return nil, errNotImplemented
 }
 
 type pgDB struct {
@@ -49,4 +50,4 @@ type pgDB struct {
 	table string
 }
 
-var ni = fmt.Errorf("not implemented")
+var errNotImplemented = fmt.Errorf("not implemented")
