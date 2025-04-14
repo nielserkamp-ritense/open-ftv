@@ -1,3 +1,4 @@
+// Package pem provides functionality to manage PEM encoded certificates.
 package pem
 
 import (

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pdp/config"
@@ -22,13 +23,17 @@ func TestServe(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20000,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20000,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{Language: "cedar"},
 		}
 
 		s := NewService(cfg, logger)
@@ -57,12 +62,16 @@ func TestServe_FailPDP(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:         "127.0.0.1",
-			Port:         20001,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			IdleTimeout:  300 * time.Second,
-			MaxBody:      64536,
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20001,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
 		}
 
 		defer func() {
@@ -82,13 +91,17 @@ func TestErrorHandler(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:           "127.0.0.1",
-			Port:           20002,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			IdleTimeout:    300 * time.Second,
-			MaxBody:        64536,
-			PolicyLanguage: "cedar",
+			ServerApp: config2.ServerApp{
+				Server: config2.Server{
+					Host:         "127.0.0.1",
+					Port:         20002,
+					ReadTimeout:  10 * time.Second,
+					WriteTimeout: 10 * time.Second,
+					IdleTimeout:  300 * time.Second,
+					MaxBody:      64536,
+				},
+			},
+			PAP: config2.PAP{Language: "cedar"},
 		}
 
 		s := NewService(cfg, logger)

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -9,71 +8,59 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pdp/config"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
 type AuthHandler interface {
 	Controller() pdp.Controller
-	AuthFSC(req *fiber.Ctx) error
 	AuthZEN(req *fiber.Ctx) error
 }
 
-// New instantiates an authorization handler.
-func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandler {
-	controller, err := newController(ctx, cfg, logger)
+func (s *service) newAuth() AuthHandler {
+	controller, err := s.newController()
 	if controller == nil {
-		logger.Error("failed to initialize pdp controller", "error", err)
+		s.logger.Error("failed to initialize pdp controller", "error", err)
 		return nil
 	}
 
 	var authLogger authlog.Logger
-	if cfg.OpenSearchIndex != "" {
-		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearchIndex, cfg.OpenSearchUser, cfg.OpenSearchPswd, strings.Split(cfg.OpenSearchEndpoints, ",")...)
+	if s.cfg.OpenSearch.Index != "" {
+		authLogger, err = authlog.NewOpenSearch(s.cfg.OpenSearch.Index, s.cfg.OpenSearch.User, s.cfg.OpenSearch.Pswd, strings.Split(s.cfg.OpenSearch.Endpoints, ",")...)
 		if err != nil {
-			logger.Error("failed to initialize authlog", "index", cfg.OpenSearchIndex, "user", cfg.OpenSearchUser, "endpoints", cfg.OpenSearchEndpoints, "error", err)
+			s.logger.Error("failed to initialize authlog", "index", s.cfg.OpenSearch.Index, "user", s.cfg.OpenSearch.User, "endpoints", s.cfg.OpenSearch.Endpoints, "error", err)
 			return nil
 		}
 	}
 
-	fsc := handlers.NewAuthHandlerFSC(logger, authLogger, controller)
-	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller)
+	zen := handlers.NewAuthHandlerZEN(s.logger, authLogger, controller)
 
-	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
+	return &authHandler{logger: s.logger, controller: controller, zen: zen}
 }
 
-func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger) (pdp.Controller, error) {
-	if ctx == nil {
-		ctx = context.Background()
+func (s *service) newController() (pdp.Controller, error) {
+	ep := pep.New(s.ctx, s.logger)
+
+	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
+	if err != nil {
+		return nil, err
 	}
 
-	l := models.LanguageFromString(cfg.PolicyLanguage)
-
-	ep := pep.New(ctx, logger)
-
-	pipOpts := []pip.Option{pip.WithFileStore(cfg.PipStore, cfg.PipStoreRecurse), pip.WithPullConfigs(cfg.PipPullConfigs)}
-	if l == models.CEDAR {
-		pipOpts = append(pipOpts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
+	ap, err2 := s.cfg.PAP.NewPAP(s.ctx, s.logger)
+	if err2 != nil {
+		return nil, err2
 	}
-	ip := pip.New(ctx, logger, pipOpts...)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PolicyStore, cfg.PolicyStoreRecurse)}
-	ap := pap.New(ctx, logger, papOpts...)
+	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap)}
 
-	options := []pdp.Option{pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger)}
-
-	switch l {
+	switch s.l {
 	case models.CEDAR:
 		return cedar.NewController(options...), nil
 	case models.REGO:
@@ -81,18 +68,15 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	case models.OPENFGA:
 		return openfga.NewController(options...), nil
 	case models.CERBOS:
-		cerbosCFG := cerbos.Config{Addr1: cfg.CerbosAddress, Addr2: cfg.CerbosAdmin, CA: cfg.CerbosCA, User: cfg.CerbosUser, Pswd: cfg.CerbosPswd}
+		cerbosCFG := cerbos.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}
 		return cerbos.NewController(cerbosCFG, options...), nil
 	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PolicyLanguage)
+		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
 	}
 }
 
 // Controller returns the PDP controller.
 func (h *authHandler) Controller() pdp.Controller { return h.controller }
-
-// AuthFSC handles an FSC Authorization request.
-func (h *authHandler) AuthFSC(req *fiber.Ctx) error { return h.fsc.Authorize(req) }
 
 // AuthZEN authorizes an AuthZEN authorization request.
 func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req) }
@@ -100,6 +84,5 @@ func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
-	fsc        handlers.FSCAuthorizer
 	zen        handlers.AuthZENAuthorizer
 }

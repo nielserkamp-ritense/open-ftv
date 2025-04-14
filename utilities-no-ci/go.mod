@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci
 
-go 1.23
+go 1.23.0
 
 toolchain go1.23.2
 
@@ -8,13 +8,13 @@ require (
 	github.com/defensestation/osquery v1.0.0
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.17.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/go-github/v69 v69.2.0
 	github.com/google/uuid v1.6.0
-	github.com/jferrl/go-githubauth v1.1.1
+	github.com/jferrl/go-githubauth v1.2.0
 	github.com/opensearch-project/opensearch-go v1.1.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.29.0
 )
 
 require (

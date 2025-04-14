@@ -1,4 +1,4 @@
-DIRS = ./utilities ./eam/config ./eam/models ./eam/components ./eam/handlers ./eam/server ./apps/manager ./apps/pip ./apps/pap ./apps/pdp ./apps/fsc/plugin/generic
+DIRS = ./utilities ./eam/models ./eam/components ./eam/config ./eam/handlers ./eam/server ./apps/manager ./apps/pip ./apps/pap ./apps/pdp ./apps/fsc/plugin/generic
 
 .PHONY: all oas $(DIRS)
 
