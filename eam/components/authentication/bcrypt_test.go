@@ -14,7 +14,7 @@ import (
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
-func TestNew2(t *testing.T) {
+func TestNewBCrypt(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -63,7 +63,7 @@ func TestNew2(t *testing.T) {
 	}
 }
 
-func TestAuthenticate(t *testing.T) {
+func TestBCrypt_AuthenticateUser(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -92,7 +92,7 @@ func TestAuthenticate(t *testing.T) {
 			a := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntities(entities))
 			require.NotNil(t, a)
 
-			err := a.Authenticate(ctx, tc.user, tc.pswd)
+			err := a.AuthenticateUser(ctx, tc.user, tc.pswd)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

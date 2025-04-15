@@ -3,12 +3,9 @@ package authentication
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
@@ -16,20 +13,11 @@ import (
 //
 // This handler uses the given set of entities to verify users with BCrypt encoded passwords.
 func NewBCrypt(opts ...Option) Authenticator {
-	a := &bcryptAuth{
-		ctx:      context.Background(),
-		log:      slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-		entities: models.NewEntitySet(),
-	}
-
-	for i := range opts {
-		opts[i](a)
-	}
-	return a
+	return &bcryptAuth{base: *newBase(opts)}
 }
 
-// Authenticate implements the Authenticator interface.
-func (a *bcryptAuth) Authenticate(_ context.Context, user, pswd string) error {
+// AuthenticateUser implements the Authenticator interface.
+func (a *bcryptAuth) AuthenticateUser(_ context.Context, user, pswd string) error {
 	u := a.entities.GetEntity("user::" + user)
 	if u == nil {
 		return &ErrUnauthenticated{err: fmt.Errorf("user not found")}
@@ -47,7 +35,5 @@ func (a *bcryptAuth) Authenticate(_ context.Context, user, pswd string) error {
 }
 
 type bcryptAuth struct {
-	ctx      context.Context
-	log      *slog.Logger
-	entities models.EntitySet
+	base
 }

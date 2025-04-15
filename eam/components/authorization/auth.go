@@ -70,7 +70,19 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 	if a.authenticator != nil {
 		user := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
 		pswd := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicPswd))
-		if err := a.authenticator.Authenticate(a.ctx, user, pswd); err != nil {
+		apikey := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrAPIKey))
+
+		var err error
+		switch {
+		case user != "":
+			err = a.authenticator.AuthenticateUser(a.ctx, user, pswd)
+		case apikey != "":
+			err = a.authenticator.AuthenticateApiKey(a.ctx, apikey)
+		default:
+			err = &authentication.ErrUnauthenticated{}
+		}
+
+		if err != nil {
 			return nil, err
 		}
 	}
