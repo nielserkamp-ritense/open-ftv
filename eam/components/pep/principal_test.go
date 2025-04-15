@@ -9,6 +9,8 @@ import (
 )
 
 func TestDeterminePrincipal(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		a     models.AttributeSet
@@ -84,6 +86,8 @@ func TestDeterminePrincipal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p1, p2 := DeterminePrincipal(tc.a)
 			assert.Equal(t, tc.want1, string(p1))
 			assert.Equal(t, tc.want2, string(p2))

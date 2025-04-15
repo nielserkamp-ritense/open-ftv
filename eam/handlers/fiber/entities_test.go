@@ -25,6 +25,8 @@ import (
 )
 
 func TestNewEntitiesHandler(t *testing.T) {
+	t.Parallel()
+
 	t.Run("test new entities handler", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -47,6 +49,8 @@ func TestNewEntitiesHandler(t *testing.T) {
 }
 
 func TestEntitiesHandler_GetEntities(t *testing.T) {
+	t.Parallel()
+
 	t.Run("get entities", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -70,7 +74,7 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 5)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -97,6 +101,8 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 }
 
 func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
+	t.Parallel()
+
 	t.Run("get entities", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -120,7 +126,7 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 5)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -132,6 +138,8 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 }
 
 func TestEntitiesHandler_GetEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		ns         string
@@ -150,6 +158,8 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 
@@ -172,7 +182,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			srv.Get("/v1/entity/:type/:id", eh.GetEntity)
 
 			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -198,6 +208,8 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 }
 
 func TestEntitiesHandler_PutEntity(t *testing.T) {
+	t.Parallel()
+
 	data1 := attributes.Entity{Type: "type", Id: "id"}
 	body1, _ := json.Marshal(data1)
 
@@ -213,12 +225,12 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no type", id: "id", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "no ID", ns: "type", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "no body", ns: "app", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no type", id: "id", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "no ID", ns: "type", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no body", ns: "app", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "duplicate key", ns: "app", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: EntitiesVersion},
 		{name: "mismatched type", ns: "app", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched id", ns: "type", id: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
@@ -227,6 +239,8 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -277,6 +291,8 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 }
 
 func TestEntitiesHandler_PostEntity(t *testing.T) {
+	t.Parallel()
+
 	data1 := attributes.Entity{Type: "type", Id: "id"}
 	body1, _ := json.Marshal(data1)
 
@@ -292,12 +308,12 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no type", id: "app1", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "no ID", ns: "app", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "no body", ns: "app", id: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no type", id: "app1", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "no ID", ns: "app", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no body", ns: "app", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched type", ns: "xyz", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched is", ns: "app", id: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "not found", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: EntitiesVersion},
@@ -306,6 +322,8 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -356,6 +374,8 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 }
 
 func TestEntitiesHandler_DeleteEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		ns         string
@@ -373,6 +393,8 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -397,7 +419,7 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

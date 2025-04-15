@@ -16,6 +16,8 @@ import (
 )
 
 func TestScheduleInterval(t *testing.T) {
+	t.Parallel()
+
 	t.Run("schedule interval job", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		require.NotNil(t, h)
@@ -54,6 +56,8 @@ func TestScheduleInterval(t *testing.T) {
 }
 
 func TestScheduleSchedule(t *testing.T) {
+	t.Parallel()
+
 	t.Run("schedule cron job", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		require.NotNil(t, h)
@@ -92,6 +96,8 @@ func TestScheduleSchedule(t *testing.T) {
 }
 
 func TestScheduleFail(t *testing.T) {
+	t.Parallel()
+
 	t.Run("schedule fail", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		require.NotNil(t, h)

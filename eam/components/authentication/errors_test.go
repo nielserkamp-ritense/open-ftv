@@ -8,6 +8,8 @@ import (
 )
 
 func TestErrUnauthenticated_Error(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		err  error
@@ -26,6 +28,8 @@ func TestErrUnauthenticated_Error(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := &ErrUnauthenticated{err: tc.err}
 			assert.Equal(t, tc.want, e.Error())
 		})

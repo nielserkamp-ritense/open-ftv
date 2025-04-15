@@ -15,6 +15,8 @@ import (
 )
 
 func TestNewWrappedEntity(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new wrapped entity", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -49,6 +51,8 @@ func TestNewWrappedEntity(t *testing.T) {
 }
 
 func TestNewEntitySet(t *testing.T) {
+	t.Parallel()
+
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
@@ -104,6 +108,8 @@ func TestNewEntitySet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewEntitySet(logger, tc.in...)
 			require.NotNil(t, got)
 
@@ -124,6 +130,8 @@ func TestNewEntitySet(t *testing.T) {
 }
 
 func TestEntities_AddEntity(t *testing.T) {
+	t.Parallel()
+
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
@@ -167,6 +175,8 @@ func TestEntities_AddEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.AddEntity(tc.add)
 
@@ -183,6 +193,8 @@ func TestEntities_AddEntity(t *testing.T) {
 }
 
 func TestEntities_RemoveEntity(t *testing.T) {
+	t.Parallel()
+
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
@@ -224,6 +236,8 @@ func TestEntities_RemoveEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.RemoveEntity(tc.key)
 
@@ -240,6 +254,8 @@ func TestEntities_RemoveEntity(t *testing.T) {
 }
 
 func TestEntities_MergeEntities(t *testing.T) {
+	t.Parallel()
+
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
@@ -284,6 +300,8 @@ func TestEntities_MergeEntities(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.MergeEntities(tc.merge...)
 

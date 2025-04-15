@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewRelationFromUID(t *testing.T) {
+	t.Parallel()
+
 	set := NewEntitySet(
 		NewEntity("user", "alice", nil),
 		NewEntity("user", "bob", nil),
@@ -63,6 +65,8 @@ func TestNewRelationFromUID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewRelationFromUID(tc.subject, tc.predicate, tc.object, set)
 			require.NotNil(t, got)
 
@@ -84,6 +88,8 @@ func TestNewRelationFromUID(t *testing.T) {
 }
 
 func TestRelationToAttribute(t *testing.T) {
+	t.Parallel()
+
 	t.Run("relation to attribute", func(t *testing.T) {
 		s := NewEntity("user", "alice", nil)
 		p := NewEntity("action", "read", nil)

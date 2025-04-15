@@ -10,6 +10,8 @@ import (
 )
 
 func TestBodyToContext(t *testing.T) {
+	t.Parallel()
+
 	subject := models.NewEntity("user", "alice", models.NewAttributeSet())
 	resource := models.NewEntity("service", "brp-personen", models.NewAttributeSet())
 	context0 := models.NewAttributeSet(models.NewAttribute("body", "hello world"))
@@ -122,6 +124,8 @@ func TestBodyToContext(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := BodyToContext(tc.in)
 			require.NotNil(t, got)
 

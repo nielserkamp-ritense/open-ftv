@@ -12,6 +12,8 @@ import (
 )
 
 func TestDetectType(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		path     string
@@ -39,6 +41,8 @@ func TestDetectType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ext := filepath.Ext(tc.path)
 			mt := mime.ConvertExt(ext)
 

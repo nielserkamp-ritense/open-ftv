@@ -11,6 +11,8 @@ import (
 )
 
 func TestRvvaAsPrincipal(t *testing.T) {
+	t.Parallel()
+
 	alice := models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttributeWithType("admin", false, "xsd:boolean")))
 	bob := models.NewEntity("user", "bob", models.NewAttributeSet(models.NewAttributeWithType("admin", true, "xsd:boolean")))
 	rvva := models.NewEntity(pep.PrincipalRVVA, "id1", models.NewAttributeSet(models.NewAttributeWithType(models.AttrDoelbinding, "kap[vergunning", "xsd:string")))
@@ -70,6 +72,8 @@ func TestRvvaAsPrincipal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := RvvaToPrincipal(tc.parc)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantType, got.Principal.Type())

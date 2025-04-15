@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		key   string
@@ -23,6 +25,8 @@ func TestNewAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewAttribute(tc.key, tc.value)
 			assert.Equal(t, tc.key, got.Key())
 			assert.Equal(t, tc.value, got.Value())
@@ -33,6 +37,8 @@ func TestNewAttribute(t *testing.T) {
 }
 
 func TestNewAttributeWithType(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		key      string
@@ -49,6 +55,8 @@ func TestNewAttributeWithType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewAttributeWithType(tc.key, tc.value, tc.t)
 			assert.Equal(t, tc.key, got.Key())
 			assert.Equal(t, tc.value, got.Value())
@@ -70,6 +78,8 @@ func TestNewAttributeWithType(t *testing.T) {
 }
 
 func TestNewOriginalAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		key      string
@@ -86,6 +96,8 @@ func TestNewOriginalAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewOriginalAttribute(tc.key, tc.value, tc.original, tc.t)
 			assert.Equal(t, tc.key, got.Key())
 			assert.Equal(t, tc.value, got.Value())

@@ -8,6 +8,8 @@ import (
 )
 
 func TestParseJSON(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		body    string
@@ -21,6 +23,8 @@ func TestParseJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a, err := parseJSON([]byte(tc.body))
 			if tc.wantErr {
 				require.Error(t, err)
@@ -34,6 +38,8 @@ func TestParseJSON(t *testing.T) {
 }
 
 func TestParseBody(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		body    string
@@ -127,6 +133,8 @@ func TestParseBody(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := ParseBody([]byte(tc.body), tc.ct)
 			if tc.wantErr {
 				require.Error(t, err)

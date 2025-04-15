@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		key       string
@@ -64,6 +66,8 @@ func TestProcessAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -83,6 +87,8 @@ func TestProcessAttribute(t *testing.T) {
 }
 
 func TestDecodeAttributeMap(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 
 	testCases := []struct {
@@ -189,6 +195,8 @@ func TestDecodeAttributeMap(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -210,6 +218,8 @@ func TestDecodeAttributeMap(t *testing.T) {
 }
 
 func TestDecodeAttributeData(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]interface{}{"hello": "world"}
 	m2 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m3 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
@@ -261,6 +271,8 @@ func TestDecodeAttributeData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -284,6 +296,8 @@ func TestDecodeAttributeData(t *testing.T) {
 }
 
 func TestDecodeAttribute(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]interface{}{"hello": "world"}
 	m2 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m3 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
@@ -347,6 +361,8 @@ func TestDecodeAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

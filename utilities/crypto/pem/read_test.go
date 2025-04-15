@@ -9,6 +9,8 @@ import (
 )
 
 func TestLoadFile(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -20,6 +22,8 @@ func TestLoadFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := LoadFile(tc.path)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -33,17 +37,18 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadStream(t *testing.T) {
+	t.Parallel()
+
 	r1, err := os.Open("../../../testdata/crypto/key.pem")
 	require.NoError(t, err)
 	r1.Close()
 
-	r2, err := os.Open("../../../testdata/crypto/key.pem")
-	require.NoError(t, err)
-	defer r2.Close()
+	r2, err2 := os.Open("../../../testdata/crypto/key.pem")
+	require.NoError(t, err2)
 
 	testCases := []struct {
 		name    string
-		r       io.Reader
+		r       io.ReadCloser
 		wantErr bool
 	}{
 		{name: "already closed", r: r1, wantErr: true},
@@ -52,12 +57,16 @@ func TestLoadStream(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := LoadStream(tc.r)
+			t.Parallel()
+
+			defer tc.r.Close()
+
+			got, err3 := LoadStream(tc.r)
 			if tc.wantErr {
-				require.Error(t, err)
+				require.Error(t, err3)
 				require.Nil(t, got)
 			} else {
-				require.NoError(t, err)
+				require.NoError(t, err3)
 				require.NotNil(t, got)
 			}
 		})

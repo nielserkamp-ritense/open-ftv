@@ -10,6 +10,8 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
+	t.Parallel()
+
 	RootCA()
 
 	key1, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -47,6 +49,8 @@ func TestGenerate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			data, key, err2 := generate(tc.cert, tc.parent, tc.key, tc.bits)
 			if tc.wantErr {
 				require.Error(t, err2)

@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseXML(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		body    string
@@ -20,6 +22,8 @@ func TestParseXML(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a, err := parseXML([]byte(tc.body))
 			if tc.wantErr {
 				require.Error(t, err)

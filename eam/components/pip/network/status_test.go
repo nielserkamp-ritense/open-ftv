@@ -7,6 +7,8 @@ import (
 )
 
 func TestStatusCode_Match(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		code   string
@@ -27,6 +29,8 @@ func TestStatusCode_Match(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := &StatusCode{Code: tc.code}
 			got := s.Match(tc.status)
 			assert.Equal(t, tc.want, got)

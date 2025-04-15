@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessBody(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		body    []byte
@@ -120,6 +122,8 @@ func TestProcessBody(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(slog.LevelDebug)
 
 			p := New(nil, slog.New(h))

@@ -12,6 +12,8 @@ import (
 )
 
 func TestPDP(t *testing.T) {
+	t.Parallel()
+
 	const goodCfg = `
 pdp:
   request:
@@ -43,6 +45,8 @@ pdp:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 

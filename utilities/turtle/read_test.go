@@ -10,6 +10,8 @@ import (
 )
 
 func TestLoadSimple(t *testing.T) {
+	t.Parallel()
+
 	const data = `
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
@@ -39,6 +41,8 @@ func TestLoadSimple(t *testing.T) {
 }
 
 func TestLoadSimpleError(t *testing.T) {
+	t.Parallel()
+
 	const data = `not really RDF`
 
 	t.Run("load simple error", func(t *testing.T) {
@@ -52,6 +56,8 @@ func TestLoadSimpleError(t *testing.T) {
 }
 
 func TestLoadReal(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		path string
@@ -63,6 +69,8 @@ func TestLoadReal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			r, err := os.Open(tc.path)
 			require.NoError(t, err)
 			require.NotNil(t, r)
@@ -85,6 +93,8 @@ func TestLoadReal(t *testing.T) {
 }
 
 func TestLoadRealError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("load file error", func(t *testing.T) {
 		r, err := os.Open("../../testdata/error.ttl")
 		require.NoError(t, err)
@@ -99,6 +109,8 @@ func TestLoadRealError(t *testing.T) {
 }
 
 func TestLoadURI(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		uri  string
@@ -109,6 +121,8 @@ func TestLoadURI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			g, err := LoadFromURI(tc.uri, true)
 			require.NoError(t, err)
 			require.NotNil(t, g)
@@ -125,6 +139,8 @@ func TestLoadURI(t *testing.T) {
 }
 
 func TestLoadURIError(t *testing.T) {
+	t.Parallel()
+
 	const uri = `https://identifier.overheid.nl/tooi/def/ont.txt`
 
 	t.Run("load uri error", func(t *testing.T) {

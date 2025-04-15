@@ -19,6 +19,8 @@ import (
 )
 
 func TestController_Handle(t *testing.T) {
+	t.Parallel()
+
 	p1 := `permit (
     principal is User,
     action == Action::"POST",
@@ -119,6 +121,8 @@ func TestController_Handle(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

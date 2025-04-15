@@ -20,6 +20,8 @@ import (
 )
 
 func TestLoadRDF(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name           string
 		path           string
@@ -38,6 +40,8 @@ func TestLoadRDF(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			var f io.Reader
@@ -73,6 +77,8 @@ func TestLoadRDF(t *testing.T) {
 }
 
 func TestConvertLiteral(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		term    rdf2go.Term
@@ -88,6 +94,8 @@ func TestConvertLiteral(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			l := &loader{}
 
 			got, err := l.convertLiteral(tc.term)
@@ -102,6 +110,8 @@ func TestConvertLiteral(t *testing.T) {
 }
 
 func TestAllLiterals(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		list []*rdf2go.Triple
@@ -151,6 +161,8 @@ func TestAllLiterals(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			l := &loader{}
 
 			got := l.allLiteral(tc.list)
@@ -160,6 +172,8 @@ func TestAllLiterals(t *testing.T) {
 }
 
 func TestConvertLiterals(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		list    []*rdf2go.Triple
@@ -238,6 +252,8 @@ func TestConvertLiterals(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			l := &loader{}
 
 			got, err := l.convertLiterals(tc.list)
@@ -252,6 +268,8 @@ func TestConvertLiterals(t *testing.T) {
 }
 
 func TestConvertObject(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -316,6 +334,8 @@ func TestConvertObject(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			f, err := os.Open(tc.path)
@@ -375,6 +395,8 @@ func TestConvertObject(t *testing.T) {
 }
 
 func TestConvertObjects(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -429,6 +451,8 @@ func TestConvertObjects(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			f, err := os.Open(tc.path)
@@ -458,6 +482,8 @@ func TestConvertObjects(t *testing.T) {
 }
 
 func TestGetKey(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -487,6 +513,8 @@ func TestGetKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			f, err := os.Open(tc.path)
@@ -516,6 +544,8 @@ func TestGetKey(t *testing.T) {
 }
 
 func TestGetKeyValue(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -547,6 +577,8 @@ func TestGetKeyValue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			f, err := os.Open(tc.path)

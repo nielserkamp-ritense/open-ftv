@@ -13,6 +13,8 @@ import (
 )
 
 func TestOpenTel(t *testing.T) {
+	t.Parallel()
+
 	const goodCfg = `
 otel:
   url: "localhost:111"
@@ -52,6 +54,8 @@ otel:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 

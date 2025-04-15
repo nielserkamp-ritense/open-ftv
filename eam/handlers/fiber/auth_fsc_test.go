@@ -22,6 +22,8 @@ import (
 )
 
 func TestAuthHandler_FSC(t *testing.T) {
+	t.Parallel()
+
 	in := `{"input":{"method":"POST","path":"/x/y"}}`
 	out := `{"result":{"allowed":true,"status":{"reason":"ok"}}}`
 
@@ -74,6 +76,8 @@ func TestAuthHandler_FSC(t *testing.T) {
 }
 
 func TestAuthHandler_FSC_Fail1(t *testing.T) {
+	t.Parallel()
+
 	in := `{"input":{"method":"GET","path":"/x/y","headers":{"doelbinding":["subsidies"]}}}`
 	out := `{"result":{"allowed":false,"status":{"reason":"not authorized"}}}`
 
@@ -126,6 +130,8 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 }
 
 func TestAuthHandler_FSC_Fail2(t *testing.T) {
+	t.Parallel()
+
 	in := `{"input":{}}`
 	out := `{"title":"invalid method"}`
 
@@ -176,6 +182,8 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 }
 
 func TestAuthHandler_FSC_Fail3(t *testing.T) {
+	t.Parallel()
+
 	in := `[]`
 	out := `{"title":"invalid input data"}`
 
@@ -226,6 +234,8 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 }
 
 func TestAuthHandler_FSC_Fail4(t *testing.T) {
+	t.Parallel()
+
 	in := `{"input":{"method":"POST"}}`
 	out := `{"title":"invalid path"}`
 

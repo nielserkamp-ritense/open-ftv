@@ -9,6 +9,8 @@ import (
 )
 
 func TestContainsAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		m    map[string]any
@@ -23,6 +25,8 @@ func TestContainsAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ContainsAttribute(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
@@ -30,6 +34,8 @@ func TestContainsAttribute(t *testing.T) {
 }
 
 func TestContainsEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		m    map[string]any
@@ -44,6 +50,8 @@ func TestContainsEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ContainsEntity(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
@@ -51,6 +59,8 @@ func TestContainsEntity(t *testing.T) {
 }
 
 func TestContainsRelation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		m    map[string]any
@@ -65,6 +75,8 @@ func TestContainsRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ContainsRelation(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
@@ -72,6 +84,8 @@ func TestContainsRelation(t *testing.T) {
 }
 
 func TestContainsJsonLD(t *testing.T) {
+	t.Parallel()
+
 	j1 := `{"a": "b"}`
 
 	j2 := `{
@@ -148,6 +162,8 @@ func TestContainsJsonLD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			var m map[string]any
 
 			if tc.data != "" {

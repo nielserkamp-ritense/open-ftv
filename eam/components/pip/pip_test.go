@@ -13,6 +13,8 @@ import (
 )
 
 func TestValidPath(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		path string
@@ -27,6 +29,8 @@ func TestValidPath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := validPath(tc.path)
 			assert.Equal(t, tc.want, got)
 		})
@@ -34,6 +38,8 @@ func TestValidPath(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name           string
 		level          slog.Level
@@ -88,6 +94,8 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(tc.level)
 			logger := slog.New(h)
 
@@ -130,6 +138,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestPIP_Attributes(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pip as AttributeSet", func(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -170,6 +180,8 @@ func TestPIP_Attributes(t *testing.T) {
 }
 
 func TestPIP_Entities(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pip as EntitySet", func(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)

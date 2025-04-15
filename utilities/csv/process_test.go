@@ -11,17 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	h1    = `"05.11 Nationaliteitscode","05.12 Omschrijving","99.98 Datum ingang","99.99 Datum einde"`
-	r1    = `0000,Onbekend`
-	r2    = `"0001","Nederlandse","",""`
-	r3    = `"0052","Belgische"`
-	r4    = `77,"Spaanse",,,,,`
-	file1 = fmt.Sprintf("%s\n%s\n", h1, r1)
-	file2 = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", h1, r1, r2, r3, r4)
-)
-
 func TestProcessWithHeader(t *testing.T) {
+	t.Parallel()
+
+	var (
+		h1    = `"05.11 Nationaliteitscode","05.12 Omschrijving","99.98 Datum ingang","99.99 Datum einde"`
+		r1    = `0000,Onbekend`
+		r2    = `"0001","Nederlandse","",""`
+		r3    = `"0052","Belgische"`
+		r4    = `77,"Spaanse",,,,,`
+		file1 = fmt.Sprintf("%s\n%s\n", h1, r1)
+		file2 = fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n", h1, r1, r2, r3, r4)
+	)
+
 	testCases := []struct {
 		name        string
 		f           io.Reader
@@ -50,6 +52,8 @@ func TestProcessWithHeader(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := ProcessWithHeader(tc.f, func(headers, data []string, line int) error {
 				if tc.recordFail {
 					return errors.New("fail")

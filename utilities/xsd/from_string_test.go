@@ -10,6 +10,8 @@ import (
 )
 
 func TestFromString(t *testing.T) {
+	t.Parallel()
+
 	u1, _ := url.Parse("https://ftv.nl/helloWorld#second?format=text")
 
 	testCases := []struct {
@@ -89,6 +91,8 @@ func TestFromString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err2 := FromString(tc.data, tc.t)
 			if tc.wantErr {
 				require.Error(t, err2)
@@ -101,6 +105,8 @@ func TestFromString(t *testing.T) {
 }
 
 func TestConvertDecimal(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		data    string
@@ -117,6 +123,8 @@ func TestConvertDecimal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := fromDecimalString(tc.data)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -129,6 +137,8 @@ func TestConvertDecimal(t *testing.T) {
 }
 
 func TestConvertDuration(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		data    string
@@ -151,6 +161,8 @@ func TestConvertDuration(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := fromDurationString(tc.data)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -163,6 +175,8 @@ func TestConvertDuration(t *testing.T) {
 }
 
 func TestConvertURI(t *testing.T) {
+	t.Parallel()
+
 	s2 := "haha\000"
 	s3 := "abc"
 	s4 := "https://"
@@ -191,6 +205,8 @@ func TestConvertURI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := fromURIString(tc.data)
 			if tc.wantErr {
 				require.Error(t, err)

@@ -21,6 +21,8 @@ func (c *TestConfig) LogSanitized(logger *slog.Logger) {
 }
 
 func TestLoad(t *testing.T) {
+	t.Parallel()
+
 	var goodCfg = `
 svc:
   host: "127.0.0.1"
@@ -84,6 +86,8 @@ log:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 			require.NoError(t, err)

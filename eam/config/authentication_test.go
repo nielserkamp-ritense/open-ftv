@@ -16,6 +16,8 @@ import (
 )
 
 func TestAuthentication_NewAuthenticator(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new authenticator", func(t *testing.T) {
 		a1 := &Authentication{Type: "bcrypt"}
 
@@ -39,6 +41,8 @@ func TestAuthentication_NewAuthenticator(t *testing.T) {
 }
 
 func TestAuthentication_NewAuthenticator_Unknown(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new authenticator", func(t *testing.T) {
 		ctx := context.Background()
 

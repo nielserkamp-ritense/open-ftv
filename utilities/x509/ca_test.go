@@ -13,6 +13,8 @@ import (
 )
 
 func TestNewCA(t *testing.T) {
+	t.Parallel()
+
 	RootCA()
 
 	subject := pkix.Name{
@@ -78,6 +80,8 @@ func TestNewCA(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := &Config{
 				Serial:       tc.serial,
 				KeySize:      tc.keySize,

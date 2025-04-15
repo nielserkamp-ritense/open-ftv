@@ -19,6 +19,8 @@ import (
 )
 
 func TestClearEntityWatcher(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		paths []string
@@ -39,6 +41,8 @@ func TestClearEntityWatcher(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{}
 
 			if len(tc.paths) > 0 {
@@ -60,6 +64,8 @@ func TestClearEntityWatcher(t *testing.T) {
 }
 
 func TestEntityDeletes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files []string
@@ -80,6 +86,8 @@ func TestEntityDeletes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{entityDeletes: tc.files}
 			p.processEntityDeletes()
 			assert.Empty(t, p.entityDeletes)
@@ -88,6 +96,8 @@ func TestEntityDeletes(t *testing.T) {
 }
 
 func TestEntityUpdates(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files []string
@@ -108,6 +118,8 @@ func TestEntityUpdates(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{entityUpdates: tc.files}
 			p.processEntityUpdates()
 			assert.Empty(t, p.entityUpdates)
@@ -116,6 +128,8 @@ func TestEntityUpdates(t *testing.T) {
 }
 
 func TestEntitiesModified(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		create      []string
@@ -161,6 +175,8 @@ func TestEntitiesModified(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{}
 
 			for i := range tc.create {
@@ -186,6 +202,8 @@ func TestEntitiesModified(t *testing.T) {
 }
 
 func TestWatchEntityFiles(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		create []string
@@ -226,6 +244,8 @@ func TestWatchEntityFiles(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

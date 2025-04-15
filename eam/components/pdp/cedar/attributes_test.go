@@ -15,6 +15,8 @@ import (
 )
 
 func TestNewAttributeBuilder(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute builder", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -43,6 +45,8 @@ func TestNewAttributeBuilder(t *testing.T) {
 }
 
 func TestNewAttributeSet(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	a1 := models.NewAttribute("hello", "world")
@@ -138,6 +142,8 @@ func TestNewAttributeSet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -163,6 +169,8 @@ func TestNewAttributeSet(t *testing.T) {
 }
 
 func TestAttributes_AddAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		add       map[string]any
@@ -190,6 +198,8 @@ func TestAttributes_AddAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -219,6 +229,8 @@ func TestAttributes_AddAttribute(t *testing.T) {
 }
 
 func TestAttributes_RemoveAttribute(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	a1 := models.NewAttribute("hello", "world")
@@ -276,6 +288,8 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -305,6 +319,8 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 }
 
 func TestValueToAny(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	f1, _ := cedar.NewDecimalFromFloat(456.789)
@@ -389,6 +405,8 @@ func TestValueToAny(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

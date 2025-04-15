@@ -14,6 +14,8 @@ import (
 )
 
 func TestConvertFromOAS(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   *attributes.Attribute
@@ -129,6 +131,8 @@ func TestConvertFromOAS(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AttributeFromOAS(tc.in)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.want.Key(), got.Key())
@@ -140,6 +144,8 @@ func TestConvertFromOAS(t *testing.T) {
 }
 
 func TestConvertToOAS(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   models.Attribute
@@ -170,6 +176,8 @@ func TestConvertToOAS(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AttributeToOAS(tc.in)
 			require.NotNil(t, got)
 			assert.EqualValues(t, tc.want, got)

@@ -11,6 +11,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new", func(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)

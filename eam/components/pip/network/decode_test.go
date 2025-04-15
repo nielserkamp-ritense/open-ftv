@@ -16,6 +16,9 @@ import (
 )
 
 func TestDecodeData(t *testing.T) {
+	// TODO: figure out why Parallel() causes a deadlock.
+	// t.Parallel()
+
 	m1 := map[string]interface{}{"hello": "world"}
 	m2 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m3 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
@@ -157,6 +160,9 @@ func TestDecodeData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// TODO: figure out why Parallel() causes a deadlock.
+			// t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -208,6 +214,9 @@ func TestDecodeData(t *testing.T) {
 }
 
 func TestDecodeResponse(t *testing.T) {
+	// TODO: figure out why Parallel() causes a deadlock.
+	// t.Parallel()
+
 	const goodYAML = `---
 attributes:
   - key: code
@@ -330,6 +339,9 @@ value = "first code"
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// TODO: figure out why Parallel() causes a deadlock.
+			// t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

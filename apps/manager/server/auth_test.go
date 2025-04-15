@@ -15,6 +15,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		cfg      *config.Config
@@ -51,6 +53,8 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

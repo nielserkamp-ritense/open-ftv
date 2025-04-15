@@ -10,6 +10,8 @@ import (
 )
 
 func TestNormalize(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -26,6 +28,8 @@ func TestNormalize(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := normalize(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -33,6 +37,8 @@ func TestNormalize(t *testing.T) {
 }
 
 func TestReadTuples(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		data    string
@@ -77,6 +83,8 @@ func TestReadTuples(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := readTuples(strings.NewReader(tc.data))
 			if tc.wantErr {
 				require.Error(t, err)
@@ -96,6 +104,8 @@ func TestReadTuples(t *testing.T) {
 }
 
 func TestReadTuples_BadReader(t *testing.T) {
+	t.Parallel()
+
 	t.Run("bad reader", func(t *testing.T) {
 		f, err := os.Open("../../../../testdata/policies/openfga/doelbinding.relations")
 		require.NoError(t, err)

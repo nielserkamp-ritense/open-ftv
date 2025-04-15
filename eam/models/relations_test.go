@@ -27,6 +27,8 @@ var (
 )
 
 func TestNewRelationSet(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		in      []any
@@ -74,6 +76,8 @@ func TestNewRelationSet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewRelationSet(entSet1, tc.in...)
 			require.NotNil(t, got)
 
@@ -90,6 +94,8 @@ func TestNewRelationSet(t *testing.T) {
 }
 
 func TestRelationSet_AddRelation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		in      []any
@@ -137,6 +143,8 @@ func TestRelationSet_AddRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewRelationSet(entSet1)
 			require.NotNil(t, got)
 
@@ -162,6 +170,8 @@ func TestRelationSet_AddRelation(t *testing.T) {
 }
 
 func TestRelationSet_AddRelationFromUID(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		subject   []string
@@ -193,6 +203,8 @@ func TestRelationSet_AddRelationFromUID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewRelationSet(entSet1)
 			require.NotNil(t, got)
 
@@ -213,6 +225,8 @@ func TestRelationSet_AddRelationFromUID(t *testing.T) {
 }
 
 func TestRelationSet_RemoveRelation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		remove  []string
@@ -262,6 +276,8 @@ func TestRelationSet_RemoveRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewRelationSet(entSet1, relSet1)
 			require.NotNil(t, got)
 

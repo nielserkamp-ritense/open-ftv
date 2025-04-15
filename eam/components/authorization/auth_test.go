@@ -21,6 +21,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -53,6 +55,8 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := New(tc.opts...)
 			require.NotNil(t, got)
 
@@ -85,6 +89,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -204,6 +210,8 @@ func TestAuthorize(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := New(WithContext(ctx), WithLogger(log), WithPEP(ep), WithEntities(models.NewEntitySet(ip)), WithPDP(dp), WithAuthenticator(authenticator))
 			require.NotNil(t, a)
 

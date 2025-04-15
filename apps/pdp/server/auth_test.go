@@ -18,6 +18,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		cfg      *config.Config
@@ -54,6 +56,8 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
@@ -72,7 +76,7 @@ func TestNew(t *testing.T) {
 				srv.Get("/zen", auth.AuthZEN)
 
 				req := httptest.NewRequest("GET", "/zen", nil)
-				resp, err := srv.Test(req, 5)
+				resp, err := srv.Test(req, 100)
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)

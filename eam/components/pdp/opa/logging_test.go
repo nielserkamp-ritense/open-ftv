@@ -12,6 +12,8 @@ import (
 )
 
 func TestWrappedLogger_GetLevel(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		level slog.Level
@@ -26,6 +28,8 @@ func TestWrappedLogger_GetLevel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(tc.level)
 			w := &wrappedLogger{logger: slog.New(h)}
 
@@ -41,6 +45,8 @@ func TestWrappedLogger_GetLevel(t *testing.T) {
 }
 
 func TestWrappedLogger_Write(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		level   slog.Level
@@ -118,6 +124,8 @@ func TestWrappedLogger_Write(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(tc.level)
 			w := &wrappedLogger{logger: slog.New(h)}
 
@@ -143,6 +151,8 @@ func TestWrappedLogger_Write(t *testing.T) {
 }
 
 func TestWrappedLogger_WithFields(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		fields map[string]any
@@ -165,6 +175,8 @@ func TestWrappedLogger_WithFields(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			w := &wrappedLogger{logger: slog.New(h)}
 

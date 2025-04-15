@@ -13,6 +13,8 @@ import (
 )
 
 func TestDB_Delete(t *testing.T) {
+	t.Parallel()
+
 	t.Run("delete", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -44,6 +46,8 @@ func TestDB_Delete(t *testing.T) {
 }
 
 func TestDB_Delete_FailTx(t *testing.T) {
+	t.Parallel()
+
 	t.Run("delete - fail tx", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -71,6 +75,8 @@ func TestDB_Delete_FailTx(t *testing.T) {
 }
 
 func TestDB_Delete_FailExec(t *testing.T) {
+	t.Parallel()
+
 	t.Run("delete", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -102,6 +108,8 @@ func TestDB_Delete_FailExec(t *testing.T) {
 }
 
 func TestDB_AtomicDelete(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic delete", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -140,6 +148,8 @@ func TestDB_AtomicDelete(t *testing.T) {
 }
 
 func TestDB_AtomicDelete_FailTx(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic delete - fail tx", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -174,6 +184,8 @@ func TestDB_AtomicDelete_FailTx(t *testing.T) {
 }
 
 func TestDB_AtomicDelete_FailExec(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic delete", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)

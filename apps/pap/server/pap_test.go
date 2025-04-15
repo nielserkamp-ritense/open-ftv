@@ -14,6 +14,8 @@ import (
 )
 
 func TestNewPAP(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		language string
@@ -87,6 +89,8 @@ func TestNewPAP(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

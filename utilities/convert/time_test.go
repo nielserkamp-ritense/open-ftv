@@ -8,6 +8,8 @@ import (
 )
 
 func TestAnyToDateTime(t *testing.T) {
+	t.Parallel()
+
 	d1 := time.Date(2024, 12, 31, 16, 17, 18, 991000000, time.UTC)
 
 	testCases := []struct {
@@ -64,6 +66,8 @@ func TestAnyToDateTime(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToDateTime(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

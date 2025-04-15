@@ -14,6 +14,8 @@ import (
 )
 
 func TestMarshalUnmarshalEntities(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		e         models.Entity
@@ -45,6 +47,8 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			defer func() {
 				e := recover()
 				if tc.wantPanic {
@@ -71,6 +75,8 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 }
 
 func TestMarshalEntity_Repeated(t *testing.T) {
+	t.Parallel()
+
 	t.Run("marshal repeated", func(t *testing.T) {
 		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
 
@@ -84,6 +90,8 @@ func TestMarshalEntity_Repeated(t *testing.T) {
 }
 
 func TestUnmarshalEntity_Fail(t *testing.T) {
+	t.Parallel()
+
 	d1, _ := json.Marshal(&entity{
 		Type:       "cedar",
 		ID:         "12345",
@@ -116,6 +124,8 @@ func TestUnmarshalEntity_Fail(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := unmarshalEntity(tc.data)
 			require.Error(t, err)
 			require.Nil(t, got)
@@ -124,6 +134,8 @@ func TestUnmarshalEntity_Fail(t *testing.T) {
 }
 
 func TestNewEntityStore(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new entity store", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -165,6 +177,8 @@ func TestNewEntityStore(t *testing.T) {
 }
 
 func TestNewEntityStore_DupError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new entity store - duplicate error", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -192,6 +206,8 @@ func TestNewEntityStore_DupError(t *testing.T) {
 }
 
 func TestNewEntityStore_Read_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - read - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -211,6 +227,8 @@ func TestNewEntityStore_Read_NotFound(t *testing.T) {
 }
 
 func TestNewEntityStore_Update_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new entity store - update - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -233,6 +251,8 @@ func TestNewEntityStore_Update_NotFound(t *testing.T) {
 }
 
 func TestNewEntityStore_Delete_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new entity store - delete - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -255,6 +275,8 @@ func TestNewEntityStore_Delete_NotFound(t *testing.T) {
 }
 
 func TestNewEntityStore_List(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new entity store - list", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)

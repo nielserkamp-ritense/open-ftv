@@ -7,6 +7,8 @@ import (
 )
 
 func TestProcessOrdered(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		in         map[string]any
@@ -36,6 +38,8 @@ func TestProcessOrdered(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			var keys []string
 			var values []any
 

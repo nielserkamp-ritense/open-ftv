@@ -7,6 +7,8 @@ import (
 )
 
 func TestMapper_FromHeaders(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		headers []string
@@ -22,6 +24,8 @@ func TestMapper_FromHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &base{}
 			m.configure([]Option{WithHeaderKeys(tc.headers...)})
 

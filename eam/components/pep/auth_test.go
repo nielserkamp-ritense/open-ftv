@@ -15,6 +15,8 @@ import (
 )
 
 func TestProcessAuth(t *testing.T) {
+	t.Parallel()
+
 	token1 := jwt.New(jwt.SigningMethodHS256)
 	token2 := jwt.New(jwt.SigningMethodPS256)
 
@@ -75,6 +77,8 @@ func TestProcessAuth(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(slog.LevelDebug)
 
 			c := &collector{

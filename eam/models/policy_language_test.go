@@ -7,6 +7,8 @@ import (
 )
 
 func TestLanguage_String(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   Language
@@ -24,6 +26,8 @@ func TestLanguage_String(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.in.String()
 			assert.Equal(t, tc.want, got)
 		})
@@ -31,6 +35,8 @@ func TestLanguage_String(t *testing.T) {
 }
 
 func TestLanguage_Language(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   Language
@@ -48,6 +54,8 @@ func TestLanguage_Language(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.in.Language()
 			assert.Equal(t, tc.want, got)
 		})
@@ -55,6 +63,8 @@ func TestLanguage_Language(t *testing.T) {
 }
 
 func TestLanguageFromString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -77,6 +87,8 @@ func TestLanguageFromString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := LanguageFromString(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

@@ -16,6 +16,8 @@ import (
 )
 
 func TestAuthorization_NewAuthorizer(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new authorization", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -43,6 +45,8 @@ func TestAuthorization_NewAuthorizer(t *testing.T) {
 }
 
 func TestAuthorization_NewAuthorizer_Fail(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new authorization fail", func(t *testing.T) {
 		ctx := context.Background()
 

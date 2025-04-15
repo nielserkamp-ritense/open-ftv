@@ -7,6 +7,8 @@ import (
 )
 
 func TestMapper_Configure(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name           string
 		opts           []Option
@@ -19,6 +21,8 @@ func TestMapper_Configure(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &base{}
 			m.configure(tc.opts)
 			assert.EqualValues(t, tc.wantHeaderKeys, m.headerKeys)
@@ -27,6 +31,8 @@ func TestMapper_Configure(t *testing.T) {
 }
 
 func TestMappingsFromConfig(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		cfg       string
@@ -41,6 +47,8 @@ func TestMappingsFromConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := MappingsFromConfig(tc.cfg)
 			assert.Equal(t, tc.wantCount, len(got))
 		})

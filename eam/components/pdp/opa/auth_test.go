@@ -19,6 +19,8 @@ import (
 )
 
 func TestController_Authorize(t *testing.T) {
+	t.Parallel()
+
 	now := time.Now()
 	uid := uuid.New()
 	u1, _ := url.Parse("https://x.y")
@@ -79,6 +81,8 @@ func TestController_Authorize(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

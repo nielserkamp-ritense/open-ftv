@@ -7,6 +7,8 @@ import (
 )
 
 func TestSplitKeys(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -49,6 +51,8 @@ func TestSplitKeys(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := splitKeys(tc.in)
 			assert.EqualValues(t, tc.want, got)
 		})
@@ -56,6 +60,8 @@ func TestSplitKeys(t *testing.T) {
 }
 
 func TestFindElement(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"a": "b", "c": 1, "e": true}
 	m2 := map[string]any{"a": map[string]any{"b": map[string]any{"c": 123.456}}, "c": 1, "e": true}
 
@@ -77,6 +83,8 @@ func TestFindElement(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := findElement(splitKeys(tc.key), tc.data)
 			assert.EqualValues(t, tc.want, got)
 		})
@@ -84,6 +92,8 @@ func TestFindElement(t *testing.T) {
 }
 
 func TestCodeOrValue(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{
 		"hello": "world",
 		"int":   123,
@@ -107,6 +117,8 @@ func TestCodeOrValue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := codeOrValue(tc.code, tc.value, tc.m)
 			assert.EqualValues(t, tc.want, got)
 		})
@@ -114,6 +126,8 @@ func TestCodeOrValue(t *testing.T) {
 }
 
 func TestCodeOrValueString(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{
 		"hello": "world",
 		"int":   123,
@@ -137,6 +151,8 @@ func TestCodeOrValueString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := codeOrValueString(tc.code, tc.value, tc.m)
 			assert.EqualValues(t, tc.want, got)
 		})

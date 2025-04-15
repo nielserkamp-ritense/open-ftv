@@ -13,6 +13,8 @@ import (
 )
 
 func TestRequest(t *testing.T) {
+	t.Parallel()
+
 	uid, _ := uuid.NewUUID()
 	rt := time.Date(2024, 10, 29, 12, 13, 14, 999000000, time.UTC)
 	u, _ := url.Parse("https://google.com/hello/world")
@@ -47,6 +49,8 @@ func TestRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := json.Marshal(tc.in)
 			require.NoError(t, err)
 			require.NotNil(t, got)

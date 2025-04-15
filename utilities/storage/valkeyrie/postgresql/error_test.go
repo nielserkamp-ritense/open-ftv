@@ -14,6 +14,8 @@ import (
 )
 
 func TestErrors(t *testing.T) {
+	t.Parallel()
+
 	err := fmt.Errorf("test error")
 	cfg := &pgxpool.Config{ConnConfig: &pgx.ConnConfig{Config: pgconn.Config{Host: "localhost", Port: 5432, Database: "myDB"}}}
 	p := &pool{cfg: cfg}
@@ -118,6 +120,8 @@ func TestErrors(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.do
 			require.NotNil(t, got)
 			assert.True(t, errors.Is(got, err))

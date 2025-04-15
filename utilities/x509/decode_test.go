@@ -12,6 +12,8 @@ import (
 )
 
 func TestCertFromPEM(t *testing.T) {
+	t.Parallel()
+
 	RootCA()
 
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -43,6 +45,8 @@ func TestCertFromPEM(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			cert, err3 := CertFromPEM(tc.data)
 			if tc.wantErr {
 				require.Error(t, err3)

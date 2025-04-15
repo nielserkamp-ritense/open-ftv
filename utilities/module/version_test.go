@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetModuleVersion(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -21,6 +23,8 @@ func TestGetModuleVersion(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := GetModuleVersion(tc.in)
 			if tc.want {
 				assert.NotEmpty(t, got)

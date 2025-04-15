@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewDummyHandler(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		lvl   slog.Level
@@ -44,6 +46,8 @@ func TestNewDummyHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := NewDummyHandler(tc.lvl)
 			require.NotNil(t, h)
 
@@ -83,6 +87,8 @@ func TestNewDummyHandler(t *testing.T) {
 }
 
 func TestDummyHandler_Log(t *testing.T) {
+	t.Parallel()
+
 	t.Run("DummyHandler Log", func(t *testing.T) {
 		h := NewDummyHandler(slog.LevelDebug)
 		require.NotNil(t, h)

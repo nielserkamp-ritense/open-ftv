@@ -10,6 +10,8 @@ import (
 )
 
 func TestConfig_Fix(t *testing.T) {
+	t.Parallel()
+
 	RootCA()
 
 	now := defaultNow()
@@ -102,6 +104,8 @@ func TestConfig_Fix(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := Config{
 				CA:           tc.ca,
 				CAKey:        tc.caKey,

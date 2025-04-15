@@ -14,6 +14,8 @@ import (
 )
 
 func TestPip_PARCFromRequest(t *testing.T) {
+	t.Parallel()
+
 	emptyHTTP := models.NewAttribute("http", map[string]any{})
 
 	testCases := []struct {
@@ -115,6 +117,8 @@ func TestPip_PARCFromRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(tc.level)
 			p := &pep{logger: slog.New(h)}
 
@@ -143,6 +147,8 @@ func TestPip_PARCFromRequest(t *testing.T) {
 }
 
 func TestPip_PARCFromHTTP(t *testing.T) {
+	t.Parallel()
+
 	emptyHTTP := models.NewAttribute("http", map[string]any{})
 
 	testCases := []struct {
@@ -242,6 +248,8 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(tc.level)
 			p := &pep{logger: slog.New(h)}
 

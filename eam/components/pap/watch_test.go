@@ -16,6 +16,8 @@ import (
 )
 
 func TestClearWatcher(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		paths []string
@@ -36,6 +38,8 @@ func TestClearWatcher(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pap{}
 
 			if len(tc.paths) > 0 {
@@ -57,6 +61,8 @@ func TestClearWatcher(t *testing.T) {
 }
 
 func TestProcessDeletes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files map[string]struct{}
@@ -77,6 +83,8 @@ func TestProcessDeletes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := memory.New()
 
 			p := &pap{
@@ -92,6 +100,8 @@ func TestProcessDeletes(t *testing.T) {
 }
 
 func TestProcessUpdates(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files map[string]struct{}
@@ -112,6 +122,8 @@ func TestProcessUpdates(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := memory.New()
 
 			p := &pap{
@@ -127,6 +139,8 @@ func TestProcessUpdates(t *testing.T) {
 }
 
 func TestPolicyModified(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		create      []string
@@ -178,6 +192,8 @@ func TestPolicyModified(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := memory.New()
 
 			p := &pap{
@@ -210,6 +226,8 @@ func TestPolicyModified(t *testing.T) {
 }
 
 func TestWatchFiles(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		create []string
@@ -249,6 +267,8 @@ func TestWatchFiles(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

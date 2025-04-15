@@ -10,6 +10,8 @@ import (
 )
 
 func TestParameter_AttributeValue(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		value      any
@@ -58,6 +60,8 @@ func TestParameter_AttributeValue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &Parameter{Name: "param", Value: tc.value, Type: tc.tp, Attribute: tc.attrKey}
 
 			got, tp, static := p.AttributeValue(tc.get)
@@ -69,6 +73,8 @@ func TestParameter_AttributeValue(t *testing.T) {
 }
 
 func TestParameter_ValueAny(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		value      any
@@ -131,6 +137,8 @@ func TestParameter_ValueAny(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &Parameter{Name: "param", Value: tc.value, Type: tc.tp, Attribute: tc.attrKey}
 
 			got, tp, static := p.ValueAny(tc.get)
@@ -142,6 +150,8 @@ func TestParameter_ValueAny(t *testing.T) {
 }
 
 func TestParameter_ValueString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		value      any
@@ -198,6 +208,8 @@ func TestParameter_ValueString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &Parameter{Name: "param", Value: tc.value, Type: tc.t, Attribute: tc.attrKey}
 
 			got, static := p.ValueString(tc.get)

@@ -12,6 +12,8 @@ import (
 )
 
 func TestOpenSearch(t *testing.T) {
+	t.Parallel()
+
 	const goodCfg = `
 opensearch:
   endpoints: "localhost:111,localhost:222,localhost:333"
@@ -51,6 +53,8 @@ opensearch:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 
@@ -79,6 +83,8 @@ opensearch:
 }
 
 func TestOpenSearch_Sanitized(t *testing.T) {
+	t.Parallel()
+
 	t.Run("sanitize opensearch", func(t *testing.T) {
 		o := &OpenSearch{
 			Endpoints: "endpoints",

@@ -17,6 +17,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new PAP", func(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 
@@ -35,6 +37,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestPap_Add(t *testing.T) {
+	t.Parallel()
+
 	closedFile, err := os.Open("/etc/hostname")
 	require.NoError(t, err)
 	closedFile.Close()
@@ -53,6 +57,8 @@ func TestPap_Add(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
@@ -86,6 +92,8 @@ func TestPap_Add(t *testing.T) {
 }
 
 func TestPap_Replace(t *testing.T) {
+	t.Parallel()
+
 	closedFile, err := os.Open("/etc/hostname")
 	require.NoError(t, err)
 	closedFile.Close()
@@ -124,6 +132,8 @@ func TestPap_Replace(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
@@ -183,6 +193,8 @@ func TestPap_Replace(t *testing.T) {
 }
 
 func TestPap_Remove(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		cached    []string
@@ -197,6 +209,8 @@ func TestPap_Remove(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(0)
 			e := &eventCounter{}
 
@@ -247,6 +261,8 @@ func TestPap_Remove(t *testing.T) {
 }
 
 func TestPap_ListAllKeys(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		cached []string
@@ -259,6 +275,8 @@ func TestPap_ListAllKeys(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(0)
 
 			p := New(nil, slog.New(h))

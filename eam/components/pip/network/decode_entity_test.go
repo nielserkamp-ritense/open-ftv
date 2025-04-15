@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		tp        string
@@ -47,6 +49,8 @@ func TestProcessEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -67,6 +71,8 @@ func TestProcessEntity(t *testing.T) {
 }
 
 func TestDecodeEntityMap(t *testing.T) {
+	t.Parallel()
+
 	a1 := make([]any, 0)
 	a2 := map[string]any{"key": "code", "value": 1, "type": "xsd:string"}
 	a3 := []any{
@@ -226,6 +232,8 @@ func TestDecodeEntityMap(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -262,6 +270,8 @@ func TestDecodeEntityMap(t *testing.T) {
 }
 
 func TestDecodeEntityData(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m2 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
 	m3 := map[string]any{"hello": "jupiter", "int": true, "bool": 123}
@@ -307,6 +317,8 @@ func TestDecodeEntityData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -345,6 +357,8 @@ func TestDecodeEntityData(t *testing.T) {
 }
 
 func TestDecodeEntity(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]interface{}{"hello": "world"}
 	m2 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m3 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
@@ -402,6 +416,8 @@ func TestDecodeEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

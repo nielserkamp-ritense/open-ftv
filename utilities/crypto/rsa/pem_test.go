@@ -10,6 +10,8 @@ import (
 )
 
 func TestPrivateKeyFromPEM(t *testing.T) {
+	t.Parallel()
+
 	b1 := &pem.Block{
 		Type:  "bad type",
 		Bytes: []byte{'a', 'b', 'c'},
@@ -31,6 +33,8 @@ func TestPrivateKeyFromPEM(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := PrivateKeyFromPEM(tc.b)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -44,6 +48,8 @@ func TestPrivateKeyFromPEM(t *testing.T) {
 }
 
 func TestLoadPrivateKeyFile(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -55,6 +61,8 @@ func TestLoadPrivateKeyFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := LoadPrivateKeyFile(tc.path)
 			if tc.wantErr {
 				require.Error(t, err)

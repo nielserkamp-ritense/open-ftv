@@ -9,6 +9,8 @@ import (
 )
 
 func TestLoadConfig_BadPath(t *testing.T) {
+	t.Parallel()
+
 	t.Run("bad path", func(t *testing.T) {
 		cfg, err := LoadConfig("/this/is/not/a/valid/file/path")
 		require.Error(t, err)
@@ -17,6 +19,8 @@ func TestLoadConfig_BadPath(t *testing.T) {
 }
 
 func TestLoadConfig(t *testing.T) {
+	t.Parallel()
+
 	d := t.TempDir()
 
 	testCases := []struct {
@@ -36,6 +40,8 @@ func TestLoadConfig(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			path := filepath.Join(d, tc.file)
 
 			f, err := os.Create(path)

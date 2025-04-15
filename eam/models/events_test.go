@@ -7,6 +7,8 @@ import (
 )
 
 func TestEventType(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   EventType
@@ -30,6 +32,8 @@ func TestEventType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.in.String()
 			assert.Equal(t, tc.want, got)
 		})
