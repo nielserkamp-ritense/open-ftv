@@ -11,6 +11,8 @@ import (
 )
 
 func TestCache_LoadFromStore(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name         string
 		path         string
@@ -49,6 +51,8 @@ func TestCache_LoadFromStore(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
 			p := New(nil, slog.New(h), WithFileStore(tc.path, tc.recurse))

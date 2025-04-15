@@ -13,12 +13,14 @@ import (
 )
 
 func TestHealth(t *testing.T) {
+	t.Parallel()
+
 	t.Run("test health", func(t *testing.T) {
 		srv := fiber.New()
 		srv.Get("/healthz", HealthZ)
 
 		req := httptest.NewRequest("GET", "/healthz", nil)
-		resp, err2 := srv.Test(req, 5)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)

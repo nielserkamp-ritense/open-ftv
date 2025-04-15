@@ -35,6 +35,8 @@ log:
 `
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	dir := t.TempDir()
 
 	testCases := []struct {
@@ -76,6 +78,8 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 			require.NoError(t, err)

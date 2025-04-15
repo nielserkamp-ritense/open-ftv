@@ -13,6 +13,8 @@ import (
 )
 
 func TestNewCertificate(t *testing.T) {
+	t.Parallel()
+
 	RootCA()
 
 	now := defaultNow()
@@ -94,6 +96,8 @@ func TestNewCertificate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			cfg := &Config{
 				Serial:       tc.serial,
 				KeySize:      tc.keySize,

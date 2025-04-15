@@ -16,6 +16,8 @@ import (
 )
 
 func TestPAP(t *testing.T) {
+	t.Parallel()
+
 	const badRecurse = `
 policies:
   language: "cedar"
@@ -69,6 +71,8 @@ policies:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 
@@ -96,6 +100,8 @@ policies:
 }
 
 func TestPAP_NewPAP(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new pap", func(t *testing.T) {
 		p1 := &PAP{
 			Language:     "cedar",

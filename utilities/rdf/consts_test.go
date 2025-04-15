@@ -9,6 +9,8 @@ import (
 )
 
 func TestPrefixUri(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		prefix string
@@ -32,6 +34,8 @@ func TestPrefixUri(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := PrefixURI[tc.prefix]
 			assert.Equal(t, tc.want, got)
 		})
@@ -39,6 +43,8 @@ func TestPrefixUri(t *testing.T) {
 }
 
 func TestUriPrefix(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		prefix string
@@ -62,6 +68,8 @@ func TestUriPrefix(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := URIPrefix[tc.prefix]
 			assert.Equal(t, tc.want, got)
 		})
@@ -69,6 +77,8 @@ func TestUriPrefix(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		id   string
@@ -88,6 +98,8 @@ func TestConstants(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tc.want, tc.id)
 		})
 	}

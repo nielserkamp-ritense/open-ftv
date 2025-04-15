@@ -7,6 +7,8 @@ import (
 )
 
 func TestIsSupported(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -20,6 +22,8 @@ func TestIsSupported(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsSupported(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -27,6 +31,8 @@ func TestIsSupported(t *testing.T) {
 }
 
 func TestConvertExt(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -41,6 +47,8 @@ func TestConvertExt(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ConvertExt(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

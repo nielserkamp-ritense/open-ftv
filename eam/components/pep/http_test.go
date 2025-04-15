@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessURL(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		method     string
@@ -61,6 +63,8 @@ func TestProcessURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			now := time.Now()
 
 			c := &collector{

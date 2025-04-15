@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessRelation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		sType     string
@@ -51,6 +53,8 @@ func TestProcessRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -71,6 +75,8 @@ func TestProcessRelation(t *testing.T) {
 }
 
 func TestDecodeRelationMap(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"t1": "user", "id1": "alice", "t2": "rel", "id2": "knows", "t3": "user", "id3": "bob"}
 
 	testCases := []struct {
@@ -181,6 +187,8 @@ func TestDecodeRelationMap(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -207,6 +215,8 @@ func TestDecodeRelationMap(t *testing.T) {
 }
 
 func TestDecodeRelationData(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"t1": "user", "id1": "alice", "t2": "rel", "id2": "knows", "t3": "user", "id3": "bob"}
 	m2 := map[string]any{"t1": "user", "id1": "janice", "t2": "rel", "id2": "knows", "t3": "admin", "id3": "danny"}
 	m3 := map[string]any{"t1": "admin", "id1": "danny", "t2": "rel", "id2": "knows", "t3": "user", "id3": "alice"}
@@ -282,6 +292,8 @@ func TestDecodeRelationData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -310,6 +322,8 @@ func TestDecodeRelationData(t *testing.T) {
 }
 
 func TestDecodeRelation(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"hello": "world"}
 	m2 := map[string]any{"t1": "user", "id1": "alice", "t2": "rel", "id2": "knows", "t3": "user", "id3": "bob"}
 	m3 := map[string]any{"t1": "user", "id1": "janice", "t2": "rel", "id2": "knows", "t3": "admin", "id3": "danny"}
@@ -390,6 +404,8 @@ func TestDecodeRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 

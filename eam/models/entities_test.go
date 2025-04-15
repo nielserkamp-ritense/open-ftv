@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewEntitySet(t *testing.T) {
+	t.Parallel()
+
 	e1 := NewEntity("entity", "x1", NewAttributeSet())
 	e2 := NewEntity("entity", "x2", NewAttributeSet())
 	e3 := NewEntity("entity", "x3", NewAttributeSet())
@@ -54,6 +56,8 @@ func TestNewEntitySet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewEntitySet(tc.in...)
 			require.NotNil(t, got)
 
@@ -74,6 +78,8 @@ func TestNewEntitySet(t *testing.T) {
 }
 
 func TestEntities_AddEntity(t *testing.T) {
+	t.Parallel()
+
 	e1 := NewEntity("entity", "x1", NewAttributeSet())
 	e2 := NewEntity("entity", "x2", NewAttributeSet())
 	e3 := NewEntity("entity", "x3", NewAttributeSet())
@@ -108,6 +114,8 @@ func TestEntities_AddEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.AddEntity(tc.add)
 
@@ -124,6 +132,8 @@ func TestEntities_AddEntity(t *testing.T) {
 }
 
 func TestEntities_RemoveEntity(t *testing.T) {
+	t.Parallel()
+
 	e1 := NewEntity("entity", "x1", NewAttributeSet())
 	e2 := NewEntity("entity", "x2", NewAttributeSet())
 	e3 := NewEntity("entity", "x3", NewAttributeSet())
@@ -157,6 +167,8 @@ func TestEntities_RemoveEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.RemoveEntity(tc.key)
 
@@ -173,6 +185,8 @@ func TestEntities_RemoveEntity(t *testing.T) {
 }
 
 func TestEntities_MergeEntities(t *testing.T) {
+	t.Parallel()
+
 	e1 := NewEntity("entity", "x1", NewAttributeSet())
 	e2 := NewEntity("entity", "x2", NewAttributeSet())
 	e3 := NewEntity("entity", "x3", NewAttributeSet())
@@ -207,6 +221,8 @@ func TestEntities_MergeEntities(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := tc.in
 			e.MergeEntities(tc.merge...)
 

@@ -11,6 +11,8 @@ import (
 )
 
 func TestDoelbindingAsPrincipal(t *testing.T) {
+	t.Parallel()
+
 	alice := models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttributeWithType("admin", false, "xsd:boolean")))
 	bob := models.NewEntity("user", "bob", models.NewAttributeSet(models.NewAttributeWithType("admin", true, "xsd:boolean")))
 	doel := models.NewEntity(pep.PrincipalDoelbinding, "burgerzaken", models.NewAttributeSet(models.NewAttributeWithType(models.AttrRvvaID, "xyz", "xsd:string")))
@@ -70,6 +72,8 @@ func TestDoelbindingAsPrincipal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := DoelbindingToPrincipal(tc.parc)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantType, got.Principal.Type())

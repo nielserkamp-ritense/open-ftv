@@ -7,6 +7,8 @@ import (
 )
 
 func TestMustMarshall(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		in      any
@@ -22,6 +24,8 @@ func TestMustMarshall(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			defer func() {
 				e := recover()
 				if tc.wantErr {

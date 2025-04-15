@@ -13,6 +13,8 @@ import (
 )
 
 func TestRequest_Prepare(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		method     string
@@ -154,6 +156,8 @@ func TestRequest_Prepare(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &Request{
 				Name:        "request",
 				Method:      tc.method,
@@ -178,6 +182,8 @@ func TestRequest_Prepare(t *testing.T) {
 }
 
 func TestRequest_HTTPRequest(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name         string
 		method       string
@@ -363,6 +369,8 @@ func TestRequest_HTTPRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &Request{
 				Name:        "request",
 				Method:      tc.method,

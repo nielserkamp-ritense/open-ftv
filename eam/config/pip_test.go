@@ -17,6 +17,8 @@ import (
 )
 
 func TestPIP(t *testing.T) {
+	t.Parallel()
+
 	const badRecurse = `
 pip:
   store: 
@@ -72,6 +74,8 @@ pip:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 
@@ -99,6 +103,8 @@ pip:
 }
 
 func TestPIP_NewPIP(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new pip", func(t *testing.T) {
 		p1 := &PIP{
 			Store:        "../../testdata/unittest/pip2",

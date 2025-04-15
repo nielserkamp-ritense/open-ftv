@@ -11,6 +11,8 @@ import (
 )
 
 func TestValidIP(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		ip      string
@@ -34,6 +36,8 @@ func TestValidIP(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			addr, err := netip.ParseAddr(tc.ip)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -48,6 +52,8 @@ func TestValidIP(t *testing.T) {
 }
 
 func TestForwardedList(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		list   []string
@@ -78,6 +84,8 @@ func TestForwardedList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &collector{
 				debug: true,
 				req:   &models.HTTPRequest{},
@@ -92,6 +100,8 @@ func TestForwardedList(t *testing.T) {
 }
 
 func TestForwarded(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		fwd1   string
@@ -163,6 +173,8 @@ func TestForwarded(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &collector{
 				debug: true,
 				req:   &models.HTTPRequest{},

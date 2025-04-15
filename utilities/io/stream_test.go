@@ -8,6 +8,8 @@ import (
 )
 
 func TestSnifStream(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		path string
@@ -87,6 +89,8 @@ func TestSnifStream(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			f, err := os.Open(tc.path)
 			if err == nil {
 				defer f.Close()

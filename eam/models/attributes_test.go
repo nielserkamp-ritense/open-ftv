@@ -9,6 +9,8 @@ import (
 )
 
 func TestNewAttributeSet(t *testing.T) {
+	t.Parallel()
+
 	m1 := map[string]any{"hello": "world2", "int": 678}
 	m2 := map[string]any{"bool": true}
 
@@ -55,6 +57,8 @@ func TestNewAttributeSet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewAttributeSet(tc.in...)
 			require.NotNil(t, got)
 
@@ -84,6 +88,8 @@ func TestNewAttributeSet(t *testing.T) {
 }
 
 func TestAttributes_AddAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		in    AttributeSet
@@ -116,6 +122,8 @@ func TestAttributes_AddAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := tc.in
 			a.AddAttribute(tc.key, tc.value)
 
@@ -127,6 +135,8 @@ func TestAttributes_AddAttribute(t *testing.T) {
 }
 
 func TestAttributes_AddAttributeWithType(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		in    AttributeSet
@@ -163,6 +173,8 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := tc.in
 			a.AddAttributeWithType(tc.key, tc.value, tc.tp)
 
@@ -179,6 +191,8 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 }
 
 func TestAttributes_AddOriginalAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		in    AttributeSet
@@ -236,6 +250,8 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := tc.in
 			a.AddOriginalAttribute(tc.key, tc.value, tc.orig, tc.tp)
 
@@ -255,6 +271,8 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 }
 
 func TestAddAttributePath(t *testing.T) {
+	t.Parallel()
+
 	t.Run("add attribute with path", func(t *testing.T) {
 		s := NewAttributeSet(
 			NewAttribute("c", "hello world"),
@@ -296,6 +314,8 @@ func TestAddAttributePath(t *testing.T) {
 }
 
 func TestAttributes_RemoveAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   AttributeSet
@@ -324,6 +344,8 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := tc.in
 			a.RemoveAttribute(tc.key)
 
@@ -335,6 +357,8 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 }
 
 func TestAttributes_MergeAttributes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		in    AttributeSet
@@ -368,6 +392,8 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			a := tc.in
 			a.MergeAttributes(tc.merge...)
 
@@ -379,6 +405,8 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 }
 
 func TestAttributes_MarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		attr []Attribute
@@ -406,6 +434,8 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := NewAttributeSet(tc.attr)
 			require.NotNil(t, s)
 
@@ -417,6 +447,8 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 }
 
 func TestMapFromAttributes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   AttributeSet
@@ -439,6 +471,8 @@ func TestMapFromAttributes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := MapFromAttributes(tc.in)
 			assert.EqualValues(t, tc.want, got)
 		})
@@ -446,6 +480,8 @@ func TestMapFromAttributes(t *testing.T) {
 }
 
 func TestAttributesEqual(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		s1   AttributeSet
@@ -504,6 +540,8 @@ func TestAttributesEqual(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AttributesEqual(tc.s1, tc.s2)
 			assert.Equal(t, tc.want, got)
 		})

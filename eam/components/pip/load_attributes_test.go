@@ -12,6 +12,8 @@ import (
 )
 
 func TestLoadAttributeMap(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   map[string]any
@@ -23,6 +25,8 @@ func TestLoadAttributeMap(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -45,6 +49,8 @@ func TestLoadAttributeMap(t *testing.T) {
 }
 
 func TestLoadAttributesAny(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -83,6 +89,8 @@ func TestLoadAttributesAny(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -105,6 +113,8 @@ func TestLoadAttributesAny(t *testing.T) {
 }
 
 func TestLoadAttributes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -183,6 +193,8 @@ func TestLoadAttributes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

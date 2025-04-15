@@ -12,6 +12,8 @@ import (
 )
 
 func TestProcessFSC(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		auth        string
@@ -47,6 +49,8 @@ func TestProcessFSC(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := util.NewDummyHandler(slog.LevelDebug)
 
 			c := &collector{

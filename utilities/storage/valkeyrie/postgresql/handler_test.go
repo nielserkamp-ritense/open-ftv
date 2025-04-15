@@ -10,6 +10,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new handler", func(t *testing.T) {
 		mock, err := pgxmock.NewPool()
 		require.NoError(t, err)

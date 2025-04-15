@@ -13,6 +13,8 @@ import (
 )
 
 func TestProcessHeaders(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		headers     map[string][]string
@@ -152,6 +154,8 @@ func TestProcessHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog.NewTextHandler(io.Discard, nil)
 
 			c := &collector{
@@ -267,6 +271,8 @@ func TestProcessHeaders(t *testing.T) {
 }
 
 func TestProcessActivityID(t *testing.T) {
+	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	ip := pip.New(nil, logger, pip.WithFileStore("../../../testdata/unittest/pip2", true))
@@ -304,6 +310,8 @@ func TestProcessActivityID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &collector{
 				debug:    true,
 				logger:   logger,

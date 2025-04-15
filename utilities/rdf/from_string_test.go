@@ -8,6 +8,8 @@ import (
 )
 
 func TestFromString(t *testing.T) {
+	t.Parallel()
+
 	html := "<html><head><title>Hello World</title></head><body>nothing to see here</body></html>"
 	xml := "<xml><title>Hello World</title></xml>"
 	j1 := `{"title":"Hello World"}`
@@ -30,6 +32,8 @@ func TestFromString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := FromString(tc.data, tc.t)
 			if tc.wantErr {
 				require.Error(t, err)

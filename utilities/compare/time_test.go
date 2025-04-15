@@ -8,6 +8,8 @@ import (
 )
 
 func TestTimePtrsEqual(t *testing.T) {
+	t.Parallel()
+
 	var (
 		d1 = time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
 		d2 = time.Date(2024, 7, 1, 0, 0, 0, 1, time.UTC)
@@ -29,6 +31,8 @@ func TestTimePtrsEqual(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := TimePtrEqual(tc.d1, tc.d2)
 			assert.Equal(t, tc.want, got)
 		})

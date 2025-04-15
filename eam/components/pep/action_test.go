@@ -9,6 +9,8 @@ import (
 )
 
 func TestDetermineAction(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		action models.Entity
@@ -67,6 +69,8 @@ func TestDetermineAction(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &collector{
 				req:  tc.req,
 				parc: &models.PARC{Action: tc.action},

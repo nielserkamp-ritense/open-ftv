@@ -17,6 +17,8 @@ import (
 )
 
 func TestMarshalUnmarshalAttributes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		a         models.Attribute
@@ -53,6 +55,8 @@ func TestMarshalUnmarshalAttributes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			defer func() {
 				e := recover()
 				if tc.wantPanic {
@@ -79,6 +83,8 @@ func TestMarshalUnmarshalAttributes(t *testing.T) {
 }
 
 func TestMarshalAttribute_Repeated(t *testing.T) {
+	t.Parallel()
+
 	t.Run("marshal repeated", func(t *testing.T) {
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
 
@@ -92,6 +98,8 @@ func TestMarshalAttribute_Repeated(t *testing.T) {
 }
 
 func TestUnmarshalAttribute_Fail(t *testing.T) {
+	t.Parallel()
+
 	d1, _ := json.Marshal(&attribute{
 		Key:   "k1",
 		Value: "this is not base64! \000\001",
@@ -149,6 +157,8 @@ func TestUnmarshalAttribute_Fail(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := unmarshalAttribute(tc.data)
 			require.Error(t, err)
 			require.Nil(t, got)
@@ -157,6 +167,8 @@ func TestUnmarshalAttribute_Fail(t *testing.T) {
 }
 
 func TestNewAttributeStore(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute store", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -198,6 +210,8 @@ func TestNewAttributeStore(t *testing.T) {
 }
 
 func TestNewAttributeStore_DupError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute store - duplicate error", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -225,6 +239,8 @@ func TestNewAttributeStore_DupError(t *testing.T) {
 }
 
 func TestNewAttributeStore_Read_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - read - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -244,6 +260,8 @@ func TestNewAttributeStore_Read_NotFound(t *testing.T) {
 }
 
 func TestNewAttributeStore_Update_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute store - update - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -266,6 +284,8 @@ func TestNewAttributeStore_Update_NotFound(t *testing.T) {
 }
 
 func TestNewAttributeStore_Delete_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute store - delete - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -288,6 +308,8 @@ func TestNewAttributeStore_Delete_NotFound(t *testing.T) {
 }
 
 func TestNewAttributeStore_List(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new attribute store - list", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)

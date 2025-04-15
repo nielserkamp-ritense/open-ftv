@@ -7,6 +7,8 @@ import (
 )
 
 func TestFormat_String(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   Format
@@ -26,6 +28,8 @@ func TestFormat_String(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.in.String()
 			assert.Equal(t, tc.want, got)
 		})
@@ -33,6 +37,8 @@ func TestFormat_String(t *testing.T) {
 }
 
 func TestFormatFromString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -52,6 +58,8 @@ func TestFormatFromString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := FormatFromString(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

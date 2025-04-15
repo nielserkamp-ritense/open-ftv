@@ -17,6 +17,8 @@ import (
 )
 
 func TestNewService_Serve(t *testing.T) {
+	t.Parallel()
+
 	t.Run("serve", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -65,6 +67,8 @@ func TestNewService_Serve(t *testing.T) {
 }
 
 func TestNewService_FailPDP(t *testing.T) {
+	t.Parallel()
+
 	t.Run("fail PDP", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -94,6 +98,8 @@ func TestNewService_FailPDP(t *testing.T) {
 }
 
 func TestNewService_ErrorHandler(t *testing.T) {
+	t.Parallel()
+
 	t.Run("error handler", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)

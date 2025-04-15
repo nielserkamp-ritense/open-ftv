@@ -14,6 +14,8 @@ import (
 )
 
 func TestWithPersistence(t *testing.T) {
+	t.Parallel()
+
 	t.Run("with language", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -32,6 +34,8 @@ func TestWithPersistence(t *testing.T) {
 }
 
 func TestWithFileStore(t *testing.T) {
+	t.Parallel()
+
 	t.Run("with file store", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -54,6 +58,8 @@ func TestWithFileStore(t *testing.T) {
 }
 
 func TestWithPullConfigs(t *testing.T) {
+	t.Parallel()
+
 	t.Run("with pull configs", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -82,6 +88,8 @@ func TestWithPullConfigs(t *testing.T) {
 }
 
 func TestWithFactories(t *testing.T) {
+	t.Parallel()
+
 	t.Run("with factories", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)

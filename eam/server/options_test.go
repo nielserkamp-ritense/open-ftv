@@ -8,6 +8,8 @@ import (
 )
 
 func TestConfig_LoadDefaults(t *testing.T) {
+	t.Parallel()
+
 	t.Run("load defaults", func(t *testing.T) {
 		var c Config
 		c.LoadDefaults()
@@ -22,6 +24,8 @@ func TestConfig_LoadDefaults(t *testing.T) {
 }
 
 func TestConfig_LoadOptions(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name         string
 		opts         []Option
@@ -142,6 +146,8 @@ func TestConfig_LoadOptions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			var c Config
 			c.LoadOptions(tc.opts...)
 

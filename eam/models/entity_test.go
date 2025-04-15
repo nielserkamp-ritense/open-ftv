@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		ns       string
@@ -58,6 +60,8 @@ func TestNewEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewEntity(tc.ns, tc.id, tc.attr, tc.parents...)
 			require.NotNil(t, got)
 
@@ -80,6 +84,8 @@ func TestNewEntity(t *testing.T) {
 }
 
 func TestEntityToAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		e         Entity
@@ -136,6 +142,8 @@ func TestEntityToAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := EntityToAttribute(tc.e)
 			assert.Equal(t, tc.wantKey, got.Key())
 			assert.EqualValues(t, tc.wantValue, got.Value())

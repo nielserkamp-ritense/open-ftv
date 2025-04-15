@@ -7,6 +7,8 @@ import (
 )
 
 func TestSnifFile(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		path string
@@ -52,6 +54,8 @@ func TestSnifFile(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := SnifFile(tc.path)
 			assert.Equal(t, tc.want, got)
 		})

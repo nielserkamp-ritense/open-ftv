@@ -7,6 +7,8 @@ import (
 )
 
 func TestAnyToBool(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -34,6 +36,8 @@ func TestAnyToBool(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToBool(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

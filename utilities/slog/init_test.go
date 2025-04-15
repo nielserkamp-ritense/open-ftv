@@ -9,6 +9,8 @@ import (
 )
 
 func TestInit(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		output    string
@@ -73,6 +75,8 @@ func TestInit(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, gotErr := Init(tc.output, tc.format, tc.level, false)
 			if tc.wantErr {
 				assert.Error(t, gotErr)

@@ -18,6 +18,8 @@ import (
 )
 
 func TestNewManager(t *testing.T) {
+	t.Parallel()
+
 	d := t.TempDir()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +60,9 @@ func TestNewManager(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// TODO: figure out why Parallel() causes a deadlock.
+			// t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			require.NotNil(t, h)
 
@@ -96,6 +101,8 @@ func TestNewManager(t *testing.T) {
 }
 
 func TestNewManager_NoContext(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new manager without context", func(t *testing.T) {
 		d := t.TempDir()
 

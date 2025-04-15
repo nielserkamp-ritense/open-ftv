@@ -10,6 +10,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new", func(t *testing.T) {
 		s := New()
 		require.NotNil(t, s)
@@ -24,6 +26,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestPutGet(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		add  map[string]any
@@ -37,6 +41,8 @@ func TestPutGet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -64,6 +70,8 @@ func TestPutGet(t *testing.T) {
 }
 
 func TestGetFail(t *testing.T) {
+	t.Parallel()
+
 	t.Run("get fail", func(t *testing.T) {
 		s := New()
 		require.NotNil(t, s)
@@ -82,6 +90,8 @@ func TestGetFail(t *testing.T) {
 }
 
 func TestPutDelete(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		add  map[string]any
@@ -93,6 +103,8 @@ func TestPutDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -128,6 +140,8 @@ func TestPutDelete(t *testing.T) {
 }
 
 func TestPutExists(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		add  map[string]any
@@ -139,6 +153,8 @@ func TestPutExists(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -183,6 +199,8 @@ func TestExistsFail(t *testing.T) {
 }
 
 func TestUnsupported(t *testing.T) {
+	t.Parallel()
+
 	t.Run("unsupported", func(t *testing.T) {
 		s := New()
 		require.NotNil(t, s)
@@ -204,6 +222,8 @@ func TestUnsupported(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		add       map[string]any
@@ -219,6 +239,8 @@ func TestList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -240,6 +262,8 @@ func TestList(t *testing.T) {
 }
 
 func TestDeleteTree(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		add       map[string]any
@@ -255,6 +279,8 @@ func TestDeleteTree(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -279,6 +305,8 @@ func TestDeleteTree(t *testing.T) {
 }
 
 func TestAtomicPut(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		add       map[string]any
@@ -298,6 +326,8 @@ func TestAtomicPut(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 
@@ -338,6 +368,8 @@ func TestAtomicPut(t *testing.T) {
 }
 
 func TestAtomicDelete(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name      string
 		add       map[string]any
@@ -353,6 +385,8 @@ func TestAtomicDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := New()
 			require.NotNil(t, s)
 

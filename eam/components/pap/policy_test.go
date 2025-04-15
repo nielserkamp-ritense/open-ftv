@@ -13,6 +13,8 @@ import (
 )
 
 func TestNewPolicy(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		p       *policies.Policy
@@ -38,6 +40,8 @@ func TestNewPolicy(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewPolicy(tc.p, bytes.NewBufferString(tc.data))
 			if tc.wantErr {
 				require.Error(t, err)
@@ -60,6 +64,8 @@ func TestNewPolicy(t *testing.T) {
 }
 
 func TestNewPolicyFromData(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		id       string
@@ -91,6 +97,8 @@ func TestNewPolicyFromData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := NewPolicyFromData(tc.id, tc.language, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
 			if tc.wantErr {
 				require.Error(t, err)
@@ -113,6 +121,8 @@ func TestNewPolicyFromData(t *testing.T) {
 }
 
 func TestNewPolicyFromStore(t *testing.T) {
+	t.Parallel()
+
 	path1 := "../../../testdata/unittest/cedar/allow_post.cedar"
 	path2 := "../../../testdata/unittest/opa/subsidies.rego"
 	path3 := "../../../testdata/unittest/openfga/doelbinding.model"
@@ -178,6 +188,8 @@ func TestNewPolicyFromStore(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err2 := NewPolicyFromStore("", tc.path, tc.content)
 			if tc.wantErr {
 				require.Error(t, err2)

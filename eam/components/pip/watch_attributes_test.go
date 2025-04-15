@@ -18,6 +18,8 @@ import (
 )
 
 func TestClearAttributeWatcher(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		paths []string
@@ -38,6 +40,8 @@ func TestClearAttributeWatcher(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{}
 
 			if len(tc.paths) > 0 {
@@ -59,6 +63,8 @@ func TestClearAttributeWatcher(t *testing.T) {
 }
 
 func TestAttributeDeletes(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files []string
@@ -79,6 +85,8 @@ func TestAttributeDeletes(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{attributeDeletes: tc.files}
 			p.processAttributeDeletes()
 			assert.Empty(t, p.attributeDeletes)
@@ -87,6 +95,8 @@ func TestAttributeDeletes(t *testing.T) {
 }
 
 func TestAttributeUpdates(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name  string
 		files []string
@@ -107,6 +117,8 @@ func TestAttributeUpdates(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &pip{attributeUpdates: tc.files}
 			p.processAttributeUpdates()
 			assert.Empty(t, p.attributeUpdates)

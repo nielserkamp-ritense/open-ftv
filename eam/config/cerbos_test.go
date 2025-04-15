@@ -11,6 +11,8 @@ import (
 )
 
 func TestCerbos(t *testing.T) {
+	t.Parallel()
+
 	const goodCfg = `
 cerbos:
   address: "https://localhost:1234"
@@ -54,6 +56,8 @@ cerbos:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 			require.NoError(t, err)
@@ -84,6 +88,8 @@ cerbos:
 }
 
 func TestCerbos_Sanitized(t *testing.T) {
+	t.Parallel()
+
 	t.Run("sanitize cerbos", func(t *testing.T) {
 		c := &Cerbos{
 			Address:      "adres",

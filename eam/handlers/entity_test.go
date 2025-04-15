@@ -12,6 +12,8 @@ import (
 )
 
 func TestEntityFromOAS(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   *attributes.Entity
@@ -64,6 +66,8 @@ func TestEntityFromOAS(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := EntityFromOAS(tc.in, models.NewAttributeSet())
 			assert.Equal(t, tc.want.Type(), got.Type())
 			assert.Equal(t, tc.want.ID(), got.ID())
@@ -74,6 +78,8 @@ func TestEntityFromOAS(t *testing.T) {
 }
 
 func TestEntityToOAS(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   models.Entity
@@ -126,6 +132,8 @@ func TestEntityToOAS(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := EntityToOAS(tc.in)
 
 			slices.SortFunc(got.Attributes, func(a, b attributes.Attribute) int {

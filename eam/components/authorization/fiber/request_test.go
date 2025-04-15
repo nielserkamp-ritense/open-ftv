@@ -24,6 +24,8 @@ import (
 )
 
 func TestFormatRequest(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		path       string
@@ -62,6 +64,8 @@ func TestFormatRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -100,7 +104,7 @@ func TestFormatRequest(t *testing.T) {
 				}
 			}
 
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -126,6 +130,8 @@ func TestFormatRequest(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		resp       *models.Response
@@ -159,6 +165,8 @@ func TestCheck(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			var got bool
 
 			srv := fiber.New()
@@ -168,7 +176,7 @@ func TestCheck(t *testing.T) {
 			})
 
 			req := httptest.NewRequest(fiber.MethodGet, "/v1/attributes", nil)
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			if tc.wantErr {
 				require.Error(t, err2)

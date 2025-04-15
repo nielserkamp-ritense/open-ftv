@@ -12,6 +12,8 @@ import (
 )
 
 func TestLog(t *testing.T) {
+	t.Parallel()
+
 	const badSource = `
 log:
   output: "STDOUT"
@@ -68,6 +70,8 @@ log:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 
@@ -96,6 +100,8 @@ log:
 }
 
 func TestLog_New(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		output  string
@@ -136,6 +142,8 @@ func TestLog_New(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			l := &Log{Output: tc.output, Format: tc.format, Level: tc.level, Source: tc.source}
 
 			logger, err := l.MakeLogger()

@@ -7,6 +7,8 @@ import (
 )
 
 func TestIsLiteral(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -85,6 +87,8 @@ func TestIsLiteral(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsLiteral(tc.t)
 			assert.Equal(t, tc.want, got)
 		})

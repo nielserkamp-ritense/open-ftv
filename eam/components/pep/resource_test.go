@@ -9,6 +9,8 @@ import (
 )
 
 func TestDetermineResource(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name     string
 		resource models.Entity
@@ -41,6 +43,8 @@ func TestDetermineResource(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &collector{
 				parc:   &models.PARC{Resource: tc.resource},
 				newURI: tc.uri,

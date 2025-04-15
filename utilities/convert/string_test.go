@@ -8,6 +8,8 @@ import (
 )
 
 func TestOpaqueString(t *testing.T) {
+	t.Parallel()
+
 	s1 := ""
 	s2 := "hello world"
 
@@ -23,6 +25,8 @@ func TestOpaqueString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := OpaqueString(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -30,6 +34,8 @@ func TestOpaqueString(t *testing.T) {
 }
 
 func TestRemoveHeaderParameters(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   string
@@ -42,6 +48,8 @@ func TestRemoveHeaderParameters(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := RemoveHeaderParameters(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -49,6 +57,8 @@ func TestRemoveHeaderParameters(t *testing.T) {
 }
 
 func TestAnyToString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -73,6 +83,8 @@ func TestAnyToString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToString(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -80,6 +92,8 @@ func TestAnyToString(t *testing.T) {
 }
 
 func TestForceSuffix(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name   string
 		in     string
@@ -138,6 +152,8 @@ func TestForceSuffix(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ForceSuffix(tc.in, tc.suffix)
 			assert.Equal(t, tc.want, got)
 		})

@@ -7,6 +7,8 @@ import (
 )
 
 func TestIsClass(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -34,6 +36,8 @@ func TestIsClass(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsClass(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -41,6 +45,8 @@ func TestIsClass(t *testing.T) {
 }
 
 func TestIsLabel(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -56,6 +62,8 @@ func TestIsLabel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsLabel(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -63,6 +71,8 @@ func TestIsLabel(t *testing.T) {
 }
 
 func TestIsTitle(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -76,6 +86,8 @@ func TestIsTitle(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsTitle(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -83,6 +95,8 @@ func TestIsTitle(t *testing.T) {
 }
 
 func TestIsList(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -98,6 +112,8 @@ func TestIsList(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsList(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -105,6 +121,8 @@ func TestIsList(t *testing.T) {
 }
 
 func TestIsAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -119,6 +137,8 @@ func TestIsAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsAttribute(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -126,6 +146,8 @@ func TestIsAttribute(t *testing.T) {
 }
 
 func TestIsEntity(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -144,6 +166,8 @@ func TestIsEntity(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsEntity(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -151,6 +175,8 @@ func TestIsEntity(t *testing.T) {
 }
 
 func TestIsRelation(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -164,6 +190,8 @@ func TestIsRelation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsRelation(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -171,6 +199,8 @@ func TestIsRelation(t *testing.T) {
 }
 
 func TestIsValue(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -190,6 +220,8 @@ func TestIsValue(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsValue(tc.t)
 			assert.Equal(t, tc.want, got)
 		})
@@ -197,6 +229,8 @@ func TestIsValue(t *testing.T) {
 }
 
 func TestIsLiteral(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		t    string
@@ -222,6 +256,8 @@ func TestIsLiteral(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsLiteral(tc.t)
 			assert.Equal(t, tc.want, got)
 		})

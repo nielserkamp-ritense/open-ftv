@@ -13,6 +13,8 @@ import (
 )
 
 func TestDB_Put(t *testing.T) {
+	t.Parallel()
+
 	t.Run("put", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -45,6 +47,8 @@ func TestDB_Put(t *testing.T) {
 }
 
 func TestDB_Put_FailTx(t *testing.T) {
+	t.Parallel()
+
 	t.Run("put - fail tx", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -72,6 +76,8 @@ func TestDB_Put_FailTx(t *testing.T) {
 }
 
 func TestDB_Put_FailExec(t *testing.T) {
+	t.Parallel()
+
 	t.Run("put - fail exec", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -104,6 +110,8 @@ func TestDB_Put_FailExec(t *testing.T) {
 }
 
 func TestDB_AtomicPut_Insert(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic put insert", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -138,6 +146,8 @@ func TestDB_AtomicPut_Insert(t *testing.T) {
 }
 
 func TestDB_AtomicPut_Update(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic put update", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)
@@ -203,6 +213,8 @@ func TestDB_AtomicPut_FailTx(t *testing.T) {
 }
 
 func TestDB_AtomicPut_FailExec(t *testing.T) {
+	t.Parallel()
+
 	t.Run("atomic put - fail exec", func(t *testing.T) {
 		mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 		require.NoError(t, err)

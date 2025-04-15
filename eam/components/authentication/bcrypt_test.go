@@ -15,6 +15,8 @@ import (
 )
 
 func TestNewBCrypt(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -39,6 +41,8 @@ func TestNewBCrypt(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := NewBCrypt(tc.opts...)
 			require.NotNil(t, got)
 
@@ -64,6 +68,8 @@ func TestNewBCrypt(t *testing.T) {
 }
 
 func TestBCrypt_AuthenticateUser(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -89,10 +95,12 @@ func TestBCrypt_AuthenticateUser(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntities(entities))
-			require.NotNil(t, a)
+			t.Parallel()
 
-			err := a.AuthenticateUser(ctx, tc.user, tc.pswd)
+			b := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntities(entities))
+			require.NotNil(t, b)
+
+			err := b.AuthenticateUser(ctx, tc.user, tc.pswd)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

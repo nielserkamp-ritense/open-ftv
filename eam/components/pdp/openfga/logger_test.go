@@ -13,6 +13,8 @@ import (
 )
 
 func TestNewZapper(t *testing.T) {
+	t.Parallel()
+
 	t.Run("test zapper", func(t *testing.T) {
 		f1 := zap.Float64("f", 123.456)
 		s1 := zap.String("k", "v")

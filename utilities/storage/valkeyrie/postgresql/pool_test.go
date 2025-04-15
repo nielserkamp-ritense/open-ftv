@@ -12,6 +12,8 @@ import (
 )
 
 func TestNewPool(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name        string
 		dsn         string
@@ -61,6 +63,8 @@ func TestNewPool(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -86,6 +90,8 @@ func TestNewPool(t *testing.T) {
 }
 
 func TestPool_Ping(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pool ping", func(t *testing.T) {
 		mock, err := pgxmock.NewPool()
 		require.NoError(t, err)
@@ -101,6 +107,8 @@ func TestPool_Ping(t *testing.T) {
 }
 
 func TestPool_Ping_Fail(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pool ping fail", func(t *testing.T) {
 		mock, err := pgxmock.NewPool()
 		require.NoError(t, err)
@@ -118,6 +126,8 @@ func TestPool_Ping_Fail(t *testing.T) {
 }
 
 func TestPool_Begin(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pool begin", func(t *testing.T) {
 		mock, err := pgxmock.NewPool()
 		require.NoError(t, err)
@@ -139,6 +149,8 @@ func TestPool_Begin(t *testing.T) {
 }
 
 func TestPool_Close(t *testing.T) {
+	t.Parallel()
+
 	t.Run("pool close", func(t *testing.T) {
 		mock, err := pgxmock.NewPool()
 		require.NoError(t, err)

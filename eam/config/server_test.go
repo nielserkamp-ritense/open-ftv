@@ -12,6 +12,8 @@ import (
 )
 
 func TestServer(t *testing.T) {
+	t.Parallel()
+
 	const badPort = `
 svc:
   host: "127.0.0.1"
@@ -63,6 +65,8 @@ svc:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 

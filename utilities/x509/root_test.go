@@ -8,6 +8,8 @@ import (
 )
 
 func TestRootCA(t *testing.T) {
+	t.Parallel()
+
 	t.Run("root ca", func(t *testing.T) {
 		cert := RootCA()
 		assert.Equal(t, "FTV Root Authority", cert.Subject.CommonName)

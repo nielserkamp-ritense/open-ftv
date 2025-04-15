@@ -9,6 +9,8 @@ import (
 )
 
 func TestToYYYYMMDD(t *testing.T) {
+	t.Parallel()
+
 	var (
 		tz, _ = time.LoadLocation("Europe/Amsterdam")
 		d1    = time.Date(2024, 10, 1, 0, 0, 0, 0, tz)
@@ -27,6 +29,8 @@ func TestToYYYYMMDD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%v", tc.date), func(t *testing.T) {
+			t.Parallel()
+
 			got := ToYYYYMMDD(tc.date)
 			assert.Equal(t, tc.want, got)
 		})
@@ -34,6 +38,8 @@ func TestToYYYYMMDD(t *testing.T) {
 }
 
 func TestMustYYYYMMDD(t *testing.T) {
+	t.Parallel()
+
 	var d1 = time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	testCases := []struct {
@@ -48,6 +54,8 @@ func TestMustYYYYMMDD(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := MustYYYYMMDD(tc.input)
 			assert.EqualValues(t, tc.want, got)
 		})

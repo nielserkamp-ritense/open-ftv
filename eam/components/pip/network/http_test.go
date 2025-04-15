@@ -18,6 +18,9 @@ import (
 )
 
 func TestRunner_InitClient(t *testing.T) {
+	// TODO: figure out why Parallel() causes a deadlock.
+	// t.Parallel()
+
 	_, caFile, caCert, caKey := makeIntermediate(t)
 	certFile, keyFile := makeCert(t, caCert, caKey)
 
@@ -61,6 +64,9 @@ func TestRunner_InitClient(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// TODO: figure out why Parallel() causes a deadlock.
+			// t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
@@ -80,6 +86,9 @@ func TestRunner_InitClient(t *testing.T) {
 }
 
 func TestManager_Execute(t *testing.T) {
+	// TODO: figure out why Parallel() causes a deadlock.
+	// t.Parallel()
+
 	var data = []byte(`[
  {"id":"dfa58ae2-0dd4-471d-8863-08147944e641","oin":"01726477373371538205","attributes":{"name":"FSC controller","isMember":true,"maturity":4}},
  {"id":"f8d73ae9-f3a7-4521-a6c0-28422b056cbb","oin":"01726469521943092351","attributes":{"name":"RDW","isMember":true,"maturity":3}},
@@ -266,6 +275,9 @@ func TestManager_Execute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// TODO: figure out why Parallel() causes a deadlock.
+			// t.Parallel()
+
 			wg := sync.WaitGroup{}
 			wg.Add(2)
 
@@ -303,6 +315,9 @@ func TestManager_Execute(t *testing.T) {
 }
 
 func TestManager_Execute_WithDecode(t *testing.T) {
+	// TODO: figure out why Parallel() causes a deadlock.
+	// t.Parallel()
+
 	var data = []byte(`[
  {"id":"dfa58ae2-0dd4-471d-8863-08147944e641","oin":"01726477373371538205","attributes":{"name":"FSC controller","isMember":true,"maturity":4}},
  {"id":"f8d73ae9-f3a7-4521-a6c0-28422b056cbb","oin":"01726469521943092351","attributes":{"name":"RDW","isMember":true,"maturity":3}},

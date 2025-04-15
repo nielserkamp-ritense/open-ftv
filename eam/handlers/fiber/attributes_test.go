@@ -25,6 +25,8 @@ import (
 )
 
 func TestNewAttributesHandler(t *testing.T) {
+	t.Parallel()
+
 	t.Run("test new attributes handler", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -47,6 +49,8 @@ func TestNewAttributesHandler(t *testing.T) {
 }
 
 func TestAttributesHandler_GetAttributes(t *testing.T) {
+	t.Parallel()
+
 	t.Run("get attributes", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -70,7 +74,7 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		srv.Get("/v1/attributes", ah.GetAttributes)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attributes", nil)
-		resp, err2 := srv.Test(req, 5)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -91,6 +95,8 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 }
 
 func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
+	t.Parallel()
+
 	t.Run("get attributes", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -114,7 +120,7 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		srv.Get("/v1/attributes", ah.GetAttributes)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attributes", nil)
-		resp, err2 := srv.Test(req, 5)
+		resp, err2 := srv.Test(req, 100)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -126,6 +132,8 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 }
 
 func TestAttributesHandler_GetAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		key        string
@@ -140,6 +148,8 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 
@@ -162,7 +172,7 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			srv.Get("/v1/attribute/:key", ah.GetAttribute)
 
 			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/attribute/"+tc.key, nil)
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -188,6 +198,8 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 }
 
 func TestAttributesHandler_PutAttribute(t *testing.T) {
+	t.Parallel()
+
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
 	body1, _ := json.Marshal(data1)
 
@@ -202,10 +214,10 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no ID", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no body", key: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "duplicate key", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: AttributesVersion},
 		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
@@ -213,6 +225,8 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -263,6 +277,8 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 }
 
 func TestAttributesHandler_PostAttribute(t *testing.T) {
+	t.Parallel()
+
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
 	body1, _ := json.Marshal(data1)
 
@@ -277,10 +293,10 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no ID", body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "no body", key: "xyz", timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "bad body", key: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no ID", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "no body", key: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
+		{name: "bad body", key: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "not found", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
 		{name: "all good", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
@@ -288,6 +304,8 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -338,6 +356,8 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 }
 
 func TestAttributesHandler_DeleteAttribute(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		key        string
@@ -352,6 +372,8 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -377,7 +399,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/attribute/"+tc.key, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 5)
+			resp, err2 := srv.Test(req, 100)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

@@ -12,6 +12,8 @@ import (
 )
 
 func TestLoadEntityMap(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   map[string]any
@@ -75,6 +77,8 @@ func TestLoadEntityMap(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -104,6 +108,8 @@ func TestLoadEntityMap(t *testing.T) {
 }
 
 func TestLoadEntitiesAny(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -155,6 +161,8 @@ func TestLoadEntitiesAny(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -184,6 +192,8 @@ func TestLoadEntitiesAny(t *testing.T) {
 }
 
 func TestLoadEntities(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		path    string
@@ -279,6 +289,8 @@ func TestLoadEntities(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

@@ -9,6 +9,8 @@ import (
 )
 
 func TestToDurationString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		in      any
@@ -33,6 +35,8 @@ func TestToDurationString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := toDurationString(tc.in)
 			if tc.wantErr {
 				require.Error(t, err)
@@ -46,6 +50,8 @@ func TestToDurationString(t *testing.T) {
 }
 
 func TestToString(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		in      any
@@ -72,6 +78,8 @@ func TestToString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := ToString(tc.in, tc.t)
 			if tc.wantErr {
 				require.Error(t, err)

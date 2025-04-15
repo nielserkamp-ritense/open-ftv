@@ -14,6 +14,8 @@ import (
 )
 
 func TestPersist(t *testing.T) {
+	t.Parallel()
+
 	const badRecurse = `
 persist:
   type: "postgres"
@@ -96,6 +98,8 @@ persist:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			file := dir + tc.file
 			err := os.WriteFile(file, []byte(tc.data), 0644)
 
@@ -133,6 +137,8 @@ persist:
 }
 
 func TestPersist_Sanitized(t *testing.T) {
+	t.Parallel()
+
 	t.Run("sanitize opensearch", func(t *testing.T) {
 		p := &Persist{
 			Type:            "type",
@@ -169,6 +175,8 @@ func TestPersist_Sanitized(t *testing.T) {
 }
 
 func TestNewStore(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		cfg  *Persist
@@ -233,6 +241,8 @@ func TestNewStore(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

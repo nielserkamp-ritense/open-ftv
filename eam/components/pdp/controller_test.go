@@ -14,6 +14,8 @@ import (
 )
 
 func TestNewBase(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name    string
 		id      string
@@ -39,6 +41,8 @@ func TestNewBase(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

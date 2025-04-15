@@ -11,6 +11,8 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	t.Parallel()
+
 	emptyHTTP := models.NewAttribute("http", map[string]any{})
 	invalidPrincipal := models.NewEntity("invalid", "invalid", models.NewAttributeSet())
 
@@ -93,6 +95,8 @@ func TestRun(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

@@ -8,6 +8,8 @@ import (
 )
 
 func TestPrependZero10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		n    uint
 		size uint
@@ -31,6 +33,8 @@ func TestPrependZero10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("value %d size %d", tc.n, tc.size), func(t *testing.T) {
+			t.Parallel()
+
 			got := PrependZero10(tc.n, tc.size)
 			assert.Equal(t, tc.want, got)
 		})
@@ -38,6 +42,8 @@ func TestPrependZero10(t *testing.T) {
 }
 
 func TestMustInt_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  int
@@ -70,6 +76,8 @@ func TestMustInt_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := MustIntDecimal(tc.input)
 			assert.Equal(t, tc.want, got)
 		})
@@ -77,6 +85,8 @@ func TestMustInt_10(t *testing.T) {
 }
 
 func TestFromInt_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  int
@@ -110,6 +120,8 @@ func TestFromInt_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := FromIntDecimal(tc.input)
 			if tc.fail {
 				assert.Error(t, err)
@@ -121,6 +133,8 @@ func TestFromInt_10(t *testing.T) {
 }
 
 func TestMustUint_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint
@@ -153,6 +167,8 @@ func TestMustUint_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := MustUintDecimal(tc.input)
 			assert.Equal(t, tc.want, got)
 		})
@@ -160,6 +176,8 @@ func TestMustUint_10(t *testing.T) {
 }
 
 func TestFromUint_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint
@@ -193,6 +211,8 @@ func TestFromUint_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := FromUintDecimal(tc.input)
 			if tc.fail {
 				assert.Error(t, err)
@@ -204,6 +224,8 @@ func TestFromUint_10(t *testing.T) {
 }
 
 func TestMustUint8_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint8
@@ -238,6 +260,8 @@ func TestMustUint8_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := MustUint8Decimal(tc.input)
 			assert.Equal(t, tc.want, got)
 		})
@@ -245,6 +269,8 @@ func TestMustUint8_10(t *testing.T) {
 }
 
 func TestFromUint8_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint8
@@ -280,6 +306,8 @@ func TestFromUint8_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := FromUint8Decimal(tc.input)
 			if tc.fail {
 				assert.Error(t, err)
@@ -291,6 +319,8 @@ func TestFromUint8_10(t *testing.T) {
 }
 
 func TestMustUint32_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint32
@@ -324,6 +354,8 @@ func TestMustUint32_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got := MustUint32Decimal(tc.input)
 			assert.Equal(t, tc.want, got)
 		})
@@ -331,6 +363,8 @@ func TestMustUint32_10(t *testing.T) {
 }
 
 func TestFromUint32_10(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input string
 		want  uint32
@@ -365,6 +399,8 @@ func TestFromUint32_10(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := FromUint32Decimal(tc.input)
 			if tc.fail {
 				assert.Error(t, err)
@@ -376,6 +412,8 @@ func TestFromUint32_10(t *testing.T) {
 }
 
 func TestAnyToInt64(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -396,6 +434,8 @@ func TestAnyToInt64(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToInt64(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -403,6 +443,8 @@ func TestAnyToInt64(t *testing.T) {
 }
 
 func TestAnyToUint64(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -423,6 +465,8 @@ func TestAnyToUint64(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToUint64(tc.in)
 			assert.Equal(t, tc.want, got)
 		})
@@ -430,6 +474,8 @@ func TestAnyToUint64(t *testing.T) {
 }
 
 func TestAnyToFloat64(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   any
@@ -451,6 +497,8 @@ func TestAnyToFloat64(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := AnyToFloat64(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

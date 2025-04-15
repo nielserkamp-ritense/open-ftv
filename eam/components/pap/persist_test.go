@@ -12,6 +12,8 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -55,6 +57,8 @@ func TestNewStore(t *testing.T) {
 }
 
 func TestNewStore_DupError(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - duplicate error", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -83,6 +87,8 @@ func TestNewStore_DupError(t *testing.T) {
 }
 
 func TestNewStore_Read_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - read - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -102,6 +108,8 @@ func TestNewStore_Read_NotFound(t *testing.T) {
 }
 
 func TestNewStore_Update_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - update - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
@@ -125,6 +133,8 @@ func TestNewStore_Update_NotFound(t *testing.T) {
 }
 
 func TestNewStore_Delete_NotFound(t *testing.T) {
+	t.Parallel()
+
 	t.Run("new store - delete - not found", func(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)

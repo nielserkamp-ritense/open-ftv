@@ -20,6 +20,8 @@ import (
 )
 
 func TestController_HandleModel(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		policies   map[string]string
@@ -130,6 +132,8 @@ func TestController_HandleModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
@@ -196,6 +200,8 @@ func TestController_HandleModel(t *testing.T) {
 }
 
 func TestController_HandleRelations(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name       string
 		policies   map[string]string
@@ -334,6 +340,8 @@ func TestController_HandleRelations(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 

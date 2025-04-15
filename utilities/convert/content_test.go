@@ -8,6 +8,8 @@ import (
 )
 
 func TestContentType_String(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   ContentType
@@ -22,6 +24,8 @@ func TestContentType_String(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := tc.in.String()
 			assert.Equal(t, tc.want, got)
 		})
@@ -29,6 +33,8 @@ func TestContentType_String(t *testing.T) {
 }
 
 func TestContentSniffer(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		name string
 		in   []byte
@@ -44,6 +50,8 @@ func TestContentSniffer(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := ContentSniffer(tc.in)
 			assert.Equal(t, tc.want, got)
 		})

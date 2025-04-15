@@ -17,6 +17,8 @@ import (
 )
 
 func TestServe(t *testing.T) {
+	t.Parallel()
+
 	t.Run("serve", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -52,6 +54,8 @@ func TestServe(t *testing.T) {
 }
 
 func TestErrorHandler(t *testing.T) {
+	t.Parallel()
+
 	t.Run("error handler", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -99,6 +103,8 @@ func TestErrorHandler(t *testing.T) {
 }
 
 func TestRecovery(t *testing.T) {
+	t.Parallel()
+
 	t.Run("panic recovery", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -146,6 +152,8 @@ func TestRecovery(t *testing.T) {
 }
 
 func TestInvalidHostPort(t *testing.T) {
+	t.Parallel()
+
 	t.Run("invalid host/port", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -184,6 +192,8 @@ func TestInvalidHostPort(t *testing.T) {
 }
 
 func TestForceAbort(t *testing.T) {
+	t.Parallel()
+
 	t.Run("force abort", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)

@@ -13,6 +13,8 @@ import (
 )
 
 func TestOptions(t *testing.T) {
+	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -38,6 +40,8 @@ func TestOptions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
 			b := &base{}
 			for i := range tc.opts {
 				tc.opts[i](b)
