@@ -126,7 +126,7 @@ func TestAuthorize(t *testing.T) {
 				Method: "GET",
 				Headers: map[string][]string{
 					// echo -n 'minnie:mouse' | base64
-					"Authorization": []string{"Basic bWlubmllOm1vdXNl"},
+					"Authorization": {"Basic bWlubmllOm1vdXNl"},
 				},
 			},
 			wantErr: true,
@@ -138,7 +138,7 @@ func TestAuthorize(t *testing.T) {
 				Method: "GET",
 				Headers: map[string][]string{
 					// echo -n 'mickey:mousse' | base64
-					"Authorization": []string{"Basic bWlja2V5Om1vdXNzZQ=="},
+					"Authorization": {"Basic bWlja2V5Om1vdXNzZQ=="},
 				},
 			},
 			wantErr: true,
@@ -147,21 +147,55 @@ func TestAuthorize(t *testing.T) {
 			name: "not admin",
 			req: &Request{
 				URL:    parseURL("https://openftv.nl/v1/attributes"),
-				Method: "GET",
+				Method: "POST",
 				Headers: map[string][]string{
 					// echo -n 'mickey:mouse' | base64
-					"Authorization": []string{"Basic bWlja2V5Om1vdXNl"},
+					"Authorization": {"Basic bWlja2V5Om1vdXNl"},
 				},
 			},
+			wantAllow: false,
 		},
 		{
 			name: "is admin",
 			req: &Request{
 				URL:    parseURL("https://openftv.nl/v1/attributes"),
-				Method: "GET",
+				Method: "POST",
 				Headers: map[string][]string{
 					// echo -n 'admin:admin' | base64
-					"Authorization": []string{"Basic YWRtaW46YWRtaW4="},
+					"Authorization": {"Basic YWRtaW46YWRtaW4="},
+				},
+			},
+			wantAllow: true,
+		},
+		{
+			name: "wrong apikey",
+			req: &Request{
+				URL:    parseURL("https://openftv.nl/v1/attributes"),
+				Method: "GET",
+				Headers: map[string][]string{
+					"Api-Key": {"123456"},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "good apikey - bad method",
+			req: &Request{
+				URL:    parseURL("https://openftv.nl/v1/attributes"),
+				Method: "POST",
+				Headers: map[string][]string{
+					"Api-Key": {"abcdef"},
+				},
+			},
+			wantAllow: false,
+		},
+		{
+			name: "good apikey - good method",
+			req: &Request{
+				URL:    parseURL("https://openftv.nl/v1/attributes"),
+				Method: "GET",
+				Headers: map[string][]string{
+					"Api-Key": {"abcdef"},
 				},
 			},
 			wantAllow: true,

@@ -3,23 +3,23 @@ package authentication
 import (
 	"context"
 	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
 
-func TestOptions(t *testing.T) {
+func TestNewBase(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	h := slog2.NewDummyHandler(slog.LevelInfo)
-	log := slog.New(h)
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	p := pip.New(ctx, log, pip.WithFileStore("../../../testdata/pip", false))
+	p := pip.New(ctx, log, pip.WithFileStore("../../../testdata/pip/users", false))
 	entities := models.NewEntitySet(p)
 
 	testCases := []struct {
@@ -38,14 +38,22 @@ func TestOptions(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			b := &base{}
-			for i := range tc.opts {
-				tc.opts[i](b)
-			}
+			got := newBase(tc.opts)
+			require.NotNil(t, got)
 
-			assert.Equal(t, tc.wantCtx, b.ctx)
-			assert.Equal(t, tc.wantLog, b.log)
-			assert.Equal(t, tc.wantEntities, b.entities)
+			assert.NotNil(t, got.ctx)
+			assert.NotNil(t, got.log)
+			assert.NotNil(t, got.entities)
+
+			if tc.wantCtx != nil {
+				assert.Equal(t, tc.wantCtx, got.ctx)
+			}
+			if tc.wantLog != nil {
+				assert.Equal(t, tc.wantLog, got.log)
+			}
+			if tc.wantEntities != nil {
+				assert.Equal(t, tc.wantEntities, got.entities)
+			}
 		})
 	}
 }

@@ -3,6 +3,7 @@ package fiber
 import (
 	"errors"
 	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -35,7 +36,9 @@ func FormatRequest(req *fiber.Ctx) *authorization.Request {
 func Check(req *fiber.Ctx, resp *models.Response, err error) (bool, error) {
 	switch {
 	case err != nil && authenticationError(err):
-		req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
+		if !strings.Contains(err.Error(), "api-key") {
+			req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
+		}
 		return false, server.SendMessageResponse(req, fiber.StatusUnauthorized, "authentication failed")
 
 	case err != nil || resp == nil || !resp.Allowed:
