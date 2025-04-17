@@ -1,9 +1,9 @@
 PROJECT_NAME := "fsc-auth"
 DOCKER_TAG := "1.2.3"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc-auth"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
-ROOT_DIR := "../../../.."
+ROOT_DIR := "../.."
 
 .PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape app docker help
 
@@ -60,7 +60,7 @@ app: fmt ## build binaries
 	@go build -ldflags "-s -w" -o ${ROOT_DIR}/bin/${PROJECT_NAME} cmd/*.go
 
 docker:
-	@cd ${ROOT_DIR} && docker build -t ${PROJECT_NAME}:${DOCKER_TAG} -f ./apps/fsc/plugin/generic/Dockerfile .
+	@cd ${ROOT_DIR} && docker build -t ${PROJECT_NAME}:${DOCKER_TAG} -f ./apps/fsc/Dockerfile .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

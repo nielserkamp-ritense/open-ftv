@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc/plugin/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc-auth/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
 )
@@ -25,28 +25,28 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			name:     "unsupported policy language",
-			cfg:      &config.Config{PAP: config2.PAP{Language: "ai-magic", Store: "../../../../../testdata/unittest/ai"}},
+			cfg:      &config.Config{PAP: config2.PAP{Language: "ai-magic", Store: "../../../testdata/unittest/ai"}},
 			wantFail: true,
 			wantLog:  3,
 		},
 		{
 			name:    "Cedar",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: "../../../../../testdata/unittest/cedar"}},
+			cfg:     &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: "../../../testdata/unittest/cedar"}},
 			wantLog: 4,
 		},
 		{
 			name:    "Cerbos",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "Cerbos", Store: "../../../../../testdata/unittest/cerbos"}},
+			cfg:     &config.Config{PAP: config2.PAP{Language: "Cerbos", Store: "../../../testdata/unittest/cerbos"}},
 			wantLog: 4,
 		},
 		{
 			name:    "OpenFGA",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "OpenFGA", Store: "../../../../../testdata/unittest/openfga"}},
+			cfg:     &config.Config{PAP: config2.PAP{Language: "OpenFGA", Store: "../../../testdata/unittest/openfga"}},
 			wantLog: 5,
 		},
 		{
 			name:    "OPA/Rego",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "opa", Store: "../../../../../testdata/unittest/rego"}},
+			cfg:     &config.Config{PAP: config2.PAP{Language: "opa", Store: "../../../testdata/unittest/rego"}},
 			wantLog: 4,
 		},
 	}
