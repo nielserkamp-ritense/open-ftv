@@ -3,7 +3,7 @@ go 1.23.6
 toolchain go1.23.8
 
 use (
-	apps/fsc/plugin/generic
+	apps/fsc-auth
 	apps/manager
 	apps/pap
 	apps/pdp
