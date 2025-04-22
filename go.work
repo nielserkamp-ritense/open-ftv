@@ -1,6 +1,6 @@
 go 1.23.6
 
-toolchain go1.23.8
+toolchain go1.23.6
 
 use (
 	apps/fsc-auth
@@ -8,10 +8,24 @@ use (
 	apps/pap
 	apps/pdp
 	apps/pip
-	eam/components
+	eam/authentication
+	eam/authorization
 	eam/config
 	eam/handlers
+	eam/log
+	eam/mapping
+	eam/mimetype
 	eam/models
+	eam/pap
+	eam/pdp/controller
+	eam/pdp/cedar-embedded
+	eam/pdp/cerbos-api
+	eam/pdp/odrl
+	eam/pdp/opa-embedded
+	eam/pdp/openfga-embedded
+	eam/pdp/xacml
+	eam/pep
+	eam/pip
 	eam/server
 	mock/fds/ledenlijst
 	oas

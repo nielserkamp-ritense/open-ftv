@@ -3,8 +3,8 @@ package config
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authentication"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	authentication2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authentication"
+	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller"
 )
 
 // Authentication contains the configuration variables for API endpoints to authenticate users and/or external processes.
@@ -13,16 +13,16 @@ type Authentication struct {
 }
 
 // NewAuthenticator instantiates a new authenticator using the given configuration.
-func (a *Authentication) NewAuthenticator(controller pdp.Controller) (authentication.Authenticator, error) {
-	opts := []authentication.Option{
-		authentication.WithContext(controller.Context()),
-		authentication.WithLogger(controller.Logger()),
-		authentication.WithEntities(controller.PIP()),
+func (a *Authentication) NewAuthenticator(controller pdp.Controller) (authentication2.Authenticator, error) {
+	opts := []authentication2.Option{
+		authentication2.WithContext(controller.Context()),
+		authentication2.WithLogger(controller.Logger()),
+		authentication2.WithEntities(controller.PIP()),
 	}
 
 	switch strings.ToLower(a.Type) {
 	case "bcrypt":
-		return authentication.NewBCrypt(opts...), nil
+		return authentication2.NewBCrypt(opts...), nil
 	default:
 		return nil, nil
 	}

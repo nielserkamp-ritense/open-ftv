@@ -1,0 +1,157 @@
+base:
+  stage: BaseUnitTests
+  image: golang:1.23.8-alpine@sha256:b7486658b87d34ecf95125e5b97e8dfe86c21f712aa36fc0c702e5dc41dc63e1
+  parallel:
+    matrix:
+      - MODULE:
+        - utilities
+        - eam/config
+        - eam/log
+        - eam/models
+        - eam/mimetype
+        - eam/mapping
+        - eam/authentication
+        - eam/authorization
+        - eam/server
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/${MODULE}/.go-cache
+  before_script:
+    - mkdir -p ${MODULE}/.go-cache
+  script:
+    - cd ${MODULE}
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: OpenFTV-Base-UnitTests
+    paths:
+      - ${MODULE}/.go-cache
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - ${MODULE}/cover.html
+  needs: []
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/*
+          - utilities-no-ci/**/*
+          - oas/**/*
+          - testdata/**/*
+          - eam/config/*
+          - eam/log/*
+          - eam/models/*
+          - eam/mimetype/*
+          - eam/mapping/*
+          - eam/authentication/*
+          - eam/authorization/*
+          - eam/server/*
+          - .gitlab/ci/test/unittests.yml
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+eam:
+  stage: EamUnitTests
+  image: golang:1.23.8-alpine@sha256:b7486658b87d34ecf95125e5b97e8dfe86c21f712aa36fc0c702e5dc41dc63e1
+  parallel:
+    matrix:
+      - MODULE:
+          - handlers
+          - pap
+          - pip
+          - pep
+          - pdp/controller
+          - pdp/cedar-embedded
+          - pdp/cerbos-api
+          - pdp/opa-embedded
+          - pdp/openfga-embedded
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/eam/${MODULE}/.go-cache
+  before_script:
+    - mkdir -p eam/${MODULE}/.go-cache
+  script:
+    - cd eam/${MODULE}
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: OpenFTV-EAM-UnitTests
+    paths:
+      - eam/${MODULE}/.go-cache
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - eam/${MODULE}/cover.html
+  needs: [ base ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/**/*
+          - utilities-no-ci/**/*
+          - oas/**/*
+          - testdata/**/*
+          - eam/**/*
+          - .gitlab/ci/tests/unittests.yml
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+apps:
+  stage: AppUnitTests
+  image: golang:1.23.8-alpine@sha256:b7486658b87d34ecf95125e5b97e8dfe86c21f712aa36fc0c702e5dc41dc63e1
+  parallel:
+    matrix:
+      - MODULE:
+          - fsc-auth
+          - pap
+          - pip
+          - pdp
+          - manager
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/apps/${MODULE}/.go-cache
+  before_script:
+    - mkdir -p apps/${MODULE}/.go-cache
+  script:
+    - cd apps/${MODULE}
+    - /usr/local/go/bin/go mod download
+    - /usr/local/go/bin/go test ./... -covermode=atomic  -coverprofile cover.out
+    - /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
+    - /usr/local/go/bin/go tool cover -func=cover.out
+    - cd -
+  coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
+  cache:
+    key: OpenFTV-App-UnitTests
+    paths:
+      - apps/${MODULE}/.go-cache
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - apps/${MODULE}/cover.html
+  needs: [ eam ]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - oas/**/*
+          - utilities/**/*
+          - utilities-no-ci/**/*
+          - testdata/**/*
+          - eam/**/*
+          - apps/**/*
+          - .gitlab/ci/test/unittests.yml
+          - .golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

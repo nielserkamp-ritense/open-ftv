@@ -3,11 +3,11 @@ package server
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
+	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip"
 )
 
-func (s *service) newPIP() (pip.PIP, error) {
-	opts := make([]pip.Option, 0)
+func (s *service) newPIP() (pip2.PIP, error) {
+	opts := make([]pip2.Option, 0)
 
 	if s.cfg.Persist.Type != "" {
 		store, err := s.cfg.Persist.NewStore(s.ctx)
@@ -15,9 +15,9 @@ func (s *service) newPIP() (pip.PIP, error) {
 			return nil, fmt.Errorf("failed to create persistence store: %w", err)
 		}
 		if store != nil {
-			opts = append(opts, pip.WithPersistence(store, s.cfg.Persist.Base))
+			opts = append(opts, pip2.WithPersistence(store, s.cfg.Persist.Base))
 		}
 	}
 
-	return pip.New(s.ctx, s.logger, opts...), nil
+	return pip2.New(s.ctx, s.logger, opts...), nil
 }

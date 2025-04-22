@@ -3,9 +3,12 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/$(PRO
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all dep-up dep fmt vet lint test race msan cover coverhtml escape examples help
+.PHONY: all tidy dep-up dep fmt vet lint test race msan cover coverhtml escape examples help
 
 all: vet lint test race examples
+
+tidy: ## go mod tidy
+	@go mod tidy
 
 dep-up: ## upgrade all dependencies
 	@go get -u ./...
@@ -16,11 +19,10 @@ dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server
 	@go mod tidy
 
-fmt: dep ${GO_FILES}  ## format all source code
+fmt: tidy dep ${GO_FILES}  ## format all source code
 	@go fmt ${PKG_LIST}
 
 vet: fmt  ## vet all source code

@@ -3,9 +3,12 @@ PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/fds/
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
-.PHONY: all lint dep-up dep fmt test race cover coverhtml escape app docker help
+.PHONY: all tidy dep-up dep fmt vet lint test race cover coverhtml escape app docker help
 
 all: test
+
+tidy: ## go mod tidy
+	@go mod tidy
 
 lint: ## lint all source code (requires 'revive' to be installed!)
 	@revive -set_exit_status ${PKG_LIST}
@@ -20,7 +23,7 @@ dep: ## upgrade local dependencies
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server
 	@go mod tidy
 
-fmt: dep ${GO_FILES}  ## format source code
+fmt: tidy dep ${GO_FILES}  ## format source code
 	@go fmt ${PKG_LIST}
 
 test: fmt ## run all unit tests

@@ -1,8 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
 
-go 1.23.0
-
-toolchain go1.23.2
+go 1.23.6
 
 require (
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25
