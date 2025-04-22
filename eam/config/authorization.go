@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authentication"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authentication"
+	authorization2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization"
+	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller"
 )
 
 // Authorization contains the configuration variables for API endpoints to authorize access for users and/or external processes.
@@ -14,21 +14,21 @@ type Authorization struct {
 }
 
 // NewAuthorizer instantiates a new authorizer using the given configuration.
-func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator) (authorization.Authorizer, error) {
-	opts := []authorization.Option{
-		authorization.WithContext(controller.Context()),
-		authorization.WithLogger(controller.Logger()),
-		authorization.WithPEP(controller.PEP()),
-		authorization.WithPDP(controller),
-		authorization.WithEntities(controller.PIP()),
+func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator) (authorization2.Authorizer, error) {
+	opts := []authorization2.Option{
+		authorization2.WithContext(controller.Context()),
+		authorization2.WithLogger(controller.Logger()),
+		authorization2.WithPEP(controller.PEP()),
+		authorization2.WithPDP(controller),
+		authorization2.WithEntities(controller.PIP()),
 	}
 
 	if a.Authenticate {
 		if authenticator == nil {
 			return nil, fmt.Errorf("failed to initialize authorizer: no authenticator provided")
 		}
-		opts = append(opts, authorization.WithAuthenticator(authenticator))
+		opts = append(opts, authorization2.WithAuthenticator(authenticator))
 	}
 
-	return authorization.New(opts...), nil
+	return authorization2.New(opts...), nil
 }

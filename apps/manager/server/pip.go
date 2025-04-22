@@ -3,17 +3,17 @@ package server
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
+	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (s *service) newPIP() pip.PIP {
-	var opts []pip.Option
+func (s *service) newPIP() pip2.PIP {
+	var opts []pip2.Option
 
 	if s.store != nil {
-		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Persist.Base, pip.PathSeparator), "data", pip.PathSeparator)
-		opts = append(opts, pip.WithPersistence(s.store, base))
+		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Persist.Base, pip2.PathSeparator), "data", pip2.PathSeparator)
+		opts = append(opts, pip2.WithPersistence(s.store, base))
 	}
 
-	return pip.New(s.ctx, s.logger, opts...)
+	return pip2.New(s.ctx, s.logger, opts...)
 }

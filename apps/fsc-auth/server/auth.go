@@ -9,18 +9,18 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/log/authlog"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cedar"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/cerbos"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/mapping"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/opa"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pdp/openfga"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pip"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/log/authlog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/cedar-embedded"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/cerbos-api"
+	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/opa-embedded"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/openfga-embedded"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep"
+	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/fsc-auth/config"
 )
@@ -64,14 +64,14 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 
 	ep := pep.New(ctx, logger)
 
-	pipOpts := []pip.Option{pip.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip.WithPullConfigs(cfg.PIP.PullConfigs)}
+	pipOpts := []pip2.Option{pip2.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip2.WithPullConfigs(cfg.PIP.PullConfigs)}
 	if l == models.CEDAR {
-		pipOpts = append(pipOpts, pip.WithFactories(cedar.NewAttributeBuilder(logger), cedar.NewEntityBuilder(logger)))
+		pipOpts = append(pipOpts, pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
 	}
-	ip := pip.New(ctx, logger, pipOpts...)
+	ip := pip2.New(ctx, logger, pipOpts...)
 
-	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}
-	ap := pap.New(ctx, logger, papOpts...)
+	papOpts := []pap2.Option{pap2.WithLanguage(l.Language()), pap2.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}
+	ap := pap2.New(ctx, logger, papOpts...)
 
 	pdpOpts := []pdp.Option{pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger)}
 	if cfg.RequestMappings != "" {
@@ -80,14 +80,14 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 
 	switch l {
 	case models.CEDAR:
-		return cedar.NewController(pdpOpts...), nil
+		return cedar_embedded.NewController(pdpOpts...), nil
 	case models.REGO:
-		return opa.NewController(pdpOpts...), nil
+		return opa_embedded.NewController(pdpOpts...), nil
 	case models.OPENFGA:
-		return openfga.NewController(pdpOpts...), nil
+		return openfga_embedded.NewController(pdpOpts...), nil
 	case models.CERBOS:
-		cerbosCFG := cerbos.Config{Addr1: cfg.Cerbos.Address, Addr2: cfg.Cerbos.AdminAddress, CA: cfg.Cerbos.CA, User: cfg.Cerbos.User, Pswd: cfg.Cerbos.Pswd}
-		return cerbos.NewController(cerbosCFG, pdpOpts...), nil
+		cerbosCFG := cerbos_api.Config{Addr1: cfg.Cerbos.Address, Addr2: cfg.Cerbos.AdminAddress, CA: cfg.Cerbos.CA, User: cfg.Cerbos.User, Pswd: cfg.Cerbos.Pswd}
+		return cerbos_api.NewController(cerbosCFG, pdpOpts...), nil
 	default:
 		return nil, fmt.Errorf("unsupported policy language '%s'", cfg.PAP.Language)
 	}

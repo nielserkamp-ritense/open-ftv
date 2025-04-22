@@ -8,9 +8,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/authorization/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization"
+	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization/fiber"
+	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
 )
@@ -28,7 +28,7 @@ type PoliciesHandler interface {
 }
 
 // NewPoliciesHandler instantiates a policy handler.
-func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
+func NewPoliciesHandler(logger *slog.Logger, cache pap2.PAP, authorizer authorization.Authorizer) PoliciesHandler {
 	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer}
 }
 
@@ -100,7 +100,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol pap.Policy
+	var pol pap2.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -145,7 +145,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol pap.Policy
+	var pol pap2.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -249,7 +249,7 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*polic
 	return &p, true, nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.Policy, bool, error) {
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap2.Policy, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -265,14 +265,14 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.P
 
 	defer resp.Body.Close()
 
-	pol, err3 := pap.NewPolicy(p, resp.Body)
+	pol, err3 := pap2.NewPolicy(p, resp.Body)
 	if err3 != nil {
 		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 	}
 	return pol, true, nil
 }
 
-func (h *policiesHandler) convertPolicy(pol pap.Policy) *policies.Policy {
+func (h *policiesHandler) convertPolicy(pol pap2.Policy) *policies.Policy {
 	return &policies.Policy{
 		Id:       pol.ID(),
 		Language: pol.Language(),
@@ -295,6 +295,6 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 type policiesHandler struct {
 	logger     *slog.Logger
-	cache      pap.PAP
+	cache      pap2.PAP
 	authorizer authorization.Authorizer
 }

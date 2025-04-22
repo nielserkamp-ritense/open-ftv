@@ -3,12 +3,12 @@ package server
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/components/pap"
+	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
 )
 
-func (s *service) newPAP() (pap.PAP, error) {
-	opts := make([]pap.Option, 0)
-	opts = append(opts, pap.WithLanguage(s.l.Language()))
+func (s *service) newPAP() (pap2.PAP, error) {
+	opts := make([]pap2.Option, 0)
+	opts = append(opts, pap2.WithLanguage(s.l.Language()))
 
 	if s.cfg.Persist.Type != "" {
 		store, err := s.cfg.Persist.NewStore(s.ctx)
@@ -16,9 +16,9 @@ func (s *service) newPAP() (pap.PAP, error) {
 			return nil, fmt.Errorf("failed to create persistence store: %w", err)
 		}
 		if store != nil {
-			opts = append(opts, pap.WithPersistence(store, s.cfg.Persist.Base))
+			opts = append(opts, pap2.WithPersistence(store, s.cfg.Persist.Base))
 		}
 	}
 
-	return pap.New(s.ctx, s.logger, opts...), nil
+	return pap2.New(s.ctx, s.logger, opts...), nil
 }
