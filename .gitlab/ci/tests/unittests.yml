@@ -40,7 +40,7 @@ base:
       changes:
         compare_to: "main"
         paths:
-          - utilities/*
+          - utilities/**/*
           - utilities-no-ci/**/*
           - oas/**/*
           - testdata/**/*
@@ -91,7 +91,9 @@ eam:
     expire_in: 2 weeks
     paths:
       - eam/${MODULE}/cover.html
-  needs: [ base ]
+  needs:
+    - job: base
+      optional: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
@@ -138,7 +140,9 @@ apps:
     expire_in: 2 weeks
     paths:
       - apps/${MODULE}/cover.html
-  needs: [ eam ]
+  needs:
+    - job: eam
+      optional: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
