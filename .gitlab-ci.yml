@@ -8,7 +8,7 @@ stages:
   - BaseUnitTests
   - EamUnitTests
   - AppUnitTests
-#  - Build
+  - Builds
 #  - Deploy
 #  - Redeploy
 #  - Security
