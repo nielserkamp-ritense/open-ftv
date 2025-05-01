@@ -16,9 +16,6 @@ import (
 )
 
 func TestDecodeData(t *testing.T) {
-	// TODO: figure out why Parallel() causes a deadlock.
-	// t.Parallel()
-
 	m1 := map[string]interface{}{"hello": "world"}
 	m2 := map[string]any{"hello": "world", "int": 123, "bool": true, "type": "xsd:short"}
 	m3 := map[string]any{"hello": "mars", "int": 321, "bool": false, "type": "xsd:string"}
@@ -43,10 +40,20 @@ func TestDecodeData(t *testing.T) {
 		name     string
 		data     any
 		dec      *ResponseMapping
+		wantErr  bool
 		wantAttr map[string]models.Attribute
 		wantEnt  map[string]models.Entity
 		wantRel  map[string]models.Relation
 	}{
+		{
+			name: "no data",
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "first", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "int", TypeField: "type"}}},
+					{Base: "third.sub", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "bool", TypeField: "type"}}},
+				},
+			},
+		},
 		{
 			name: "dummy decoder",
 			data: "anything",
@@ -160,9 +167,6 @@ func TestDecodeData(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// TODO: figure out why Parallel() causes a deadlock.
-			// t.Parallel()
-
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
@@ -214,9 +218,6 @@ func TestDecodeData(t *testing.T) {
 }
 
 func TestDecodeResponse(t *testing.T) {
-	// TODO: figure out why Parallel() causes a deadlock.
-	// t.Parallel()
-
 	const goodYAML = `---
 attributes:
   - key: code
@@ -261,9 +262,20 @@ value = "first code"
 		wantRel  map[string]models.Relation
 	}{
 		{
+			name:    "no decoder",
+			data:    "anything",
+			wantErr: true,
+		},
+		{
 			name:    "bad content-type",
 			data:    "haha",
 			content: "x-bad-data",
+			dec:     &ResponseMapping{},
+			wantErr: true,
+		},
+		{
+			name:    "no content-type",
+			data:    "haha",
 			dec:     &ResponseMapping{},
 			wantErr: true,
 		},
@@ -339,14 +351,13 @@ value = "first code"
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// TODO: figure out why Parallel() causes a deadlock.
-			// t.Parallel()
-
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
 			svc := newService(t, logger, "", "", "", "data", func(req *fiber.Ctx) error {
-				req.Set("Content-Type", tc.content)
+				if tc.content != "" {
+					req.Set("Content-Type", tc.content)
+				}
 				return req.SendString(tc.data)
 			})
 

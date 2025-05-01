@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mapping"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip"
@@ -68,4 +70,22 @@ func TestNewBase(t *testing.T) {
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
 	}
+}
+
+func TestBase_Map(t *testing.T) {
+	t.Parallel()
+
+	t.Run("base map", func(t *testing.T) {
+		f := func(parc *models.PARC, _ ...mapping.Option) *models.PARC {
+			parc.Principal = models.NewEntity("hello", "world", nil)
+			return parc
+		}
+
+		c := &Base{mappers: []mapping.Mapper{f}}
+
+		parc := c.Map(&models.PARC{})
+		require.NotNil(t, parc)
+		assert.Equal(t, "hello", parc.Principal.Type())
+		assert.Equal(t, "world", parc.Principal.ID())
+	})
 }

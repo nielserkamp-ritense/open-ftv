@@ -108,19 +108,11 @@ func detectTypeFromYAML(f io.ReadSeeker) (FileType, string, any) {
 func detectTypeFromTOML(f io.ReadSeeker) (FileType, string, any) {
 	defer func() { _, _ = f.Seek(0, io.SeekStart) }()
 
-	var data any
+	var data map[string]any
 	if err := toml.NewDecoder(f).Decode(&data); err != nil {
 		return UnknownFile, "", nil
 	}
-
-	switch t := data.(type) {
-	case []any:
-		return detectTypeFromSlice(t, mime.MimeTypeTOML)
-	case map[string]any:
-		return detectTypeFromMap(t, mime.MimeTypeTOML)
-	default:
-		return UnknownFile, "", nil
-	}
+	return detectTypeFromMap(data, mime.MimeTypeTOML)
 }
 
 func detectTypeFromSlice(data []any, mt string) (FileType, string, any) {

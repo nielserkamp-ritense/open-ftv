@@ -1,5 +1,13 @@
 ---
 apiVersion: api.cerbos.dev/v1
 principalPolicy:
-  principal: burgerzaken
+  principal: "burgerzaken"
   version: default
+#  rules:
+#    - resource: "service:https://inway-fsc-nlx-inway:443/brp-personen"
+#      actions:
+#        - name: "can_update"
+#          action: "can_update"
+#          effect: EFFECT_ALLOW
+#          outputs:
+#            - src: "wildcard_override:%s".format([request.principal.id])

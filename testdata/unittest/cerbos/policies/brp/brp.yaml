@@ -7,6 +7,6 @@ resourcePolicy:
     import:
       - rvig
   rules:
-    - actions: ['POST']
+    - actions: ['can_update']
       effect: EFFECT_ALLOW
       roles: ['*']

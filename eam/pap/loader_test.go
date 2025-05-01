@@ -33,19 +33,32 @@ func TestCache_LoadFromStore(t *testing.T) {
 		},
 		{
 			name:         "cedar/brp",
-			path:         "../../../testdata/policies/cedar/brp",
+			path:         "../../testdata/policies/cedar/brp",
 			recurse:      true,
 			wantPolicies: 3,
 		},
 		{
 			name:         "cedar - recurse",
-			path:         "../../../testdata/policies/cedar",
+			path:         "../../testdata/policies/cedar",
 			recurse:      true,
 			wantPolicies: 5,
 		},
 		{
+			name: "cedar - bad meta",
+			path: "../../testdata/unittest/bad/meta",
+		},
+		{
+			name:         "opa - with meta",
+			path:         "../../testdata/unittest/opa",
+			wantPolicies: 1,
+		},
+		{
+			name: "empty with dot file",
+			path: "../../testdata/unittest/empty",
+		},
+		{
 			name: "cedar - no recurse",
-			path: "../../../testdata/policies/cedar",
+			path: "../../testdata/policies/cedar",
 		},
 	}
 
@@ -62,4 +75,18 @@ func TestCache_LoadFromStore(t *testing.T) {
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
 	}
+}
+
+func TestLoadFiles_ForceBadPath(t *testing.T) {
+	t.Parallel()
+
+	t.Run("load files - force bad path", func(t *testing.T) {
+		t.Parallel()
+
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+
+		p := &pap{policyStore: "/this/is/not/a/directory/at/all/!", logger: slog.New(h)}
+		p.LoadFiles()
+		assert.GreaterOrEqual(t, h.Count(), 1)
+	})
 }

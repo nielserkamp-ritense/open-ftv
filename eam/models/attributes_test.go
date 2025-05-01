@@ -489,6 +489,10 @@ func TestAttributesEqual(t *testing.T) {
 		want bool
 	}{
 		{
+			name: "both nil",
+			want: true,
+		},
+		{
 			name: "both empty",
 			s1:   NewAttributeSet(),
 			s2:   NewAttributeSet(),

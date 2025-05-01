@@ -1,0 +1,42 @@
+---
+name: BRPTestSuite
+description: Tests for BRP resources
+
+principals:
+  burgerzaken:
+    id: burgerzaken
+    roles:
+      - doelbinding
+
+  subsidies:
+    id: subsidies
+    roles:
+      - doelbinding
+
+resources:
+  haalcentraal:
+    kind: haalcentraal
+    id: haalcentraal1
+
+tests:
+  - name: burgerzaken
+    input:
+      principals:
+        - burgerzaken
+        - subsidies
+
+      resources:
+        - haalcentraal
+
+      actions:
+        - can_create
+        - can_read
+        - can_update
+        - can_delete
+
+    expected:
+      - principal: burgerzaken
+        resource: haalcentraal
+        actions:
+          can_update: EFFECT_ALLOW
+          can_read: EFFECT_DENY

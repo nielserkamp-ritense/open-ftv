@@ -68,7 +68,6 @@ eam:
           - pep
           - pdp/controller
           - pdp/cedar-embedded
-          - pdp/cerbos-api
           - pdp/opa-embedded
           - pdp/openfga-embedded
   variables:

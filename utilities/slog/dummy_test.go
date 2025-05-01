@@ -95,15 +95,15 @@ func TestDummyHandler_Log(t *testing.T) {
 
 		logger := slog.New(h)
 
-		logger.Debug("line 1")
+		logger.Debug("line 1", "hello", "world")
 		logger.Info("line 2")
-		logger.Warn("line 3")
+		logger.Warn("line 3", "int", -1)
 		logger.Error("line 4")
 
 		got := h.Log()
-		want := `DEBUG: line 1
+		want := `DEBUG: line 1 hello=world
 INFO: line 2
-WARN: line 3
+WARN: line 3 int=-1
 ERROR: line 4`
 
 		assert.Equal(t, want, got)

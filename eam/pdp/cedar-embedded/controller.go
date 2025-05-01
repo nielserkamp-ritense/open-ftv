@@ -1,4 +1,4 @@
-// Package cedar contains all logic for a functional component acting as the Policy Decision Point,
+// Package cedar_embedded contains all logic for a functional component acting as the Policy Decision Point,
 // using Cedar as the policy language.
 package cedar_embedded
 
@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/module"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci/module"
 )
 
 // Version defines the version of this Cedar PDP.

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -16,6 +17,9 @@ import (
 
 func TestOptions(t *testing.T) {
 	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
@@ -35,6 +39,7 @@ func TestOptions(t *testing.T) {
 		wantName    string
 		wantVersion string
 		wantFull    string
+		wantCtx     context.Context
 		wantLogger  *slog.Logger
 		wantPEP     pep.PEP
 		wantPAP     pap.PAP
@@ -42,7 +47,8 @@ func TestOptions(t *testing.T) {
 		wantMapping []mapping.Mapper
 	}{
 		{
-			name: "no options",
+			name:    "no options",
+			wantCtx: context.Background(),
 		},
 		{
 			name:        "name + version",
@@ -50,30 +56,41 @@ func TestOptions(t *testing.T) {
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
+			wantCtx:     context.Background(),
+		},
+		{
+			name:    "context",
+			options: []Option{WithContext(ctx)},
+			wantCtx: ctx,
 		},
 		{
 			name:       "logger",
 			options:    []Option{WithLogger(logger)},
+			wantCtx:    context.Background(),
 			wantLogger: logger,
 		},
 		{
 			name:    "pep",
 			options: []Option{WithPEP(ep)},
+			wantCtx: context.Background(),
 			wantPEP: ep,
 		},
 		{
 			name:    "pip",
 			options: []Option{WithPIP(ip)},
+			wantCtx: context.Background(),
 			wantPIP: ip,
 		},
 		{
 			name:    "pap",
 			options: []Option{WithPAP(ap)},
+			wantCtx: context.Background(),
 			wantPAP: ap,
 		},
 		{
 			name:        "mappings",
 			options:     []Option{WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
+			wantCtx:     context.Background(),
 			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
 		},
 		{
@@ -82,6 +99,7 @@ func TestOptions(t *testing.T) {
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
+			wantCtx:     context.Background(),
 			wantLogger:  logger,
 			wantPEP:     ep,
 			wantPAP:     ap,
@@ -100,6 +118,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantName, got.Name())
 			assert.Equal(t, tc.wantVersion, got.Version())
 			assert.Equal(t, tc.wantFull, got.String())
+			assert.Equal(t, tc.wantCtx, got.Context())
 			assert.Equal(t, tc.wantLogger, got.Logger())
 			assert.Equal(t, tc.wantPEP, got.PEP())
 			assert.Equal(t, tc.wantPIP, got.PIP())

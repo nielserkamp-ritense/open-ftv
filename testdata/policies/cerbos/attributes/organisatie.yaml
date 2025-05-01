@@ -1,6 +1,6 @@
 ---
 apiVersion: api.cerbos.dev/v1
-description: Werktijden
+description: Organisations
 exportConstants:
   name: organisation
   definitions:

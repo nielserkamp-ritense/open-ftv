@@ -13,7 +13,6 @@ func (p *pap) LoadFiles() {
 		return
 	}
 
-	p.policyStore, _ = filepath.Abs(p.policyStore)
 	p.clearWatcher()
 
 	if err := filepath.WalkDir(p.policyStore, p.loadPolicy); err != nil {

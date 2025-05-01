@@ -1,4 +1,4 @@
-// Package opa contains all logic for a functional component acting as the Policy Decision Point
+// Package opa_embedded contains all logic for a functional component acting as the Policy Decision Point
 // using OPA/Rego as the policy language.
 package opa_embedded
 

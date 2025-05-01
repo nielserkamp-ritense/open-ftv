@@ -205,8 +205,6 @@ gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server v0.0.0
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server v0.0.0-20250415141202-eea5915a6d13/go.mod h1:2nuWhPnOR1iWnQls59TRJpOoPi1My2anJ2+uSh8ilf0=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250415141202-eea5915a6d13 h1:Ylp/MnCt5RA9A5Lp4WngpzXjjQ2PdM8vQYo92YmsYxc=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250415141202-eea5915a6d13/go.mod h1:55m9br74tBjjuFrdpPx3M2oarvcpS8zQ81KiDVb2R0o=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-20250415141202-eea5915a6d13 h1:NpQ8EAtvWpwy+tbcdlZUGTo2P+mFJIQEIQL3si1/DQQ=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-20250415141202-eea5915a6d13/go.mod h1:HqIH9ssNXvo6O6MJ0PZpPZsD+nP0JT67e2ZDZ7S7U7Y=
 go.etcd.io/etcd/api/v3 v3.5.21 h1:A6O2/JDb3tvHhiIz3xf9nJ7REHvtEFJJ3veW3FbCnS8=
 go.etcd.io/etcd/api/v3 v3.5.21/go.mod h1:c3aH5wcvXv/9dqIw2Y810LDXJfhSYdHQ0vxmP3CCHVY=
 go.etcd.io/etcd/client/pkg/v3 v3.5.21 h1:lPBu71Y7osQmzlflM9OfeIV2JlmpBjqBNlLtcoBqUTc=

@@ -153,36 +153,6 @@ func (s *wrapper) unmarshal(id string, kv *store.KVPair) (Policy, error) {
 	return p, nil
 }
 
-// func (s *wrapper) lock(key string) error {
-// 	s.mutex.Lock()
-// 	if !s.canLock {
-// 		return nil
-// 	}
-//
-// 	lock, err := s.client.NewLock(s.ctx, key, lockOptions)
-// 	if err != nil {
-// 		s.mutex.Unlock()
-// 		return err
-// 	}
-//
-// 	_, err = lock.Lock(s.ctx)
-// 	if err != nil {
-// 		s.mutex.Unlock()
-// 		return err
-// 	}
-//
-// 	s.storeLock = lock
-// 	return nil
-// }
-//
-// func (s *wrapper) unlock() {
-// 	if s.storeLock != nil {
-// 		s.storeLock.Unlock(s.ctx)
-// 		s.storeLock = nil
-// 	}
-// 	s.mutex.Unlock()
-// }
-
 func (s *wrapper) failure(op, id string, err error, mustFind bool) (Policy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
@@ -210,8 +180,6 @@ type wrapper struct {
 }
 
 var (
-	// readOptions = &store.ReadOptions{Consistent: true}
 	readOptions  = &store.ReadOptions{}
 	writeOptions = &store.WriteOptions{}
-	// lockOptions  = &store.LockOptions{}
 )

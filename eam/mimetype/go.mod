@@ -1,6 +1,8 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype
 
-go 1.23.2
+go 1.23.8
+
+toolchain go1.24.2
 
 require (
 	github.com/goccy/go-json v0.10.5

@@ -1,8 +1,8 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/opa-embedded
 
-go 1.23.6
+go 1.23.8
 
-toolchain go1.23.6
+toolchain go1.24.2
 
 require (
 	github.com/google/uuid v1.6.0

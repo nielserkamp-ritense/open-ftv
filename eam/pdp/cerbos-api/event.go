@@ -94,7 +94,9 @@ func (c *controller) getPolicyID(language, id string) string {
 		if r, ok2 := rp["resource"].(string); ok2 {
 			if v, ok3 := rp["version"].(string); ok3 {
 				if s, ok4 := rp["scope"].(string); ok4 {
-					return fmt.Sprintf("resource.%s.v%s/%s", r, v, s)
+					return fmt.Sprintf("resource.%s.v%s@%s", r, v, s)
+				} else {
+					return fmt.Sprintf("resource.%s.v%s@default", r, v)
 				}
 			}
 		}
@@ -104,7 +106,9 @@ func (c *controller) getPolicyID(language, id string) string {
 		if p, ok2 := rp["principal"].(string); ok2 {
 			if v, ok3 := rp["version"].(string); ok3 {
 				if s, ok4 := rp["scope"].(string); ok4 {
-					return fmt.Sprintf("principal.%s.v%s/%s", p, v, s)
+					return fmt.Sprintf("principal.%s.v%s@%s", p, v, s)
+				} else {
+					return fmt.Sprintf("principal.%s.v%s@default", p, v)
 				}
 			}
 		}
@@ -113,7 +117,9 @@ func (c *controller) getPolicyID(language, id string) string {
 	if rp, ok := m["rolePolicy"].(map[string]any); ok {
 		if r, ok2 := rp["role"].(string); ok2 {
 			if s, ok3 := rp["scope"].(string); ok3 {
-				return fmt.Sprintf("role.%s/%s", r, s)
+				return fmt.Sprintf("role.%s@%s", r, s)
+			} else {
+				return fmt.Sprintf("role.%s@default", r)
 			}
 		}
 	}
