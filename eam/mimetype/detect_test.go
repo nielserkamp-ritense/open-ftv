@@ -3,6 +3,7 @@ package mimetype
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,6 +59,202 @@ func TestDetectType(t *testing.T) {
 				assert.NotNil(t, data)
 			} else {
 				assert.Nil(t, data)
+			}
+		})
+	}
+}
+
+func TestDetectTypeFromJSON(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		data     string
+		wantErr  bool
+		wantType FileType
+		wantMime string
+		wantData bool
+	}{
+		{
+			name:    "empty",
+			wantErr: true,
+		},
+		{
+			name:    "bad JSON",
+			data:    "/this/is/not/json",
+			wantErr: true,
+		},
+		{
+			name:    "unsupported type",
+			data:    `true`,
+			wantErr: true,
+		},
+		{
+			name:    "unknown array type",
+			data:    `[true]`,
+			wantErr: true,
+		},
+		{
+			name:     "good JSON",
+			data:     `{"key":"werktijden","value":{"maandag":{"begin":"09:00","eind":"17:00"}}}`,
+			wantType: AttributesFile,
+			wantMime: "application/json",
+			wantData: true,
+		},
+		{
+			name:     "good JSON-LD",
+			data:     `{"@context":"production","value":"hello world"}`,
+			wantType: CollectionFile,
+			wantMime: "application/ld+json",
+			wantData: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ft, mt, d := detectTypeFromJSON(strings.NewReader(tc.data))
+			if tc.wantErr {
+				assert.Equal(t, UnknownFile, ft)
+				assert.Empty(t, mt)
+				assert.Nil(t, d)
+			} else {
+				assert.Equal(t, tc.wantType, ft)
+				assert.Equal(t, tc.wantMime, mt)
+
+				if tc.wantData {
+					assert.NotNil(t, d)
+				} else {
+					assert.Nil(t, d)
+				}
+			}
+		})
+	}
+}
+
+func TestDetectTypeFromYAML(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		data     string
+		wantErr  bool
+		wantType FileType
+		wantMime string
+		wantData bool
+	}{
+		{
+			name:    "empty",
+			wantErr: true,
+		},
+		{
+			name:    "bad YAML",
+			data:    "\000\001\002",
+			wantErr: true,
+		},
+		{
+			name:    "unsupported type",
+			data:    `true`,
+			wantErr: true,
+		},
+		{
+			name:    "unknown array type",
+			data:    `[true]`,
+			wantErr: true,
+		},
+		{
+			name: "good YAML",
+			data: `---
+key: "werktijden"
+value:
+  - maandag:
+    begin: "09:00"
+    eind: "17:00"
+`,
+			wantType: AttributesFile,
+			wantMime: "application/yaml",
+			wantData: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ft, mt, d := detectTypeFromYAML(strings.NewReader(tc.data))
+			if tc.wantErr {
+				assert.Equal(t, UnknownFile, ft)
+				assert.Empty(t, mt)
+				assert.Nil(t, d)
+			} else {
+				assert.Equal(t, tc.wantType, ft)
+				assert.Equal(t, tc.wantMime, mt)
+
+				if tc.wantData {
+					assert.NotNil(t, d)
+				} else {
+					assert.Nil(t, d)
+				}
+			}
+		})
+	}
+}
+
+func TestDetectTypeFromTOML(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		data     string
+		wantErr  bool
+		wantType FileType
+		wantMime string
+		wantData bool
+	}{
+		{
+			name:     "empty",
+			wantType: AttributesFile,
+			wantMime: "application/toml",
+		},
+		{
+			name:    "bad TOML",
+			data:    "\000\001\002",
+			wantErr: true,
+		},
+		{
+			name:    "unsupported type",
+			data:    `true`,
+			wantErr: true,
+		},
+		{
+			name: "good object",
+			data: `key = "hello"
+value = "world"`,
+			wantType: AttributesFile,
+			wantMime: "application/toml",
+			wantData: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ft, mt, d := detectTypeFromTOML(strings.NewReader(tc.data))
+			if tc.wantErr {
+				assert.Equal(t, UnknownFile, ft)
+				assert.Empty(t, mt)
+				assert.Nil(t, d)
+			} else {
+				assert.Equal(t, tc.wantType, ft)
+				assert.Equal(t, tc.wantMime, mt)
+
+				if tc.wantData {
+					assert.NotNil(t, d)
+				} else {
+					assert.Nil(t, d)
+				}
 			}
 		})
 	}

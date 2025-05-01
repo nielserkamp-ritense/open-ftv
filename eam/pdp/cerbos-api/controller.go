@@ -1,4 +1,4 @@
-// Package cerbos contains all logic for a functional component acting as the Policy Decision Point
+// Package cerbos_api contains all logic for a functional component acting as the Policy Decision Point
 // using Cerbos/CEL as the policy language.
 package cerbos_api
 
@@ -38,7 +38,13 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 		c.PAP().LoadFiles()
 	}
 
-	c.logger.Info("pdp controller initialized")
+	if c.engine != nil {
+		if c.admin != nil {
+			c.logger.Info("pdp controller initialized (with admin endpoint)")
+		} else {
+			c.logger.Info("pdp controller initialized (without admin endpoint)")
+		}
+	}
 	return c
 }
 
@@ -67,6 +73,11 @@ func (c *controller) initClients() {
 		} else {
 			c.logger = c.logger.With("serverInfo", c.info)
 		}
+	}
+
+	if c.engine != nil {
+		// debug: include meta-data in the response
+		c.engine = c.engine.With(cerbos.IncludeMeta(true))
 	}
 }
 

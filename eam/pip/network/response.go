@@ -7,13 +7,13 @@ package network
 // If it doesn't, the content type will be determined by looking at the first bytes of the body.
 // This may fail for a variety of reasons, so it is recommended to always send the appropriate Content-Type header.
 //
-// An RDF based response body **must** adhere to the FTV ontology.
+// An RDF-based response body **must** adhere to the FTV ontology.
 //
 // The key for each map indicates the base key where objects of that type can be found in the response.
-// E.g. the response is decoded into a tree of key/value pairs (e.g. an object where any value can be another object).
-// A base key contains the concatenated key values to the base of an object or array of objects of that type.
+// E.g., the response is decoded into a tree of key/value pairs (e.g., an object where any value can be another object).
+// A base key contains the concatenated key values to the base of an object or array of objects with that type.
 // Key values are concatenated with a dot, as common in object-oriented languages; e.g. "data.network.attributes".
-// Keys that contain one or more dots, must be enclosed in double or single quotes; e.g. "data.'net.addresses'.attributes".
+// Keys that contain one or more dots must be enclosed in double or single quotes; e.g. "data.'net.addresses'.attributes".
 type ResponseMapping struct {
 	Attributes  []*AttributesMapping `json:"attributes,omitempty" yaml:"attributes,omitempty" toml:"attributes,omitempty"`    // The mappings for decoding attributes.
 	Entities    []*EntityMapping     `json:"entities,omitempty" yaml:"entities,omitempty" toml:"entities,omitempty"`          // The mappings for decoding entities.

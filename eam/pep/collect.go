@@ -37,15 +37,6 @@ func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.P
 	}
 
 	c.run()
-
-	// TODO: move this into caller code; here is the wrong place for such hidden side-effects.
-	// copy back important key attributes.
-	// for _, key := range []string{models.AttrClientIP, models.AttrRvvaID, models.AttrTraceParent, models.AttrTraceState} {
-	// 	if attr := c.parc.Context.GetAttribute(key); attr != nil {
-	// 		req.Context[key] = attr.Value()
-	// 	}
-	// }
-
 	return c.parc
 }
 

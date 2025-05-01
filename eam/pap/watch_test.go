@@ -28,11 +28,11 @@ func TestClearWatcher(t *testing.T) {
 		},
 		{
 			name:  "one path",
-			paths: []string{"../../../testdata/policies"},
+			paths: []string{"../../testdata/policies"},
 		},
 		{
 			name:  "few paths",
-			paths: []string{"../../../testdata/policies", "../../../testdata/policies/opa", "../../../testdata/policies/cedar"},
+			paths: []string{"../../testdata/policies", "../../testdata/policies/opa", "../../testdata/policies/cedar"},
 		},
 	}
 

@@ -6,4 +6,4 @@ rolePolicy:
   rules:
     - resource: "service:https://inway-fsc-nlx-inway:443/brp-personen"
       allowActions:
-        - 'POST'
+        - 'can_update'

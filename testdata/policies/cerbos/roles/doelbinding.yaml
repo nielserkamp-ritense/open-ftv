@@ -1,0 +1,10 @@
+---
+apiVersion: api.cerbos.dev/v1
+rolePolicy:
+  role: "doelbinding"
+#  rules:
+#    - resource: "service:https://inway-fsc-nlx-inway:443/brp-personen"
+#      allowActions: ['*']
+#      outputs:
+#        outputs:
+#          - src: "wildcard_override:%s".format([request.principal.id])

@@ -3,10 +3,9 @@ apiVersion: api.cerbos.dev/v1
 resourcePolicy:
   resource: "https://inway-fsc-nlx-inway:443/brp-personen"
   version: "default"
-  constants:
-    import:
-      - rvig
   rules:
-    - actions: ['POST']
+    - actions:
+        - "*"
       effect: EFFECT_ALLOW
-      roles: ['*']
+      roles:
+        - doelbinding

@@ -1,6 +1,8 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/cedar-embedded
 
-go 1.23.2
+go 1.23.8
+
+toolchain go1.24.2
 
 require (
 	github.com/cedar-policy/cedar-go v1.1.1
@@ -13,6 +15,7 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip v0.0.0-00010101000000-000000000000
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250415141202-eea5915a6d13
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -47,10 +50,10 @@ require (
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/oauth2 v0.25.0 // indirect
+	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/time v0.7.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/grpc v1.71.1 // indirect
@@ -72,4 +75,5 @@ replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../../pip
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../../oas
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci => ../../../utilities-no-ci
 )

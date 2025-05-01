@@ -141,11 +141,29 @@ func TestLoadURI(t *testing.T) {
 func TestLoadURIError(t *testing.T) {
 	t.Parallel()
 
-	const uri = `https://identifier.overheid.nl/tooi/def/ont.txt`
+	testCases := []struct {
+		name string
+		uri  string
+	}{
+		{
+			name: "control characters",
+			uri:  "\000\001",
+		},
+		{
+			name: "bad uri",
+			uri:  "/000/001",
+		},
+		{
+			name: "not found uri",
+			uri:  "https://identifier.overheid.nl/tooi/def/ont.tx",
+		},
+	}
 
-	t.Run("load uri error", func(t *testing.T) {
-		g, err := LoadFromURI(uri, true)
-		require.Error(t, err)
-		require.Nil(t, g)
-	})
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g, err := LoadFromURI(tc.uri, true)
+			require.Error(t, err)
+			require.Nil(t, g)
+		})
+	}
 }

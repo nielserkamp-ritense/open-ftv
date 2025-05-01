@@ -1,6 +1,8 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/openfga-embedded
 
-go 1.23.2
+go 1.23.8
+
+toolchain go1.24.2
 
 require (
 	github.com/goccy/go-json v0.10.5
@@ -16,6 +18,7 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip v0.0.0-00010101000000-000000000000
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250415141202-eea5915a6d13
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.27.0
 )
 
@@ -90,11 +93,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
+	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/time v0.8.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	gonum.org/v1/gonum v0.15.1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250414145226-207652e42e2e // indirect
@@ -117,4 +120,5 @@ replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../../pip
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../../oas
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci => ../../../utilities-no-ci
 )

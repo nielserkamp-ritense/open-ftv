@@ -64,6 +64,7 @@ func TestAnyToString(t *testing.T) {
 		in   any
 		want string
 	}{
+		{name: "nil", want: ""},
 		{name: "string", in: "hello world", want: "hello world"},
 		{name: "bool true", in: true, want: "true"},
 		{name: "bool false", in: false, want: "false"},

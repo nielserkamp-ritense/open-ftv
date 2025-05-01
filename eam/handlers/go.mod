@@ -1,8 +1,8 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers
 
-go 1.23.6
+go 1.23.8
 
-toolchain go1.23.6
+toolchain go1.24.2
 
 require (
 	github.com/goccy/go-json v0.10.5
@@ -136,4 +136,5 @@ replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep => ../pep
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../pip
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci => ../../utilities-no-ci
 )

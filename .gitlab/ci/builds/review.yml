@@ -44,6 +44,11 @@ build_review_eam:
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
+  needs:
+    - job: eam
+      optional: true
+    - job: apps
+      optional: true
 
 build_review_fsc:
   stage: Builds
@@ -88,3 +93,8 @@ build_review_fsc:
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
+  needs:
+    - job: eam
+      optional: true
+    - job: apps
+      optional: true

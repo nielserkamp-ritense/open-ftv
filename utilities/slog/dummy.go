@@ -1,8 +1,8 @@
 package slog
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"log/slog"
 	"strings"
 	"sync"
@@ -98,7 +98,19 @@ func (d *DummyHandler) Log() string {
 
 	for i := range d.records {
 		rec := d.records[i]
-		out = append(out, fmt.Sprintf("%s: %s", rec.Level.String(), rec.Message))
+
+		buf := bytes.Buffer{}
+		buf.WriteString(rec.Level.String())
+		buf.WriteString(": ")
+		buf.WriteString(rec.Message)
+
+		rec.Attrs(func(attr slog.Attr) bool {
+			buf.WriteByte(' ')
+			buf.WriteString(attr.String())
+			return true
+		})
+
+		out = append(out, buf.String())
 	}
 
 	return strings.Join(out, "\n")

@@ -71,7 +71,7 @@ func (r *runner) doRequest() {
 }
 
 func (r *runner) processResponse() {
-	if len(r.req.Mapping.StatusCodes) > 0 {
+	if r.req.Mapping != nil && len(r.req.Mapping.StatusCodes) > 0 {
 		r.decodeResponse()
 		return
 	}

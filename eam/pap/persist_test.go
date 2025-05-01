@@ -15,9 +15,10 @@ func TestNewStore(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new store", func(t *testing.T) {
+		t.Parallel()
+
 		client := memory.New()
 		require.NotNil(t, client)
-
 		defer client.Close()
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -60,9 +61,10 @@ func TestNewStore_DupError(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new store - duplicate error", func(t *testing.T) {
+		t.Parallel()
+
 		client := memory.New()
 		require.NotNil(t, client)
-
 		defer client.Close()
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -90,9 +92,10 @@ func TestNewStore_Read_NotFound(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new store - read - not found", func(t *testing.T) {
+		t.Parallel()
+
 		client := memory.New()
 		require.NotNil(t, client)
-
 		defer client.Close()
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -111,9 +114,10 @@ func TestNewStore_Update_NotFound(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new store - update - not found", func(t *testing.T) {
+		t.Parallel()
+
 		client := memory.New()
 		require.NotNil(t, client)
-
 		defer client.Close()
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -136,9 +140,10 @@ func TestNewStore_Delete_NotFound(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new store - delete - not found", func(t *testing.T) {
+		t.Parallel()
+
 		client := memory.New()
 		require.NotNil(t, client)
-
 		defer client.Close()
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -154,5 +159,116 @@ func TestNewStore_Delete_NotFound(t *testing.T) {
 		p2, err3 := s.Delete(p, 0)
 		require.Error(t, err3)
 		require.Nil(t, p2)
+	})
+}
+
+func TestNewStore_List(t *testing.T) {
+	t.Parallel()
+
+	client := memory.New()
+	require.NotNil(t, client)
+	defer client.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	s := NewStore(ctx, client, "/base")
+	require.NotNil(t, s)
+
+	policies := []struct {
+		language string
+		id       string
+	}{
+		{language: "english", id: "1"},
+		{language: "english", id: "2"},
+		{language: "english", id: "3"},
+		{language: "dutch", id: "1"},
+		{language: "dutch", id: "2"},
+		{language: "french", id: "1"},
+	}
+
+	for _, data := range policies {
+		p, err := NewPolicyFromData(data.id, data.language, "", "", strings.NewReader("no content"))
+		require.NoError(t, err)
+		require.NotNil(t, p)
+
+		p2, err2 := s.Create(p)
+		require.NoError(t, err2)
+		require.NotNil(t, p2)
+		assert.EqualValues(t, p, p2)
+	}
+
+	testCases := []struct {
+		name      string
+		language  string
+		wantCount int
+	}{
+		{
+			name:      "no language",
+			wantCount: 6,
+		},
+		{
+			name:      "english",
+			language:  "english",
+			wantCount: 3,
+		},
+		{
+			name:      "dutch",
+			language:  "dutch",
+			wantCount: 2,
+		},
+		{
+			name:     "bad language",
+			language: "oops",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			list, err4 := s.List(tc.language)
+			require.NoError(t, err4)
+			require.NotNil(t, list)
+			assert.EqualValues(t, tc.wantCount, len(list))
+		})
+	}
+}
+
+func TestRead_UnmarshalError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("read - unmarshal error", func(t *testing.T) {
+		t.Parallel()
+
+		client := memory.New()
+		require.NotNil(t, client)
+		defer client.Close()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		s := NewStore(ctx, client, "/base")
+		require.NotNil(t, s)
+
+		p, err := NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
+		require.NoError(t, err)
+		require.NotNil(t, p)
+
+		p2, err2 := s.Create(p)
+		require.NoError(t, err2)
+		require.NotNil(t, p2)
+		assert.EqualValues(t, p, p2)
+
+		err3 := client.Put(ctx, "/base/blanco/1", []byte("\000\001"), writeOptions)
+		require.NoError(t, err3)
+
+		p3, _, err4 := s.Read(p.Language(), p.ID())
+		require.Error(t, err4)
+		require.Nil(t, p3)
+
+		list, err5 := s.List("")
+		require.Error(t, err5)
+		require.Nil(t, list)
 	})
 }

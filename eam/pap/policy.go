@@ -74,7 +74,9 @@ func NewPolicyFromStore(language, path string, content io.Reader) (Policy, error
 	if f, err2 := os.Open(meta); err2 == nil {
 		defer f.Close()
 		if err2 = yaml.NewDecoder(f).Decode(&p); err2 != nil {
-			_ = json.NewDecoder(f).Decode(&p)
+			if err2 = json.NewDecoder(f).Decode(&p); err2 != nil {
+				return nil, err2
+			}
 		}
 	}
 

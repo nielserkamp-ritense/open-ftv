@@ -27,22 +27,34 @@ lint: fmt ## lint all source code (requires revive tool)
 	@revive -set_exit_status ${PKG_LIST}
 
 test: fmt ## run all unit tests
+	@./start_api.sh
 	@go test -cover ${PKG_LIST}
+	@./stop_api.sh
 
 bench: fmt ## run all benchmarks
+	@./start_api.sh
 	@go test -bench . -benchmem ${PKG_LIST}
+	@./stop_api.sh
 
 race: fmt ## run race detector
+	@./start_api.sh
 	@go test -race ${PKG_LIST}
+	@./stop_api.sh
 
 msan: fmt ## run memory sanitizer
+	@./start_api.sh
 	@go test -msan ${PKG_LIST}
+	@./stop_api.sh
 
 cover: fmt ## run coverage report
+	@./start_api.sh
 	@../../scripts/coverage.sh
+	@./stop_api.sh
 
 coverhtml: fmt ## run coverage report and display in browser (requires xdg-open tool)
+	@./start_api.sh
 	@../../scripts/coverage.sh html
+	@./stop_api.sh
 	@xdg-open cover.html
 
 escape: fmt ## run escape analysis
