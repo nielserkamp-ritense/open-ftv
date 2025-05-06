@@ -5,10 +5,7 @@ variables:
 stages:
 #  - Version
   - Linters
-  - BaseUnitTests
-  - EamUnitTests
-  - CerbosUnitTests
-  - AppUnitTests
+  - UnitTests
   - Builds
 #  - Deploy
 #  - Redeploy
