@@ -33,7 +33,6 @@ build_review_eam:
           - utilities/**/*
           - utilities-no-ci/**/*
           - oas/**/*
-          - testdata/**/*
           - eam/**/*
           - apps/${APP}/**/*
           - \.gitlab/ci/builds/review.yml
@@ -80,9 +79,53 @@ build_review_fsc:
           - utilities/**/*
           - utilities-no-ci/**/*
           - oas/**/*
-          - testdata/**/*
           - eam/**/*
           - apps/fsc-auth/**/*
+          - \.gitlab/ci/builds/review.yml
+          - \.golang-ci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - ci_build_image_registry.txt
+      - ci_build_image_tag.txt
+  needs:
+    - job: base
+      optional: true
+
+build_review_mock_ds:
+  stage: Builds
+  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
+  parallel:
+    matrix:
+      - APP:
+          - generic
+  before_script:
+    - export SEMANTIC_RELEASE_NEXT_VERSION=1.2.1
+    - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
+    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
+    - echo -n "${CI_COMMIT_SHORT_SHA}" > ci_build_image_tag.txt
+  script:
+    - /kaniko/executor
+      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+      --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
+      --context "."
+      --dockerfile "mock/datasources/${APP}/Dockerfile"
+      --single-snapshot
+      --cache="true"
+      --compressed-caching=false
+      --cache-ttl="168h"
+      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${COMPONENT_VERSION}
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/**/*
+          - utilities-no-ci/**/*
+          - eam/**/*
+          - mock/datasources/**/*
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
