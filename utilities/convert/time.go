@@ -21,20 +21,31 @@ func AnyToDateTime(in any) time.Time {
 		s = fmt.Sprintf("%v", t)
 	}
 
-	if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
-		return t
+	for i := range formats {
+		if t, err := time.Parse(formats[i], s); err == nil {
+			return t
+		}
 	}
-	if t, err := time.ParseInLocation("2006-01-02", s, time.UTC); err == nil {
-		return t
-	}
-	if t, err := time.ParseInLocation("15:04:05.999999999", s, time.UTC); err == nil {
-		return t
-	}
-	if t, err := time.ParseInLocation("2006-01", s, time.UTC); err == nil {
-		return t
-	}
-	if t, err := time.ParseInLocation("01-02", s, time.UTC); err == nil {
-		return t
-	}
+
 	return time.Time{}
+}
+
+var formats = []string{
+	time.RFC3339Nano,
+	"2006-01-02T15:04:05",
+	"2006-01-02 15:04:05",
+	"2006/01/02 15:04:05",
+	"2006-01-02",
+	"2006/01/02",
+	"20060102",
+	"15:04:05.999999999",
+	"150405.999999999",
+	"150405.999",
+	"150405",
+	"2006-01",
+	"2006/01",
+	"200601",
+	"01-02",
+	"01/02",
+	"0102",
 }

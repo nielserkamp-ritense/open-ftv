@@ -62,7 +62,7 @@ func TestController_Authorize(t *testing.T) {
 		// 	recurse1: true,
 		// 	store2:   "../../../testdata/policies/cerbos",
 		// 	recurse2: true,
-		// 	req: models.Request{
+		// 	req: schema.Request{
 		// 		UID:         &uid,
 		// 		URL:         u2,
 		// 		Method:      "POST",
@@ -74,7 +74,7 @@ func TestController_Authorize(t *testing.T) {
 		// 		Body: b1,
 		// 	},
 		// 	wantLog: 3,
-		// 	want:    models.Response{Allowed: true},
+		// 	want:    schema.Response{Allowed: true},
 		// },
 	}
 

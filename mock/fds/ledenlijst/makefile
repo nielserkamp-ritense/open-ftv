@@ -36,21 +36,21 @@ race: fmt ## run race detector
 	@go test -race ${PKG_LIST}
 
 cover: fmt ## run coverage report
-	@../../../../scripts/coverage.sh
+	@../../../scripts/coverage.sh
 
 coverhtml: fmt ## run coverage report and display in browser (requires 'xdg-open' to be installed!)
-	@../../../../scripts/coverage.sh html
+	@../../../scripts/coverage.sh html
 	@xdg-open cover.html > /dev/null 2>&1
 
 escape: fmt ## run escape analysis
 	@go build -gcflags "-m" ${PKG_LIST} 2>&1
 
 app: fmt ## build binaries
-	@mkdir -f ../../../../bin
+	@mkdir -f ../../../bin
 	@go build -ldflags "-s -w" -o ../../../bin/ledenlijst cmd/*.go
 
 docker:
-	@docker build -t fsc-auth:1.0.0 .
+	@docker build -t $(PROJECT_NAME):1.0.0 .
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

@@ -43,3 +43,41 @@ func TestAnyToBool(t *testing.T) {
 		})
 	}
 }
+
+func TestAnyToBools(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   any
+		want []bool
+	}{
+		{name: "nil", want: []bool{}},
+		{name: "single bool", in: true, want: []bool{true}},
+		{name: "bool slice", in: []bool{true, false, true}, want: []bool{true, false, true}},
+		{name: "any slice", in: []any{1, 2.1, true, "hello world"}, want: []bool{true, true, true, false}},
+		{name: "int slice", in: []int{1, 0, 1}, want: []bool{true, false, true}},
+		{name: "int8 slice", in: []int8{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "int16 slice", in: []int16{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "int32 slice", in: []int32{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "int64 slice", in: []int64{1, 0, 0}, want: []bool{true, false, false}},
+		{name: "uint slice", in: []uint{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "uint8 slice", in: []uint8{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "uint16 slice", in: []uint16{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "uint32 slice", in: []uint32{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "uint64 slice", in: []uint64{1, 0, 3}, want: []bool{true, false, false}},
+		{name: "string slice", in: []string{"true", "xxx", "false"}, want: []bool{true, false, false}},
+		{name: "float32 slice", in: []float32{1.0, 0.0, 3.3}, want: []bool{true, false, false}},
+		{name: "float64 slice", in: []float64{1, 0.0, 1}, want: []bool{true, false, true}},
+		{name: "unsupported type", in: new(struct{}), want: []bool{false}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := AnyToBools(tc.in)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
