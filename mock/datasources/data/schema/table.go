@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
@@ -53,6 +54,18 @@ func (t *Table) SecondaryIndex(id string) *Index {
 func (t *Table) ForeignKey(id string) *ForeignKey {
 	t.Fix(nil)
 	return t.foreignKeys[id]
+}
+
+// FindForeignKey returns the foreign key definition that matches the given index.
+func (t *Table) FindForeignKey(foreign *Table) *ForeignKey {
+	t.Fix(nil)
+
+	for _, fk := range t.foreignKeys {
+		if strings.EqualFold(foreign.ID, fk.ForeignTable) && foreign.PrimaryKey.Equal(fk.Fields) {
+			return fk
+		}
+	}
+	return nil
 }
 
 // MarshalJSON implements the JSON Marshaler interface.

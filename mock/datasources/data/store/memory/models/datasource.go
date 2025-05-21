@@ -19,7 +19,7 @@ func NewSource(def *schema.Datasource) *Datasource {
 
 // Datasource contains all data for a datasource.
 type Datasource struct {
-	Tables map[string]*Table `yaml:"tables" yaml:"tables"`
+	Tables map[string]*Table
 	// hidden fields
 	def *schema.Datasource
 }
@@ -63,8 +63,8 @@ func (s *Datasource) MatchFilter(filter map[string]any) bool {
 	return true
 }
 
-// AsRecord converts the datasource definition into an exportable record.
-func (s *Datasource) AsRecord() *Row {
+// AsRow converts the datasource definition into an exportable row.
+func (s *Datasource) AsRow() *Row {
 	def := &schema.Object{Fields: []*schema.Field{
 		&fieldDefFQDN,
 		&fieldDefID,
@@ -84,7 +84,7 @@ func (s *Datasource) AsRecord() *Row {
 	if len(s.Tables) > 0 {
 		out2 := make(Rows, len(s.Tables))
 		for _, t := range s.Tables {
-			out2 = append(out2, t.AsRecord())
+			out2 = append(out2, t.AsRow())
 		}
 		out.Data[fieldDefTables.ID] = out2
 	}

@@ -1,11 +1,13 @@
 ---
 dataspace: fds.yaml
 datasource:
-  - brp/brp.yaml
+  - brp/schema.yaml
+endpoints:
+  - brp/endpoints.yaml
 sourceData:
   brp:
     adres: brp/adres.csv
-    afnemers: brp/afnemers.csv
+    afnemer: brp/afnemer.csv
     contact: brp/contact.csv
     gezagsverhouding: brp/gezagsverhouding.csv
     inschrijving: brp/inschrijving.csv

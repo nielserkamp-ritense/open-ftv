@@ -4,7 +4,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 )
 
-func fieldAsRecord(f *schema.Field) *Row {
+func fieldAsRow(f *schema.Field) *Row {
 	def := &schema.Object{Fields: []*schema.Field{}}
 	out := &Row{Data: make(map[string]any), def: def}
 
@@ -60,7 +60,7 @@ func fieldAsRecord(f *schema.Field) *Row {
 		out2 := make([]*Row, 0, len(f.Fields))
 
 		for _, f2 := range f.Fields {
-			out2 = append(out2, fieldAsRecord(f2))
+			out2 = append(out2, fieldAsRow(f2))
 		}
 
 		out.Data["fields"] = out2

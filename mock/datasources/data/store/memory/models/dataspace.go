@@ -25,8 +25,8 @@ func (s *Dataspace) AddDatasource(source *Datasource) {
 	s.Sources[source.def.ID] = source
 }
 
-// AsRecord converts the datasource definition into an exportable record.
-func (s *Dataspace) AsRecord() *Row {
+// AsRow converts the datasource definition into an exportable row.
+func (s *Dataspace) AsRow() *Row {
 	def := &schema.Object{Fields: []*schema.Field{
 		&fieldDefFQDN,
 		&fieldDefID,
@@ -46,7 +46,7 @@ func (s *Dataspace) AsRecord() *Row {
 	if len(s.Sources) > 0 {
 		out2 := make(Rows, len(s.Sources))
 		for _, source := range s.Sources {
-			out2 = append(out2, source.AsRecord())
+			out2 = append(out2, source.AsRow())
 		}
 		out.Data[fieldDefSources.ID] = out2
 	}

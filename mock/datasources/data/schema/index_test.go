@@ -216,3 +216,46 @@ func TestIndex_Fix(t *testing.T) {
 		})
 	}
 }
+
+func TestIndex_Equal(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		ix    *Index
+		other []string
+		want  bool
+	}{
+		{
+			name:  "single, not equal",
+			ix:    &Index{Fields: []string{"bsn"}},
+			other: []string{"naam"},
+		},
+		{
+			name:  "single, equal",
+			ix:    &Index{Fields: []string{"bsn"}},
+			other: []string{"bsn"},
+			want:  true,
+		},
+		{
+			name:  "multiple, not equal",
+			ix:    &Index{Fields: []string{"bsn", "volgnummer"}},
+			other: []string{"volgnummer", "bsn", "ingang"},
+		},
+		{
+			name:  "multiple, equal",
+			ix:    &Index{Fields: []string{"bsn", "volgnummer"}},
+			other: []string{"volgnummer", "bsn"},
+			want:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.ix.Equal(tc.other)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

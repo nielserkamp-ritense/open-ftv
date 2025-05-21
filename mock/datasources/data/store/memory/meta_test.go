@@ -67,6 +67,36 @@ func TestStorage_AddDatasource(t *testing.T) {
 	})
 }
 
+func TestStorage_AddEndpoint(t *testing.T) {
+	t.Parallel()
+
+	t.Run("add endpoint", func(t *testing.T) {
+		t.Parallel()
+
+		e1 := &schema.Endpoint{
+			Version:     1,
+			Type:        1,
+			Path:        "/path/",
+			FullVersion: "1.0.0",
+			Description: "my endpoint",
+			Datasource:  "ds1",
+			Table:       "t1",
+		}
+
+		s1 := &storage{endpoints: make(map[string]*schema.Endpoint)}
+		s1.AddEndpoint(e1)
+
+		got := s1.endpoints["/v1/path"]
+		assert.Equal(t, e1, got)
+
+		var count int
+		s1.IterateEndpoints(func(def *schema.Endpoint) {
+			count++
+		})
+		assert.Equal(t, 1, count)
+	})
+}
+
 func TestStorage_DatasourceExists(t *testing.T) {
 	t.Parallel()
 

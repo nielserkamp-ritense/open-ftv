@@ -22,38 +22,28 @@ var mockFDS = &schema.Dataspace{
 						Parent:      schema.Parent{ID: "persoon"},
 						Description: "personen",
 						Fields: []*schema.Field{
-							{
-								Object: schema.Object{
-									Parent:      schema.Parent{ID: "bsn"},
-									Description: "Burgerservicenummer",
-								},
-								IsPII: true,
-							},
+							{Object: schema.Object{Parent: schema.Parent{ID: "bsn"}, Description: "Burgerservicenummer"}, IsPII: true},
+							{Object: schema.Object{Parent: schema.Parent{ID: "voornaam"}, Description: "Voornaam"}, IsPII: true},
+							{Object: schema.Object{Parent: schema.Parent{ID: "achternaam"}, Description: "Achternaam"}, IsPII: true},
 						},
 					},
-					PrimaryKey: &schema.Index{
-						Parent:      schema.Parent{ID: "pk"},
-						Description: "primary key",
-						Fields:      []string{"bsn"},
-					},
+					PrimaryKey: &schema.Index{Parent: schema.Parent{ID: "pk"}, Description: "primary key", Fields: []string{"bsn"}},
 				},
 				{
 					Object: schema.Object{
 						Parent:      schema.Parent{ID: "adres"},
 						Description: "adressen",
 						Fields: []*schema.Field{
-							{
-								Object: schema.Object{
-									Parent:      schema.Parent{ID: "adres-id"},
-									Description: "Adres identifier",
-								},
-							},
+							{Object: schema.Object{Parent: schema.Parent{ID: "bsn"}, Description: "Burgerservicenummer"}, IsPII: true},
+							{Object: schema.Object{Parent: schema.Parent{ID: "postcode"}, Description: "Postcode"}},
 						},
 					},
-					PrimaryKey: &schema.Index{
-						Parent:      schema.Parent{ID: "pk"},
-						Description: "primary key",
-						Fields:      []string{"adres-id"},
+					PrimaryKey: &schema.Index{Parent: schema.Parent{ID: "pk"}, Description: "primary key", Fields: []string{"bsn"}},
+					ForeignKeys: []*schema.ForeignKey{
+						{
+							Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
+							ForeignTable: "persoon",
+						},
 					},
 				},
 			},
@@ -67,39 +57,20 @@ var mockFDS = &schema.Dataspace{
 						Parent:      schema.Parent{ID: "kenteken"},
 						Description: "kentekens",
 						Fields: []*schema.Field{
-							{
-								Object: schema.Object{
-									Parent:      schema.Parent{ID: "kenteken"},
-									Description: "kenteken",
-								},
-								IsPII: true,
-							},
+							{Object: schema.Object{Parent: schema.Parent{ID: "kenteken"}, Description: "kenteken"}, IsPII: true},
 						},
 					},
-					PrimaryKey: &schema.Index{
-						Parent:      schema.Parent{ID: "pk"},
-						Description: "primary key",
-						Fields:      []string{"kenteken"},
-					},
+					PrimaryKey: &schema.Index{Parent: schema.Parent{ID: "pk"}, Description: "primary key", Fields: []string{"kenteken"}},
 				},
 				{
 					Object: schema.Object{
 						Parent:      schema.Parent{ID: "adres"},
 						Description: "adressen",
 						Fields: []*schema.Field{
-							{
-								Object: schema.Object{
-									Parent:      schema.Parent{ID: "adres-id"},
-									Description: "Adres identifier",
-								},
-							},
+							{Object: schema.Object{Parent: schema.Parent{ID: "adres-id"}, Description: "Adres identifier"}},
 						},
 					},
-					PrimaryKey: &schema.Index{
-						Parent:      schema.Parent{ID: "pk"},
-						Description: "primary key",
-						Fields:      []string{"adres-id"},
-					},
+					PrimaryKey: &schema.Index{Parent: schema.Parent{ID: "pk"}, Description: "primary key", Fields: []string{"adres-id"}},
 				},
 			},
 		},

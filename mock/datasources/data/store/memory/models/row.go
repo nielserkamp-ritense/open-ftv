@@ -1,6 +1,8 @@
 package models
 
 import (
+	"bytes"
+	"fmt"
 	"regexp"
 
 	"github.com/goccy/go-json"
@@ -61,7 +63,8 @@ func RowFromCSV(def *schema.Object, header, data []string) *Row {
 type Row struct {
 	Data map[string]any
 	// hidden fields
-	def *schema.Object
+	def         *schema.Object
+	isQualified bool
 }
 
 // FieldString returns the value of a data element as a string.
@@ -70,6 +73,59 @@ func (r *Row) FieldString(id string) string {
 		return convert.AnyToString(v)
 	}
 	return ""
+}
+
+// KeyValueForIndex returns a concatenated key of all the field values for the given index.
+func (r *Row) KeyValueForIndex(index *schema.Index) string {
+	b := bytes.Buffer{}
+
+	index.IterateFields(func(field *schema.Field) {
+		if r.isQualified {
+			b.WriteString(r.FieldString(field.FQID()))
+		} else {
+			b.WriteString(r.FieldString(field.ID))
+		}
+		b.WriteByte('|')
+	})
+
+	if b.Len() > 0 {
+		b.Truncate(b.Len() - 1)
+	}
+	return b.String()
+}
+
+// KeyValueForFK returns a concatenated key of all the field values for the given foreign key.
+func (r *Row) KeyValueForFK(fk *schema.ForeignKey) string {
+	b := bytes.Buffer{}
+
+	fk.IterateFields(func(field *schema.Field) {
+		if r.isQualified {
+			b.WriteString(r.FieldString(field.FQID()))
+		} else {
+			b.WriteString(r.FieldString(field.ID))
+		}
+		b.WriteByte('|')
+	})
+
+	if b.Len() > 0 {
+		b.Truncate(b.Len() - 1)
+	}
+	return b.String()
+}
+
+// KeyValueForFields returns a concatenated key of all the field values for the given list of field keys.
+func (r *Row) KeyValueForFields(keys []string) string {
+	b := bytes.Buffer{}
+
+	for i := range keys {
+		b.WriteString(r.FieldString(keys[i]))
+		b.WriteByte('|')
+	}
+
+	if b.Len() > 0 {
+		b.Truncate(b.Len() - 1)
+	}
+	return b.String()
 }
 
 // MatchFilter returns true if the record matches the given filter.
@@ -99,13 +155,100 @@ func (r *Row) MatchFields(matcher types.FieldMatcher) *Row {
 		return r
 	}
 
-	out := &Row{Data: make(map[string]any), def: &schema.Object{Fields: make([]*schema.Field, 0, len(r.def.Fields))}}
+	out := &Row{
+		Data:        make(map[string]any),
+		def:         r.def,
+		isQualified: r.isQualified,
+	}
+
 	r.def.IterateFields(func(f *schema.Field) {
 		if matcher.Match(f.ID) {
 			out.Data[f.ID] = r.Data[f.ID]
 			out.def.Fields = append(out.def.Fields, f)
 		}
 	})
+	return out
+}
+
+// JoinSibling returns a deep copy of the row extended with the data from the joined row.
+func (r *Row) JoinSibling(r2 *Row) *Row {
+	out := &Row{
+		Data:        make(map[string]any, len(r.Data)+len(r2.Data)),
+		def:         r.def,
+		isQualified: r.isQualified,
+	}
+
+	for k, v := range r.Data {
+		out.Data[k] = v
+	}
+	for k, v := range r2.Data {
+		out.Data[k] = v
+	}
+	return out
+}
+
+// JoinSiblingQualified returns a deep copy of the row extended with the data from the joined row.
+//
+// Unlike JoinSibling, this function makes sure all field identifiers are fully qualified.
+func (r *Row) JoinSiblingQualified(t1, t2 string, r2 *Row) *Row {
+	out := r.Qualified(t1)
+
+	if r2.isQualified {
+		for k, v := range r2.Data {
+			out.Data[k] = v
+		}
+	} else {
+		for k, v := range r2.Data {
+			out.Data[fmt.Sprintf("%s.%s", t2, k)] = v
+		}
+	}
+
+	return out
+}
+
+// Qualified makes a deep copy of the record while adding the given table qualifier to the field identifiers (if needed).
+func (r *Row) Qualified(tableID string) *Row {
+	out := &Row{
+		Data:        make(map[string]any, len(tableID)),
+		def:         r.def,
+		isQualified: true,
+	}
+
+	if r.isQualified {
+		for k, v := range r.Data {
+			out.Data[k] = v
+		}
+	} else {
+		for k, v := range r.Data {
+			out.Data[fmt.Sprintf("%s.%s", tableID, k)] = v
+		}
+	}
+
+	return out
+}
+
+// RemoveFields returns a deep copy of the row with the given fields removed from the data.
+func (r *Row) RemoveFields(fields []string) *Row {
+	m := make(map[string]struct{}, len(fields))
+	for i := range fields {
+		m[fields[i]] = struct{}{}
+	}
+	return r.RemoveFieldMap(m)
+}
+
+// RemoveFieldMap returns a deep copy of the row with the given fields removed from the data.
+func (r *Row) RemoveFieldMap(fields map[string]struct{}) *Row {
+	out := &Row{
+		Data:        make(map[string]any, len(fields)),
+		def:         r.def,
+		isQualified: r.isQualified,
+	}
+
+	for k, v := range r.Data {
+		if _, ok := fields[k]; !ok {
+			out.Data[k] = v
+		}
+	}
 	return out
 }
 

@@ -159,9 +159,11 @@ func TestTable_MarshalYAML(t *testing.T) {
 			},
 			ForeignKeys: []*ForeignKey{
 				{
-					Parent:       Parent{ID: "fk1"},
-					Description:  "foreign key 1",
-					Fields:       []string{"f1"},
+					Index: Index{
+						Parent:      Parent{ID: "fk1"},
+						Description: "foreign key 1",
+						Fields:      []string{"f1"},
+					},
 					ForeignTable: "t2",
 				},
 			},
@@ -199,9 +201,9 @@ secondaryIndexes:
 foreignKeys:
 - id: fk1
   description: foreign key 1
+  foreignTable: t2
   fields:
   - f1
-  foreignTable: t2
 `
 
 		assert.Equal(t, want, string(got))
@@ -337,9 +339,11 @@ func TestTable_Fix(t *testing.T) {
 				},
 				ForeignKeys: []*ForeignKey{
 					{
-						Parent:       Parent{ID: "fk1"},
-						Description:  "link with table 1",
-						Fields:       []string{"f1", "f3"},
+						Index: Index{
+							Parent:      Parent{ID: "fk1"},
+							Description: "link with table 1",
+							Fields:      []string{"f1", "f3"},
+						},
 						ForeignTable: "t1",
 					},
 				},
@@ -387,6 +391,59 @@ func TestTable_Fix(t *testing.T) {
 					require.NotNil(t, fk)
 				}
 			}
+		})
+	}
+}
+
+func TestTable_FindForeignKey(t *testing.T) {
+	t.Parallel()
+
+	pk1 := &Index{Parent: Parent{ID: "pk"}, Fields: []string{"bsn"}}
+
+	fk1 := &ForeignKey{
+		Index:        Index{Parent: Parent{ID: "fk1"}, Description: "foreign key 1", Fields: []string{"postcode"}},
+		ForeignTable: "t1",
+	}
+
+	fk2 := &ForeignKey{
+		Index:        Index{Parent: Parent{ID: "fk2"}, Description: "foreign key 2", Fields: []string{"bsn"}},
+		ForeignTable: "t2",
+	}
+
+	fk3 := &ForeignKey{
+		Index:        Index{Parent: Parent{ID: "fk3"}, Description: "foreign key 3", Fields: []string{"bsn"}},
+		ForeignTable: "t1",
+	}
+
+	t1 := &Table{Object: Object{Parent: Parent{ID: "t1"}}, PrimaryKey: pk1}
+	t2 := &Table{Object: Object{Parent: Parent{ID: "t2"}}}
+	t3 := &Table{Object: Object{Parent: Parent{ID: "t3"}}, ForeignKeys: []*ForeignKey{fk1, fk2}}
+	t4 := &Table{Object: Object{Parent: Parent{ID: "t4"}}, ForeignKeys: []*ForeignKey{fk1, fk2, fk3}}
+
+	ds := &Datasource{
+		Parent:      Parent{ID: "ds1"},
+		Description: "source1",
+		Tables:      []*Table{t1, t2, t3, t4},
+	}
+	ds.Fix(nil)
+
+	testCases := []struct {
+		name    string
+		t       *Table
+		foreign *Table
+		want    *ForeignKey
+	}{
+		{name: "no foreign keys", t: t2, foreign: t1},
+		{name: "foreign keys not matched", t: t3, foreign: t1},
+		{name: "foreign key matched", t: t4, foreign: t1, want: fk3},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.t.FindForeignKey(tc.foreign)
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }

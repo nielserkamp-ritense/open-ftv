@@ -3,8 +3,12 @@ package memory
 import (
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/filters"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/joins"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // SelectPK implements the Reader interface.
@@ -72,14 +76,16 @@ func (s *storage) Search(tableID string, filter map[string]any) (models.Rows, er
 		return nil, fmt.Errorf("search: %w", err2)
 	}
 
-	expr, _ := filter["fields"].(string)
+	expr := convert.AnyToString(filter["fields"])
 	delete(filter, "fields")
 	matcher := types.NewFieldMatcher(expr)
 
 	var out models.Rows
 	for i := range t.Data {
 		rec := t.Data[i]
+		// vertical data-minimalization.
 		if rec.MatchFilter(filter) {
+			// horizontal data-minimalization.
 			out = append(out, rec.MatchFields(matcher))
 		}
 	}
@@ -88,4 +94,49 @@ func (s *storage) Search(tableID string, filter map[string]any) (models.Rows, er
 		return out, nil
 	}
 	return nil, fmt.Errorf("search: no matching records found for {%v}", filter)
+}
+
+// GetEndpoint implements the Reader interface.
+func (s *storage) GetEndpoint(e *schema.Endpoint, filter map[string]any) (models.Rows, error) {
+	if e.Primary() == nil {
+		return nil, fmt.Errorf("endpoint: primary table missing")
+	}
+
+	primary, err := s.GetTable(e.Primary().FQID())
+	if err != nil {
+		return nil, fmt.Errorf("endpoint: %w", err)
+	}
+
+	// determine horizontal minimalization.
+	fieldMatcher := types.NewFieldMatcher(convert.AnyToString(filter["fields"]))
+	delete(filter, "fields")
+
+	// determine vertical filter for the primary table.
+	tableFilter := filters.NewTableFilter(primary.Definition(), filter)
+
+	var out models.Rows
+	for i := range primary.Data {
+		rec := primary.Data[i]
+		// apply vertical data-minimalization.
+		if rec.MatchFilter(tableFilter) {
+			out = append(out, rec)
+		}
+	}
+
+	if list := e.Joins; len(list) > 0 {
+		out, err = joins.ProcessJoins(out, primary, list, filter, s)
+		if err != nil {
+			return nil, fmt.Errorf("endpoint: %w", err)
+		}
+	}
+
+	if len(out) == 0 {
+		return nil, fmt.Errorf("endpoint: no matching records found for {%v}", filter)
+	}
+
+	for i := range out {
+		// apply horizontal data-minimalization.
+		out[i] = out[i].MatchFields(fieldMatcher)
+	}
+	return out, nil
 }

@@ -27,8 +27,7 @@ func NewFieldMatcher(exp string) FieldMatcher {
 		case part == "":
 			// ignore
 		case part == "*":
-			out.always = true
-			return out
+			return &matcher{always: true}
 		case strings.Contains(part, "*") || strings.Contains(part, "?"):
 			expr := makeExpr.Replace(part)
 			out.rx = append(out.rx, regexp.MustCompile(fmt.Sprintf("^%s$", expr)))
@@ -56,6 +55,8 @@ func (m *matcher) Match(id string) bool {
 	if m.always {
 		return true
 	}
+
+	id = strings.ToLower(id)
 
 	for i := range m.exact {
 		if id == m.exact[i] {

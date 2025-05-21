@@ -41,7 +41,7 @@ func TestDataspace_AsRecord(t *testing.T) {
 		})
 		require.NotNil(t, s1)
 
-		got := s1.AsRecord()
+		got := s1.AsRow()
 		require.NotNil(t, got)
 
 		assert.Len(t, got.Data, 4)

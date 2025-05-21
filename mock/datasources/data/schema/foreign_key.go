@@ -1,102 +1,128 @@
 package schema
 
 import (
-	"sync"
+	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 type ForeignKey struct {
-	Parent
-	Description  string
-	Fields       []string
+	Index
 	ForeignTable string
 	// hidden fields
-	mutex        sync.Mutex
-	parentTable  *Table
-	fields       []*Field
-	foreignTable *Table
+	foreignTable  *Table
+	foreignFields []*Field
+}
+
+// IterateForeignFields iterates over the foreign table field definitions and calls the closure for each field.
+func (fk *ForeignKey) IterateForeignFields(f func(*Field)) {
+	fk.Fix(nil, nil)
+	for _, field := range fk.foreignFields {
+		f(field)
+	}
 }
 
 // MarshalJSON implements the JSON Marshaler interface.
-func (f *ForeignKey) MarshalJSON() ([]byte, error) {
+func (fk *ForeignKey) MarshalJSON() ([]byte, error) {
 	d2 := encodeFK{
-		ID:           f.ID,
-		Description:  f.Description,
-		Fields:       f.Fields,
-		ForeignTable: f.ForeignTable,
+		ID:           fk.ID,
+		Description:  fk.Description,
+		ForeignTable: fk.ForeignTable,
+		Fields:       fk.Fields,
+		Orders:       fk.Orders,
 	}
 	return json.Marshal(&d2)
 }
 
 // UnmarshalJSON implements the JSON Unmarshaler interface.
-func (f *ForeignKey) UnmarshalJSON(b []byte) error {
+func (fk *ForeignKey) UnmarshalJSON(b []byte) error {
 	var d2 encodeFK
 	if err := json.Unmarshal(b, &d2); err != nil {
 		return err
 	}
 
-	f.ID = d2.ID
-	f.Description = d2.Description
-	f.Fields = d2.Fields
-	f.ForeignTable = d2.ForeignTable
+	fk.ID = d2.ID
+	fk.Description = d2.Description
+	fk.ForeignTable = d2.ForeignTable
+	fk.Fields = d2.Fields
+	fk.Orders = d2.Orders
 
 	return nil
 }
 
 // MarshalYAML implements the YAML Marshaler interface.
-func (f *ForeignKey) MarshalYAML() ([]byte, error) {
+func (fk *ForeignKey) MarshalYAML() ([]byte, error) {
 	d2 := encodeFK{
-		ID:           f.ID,
-		Description:  f.Description,
-		Fields:       f.Fields,
-		ForeignTable: f.ForeignTable,
+		ID:           fk.ID,
+		Description:  fk.Description,
+		ForeignTable: fk.ForeignTable,
+		Fields:       fk.Fields,
+		Orders:       fk.Orders,
 	}
 	return yaml.Marshal(&d2)
 }
 
 // UnmarshalYAML implements the YAML Unmarshaler interface.
-func (f *ForeignKey) UnmarshalYAML(b []byte) error {
+func (fk *ForeignKey) UnmarshalYAML(b []byte) error {
 	var d2 encodeFK
 	if err := yaml.Unmarshal(b, &d2); err != nil {
 		return err
 	}
 
-	f.ID = d2.ID
-	f.Description = d2.Description
-	f.Fields = d2.Fields
-	f.ForeignTable = d2.ForeignTable
+	fk.ID = d2.ID
+	fk.Description = d2.Description
+	fk.ForeignTable = d2.ForeignTable
+	fk.Fields = d2.Fields
+	fk.Orders = d2.Orders
 
 	return nil
 }
 
 type encodeFK struct {
-	ID           string   `json:"id" yaml:"id"`
-	Description  string   `json:"description,omitempty" yaml:"description,omitempty"`
-	Fields       []string `json:"fields" yaml:"fields"`
-	ForeignTable string   `json:"foreignTable" yaml:"foreignTable"`
+	ID           string            `json:"id" yaml:"id"`
+	Description  string            `json:"description,omitempty" yaml:"description,omitempty"`
+	ForeignTable string            `json:"foreignTable" yaml:"foreignTable"`
+	Fields       []string          `json:"fields" yaml:"fields"`
+	Orders       []types.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`
 }
 
 // Fix (re)sets the parent-child relationships for this object.
-func (f *ForeignKey) Fix(t *Table, tables map[string]*Table) {
-	f.mutex.Lock()
-	f.fix(t, tables)
-	f.mutex.Unlock()
+func (fk *ForeignKey) Fix(t *Table, tables map[string]*Table) {
+	fk.mutex.Lock()
+	fk.fix(t, tables)
+	fk.mutex.Unlock()
 }
 
-func (f *ForeignKey) fix(t *Table, tables map[string]*Table) {
-	if t != nil {
-		f.parent = &t.Parent
-		f.parentTable = t
+func (fk *ForeignKey) fix(t *Table, tables map[string]*Table) {
+	fk.Index.fix(t)
 
-		f.fields = make([]*Field, 0, len(f.Fields))
-		for _, id := range f.Fields {
-			f.fields = append(f.fields, t.fields[id])
-		}
+	if tables == nil && t.parentSource != nil {
+		tables = t.parentSource.tables
 	}
 
 	if tables != nil {
-		f.foreignTable = tables[f.ForeignTable]
+		fk.foreignTable = tables[fk.ForeignTable]
+	}
+
+	if fk.foreignTable != nil && len(fk.foreignFields) == 0 {
+		fk.foreignFields = make([]*Field, 0, len(fk.Fields))
+		for _, id := range fk.Fields {
+			parts := strings.Split(id, ":")
+
+			var f *Field
+			switch len(parts) {
+			case 1:
+				f = fk.foreignTable.fields[parts[0]]
+			default:
+				f = fk.foreignTable.fields[parts[1]]
+			}
+
+			if f != nil {
+				fk.foreignFields = append(fk.foreignFields, f)
+			}
+		}
 	}
 }

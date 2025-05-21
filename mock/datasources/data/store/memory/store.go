@@ -17,10 +17,11 @@ func New(ds *schema.Dataspace) store.Storage {
 		sourceDefs: make(map[string]*schema.Datasource),
 		sources:    make(map[string]*models.Datasource),
 		tables:     make(map[string]*models.Table),
+		endpoints:  make(map[string]*schema.Endpoint),
 	}
 
 	if ds != nil {
-		_ = ds.Source("") // force internal fix.
+		ds.Fix()
 
 		for _, source := range ds.DataSources {
 			s.sourceDefs[strings.ToLower(source.ID)] = source
@@ -81,4 +82,5 @@ type storage struct {
 	space      *models.Dataspace
 	sources    map[string]*models.Datasource
 	tables     map[string]*models.Table
+	endpoints  map[string]*schema.Endpoint
 }

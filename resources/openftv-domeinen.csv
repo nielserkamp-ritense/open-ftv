@@ -1,0 +1,5 @@
+"id","naam","omschrijving","geldig-vanaf","geldig-tm","aangemaakt","aangemaakt-door","gewijzigd","gewijzigd-door","vervallen"
+"management","Management-console","toegangsbeleid voor het management console",,,"22-5-2025","gerard",,,"nee"
+"brp","BRP","toegangsbeleid voor Basis Registratie Personen",,,"22-5-2025","gerard",,,"nee"
+"rdw","RDW","toegangsbeleid voor Rijksdienst Wegverkeer",,,"22-5-2025","gerard",,,"nee"
+,,,,,"22-5-2025","gerard",,,"nee"

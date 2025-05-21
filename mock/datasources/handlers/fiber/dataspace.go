@@ -36,7 +36,7 @@ func (h *dataspaceHandler) GetDataspace(req *fiber.Ctx) error {
 	filter := buildFilter(req)
 	_, matcher := extractFieldMatcher(filter)
 
-	return buildContent(req, d.AsRecord().MatchFields(matcher))
+	return buildContent(req, d.AsRow().MatchFields(matcher))
 }
 
 // PutDataspace implements the DataspacesHandler interface.

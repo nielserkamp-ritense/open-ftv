@@ -34,7 +34,7 @@ func TestDatasource_AddTableFromData(t *testing.T) {
 	t.Run("new table", func(t *testing.T) {
 		t.Parallel()
 
-		_ = datasource1.Table("") // force internal fix().
+		datasource1.Fix(nil)
 
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
@@ -63,7 +63,7 @@ func TestDatasource_AddTableFromCSV(t *testing.T) {
 	t.Run("new table", func(t *testing.T) {
 		t.Parallel()
 
-		_ = datasource1.Table("") // force internal fix().
+		datasource1.Fix(nil)
 
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
@@ -112,6 +112,8 @@ func TestDatasource_MatchFilter(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			datasource1.Fix(nil)
+
 			s1 := NewSource(datasource1)
 			require.NotNil(t, s1)
 			require.NotNil(t, s1.Tables)
@@ -126,11 +128,13 @@ func TestDatasource_AsRecord(t *testing.T) {
 	t.Parallel()
 
 	t.Run("as record", func(t *testing.T) {
+		datasource1.Fix(nil)
+
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
 		require.NotNil(t, s1.Tables)
 
-		got := s1.AsRecord()
+		got := s1.AsRow()
 		require.NotNil(t, got)
 
 		assert.Len(t, got.Data, 4)

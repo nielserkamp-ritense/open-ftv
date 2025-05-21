@@ -14,14 +14,14 @@ type Datasource struct {
 	Description string
 	Tables      []*Table
 	// hidden fields
-	once   sync.Once
+	mutex  sync.Mutex
 	ds     *Dataspace
 	tables map[string]*Table
 }
 
 // Table returns the table definition for the given id.
 func (d *Datasource) Table(tableID string) *Table {
-	d.once.Do(func() { d.fix(nil) })
+	d.Fix(nil)
 	return d.tables[strings.ToLower(tableID)]
 }
 
@@ -85,6 +85,13 @@ type encodeDatasource struct {
 	ID          string   `json:"id" yaml:"id"`
 	Description string   `json:"description,omitempty" yaml:"description,omitempty"`
 	Tables      []*Table `json:"tables,omitempty" yaml:"tables,omitempty"`
+}
+
+// Fix (re)sets the parent-child relationships for this object.
+func (d *Datasource) Fix(ds *Dataspace) {
+	d.mutex.Lock()
+	d.fix(ds)
+	d.mutex.Unlock()
 }
 
 func (d *Datasource) fix(ds *Dataspace) {

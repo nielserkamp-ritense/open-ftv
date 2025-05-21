@@ -38,7 +38,7 @@ func (h *tableHandler) GetTables(req *fiber.Ctx) error {
 	for _, source := range sources {
 		for _, table := range source.Tables {
 			if table.MatchFilter(filter2) {
-				list = append(list, table.AsRecord().MatchFields(matcher))
+				list = append(list, table.AsRow().MatchFields(matcher))
 			}
 		}
 	}

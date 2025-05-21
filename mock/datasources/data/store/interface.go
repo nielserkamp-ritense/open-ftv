@@ -19,10 +19,12 @@ type Storage interface {
 type MetaLoader interface {
 	SetDataspace(def *schema.Dataspace)
 	AddDatasource(def *schema.Datasource)
+	AddEndpoint(def *schema.Endpoint)
 }
 
 // MetaReader represents the interface for searching and retrieving data-space/-source definitions.
 type MetaReader interface {
+	IterateEndpoints(f func(def *schema.Endpoint))
 	DatasourceExists(id string) bool
 	TableExists(id string) bool
 
@@ -50,4 +52,5 @@ type Reader interface {
 	SelectPK(tableID string, pk []any) (*models.Row, error)
 	SelectIX(tableID string, id string, keys []any) (models.Rows, error)
 	Search(tableID string, filter map[string]any) (models.Rows, error)
+	GetEndpoint(e *schema.Endpoint, filter map[string]any) (models.Rows, error)
 }

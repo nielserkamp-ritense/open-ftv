@@ -88,6 +88,13 @@ func (p *pathLoader) processMeta() error {
 		}
 	}
 
+	for i := range p.meta.EndpointDefs {
+		s := p.meta.EndpointDefs[i]
+		if err := p.loadEndpoints(p.fixPath(s)); err != nil {
+			return err
+		}
+	}
+
 	for source := range p.meta.SourceData {
 		m := p.meta.SourceData[source]
 		for table := range m {
@@ -162,6 +169,37 @@ func (p *pathLoader) loadDatasource(path string) error {
 	}
 
 	p.store.AddDatasource(def)
+	return nil
+}
+
+func (p *pathLoader) loadEndpoints(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("endpoints [%s]; %w", path, err)
+	}
+	defer f.Close()
+
+	var t string
+	if t = io.ConvertExt(filepath.Ext(path)); !io.IsSupported(t) {
+		t = io.SnifStream(f)
+	}
+
+	var defs []*schema.Endpoint
+	switch t {
+	case io.MimeTypeJSON:
+		err = json.NewDecoder(f).Decode(&defs)
+	case io.MimeTypeYAML:
+		err = yaml.NewDecoder(f).Decode(&defs)
+	default:
+		err = fmt.Errorf("unsupported data format: %s", t)
+	}
+	if err != nil {
+		return fmt.Errorf("endpoints [%s]; %w", path, err)
+	}
+
+	for _, def := range defs {
+		p.store.AddEndpoint(def)
+	}
 	return nil
 }
 
