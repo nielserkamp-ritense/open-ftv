@@ -1,4 +1,4 @@
-// Package models contains generic definitions for working External Access Management (EAM).
+// Package schema contains generic definitions for working External Access Management (EAM).
 package models
 
 import (

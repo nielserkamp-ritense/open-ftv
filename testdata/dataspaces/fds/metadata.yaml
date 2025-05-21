@@ -1,0 +1,22 @@
+---
+dataspace: fds.yaml
+datasource:
+  - brp/brp.yaml
+sourceData:
+  brp:
+    adres: brp/adres.csv
+    afnemers: brp/afnemers.csv
+    contact: brp/contact.csv
+    gezagsverhouding: brp/gezagsverhouding.csv
+    inschrijving: brp/inschrijving.csv
+    kiesrecht: brp/kiesrecht.csv
+    kind: brp/kind.csv
+    nationaliteit: brp/nationaliteit.csv
+    ouder1: brp/ouder1.csv
+    ouder2: brp/ouder2.csv
+    overlijden: brp/overlijden.csv
+    persoon: brp/persoon.csv
+    reisdocument: brp/reisdocument.csv
+    tijdelijk-adres: brp/tijdelijk-adres.csv
+    verbintenis: brp/verbintenis.csv
+    verblijfstitel: brp/verblijfstitel.csv

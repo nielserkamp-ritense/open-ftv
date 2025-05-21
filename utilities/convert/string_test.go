@@ -160,3 +160,117 @@ func TestForceSuffix(t *testing.T) {
 		})
 	}
 }
+
+func TestAnyToStrings(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   any
+		want []string
+	}{
+		{
+			name: "nil",
+			want: []string{},
+		},
+		{
+			name: "empty string",
+			in:   "",
+			want: []string{""},
+		},
+		{
+			name: "single string",
+			in:   "hello world",
+			want: []string{"hello world"},
+		},
+		{
+			name: "string slice",
+			in:   []string{"a", "b", "c"},
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "any slice",
+			in:   []any{1, 2.1, true, "hello world"},
+			want: []string{"1", "2.1", "true", "hello world"},
+		},
+		{
+			name: "int slice",
+			in:   []int{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "int8 slice",
+			in:   []int8{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "int16 slice",
+			in:   []int16{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "int32 slice",
+			in:   []int32{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "int64 slice",
+			in:   []int64{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "uint slice",
+			in:   []uint{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "uint8 slice",
+			in:   []uint8{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "uint16 slice",
+			in:   []uint16{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "uint32 slice",
+			in:   []uint32{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "uint64 slice",
+			in:   []uint64{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "bool slice",
+			in:   []bool{true, false, true},
+			want: []string{"true", "false", "true"},
+		},
+		{
+			name: "float32 slice",
+			in:   []float32{1.1, 2.2, 3.3},
+			want: []string{"1.1", "2.2", "3.3"},
+		},
+		{
+			name: "float64 slice",
+			in:   []float64{1.1, 2.2, 3.3},
+			want: []string{"1.1", "2.2", "3.3"},
+		},
+		{
+			name: "unsupported type",
+			in:   new(struct{}),
+			want: []string{"&{}"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := AnyToStrings(tc.in)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

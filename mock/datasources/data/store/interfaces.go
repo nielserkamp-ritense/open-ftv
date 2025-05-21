@@ -1,0 +1,53 @@
+package store
+
+import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
+)
+
+// Storage represents the interface for storing and retrieving data-space/-source definitions as well as manipulating data tables.
+type Storage interface {
+	MetaLoader
+	MetaReader
+
+	Loader
+	Maintainer
+	Reader
+}
+
+// MetaLoader represents the interface for setting the dataspace and adding datasource definitions.
+type MetaLoader interface {
+	SetDataspace(def *schema.Dataspace)
+	AddDatasource(def *schema.Datasource)
+}
+
+// MetaReader represents the interface for searching and retrieving data-space/-source definitions.
+type MetaReader interface {
+	DatasourceExists(id string) bool
+	TableExists(id string) bool
+
+	GetDataspace() *models.Dataspace
+	GetDatasources() map[string]*models.Datasource
+	GetDatasource(id string) *models.Datasource
+	GetTable(id string) (*models.Table, error)
+}
+
+// Loader represents the interface for storing data-space/-source definitions as well as the actual data tables.
+type Loader interface {
+	AddTableFromData(sourceID, tableID string, data []map[string]any) error
+	AddTableFromCSV(sourceID, tableID string, csv [][]string) error
+}
+
+// Maintainer represents the interface for creating, updating and deleting records in/from data tables.
+type Maintainer interface {
+	CreateRecord(tableID string, record *models.Row) error
+	UpdateRecord(tableID string, pk []any, record *models.Row) error
+	DeleteRecord(tableID string, pk []any) error
+}
+
+// Reader represents the interface for searching and retrieving records from data tables.
+type Reader interface {
+	SelectPK(tableID string, pk []any) (*models.Row, error)
+	SelectIX(tableID string, id string, keys []any) (models.Rows, error)
+	Search(tableID string, filter map[string]any) (models.Rows, error)
+}

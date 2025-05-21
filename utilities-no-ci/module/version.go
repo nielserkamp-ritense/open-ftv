@@ -1,4 +1,4 @@
-// Package module contains functionality to work with runtime info regarding Golang models.
+// Package module contains functionality to work with runtime info regarding Golang schema.
 package module
 
 import "runtime/debug"

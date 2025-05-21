@@ -3,19 +3,18 @@ go 1.23.8
 toolchain go1.23.8
 
 use (
-	apps/fsc-auth
-	apps/manager
-	apps/pap
-	apps/pdp
-	apps/pip
+	oas
+	utilities
+	utilities-no-ci
+	eam/models
+	eam/config
+	eam/log
 	eam/authentication
 	eam/authorization
-	eam/config
-	eam/handlers
-	eam/log
 	eam/mapping
 	eam/mimetype
-	eam/models
+	eam/pep
+	eam/pip
 	eam/pap
 	eam/pdp/controller
 	eam/pdp/cedar-embedded
@@ -24,11 +23,15 @@ use (
 	eam/pdp/opa-embedded
 	eam/pdp/openfga-embedded
 	eam/pdp/xacml
-	eam/pep
-	eam/pip
+	eam/handlers
 	eam/server
+	mock/datasources/data
+	mock/datasources/handlers
+	mock/datasources/generic
 	mock/fds/ledenlijst
-	oas
-	utilities
-	utilities-no-ci
+	apps/fsc-auth
+	apps/manager
+	apps/pap
+	apps/pdp
+	apps/pip
 )

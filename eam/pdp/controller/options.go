@@ -57,7 +57,7 @@ func WithPIP(p pip.PIP) Option {
 	}
 }
 
-// WithMappings adds one or more required mappings on PARC models.
+// WithMappings adds one or more required mappings on PARC schema.
 //
 // Note that for mappings which target the same property,
 // each match will overwrite a previous match, so the last match wins.

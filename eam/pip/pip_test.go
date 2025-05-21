@@ -154,7 +154,7 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, "world", p.GetAttributeValue("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
-		// p2 := &pip{attributes: models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true))}
+		// p2 := &pip{attributes: schema.NewAttributeSet(schema.NewAttribute("hello", "world2"), schema.NewAttribute("bool", true))}
 
 		p2 := New(context.Background(), logger)
 		p2.AddAttribute("hello", "world2")
