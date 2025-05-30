@@ -1,0 +1,5 @@
+"id","naam","email","telefoon","rollen","wachwoord","geldig-vanaf","geldig-tm","aangemaakt","aangemaakt-door","gewijzigd","gewijzigd-door"
+"gerard","Gerard","g@vng","555-1234","admin, user","@#@&!^$&*^!#",,,"22-5-2025","gerard",,
+"rene","Rene","r@vng","555-1234","user","(&*^#%$(*&^%@",,,"22-5-2025","gerard",,
+"maikel","Maikel","m3@vng","555-1234","admin, user","#&%$&(*@#",,,"22-5-2025","gerard",,
+"marc","Marc","m1@vng","555-1234","manager, user",")(*$%&*#@$",,,"22-5-2025","gerard",,

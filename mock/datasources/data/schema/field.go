@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/goccy/go-json"
@@ -25,6 +26,14 @@ type Field struct {
 	AllowedValues []any
 	// hidden fields
 	mutex sync.Mutex
+}
+
+// FQID returns the fully qualified ID of this field.
+func (f *Field) FQID() string {
+	if f.parentTable != nil {
+		return fmt.Sprintf("%s.%s", f.parentTable.ID, f.ID)
+	}
+	return f.ID
 }
 
 // ConvertValue converts the given value in accordance with the field type.
@@ -156,7 +165,7 @@ func (f *Field) Fix(parent *Object, table *Table, field *Field) {
 }
 
 func (f *Field) fix(parent *Object, table *Table, field *Field) {
-	f.Object.Fix(&f.Parent, nil, f)
+	f.Object.Fix(&f.Parent, nil, f) // fix child fields (if any).
 	f.parent = &parent.Parent
 	f.parentTable = table
 	f.parentField = field

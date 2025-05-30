@@ -4,5 +4,6 @@ package models
 type Meta struct {
 	DataspaceDef   string                       `yaml:"dataspace,omitempty"`
 	DatasourceDefs []string                     `yaml:"datasource,omitempty"`
+	EndpointDefs   []string                     `yaml:"endpoints,omitempty"`
 	SourceData     map[string]map[string]string `yaml:"sourceData,omitempty"`
 }

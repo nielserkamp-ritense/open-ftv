@@ -65,7 +65,7 @@ func TestIndexAsRecord(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := indexAsRecord(tc.ix)
+			got := indexAsRow(tc.ix)
 			assert.EqualValues(t, tc.want, got.Data)
 		})
 	}

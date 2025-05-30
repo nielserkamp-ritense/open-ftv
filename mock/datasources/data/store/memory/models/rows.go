@@ -7,6 +7,21 @@ import (
 // Rows is a convenience type for a slice of table data rows.
 type Rows []*Row
 
+// RemoveFields returns a deep copy of the table data with the given fields removed from each row.
+func (r Rows) RemoveFields(fields []string) Rows {
+	m := make(map[string]struct{}, len(fields))
+	for i := range fields {
+		m[fields[i]] = struct{}{}
+	}
+
+	out := make(Rows, len(r))
+	for i, row := range r {
+		out[i] = row.RemoveFieldMap(m)
+	}
+
+	return out
+}
+
 // MarshalCSV implements the CSV marshaler interface.
 func (r Rows) MarshalCSV() ([]byte, error) {
 	if len(r) == 0 {

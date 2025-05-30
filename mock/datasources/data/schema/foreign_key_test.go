@@ -18,9 +18,11 @@ func TestForeignKey_MarshalJSON(t *testing.T) {
 		t.Parallel()
 
 		d := &ForeignKey{
-			Parent:       Parent{ID: "table2"},
-			Description:  "Some table",
-			Fields:       []string{"f1", "f2", "f3"},
+			Index: Index{
+				Parent:      Parent{ID: "table2"},
+				Description: "Some table",
+				Fields:      []string{"f1", "f2", "f3"},
+			},
 			ForeignTable: "table1",
 		}
 
@@ -28,7 +30,7 @@ func TestForeignKey_MarshalJSON(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, got)
 
-		want := `{"id":"table2","description":"Some table","fields":["f1","f2","f3"],"foreignTable":"table1"}`
+		want := `{"id":"table2","description":"Some table","foreignTable":"table1","fields":["f1","f2","f3"]}`
 
 		assert.Equal(t, want, string(got))
 
@@ -61,9 +63,11 @@ func TestForeignKey_MarshalYAML(t *testing.T) {
 		t.Parallel()
 
 		d := &ForeignKey{
-			Parent:       Parent{ID: "table2"},
-			Description:  "Some table",
-			Fields:       []string{"f1", "f2", "f3"},
+			Index: Index{
+				Parent:      Parent{ID: "table2"},
+				Description: "Some table",
+				Fields:      []string{"f1", "f2", "f3"},
+			},
 			ForeignTable: "table1",
 		}
 
@@ -73,11 +77,11 @@ func TestForeignKey_MarshalYAML(t *testing.T) {
 
 		want := `id: table2
 description: Some table
+foreignTable: table1
 fields:
 - f1
 - f2
 - f3
-foreignTable: table1
 `
 
 		assert.Equal(t, want, string(got))
@@ -150,9 +154,11 @@ func TestForeignKey_Fix(t *testing.T) {
 		{
 			name: "no sources",
 			fk: &ForeignKey{
-				Parent:       Parent{ID: "fk1"},
-				Description:  "Foreign key 1",
-				Fields:       []string{"f2", "f1"},
+				Index: Index{
+					Parent:      Parent{ID: "fk1"},
+					Description: "Foreign key 1",
+					Fields:      []string{"f2", "f1"},
+				},
 				ForeignTable: "t1",
 			},
 			wantFQDN: "ds.t2.fk1",

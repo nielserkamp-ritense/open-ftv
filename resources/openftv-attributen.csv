@@ -1,0 +1,4 @@
+"domein","id","naam","omschrijving","waarde","geldig-vanaf","geldig-tm","aangemaakt","aangemaakt-door","gewijzigd","gewijzigd-door","vervallen"
+"management","werkdagen","Werkdagen","Dagen waarop gewerkt kan worden","ma,di,wo,do,vr","22-5-2025",,"22-5-2025","gerard",,,"nee"
+"management","werkuren","Werkuren","Uren waarop gewerkt kan worden","08:00-18:00","22-5-2025",,"22-5-2025","gerard",,,"nee"
+"management","ip","IP adressen","Lijst van geldige IP adressen","localhost,127.0.0.1,192.168.1.2","22-5-2025",,"22-5-2025","gerard",,,"nee"

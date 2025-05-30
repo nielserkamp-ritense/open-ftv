@@ -25,6 +25,20 @@ func (s *storage) AddDatasource(def *schema.Datasource) {
 	s.sources[strings.ToLower(def.ID)] = models.NewSource(def)
 }
 
+// AddEndpoint implements the Storage interface.
+func (s *storage) AddEndpoint(def *schema.Endpoint) {
+	ds := s.sourceDefs[strings.ToLower(def.Datasource)]
+	def.Fix(ds)
+	s.endpoints[def.UID()] = def
+}
+
+// IterateEndpoints implements the Storage interface.
+func (s *storage) IterateEndpoints(f func(def *schema.Endpoint)) {
+	for _, def := range s.endpoints {
+		f(def)
+	}
+}
+
 // DatasourceExists implements the Storage interface.
 func (s *storage) DatasourceExists(id string) bool {
 	return s.GetDatasource(id) != nil

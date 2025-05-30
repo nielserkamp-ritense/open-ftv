@@ -214,8 +214,17 @@ tables:
     fields: [bsn,bsn-ouder]
   secondaryIndexes:
     - id: ix2
-      description: "Index 2: bwn-ouder+bsn"
+      description: "Index 2: bsn-ouder+bsn"
       fields: [bsn-ouder,bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
+    - id: bsn-ouder
+      description: "Foreign key: bsn-ouder -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn-ouder:bsn]
 
 - id: ouder2
   description: "03/53 Gegevens 2e ouder"
@@ -250,6 +259,11 @@ tables:
     - id: ix2
       description: "Index 2: bwn-ouder+bsn"
       fields: [bsn-ouder,bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: nationaliteit
   description: "04/54 Nationaliteit"
@@ -376,6 +390,11 @@ tables:
     id: pk
     description: "Primary key: bsn+volgnummer"
     fields: [bsn,volgnummer]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: verbintenis
   description: "05/55 Huwelijk/geregistreerd partnerschap"
@@ -524,6 +543,11 @@ tables:
     id: pk
     description: "Primary key: bsn+volgnummer"
     fields: [bsn,volgnummer]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: overlijden
   description: "06/56 Overlijden"
@@ -648,6 +672,11 @@ tables:
     id: pk
     description: "Primary key: bsn"
     fields: [bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: inschrijving
   description: "07 Inschrijving"
@@ -748,6 +777,11 @@ tables:
   - id: ix2
     description: "Index 2: gemeente"
     fields: [gemeente]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: adres
   description: "08/58 Verblijfsplaats"
@@ -968,6 +1002,11 @@ tables:
   - id: ix5
     description: "Index 5: woonplaats"
     fields: [woonplaats]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: kind
   description: "09/59 Gegevens van kind"
@@ -1075,6 +1114,15 @@ tables:
     - id: ix2
       description: "Index 2: bsn-kind+bsn"
       fields: [bsn-kind,bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
+    - id: bsn-kind
+      description: "Foreign key: bsn-kind -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn-kind:bsn]
 
 - id: verblijfstitel
   description: "10/60 Verblijfstitel"
@@ -1154,6 +1202,11 @@ tables:
     id: pk
     description: "Primary key: bsn"
     fields: [bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: gezagsverhouding
   description: "11/61 Gezagsverhouding"
@@ -1243,6 +1296,11 @@ tables:
     id: pk
     description: "Primary key: bsn"
     fields: [bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: reisdocument
   description: "12 Reisdocument"
@@ -1369,6 +1427,11 @@ tables:
     id: pk
     description: "Primary key: bsn+volgnummer"
     fields: [bsn,volgnummer]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: kiesrecht
   description: "13 Kiesrecht"
@@ -1457,6 +1520,11 @@ tables:
     id: pk
     description: "Primary key: bsn"
     fields: [bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: tijdelijk-adres
   description: "16/66 Tijdelijk verblijfadres"
@@ -1606,6 +1674,11 @@ tables:
     - id: ix4
       description: "Index 4: woonplaats"
       fields: [woonplaats]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
 - id: contact
   description: "17 Contactgegevens"
@@ -1678,8 +1751,13 @@ tables:
     - id: ix3
       description: "Index 3: email"
       fields: [email]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]
 
-- id: afnemers
+- id: afnemer
   description: "14/64 Afnemerindicaties"
   fields:
   - id: bsn
@@ -1712,3 +1790,8 @@ tables:
     - id: ix2
       description: "Index 2: afnemer+bsn"
       fields: [afnemer,bsn]
+  foreignKeys:
+    - id: bsn
+      description: "Foreign key: bsn -> persoon.bsn"
+      foreignTable: persoon
+      fields: [bsn]

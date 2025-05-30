@@ -14,13 +14,13 @@ type Dataspace struct {
 	Description string
 	DataSources []*Datasource
 	// hidden fields
-	once    sync.Once
+	mutex   sync.Mutex
 	sources map[string]*Datasource
 }
 
 // Source returns the source definition for the given id.
 func (s *Dataspace) Source(sourceID string) *Datasource {
-	s.once.Do(func() { s.fix() })
+	s.Fix()
 	return s.sources[sourceID]
 }
 
@@ -86,6 +86,13 @@ type encodeDataspace struct {
 	DataSources []*Datasource `json:"dataSources,omitempty" yaml:"dataSources,omitempty"`
 }
 
+// Fix (re)sets the parent-child relationships for this object.
+func (d *Dataspace) Fix() {
+	d.mutex.Lock()
+	d.fix()
+	d.mutex.Unlock()
+}
+
 func (d *Dataspace) fix() {
 	d.sources = make(map[string]*Datasource, len(d.DataSources))
 	for _, ds := range d.DataSources {
@@ -94,6 +101,6 @@ func (d *Dataspace) fix() {
 
 	// fix the data sources after we have the full map!
 	for _, ds := range d.sources {
-		ds.once.Do(func() { ds.fix(d) })
+		ds.Fix(d)
 	}
 }

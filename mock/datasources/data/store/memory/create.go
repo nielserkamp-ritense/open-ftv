@@ -10,14 +10,9 @@ import (
 func (s *storage) CreateRecord(tableID string, record *models.Row) error {
 	table, err := s.GetTable(tableID)
 	if err != nil {
-		return fmt.Errorf("search: %w", err)
+		return fmt.Errorf("createRecord: %w", err)
 	}
 
-	tableData, err2 := s.findUnqualifiedTable(table.Definition().ID)
-	if err2 != nil {
-		return fmt.Errorf("search: %w", err2)
-	}
-
-	tableData.CreateRecord(record)
+	table.CreateRow(record)
 	return nil
 }

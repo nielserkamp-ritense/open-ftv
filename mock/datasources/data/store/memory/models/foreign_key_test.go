@@ -14,13 +14,15 @@ func TestForeignKeyAsRecord(t *testing.T) {
 
 	t.Run("ForeignKey as record", func(t *testing.T) {
 		def := &schema.ForeignKey{
-			Parent:       schema.Parent{ID: "fk1"},
-			Description:  "foreign key 1",
-			Fields:       []string{"created", "id"},
+			Index: schema.Index{
+				Parent:      schema.Parent{ID: "fk1"},
+				Description: "foreign key 1",
+				Fields:      []string{"created", "id"},
+			},
 			ForeignTable: "foreign1",
 		}
 
-		got := fkAsRecord(def)
+		got := fkAsRow(def)
 		require.NotNil(t, got)
 
 		assert.Equal(t, "fk1", got.Data["fqdn"])

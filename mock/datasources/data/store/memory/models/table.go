@@ -12,9 +12,10 @@ import (
 
 // Table contains the data rows of a data table.
 type Table struct {
-	Data    []*Row                     `json:"data" yaml:"data"`
-	PK      map[string]*Row            `json:"primaryKey,omitempty" yaml:"primaryKey,omitempty"`
-	Indexes map[string]map[string]Rows `json:"secondaryIndexes,omitempty" yaml:"secondaryIndexes,omitempty"`
+	Data        Rows
+	PK          map[string]*Row
+	Indexes     map[string]map[string]Rows
+	ForeignKeys map[string]map[string]Rows
 	// hidden fields
 	def   *schema.Table
 	mutex sync.RWMutex
@@ -24,7 +25,7 @@ type Table struct {
 func TableFromData(def *schema.Table, data []map[string]any) *Table {
 	t := newTable(def, len(data))
 	for i := range data {
-		t.createRecord(RowFromData(&def.Object, data[i]))
+		t.createRow(RowFromData(&def.Object, data[i]))
 	}
 	return t
 }
@@ -34,7 +35,7 @@ func TableFromCSV(def *schema.Table, csv [][]string) *Table {
 	t := newTable(def, len(csv)-1)
 	if len(csv) > 1 {
 		for i := range csv[1:] {
-			t.createRecord(RowFromCSV(&def.Object, csv[0], csv[i+1]))
+			t.createRow(RowFromCSV(&def.Object, csv[0], csv[i+1]))
 		}
 	}
 	return t
@@ -62,10 +63,44 @@ func (t *Table) MatchFilter(filter map[string]any) bool {
 			if !match(t.def.ID, v) {
 				return false
 			}
+
 		case "description":
 			if !match(t.def.Description, v) {
 				return false
 			}
+
+		case "pk", "primary-key":
+			if t.def.PrimaryKey == nil {
+				return false
+			}
+			if !match(t.def.PrimaryKey.ID, v) {
+				return false
+			}
+
+		case "ix", "secondary-index":
+			var ok bool
+			for _, ix := range t.def.SecondaryIndexes {
+				if match(ix.ID, v) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				return false
+			}
+
+		case "fk", "foreign-key":
+			var ok bool
+			for _, fk := range t.def.ForeignKeys {
+				if match(fk.ID, v) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				return false
+			}
+
 		default:
 			return false
 		}
@@ -74,8 +109,8 @@ func (t *Table) MatchFilter(filter map[string]any) bool {
 	return true
 }
 
-// AsRecord converts the table definition into an exportable record.
-func (t *Table) AsRecord() *Row {
+// AsRow converts the table definition into an exportable row.
+func (t *Table) AsRow() *Row {
 	def := &schema.Object{Fields: []*schema.Field{
 		&fieldDefFQDN,
 		&fieldDefID,
@@ -95,13 +130,13 @@ func (t *Table) AsRecord() *Row {
 	}
 
 	if t.def.PrimaryKey != nil {
-		out.Data[fieldDefPK.ID] = indexAsRecord(t.def.PrimaryKey)
+		out.Data[fieldDefPK.ID] = indexAsRow(t.def.PrimaryKey)
 	}
 
 	if len(t.def.SecondaryIndexes) > 0 {
 		out2 := make(Rows, 0, len(t.def.SecondaryIndexes))
 		for _, ix := range t.def.SecondaryIndexes {
-			out2 = append(out2, indexAsRecord(ix))
+			out2 = append(out2, indexAsRow(ix))
 		}
 		out.Data[fieldDefIndexes.ID] = out2
 	}
@@ -109,7 +144,7 @@ func (t *Table) AsRecord() *Row {
 	if len(t.def.ForeignKeys) > 0 {
 		out2 := make(Rows, 0, len(t.def.ForeignKeys))
 		for _, fk := range t.def.ForeignKeys {
-			out2 = append(out2, fkAsRecord(fk))
+			out2 = append(out2, fkAsRow(fk))
 		}
 		out.Data[fieldDefFK.ID] = out2
 	}
@@ -117,43 +152,45 @@ func (t *Table) AsRecord() *Row {
 	return out
 }
 
-// CreateRecord adds a new record to the data table.
-func (t *Table) CreateRecord(r *Row) {
+// DummyRecord returns an empty row according to the data table definition.
+func (t *Table) DummyRecord() *Row {
+	fields := t.def.Fields
+	out := &Row{Data: make(map[string]any, len(fields)), def: &t.def.Object}
+	for i := range fields {
+		out.Data[fields[i].ID] = nil
+	}
+	return out
+}
+
+// CreateRow adds a new record to the data table.
+func (t *Table) CreateRow(r *Row) {
 	t.mutex.Lock()
-	t.createRecord(r)
+	t.createRow(r)
 	t.mutex.Unlock()
 }
 
-func (t *Table) createRecord(r *Row) {
+func (t *Table) createRow(r *Row) {
 	t.Data = append(t.Data, r)
 	def := t.def
 
 	if def.PrimaryKey != nil {
-		key := KeyFromRecord(r, def.PrimaryKey)
+		key := r.KeyValueForIndex(def.PrimaryKey)
 		t.PK[key] = r
 	}
 
 	for _, ix := range def.SecondaryIndexes {
-		key := KeyFromRecord(r, ix)
+		key := r.KeyValueForIndex(ix)
 		index := t.Indexes[ix.ID]
 		index[key] = append(index[key], r)
 		t.Indexes[ix.ID] = index
 	}
 
-	// TODO: something with foreign keys?
-
-}
-
-// KeyFromRecord returns a concatenated key of all field values for the given index.
-func KeyFromRecord(r *Row, index *schema.Index) string {
-	b := bytes.Buffer{}
-
-	index.IterateFields(func(field *schema.Field) {
-		b.WriteString(r.FieldString(field.ID))
-		b.WriteByte('|')
-	})
-
-	return removeLastChar(b.String())
+	for _, fk := range def.ForeignKeys {
+		key := r.KeyValueForFK(fk)
+		foreign := t.ForeignKeys[fk.ID]
+		foreign[key] = append(foreign[key], r)
+		t.ForeignKeys[fk.ID] = foreign
+	}
 }
 
 // KeyFromData returns a concatenated key from the given values for the given index.
@@ -168,11 +205,14 @@ func KeyFromData(keys []any, index *schema.Index) string {
 		b.WriteByte('|')
 	})
 
-	return removeLastChar(b.String())
+	if b.Len() > 0 {
+		b.Truncate(b.Len() - 1)
+	}
+	return b.String()
 }
 
 func newTable(def *schema.Table, cap int) *Table {
-	_ = def.Field("") // force an internal fix().
+	def.Fix(nil)
 
 	if cap < 2 {
 		cap = 2
@@ -180,7 +220,7 @@ func newTable(def *schema.Table, cap int) *Table {
 
 	t := &Table{
 		def:  def,
-		Data: make([]*Row, 0, cap),
+		Data: make(Rows, 0, cap),
 	}
 
 	if def.PrimaryKey != nil {
@@ -195,14 +235,13 @@ func newTable(def *schema.Table, cap int) *Table {
 		}
 	}
 
-	// TODO: something with foreign keys?
+	if l := len(def.ForeignKeys); l > 0 {
+		t.ForeignKeys = make(map[string]map[string]Rows, l)
+
+		for _, ix := range def.ForeignKeys {
+			t.ForeignKeys[ix.ID] = make(map[string]Rows)
+		}
+	}
 
 	return t
-}
-
-func removeLastChar(in string) string {
-	if l := len(in); l > 0 {
-		return in[:l-1]
-	}
-	return in
 }

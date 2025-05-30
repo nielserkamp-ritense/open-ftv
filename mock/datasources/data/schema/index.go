@@ -1,12 +1,14 @@
 package schema
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/compare"
 )
 
 // Index represents an index on a datasource table.
@@ -23,9 +25,17 @@ type Index struct {
 
 // IterateFields iterates over the field definitions in the index and calls the closure for each field.
 func (i *Index) IterateFields(f func(*Field)) {
+	i.Fix(nil)
 	for _, field := range i.fields {
 		f(field)
 	}
+}
+
+// Equal returns true if this index list of fields matches the other list of fields.
+//
+// The order of the elements can be different as long as all elements exist in both lists.
+func (i *Index) Equal(other []string) bool {
+	return compare.StringsEqual(i.Fields, other)
 }
 
 // MarshalJSON implements the JSON Marshaler interface.
@@ -101,7 +111,10 @@ func (i *Index) fix(t *Table) {
 
 		i.fields = make([]*Field, 0, len(i.Fields))
 		for _, id := range i.Fields {
-			i.fields = append(i.fields, t.fields[id])
+			parts := strings.Split(id, ":")
+			if len(parts) > 0 {
+				i.fields = append(i.fields, t.fields[parts[0]])
+			}
 		}
 	}
 }

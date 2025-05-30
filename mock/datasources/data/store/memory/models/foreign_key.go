@@ -2,7 +2,7 @@ package models
 
 import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 
-func fkAsRecord(fk *schema.ForeignKey) *Row {
+func fkAsRow(fk *schema.ForeignKey) *Row {
 	def := &schema.Object{Fields: make([]*schema.Field, 0)}
 	out := &Row{Data: make(map[string]any), def: def}
 

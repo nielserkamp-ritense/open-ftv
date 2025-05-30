@@ -148,7 +148,7 @@ func TestFieldAsRecord(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := fieldAsRecord(tc.field)
+			got := fieldAsRow(tc.field)
 			assert.EqualValues(t, tc.want.Data, got.Data)
 		})
 	}
@@ -182,7 +182,7 @@ func TestObjectFieldAsRecord(t *testing.T) {
 			Type: types.ObjectType,
 		}
 
-		got := fieldAsRecord(field)
+		got := fieldAsRow(field)
 		require.NotNil(t, got)
 
 		assert.Equal(t, "f9", got.Data["fqdn"])

@@ -1,0 +1,55 @@
+---
+- id: brp-personen
+  version: 1
+  type: GET
+  calledAs: POST
+  path: /haalcentraal/api/brp/personen
+  fullVersion: 1.0.0
+  description: HaalCentraal API
+  datasource: brp
+  table: persoon
+  joins:
+    - type: ForcedParentChild
+      source: ouder1
+      joins:
+        - type: OptionalSibling
+          source: persoon
+          fields: ["bsn-ouder:bsn"]
+    - type: ForcedParentChild
+      source: ouder2
+      joins:
+        - type: OptionalSibling
+          source: persoon
+          fields: ["bsn-ouder:bsn"]
+    - type: OptionalParentChild
+      source: nationaliteit
+    - type: OptionalParentChild
+      source: verbintenis
+    - type: OptionalSibling
+      source: overlijden
+    - type: ForcedSibling
+      source: inschrijving
+    - type: ForcedSibling
+      source: adres
+    - type: OptionalParentChild
+      source: kind
+      joins:
+        - type: OptionalSibling
+          source: persoon
+          fields: ["bsn-kind:bsn"]
+    - type: OptionalSibling
+      source: verblijfstitel
+    - type: OptionalSibling
+      source: gezagsverhouding
+    - type: OptionalParentChild
+      source: reisdocument
+    - type: OptionalSibling
+      source: kiesrecht
+    - type: OptionalSibling
+      source: tijdelijk-adres
+    - type: OptionalSibling
+      source: contact
+    - type: OptionalParentChild
+      source: afnemer
+  fields:
+    - "*"
