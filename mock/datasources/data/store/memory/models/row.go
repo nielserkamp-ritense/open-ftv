@@ -3,13 +3,13 @@ package models
 import (
 	"bytes"
 	"fmt"
-	"regexp"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/writer/csv"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
@@ -128,29 +128,18 @@ func (r *Row) KeyValueForFields(keys []string) string {
 	return b.String()
 }
 
-// MatchFilter returns true if the record matches the given filter.
-func (r *Row) MatchFilter(filter map[string]any) bool {
-	for k, v := range filter {
-		s1 := r.FieldString(k)
+// MatchPrimary returns true if the record matches the given filter.
+func (r *Row) MatchPrimary(filter filtering.Filterer) bool {
+	return filter.MatchOnPrimaryData(r.Data)
+}
 
-		var ok bool
-		switch t := v.(type) {
-		case *regexp.Regexp:
-			ok = t.MatchString(s1)
-		default:
-			ok = s1 == convert.AnyToString(v)
-		}
-
-		if !ok {
-			return false
-		}
-	}
-
-	return true
+// MatchJoin returns true if the record matches the given filter.
+func (r *Row) MatchJoin(join *schema.Join, filter filtering.Filterer) bool {
+	return filter.MatchOnJoinData(join, r.Data)
 }
 
 // MatchFields returns the record with only those fields that pass the given field matcher.
-func (r *Row) MatchFields(matcher types.FieldMatcher) *Row {
+func (r *Row) MatchFields(matcher matching.FieldMatcher) *Row {
 	if matcher.Always() {
 		return r
 	}

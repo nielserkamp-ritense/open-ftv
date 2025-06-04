@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
@@ -23,19 +23,19 @@ func encode(def *schema.Field, v any) any {
 
 func encodeValues(def *schema.Field, v any) any {
 	switch def.Type {
-	case types.StringType, types.URLType, types.EmailType, types.PhoneNrType, types.IPAddressType:
+	case enums.StringType, enums.URLType, enums.EmailType, enums.PhoneNrType, enums.IPAddressType:
 		return encodeStrings(def, v)
-	case types.IntegerType:
+	case enums.IntegerType:
 		return encodeStrings(def, convert.AnyToInts(v))
-	case types.UnsignedIntegerType:
+	case enums.UnsignedIntegerType:
 		return encodeStrings(def, convert.AnyToUints(v))
-	case types.FloatType:
+	case enums.FloatType:
 		return encodeStrings(def, convert.AnyToFloats(v))
-	case types.BooleanType:
+	case enums.BooleanType:
 		return encodeStrings(def, convert.AnyToBools(v))
-	case types.DateType, types.TimeType, types.DateTimeType:
+	case enums.DateType, enums.TimeType, enums.DateTimeType:
 		// TODO: encode slice of dates, times or timestamps.
-	case types.ObjectType, types.AnyType:
+	case enums.ObjectType, enums.AnyType:
 		return encodeObjects(def, v)
 	}
 
@@ -44,19 +44,19 @@ func encodeValues(def *schema.Field, v any) any {
 
 func encodeValue(def *schema.Field, v any) any {
 	switch def.Type {
-	case types.StringType, types.URLType, types.EmailType, types.PhoneNrType, types.IPAddressType:
+	case enums.StringType, enums.URLType, enums.EmailType, enums.PhoneNrType, enums.IPAddressType:
 		return convert.AnyToString(v)
-	case types.IntegerType:
+	case enums.IntegerType:
 		return convert.AnyToInt64(v)
-	case types.UnsignedIntegerType:
+	case enums.UnsignedIntegerType:
 		return convert.AnyToUint64(v)
-	case types.FloatType:
+	case enums.FloatType:
 		return convert.AnyToFloat64(v)
-	case types.BooleanType:
+	case enums.BooleanType:
 		return convert.AnyToBool(v)
-	case types.DateType, types.TimeType, types.DateTimeType:
+	case enums.DateType, enums.TimeType, enums.DateTimeType:
 		return convert.AnyToDateTime(v)
-	case types.ObjectType:
+	case enums.ObjectType:
 		return encodeObject(def, v)
 	default:
 		return encodeAny(v)

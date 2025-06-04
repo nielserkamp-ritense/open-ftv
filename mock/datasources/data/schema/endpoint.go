@@ -9,7 +9,8 @@ import (
 	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/maps"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 )
 
 // Endpoint represents the details of a custom API endpoint.
@@ -28,8 +29,8 @@ import (
 // An excluded field takes precedence over an included field.
 type Endpoint struct {
 	Version     uint8            // major version of the endpoint (e.g. v1, v2, ...).
-	Type        types.MethodType // the type of call to handle.
-	CalledAs    types.MethodType // the method the endpoint will be called with.
+	Type        enums.MethodType // the type of call to handle.
+	CalledAs    enums.MethodType // the method the endpoint will be called with.
 	Path        string           // the path (excluding the version) for the endpoint.
 	FullVersion string           // the full version of the endpoint (e.g. 1.0.0, 1.2.1, ...).
 	Description string           // description of the endpoint.
@@ -49,6 +50,11 @@ type Endpoint struct {
 // UID returns a unique identifier for the endpoint based on the major version and the path.
 func (e *Endpoint) UID() string {
 	return fmt.Sprintf("/v%d/%s", e.Version, strings.Trim(e.Path, "/"))
+}
+
+// GetDatasource returns the datasource for this endpoint.
+func (e *Endpoint) GetDatasource() *Datasource {
+	return e.datasource
 }
 
 // Primary returns the primary table for this endpoint.
@@ -150,8 +156,8 @@ func (e *Endpoint) UnmarshalYAML(b []byte) error {
 
 type encodeEndpoint struct {
 	Version     uint8            `json:"version" yaml:"version"`
-	Type        types.MethodType `json:"type" yaml:"type"`
-	CalledAs    types.MethodType `json:"calledAs" yaml:"calledAs"`
+	Type        enums.MethodType `json:"type" yaml:"type"`
+	CalledAs    enums.MethodType `json:"calledAs" yaml:"calledAs"`
 	Path        string           `json:"path" yaml:"path"`
 	FullVersion string           `json:"fullVersion,omitempty" yaml:"fullVersion,omitempty"`
 	Description string           `json:"description,omitempty" yaml:"description,omitempty"`
@@ -178,7 +184,7 @@ func (e *Endpoint) fix(ds *Datasource) {
 	}
 
 	if e.Type == 0 {
-		e.Type = types.GetMethod
+		e.Type = enums.GetMethod
 	}
 	if e.CalledAs == 0 {
 		e.CalledAs = e.Type
@@ -224,7 +230,7 @@ func (e *Endpoint) fixField(id string) {
 
 	parts := strings.Split(id, ".")
 
-	testTable := func(t *Table, m types.FieldMatcher) {
+	testTable := func(t *Table, m matching.FieldMatcher) {
 		for _, field := range t.Fields {
 			if m.Match(field.ID) {
 				if exclude {
@@ -238,15 +244,15 @@ func (e *Endpoint) fixField(id string) {
 
 	switch len(parts) {
 	case 1:
-		m1 := types.NewFieldMatcher(parts[0])
+		m1 := matching.NewFieldMatcher(parts[0])
 		testTable(e.primary, m1)
 		for _, j := range e.Joins {
 			testTable(j.source, m1)
 		}
 
 	case 2:
-		m1 := types.NewFieldMatcher(parts[0])
-		m2 := types.NewFieldMatcher(parts[1])
+		m1 := matching.NewFieldMatcher(parts[0])
+		m2 := matching.NewFieldMatcher(parts[1])
 		for _, t := range e.datasource.Tables {
 			if m1.Match(t.ID) {
 				testTable(t, m2)

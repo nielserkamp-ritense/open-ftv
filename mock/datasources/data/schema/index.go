@@ -7,7 +7,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/compare"
 )
 
@@ -16,7 +16,7 @@ type Index struct {
 	Parent
 	Description string
 	Fields      []string
-	Orders      []types.OrderType
+	Orders      []enums.OrderType
 	// hidden fields
 	mutex       sync.Mutex
 	parentTable *Table
@@ -94,7 +94,7 @@ type encodeIndex struct {
 	ID          string            `json:"id" yaml:"id"`
 	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
 	Fields      []string          `json:"fields,omitempty" yaml:"fields"`
-	Orders      []types.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`
+	Orders      []enums.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`
 }
 
 // Fix (re)sets the parent-child relationships for this object.

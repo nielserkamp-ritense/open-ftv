@@ -1,7 +1,6 @@
 package models
 
 import (
-	"regexp"
 	"testing"
 	"time"
 
@@ -10,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestRow_FieldString(t *testing.T) {
@@ -62,21 +61,21 @@ func TestRowFromData(t *testing.T) {
 		Fields: []*schema.Field{
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f1"}},
-				Type:   types.StringType,
+				Type:   enums.StringType,
 				IsPII:  true,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f2"}},
-				Type:   types.IntegerType,
+				Type:   enums.IntegerType,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f3"}},
-				Type:   types.DateType,
+				Type:   enums.DateType,
 				IsPII:  true,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f4"}},
-				Type:   types.EmailType,
+				Type:   enums.EmailType,
 				IsPII:  true,
 			},
 		},
@@ -145,21 +144,21 @@ func TestRowFromCSV(t *testing.T) {
 		Fields: []*schema.Field{
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f1"}},
-				Type:   types.StringType,
+				Type:   enums.StringType,
 				IsPII:  true,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f2"}},
-				Type:   types.IntegerType,
+				Type:   enums.IntegerType,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f3"}},
-				Type:   types.DateType,
+				Type:   enums.DateType,
 				IsPII:  true,
 			},
 			{
 				Object: schema.Object{Parent: schema.Parent{ID: "f4"}},
-				Type:   types.EmailType,
+				Type:   enums.EmailType,
 				IsPII:  true,
 			},
 		},
@@ -214,169 +213,6 @@ func TestRowFromCSV(t *testing.T) {
 			t.Parallel()
 
 			got := RowFromCSV(tc.t, tc.headers, tc.data)
-			assert.EqualValues(t, tc.want.Data, got.Data)
-		})
-	}
-}
-
-func TestRow_MatchFilter(t *testing.T) {
-	t.Parallel()
-
-	var r1 = &Row{Data: map[string]any{
-		"f1": "hello world",
-		"f2": 123,
-		"f3": time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
-		"f4": true,
-		"f5": 98765.4321,
-	}}
-
-	testCases := []struct {
-		name   string
-		row    *Row
-		filter map[string]any
-		want   bool
-	}{
-		{
-			name: "empty filter",
-			row:  r1,
-			want: true,
-		},
-		{
-			name:   "matched string",
-			row:    r1,
-			filter: map[string]any{"f1": "hello world"},
-			want:   true,
-		},
-		{
-			name:   "unmatched string",
-			row:    r1,
-			filter: map[string]any{"f1": "hello worlds"},
-		},
-		{
-			name:   "matched regex",
-			row:    r1,
-			filter: map[string]any{"f1": regexp.MustCompile(".*ello.*")},
-			want:   true,
-		},
-		{
-			name:   "unmatched regex",
-			row:    r1,
-			filter: map[string]any{"f1": regexp.MustCompile(".*elo.*")},
-		},
-		{
-			name:   "matched int",
-			row:    r1,
-			filter: map[string]any{"f2": "123"},
-			want:   true,
-		},
-		{
-			name:   "unmatched int",
-			row:    r1,
-			filter: map[string]any{"f2": 124},
-		},
-		{
-			name:   "matched date",
-			row:    r1,
-			filter: map[string]any{"f3": time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)},
-			want:   true,
-		},
-		{
-			name:   "unmatched date",
-			row:    r1,
-			filter: map[string]any{"f3": time.Date(2024, 6, 1, 0, 0, 0, 1, time.UTC)},
-		},
-		{
-			name:   "matched float",
-			row:    r1,
-			filter: map[string]any{"f5": 98765.4321},
-			want:   true,
-		},
-		{
-			name:   "unmatched float",
-			row:    r1,
-			filter: map[string]any{"f5": 98765.432},
-		},
-		{
-			name: "all matched",
-			row:  r1,
-			filter: map[string]any{
-				"f5": 98765.4321,
-				"f2": "123",
-				"f1": regexp.MustCompile(".*ello.*"),
-				"f4": true,
-				"f3": regexp.MustCompile("2024-06*"),
-			},
-			want: true,
-		},
-		{
-			name: "one unmatched",
-			row:  r1,
-			filter: map[string]any{
-				"f3": time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
-				"f2": "123",
-				"f1": regexp.MustCompile(".*ello.*"),
-				"f4": "1", // this is not "true"
-				"f5": 98765.4321},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := tc.row.MatchFilter(tc.filter)
-			assert.EqualValues(t, tc.want, got)
-		})
-	}
-}
-
-func TestRow_MatchFields(t *testing.T) {
-	t.Parallel()
-
-	def := makeRowDatasource1()
-
-	r1 := &Row{Data: map[string]any{"f1": 1, "f2": "hello world", "f3": true, "f4": 1.2345}, def: def}
-	r2 := &Row{Data: map[string]any{"f1": 2, "f2": "hello mars", "f4": 12.345}, def: def}
-	r3 := &Row{Data: map[string]any{"f1": 3, "f2": "goodbye world", "f3": true, "f4": 123.45}, def: def}
-
-	testCases := []struct {
-		name    string
-		row     *Row
-		matcher types.FieldMatcher
-		want    *Row
-	}{
-		{
-			name:    "no match",
-			row:     r1,
-			matcher: types.NewFieldMatcher("f5,f6,f7"),
-			want:    &Row{Data: make(map[string]any), def: def},
-		},
-		{
-			name:    "match single field",
-			row:     r2,
-			matcher: types.NewFieldMatcher("f5,f6,f1"),
-			want:    &Row{Data: map[string]any{"f1": 2}, def: def},
-		},
-		{
-			name:    "match few fields",
-			row:     r3,
-			matcher: types.NewFieldMatcher("f5,f2,ab*,f4"),
-			want:    &Row{Data: map[string]any{"f2": "goodbye world", "f4": 123.45}, def: def},
-		},
-		{
-			name:    "match all fields",
-			row:     r3,
-			matcher: types.NewFieldMatcher("f5,x?,,*"),
-			want:    &Row{Data: r3.Data, def: def},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := tc.row.MatchFields(tc.matcher)
-			assert.Equal(t, tc.want.def, got.def)
 			assert.EqualValues(t, tc.want.Data, got.Data)
 		})
 	}
@@ -792,10 +628,10 @@ func TestRemoveNil(t *testing.T) {
 }
 
 func makeRowDatasource1() *schema.Object {
-	f1 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.IntegerType}
-	f2 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType}
-	f3 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.BooleanType}
-	f4 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.FloatType}
+	f1 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.IntegerType}
+	f2 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType}
+	f3 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.BooleanType}
+	f4 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.FloatType}
 
 	t1 := &schema.Table{Object: schema.Object{
 		Parent: schema.Parent{ID: "t1"},
@@ -812,10 +648,10 @@ func makeRowDatasource1() *schema.Object {
 }
 
 func makeRowDatasource2() *schema.Object {
-	f5 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f5"}}, Type: types.IntegerType}
-	f6 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f6"}}, Type: types.StringType}
-	f7 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f7"}}, Type: types.BooleanType}
-	f8 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f8"}}, Type: types.FloatType}
+	f5 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f5"}}, Type: enums.IntegerType}
+	f6 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f6"}}, Type: enums.StringType}
+	f7 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f7"}}, Type: enums.BooleanType}
+	f8 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f8"}}, Type: enums.FloatType}
 
 	t2 := &schema.Table{Object: schema.Object{
 		Parent: schema.Parent{ID: "t2"},

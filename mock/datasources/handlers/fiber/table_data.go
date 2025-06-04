@@ -39,7 +39,8 @@ func (h *dataHandler) GetRecords(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
-	list, err2 := h.s.Search(key, buildFilter(req))
+	filter, matcher := buildFilters(req, nil)
+	list, err2 := h.s.Search(key, filter, matcher)
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}

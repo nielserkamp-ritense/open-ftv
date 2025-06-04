@@ -31,14 +31,13 @@ func NewDatasourceHandler(s store.Storage, logger *slog.Logger) DatasourcesHandl
 func (h *datasourceHandler) GetDatasources(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, DatasourcesVersion)
 
-	filter := buildFilter(req)
-	filter2, matcher := extractFieldMatcher(filter)
 	sources := h.s.GetDatasources()
 
 	var list models.Rows
 	for _, source := range sources {
-		if source.MatchFilter(filter2) {
-			list = append(list, source.AsRow().MatchFields(matcher))
+		filter, matcher := buildFilters(req, source.Definition())
+		if r := source.AsRow(); r.MatchPrimary(filter) {
+			list = append(list, r.MatchFields(matcher))
 		}
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 func TestForeignKey_MarshalJSON(t *testing.T) {
@@ -122,10 +122,10 @@ func TestForeignKey_Fix(t *testing.T) {
 			Parent:      Parent{ID: "t1"},
 			Description: "foreign table",
 			Fields: []*Field{
-				{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-				{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-				{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+				{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+				{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 			},
 		},
 	}
@@ -135,10 +135,10 @@ func TestForeignKey_Fix(t *testing.T) {
 			Parent:      Parent{ID: "t2"},
 			Description: "main table",
 			Fields: []*Field{
-				{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-				{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-				{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+				{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+				{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 			},
 		},
 	}

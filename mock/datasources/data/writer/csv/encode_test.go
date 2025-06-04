@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestEncodeValues(t *testing.T) {
@@ -22,15 +22,15 @@ func TestEncodeValues(t *testing.T) {
 		in   any
 		want string
 	}{
-		{name: "string", def: &schema.Field{Type: types.StringType}, in: "hello world", want: `"hello world"`},
-		{name: "url", def: &schema.Field{Type: types.URLType}, in: "http://localhost:8080/v1/dataspace", want: `"http://localhost:8080/v1/dataspace"`},
-		{name: "email", def: &schema.Field{Type: types.EmailType}, in: "donald@disney.com", want: `"donald@disney.com"`},
-		{name: "phone", def: &schema.Field{Type: types.PhoneNrType}, in: "112", want: `"112"`},
-		{name: "ip address", def: &schema.Field{Type: types.IPAddressType}, in: "127.0.0.1", want: `"127.0.0.1"`},
-		{name: "integer", def: &schema.Field{Type: types.IntegerType}, in: int64(123456789), want: `"123456789"`},
-		{name: "unsigned integer", def: &schema.Field{Type: types.UnsignedIntegerType}, in: uint64(987654321), want: `"987654321"`},
-		{name: "float", def: &schema.Field{Type: types.FloatType}, in: 5.6789, want: `"5.6789"`},
-		{name: "bool", def: &schema.Field{Type: types.BooleanType}, in: true, want: `"true"`},
+		{name: "string", def: &schema.Field{Type: enums.StringType}, in: "hello world", want: `"hello world"`},
+		{name: "url", def: &schema.Field{Type: enums.URLType}, in: "http://localhost:8080/v1/dataspace", want: `"http://localhost:8080/v1/dataspace"`},
+		{name: "email", def: &schema.Field{Type: enums.EmailType}, in: "donald@disney.com", want: `"donald@disney.com"`},
+		{name: "phone", def: &schema.Field{Type: enums.PhoneNrType}, in: "112", want: `"112"`},
+		{name: "ip address", def: &schema.Field{Type: enums.IPAddressType}, in: "127.0.0.1", want: `"127.0.0.1"`},
+		{name: "integer", def: &schema.Field{Type: enums.IntegerType}, in: int64(123456789), want: `"123456789"`},
+		{name: "unsigned integer", def: &schema.Field{Type: enums.UnsignedIntegerType}, in: uint64(987654321), want: `"987654321"`},
+		{name: "float", def: &schema.Field{Type: enums.FloatType}, in: 5.6789, want: `"5.6789"`},
+		{name: "bool", def: &schema.Field{Type: enums.BooleanType}, in: true, want: `"true"`},
 		// {name: "date", def: &schema.Field{Type: types.DateType, Format: "brp-date"}, in: time.Date(2025, 11, 12, 13, 14, 15, 0, time.UTC), want: `"20251112"`},
 		// {name: "time", def: &schema.Field{Type: types.TimeType}, in: time.Date(0, 1, 1, 13, 14, 15, 0, time.UTC), want: `"13:14:15"`},
 		// {name: "datetime", def: &schema.Field{Type: types.DateTimeType}, in: time.Date(2025, 11, 12, 13, 14, 15, 999000000, time.UTC), want: `"2025-11-12 13:14:15.999"`},
@@ -82,13 +82,13 @@ func TestEncodeValue(t *testing.T) {
 		Object: schema.Object{
 			Parent: schema.Parent{ID: "x"},
 			Fields: []*schema.Field{
-				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.IntegerType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.BooleanType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.IntegerType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.BooleanType},
 			},
 		},
-		Type:    types.ObjectType,
+		Type:    enums.ObjectType,
 		IsArray: true,
 	}
 
@@ -98,18 +98,18 @@ func TestEncodeValue(t *testing.T) {
 		in   any
 		want string
 	}{
-		{name: "string", def: &schema.Field{Type: types.StringType}, in: "hello world", want: `"hello world"`},
-		{name: "url", def: &schema.Field{Type: types.URLType}, in: "http://localhost:8080/v1/dataspace", want: `"http://localhost:8080/v1/dataspace"`},
-		{name: "email", def: &schema.Field{Type: types.EmailType}, in: "donald@disney.com", want: `"donald@disney.com"`},
-		{name: "phone", def: &schema.Field{Type: types.PhoneNrType}, in: "112", want: `"112"`},
-		{name: "ip address", def: &schema.Field{Type: types.IPAddressType}, in: "127.0.0.1", want: `"127.0.0.1"`},
-		{name: "integer", def: &schema.Field{Type: types.IntegerType}, in: int64(123456789), want: "123456789"},
-		{name: "unsigned integer", def: &schema.Field{Type: types.UnsignedIntegerType}, in: uint64(987654321), want: "987654321"},
-		{name: "float", def: &schema.Field{Type: types.FloatType}, in: 5.6789, want: "5.6789"},
-		{name: "bool", def: &schema.Field{Type: types.BooleanType}, in: true, want: `"true"`},
-		{name: "date", def: &schema.Field{Type: types.DateType, Format: "brp-date"}, in: time.Date(2025, 11, 12, 13, 14, 15, 0, time.UTC), want: `"20251112"`},
-		{name: "time", def: &schema.Field{Type: types.TimeType}, in: time.Date(0, 1, 1, 13, 14, 15, 0, time.UTC), want: `"13:14:15"`},
-		{name: "datetime", def: &schema.Field{Type: types.DateTimeType}, in: time.Date(2025, 11, 12, 13, 14, 15, 999000000, time.UTC), want: `"2025-11-12 13:14:15.999"`},
+		{name: "string", def: &schema.Field{Type: enums.StringType}, in: "hello world", want: `"hello world"`},
+		{name: "url", def: &schema.Field{Type: enums.URLType}, in: "http://localhost:8080/v1/dataspace", want: `"http://localhost:8080/v1/dataspace"`},
+		{name: "email", def: &schema.Field{Type: enums.EmailType}, in: "donald@disney.com", want: `"donald@disney.com"`},
+		{name: "phone", def: &schema.Field{Type: enums.PhoneNrType}, in: "112", want: `"112"`},
+		{name: "ip address", def: &schema.Field{Type: enums.IPAddressType}, in: "127.0.0.1", want: `"127.0.0.1"`},
+		{name: "integer", def: &schema.Field{Type: enums.IntegerType}, in: int64(123456789), want: "123456789"},
+		{name: "unsigned integer", def: &schema.Field{Type: enums.UnsignedIntegerType}, in: uint64(987654321), want: "987654321"},
+		{name: "float", def: &schema.Field{Type: enums.FloatType}, in: 5.6789, want: "5.6789"},
+		{name: "bool", def: &schema.Field{Type: enums.BooleanType}, in: true, want: `"true"`},
+		{name: "date", def: &schema.Field{Type: enums.DateType, Format: "brp-date"}, in: time.Date(2025, 11, 12, 13, 14, 15, 0, time.UTC), want: `"20251112"`},
+		{name: "time", def: &schema.Field{Type: enums.TimeType}, in: time.Date(0, 1, 1, 13, 14, 15, 0, time.UTC), want: `"13:14:15"`},
+		{name: "datetime", def: &schema.Field{Type: enums.DateTimeType}, in: time.Date(2025, 11, 12, 13, 14, 15, 999000000, time.UTC), want: `"2025-11-12 13:14:15.999"`},
 		{name: "object", def: def, in: map[string]any{"f4": false, "f1": "yo", "f2": 123, "f3": 159}, want: `"{\"f1\":\"yo\",\"f2\":\"123\",\"f3\":159,\"f4\":false}"`},
 		{name: "invalid type", def: &schema.Field{Type: 244}, in: &struct{}{}, want: `"&{}"`},
 	}
@@ -172,13 +172,13 @@ func TestEncodeObjects(t *testing.T) {
 		Object: schema.Object{
 			Parent: schema.Parent{ID: "x"},
 			Fields: []*schema.Field{
-				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.IntegerType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.BooleanType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.IntegerType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.BooleanType},
 			},
 		},
-		Type:    types.ObjectType,
+		Type:    enums.ObjectType,
 		IsArray: true,
 	}
 
@@ -235,13 +235,13 @@ func TestEncodeAnySlice(t *testing.T) {
 			Object: schema.Object{
 				Parent: schema.Parent{ID: "x"},
 				Fields: []*schema.Field{
-					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.IntegerType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.BooleanType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.IntegerType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.BooleanType},
 				},
 			},
-			Type:    types.ObjectType,
+			Type:    enums.ObjectType,
 			IsArray: true,
 		}
 
@@ -269,13 +269,13 @@ func TestEncodeMaps(t *testing.T) {
 			Object: schema.Object{
 				Parent: schema.Parent{ID: "x"},
 				Fields: []*schema.Field{
-					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.IntegerType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.BooleanType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.IntegerType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.BooleanType},
 				},
 			},
-			Type:    types.ObjectType,
+			Type:    enums.ObjectType,
 			IsArray: true,
 		}
 
@@ -303,13 +303,13 @@ func TestEncodeSlices(t *testing.T) {
 			Object: schema.Object{
 				Parent: schema.Parent{ID: "x"},
 				Fields: []*schema.Field{
-					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.IntegerType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.BooleanType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.IntegerType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.BooleanType},
 				},
 			},
-			Type:    types.ObjectType,
+			Type:    enums.ObjectType,
 			IsArray: true,
 		}
 
@@ -334,13 +334,13 @@ func TestEncodeObject(t *testing.T) {
 		Object: schema.Object{
 			Parent: schema.Parent{ID: "x"},
 			Fields: []*schema.Field{
-				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.IntegerType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.BooleanType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.FloatType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.IntegerType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.BooleanType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.FloatType},
 			},
 		},
-		Type: types.ObjectType,
+		Type: enums.ObjectType,
 	}
 
 	testCases := []struct {
@@ -397,13 +397,13 @@ func TestEncodeMap(t *testing.T) {
 			Object: schema.Object{
 				Parent: schema.Parent{ID: "x"},
 				Fields: []*schema.Field{
-					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.IntegerType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.BooleanType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.FloatType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.IntegerType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.BooleanType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.FloatType},
 				},
 			},
-			Type: types.ObjectType,
+			Type: enums.ObjectType,
 		}
 
 		got := encodeMap(def, rec)
@@ -428,13 +428,13 @@ func TestEncodeSlice(t *testing.T) {
 			Object: schema.Object{
 				Parent: schema.Parent{ID: "x"},
 				Fields: []*schema.Field{
-					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.IntegerType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.BooleanType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.StringType},
-					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: types.FloatType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.IntegerType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.BooleanType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.StringType},
+					{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.FloatType},
 				},
 			},
-			Type: types.ObjectType,
+			Type: enums.ObjectType,
 		}
 
 		got := encodeSlice(def, rec)

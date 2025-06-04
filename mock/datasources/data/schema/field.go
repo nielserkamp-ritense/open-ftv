@@ -7,14 +7,14 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // Field represents a field in a datasource table.
 type Field struct {
 	Object
-	Type          types.FieldType
+	Type          enums.FieldType
 	IsArray       bool
 	IsEnum        bool
 	IsPII         bool
@@ -43,15 +43,15 @@ func (f *Field) ConvertValue(v any) any {
 	}
 
 	switch f.Type {
-	case types.IntegerType:
+	case enums.IntegerType:
 		return convert.AnyToInt64(v)
-	case types.UnsignedIntegerType:
+	case enums.UnsignedIntegerType:
 		return convert.AnyToUint64(v)
-	case types.FloatType:
+	case enums.FloatType:
 		return convert.AnyToFloat64(v)
-	case types.BooleanType:
+	case enums.BooleanType:
 		return convert.AnyToBool(v)
-	case types.DateType, types.TimeType, types.DateTimeType:
+	case enums.DateType, enums.TimeType, enums.DateTimeType:
 		return convert.AnyToDateTime(v)
 	default:
 		return convert.AnyToString(v)
@@ -145,7 +145,7 @@ func (f *Field) UnmarshalYAML(b []byte) error {
 type encodeField struct {
 	ID            string          `json:"id" yaml:"id"`
 	Description   string          `json:"description,omitempty" yaml:"description,omitempty"`
-	Type          types.FieldType `json:"type" yaml:"type"`
+	Type          enums.FieldType `json:"type" yaml:"type"`
 	IsArray       bool            `json:"isArray,omitempty" yaml:"isArray,omitempty"`
 	IsEnum        bool            `json:"isEnum,omitempty" yaml:"isEnum,omitempty"`
 	IsPII         bool            `json:"isPII,omitempty" yaml:"isPII,omitempty"`

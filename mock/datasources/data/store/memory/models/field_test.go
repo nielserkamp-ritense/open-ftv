@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestFieldAsRecord(t *testing.T) {
@@ -22,27 +22,27 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "simple",
 			field: &schema.Field{
 				Object: schema.Object{Parent: schema.Parent{ID: "f1"}, Description: "field 1"},
-				Type:   types.StringType,
+				Type:   enums.StringType,
 			},
 			want: &Row{Data: map[string]any{
 				"fqdn":        "f1",
 				"id":          "f1",
 				"description": "field 1",
-				"type":        types.StringType,
+				"type":        enums.StringType,
 			}},
 		},
 		{
 			name: "array",
 			field: &schema.Field{
 				Object:  schema.Object{Parent: schema.Parent{ID: "f2"}, Description: "field 2"},
-				Type:    types.IntegerType,
+				Type:    enums.IntegerType,
 				IsArray: true,
 			},
 			want: &Row{Data: map[string]any{
 				"fqdn":        "f2",
 				"id":          "f2",
 				"description": "field 2",
-				"type":        types.IntegerType,
+				"type":        enums.IntegerType,
 				"is-array":    true,
 			}},
 		},
@@ -50,14 +50,14 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "enum",
 			field: &schema.Field{
 				Object: schema.Object{Parent: schema.Parent{ID: "f3"}, Description: "field 3"},
-				Type:   types.IntegerType,
+				Type:   enums.IntegerType,
 				IsEnum: true,
 			},
 			want: &Row{Data: map[string]any{
 				"fqdn":        "f3",
 				"id":          "f3",
 				"description": "field 3",
-				"type":        types.IntegerType,
+				"type":        enums.IntegerType,
 				"is-enum":     true,
 			}},
 		},
@@ -65,14 +65,14 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "pii",
 			field: &schema.Field{
 				Object: schema.Object{Parent: schema.Parent{ID: "f4"}, Description: "field 4"},
-				Type:   types.StringType,
+				Type:   enums.StringType,
 				IsPII:  true,
 			},
 			want: &Row{Data: map[string]any{
 				"fqdn":        "f4",
 				"id":          "f4",
 				"description": "field 4",
-				"type":        types.StringType,
+				"type":        enums.StringType,
 				"is-pii":      true,
 			}},
 		},
@@ -80,14 +80,14 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "format",
 			field: &schema.Field{
 				Object: schema.Object{Parent: schema.Parent{ID: "f5"}, Description: "field 5"},
-				Type:   types.DateTimeType,
+				Type:   enums.DateTimeType,
 				Format: "20060102150405",
 			},
 			want: &Row{Data: map[string]any{
 				"fqdn":        "f5",
 				"id":          "f5",
 				"description": "field 5",
-				"type":        types.DateTimeType,
+				"type":        enums.DateTimeType,
 				"format":      "20060102150405",
 			}},
 		},
@@ -95,7 +95,7 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "min/max length",
 			field: &schema.Field{
 				Object: schema.Object{Parent: schema.Parent{ID: "f6"}, Description: "field 6"},
-				Type:   types.StringType,
+				Type:   enums.StringType,
 				MinLen: 1,
 				MaxLen: 20,
 			},
@@ -103,7 +103,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"fqdn":           "f6",
 				"id":             "f6",
 				"description":    "field 6",
-				"type":           types.StringType,
+				"type":           enums.StringType,
 				"minimum-length": 1,
 				"maximum-length": 20,
 			}},
@@ -112,7 +112,7 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "min/max value",
 			field: &schema.Field{
 				Object:   schema.Object{Parent: schema.Parent{ID: "f7"}, Description: "field 7"},
-				Type:     types.UnsignedIntegerType,
+				Type:     enums.UnsignedIntegerType,
 				MinValue: 1,
 				MaxValue: 10,
 			},
@@ -120,7 +120,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"fqdn":          "f7",
 				"id":            "f7",
 				"description":   "field 7",
-				"type":          types.UnsignedIntegerType,
+				"type":          enums.UnsignedIntegerType,
 				"minimum-value": 1,
 				"maximum-value": 10,
 			}},
@@ -129,7 +129,7 @@ func TestFieldAsRecord(t *testing.T) {
 			name: "allowed values",
 			field: &schema.Field{
 				Object:        schema.Object{Parent: schema.Parent{ID: "f8"}, Description: "field 8"},
-				Type:          types.StringType,
+				Type:          enums.StringType,
 				IsEnum:        true,
 				AllowedValues: []any{"M", "V", "O"},
 			},
@@ -137,7 +137,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"fqdn":           "f8",
 				"id":             "f8",
 				"description":    "field 8",
-				"type":           types.StringType,
+				"type":           enums.StringType,
 				"is-enum":        true,
 				"allowed-values": []any{"M", "V", "O"},
 			}},
@@ -167,19 +167,19 @@ func TestObjectFieldAsRecord(t *testing.T) {
 				Fields: []*schema.Field{
 					{
 						Object: schema.Object{Parent: schema.Parent{ID: "f1"}, Description: "field 1"},
-						Type:   types.StringType,
+						Type:   enums.StringType,
 					},
 					{
 						Object: schema.Object{Parent: schema.Parent{ID: "f2"}, Description: "field 2"},
-						Type:   types.DateType,
+						Type:   enums.DateType,
 					},
 					{
 						Object: schema.Object{Parent: schema.Parent{ID: "f3"}, Description: "field 3"},
-						Type:   types.BooleanType,
+						Type:   enums.BooleanType,
 					},
 				},
 			},
-			Type: types.ObjectType,
+			Type: enums.ObjectType,
 		}
 
 		got := fieldAsRow(field)
@@ -188,7 +188,7 @@ func TestObjectFieldAsRecord(t *testing.T) {
 		assert.Equal(t, "f9", got.Data["fqdn"])
 		assert.Equal(t, "f9", got.Data["id"])
 		assert.Equal(t, "field 9", got.Data["description"])
-		assert.EqualValues(t, types.ObjectType, got.Data["type"])
+		assert.EqualValues(t, enums.ObjectType, got.Data["type"])
 		assert.Len(t, got.Data["fields"], 3)
 	})
 }

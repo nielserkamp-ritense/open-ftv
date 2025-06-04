@@ -33,9 +33,7 @@ func (h *dataspaceHandler) GetDataspace(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no dataspace found")
 	}
 
-	filter := buildFilter(req)
-	_, matcher := extractFieldMatcher(filter)
-
+	_, matcher := buildFilters(req, nil)
 	return buildContent(req, d.AsRow().MatchFields(matcher))
 }
 

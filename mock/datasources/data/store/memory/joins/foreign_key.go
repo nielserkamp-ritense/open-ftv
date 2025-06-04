@@ -4,14 +4,12 @@ import (
 	"fmt"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/filters"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
 )
 
 func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 	out := make(models.Rows, 0, len(j.targetData))
-	tableFilter := filters.NewTableFilter(j.source.Definition(), j.filter)
-	filtered := len(tableFilter) > 0
+	filtered := j.filter != nil
 
 	for i := range j.targetData {
 		foreign := j.source.ForeignKeys[fk.ID]
@@ -27,7 +25,7 @@ func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 			if len(recs) > 0 {
 				joinData = make(models.Rows, 0, len(recs))
 				for _, rec := range recs {
-					if rec.MatchFilter(tableFilter) {
+					if !filtered || rec.MatchJoin(j.def, j.filter) {
 						joinData = append(joinData, rec)
 					}
 				}

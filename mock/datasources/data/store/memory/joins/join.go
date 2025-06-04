@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
@@ -19,8 +20,8 @@ func New(target *models.Table, targetData models.Rows, joinDef *schema.Join, met
 	}
 }
 
-// JoinOnFK executes the join operation based on the given foreign key and filter.
-func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter map[string]any) (models.Rows, error) {
+// JoinOnFK executes the join operation based on the given foreign key and optional filter.
+func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter filtering.Filterer) (models.Rows, error) {
 	var err error
 	if j.source, err = j.meta.GetTable(j.def.Source); err != nil || j.source == nil {
 		if j.source == nil {
@@ -35,8 +36,8 @@ func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter map[string]any) (models.Ro
 	return j.joinOnFK(fk)
 }
 
-// JoinOnFields executes the join operation based on the given list of fields and filter.
-func (j *Join) JoinOnFields(fields []string, filter map[string]any) (models.Rows, error) {
+// JoinOnFields executes the join operation based on the given list of fields and optional filter.
+func (j *Join) JoinOnFields(fields []string, filter filtering.Filterer) (models.Rows, error) {
 	var err error
 	if j.source, err = j.meta.GetTable(j.def.Source); err != nil || j.source == nil {
 		if j.source == nil {
@@ -57,7 +58,7 @@ type Join struct {
 	targetData   models.Rows
 	source       *models.Table
 	def          *schema.Join
-	filter       map[string]any
+	filter       filtering.Filterer
 	sourceFields []string
 	targetFields []string
 	meta         store.MetaReader

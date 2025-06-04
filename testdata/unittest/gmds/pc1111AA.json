@@ -1,0 +1,10 @@
+{
+ "@filter": {
+  "level":"join",
+  "caseInsensitive": true,
+  "join":"adres",
+  "field":"postcode",
+  "compare":"eq",
+  "value":"1111AA"
+ }
+}

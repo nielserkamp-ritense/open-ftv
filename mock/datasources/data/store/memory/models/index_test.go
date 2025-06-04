@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestIndexAsRecord(t *testing.T) {
@@ -49,14 +49,14 @@ func TestIndexAsRecord(t *testing.T) {
 				Parent:      schema.Parent{ID: "ix3"},
 				Description: "index 3",
 				Fields:      []string{"created", "id"},
-				Orders:      []types.OrderType{types.OrderAscending, types.OrderDescending},
+				Orders:      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 			},
 			want: map[string]any{
 				"fqdn":        "ix3",
 				"id":          "ix3",
 				"description": "index 3",
 				"fields":      []string{"created", "id"},
-				"orders":      []types.OrderType{types.OrderAscending, types.OrderDescending},
+				"orders":      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 			},
 		},
 	}

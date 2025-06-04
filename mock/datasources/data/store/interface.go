@@ -1,6 +1,8 @@
 package store
 
 import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
 )
@@ -51,6 +53,6 @@ type Maintainer interface {
 type Reader interface {
 	SelectPK(tableID string, pk []any) (*models.Row, error)
 	SelectIX(tableID string, id string, keys []any) (models.Rows, error)
-	Search(tableID string, filter map[string]any) (models.Rows, error)
-	GetEndpoint(e *schema.Endpoint, filter map[string]any) (models.Rows, error)
+	Search(tableID string, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error)
+	GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error)
 }

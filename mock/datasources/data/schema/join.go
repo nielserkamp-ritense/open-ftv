@@ -3,12 +3,12 @@ package schema
 import (
 	"sync"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 // Join represents a joined table for an endpoint.
 //
-// For Type see types.JoinType.
+// For Type see enums.JoinType.
 //
 // IncludeJoinFields, when true, indicates that the fields from the joined table,
 // which are used for the join, are included in the output.
@@ -35,7 +35,7 @@ import (
 //
 // Joins are optional subjoins, which will be executed against the source table of this join.
 type Join struct {
-	Type              types.JoinType `json:"type" yaml:"type"`
+	Type              enums.JoinType `json:"type" yaml:"type"`
 	IncludeJoinFields bool           `json:"includeJoinFields,omitempty" yaml:"includeJoinFields,omitempty"`
 	QualifiedFields   bool           `json:"qualifiedFields,omitempty" yaml:"qualifiedFields,omitempty"`
 	Target            string         `json:"target,omitempty" yaml:"target,omitempty"`

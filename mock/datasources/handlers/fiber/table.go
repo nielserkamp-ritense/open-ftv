@@ -30,15 +30,14 @@ func NewTableHandler(s store.Storage, logger *slog.Logger) TablesHandler {
 func (h *tableHandler) GetTables(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, TablesVersion)
 
-	filter := buildFilter(req)
-	filter2, matcher := extractFieldMatcher(filter)
 	sources := h.s.GetDatasources()
 
 	var list models.Rows
 	for _, source := range sources {
+		filter, matcher := buildFilters(req, source.Definition())
 		for _, table := range source.Tables {
-			if table.MatchFilter(filter2) {
-				list = append(list, table.AsRow().MatchFields(matcher))
+			if r := table.AsRow(); r.MatchPrimary(filter) {
+				list = append(list, r.MatchFields(matcher))
 			}
 		}
 	}
