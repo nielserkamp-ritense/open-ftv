@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 func TestIndex_IterateFields(t *testing.T) {
@@ -21,7 +21,7 @@ func TestIndex_IterateFields(t *testing.T) {
 			Parent:      Parent{ID: "index2"},
 			Description: "second index",
 			Fields:      []string{"f1", "f2"},
-			Orders:      []types.OrderType{types.OrderAscending, types.OrderDescending},
+			Orders:      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 		}
 
 		t1 := &Table{
@@ -58,7 +58,7 @@ func TestIndex_MarshalJSON(t *testing.T) {
 			Parent:      Parent{ID: "index2"},
 			Description: "second index",
 			Fields:      []string{"f1", "f2"},
-			Orders:      []types.OrderType{types.OrderAscending, types.OrderDescending},
+			Orders:      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 		}
 
 		got, err := json.Marshal(d)
@@ -101,7 +101,7 @@ func TestIndex_MarshalYAML(t *testing.T) {
 			Parent:      Parent{ID: "index2"},
 			Description: "second index",
 			Fields:      []string{"f1", "f2"},
-			Orders:      []types.OrderType{types.OrderAscending, types.OrderDescending},
+			Orders:      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 		}
 
 		got, err := yaml.Marshal(d)
@@ -156,10 +156,10 @@ func TestIndex_Fix(t *testing.T) {
 			Parent:      Parent{ID: "t1"},
 			Description: "foreign table",
 			Fields: []*Field{
-				{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-				{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-				{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+				{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+				{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 			},
 		},
 	}
@@ -169,10 +169,10 @@ func TestIndex_Fix(t *testing.T) {
 			Parent:      Parent{ID: "t2"},
 			Description: "main table",
 			Fields: []*Field{
-				{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-				{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-				{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+				{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+				{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 			},
 		},
 	}
@@ -191,7 +191,7 @@ func TestIndex_Fix(t *testing.T) {
 				Parent:      Parent{ID: "fk1"},
 				Description: "Foreign key 1",
 				Fields:      []string{"f2", "f1"},
-				Orders:      []types.OrderType{types.OrderAscending, types.OrderDescending},
+				Orders:      []enums.OrderType{enums.OrderAscending, enums.OrderDescending},
 			},
 			wantFQDN: "ds.t2.fk1",
 		},

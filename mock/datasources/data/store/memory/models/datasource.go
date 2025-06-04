@@ -1,11 +1,9 @@
 package models
 
 import (
-	"regexp"
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // NewSource instantiates a new datasource.
@@ -34,33 +32,9 @@ func (s *Datasource) AddTableFromCSV(def *schema.Table, csv [][]string) {
 	s.Tables[strings.ToLower(def.ID)] = TableFromCSV(def, csv)
 }
 
-// MatchFilter returns true if the datasource matches the given filter.
-func (s *Datasource) MatchFilter(filter map[string]any) bool {
-	match := func(s string, v any) bool {
-		switch tp := v.(type) {
-		case *regexp.Regexp:
-			return tp.MatchString(s)
-		default:
-			return s == convert.AnyToString(v)
-		}
-	}
-
-	for k, v := range filter {
-		switch strings.ToLower(k) {
-		case "id":
-			if !match(s.def.ID, v) {
-				return false
-			}
-		case "description":
-			if !match(s.def.Description, v) {
-				return false
-			}
-		default:
-			return false
-		}
-	}
-
-	return true
+// Definition returns the definition of the datasource.
+func (s *Datasource) Definition() *schema.Datasource {
+	return s.def
 }
 
 // AsRow converts the datasource definition into an exportable row.

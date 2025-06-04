@@ -6,7 +6,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 type ForeignKey struct {
@@ -86,7 +86,7 @@ type encodeFK struct {
 	Description  string            `json:"description,omitempty" yaml:"description,omitempty"`
 	ForeignTable string            `json:"foreignTable" yaml:"foreignTable"`
 	Fields       []string          `json:"fields" yaml:"fields"`
-	Orders       []types.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`
+	Orders       []enums.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`
 }
 
 // Fix (re)sets the parent-child relationships for this object.

@@ -3,6 +3,7 @@ package joins
 import (
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
@@ -10,7 +11,7 @@ import (
 
 // ProcessJoins returns the given input data extended with the given list of joins,
 // or an error if it fails to execute a join.
-func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, filter map[string]any, meta store.MetaReader) (models.Rows, error) {
+func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, filter filtering.Filterer, meta store.MetaReader) (models.Rows, error) {
 	out := in
 
 	var err error

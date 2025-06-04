@@ -6,9 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestStorage_ProcessJoins(t *testing.T) {
@@ -42,7 +43,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 		primary *models.Table
 		join    *schema.Join
 		fk      *schema.ForeignKey
-		filter  map[string]any
+		filter  filtering.Filterer
 		wantErr bool
 		want    []map[string]any
 	}{
@@ -50,7 +51,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "bad foreign key",
 			in:      in1,
 			primary: t3,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk3"}, Fields: []string{"postcode"}},
 				ForeignTable: "kenteken",
@@ -61,7 +62,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional sibling, none",
 			in:      in2,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalSibling, Source: "adres"},
+			join:    &schema.Join{Type: enums.OptionalSibling, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -74,7 +75,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional parent/child, none",
 			in:      in2,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.OptionalParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -87,7 +88,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced sibling, none",
 			in:      in2,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedSibling, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -100,7 +101,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced parent/child, none",
 			in:      in2,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -113,7 +114,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional sibling, one",
 			in:      in3,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalSibling, Source: "adres"},
+			join:    &schema.Join{Type: enums.OptionalSibling, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -127,7 +128,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional parent/child, one",
 			in:      in3,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.OptionalParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -141,7 +142,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced sibling, one",
 			in:      in3,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedSibling, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -155,7 +156,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced parent/child, one",
 			in:      in3,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -169,7 +170,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional sibling, few",
 			in:      in1,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalSibling, Source: "adres", QualifiedFields: true},
+			join:    &schema.Join{Type: enums.OptionalSibling, Source: "adres", QualifiedFields: true},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -184,7 +185,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "optional parent/child, few",
 			in:      in1,
 			primary: t1,
-			join:    &schema.Join{Type: types.OptionalParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.OptionalParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -199,7 +200,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced sibling, few",
 			in:      in1,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres", QualifiedFields: true},
+			join:    &schema.Join{Type: enums.ForcedSibling, Source: "adres", QualifiedFields: true},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -214,7 +215,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 			name:    "forced parent/child, few",
 			in:      in1,
 			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
+			join:    &schema.Join{Type: enums.ForcedParentChild, Source: "adres"},
 			fk: &schema.ForeignKey{
 				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
 				ForeignTable: "persoon",
@@ -223,90 +224,6 @@ func TestStorage_ProcessJoins(t *testing.T) {
 				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen", "adres": models.Rows{{Data: map[string]any{"postcode": "1111ZZ"}}}},
 				{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen", "adres": models.Rows{{Data: map[string]any{"postcode": "2222YY"}}}},
 				{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen", "adres": models.Rows{}},
-			},
-		},
-		{
-			name:    "forced sibling, few, filtered one",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres", QualifiedFields: true},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "2222YY"},
-			want: []map[string]any{
-				{"persoon.bsn": "999990408", "persoon.voornaam": "Piet", "persoon.achternaam": "Pietersen", "adres.postcode": "2222YY"},
-			},
-		},
-		{
-			name:    "forced parent/child, few, filtered one",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "1111ZZ"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen", "adres": models.Rows{{Data: map[string]any{"postcode": "1111ZZ"}}}},
-			},
-		},
-		{
-			name:    "forced sibling, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres", QualifiedFields: true},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "2222ZZ"},
-			want:   []map[string]any{},
-		},
-		{
-			name:    "forced parent/child, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "5555FF"},
-			want:   []map[string]any{},
-		},
-		{
-			name:    "optional sibling, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.OptionalSibling, Source: "adres", QualifiedFields: true},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "2222ZZ"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"},
-				{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"},
-				{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"},
-			},
-		},
-		{
-			name:    "optional parent/child, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.OptionalParentChild, Source: "adres"},
-			fk: &schema.ForeignKey{
-				Index:        schema.Index{Parent: schema.Parent{ID: "fk1"}, Fields: []string{"bsn"}},
-				ForeignTable: "persoon",
-			},
-			filter: map[string]any{"postcode": "5555FF"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"},
-				{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"},
-				{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"},
 			},
 		},
 	}
@@ -324,120 +241,12 @@ func TestStorage_ProcessJoins(t *testing.T) {
 
 			tc.fk.Fix(source.Definition(), nil)
 
-			got, err4 := j.JoinOnFK(tc.fk, tc.filter)
-			if tc.wantErr {
-				require.Error(t, err4)
-				require.Nil(t, got)
-			} else {
-				require.NoError(t, err4)
-				require.NotNil(t, got)
-				require.Equal(t, len(tc.want), len(got))
-
-				for i := range tc.want {
-					m1, m2 := tc.want[i], got[i].Data
-					assert.EqualExportedValues(t, m1, m2)
-				}
+			if tc.filter != nil {
+				err = tc.filter.Prepare(ds, []*schema.Join{tc.join})
+				require.NoError(t, err)
 			}
-		})
-	}
-}
 
-func TestJoin_JoinOnFields(t *testing.T) {
-	t.Parallel()
-
-	ds.Fix(nil)
-
-	p1 := map[string]any{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"}
-	p2 := map[string]any{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"}
-	p3 := map[string]any{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"}
-
-	t1 := models.TableFromData(persoon, []map[string]any{p1, p2, p3})
-
-	t2 := models.TableFromData(adres, []map[string]any{
-		{"bsn": "999990391", "postcode": "1111ZZ"},
-		{"bsn": "999990408", "postcode": "2222YY"},
-		{"bsn": "999990433", "postcode": "4444WW"},
-	})
-
-	s := &myMeta{tables: map[string]*models.Table{"persoon": t1, "adres": t2}}
-
-	in1 := models.Rows{{Data: p1}, {Data: p2}, {Data: p3}}
-
-	testCases := []struct {
-		name    string
-		in      models.Rows
-		primary *models.Table
-		join    *schema.Join
-		fields  []string
-		filter  map[string]any
-		wantErr bool
-		want    []map[string]any
-	}{
-		{
-			name:    "forced parent/child, few, filtered one",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
-			fields:  []string{"bsn"},
-			filter:  map[string]any{"postcode": "1111ZZ"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen", "adres": models.Rows{{Data: map[string]any{"postcode": "1111ZZ"}}}},
-			},
-		},
-		{
-			name:    "forced sibling, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedSibling, Source: "adres", QualifiedFields: true},
-			fields:  []string{"bsn"},
-			filter:  map[string]any{"postcode": "2222ZZ"},
-			want:    []map[string]any{},
-		},
-		{
-			name:    "forced parent/child, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.ForcedParentChild, Source: "adres"},
-			fields:  []string{"bsn"},
-			filter:  map[string]any{"postcode": "5555FF"},
-			want:    []map[string]any{},
-		},
-		{
-			name:    "optional sibling, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.OptionalSibling, Source: "adres", QualifiedFields: true},
-			fields:  []string{"bsn"},
-			filter:  map[string]any{"postcode": "2222ZZ"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"},
-				{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"},
-				{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"},
-			},
-		},
-		{
-			name:    "optional parent/child, few, filtered none",
-			in:      in1,
-			primary: t1,
-			join:    &schema.Join{Type: types.OptionalParentChild, Source: "adres"},
-			fields:  []string{"bsn"},
-			filter:  map[string]any{"postcode": "5555FF"},
-			want: []map[string]any{
-				{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"},
-				{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"},
-				{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"},
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			j := New(tc.primary, tc.in, tc.join, s)
-			require.NotNil(t, j)
-
-			got, err4 := j.JoinOnFields(tc.fields, tc.filter)
+			got, err4 := j.JoinOnFK(tc.fk, tc.filter)
 			if tc.wantErr {
 				require.Error(t, err4)
 				require.Nil(t, got)
@@ -485,7 +294,7 @@ func TestJoin_SubJoin(t *testing.T) {
 	t.Run("sub-join", func(t *testing.T) {
 		t.Parallel()
 
-		j1 := New(t1, in1, &schema.Join{Type: types.OptionalSibling, Source: "adres"}, s)
+		j1 := New(t1, in1, &schema.Join{Type: enums.OptionalSibling, Source: "adres"}, s)
 		require.NotNil(t, j1)
 
 		got1, err3 := j1.JoinOnFK(t2.Definition().ForeignKey("fk1"), nil)
@@ -493,7 +302,7 @@ func TestJoin_SubJoin(t *testing.T) {
 		require.NotNil(t, got1)
 		assert.Len(t, got1, 3)
 
-		j2 := New(t1, got1, &schema.Join{Type: types.OptionalSibling, Source: "inwoners"}, s)
+		j2 := New(t1, got1, &schema.Join{Type: enums.OptionalSibling, Source: "inwoners"}, s)
 		require.NotNil(t, j1)
 
 		got2, err4 := j2.JoinOnFields([]string{"postcode"}, nil)

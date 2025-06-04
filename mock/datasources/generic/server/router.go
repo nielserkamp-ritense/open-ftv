@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	handle1 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 	handle2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/handlers/fiber"
 )
 
@@ -58,13 +58,13 @@ func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
 		h := handle2.NewEndpointHandler(s.db, s.logger, def)
 
 		switch def.CalledAs {
-		case types.GetMethod:
+		case enums.GetMethod:
 			version.Get(def.Path, h.Handle)
-		case types.PostMethod:
+		case enums.PostMethod:
 			version.Post(def.Path, h.Handle)
-		case types.PutMethod:
+		case enums.PutMethod:
 			version.Put(def.Path, h.Handle)
-		case types.DeleteMethod:
+		case enums.DeleteMethod:
 			version.Delete(def.Path, h.Handle)
 		}
 	})

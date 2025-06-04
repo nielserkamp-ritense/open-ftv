@@ -1,4 +1,4 @@
-package types
+package enums
 
 import (
 	"testing"
@@ -9,41 +9,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOrderTypeFromString(t *testing.T) {
+func TestFilterLevelFromString(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		name string
-		want OrderType
+		want FilterLevel
 	}{
-		{name: "x", want: OrderDescending},
-		{name: "bad name", want: OrderDescending},
-		{name: "desc", want: OrderDescending},
-		{name: "asc", want: OrderAscending},
-		{name: "Ascending", want: OrderAscending},
+		{name: "x", want: PrimaryLevel},
+		{name: "bad name", want: PrimaryLevel},
+		{name: "primary", want: PrimaryLevel},
+		{name: "PrimaryLevel", want: PrimaryLevel},
+		{name: "allLevel", want: AnyLevel},
+		{name: "all", want: AnyLevel},
+		{name: "any", want: AnyLevel},
+		{name: "ANYLEVEL", want: AnyLevel},
+		{name: "Join", want: JoinLevel},
+		{name: "joinLevel", want: JoinLevel},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := OrderTypeFromString(tc.name)
+			got := FilterLevelFromString(tc.name)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
 
-func TestOrderType_String(t *testing.T) {
+func TestFilterLevel_String(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		name string
-		t    OrderType
+		t    FilterLevel
 		want string
 	}{
-		{name: "unknown", t: 99, want: "Descending"},
-		{name: "asc", t: OrderAscending, want: "Ascending"},
-		{name: "desc", t: OrderDescending, want: "Descending"},
+		{name: "unknown", t: 99, want: "[unknown]"},
+		{name: "primary", t: PrimaryLevel, want: "primary"},
+		{name: "any", t: AnyLevel, want: "any"},
+		{name: "join", t: JoinLevel, want: "join"},
 	}
 
 	for _, tc := range testCases {
@@ -56,15 +62,16 @@ func TestOrderType_String(t *testing.T) {
 	}
 }
 
-func TestOrderType_JSON(t *testing.T) {
+func TestFilterLevel_JSON(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		name string
-		t    OrderType
+		t    FilterLevel
 	}{
-		{name: "asc", t: OrderAscending},
-		{name: "desc", t: OrderDescending},
+		{name: "primary", t: PrimaryLevel},
+		{name: "any", t: AnyLevel},
+		{name: "join", t: JoinLevel},
 	}
 
 	for _, tc := range testCases {
@@ -75,7 +82,7 @@ func TestOrderType_JSON(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, got)
 
-			var t2 OrderType
+			var t2 FilterLevel
 			err = json.Unmarshal(got, &t2)
 			require.NoError(t, err)
 			assert.Equal(t, tc.t, t2)
@@ -83,15 +90,16 @@ func TestOrderType_JSON(t *testing.T) {
 	}
 }
 
-func TestOrderType_YAML(t *testing.T) {
+func TestFilterLevel_YAML(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		name string
-		t    OrderType
+		t    FilterLevel
 	}{
-		{name: "asc", t: OrderAscending},
-		{name: "desc", t: OrderDescending},
+		{name: "primary", t: PrimaryLevel},
+		{name: "any", t: AnyLevel},
+		{name: "join", t: JoinLevel},
 	}
 
 	for _, tc := range testCases {
@@ -102,7 +110,7 @@ func TestOrderType_YAML(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, got)
 
-			var t2 OrderType
+			var t2 FilterLevel
 			err = yaml.Unmarshal(got, &t2)
 			require.NoError(t, err)
 			assert.Equal(t, tc.t, t2)

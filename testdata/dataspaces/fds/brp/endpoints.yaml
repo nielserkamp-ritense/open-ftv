@@ -9,13 +9,13 @@
   datasource: brp
   table: persoon
   joins:
-    - type: ForcedParentChild
+    - type: OptionalParentChild
       source: ouder1
       joins:
         - type: OptionalSibling
           source: persoon
           fields: ["bsn-ouder:bsn"]
-    - type: ForcedParentChild
+    - type: OptionalParentChild
       source: ouder2
       joins:
         - type: OptionalSibling
@@ -27,7 +27,7 @@
       source: verbintenis
     - type: OptionalSibling
       source: overlijden
-    - type: ForcedSibling
+    - type: OptionalSibling
       source: inschrijving
     - type: ForcedSibling
       source: adres

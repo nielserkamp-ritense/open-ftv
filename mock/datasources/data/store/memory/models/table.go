@@ -2,8 +2,6 @@ package models
 
 import (
 	"bytes"
-	"regexp"
-	"strings"
 	"sync"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
@@ -44,69 +42,6 @@ func TableFromCSV(def *schema.Table, csv [][]string) *Table {
 // Definition returns the table definition.
 func (t *Table) Definition() *schema.Table {
 	return t.def
-}
-
-// MatchFilter returns true if the record matches the given filter.
-func (t *Table) MatchFilter(filter map[string]any) bool {
-	match := func(s string, v any) bool {
-		switch tp := v.(type) {
-		case *regexp.Regexp:
-			return tp.MatchString(s)
-		default:
-			return s == convert.AnyToString(v)
-		}
-	}
-
-	for k, v := range filter {
-		switch strings.ToLower(k) {
-		case "id":
-			if !match(t.def.ID, v) {
-				return false
-			}
-
-		case "description":
-			if !match(t.def.Description, v) {
-				return false
-			}
-
-		case "pk", "primary-key":
-			if t.def.PrimaryKey == nil {
-				return false
-			}
-			if !match(t.def.PrimaryKey.ID, v) {
-				return false
-			}
-
-		case "ix", "secondary-index":
-			var ok bool
-			for _, ix := range t.def.SecondaryIndexes {
-				if match(ix.ID, v) {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				return false
-			}
-
-		case "fk", "foreign-key":
-			var ok bool
-			for _, fk := range t.def.ForeignKeys {
-				if match(fk.ID, v) {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				return false
-			}
-
-		default:
-			return false
-		}
-	}
-
-	return true
 }
 
 // AsRow converts the table definition into an exportable row.

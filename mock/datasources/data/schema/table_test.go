@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 func TestTable_Field(t *testing.T) {
@@ -24,15 +24,15 @@ func TestTable_Field(t *testing.T) {
 				Fields: []*Field{
 					{
 						Object: Object{Parent: Parent{ID: "id"}, Description: "primary key"},
-						Type:   types.IntegerType,
+						Type:   enums.IntegerType,
 					},
 					{
 						Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"},
-						Type:   types.UnsignedIntegerType,
+						Type:   enums.UnsignedIntegerType,
 					},
 					{
 						Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"},
-						Type:   types.StringType,
+						Type:   enums.StringType,
 					},
 				},
 			},
@@ -71,11 +71,11 @@ func TestTable_MarshalJSON(t *testing.T) {
 				Fields: []*Field{
 					{
 						Object: Object{Parent: Parent{ID: "id"}, Description: "primary key"},
-						Type:   types.IntegerType,
+						Type:   enums.IntegerType,
 					},
 					{
 						Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"},
-						Type:   types.UnsignedIntegerType,
+						Type:   enums.UnsignedIntegerType,
 					},
 				},
 			},
@@ -132,15 +132,15 @@ func TestTable_MarshalYAML(t *testing.T) {
 				Fields: []*Field{
 					{
 						Object: Object{Parent: Parent{ID: "id"}, Description: "primary key"},
-						Type:   types.IntegerType,
+						Type:   enums.IntegerType,
 					},
 					{
 						Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"},
-						Type:   types.UnsignedIntegerType,
+						Type:   enums.UnsignedIntegerType,
 					},
 					{
 						Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"},
-						Type:   types.StringType,
+						Type:   enums.StringType,
 					},
 				},
 			},
@@ -154,7 +154,7 @@ func TestTable_MarshalYAML(t *testing.T) {
 					Parent:      Parent{ID: "ix2"},
 					Description: "index 2",
 					Fields:      []string{"f1", "f2"},
-					Orders:      []types.OrderType{types.OrderAscending},
+					Orders:      []enums.OrderType{enums.OrderAscending},
 				},
 			},
 			ForeignKeys: []*ForeignKey{
@@ -247,10 +247,10 @@ func TestTable_Fix(t *testing.T) {
 			Parent:      Parent{ID: "t1"},
 			Description: "foreign table",
 			Fields: []*Field{
-				{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-				{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-				{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-				{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+				{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+				{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+				{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 			},
 		},
 	}
@@ -271,10 +271,10 @@ func TestTable_Fix(t *testing.T) {
 					Parent:      Parent{ID: "t2"},
 					Description: "main table",
 					Fields: []*Field{
-						{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-						{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-						{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-						{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+						{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+						{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+						{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+						{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 					},
 				},
 			},
@@ -288,10 +288,10 @@ func TestTable_Fix(t *testing.T) {
 					Parent:      Parent{ID: "t3"},
 					Description: "main table",
 					Fields: []*Field{
-						{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-						{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-						{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-						{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+						{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+						{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+						{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+						{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 					},
 				},
 				PrimaryKey: &Index{
@@ -310,10 +310,10 @@ func TestTable_Fix(t *testing.T) {
 					Parent:      Parent{ID: "t4"},
 					Description: "main table",
 					Fields: []*Field{
-						{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-						{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-						{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-						{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+						{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+						{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+						{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+						{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 					},
 				},
 				SecondaryIndexes: []*Index{
@@ -331,10 +331,10 @@ func TestTable_Fix(t *testing.T) {
 					Parent:      Parent{ID: "t5"},
 					Description: "main table",
 					Fields: []*Field{
-						{Object: Object{Parent: Parent{ID: "f1"}}, Type: types.StringType},
-						{Object: Object{Parent: Parent{ID: "f2"}}, Type: types.IntegerType},
-						{Object: Object{Parent: Parent{ID: "f3"}}, Type: types.BooleanType},
-						{Object: Object{Parent: Parent{ID: "f4"}}, Type: types.DateType},
+						{Object: Object{Parent: Parent{ID: "f1"}}, Type: enums.StringType},
+						{Object: Object{Parent: Parent{ID: "f2"}}, Type: enums.IntegerType},
+						{Object: Object{Parent: Parent{ID: "f3"}}, Type: enums.BooleanType},
+						{Object: Object{Parent: Parent{ID: "f4"}}, Type: enums.DateType},
 					},
 				},
 				ForeignKeys: []*ForeignKey{

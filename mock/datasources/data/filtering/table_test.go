@@ -1,12 +1,12 @@
-package filters
+package filtering
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func TestBuildTableFilter(t *testing.T) {
@@ -17,9 +17,9 @@ func TestBuildTableFilter(t *testing.T) {
 			Parent:      schema.Parent{ID: "t1"},
 			Description: "table 1",
 			Fields: []*schema.Field{
-				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}, Description: "field 1"}, Type: types.IntegerType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}, Description: "field 2"}, Type: types.StringType},
-				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}, Description: "field 3"}, Type: types.FloatType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}, Description: "field 1"}, Type: enums.IntegerType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}, Description: "field 2"}, Type: enums.StringType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}, Description: "field 3"}, Type: enums.FloatType},
 			},
 		},
 	}

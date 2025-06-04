@@ -3,12 +3,11 @@ package memory
 import (
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/filters"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/joins"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
 // SelectPK implements the Reader interface.
@@ -65,7 +64,7 @@ func (s *storage) SelectIX(tableID string, id string, keys []any) (models.Rows, 
 }
 
 // Search implements the Reader interface.
-func (s *storage) Search(tableID string, filter map[string]any) (models.Rows, error) {
+func (s *storage) Search(tableID string, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error) {
 	table, err := s.GetTable(tableID)
 	if err != nil {
 		return nil, fmt.Errorf("search: %w", err)
@@ -76,15 +75,11 @@ func (s *storage) Search(tableID string, filter map[string]any) (models.Rows, er
 		return nil, fmt.Errorf("search: %w", err2)
 	}
 
-	expr := convert.AnyToString(filter["fields"])
-	delete(filter, "fields")
-	matcher := types.NewFieldMatcher(expr)
-
 	var out models.Rows
 	for i := range t.Data {
 		rec := t.Data[i]
 		// vertical data-minimalization.
-		if rec.MatchFilter(filter) {
+		if rec.MatchPrimary(filter) {
 			// horizontal data-minimalization.
 			out = append(out, rec.MatchFields(matcher))
 		}
@@ -97,7 +92,7 @@ func (s *storage) Search(tableID string, filter map[string]any) (models.Rows, er
 }
 
 // GetEndpoint implements the Reader interface.
-func (s *storage) GetEndpoint(e *schema.Endpoint, filter map[string]any) (models.Rows, error) {
+func (s *storage) GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error) {
 	if e.Primary() == nil {
 		return nil, fmt.Errorf("endpoint: primary table missing")
 	}
@@ -107,18 +102,11 @@ func (s *storage) GetEndpoint(e *schema.Endpoint, filter map[string]any) (models
 		return nil, fmt.Errorf("endpoint: %w", err)
 	}
 
-	// determine horizontal minimalization.
-	fieldMatcher := types.NewFieldMatcher(convert.AnyToString(filter["fields"]))
-	delete(filter, "fields")
-
-	// determine vertical filter for the primary table.
-	tableFilter := filters.NewTableFilter(primary.Definition(), filter)
-
 	var out models.Rows
 	for i := range primary.Data {
 		rec := primary.Data[i]
 		// apply vertical data-minimalization.
-		if rec.MatchFilter(tableFilter) {
+		if rec.MatchPrimary(filter) {
 			out = append(out, rec)
 		}
 	}
@@ -136,7 +124,7 @@ func (s *storage) GetEndpoint(e *schema.Endpoint, filter map[string]any) (models
 
 	for i := range out {
 		// apply horizontal data-minimalization.
-		out[i] = out[i].MatchFields(fieldMatcher)
+		out[i] = out[i].MatchFields(matcher)
 	}
 	return out, nil
 }

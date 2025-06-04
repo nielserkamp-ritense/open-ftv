@@ -9,16 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
 func TestEndpoint_Fix(t *testing.T) {
 	t.Parallel()
 
-	f1 := &Field{Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"}, Type: types.IntegerType}
-	f2 := &Field{Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"}, Type: types.StringType}
-	f3 := &Field{Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"}, Type: types.IntegerType}
-	f4 := &Field{Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"}, Type: types.StringType}
+	f1 := &Field{Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"}, Type: enums.IntegerType}
+	f2 := &Field{Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"}, Type: enums.StringType}
+	f3 := &Field{Object: Object{Parent: Parent{ID: "f1"}, Description: "field 1"}, Type: enums.IntegerType}
+	f4 := &Field{Object: Object{Parent: Parent{ID: "f2"}, Description: "field 2"}, Type: enums.StringType}
 
 	t1 := &Table{Object: Object{Parent: Parent{ID: "t1"}, Description: "table 1", Fields: []*Field{f1, f2}}}
 	t2 := &Table{Object: Object{Parent: Parent{ID: "t2"}, Description: "table 2", Fields: []*Field{f3, f4}}}
@@ -37,7 +37,7 @@ func TestEndpoint_Fix(t *testing.T) {
 			name: "short table update",
 			endpoint: &Endpoint{
 				Version:     1,
-				Type:        types.PutMethod,
+				Type:        enums.PutMethod,
 				Path:        "/",
 				FullVersion: "1.0.0",
 				Description: "shortened table 1",
@@ -53,8 +53,8 @@ func TestEndpoint_Fix(t *testing.T) {
 			name: "single table with filter",
 			endpoint: &Endpoint{
 				Version:     1,
-				Type:        types.GetMethod,
-				CalledAs:    types.PostMethod,
+				Type:        enums.GetMethod,
+				CalledAs:    enums.PostMethod,
 				Path:        "yoyo/",
 				FullVersion: "1.0.0",
 				Description: "filtered table 2",
@@ -76,7 +76,7 @@ func TestEndpoint_Fix(t *testing.T) {
 				Description: "join table 1 and 2",
 				Datasource:  "src1",
 				Table:       "t1",
-				Joins:       []*Join{{Type: types.ForcedSibling, QualifiedFields: true, Target: "t1", Source: "t2"}},
+				Joins:       []*Join{{Type: enums.ForcedSibling, QualifiedFields: true, Target: "t1", Source: "t2"}},
 				Fields:      []string{"*", "!t2.f1"},
 			},
 			wantUID:      "/v1/yoyo",
@@ -93,7 +93,7 @@ func TestEndpoint_Fix(t *testing.T) {
 				Description: "join table 1 and 2",
 				Datasource:  "src1",
 				Table:       "t1",
-				Joins:       []*Join{{Type: types.ForcedParentChild, Target: "t1", Source: "t2"}},
+				Joins:       []*Join{{Type: enums.ForcedParentChild, Target: "t1", Source: "t2"}},
 			},
 			wantUID:      "/v1/1/2/3",
 			wantPrimary:  t1,

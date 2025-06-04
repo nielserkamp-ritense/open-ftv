@@ -1,7 +1,6 @@
 package models
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,43 +84,6 @@ func TestDatasource_AddTableFromCSV(t *testing.T) {
 		assert.Equal(t, 2, len(t1.Indexes["ix2"]))
 		assert.Equal(t, 2, len(t1.Indexes["ix3"]))
 	})
-}
-
-func TestDatasource_MatchFilter(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name   string
-		filter map[string]any
-		want   bool
-	}{
-		{name: "no filter", want: true},
-		{name: "all filter", filter: map[string]any{"id": regexp.MustCompile(".*")}, want: true},
-		{name: "bad field", filter: map[string]any{"table": "src1"}},
-		{name: "id mismatch", filter: map[string]any{"id": "src2"}},
-		{name: "id match", filter: map[string]any{"id": "src1"}, want: true},
-		{name: "id regex mismatch", filter: map[string]any{"id": regexp.MustCompile("srd.*")}},
-		{name: "id regex match", filter: map[string]any{"id": regexp.MustCompile("src.*")}, want: true},
-		{name: "description mismatch", filter: map[string]any{"description": "source 2"}},
-		{name: "description match", filter: map[string]any{"description": "source 1"}, want: true},
-		{name: "description regex mismatch", filter: map[string]any{"description": regexp.MustCompile("soup.*")}},
-		{name: "description regex match", filter: map[string]any{"description": regexp.MustCompile("sour.*")}, want: true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			datasource1.Fix(nil)
-
-			s1 := NewSource(datasource1)
-			require.NotNil(t, s1)
-			require.NotNil(t, s1.Tables)
-
-			got := s1.MatchFilter(tc.filter)
-			assert.Equal(t, tc.want, got)
-		})
-	}
 }
 
 func TestDatasource_AsRecord(t *testing.T) {

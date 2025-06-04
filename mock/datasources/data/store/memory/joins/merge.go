@@ -1,8 +1,8 @@
 package joins
 
 import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 func (j *Join) merge(target *models.Row, source models.Rows, filtered bool) *models.Row {
@@ -22,7 +22,7 @@ func (j *Join) mergeOneOrMore(target *models.Row, source models.Rows) *models.Ro
 	}
 
 	switch j.def.Type {
-	case types.OptionalSibling, types.ForcedSibling:
+	case enums.OptionalSibling, enums.ForcedSibling:
 		if len(source) == 1 {
 			// join a single sibling.
 			return j.mergeSibling(target, source[0])
@@ -38,7 +38,7 @@ func (j *Join) mergeOneOrMore(target *models.Row, source models.Rows) *models.Ro
 }
 
 func (j *Join) mergeFiltered(target *models.Row) *models.Row {
-	if j.def.Type == types.OptionalParentChild || j.def.Type == types.OptionalSibling {
+	if j.def.Type == enums.OptionalParentChild || j.def.Type == enums.OptionalSibling {
 		// keep the row as-is.
 		return target
 	}
@@ -50,11 +50,11 @@ func (j *Join) mergeFiltered(target *models.Row) *models.Row {
 
 func (j *Join) mergeNotFound(target *models.Row) *models.Row {
 	switch j.def.Type {
-	case types.ForcedParentChild:
+	case enums.ForcedParentChild:
 		// force an empty slice of children.
 		return j.mergeChildren(target, make(models.Rows, 0))
 
-	case types.ForcedSibling:
+	case enums.ForcedSibling:
 		// force a single empty sibling.
 		rec := j.source.DummyRecord()
 		if !j.def.IncludeJoinFields {

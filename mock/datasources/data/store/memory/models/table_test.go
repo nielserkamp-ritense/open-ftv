@@ -1,14 +1,13 @@
 package models
 
 import (
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/types"
 )
 
 var table1 = &schema.Table{
@@ -16,9 +15,9 @@ var table1 = &schema.Table{
 		Parent:      schema.Parent{ID: "t1"},
 		Description: "table 1",
 		Fields: []*schema.Field{
-			{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: types.StringType, IsPII: true},
-			{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: types.IntegerType},
-			{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: types.BooleanType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType, IsPII: true},
+			{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.IntegerType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.BooleanType},
 		},
 	},
 	PrimaryKey: &schema.Index{
@@ -195,69 +194,6 @@ func TestTable_CreateRow(t *testing.T) {
 		t1.CreateRow(&Row{Data: map[string]any{"f1": "123", "f2": "hello world", "f3": true}})
 		require.Len(t, t1.Data, 1)
 	})
-}
-
-func TestTable_MatchFilter(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name   string
-		filter map[string]any
-		want   bool
-	}{
-		{
-			name: "no filters",
-			want: true,
-		},
-		{
-			name:   "single filter, no match (1)",
-			filter: map[string]any{"ID": "t11"},
-		},
-		{
-			name:   "single filter, no match (2)",
-			filter: map[string]any{"DESCRIPTION": "tables 1"},
-		},
-		{
-			name:   "single filter, no match (3)",
-			filter: map[string]any{"Primary-Key": "pk3"},
-		},
-		{
-			name:   "single filter, no match (4)",
-			filter: map[string]any{"IX": regexp.MustCompile("ix..")},
-		},
-		{
-			name:   "single filter, match",
-			filter: map[string]any{"Description": regexp.MustCompile("table.*")},
-			want:   true,
-		},
-		{
-			name:   "few filters, none match",
-			filter: map[string]any{"foreign-key": "fk3", "ID": "t11", "pk": "hello", "ix": "ix4"},
-		},
-		{
-			name:   "few filters, few match",
-			filter: map[string]any{"ID": "t1", "ix": "ix3", "freight-key": "fk1", "pk": "pk4"},
-		},
-		{
-			name:   "few filters, all match",
-			filter: map[string]any{"ID": "t1", "pk": "pk", "ix": regexp.MustCompile("ix.*"), "foreign-key": regexp.MustCompile("fk.?")},
-			want:   true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			table1.Fix(nil)
-
-			t1 := newTable(table1, 0)
-			require.NotNil(t, t1)
-
-			got := t1.MatchFilter(tc.filter)
-			assert.Equal(t, tc.want, got)
-		})
-	}
 }
 
 func TestTable_DummyRecord(t *testing.T) {

@@ -1,5 +1,5 @@
 // Package types contains type definitions.
-package types
+package enums
 
 import "strings"
 
