@@ -1,10 +1,19 @@
 package filtering
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+import (
+	"fmt"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+)
 
 // AnyOfFilter represents an "or" filter, which means it matches if one of the underlying filters is matched.
 type AnyOfFilter struct {
 	AnyOf Filters `json:"anyOf" yaml:"anyOf"`
+}
+
+// String implements the Stringer interface.
+func (a *AnyOfFilter) String() string {
+	return fmt.Sprintf("AnyOf: %v", a.AnyOf)
 }
 
 // Prepare implements the Filterer interface.

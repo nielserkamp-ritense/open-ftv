@@ -9,7 +9,7 @@ require (
 	github.com/goccy/go-yaml v1.17.1
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-00010101000000-000000000000
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
 )
 
 require (

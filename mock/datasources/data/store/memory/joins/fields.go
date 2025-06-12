@@ -14,8 +14,11 @@ func (j *Join) joinOnFields() (models.Rows, error) {
 		if key := in.KeyValueForFields(j.targetFields); key != "" {
 			var joinData models.Rows
 			for _, rec := range j.source.Data {
-				if rec.KeyValueForFields(j.sourceFields) == key && (!filtered || rec.MatchJoin(j.def, j.filter)) {
-					joinData = append(joinData, rec)
+				if rec.KeyValueForFields(j.sourceFields) == key {
+					rec = j.source.AddTransformations(rec)
+					if !filtered || rec.MatchJoin(j.def, j.filter) {
+						joinData = append(joinData, rec)
+					}
 				}
 			}
 

@@ -51,8 +51,8 @@ type Maintainer interface {
 
 // Reader represents the interface for searching and retrieving records from data tables.
 type Reader interface {
-	SelectPK(tableID string, pk []any) (*models.Row, error)
-	SelectIX(tableID string, id string, keys []any) (models.Rows, error)
-	Search(tableID string, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error)
-	GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, matcher matching.FieldMatcher) (models.Rows, error)
+	SelectPK(tableID string, pk []any, fields matching.FieldMatcher) (*models.Row, error)
+	SelectIX(tableID string, id string, keys []any, fields matching.FieldMatcher) (models.Rows, error)
+	Search(tableID string, filter filtering.Filterer, fields matching.FieldMatcher) (models.Rows, error)
+	GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, fields matching.FieldMatcher) (models.Rows, error)
 }

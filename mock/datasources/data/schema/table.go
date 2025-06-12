@@ -15,22 +15,16 @@ type Table struct {
 	PrimaryKey       *Index
 	SecondaryIndexes []*Index
 	ForeignKeys      []*ForeignKey
+	Transforms       []*Transformation
 	// hidden fields
 	mutex        sync.Mutex
 	parentSource *Datasource
 	indexes      map[string]*Index
 	foreignKeys  map[string]*ForeignKey
+	transforms   map[string]*Transformation
 }
 
-// FQDN returns the fully qualified ID of this parent.
-func (t *Table) FQDN() string {
-	if t.parentSource != nil {
-		return fmt.Sprintf("%s.%s", t.parentSource.FQDN(), t.ID)
-	}
-	return t.ID
-}
-
-// FQID returns the fully qualified id of the table.
+// FQID returns the fully qualified ID of the table.
 func (t *Table) FQID() string {
 	if t.parentSource != nil {
 		return fmt.Sprintf("%s.%s", t.parentSource.ID, t.ID)
@@ -56,6 +50,12 @@ func (t *Table) ForeignKey(id string) *ForeignKey {
 	return t.foreignKeys[id]
 }
 
+// Transformation returns the transformation definition for the given id.
+func (t *Table) Transformation(id string) *Transformation {
+	t.Fix(nil)
+	return t.transforms[id]
+}
+
 // FindForeignKey returns the foreign key definition that matches the given index.
 func (t *Table) FindForeignKey(foreign *Table) *ForeignKey {
 	t.Fix(nil)
@@ -77,6 +77,7 @@ func (t *Table) MarshalJSON() ([]byte, error) {
 		PrimaryKey:       t.PrimaryKey,
 		SecondaryIndexes: t.SecondaryIndexes,
 		ForeignKeys:      t.ForeignKeys,
+		Transforms:       t.Transforms,
 	}
 	return json.Marshal(&t2)
 }
@@ -94,6 +95,7 @@ func (t *Table) UnmarshalJSON(b []byte) error {
 	t.PrimaryKey = t2.PrimaryKey
 	t.SecondaryIndexes = t2.SecondaryIndexes
 	t.ForeignKeys = t2.ForeignKeys
+	t.Transforms = t2.Transforms
 
 	return nil
 }
@@ -107,6 +109,7 @@ func (t *Table) MarshalYAML() ([]byte, error) {
 		PrimaryKey:       t.PrimaryKey,
 		SecondaryIndexes: t.SecondaryIndexes,
 		ForeignKeys:      t.ForeignKeys,
+		Transforms:       t.Transforms,
 	}
 	return yaml.Marshal(&t2)
 }
@@ -124,17 +127,19 @@ func (t *Table) UnmarshalYAML(b []byte) error {
 	t.PrimaryKey = t2.PrimaryKey
 	t.SecondaryIndexes = t2.SecondaryIndexes
 	t.ForeignKeys = t2.ForeignKeys
+	t.Transforms = t2.Transforms
 
 	return nil
 }
 
 type encodeTable struct {
-	ID               string        `json:"id" yaml:"id"`
-	Description      string        `json:"description,omitempty" yaml:"description,omitempty"`
-	Fields           []*Field      `json:"fields,omitempty" yaml:"fields,omitempty"`
-	PrimaryKey       *Index        `json:"primaryKey,omitempty" yaml:"primaryKey,omitempty"`
-	SecondaryIndexes []*Index      `json:"secondaryIndexes,omitempty" yaml:"secondaryIndexes,omitempty"`
-	ForeignKeys      []*ForeignKey `json:"foreignKeys,omitempty" yaml:"foreignKeys,omitempty"`
+	ID               string            `json:"id" yaml:"id"`
+	Description      string            `json:"description,omitempty" yaml:"description,omitempty"`
+	Fields           []*Field          `json:"fields,omitempty" yaml:"fields,omitempty"`
+	PrimaryKey       *Index            `json:"primaryKey,omitempty" yaml:"primaryKey,omitempty"`
+	SecondaryIndexes []*Index          `json:"secondaryIndexes,omitempty" yaml:"secondaryIndexes,omitempty"`
+	ForeignKeys      []*ForeignKey     `json:"foreignKeys,omitempty" yaml:"foreignKeys,omitempty"`
+	Transforms       []*Transformation `json:"transformations,omitempty" yaml:"transformations,omitempty"`
 }
 
 // Fix (re)sets the parent-child relationships for this object.
@@ -158,9 +163,9 @@ func (t *Table) fix(d *Datasource) {
 
 	// fix indexes after we have the full map of fields!
 	t.indexes = make(map[string]*Index, len(t.SecondaryIndexes))
-	for _, i := range t.SecondaryIndexes {
-		i.Fix(t)
-		t.indexes[i.ID] = i
+	for _, index := range t.SecondaryIndexes {
+		index.Fix(t)
+		t.indexes[index.ID] = index
 	}
 
 	if d != nil {
@@ -170,5 +175,11 @@ func (t *Table) fix(d *Datasource) {
 			fk.Fix(t, d.tables)
 			t.foreignKeys[fk.ID] = fk
 		}
+	}
+
+	t.transforms = make(map[string]*Transformation, len(t.Transforms))
+	for _, transform := range t.Transforms {
+		transform.Fix(t)
+		t.transforms[transform.ID] = transform
 	}
 }

@@ -1,15 +1,34 @@
 package models
 
 import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/writer/csv"
 )
 
-// Rows is a convenience type for a slice of table data rows.
+// Rows is a convenience type for a list of table data rows.
 type Rows []*Row
+
+// MatchFields returns a deep copy of the table data with only those fields that pass the given field matcher.
+func (r Rows) MatchFields(fields matching.FieldMatcher) Rows {
+	if fields == nil {
+		return r
+	}
+
+	out := make(Rows, len(r))
+	for i, row := range r {
+		out[i] = row.MatchFields(fields)
+	}
+	return out
+}
 
 // RemoveFields returns a deep copy of the table data with the given fields removed from each row.
 func (r Rows) RemoveFields(fields []string) Rows {
-	m := make(map[string]struct{}, len(fields))
+	l := len(fields)
+	if l == 0 {
+		return r
+	}
+
+	m := make(map[string]struct{}, l)
 	for i := range fields {
 		m[fields[i]] = struct{}{}
 	}
@@ -18,7 +37,6 @@ func (r Rows) RemoveFields(fields []string) Rows {
 	for i, row := range r {
 		out[i] = row.RemoveFieldMap(m)
 	}
-
 	return out
 }
 

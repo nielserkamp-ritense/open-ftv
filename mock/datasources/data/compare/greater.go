@@ -18,13 +18,6 @@ import (
 // The default is to compare case-sensitive.
 func Greater(t enums.FieldType, insensitive bool, v1, v2 any) bool {
 	switch t {
-	case enums.StringType, enums.URLType, enums.EmailType, enums.PhoneNrType, enums.IPAddressType:
-		s1, s2 := convert.AnyToString(v1), convert.AnyToString(v2)
-		if insensitive {
-			return strings.ToLower(s1) > strings.ToLower(s2)
-		}
-		return s1 > s2
-
 	case enums.IntegerType:
 		return convert.AnyToInt64(v1) > convert.AnyToInt64(v2)
 	case enums.UnsignedIntegerType:
@@ -46,6 +39,10 @@ func Greater(t enums.FieldType, insensitive bool, v1, v2 any) bool {
 		return err1 == nil && (err2 != nil || bytes.Compare(b1, b2) > 0)
 
 	default:
-		return false
+		s1, s2 := convert.AnyToString(v1), convert.AnyToString(v2)
+		if insensitive {
+			return strings.ToLower(s1) > strings.ToLower(s2)
+		}
+		return s1 > s2
 	}
 }

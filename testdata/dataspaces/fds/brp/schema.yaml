@@ -1,1797 +1,1894 @@
 ---
-id: brp
-description: Basis Registratie Personen
+id: "brp"
+description: "Basis Registratie Personen"
 tables:
-- id: persoon
-  description: "01/51 Persoonsgegevens"
-  fields:
-  - id: a-nummer
-    description: "01.10 A-nummer"
-    type: string
-    minLen: 10
-    maxLen: 10
-    minValue: "1000000000"
-    maxValue: "9999999999"
-  - id: bsn
-    description: "01.20 Burgerservicenummer"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: voornamen
-    description: "02.10 Voornamen"
-    type: string
-    minLen: 1
-    maxLen: 200
-  - id: titel
-    description: "02.20 Adellijke titel/predicaat"
-    type: string
-    minLen: 1
-    maxLen: 2
-  - id: voorvoegsel
-    description: "02.30 Voorvoegsel geslachtsnaam"
-    type: string
-    minLen: 1
-    maxLen: 10
-  - id: geslachtsnaam
-    description: "02.40 Geslachtsnaam"
-    type: string
-    minLen: 1
-    maxLen: 200
-  - id: geboortedatum
-    description: "03.10 Geboortedatum"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: geboorteplaats
-    description: "03.20 Geboorteplaats"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: geboorteland
-    description: "03.30 Geboorteland"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: geslacht
-    description: "04.10 Geslachtsaanduiding"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["M", "V", "O"]
-  - id: vorig-nummer
-    description: "20.10 Vorig A-nummer"
-    type: string
-    minLen: 10
-    maxLen: 10
-    minValue: "1000000000"
-    maxValue: "9999999999"
-  - id: volgend-nummer
-    description: "20.20 Volgend A-nummer"
-    type: string
-    minLen: 10
-    maxLen: 10
-    minValue: "1000000000"
-    maxValue: "9999999999"
-  - id: naamgebruik
-    description: "61.10 Aanduiding naamgebruik"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["E", "P", "V", "N"]
-  - id: register-gemeente
-    description: "81.10 Register gemeente akte"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aktenummer
-    description: "81.20 Aktenummer"
-    type: string
-    minLen: 7
-    maxLen: 7
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: a-nummer"
-      fields: [a-nummer]
-    - id: ix3
-      description: "Index 3: voornamen"
-      fields: [voornamen]
-    - id: ix4
-      description: "Index 4: geslachtsnaam"
-      fields: [geslachtsnaam]
-    - id: ix5
-      description: "Index 5: geboortedatum"
-      fields: [geboortedatum]
+  - id: "persoon"
+    description: "01/51 Persoonsgegevens"
+    fields:
+      - id: "a-nummer"
+        description: "01.10 A-nummer"
+        type: "string"
+        isPII: true
+        minLen: 10
+        maxLen: 10
+        minValue: "1000000000"
+        maxValue: "9999999999"
+      - id: "bsn"
+        description: "01.20 Burgerservicenummer"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "voornamen"
+        description: "02.10 Voornamen"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 200
+      - id: "titel"
+        description: "02.20 Adellijke titel/predicaat"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 2
+      - id: "voorvoegsel"
+        description: "02.30 Voorvoegsel geslachtsnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 10
+      - id: "geslachtsnaam"
+        description: "02.40 Geslachtsnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 200
+      - id: "geboortedatum"
+        description: "03.10 Geboortedatum"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "geboorteplaats"
+        description: "03.20 Geboorteplaats"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 40
+      - id: "geboorteland"
+        description: "03.30 Geboorteland"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "geslacht"
+        description: "04.10 Geslachtsaanduiding"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["M", "V", "O"]
+      - id: "vorig-nummer"
+        description: "20.10 Vorig A-nummer"
+        type: "string"
+        minLen: 10
+        maxLen: 10
+        minValue: "1000000000"
+        maxValue: "9999999999"
+      - id: "volgend-nummer"
+        description: "20.20 Volgend A-nummer"
+        type: "string"
+        minLen: 10
+        maxLen: 10
+        minValue: "1000000000"
+        maxValue: "9999999999"
+      - id: "naamgebruik"
+        description: "61.10 Aanduiding naamgebruik"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["E", "P", "V", "N"]
+      - id: "register-gemeente"
+        description: "81.10 Register gemeente akte"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aktenummer"
+        description: "81.20 Aktenummer"
+        type: "string"
+        minLen: 7
+        maxLen: 7
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    transformations:
+      - id: "leeftijd"
+        description: "Leeftijd van de persoon"
+        transformationType: "age"
+        resultType: "integer"
+        isPII: true
+        inputFields:
+          "1": "geboortedatum"
+      - id: "volwassen"
+        description: "Indicatie of de persoon 18 jaar of ouder is"
+        transformationType: "compare"
+        compareType: "IsGreaterOrEqual"
+        resultType: "bool"
+        isPII: true
+        inputTransformations:
+          "1": "leeftijd"
+        inputValues:
+          "2": 18
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: a-nummer"
+        fields: ["a-nummer"]
+      - id: "ix3"
+        description: "Index 3: voornamen"
+        fields: ["voornamen"]
+      - id: "ix4"
+        description: "Index 4: geslachtsnaam"
+        fields: ["geslachtsnaam"]
+      - id: "ix5"
+        description: "Index 5: geboortedatum"
+        fields: ["geboortedatum"]
 
-- id: ouder1
-  description: "02/52 Gegevens 1e ouder"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: bsn-ouder
-    description: "Burgerservicenummer ouder"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: ingang
-    description: "62.10 Datum ingang familierechtelijke betrekking"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+bsn-ouder"
-    fields: [bsn,bsn-ouder]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: bsn-ouder+bsn"
-      fields: [bsn-ouder,bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
-    - id: bsn-ouder
-      description: "Foreign key: bsn-ouder -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn-ouder:bsn]
+  - id: "ouder1"
+    description: "02/52 Gegevens 1e ouder"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "bsn-ouder"
+        description: "Burgerservicenummer ouder"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "ingang"
+        description: "62.10 Datum ingang familierechtelijke betrekking"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+bsn-ouder"
+      fields: ["bsn", "bsn-ouder"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: bsn-ouder+bsn"
+        fields: ["bsn-ouder", "bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
+      - id: "bsn-ouder"
+        description: "Foreign key: bsn-ouder -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn-ouder:bsn"]
 
-- id: ouder2
-  description: "03/53 Gegevens 2e ouder"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: bsn-ouder
-    description: "Burgerservicenummer ouder"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: ingang
-    description: "62.10 Datum ingang familierechtelijke betrekking"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+bsn-ouder"
-    fields: [bsn,bsn-ouder]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: bwn-ouder+bsn"
-      fields: [bsn-ouder,bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "ouder2"
+    description: "03/53 Gegevens 2e ouder"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "bsn-ouder"
+        description: "Burgerservicenummer ouder"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "ingang"
+        description: "62.10 Datum ingang familierechtelijke betrekking"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+bsn-ouder"
+      fields: ["bsn", "bsn-ouder"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: bwn-ouder+bsn"
+        fields: ["bsn-ouder", "bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: nationaliteit
-  description: "04/54 Nationaliteit"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: volgnummer
-    description: "Volgnummer (pk)"
-    type: integer
-  - id: nationaliteit
-    description: "05.10 Nationaliteit"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: reden-opname
-    description: "63.10 Reden opname nationaliteit"
-    type: string
-    minLen: 3
-    maxLen: 3
-    minValue: "000"
-    maxValue: "999"
-  - id: reden-einde
-    description: "64.10 Reden beëindigen nationaliteit"
-    type: string
-    minLen: 3
-    maxLen: 3
-    minValue: "000"
-    maxValue: "999"
-  - id: bijzonder
-    description: "65.10 Aanduiding bijzonder Nederlanderschap"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["B", "V"]
-  - id: eu-nummer
-    description: "73.10 EU-persoonsnummer"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: volledig-conv
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+volgnummer"
-    fields: [bsn,volgnummer]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "nationaliteit"
+    description: "04/54 Nationaliteit"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "volgnummer"
+        description: "Volgnummer (pk)"
+        type: "integer"
+      - id: "nationaliteit"
+        description: "05.10 Nationaliteit"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "reden-opname"
+        description: "63.10 Reden opname nationaliteit"
+        type: "string"
+        minLen: 3
+        maxLen: 3
+        minValue: "000"
+        maxValue: "999"
+      - id: "reden-einde"
+        description: "64.10 Reden beëindigen nationaliteit"
+        type: "string"
+        minLen: 3
+        maxLen: 3
+        minValue: "000"
+        maxValue: "999"
+      - id: "bijzonder"
+        description: "65.10 Aanduiding bijzonder Nederlanderschap"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["B", "V"]
+      - id: "eu-nummer"
+        description: "73.10 EU-persoonsnummer"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 40
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "volledig-conv"
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+volgnummer"
+      fields: ["bsn", "volgnummer"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: verbintenis
-  description: "05/55 Huwelijk/geregistreerd partnerschap"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: volgnummer
-    description: "Volgnummer (pk)"
-    type: integer
-  - id: sluiting
-    description: "06.10 Datum huwelijkssluiting/aangaan geregistreerd partnerschap"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: plaats
-    description: "06.20 Plaats huwelijkssluiting/aangaan geregistreerd partnerschap"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: land
-    description: "06.30 Land huwelijkssluiting/aangaan geregistreerd partnerschap"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: ontbinding
-    description: "07.10 Datum ontbinding huwelijk/geregistreerd partnerschap"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: ontbinding-plaats
-    description: "07.20 Plaats ontbinding huwelijk/geregistreerd partnerschap"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: ontbinding-land
-    description: "07.30 Land ontbinding huwelijk/geregistreerd partnerschap"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: ontbinding-reden
-    description: "07.20 Reden ontbinding huwelijk/geregistreerd partnerschap"
-    type: string
-    minLen: 1
-    maxLen: 1
-  - id: soort
-    description: "15.10 Soort verbintenis"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["H", "P"]
-  - id: register-gemeente
-    description: "81.10 Register gemeente akte"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aktenummer
-    description: "81.20 Aktenummer"
-    type: string
-    minLen: 7
-    maxLen: 7
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+volgnummer"
-    fields: [bsn,volgnummer]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "verbintenis"
+    description: "05/55 Huwelijk/geregistreerd partnerschap"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "volgnummer"
+        description: "Volgnummer (pk)"
+        type: "integer"
+      - id: "sluiting"
+        description: "06.10 Datum huwelijkssluiting/aangaan geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "plaats"
+        description: "06.20 Plaats huwelijkssluiting/aangaan geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "land"
+        description: "06.30 Land huwelijkssluiting/aangaan geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "ontbinding"
+        description: "07.10 Datum ontbinding huwelijk/geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "ontbinding-plaats"
+        description: "07.20 Plaats ontbinding huwelijk/geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "ontbinding-land"
+        description: "07.30 Land ontbinding huwelijk/geregistreerd partnerschap"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "ontbinding-reden"
+        description: "07.20 Reden ontbinding huwelijk/geregistreerd partnerschap"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+      - id: soort
+        description: "15.10 Soort verbintenis"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["H", "P"]
+      - id: "register-gemeente"
+        description: "81.10 Register gemeente akte"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aktenummer"
+        description: "81.20 Aktenummer"
+        type: "string"
+        minLen: 7
+        maxLen: 7
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: strin"g"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+volgnummer"
+      fields: ["bsn", "volgnummer"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: overlijden
-  description: "06/56 Overlijden"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: overlijden
-    description: "08.10 Datum overlijden"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: plaats
-    description: "08.20 Plaats overlijden"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: land
-    description: "08.30 Land overlijden"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: register-gemeente
-    description: "81.10 Register gemeente akte"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aktenummer
-    description: "81.20 Aktenummer"
-    type: string
-    minLen: 7
-    maxLen: 7
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "overlijden"
+    description: "06/56 Overlijden"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "overlijden"
+        description: "08.10 Datum overlijden"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "plaats"
+        description: "08.20 Plaats overlijden"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "land"
+        description: "08.30 Land overlijden"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "register-gemeente"
+        description: "81.10 Register gemeente akte"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aktenummer"
+        description: "81.20 Aktenummer"
+        type: "string"
+        minLen: 7
+        maxLen: 7
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: inschrijving
-  description: "07 Inschrijving"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: gemeente
-    description: "09.10 Gemeente van inschrijving"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum
-    description: "09.20 Datum inschrijving"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: land
-    description: "14.10 Land vanwaar ingeschreven"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-vestiging
-    description: "14.20 Datum vestiging in Nederland"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: geheim
-    description: "70.10 Indicatie geheim"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["0", "1", "2", "3", "4", "5", "6", "7"]
-  - id: verificatie-datum
-    description: "71.10 Datum verificatie"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: verificatie-oms
-    description: "71.20 Omschrijving verificatie"
-    type: string
-    minLen: 1
-    maxLen: 50
-  - id: versienummer
-    description: "80.10 Versienummer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datumtijd
-    description: "80.20 Datumtijdstempel"
-    type: string
-    minLen: 17
-    maxLen: 17
-    minValue: "00000000000000000"
-    maxValue: "99999999999999999"
-  - id: volledig-conv
-    description: "87.10 PK-gegevens volledig meegeconverteerd"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["P"]
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  secondaryIndexes:
-  - id: ix2
-    description: "Index 2: gemeente"
-    fields: [gemeente]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "inschrijving"
+    description: "07 Inschrijving"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "gemeente"
+        description: "09.10 Gemeente van inschrijving"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum"
+        description: "09.20 Datum inschrijving"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "land"
+        description: "14.10 Land vanwaar ingeschreven"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-vestiging"
+        description: "14.20 Datum vestiging in Nederland"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "geheim"
+        description: "70.10 Indicatie geheim"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["0", "1", "2", "3", "4", "5", "6", "7"]
+      - id: "verificatie-datum"
+        description: "71.10 Datum verificatie"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "verificatie-oms"
+        description: "71.20 Omschrijving verificatie"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+      - id: "versienummer"
+        description: "80.10 Versienummer"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datumtijd"
+        description: "80.20 Datumtijdstempel"
+        type: "string"
+        minLen: 17
+        maxLen: 17
+        minValue: "00000000000000000"
+        maxValue: "99999999999999999"
+      - id: "volledig-conv"
+        description: "87.10 PK-gegevens volledig meegeconverteerd"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["P"]
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: gemeente"
+        fields: ["gemeente"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: adres
-  description: "08/58 Verblijfsplaats"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: functie
-    description: "10.10 Functie adres"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValue: ["B", "W"]
-  - id: gemeentedeel
-    description: "10.20 Gemeentedeel"
-    type: string
-    minLen: 1
-    maxLen: 24
-  - id: aanvang
-    description: "10.30 Datum aanvang adreshouding"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: straatnaam
-    description: "11.10 Straatnaam"
-    type: string
-    minLen: 1
-    maxLen: 24
-  - id: openbaar
-    description: "11.15 Naam Openbare ruimte"
-    type: string
-    minLen: 1
-    maxLen: 80
-  - id: huisnummer
-    description: "11.20 Huisnummer"
-    type: integer
-    minLen: 1
-    maxLen: 5
-  - id: huisletter
-    description: "11.30 Huisletter"
-    type: string
-    minLen: 1
-    maxLen: 1
-  - id: toevoeging
-    description: "11.40 Huisnummertoevoeging"
-    type: string
-    minLen: 1
-    maxLen: 4
-  - id: aanduiding
-    description: "11.50 Aanduiding bij huisnummer"
-    type: string
-    minLen: 2
-    maxLen: 2
-    allowedValues: ["by", "to"]
-  - id: postcode
-    description: "11.60 Postcode"
-    type: string
-    minLen: 6
-    maxLen: 6
-    minValue: "0000AA"
-    maxValue: "9999ZZ"
-  - id: woonplaats
-    description: "11.70 Woonplaatsnaam"
-    type: string
-    minLen: 1
-    maxLen: 80
-  - id: plaats-code
-    description: "11.80 Identificatiecode verblijfsplaats"
-    type: string
-    minLen: 16
-    maxLen: 16
-    minValue: "0000000000000000"
-    maxValue: "9999999999999999"
-  - id: nummer-code
-    description: "11.90 Identificatiecode nummeraanduiding"
-    type: string
-    minLen: 16
-    maxLen: 16
-    minValue: "0000000000000000"
-    maxValue: "9999999999999999"
-  - id: beschrijving
-    description: "12.10 Locatiebeschrijving"
-    type: string
-    minLen: 1
-    maxLen: 35
-  - id: land
-    description: "13.10 Land adres buitenland"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aanvang-buitenland
-    description: "13.20 Datum aanvang adres buitenland"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: regel1
-    description: "13.30 Regel 1 adres buitenland"
-    type: string
-    minLen: 1
-    maxLen: 35
-  - id: regel2
-    description: "13.40 Regel 2 adres buitenland"
-    type: string
-    minLen: 1
-    maxLen: 35
-  - id: regel3
-    description: "13.50 Regel 3 adres buitenland"
-    type: string
-    minLen: 1
-    maxLen: 35
-  - id: einddatum
-    description: "18.10 Einddatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: type
-    description: "19.10 Type adres"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["T"]
-  - id: adreshouding
-    description: "72.10 Omschrijving van de aangifte adreshouding"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["A", "B", "G", "H", "I", "K", "M", "O", "P", "T", "W"]
-  - id: indicatie-doc
-    description: "75.10 Indicatie document"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["1"]
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  secondaryIndexes:
-  - id: ix2
-    description: "Index 2: gemeentedeel"
-    fields: [gemeentedeel]
-  - id: ix3
-    description: "Index 3: postcode+huisnummer+huisletter+toevoeging"
-    fields: [postcode,huisnummer,huisletter,toevoeging]
-  - id: ix4
-    description: "Index 4: straatnaam"
-    fields: [straatnaam]
-  - id: ix5
-    description: "Index 5: woonplaats"
-    fields: [woonplaats]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "adres"
+    description: "08/58 Verblijfsplaats"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "functie"
+        description: "10.10 Functie adres"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValue: ["B", "W"]
+      - id: "gemeentedeel"
+        description: "10.20 Gemeentedeel"
+        type: "string"
+        minLen: 1
+        maxLen: 24
+      - id: "aanvang"
+        description: "10.30 Datum aanvang adreshouding"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "straatnaam"
+        description: "11.10 Straatnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 24
+      - id: "openbaar"
+        description: "11.15 Naam Openbare ruimte"
+        type: "string"
+        minLen: 1
+        maxLen: 80
+      - id: "huisnummer"
+        description: "11.20 Huisnummer"
+        type: "integer"
+        isPII: true
+        minLen: 1
+        maxLen: 5
+      - id: "huisletter"
+        description: "11.30 Huisletter"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 1
+      - id: "toevoeging"
+        description: "11.40 Huisnummertoevoeging"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 4
+      - id: "aanduiding"
+        description: "11.50 Aanduiding bij huisnummer"
+        type: "string"
+        isPII: true
+        minLen: 2
+        maxLen: 2
+        allowedValues: ["by", "to"]
+      - id: "postcode"
+        description: "11.60 Postcode"
+        type: "string"
+        isPII: true
+        minLen: 6
+        maxLen: 6
+        minValue: "0000AA"
+        maxValue: "9999ZZ"
+      - id: "woonplaats"
+        description: "11.70 Woonplaatsnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 80
+      - id: "plaats-code"
+        description: "11.80 Identificatiecode verblijfsplaats"
+        type: "string"
+        minLen: 16
+        maxLen: 16
+        minValue: "0000000000000000"
+        maxValue: "9999999999999999"
+      - id: "nummer-code"
+        description: "11.90 Identificatiecode nummeraanduiding"
+        type: "string"
+        minLen: 16
+        maxLen: 16
+        minValue: "0000000000000000"
+        maxValue: "9999999999999999"
+      - id: "beschrijving"
+        description: "12.10 Locatiebeschrijving"
+        type: "string"
+        minLen: 1
+        maxLen: 35
+      - id: "land"
+        description: "13.10 Land adres buitenland"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aanvang-buitenland"
+        description: "13.20 Datum aanvang adres buitenland"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "regel1"
+        description: "13.30 Regel 1 adres buitenland"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 35
+      - id: "regel2"
+        description: "13.40 Regel 2 adres buitenland"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 35
+      - id: "regel3"
+        description: "13.50 Regel 3 adres buitenland"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 35
+      - id: "einddatum"
+        description: "18.10 Einddatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "type"
+        description: "19.10 Type adres"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["T"]
+      - id: "adreshouding"
+        description: "72.10 Omschrijving van de aangifte adreshouding"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["A", "B", "G", "H", "I", "K", "M", "O", "P", "T", "W"]
+      - id: "indicatie-doc"
+        description: "75.10 Indicatie document"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["1"]
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: string
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: gemeentedeel"
+        fields: ["gemeentedeel"]
+      - id: "ix3"
+        description: "Index 3: postcode+huisnummer+huisletter+toevoeging"
+        fields: ["postcode","huisnummer","huisletter","toevoeging"]
+      - id: "ix4"
+        description: "Index 4: straatnaam"
+        fields: ["straatnaam"]
+      - id: "ix5"
+        description: "Index 5: woonplaats"
+        fields: ["woonplaats"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: kind
-  description: "09/59 Gegevens van kind"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: bsn-kind
-    description: "01.20 Burgerservicenummer van kind"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: register-gemeente
-    description: "81.10 Register gemeente akte"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aktenummer
-    description: "81.20 Aktenummer"
-    type: string
-    minLen: 7
-    maxLen: 7
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: betrekking-reg
-    description: "89.10 Registratie betrekking"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["L"]
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+bsn-kind"
-    fields: [bsn,bsn-kind]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: bsn-kind+bsn"
-      fields: [bsn-kind,bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
-    - id: bsn-kind
-      description: "Foreign key: bsn-kind -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn-kind:bsn]
+  - id: "kind"
+    description: "09/59 Gegevens van kind"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "bsn-kind"
+        description: "01.20 Burgerservicenummer van kind"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "register-gemeente"
+        description: "81.10 Register gemeente akte"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aktenummer"
+        description: "81.20 Aktenummer"
+        type: "string"
+        minLen: 7
+        maxLen: 7
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "betrekking-reg"
+        description: "89.10 Registratie betrekking"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["L"]
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+bsn-kind"
+      fields: ["bsn", "bsn-kind"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: bsn-kind+bsn"
+        fields: ["bsn-kind", "bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
+      - id: "bsn-kind"
+        description: "Foreign key: bsn-kind -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn-kind:bsn"]
 
-- id: verblijfstitel
-  description: "10/60 Verblijfstitel"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: aanduiding
-    description: "39.10 Aanduiding verblijfstitel"
-    type: string
-    minLen: 2
-    maxLen: 2
-  - id: einddatum
-    description: "39.20 Datum einde verblijfstitel"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: ingang
-    description: "39.30 Ingangsdatum verblijfstitel"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "verblijfstitel"
+    description: "10/60 Verblijfstitel"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "aanduiding"
+        description: "39.10 Aanduiding verblijfstitel"
+        type: "string"
+        minLen: 2
+        maxLen: 2
+      - id: "einddatum"
+        description: "39.20 Datum einde verblijfstitel"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "ingang"
+        description: "39.30 Ingangsdatum verblijfstitel"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    foreignKeys:
+      - id: bsn
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: gezagsverhouding
-  description: "11/61 Gezagsverhouding"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: minderjarig
-    description: "32.10 Indicatie gezag minderjarige"
-    type: string
-    minLen: 1
-    maxLen: 2
-  - id: curatele
-    description: "33.10 Indicatie curateleregister"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValued: ["1"]
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "gezagsverhouding"
+    description: "11/61 Gezagsverhouding"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "minderjarig"
+        description: "32.10 Indicatie gezag minderjarige"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 2
+      - id: "curatele"
+        description: "33.10 Indicatie curateleregister"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 1
+        allowedValued: ["1"]
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: reisdocument
-  description: "12 Reisdocument"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: volgnummer
-    description: "Volgnummer (pk)"
-    type: integer
-  - id: soort
-    description: "35.10 Soort Nederlands reisdocument"
-    type: string
-    minLen: 2
-    maxLen: 2
-  - id: nummer
-    description: "35.20 Nummer Nederlands reisdocument"
-    type: string
-    minLen: 9
-    maxLen: 9
-  - id: uitgifte
-    description: "35.30 Datum uitgifte Nederlands reisdocument"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: autoriteit
-    description: "35.40 Autoriteit van afgifte Nederlands reisdocument"
-    type: string
-    minLen: 2
-    maxLen: 6
-  - id: einddatum
-    description: "35.50 Datum einde geldigheid Nederlands reisdocument"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: inhouding
-    description: "35.60 Datum inhouding dan wel vermissing Nederlands reisdocument"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: aanduiding-inhouding
-    description: "35.70 Aanduiding inhouding dan wel vermissing Nederlands reisdocument"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["I", "R", "V"]
-  - id: signalering
-    description: "36.10 Signalering met betrekking tot het verstrekken van een Nederlands reisdocument"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["1"]
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+volgnummer"
-    fields: [bsn,volgnummer]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "reisdocument"
+    description: "12 Reisdocument"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "volgnummer"
+        description: "Volgnummer (pk)"
+        type: "integer"
+      - id: soort
+        description: "35.10 Soort Nederlands reisdocument"
+        type: "string"
+        minLen: 2
+        maxLen: 2
+      - id: "nummer"
+        description: "35.20 Nummer Nederlands reisdocument"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+      - id: "uitgifte"
+        description: "35.30 Datum uitgifte Nederlands reisdocument"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "autoriteit"
+        description: "35.40 Autoriteit van afgifte Nederlands reisdocument"
+        type: "string"
+        minLen: 2
+        maxLen: 6
+      - id: "einddatum"
+        description: "35.50 Datum einde geldigheid Nederlands reisdocument"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "inhouding"
+        description: "35.60 Datum inhouding dan wel vermissing Nederlands reisdocument"
+        type: "string"
+        isPII: true
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "aanduiding-inhouding"
+        description: "35.70 Aanduiding inhouding dan wel vermissing Nederlands reisdocument"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["I", "R", "V"]
+      - id: "signalering"
+        description: "36.10 Signalering met betrekking tot het verstrekken van een Nederlands reisdocument"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["1"]
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+volgnummer"
+      fields: ["bsn", "volgnummer"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: kiesrecht
-  description: "13 Kiesrecht"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: aanduiding-eu
-    description: "31.10 Aanduiding Europees kiesrecht"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["1", "2"]
-  - id: datum-verzoek
-    description: "31.20 Datum verzoek of mededeling Europees kiesrecht"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: eind-uitsluiting-eu
-    description: "31.30 Einddatum uitsluiting Europees kiesrecht"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: adres-eu
-    description: "31.40 Adres EU-lidstaat van herkomst"
-    type: string
-    minLen: 1
-    maxLen: 50
-  - id: plaats-eu
-    description: "31.50 Plaats EU-lidstaat van herkomst"
-    type: string
-    minLen: 1
-    maxLen: 50
-  - id: land-eu
-    description: "31.60 Land EU-lidstaat van herkomst"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: aanduiding
-    description: "38.10 Aanduiding uitgesloten kiesrecht"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["A"]
-  - id: eind-uitsluiting
-    description: "38.20 Einddatum uitsluiting kiesrecht"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: gemeente-doc
-    description: "82.10 Gemeente document"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: datum-doc
-    description: "82.20 Datum document"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: beschrijving-doc
-    description: "82.30 Beschrijving document"
-    type: string
-    minLen: 1
-    maxLen: 40
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "kiesrecht"
+    description: "13 Kiesrecht"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "aanduiding-eu"
+        description: "31.10 Aanduiding Europees kiesrecht"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["1", "2"]
+      - id: "datum-verzoek"
+        description: "31.20 Datum verzoek of mededeling Europees kiesrecht"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "eind-uitsluiting-eu"
+        description: "31.30 Einddatum uitsluiting Europees kiesrecht"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "adres-eu"
+        description: "31.40 Adres EU-lidstaat van herkomst"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 50
+      - id: "plaats-eu"
+        description: "31.50 Plaats EU-lidstaat van herkomst"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 50
+      - id: "land-eu"
+        description: "31.60 Land EU-lidstaat van herkomst"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "aanduiding"
+        description: "38.10 Aanduiding uitgesloten kiesrecht"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["A"]
+      - id: "eind-uitsluiting"
+        description: "38.20 Einddatum uitsluiting kiesrecht"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "gemeente-doc"
+        description: "82.10 Gemeente document"
+        type: "string"
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "datum-doc"
+        description: "82.20 Datum document"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "beschrijving-doc"
+        description: "82.30 Beschrijving document"
+        type: "string"
+        minLen: 1
+        maxLen: 40
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: tijdelijk-adres
-  description: "16/66 Tijdelijk verblijfadres"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: straatnaam
-    description: "11.10 Straatnaam"
-    type: string
-    minLen: 1
-    maxLen: 24
-  - id: openbaar
-    description: "11.15 Naam Openbare ruimte"
-    type: string
-    minLen: 1
-    maxLen: 80
-  - id: huisnummer
-    description: "11.20 Huisnummer"
-    type: integer
-    minLen: 1
-    maxLen: 5
-  - id: huisletter
-    description: "11.30 Huisletter"
-    type: string
-    minLen: 1
-    maxLen: 1
-  - id: toevoeging
-    description: "11.40 Huisnummertoevoeging"
-    type: string
-    minLen: 1
-    maxLen: 4
-  - id: aanduiding
-    description: "11.50 Aanduiding bij huisnummer"
-    type: string
-    minLen: 2
-    maxLen: 2
-    allowedValues: ["by", "to"]
-  - id: postcode
-    description: "11.60 Postcode"
-    type: string
-    minLen: 6
-    maxLen: 6
-    minValue: "0000AA"
-    maxValue: "9999ZZ"
-  - id: woonplaats
-    description: "11.70 Woonplaatsnaam"
-    type: string
-    minLen: 1
-    maxLen: 80
-  - id: plaats-code
-    description: "11.80 Identificatiecode verblijfsplaats"
-    type: string
-    minLen: 16
-    maxLen: 16
-    minValue: "0000000000000000"
-    maxValue: "9999999999999999"
-  - id: nummer-code
-    description: "11.90 Identificatiecode nummeraanduiding"
-    type: string
-    minLen: 16
-    maxLen: 16
-    minValue: "0000000000000000"
-    maxValue: "9999999999999999"
-  - id: type
-    description: "19.10 Type adres"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["T"]
-  - id: adreshouding
-    description: "72.10 Omschrijving van de aangifte adreshouding"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["A", "B", "G", "H", "I", "K", "M", "O", "P", "T", "W"]
-  - id: onderzoek-ind
-    description: "83.10 Aanduiding gegevens in onderzoek"
-    type: string
-    minLen: 6
-    maxLen: 6
-  - id: onderzoek-ingang
-    description: "83.20 Datum ingang onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onderzoek-einde
-    description: "83.30 Datum einde onderzoek"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: onjuist-ind
-    description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
-    type: string
-    minLen: 1
-    maxLen: 1
-    allowedValues: ["O", "S"]
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: opname-datum
-    description: "86.10 Datum van opneming"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: postcode+huisnummer+huisletter+toevoeging"
-      fields: [postcode,huisnummer,huisletter,toevoeging]
-    - id: ix3
-      description: "Index 3: straatnaam"
-      fields: [straatnaam]
-    - id: ix4
-      description: "Index 4: woonplaats"
-      fields: [woonplaats]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "tijdelijk-adres"
+    description: "16/66 Tijdelijk verblijfadres"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "straatnaam"
+        description: "11.10 Straatnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 24
+      - id: "openbaar"
+        description: "11.15 Naam Openbare ruimte"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 80
+      - id: "huisnummer"
+        description: "11.20 Huisnummer"
+        type: "integer"
+        isPII: true
+        minLen: 1
+        maxLen: 5
+      - id: "huisletter"
+        description: "11.30 Huisletter"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 1
+      - id: "toevoeging"
+        description: "11.40 Huisnummertoevoeging"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 4
+      - id: "aanduiding"
+        description: "11.50 Aanduiding bij huisnummer"
+        type: "string"
+        isPII: true
+        minLen: 2
+        maxLen: 2
+        allowedValues: ["by", "to"]
+      - id: "postcode"
+        description: "11.60 Postcode"
+        type: "string"
+        isPII: true
+        minLen: 6
+        maxLen: 6
+        minValue: "0000AA"
+        maxValue: "9999ZZ"
+      - id: "woonplaats"
+        description: "11.70 Woonplaatsnaam"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 80
+      - id: "plaats-code"
+        description: "11.80 Identificatiecode verblijfsplaats"
+        type: "string"
+        minLen: 16
+        maxLen: 16
+        minValue: "0000000000000000"
+        maxValue: "9999999999999999"
+      - id: "nummer-code"
+        description: "11.90 Identificatiecode nummeraanduiding"
+        type: "string"
+        minLen: 16
+        maxLen: 16
+        minValue: "0000000000000000"
+        maxValue: "9999999999999999"
+      - id: "type"
+        description: "19.10 Type adres"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["T"]
+      - id: "adreshouding"
+        description: "72.10 Omschrijving van de aangifte adreshouding"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["A", "B", "G", "H", "I", "K", "M", "O", "P", "T", "W"]
+      - id: "onderzoek-ind"
+        description: "83.10 Aanduiding gegevens in onderzoek"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "onderzoek-ingang"
+        description: "83.20 Datum ingang onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onderzoek-einde"
+        description: "83.30 Datum einde onderzoek"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "onjuist-ind"
+        description: "84.10 Indicatie onjuist, dan wel strijdigheid met de openbare orde"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+        allowedValues: ["O", "S"]
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "opname-datum"
+        description: "86.10 Datum van opneming"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: postcode+huisnummer+huisletter+toevoeging"
+        fields: ["postcode", "huisnummer", "huisletter", "toevoeging"]
+      - id: "ix3"
+        description: "Index 3: straatnaam"
+        fields: ["straatnaam"]
+      - id: "ix4"
+        description: "Index 4: woonplaats"
+        fields: ["woonplaats"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: contact
-  description: "17 Contactgegevens"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: telefoon
-    description: "16.10 Telefoonnummer"
-    type: string
-    minLen: 1
-    maxLen: 15
-  - id: tel-ind
-    description: "16.20 Telefoonnummer verificatie-indicatie"
-    type: string
-    minLen: 2
-    maxLen: 2
-    allowedValues: ["NV", "BV", "PV"]
-  - id: tel-geldig
-    description: "16.30 Telefoonnummer geldig vanaf"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: email
-    description: "17.10 E-mailadres"
-    type: string
-    minLen: 1
-    maxLen: 255
-  - id: email-ind
-    description: "17.20 E-mailadres verificatie-indicatie"
-    type: string
-    minLen: 2
-    maxLen: 2
-    allowedValues: ["NV", "BV", "PV"]
-  - id: email-geldig
-    description: "17.30 E-mailadres geldig vanaf"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  - id: rni-deelnemer
-    description: "88.10 RNI-deelnemer"
-    type: string
-    minLen: 4
-    maxLen: 4
-    minValue: "0000"
-    maxValue: "9999"
-  - id: verdrag-oms
-    description: "88.20 Omschrijving verdrag"
-    type: string
-    minLen: 1
-    maxLen: 50
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn"
-    fields: [bsn]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: telefoon"
-      fields: [telefoon]
-    - id: ix3
-      description: "Index 3: email"
-      fields: [email]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "contact"
+    description: "17 Contactgegevens"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "telefoon"
+        description: "16.10 Telefoonnummer"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 15
+      - id: "tel-ind"
+        description: "16.20 Telefoonnummer verificatie-indicatie"
+        type: "string"
+        minLen: 2
+        maxLen: 2
+        allowedValues: ["NV", "BV", "PV"]
+      - id: "tel-geldig"
+        description: "16.30 Telefoonnummer geldig vanaf"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "email"
+        description: "17.10 E-mailadres"
+        type: "string"
+        isPII: true
+        minLen: 1
+        maxLen: 255
+      - id: "email-ind"
+        description: "17.20 E-mailadres verificatie-indicatie"
+        type: "string"
+        minLen: 2
+        maxLen: 2
+        allowedValues: ["NV", "BV", "PV"]
+      - id: "email-geldig"
+        description: "17.30 E-mailadres geldig vanaf"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+      - id: "rni-deelnemer"
+        description: "88.10 RNI-deelnemer"
+        type: "string"
+        isPII: true
+        minLen: 4
+        maxLen: 4
+        minValue: "0000"
+        maxValue: "9999"
+      - id: "verdrag-oms"
+        description: "88.20 Omschrijving verdrag"
+        type: "string"
+        minLen: 1
+        maxLen: 50
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn"
+      fields: ["bsn"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: telefoon"
+        fields: ["telefoon"]
+      - id: "ix3"
+        description: "Index 3: email"
+        fields: ["email"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]
 
-- id: afnemer
-  description: "14/64 Afnemerindicaties"
-  fields:
-  - id: bsn
-    description: "Burgerservicenummer (pk)"
-    type: string
-    minLen: 9
-    maxLen: 9
-    minValue: "000000000"
-    maxValue: "999999999"
-  - id: afnemer
-    description: "40.10 Afnemersindicatie bij de persoonslijst"
-    type: string
-    minLen: 6
-    maxLen: 6
-    minValue: "000000"
-    maxValue: "999999"
-  - id: geldig-ingang
-    description: "85.10 Ingangsdatum geldigheid"
-    type: string
-    minLen: 8
-    maxLen: 8
-    minValue: "00000000"
-    maxValue: "99999999"
-    format: "brp-date"
-  primaryKey:
-    id: pk
-    description: "Primary key: bsn+afnemer"
-    fields: [bsn,afnemer]
-  secondaryIndexes:
-    - id: ix2
-      description: "Index 2: afnemer+bsn"
-      fields: [afnemer,bsn]
-  foreignKeys:
-    - id: bsn
-      description: "Foreign key: bsn -> persoon.bsn"
-      foreignTable: persoon
-      fields: [bsn]
+  - id: "afnemer"
+    description: "14/64 Afnemerindicaties"
+    fields:
+      - id: "bsn"
+        description: "Burgerservicenummer (pk)"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "afnemer"
+        description: "40.10 Afnemersindicatie bij de persoonslijst"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+        minValue: "000000"
+        maxValue: "999999"
+      - id: "geldig-ingang"
+        description: "85.10 Ingangsdatum geldigheid"
+        type: "string"
+        minLen: 8
+        maxLen: 8
+        minValue: "00000000"
+        maxValue: "99999999"
+        format: "brp-date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: bsn+afnemer"
+      fields: ["bsn", "afnemer"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: afnemer+bsn"
+        fields: ["afnemer", "bsn"]
+    foreignKeys:
+      - id: "bsn"
+        description: "Foreign key: bsn -> persoon.bsn"
+        foreignTable: "persoon"
+        fields: ["bsn"]

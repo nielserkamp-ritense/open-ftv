@@ -1,14 +1,12 @@
 // Package types contains type definitions.
 package enums
 
-import "strings"
-
 // FieldType represents a field type.
 type FieldType uint8
 
 // List of field types.
 const (
-	StringType FieldType = iota
+	StringType FieldType = iota + 1
 	IntegerType
 	UnsignedIntegerType
 	FloatType
@@ -146,9 +144,7 @@ func (t *FieldType) UnmarshalYAML(b []byte) error {
 
 // FieldTypeFromString converts a string into a sort order.
 func FieldTypeFromString(s string) FieldType {
-	s = strings.NewReplacer(" ", "", "-", "", "_", "", "+", "", "&", "", "'", "", "\"", "", "`", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "INTEGER", "INT", "INT8", "INT16", "INT32", "INT64":
 		return IntegerType
 	case "UNSIGNEDINTEGER", "UNSIGNED", "UINT", "UINT8", "UINT16", "UINT32", "UINT64":

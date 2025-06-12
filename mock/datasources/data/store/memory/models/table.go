@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/transforming"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
@@ -84,6 +85,30 @@ func (t *Table) AsRow() *Row {
 		out.Data[fieldDefFK.ID] = out2
 	}
 
+	return out
+}
+
+// AddTransformations returns a deep copy of the given table data adding any transformations defined for the table.
+//
+// If there are no transformations defined for the table, the input table data is returned as-is.
+func (t *Table) AddTransformations(in *Row) *Row {
+	if len(t.def.Transforms) == 0 {
+		return in
+	}
+
+	out := &Row{
+		Data:        make(map[string]any, len(in.Data)+len(t.def.Transforms)),
+		def:         in.def,
+		isQualified: in.isQualified,
+	}
+
+	for k, v := range in.Data {
+		out.Data[k] = v
+	}
+
+	for _, transform := range t.def.Transforms {
+		out.Data = transforming.Execute(out.Data, out.isQualified, transform)
+	}
 	return out
 }
 

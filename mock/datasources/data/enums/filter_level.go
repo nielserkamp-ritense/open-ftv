@@ -2,7 +2,6 @@ package enums
 
 import (
 	"fmt"
-	"strings"
 )
 
 // FilterLevel represents the level of a filter.
@@ -53,9 +52,7 @@ func (l *FilterLevel) UnmarshalYAML(b []byte) error {
 
 // FilterLevelFromString converts a string into a filter level.
 func FilterLevelFromString(s string) FilterLevel {
-	s = strings.NewReplacer(" ", "", "-", "", "_", "", "+", "", "&", "", "'", "", "\"", "", "`", "", "\n", "", "\t", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "ANY", "ANYLEVEL", "ALL", "ALLLEVEL", "ALLLEVELS":
 		return AnyLevel
 	case "JOIN", "JOINLEVEL":

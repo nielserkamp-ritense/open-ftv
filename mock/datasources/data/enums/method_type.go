@@ -1,7 +1,5 @@
 package enums
 
-import "strings"
-
 // MethodType represents an HTTP method.
 type MethodType uint8
 
@@ -75,9 +73,7 @@ func (t *MethodType) UnmarshalYAML(b []byte) error {
 
 // MethodTypeFromString converts a string into an HTTP method.
 func MethodTypeFromString(s string) MethodType {
-	s = strings.NewReplacer(" ", "", "-", "", "_", "", "+", "", "&", "", "'", "", "\"", "", "`", "", "\n", "", "\t", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "GET":
 		return GetMethod
 	case "POST":

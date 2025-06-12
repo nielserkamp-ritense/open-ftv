@@ -25,6 +25,7 @@ func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 			if len(recs) > 0 {
 				joinData = make(models.Rows, 0, len(recs))
 				for _, rec := range recs {
+					rec = j.source.AddTransformations(rec)
 					if !filtered || rec.MatchJoin(j.def, j.filter) {
 						joinData = append(joinData, rec)
 					}

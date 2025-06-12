@@ -38,6 +38,18 @@ func FilterFromValue(in string) *Filter {
 	return out
 }
 
+// String implements the Stringer interface.
+func (f *Filter) String() string {
+	switch {
+	case f.AllOf != nil:
+		return f.AllOfFilter.String()
+	case f.AnyOf != nil:
+		return f.AnyOfFilter.String()
+	default:
+		return f.FieldValueFilter.String()
+	}
+}
+
 // Prepare implements the Filterer interface.
 func (f *Filter) Prepare(ds *schema.Datasource, joins []*schema.Join) error {
 	switch {
