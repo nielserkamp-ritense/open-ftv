@@ -1,10 +1,12 @@
 package filtering
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/compare"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
@@ -37,11 +39,12 @@ type FieldValueFilter struct {
 	Value       any               `json:"value,omitempty" yaml:"value,omitempty"`                     // the value to compare against (mutually exclusive with values).
 	Values      []any             `json:"values,omitempty" yaml:"values,omitempty"`                   // the values to compare against (mutually exclusive with value).
 	// hidden fields
-	table *schema.Table
-	join  *schema.Join
-	field *schema.Field
-	rx    *regexp.Regexp
-	list  map[string]struct{}
+	table     *schema.Table
+	join      *schema.Join
+	field     *schema.Field
+	transform *schema.Transformation
+	rx        *regexp.Regexp
+	list      map[string]struct{}
 }
 
 // Exists returns a filter based on whether the field has a value or not.
@@ -118,6 +121,45 @@ func (f *FieldValueFilter) CaseSensitive() *FieldValueFilter {
 	return f
 }
 
+// String implements the Stringer interface.
+func (f *FieldValueFilter) String() string {
+	buf := bytes.Buffer{}
+	buf.WriteString("Filter{level=")
+	buf.WriteString(f.Level.String())
+
+	if f.Insensitive {
+		buf.WriteString(",case-insensitive")
+	}
+
+	if f.Join != "" {
+		buf.WriteString(",join=")
+		buf.WriteString(f.Join)
+	}
+
+	if f.Table != "" {
+		buf.WriteString(",table=")
+		buf.WriteString(f.Table)
+	}
+
+	buf.WriteString(",field=")
+	buf.WriteString(f.Field)
+	buf.WriteString(",compare-type=")
+	buf.WriteString(f.Compare.String())
+
+	if f.Value != nil {
+		buf.WriteString(",value=")
+		buf.WriteString(convert.AnyToString(f.Value))
+	}
+
+	if f.Values != nil {
+		buf.WriteString(",values=")
+		buf.WriteString(fmt.Sprintf("%v", f.Values))
+	}
+
+	buf.WriteByte('}')
+	return buf.String()
+}
+
 // Prepare implements the Filterer interface.
 //
 // This function prepares the filter for operation on the given datasource and joins.
@@ -145,7 +187,7 @@ func (f *FieldValueFilter) Prepare(ds *schema.Datasource, joins []*schema.Join) 
 		}
 	}
 
-	if f.field == nil {
+	if f.field == nil && f.transform == nil {
 		return f.checkField(ds)
 	}
 	return nil
@@ -212,6 +254,10 @@ func (f *FieldValueFilter) checkTable(ds *schema.Datasource) error {
 
 	f.field = f.table.Field(f.Field)
 	if f.field == nil {
+		f.transform = f.table.Transformation(f.Field)
+	}
+
+	if f.field == nil && f.transform == nil {
 		return fmt.Errorf("field [%s] for table [%s] not found", f.Field, f.Table)
 	}
 
@@ -241,6 +287,10 @@ func (f *FieldValueFilter) checkJoin(joins []*schema.Join) error {
 
 	f.field = src.Field(f.Field)
 	if f.field == nil {
+		f.transform = src.Transformation(f.Field)
+	}
+
+	if f.field == nil && f.transform == nil {
 		return fmt.Errorf("field [%s] for join [%s] not found", f.Field, f.Join)
 	}
 
@@ -254,11 +304,19 @@ func (f *FieldValueFilter) checkField(ds *schema.Datasource) error {
 	case 1:
 		for _, t := range ds.Tables {
 			if field := t.Field(f.Field); field != nil {
-				if f.field != nil {
+				if f.field != nil || f.transform != nil {
 					return fmt.Errorf("field [%s] not unique", f.Field)
 				}
 				f.table = t
 				f.field = field
+			}
+
+			if transform := t.Transformation(f.Field); transform != nil {
+				if f.field != nil || f.transform != nil {
+					return fmt.Errorf("field [%s] not unique", f.Field)
+				}
+				f.table = t
+				f.transform = transform
 			}
 		}
 
@@ -267,41 +325,33 @@ func (f *FieldValueFilter) checkField(ds *schema.Datasource) error {
 		if f.table == nil {
 			return fmt.Errorf("table [%s] not found", parts[0])
 		}
+
 		f.field = f.table.Field(parts[1])
+		if f.field == nil {
+			f.transform = f.table.Transformation(parts[1])
+		}
 	}
 
-	if f.field == nil {
+	if f.field == nil && f.transform == nil {
 		return fmt.Errorf("field [%s] not found", f.Field)
 	}
 	return nil
 }
 
-func (f *FieldValueFilter) fixList() error {
+func (f *FieldValueFilter) fixList() (err error) {
 	f.list = make(map[string]struct{}, len(f.Values))
 	for i := range f.Values {
 		f.list[fmt.Sprintf("%v", f.Values[i])] = struct{}{}
 	}
-	return nil
-}
-
-func (f *FieldValueFilter) fixLike() error {
-	return f.buildRX(likeReplacer.Replace(convert.AnyToString(f.Value)))
-}
-
-func (f *FieldValueFilter) fixRX() error {
-	return f.buildRX(convert.AnyToString(f.Value))
-}
-
-func (f *FieldValueFilter) buildRX(s string) (err error) {
-	if !strings.HasPrefix(s, "^") {
-		s = fmt.Sprintf("^%s", s)
-	}
-	if !strings.HasSuffix(s, "$") {
-		s = fmt.Sprintf("%s$", s)
-	}
-
-	f.rx, err = regexp.Compile(s)
 	return
 }
 
-var likeReplacer = strings.NewReplacer(".", "\\.", "+", "\\+", "(", "\\(", ")", "\\)", "[", "\\[", "]", "\\]", "{", "\\{", "}", "\\}", "%", ".*", "*", ".*", "?", ".")
+func (f *FieldValueFilter) fixLike() (err error) {
+	f.rx, err = compare.RXFromLike(convert.AnyToString(f.Value))
+	return
+}
+
+func (f *FieldValueFilter) fixRX() (err error) {
+	f.rx, err = compare.RXFromString(convert.AnyToString(f.Value))
+	return
+}

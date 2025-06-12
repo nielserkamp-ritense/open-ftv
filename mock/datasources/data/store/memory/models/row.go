@@ -140,7 +140,7 @@ func (r *Row) MatchJoin(join *schema.Join, filter filtering.Filterer) bool {
 
 // MatchFields returns the record with only those fields that pass the given field matcher.
 func (r *Row) MatchFields(matcher matching.FieldMatcher) *Row {
-	if matcher.Always() {
+	if matcher == nil || matcher.Always() {
 		return r
 	}
 

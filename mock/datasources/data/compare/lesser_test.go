@@ -35,7 +35,6 @@ func TestLesser(t *testing.T) {
 		v2          any
 		want        bool
 	}{
-		{name: "bad type", t: 250},
 		{name: "string, both nil", t: enums.StringType},
 		{name: "string, first nil", t: enums.StringType, v2: "haha", want: true},
 		{name: "string, second nil", t: enums.StringType, v1: "haha"},

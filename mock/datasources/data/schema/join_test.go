@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJoin_New(t *testing.T) {
+func TestJoin_Fix(t *testing.T) {
 	t.Parallel()
 
 	t1 := &Table{Object: Object{Parent: Parent{ID: "t1"}}}

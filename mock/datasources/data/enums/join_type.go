@@ -2,7 +2,6 @@ package enums
 
 import (
 	"fmt"
-	"strings"
 )
 
 // JoinType represents a table join type.
@@ -56,9 +55,7 @@ func (t *JoinType) UnmarshalYAML(b []byte) error {
 
 // JoinTypeFromString converts a string into a table join type.
 func JoinTypeFromString(s string) JoinType {
-	s = strings.NewReplacer(" ", "", "-", "", "_", "", "+", "", "&", "", "'", "", "\"", "", "`", "", "\n", "", "\t", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "OPTIONALSIBLING", "SIBLING":
 		return OptionalSibling
 	case "FORCEDPARENTCHILD", "FORCED", "FORCEDPARENT", "FORCEDCHILD":

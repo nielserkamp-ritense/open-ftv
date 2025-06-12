@@ -2,7 +2,6 @@ package enums
 
 import (
 	"fmt"
-	"strings"
 )
 
 // CompareType represents a type of comparison.
@@ -94,9 +93,7 @@ func (t *CompareType) UnmarshalYAML(b []byte) error {
 
 // CompareTypeFromString converts a string into a comparison type.
 func CompareTypeFromString(s string) CompareType {
-	s = strings.NewReplacer(" ", "", "-", "", "_", "", "+", "", "&", "", "'", "", "\"", "", "`", "", "\n", "", "\t", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "==", "=", "!NE", "EQ", "EQUAL", "ISEQUAL":
 		return IsEqual
 	case "!=", "<>", "NE", "!EQ", "NOTEQUAL", "ISNOTEQUAL":

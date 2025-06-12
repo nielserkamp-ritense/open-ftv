@@ -1,10 +1,19 @@
 package filtering
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+import (
+	"fmt"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+)
 
 // AllOfFilter represents an "and" filter, which means it matches if all the underlying filters are matched.
 type AllOfFilter struct {
 	AllOf Filters `json:"allOf" yaml:"allOf"`
+}
+
+// String implements the Stringer interface.
+func (a *AllOfFilter) String() string {
+	return fmt.Sprintf("AllOf: %v", a.AllOf)
 }
 
 // Prepare implements the Filterer interface.

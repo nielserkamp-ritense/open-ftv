@@ -1,7 +1,5 @@
 package enums
 
-import "strings"
-
 // OrderType represents a sort order.
 type OrderType uint8
 
@@ -54,9 +52,7 @@ func (t *OrderType) UnmarshalYAML(b []byte) error {
 
 // OrderTypeFromString converts a string into a sort order.
 func OrderTypeFromString(s string) OrderType {
-	s = strings.NewReplacer(" ", "", "'", "", "\"", "", "`", "", "\n", "", "\t", "", "\r", "").Replace(s)
-
-	switch strings.ToUpper(s) {
+	switch prepareFromString(s) {
 	case "ASC", "ASCENDING":
 		return OrderAscending
 	default:

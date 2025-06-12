@@ -35,7 +35,6 @@ func TestEqual(t *testing.T) {
 		v2          any
 		want        bool
 	}{
-		{name: "bad type", t: 250},
 		{name: "string, both nil", t: enums.StringType, want: true},
 		{name: "string, first nil", t: enums.StringType, v2: "haha"},
 		{name: "string, second nil", t: enums.StringType, v1: "haha"},

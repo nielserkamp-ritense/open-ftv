@@ -29,11 +29,29 @@ func (f *FieldValueFilter) MatchOnJoinData(join *schema.Join, data map[string]an
 }
 
 func (f *FieldValueFilter) compare(data map[string]any) bool {
+	var v any
+	var ok bool
+	var tp enums.FieldType
+
+	switch {
+	case f.field != nil:
+		tp = f.field.Type
+		if v, ok = data[f.field.FQID()]; !ok {
+			v = data[f.field.ID]
+		}
+
+	case f.transform != nil:
+		tp = f.transform.ResultType
+		if v, ok = data[f.transform.FQID()]; !ok {
+			v = data[f.transform.ID]
+		}
+	}
+
 	return compare.Compare(compare.Params{
-		Type:        f.field.Type,
+		Type:        tp,
 		Compare:     f.Compare,
 		Insensitive: f.Insensitive,
-		Input:       data[f.field.ID],
+		Input:       v,
 		Value:       f.Value,
 		Values:      f.Values,
 		RX:          f.rx,
