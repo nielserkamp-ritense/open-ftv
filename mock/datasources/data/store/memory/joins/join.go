@@ -21,7 +21,7 @@ func New(target *models.Table, targetData models.Rows, joinDef *schema.Join, met
 }
 
 // JoinOnFK executes the join operation based on the given foreign key and optional filter.
-func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter filtering.Filterer) (models.Rows, error) {
+func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter filtering.Filterer, params map[string]any) (models.Rows, error) {
 	var err error
 	if j.source, err = j.meta.GetTable(j.def.Source); err != nil || j.source == nil {
 		if j.source == nil {
@@ -32,12 +32,13 @@ func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter filtering.Filterer) (model
 
 	j.filter = filter
 	j.sourceFields, j.targetFields = splitFields(fk.Fields)
+	j.params = params
 
 	return j.joinOnFK(fk)
 }
 
 // JoinOnFields executes the join operation based on the given list of fields and optional filter.
-func (j *Join) JoinOnFields(fields []string, filter filtering.Filterer) (models.Rows, error) {
+func (j *Join) JoinOnFields(fields []string, filter filtering.Filterer, params map[string]any) (models.Rows, error) {
 	var err error
 	if j.source, err = j.meta.GetTable(j.def.Source); err != nil || j.source == nil {
 		if j.source == nil {
@@ -48,6 +49,7 @@ func (j *Join) JoinOnFields(fields []string, filter filtering.Filterer) (models.
 
 	j.filter = filter
 	j.sourceFields, j.targetFields = splitFields(fields)
+	j.params = params
 
 	return j.joinOnFields()
 }
@@ -59,6 +61,7 @@ type Join struct {
 	source       *models.Table
 	def          *schema.Join
 	filter       filtering.Filterer
+	params       map[string]any
 	sourceFields []string
 	targetFields []string
 	meta         store.MetaReader

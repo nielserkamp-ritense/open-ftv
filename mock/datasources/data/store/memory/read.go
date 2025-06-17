@@ -3,7 +3,7 @@ package memory
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/context"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/joins"
@@ -11,7 +11,7 @@ import (
 )
 
 // SelectPK implements the Reader interface.
-func (s *storage) SelectPK(tableID string, pk []any, fields matching.FieldMatcher) (*models.Row, error) {
+func (s *storage) SelectPK(tableID string, pk []any, matcher matching.FieldMatcher) (*models.Row, error) {
 	table, err := s.GetTable(tableID)
 	if err != nil {
 		return nil, fmt.Errorf("selectPK: %w", err)
@@ -28,13 +28,13 @@ func (s *storage) SelectPK(tableID string, pk []any, fields matching.FieldMatche
 
 	key := models.KeyFromData(pk, table.Definition().PrimaryKey)
 	if rec := t.PK[key]; rec != nil {
-		return rec.MatchFields(fields), nil
+		return rec.MatchFields(matcher), nil
 	}
 	return nil, fmt.Errorf("selectPK: primary key %v not found", pk)
 }
 
 // SelectIX implements the Reader interface.
-func (s *storage) SelectIX(tableID string, id string, keys []any, fields matching.FieldMatcher) (models.Rows, error) {
+func (s *storage) SelectIX(tableID string, id string, keys []any, matcher matching.FieldMatcher) (models.Rows, error) {
 	table, err := s.GetTable(tableID)
 	if err != nil {
 		return nil, fmt.Errorf("selectIX: %w", err)
@@ -57,14 +57,14 @@ func (s *storage) SelectIX(tableID string, id string, keys []any, fields matchin
 	key := models.KeyFromData(keys, index)
 	if indexData := t.Indexes[id]; indexData != nil {
 		if list := indexData[key]; len(list) > 0 {
-			return list.MatchFields(fields), nil
+			return list.MatchFields(matcher), nil
 		}
 	}
 	return nil, fmt.Errorf("selectIX: keys %v in index [%s] not found", keys, id)
 }
 
 // Search implements the Reader interface.
-func (s *storage) Search(tableID string, filter filtering.Filterer, fields matching.FieldMatcher) (models.Rows, error) {
+func (s *storage) Search(tableID string, reqCtx *context.RequestContext) (models.Rows, error) {
 	table, err := s.GetTable(tableID)
 	if err != nil {
 		return nil, fmt.Errorf("search: %w", err)
@@ -80,20 +80,20 @@ func (s *storage) Search(tableID string, filter filtering.Filterer, fields match
 	for i := range t.Data {
 		rec := t.Data[i]
 		// vertical data-minimalization.
-		if rec.MatchPrimary(filter) {
+		if rec.MatchPrimary(reqCtx.Filter) {
 			// horizontal data-minimalization.
-			out = append(out, table.AddTransformations(rec).MatchFields(fields))
+			out = append(out, table.AddTransformations(rec, reqCtx.Params).MatchFields(reqCtx.Matcher))
 		}
 	}
 
 	if len(out) > 0 {
 		return out, nil
 	}
-	return nil, fmt.Errorf("search: no matching records found for {%v}", filter)
+	return nil, fmt.Errorf("search: no matching records found for {%v}", reqCtx.Filter)
 }
 
 // GetEndpoint implements the Reader interface.
-func (s *storage) GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, fields matching.FieldMatcher) (models.Rows, error) {
+func (s *storage) GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (models.Rows, error) {
 	if e.Primary() == nil {
 		return nil, fmt.Errorf("endpoint: primary table missing")
 	}
@@ -105,25 +105,25 @@ func (s *storage) GetEndpoint(e *schema.Endpoint, filter filtering.Filterer, fie
 
 	var out models.Rows
 	for i := range primary.Data {
-		rec := primary.AddTransformations(primary.Data[i])
+		rec := primary.AddTransformations(primary.Data[i], ctx.Params)
 
 		// vertical data-minimalization.
-		if rec.MatchPrimary(filter) {
+		if rec.MatchPrimary(ctx.Filter) {
 			out = append(out, rec)
 		}
 	}
 
 	if list := e.Joins; len(list) > 0 {
-		out, err = joins.ProcessJoins(out, primary, list, filter, s)
+		out, err = joins.ProcessJoins(out, primary, list, ctx, s)
 		if err != nil {
 			return nil, fmt.Errorf("endpoint: %w", err)
 		}
 	}
 
 	if out == nil || len(out) == 0 {
-		return nil, fmt.Errorf("endpoint: no matching records found for {%v}", filter)
+		return nil, fmt.Errorf("endpoint: no matching records found for {%v}", ctx.Filter)
 	}
 
 	// horizontal data-minimalization.
-	return out.MatchFields(fields), nil
+	return out.MatchFields(ctx.Matcher), nil
 }

@@ -193,6 +193,36 @@ tables:
           "1": "leeftijd"
         inputValues:
           "2": 18
+      - id: "senior"
+        description: "Indicatie of de persoon 65 jaar of ouder is"
+        transformationType: "compare"
+        compareType: "IsGreaterOrEqual"
+        resultType: "bool"
+        isPII: true
+        inputTransformations:
+          "1": "leeftijd"
+        inputValues:
+          "2": 65
+      - id: "ouder-dan"
+        description: "Indicatie of de persoon meer dan N jaar oud is"
+        transformationType: "compare"
+        compareType: "IsGreater"
+        resultType: "bool"
+        isPII: true
+        inputTransformations:
+          "1": "leeftijd"
+        inputValues:
+          "2": ":leeftijd:"
+      - id: "jonger-dan"
+        description: "Indicatie of de persoon minder dan N jaar oud is"
+        transformationType: "compare"
+        compareType: "IsLesser"
+        resultType: "bool"
+        isPII: true
+        inputTransformations:
+          "1": "leeftijd"
+        inputValues:
+          "2": ":leeftijd:"
     primaryKey:
       id: "pk"
       description: "Primary key: bsn"

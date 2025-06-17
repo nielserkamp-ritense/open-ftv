@@ -3,7 +3,7 @@ package joins
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/context"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
@@ -11,7 +11,7 @@ import (
 
 // ProcessJoins returns the given input data extended with the given list of joins,
 // or an error if it fails to execute a join.
-func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, filter filtering.Filterer, meta store.MetaReader) (models.Rows, error) {
+func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, reqCtx *context.RequestContext, meta store.MetaReader) (models.Rows, error) {
 	out := in
 
 	var err error
@@ -25,7 +25,7 @@ func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, fil
 		}
 
 		if len(j.Fields) > 0 {
-			if out, err = New(joinTarget, out, j, meta).JoinOnFields(j.Fields, filter); err != nil {
+			if out, err = New(joinTarget, out, j, meta).JoinOnFields(j.Fields, reqCtx.Filter, reqCtx.Params); err != nil {
 				return nil, err
 			}
 		} else {
@@ -35,7 +35,7 @@ func ProcessJoins(in models.Rows, target *models.Table, list []*schema.Join, fil
 			}
 
 			if fk := def.FindForeignKey(joinTarget.Definition()); fk != nil {
-				if out, err = New(joinTarget, out, j, meta).JoinOnFK(fk, filter); err != nil {
+				if out, err = New(joinTarget, out, j, meta).JoinOnFK(fk, reqCtx.Filter, reqCtx.Params); err != nil {
 					return nil, err
 				}
 			} else {

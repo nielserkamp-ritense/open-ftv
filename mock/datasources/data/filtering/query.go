@@ -9,13 +9,13 @@ import (
 )
 
 // FilterFromQuery returns a filter based on a previously decoded HTTP query string.
-func FilterFromQuery(ds *schema.Datasource, query map[string]string) Filterer {
+func FilterFromQuery(ds *schema.Datasource, primary string, query map[string]string) Filterer {
 	out := &Filter{AllOfFilter: AllOfFilter{AllOf: make(Filters, 0)}}
 
 	makeFilter := func(table, key, value string) *Filter {
 		filter := Compare(key, enums.IsEqual, value)
 		if ds != nil && len(table) > 0 {
-			if ds.Table(table) != nil {
+			if primary == "" || strings.EqualFold(primary, table) {
 				filter = filter.OnTable(table)
 			} else {
 				filter = filter.OnJoin(table)

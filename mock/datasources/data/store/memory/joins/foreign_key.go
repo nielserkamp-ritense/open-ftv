@@ -3,6 +3,7 @@ package joins
 import (
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/context"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory/models"
 )
@@ -25,7 +26,7 @@ func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 			if len(recs) > 0 {
 				joinData = make(models.Rows, 0, len(recs))
 				for _, rec := range recs {
-					rec = j.source.AddTransformations(rec)
+					rec = j.source.AddTransformations(rec, j.params)
 					if !filtered || rec.MatchJoin(j.def, j.filter) {
 						joinData = append(joinData, rec)
 					}
@@ -34,7 +35,7 @@ func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 
 			if len(joinData) > 0 && len(j.def.Joins) > 0 {
 				var err error
-				if joinData, err = ProcessJoins(joinData, j.source, j.def.Joins, j.filter, j.meta); err != nil {
+				if joinData, err = ProcessJoins(joinData, j.source, j.def.Joins, &context.RequestContext{Filter: j.filter, Params: j.params}, j.meta); err != nil {
 					return nil, err
 				}
 			}

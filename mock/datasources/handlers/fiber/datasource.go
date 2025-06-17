@@ -35,9 +35,13 @@ func (h *datasourceHandler) GetDatasources(req *fiber.Ctx) error {
 
 	var list models.Rows
 	for _, source := range sources {
-		filter, matcher := buildFilters(req, source.Definition())
-		if r := source.AsRow(); r.MatchPrimary(filter) {
-			list = append(list, r.MatchFields(matcher))
+		reqCtx, err := buildRequestContext(req, source.Definition(), "")
+		if err != nil {
+			return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		}
+
+		if r := source.AsRow(); r.MatchPrimary(reqCtx.Filter) {
+			list = append(list, r.MatchFields(reqCtx.Matcher))
 		}
 	}
 

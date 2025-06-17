@@ -32,6 +32,11 @@ func (t *Table) FQID() string {
 	return t.ID
 }
 
+// Datasource returns the data source definition for the table.
+func (t *Table) Datasource() *Datasource {
+	return t.parentSource
+}
+
 // Field returns the field definition for the given id.
 func (t *Table) Field(fieldID string) *Field {
 	t.Fix(nil)

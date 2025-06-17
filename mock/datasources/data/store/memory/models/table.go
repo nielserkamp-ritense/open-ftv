@@ -91,7 +91,7 @@ func (t *Table) AsRow() *Row {
 // AddTransformations returns a deep copy of the given table data adding any transformations defined for the table.
 //
 // If there are no transformations defined for the table, the input table data is returned as-is.
-func (t *Table) AddTransformations(in *Row) *Row {
+func (t *Table) AddTransformations(in *Row, params map[string]any) *Row {
 	if len(t.def.Transforms) == 0 {
 		return in
 	}
@@ -107,7 +107,7 @@ func (t *Table) AddTransformations(in *Row) *Row {
 	}
 
 	for _, transform := range t.def.Transforms {
-		out.Data = transforming.Execute(out.Data, out.isQualified, transform)
+		out.Data = transforming.Execute(out.Data, out.isQualified, transform, params)
 	}
 	return out
 }

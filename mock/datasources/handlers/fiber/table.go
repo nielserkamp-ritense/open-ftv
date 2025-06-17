@@ -34,10 +34,14 @@ func (h *tableHandler) GetTables(req *fiber.Ctx) error {
 
 	var list models.Rows
 	for _, source := range sources {
-		filter, matcher := buildFilters(req, source.Definition())
+		reqCtx, err := buildRequestContext(req, source.Definition(), "")
+		if err != nil {
+			return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		}
+
 		for _, table := range source.Tables {
-			if r := table.AsRow(); r.MatchPrimary(filter) {
-				list = append(list, r.MatchFields(matcher))
+			if r := table.AsRow(); r.MatchPrimary(reqCtx.Filter) {
+				list = append(list, r.MatchFields(reqCtx.Matcher))
 			}
 		}
 	}

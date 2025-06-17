@@ -34,15 +34,19 @@ func (h *dataHandler) GetRecords(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, "invalid table key")
 	}
 
-	_, err := h.s.GetTable(key)
+	t, err := h.s.GetTable(key)
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
-	filter, matcher := buildFilters(req, nil)
-	list, err2 := h.s.Search(key, filter, matcher)
+	reqCtx, err2 := buildRequestContext(req, t.Definition().Datasource(), "")
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
+	}
+
+	list, err3 := h.s.Search(key, reqCtx)
+	if err3 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err3.Error())
 	}
 	if len(list) == 0 {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching records found")
