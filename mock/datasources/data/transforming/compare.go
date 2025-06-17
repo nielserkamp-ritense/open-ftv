@@ -7,12 +7,21 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
-func (p *params) compare() any {
+func (p *runner) compare() any {
 	v1, t1 := p.getValueAndType(1)
-	v2, _ := p.getValueAndType(2)
 
 	switch p.transform.CompareType {
+	case enums.Exists:
+		return v1 != nil
+	case enums.NotExists:
+		return v1 == nil
+
 	case enums.InList, enums.NotInList:
+		v2, _ := p.getValueAndType(2)
+		if v1 == nil || v2 == nil {
+			return nil
+		}
+
 		return compare.Compare(compare.Params{
 			Type:        t1,
 			Compare:     p.transform.CompareType,
@@ -22,6 +31,10 @@ func (p *params) compare() any {
 		})
 
 	case enums.IsLike, enums.IsNotLike, enums.MatchRegex, enums.NotMatchRegex:
+		if v1 == nil {
+			return nil
+		}
+
 		return compare.Compare(compare.Params{
 			Type:    t1,
 			Compare: p.transform.CompareType,
@@ -30,6 +43,11 @@ func (p *params) compare() any {
 		})
 
 	default:
+		v2, _ := p.getValueAndType(2)
+		if v1 == nil || v2 == nil {
+			return nil
+		}
+
 		return compare.Compare(compare.Params{
 			Type:        t1,
 			Compare:     p.transform.CompareType,

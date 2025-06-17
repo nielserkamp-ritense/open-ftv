@@ -5,7 +5,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *params) convert() any {
+func (p *runner) convert() any {
 	v, _ := p.getValueAndType(1)
 
 	switch p.transform.ResultType {

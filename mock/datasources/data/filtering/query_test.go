@@ -20,10 +20,11 @@ func TestFilterFromQuery(t *testing.T) {
 	ds.Fix(nil)
 
 	testCases := []struct {
-		name string
-		ds   *schema.Datasource
-		q    map[string]string
-		want *Filter
+		name    string
+		ds      *schema.Datasource
+		primary string
+		q       map[string]string
+		want    *Filter
 	}{
 		{
 			name: "empty",
@@ -45,9 +46,10 @@ func TestFilterFromQuery(t *testing.T) {
 			}}},
 		},
 		{
-			name: "few fields",
-			ds:   ds,
-			q:    map[string]string{"f1": "hello world", "t1.f2": "123", "j1.f3": "true"},
+			name:    "few fields",
+			ds:      ds,
+			primary: "t1",
+			q:       map[string]string{"f1": "hello world", "t1.f2": "123", "j1.f3": "true"},
 			want: &Filter{AllOfFilter: AllOfFilter{AllOf: Filters{
 				&Filter{FieldValueFilter: FieldValueFilter{
 					Level:   enums.PrimaryLevel,
@@ -90,7 +92,7 @@ func TestFilterFromQuery(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := FilterFromQuery(tc.ds, tc.q)
+			got := FilterFromQuery(tc.ds, tc.primary, tc.q)
 			require.NotNil(t, got)
 
 			got2, ok := got.(*Filter)

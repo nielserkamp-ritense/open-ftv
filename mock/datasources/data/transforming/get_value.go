@@ -1,12 +1,13 @@
 package transforming
 
 import (
+	"strings"
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
-func (p *params) getValueAndType(i int) (any, enums.FieldType) {
+func (p *runner) getValueAndType(i int) (any, enums.FieldType) {
 	if v, tp, ok := p.getFieldValueAndType(i); ok {
 		return v, tp
 	}
@@ -15,27 +16,10 @@ func (p *params) getValueAndType(i int) (any, enums.FieldType) {
 		return v, tp
 	}
 
-	v := p.transform.InputValues[i]
-
-	switch v.(type) {
-	case string:
-		return v, enums.StringType
-	case bool:
-		return v, enums.BooleanType
-	case int, int8, int16, int32, int64:
-		return v, enums.IntegerType
-	case uint, uint8, uint16, uint32, uint64:
-		return v, enums.UnsignedIntegerType
-	case float32, float64:
-		return v, enums.FloatType
-	case time.Time, *time.Time:
-		return v, enums.DateTimeType
-	default:
-		return v, enums.AnyType
-	}
+	return p.testType(p.transform.InputValues[i])
 }
 
-func (p *params) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
+func (p *runner) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
 	id, ok := p.transform.InputFields[i]
 	if !ok {
 		return nil, 0, false
@@ -55,7 +39,7 @@ func (p *params) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
 	return v, f.Type, true
 }
 
-func (p *params) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
+func (p *runner) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
 	id, ok := p.transform.InputTransforms[i]
 	if !ok {
 		return nil, 0, false
@@ -77,6 +61,36 @@ func (p *params) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
 		return v, transform.ResultType, true
 	}
 
-	p2 := &params{rec: p.rec, qualified: p.qualified, transform: transform}
+	p2 := &runner{rec: p.rec, qualified: p.qualified, transform: transform}
 	return p2.run(), transform.ResultType, true
+}
+
+func (p *runner) testType(in any) (any, enums.FieldType) {
+	switch t := in.(type) {
+	case string:
+		return p.testParameter(t)
+	case bool:
+		return t, enums.BooleanType
+	case int, int8, int16, int32, int64:
+		return t, enums.IntegerType
+	case uint, uint8, uint16, uint32, uint64:
+		return t, enums.UnsignedIntegerType
+	case float32, float64:
+		return t, enums.FloatType
+	case time.Time, *time.Time:
+		return t, enums.DateTimeType
+	default:
+		return t, enums.AnyType
+	}
+}
+
+func (p *runner) testParameter(s string) (any, enums.FieldType) {
+	// a string like ":xyz:" represents a parameter with the key "xyz".
+	if strings.HasPrefix(s, ":") && strings.HasSuffix(s, ":") {
+		if v, ok := p.params[s[1:len(s)-1]]; ok {
+			return p.testType(v)
+		}
+		return nil, enums.AnyType
+	}
+	return s, enums.StringType
 }

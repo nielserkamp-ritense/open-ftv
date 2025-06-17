@@ -246,7 +246,7 @@ func TestStorage_ProcessJoins(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			got, err4 := j.JoinOnFK(tc.fk, tc.filter)
+			got, err4 := j.JoinOnFK(tc.fk, tc.filter, nil)
 			if tc.wantErr {
 				require.Error(t, err4)
 				require.Nil(t, got)
@@ -297,7 +297,7 @@ func TestJoin_SubJoin(t *testing.T) {
 		j1 := New(t1, in1, &schema.Join{Type: enums.OptionalSibling, Source: "adres"}, s)
 		require.NotNil(t, j1)
 
-		got1, err3 := j1.JoinOnFK(t2.Definition().ForeignKey("fk1"), nil)
+		got1, err3 := j1.JoinOnFK(t2.Definition().ForeignKey("fk1"), nil, nil)
 		require.NoError(t, err3)
 		require.NotNil(t, got1)
 		assert.Len(t, got1, 3)
@@ -305,7 +305,7 @@ func TestJoin_SubJoin(t *testing.T) {
 		j2 := New(t1, got1, &schema.Join{Type: enums.OptionalSibling, Source: "inwoners"}, s)
 		require.NotNil(t, j1)
 
-		got2, err4 := j2.JoinOnFields([]string{"postcode"}, nil)
+		got2, err4 := j2.JoinOnFields([]string{"postcode"}, nil, nil)
 		require.NoError(t, err4)
 		require.NotNil(t, got2)
 		assert.Len(t, got2, 2)

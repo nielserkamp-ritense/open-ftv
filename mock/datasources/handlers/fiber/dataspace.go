@@ -28,13 +28,16 @@ func NewDataspaceHandler(s store.Storage, logger *slog.Logger) DataspaceHandler 
 func (h *dataspaceHandler) GetDataspace(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, DataspaceVersion)
 
+	reqCtx, err := buildRequestContext(req, nil, "")
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
 	d := h.s.GetDataspace()
 	if d == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no dataspace found")
 	}
-
-	_, matcher := buildFilters(req, nil)
-	return buildContent(req, d.AsRow().MatchFields(matcher))
+	return buildContent(req, d.AsRow().MatchFields(reqCtx.Matcher))
 }
 
 // PutDataspace implements the DataspacesHandler interface.

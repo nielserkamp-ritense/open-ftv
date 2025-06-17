@@ -7,7 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *params) age() any {
+func (p *runner) age() any {
 	v, tp := p.getValueAndType(1)
 	if v == nil {
 		return nil // no need for further calculations.

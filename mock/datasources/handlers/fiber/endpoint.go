@@ -26,14 +26,18 @@ func NewEndpointHandler(s store.Storage, logger *slog.Logger, def *schema.Endpoi
 func (h *endpointHandler) Handle(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EndpointVersion)
 
-	filter, matcher := buildFilters(req, h.def.GetDatasource())
-	if err := filter.Prepare(h.def.GetDatasource(), h.def.Joins); err != nil {
+	reqCtx, err := buildRequestContext(req, h.def.GetDatasource(), h.def.Table)
+	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	list, err := h.s.GetEndpoint(h.def, filter, matcher)
-	if err != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+	if err = reqCtx.Filter.Prepare(h.def.GetDatasource(), h.def.Joins); err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	list, err2 := h.s.GetEndpoint(h.def, reqCtx)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}
 	if len(list) == 0 {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching records found")
