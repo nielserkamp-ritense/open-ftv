@@ -3,35 +3,35 @@ go 1.23.8
 toolchain go1.23.8
 
 use (
-	oas
-	utilities
-	utilities-no-ci
-	eam/models
-	eam/config
-	eam/log
-	eam/authentication
-	eam/authorization
-	eam/mapping
-	eam/mimetype
-	eam/pep
-	eam/pip
-	eam/pap
-	eam/pdp/controller
-	eam/pdp/cedar-embedded
-	eam/pdp/cerbos-api
-	eam/pdp/odrl
-	eam/pdp/opa-embedded
-	eam/pdp/openfga-embedded
-	eam/pdp/xacml
-	eam/handlers
-	eam/server
-	mock/datasources/data
-	mock/datasources/handlers
-	mock/datasources/generic
-	mock/fds/ledenlijst
 	apps/fsc-auth
 	apps/manager
 	apps/pap
 	apps/pdp
 	apps/pip
+	eam/authentication
+	eam/authorization
+	eam/config
+	eam/handlers
+	eam/log
+	eam/mapping
+	eam/mimetype
+	eam/models
+	eam/pap
+	eam/pdp/cedar-embedded
+	eam/pdp/cerbos-api
+	eam/pdp/controller
+	eam/pdp/odrl
+	eam/pdp/opa-embedded
+	eam/pdp/openfga-embedded
+	eam/pdp/xacml
+	eam/pep
+	eam/pip
+	eam/server
+	mock/datasources/data
+	mock/datasources/generic
+	mock/datasources/handlers
+	mock/fds/ledenlijst
+	oas
+	utilities
+	utilities-no-ci
 )
