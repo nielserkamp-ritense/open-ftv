@@ -7,13 +7,13 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *runner) age() any {
-	v, tp := p.getValueAndType(1)
+func (r *runner) age() any {
+	v, tp := r.getValueAndType(1)
 	if v == nil {
 		return nil // no need for further calculations.
 	}
 
-	now := time.Now()
+	now := today()
 	y1, m1, d1 := now.Year(), int(now.Month()), now.Day()
 
 	var y2, m2, d2 int
@@ -39,14 +39,14 @@ func (p *runner) age() any {
 	// age is the difference in years.
 	age := y1 - y2
 
-	if m2 < m1 || (m2 == m1 && d2 < d1) {
+	if m1 < m2 || (m1 == m2 && d1 < d2) {
 		age-- // minus one if the day of birth is before the current day of year.
 	}
 
 	if age < 0 {
 		return nil // future date of birth.
 	}
-	return age
+	return r.fixResultType(age)
 }
 
 func dmyFromNumber(in any) (int, int, int) {
@@ -55,3 +55,5 @@ func dmyFromNumber(in any) (int, int, int) {
 	// note that in some systems one or more date-components may be zero.
 	return d / 10000, d / 100 % 100, d % 100
 }
+
+var today = func() time.Time { return time.Now().Truncate(24 * time.Hour) }

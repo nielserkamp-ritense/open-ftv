@@ -95,6 +95,12 @@ func List(field string, exists bool, values ...any) *FieldValueFilter {
 
 // OnTable forces the filter to execute on the given table.
 func (f *FieldValueFilter) OnTable(table string) *FieldValueFilter {
+	f.Table = table
+	return f
+}
+
+// OnAnyTable forces the filter to execute on the given table at any level.
+func (f *FieldValueFilter) OnAnyTable(table string) *FieldValueFilter {
 	f.Level = enums.AnyLevel
 	f.Table = table
 	return f
@@ -124,7 +130,7 @@ func (f *FieldValueFilter) CaseSensitive() *FieldValueFilter {
 // String implements the Stringer interface.
 func (f *FieldValueFilter) String() string {
 	buf := bytes.Buffer{}
-	buf.WriteString("Filter{level=")
+	buf.WriteString("{level=")
 	buf.WriteString(f.Level.String())
 
 	if f.Insensitive {
@@ -243,8 +249,8 @@ func (f *FieldValueFilter) checkCompare() error {
 }
 
 func (f *FieldValueFilter) checkTable(ds *schema.Datasource) error {
-	if f.Level != enums.AnyLevel {
-		return fmt.Errorf("filter on table must match at any level")
+	if f.Level == enums.JoinLevel {
+		return fmt.Errorf("filter on table must not be at join level")
 	}
 
 	f.table = ds.Table(f.Table)
@@ -266,7 +272,7 @@ func (f *FieldValueFilter) checkTable(ds *schema.Datasource) error {
 
 func (f *FieldValueFilter) checkJoin(joins []*schema.Join) error {
 	if f.Level != enums.JoinLevel {
-		return fmt.Errorf("filter on join must match at join level")
+		return fmt.Errorf("filter on join must be at join level")
 	}
 
 	f.join = nil
@@ -347,11 +353,11 @@ func (f *FieldValueFilter) fixList() (err error) {
 }
 
 func (f *FieldValueFilter) fixLike() (err error) {
-	f.rx, err = compare.RXFromLike(convert.AnyToString(f.Value))
+	f.rx, err = compare.RXFromLike(f.Value)
 	return
 }
 
 func (f *FieldValueFilter) fixRX() (err error) {
-	f.rx, err = compare.RXFromString(convert.AnyToString(f.Value))
+	f.rx, err = compare.RXFromString(f.Value)
 	return
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 )
 
@@ -55,7 +56,7 @@ func TestRow_FieldString(t *testing.T) {
 func TestRowFromData(t *testing.T) {
 	t.Parallel()
 
-	t1 := &schema.Object{
+	t1 := &schema.Table{Object: schema.Object{
 		Parent:      schema.Parent{ID: "t1"},
 		Description: "t1",
 		Fields: []*schema.Field{
@@ -79,39 +80,44 @@ func TestRowFromData(t *testing.T) {
 				IsPII:  true,
 			},
 		},
-	}
+	}}
+
+	t1.FixFields(t1, nil)
+	def1 := &t1.Object
 
 	testCases := []struct {
 		name string
-		t    *schema.Object
+		def  *schema.Object
 		data map[string]any
 		want *Row
 	}{
 		{
 			name: "all empty",
-			t:    t1,
+			def:  def1,
 			data: map[string]any{},
 			want: &Row{Data: map[string]any{}},
 		},
 		{
 			name: "unknown fields",
-			t:    t1,
+			def:  def1,
 			data: map[string]any{"hello": "world"},
 			want: &Row{Data: map[string]any{}},
 		},
 		{
 			name: "f1",
-			t:    t1,
+			def:  def1,
 			data: map[string]any{"f1": "hello world"},
 			want: &Row{Data: map[string]any{"f1": "hello world"}},
 		},
 		{
 			name: "all",
-			t:    t1,
+			def:  def1,
 			data: map[string]any{
 				"f1": "hello world",
-				"f2": 123,
-				"f3": time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+				"f2": "123",
+				"f3": "2024-06-01",
+				// "f2": 123,
+				// "f3": time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 				"f4": "joep@tv.nl",
 			},
 			want: &Row{
@@ -129,7 +135,7 @@ func TestRowFromData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := RowFromData(tc.t, tc.data)
+			got := RowFromData(tc.def, tc.data)
 			assert.EqualValues(t, tc.want.Data, got.Data)
 		})
 	}
@@ -138,7 +144,7 @@ func TestRowFromData(t *testing.T) {
 func TestRowFromCSV(t *testing.T) {
 	t.Parallel()
 
-	t1 := &schema.Object{
+	t1 := &schema.Table{Object: schema.Object{
 		Parent:      schema.Parent{ID: "t1"},
 		Description: "t1",
 		Fields: []*schema.Field{
@@ -162,39 +168,43 @@ func TestRowFromCSV(t *testing.T) {
 				IsPII:  true,
 			},
 		},
-	}
+	}}
+
+	t1.FixFields(t1, nil)
+
+	def1 := &t1.Object
 
 	testCases := []struct {
 		name    string
-		t       *schema.Object
+		def     *schema.Object
 		headers []string
 		data    []string
 		want    *Row
 	}{
 		{
 			name:    "all empty",
-			t:       t1,
+			def:     def1,
 			headers: []string{},
 			data:    []string{},
 			want:    &Row{Data: map[string]any{}},
 		},
 		{
 			name:    "unknown fields",
-			t:       t1,
+			def:     def1,
 			headers: []string{"hello"},
 			data:    []string{"world"},
 			want:    &Row{Data: map[string]any{}},
 		},
 		{
 			name:    "f1",
-			t:       t1,
+			def:     def1,
 			headers: []string{"f1"},
 			data:    []string{"hello world"},
 			want:    &Row{Data: map[string]any{"f1": "hello world"}},
 		},
 		{
 			name:    "all",
-			t:       t1,
+			def:     def1,
 			headers: []string{"f1", "f2", "f3", "f4"},
 			data:    []string{"hello world", "123", "2024-06-10", "joep@tv.nl"},
 			want: &Row{
@@ -212,7 +222,7 @@ func TestRowFromCSV(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := RowFromCSV(tc.t, tc.headers, tc.data)
+			got := RowFromCSV(tc.def, tc.headers, tc.data)
 			assert.EqualValues(t, tc.want.Data, got.Data)
 		})
 	}
@@ -623,6 +633,146 @@ func TestRemoveNil(t *testing.T) {
 
 			got := removeNil(tc.m)
 			assert.EqualValues(t, tc.want, got)
+		})
+	}
+}
+
+func TestRow_KeyValueForFields(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		r    *Row
+		keys []string
+		want string
+	}{
+		{name: "empty"},
+		{
+			name: "one - not found",
+			r:    &Row{Data: map[string]any{"z": 1, "y": 2}},
+			keys: []string{"x"},
+		},
+		{
+			name: "one - found",
+			r:    &Row{Data: map[string]any{"x": "hello world", "z": 1, "y": 2}},
+			keys: []string{"x"},
+			want: "hello world",
+		},
+		{
+			name: "one qualified - not found",
+			r:    &Row{Data: map[string]any{"x": 1, "y": 2}, isQualified: true},
+			keys: []string{"x.x"},
+		},
+		{
+			name: "one qualified - found",
+			r:    &Row{Data: map[string]any{"x.y": "hello world", "x": 1, "y": 2}, isQualified: true},
+			keys: []string{"x.y"},
+			want: "hello world",
+		},
+		{
+			name: "multiple - not found",
+			r:    &Row{Data: map[string]any{"z": 1, "y": 2}},
+			keys: []string{"x", "q"},
+			want: "|",
+		},
+		{
+			name: "multiple - found",
+			r:    &Row{Data: map[string]any{"x": "hello world", "z": true, "y": 2}},
+			keys: []string{"x", "y", "z"},
+			want: "hello world|2|true",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.r.KeyValueForFields(tc.keys)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestRow_MatchFields(t *testing.T) {
+	t.Parallel()
+
+	t1 := &schema.Table{Object: schema.Object{
+		Parent: schema.Parent{ID: "t1"},
+		Fields: []*schema.Field{
+			{Object: schema.Object{Parent: schema.Parent{ID: "a"}}, Type: enums.BooleanType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "b"}}, Type: enums.IntegerType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "c"}}, Type: enums.StringType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "x"}}, Type: enums.StringType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "y"}}, Type: enums.IntegerType},
+			{Object: schema.Object{Parent: schema.Parent{ID: "z"}}, Type: enums.UnsignedIntegerType},
+		},
+	}}
+
+	t1.Fix(nil)
+
+	def1 := &t1.Object
+
+	r1 := &Row{
+		Data: map[string]any{"z": 1, "y": 2, "x": "hello world", "a": true, "b": 123, "c": 77.88},
+		def:  def1,
+	}
+
+	r2 := &Row{
+		Data:        map[string]any{"t1.z": 1, "t1.y": 2, "t1.x": "hello world", "t1.a": true, "t1.b": 123, "t1.c": 77.88, "x": 0},
+		def:         def1,
+		isQualified: true,
+	}
+
+	testCases := []struct {
+		name    string
+		r       *Row
+		matcher matching.FieldMatcher
+		want    *Row
+	}{
+		{
+			name:    "always",
+			r:       r1,
+			matcher: matching.NewFieldMatcher("*"),
+			want:    r1,
+		},
+		{
+			name:    "single unqualified",
+			r:       r1,
+			matcher: matching.NewFieldMatcher("x"),
+			want: &Row{
+				Data: map[string]any{"x": "hello world"},
+				def:  def1,
+			},
+		},
+		{
+			name:    "few unqualified",
+			r:       r1,
+			matcher: matching.NewFieldMatcher("x,a,c"),
+			want: &Row{
+				Data: map[string]any{"x": "hello world", "a": true, "c": 77.88},
+				def:  def1,
+			},
+		},
+		{
+			name:    "single qualified",
+			r:       r2,
+			matcher: matching.NewFieldMatcher("t1.c"),
+			want: &Row{
+				Data:        map[string]any{"t1.c": 77.88},
+				def:         def1,
+				isQualified: true,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.r.MatchFields(tc.matcher)
+			assert.Equal(t, tc.want.def, got.def)
+			assert.Equal(t, tc.want.isQualified, got.isQualified)
+			assert.EqualValues(t, tc.want.Data, got.Data)
 		})
 	}
 }

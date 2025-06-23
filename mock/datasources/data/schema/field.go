@@ -157,16 +157,22 @@ type encodeField struct {
 	AllowedValues []any           `json:"allowedValues,omitempty" yaml:"allowedValues,omitempty"`
 }
 
-// Fix (re)sets the parent-child relationships for this object.
-func (f *Field) Fix(parent *Object, table *Table, field *Field) {
+// Fix (re)sets the parent-child relationships for this field.
+func (f *Field) Fix(table *Table, field *Field) {
 	f.mutex.Lock()
-	f.fix(parent, table, field)
+	f.fix(table, field)
 	f.mutex.Unlock()
 }
 
-func (f *Field) fix(parent *Object, table *Table, field *Field) {
-	f.Object.Fix(&f.Parent, nil, f) // fix child fields (if any).
-	f.parent = &parent.Parent
-	f.parentTable = table
-	f.parentField = field
+func (f *Field) fix(table *Table, field *Field) {
+	if table != nil {
+		f.parentTable = table
+		f.Object.Fix(&table.Parent)
+	}
+	if field != nil {
+		f.parentField = field
+		f.Object.Fix(&field.Parent)
+	}
+
+	f.Object.FixFields(nil, f) // fix child fields (if any).
 }

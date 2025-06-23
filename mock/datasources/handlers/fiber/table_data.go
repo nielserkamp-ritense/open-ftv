@@ -39,7 +39,7 @@ func (h *dataHandler) GetRecords(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
-	reqCtx, err2 := buildRequestContext(req, t.Definition().Datasource(), "")
+	reqCtx, err2 := buildRequestContext(req, t.Definition().ID)
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
 	}

@@ -13,7 +13,7 @@ type AllOfFilter struct {
 
 // String implements the Stringer interface.
 func (a *AllOfFilter) String() string {
-	return fmt.Sprintf("AllOf: %v", a.AllOf)
+	return fmt.Sprintf("{allOf:%v}", a.AllOf)
 }
 
 // Prepare implements the Filterer interface.

@@ -4,11 +4,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/context"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/decode"
 )
 
-func buildRequestContext(req *fiber.Ctx, ds *schema.Datasource, primary string) (*context.RequestContext, error) {
+func buildRequestContext(req *fiber.Ctx, primary string) (*context.RequestContext, error) {
 	query := req.Queries()
 
 	var body map[string]any
@@ -19,5 +18,5 @@ func buildRequestContext(req *fiber.Ctx, ds *schema.Datasource, primary string) 
 		}
 	}
 
-	return context.New(query, body, ds, primary)
+	return context.New(query, body, primary)
 }

@@ -26,7 +26,7 @@ func NewEndpointHandler(s store.Storage, logger *slog.Logger, def *schema.Endpoi
 func (h *endpointHandler) Handle(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EndpointVersion)
 
-	reqCtx, err := buildRequestContext(req, h.def.GetDatasource(), h.def.Table)
+	reqCtx, err := buildRequestContext(req, h.def.Table)
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}

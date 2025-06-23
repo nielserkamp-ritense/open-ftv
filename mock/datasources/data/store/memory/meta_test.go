@@ -80,7 +80,7 @@ func TestStorage_AddEndpoint(t *testing.T) {
 			FullVersion: "1.0.0",
 			Description: "my endpoint",
 			Datasource:  "ds1",
-			Table:       "t1",
+			Table:       "persoon",
 		}
 
 		s1 := &storage{endpoints: make(map[string]*schema.Endpoint)}

@@ -25,6 +25,8 @@ func TestObject_IterateFields(t *testing.T) {
 			},
 		}
 
+		o.fixFields(nil, nil)
+
 		var count int
 		o.IterateFields(func(field *Field) {
 			count++
@@ -95,11 +97,10 @@ func TestObject_Fix(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			tc.o.Fix(tc.parent, tc.table, tc.field)
+			tc.o.Fix(tc.parent)
+			tc.o.FixFields(tc.table, tc.field)
 
 			assert.Equal(t, tc.parent, tc.o.parent)
-			assert.Equal(t, tc.table, tc.o.parentTable)
-			assert.Equal(t, tc.field, tc.o.parentField)
 
 			for _, field := range tc.o.Fields {
 				f, ok := tc.o.fields[field.ID]

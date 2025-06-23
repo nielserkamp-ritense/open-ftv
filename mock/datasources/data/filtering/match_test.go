@@ -14,6 +14,28 @@ func TestFieldValueFilter_MatchOnPrimaryData(t *testing.T) {
 
 	f1 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType}
 
+	tr1 := &schema.Transformation{
+		Object:             schema.Object{Parent: schema.Parent{ID: "tr1"}},
+		TransformationType: enums.TransformAge,
+		ResultType:         enums.IntegerType,
+		IsPII:              true,
+		InputFields:        map[int]string{1: "f1"},
+	}
+
+	t1 := &schema.Table{
+		Object: schema.Object{
+			Parent: schema.Parent{ID: "t1"},
+			Fields: []*schema.Field{f1},
+		},
+		Transforms: []*schema.Transformation{tr1},
+	}
+
+	ds := &schema.Datasource{
+		Parent: schema.Parent{ID: "ds"},
+		Tables: []*schema.Table{t1},
+	}
+	ds.Fix(nil)
+
 	testCases := []struct {
 		name string
 		f    *FieldValueFilter
@@ -32,9 +54,15 @@ func TestFieldValueFilter_MatchOnPrimaryData(t *testing.T) {
 			data: map[string]any{},
 		},
 		{
-			name: "exists - found",
+			name: "field exists - found",
 			f:    &FieldValueFilter{Level: enums.AnyLevel, field: f1, Compare: enums.Exists},
 			data: map[string]any{"f1": "hello world"},
+			want: true,
+		},
+		{
+			name: "transform exists - found",
+			f:    &FieldValueFilter{Level: enums.AnyLevel, transform: tr1, Compare: enums.Exists},
+			data: map[string]any{"tr1": "hello world"},
 			want: true,
 		},
 	}

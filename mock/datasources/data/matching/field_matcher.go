@@ -1,6 +1,7 @@
 package matching
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 // FieldMatcher represents the interface to test if a field identifier matches a given expression.
 type FieldMatcher interface {
+	String() string
 	Always() bool
 	Match(id string) bool
 }
@@ -43,6 +45,47 @@ type matcher struct {
 	always bool
 	exact  []string
 	rx     []*regexp.Regexp
+}
+
+// String implements the Stringer interface.
+func (m *matcher) String() string {
+	b := bytes.Buffer{}
+	b.Grow(len(m.exact)*20 + len(m.rx)*20)
+
+	b.WriteByte('{')
+
+	if m.always {
+		b.WriteString("always:true")
+	} else {
+		if len(m.exact) > 0 {
+			b.WriteString("exact:[")
+			for i := range m.exact {
+				if i > 0 {
+					b.WriteByte(',')
+				}
+				b.WriteString(m.exact[i])
+			}
+			b.WriteByte(']')
+		}
+
+		if len(m.rx) > 0 {
+			if len(m.exact) > 0 {
+				b.WriteByte(',')
+			}
+
+			b.WriteString("regex:[")
+			for i := range m.rx {
+				if i > 0 {
+					b.WriteByte(',')
+				}
+				b.WriteString(m.rx[i].String())
+			}
+			b.WriteByte(']')
+		}
+	}
+
+	b.WriteByte('}')
+	return b.String()
 }
 
 // Always implements the FieldMatcher interface.

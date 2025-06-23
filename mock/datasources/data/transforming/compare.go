@@ -7,54 +7,54 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
-func (p *runner) compare() any {
-	v1, t1 := p.getValueAndType(1)
+func (r *runner) compare() any {
+	v1, t1 := r.getValueAndType(1)
 
-	switch p.transform.CompareType {
+	switch r.transform.CompareType {
 	case enums.Exists:
-		return v1 != nil
+		return r.fixResultType(v1 != nil)
 	case enums.NotExists:
-		return v1 == nil
+		return r.fixResultType(v1 == nil)
 
 	case enums.InList, enums.NotInList:
-		v2, _ := p.getValueAndType(2)
+		v2, _ := r.getValueAndType(2)
 		if v1 == nil || v2 == nil {
 			return nil
 		}
 
-		return compare.Compare(compare.Params{
+		return r.fixResultType(compare.Compare(compare.Params{
 			Type:        t1,
-			Compare:     p.transform.CompareType,
-			Insensitive: p.transform.Insensitive,
+			Compare:     r.transform.CompareType,
+			Insensitive: r.transform.Insensitive,
 			Input:       v1,
 			Values:      convertList(v2),
-		})
+		}))
 
 	case enums.IsLike, enums.IsNotLike, enums.MatchRegex, enums.NotMatchRegex:
 		if v1 == nil {
 			return nil
 		}
 
-		return compare.Compare(compare.Params{
+		return r.fixResultType(compare.Compare(compare.Params{
 			Type:    t1,
-			Compare: p.transform.CompareType,
+			Compare: r.transform.CompareType,
 			Input:   v1,
-			RX:      p.transform.GetRX(),
-		})
+			RX:      r.transform.GetRX(),
+		}))
 
 	default:
-		v2, _ := p.getValueAndType(2)
+		v2, _ := r.getValueAndType(2)
 		if v1 == nil || v2 == nil {
 			return nil
 		}
 
-		return compare.Compare(compare.Params{
+		return r.fixResultType(compare.Compare(compare.Params{
 			Type:        t1,
-			Compare:     p.transform.CompareType,
-			Insensitive: p.transform.Insensitive,
+			Compare:     r.transform.CompareType,
+			Insensitive: r.transform.Insensitive,
 			Input:       v1,
 			Value:       v2,
-		})
+		}))
 	}
 }
 

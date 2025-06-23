@@ -34,7 +34,7 @@ func (h *tableHandler) GetTables(req *fiber.Ctx) error {
 
 	var list models.Rows
 	for _, source := range sources {
-		reqCtx, err := buildRequestContext(req, source.Definition(), "")
+		reqCtx, err := buildRequestContext(req, "")
 		if err != nil {
 			return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 		}
@@ -61,12 +61,20 @@ func (h *tableHandler) GetTable(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, "invalid table key")
 	}
 
-	t, err := h.s.GetTable(key)
+	reqCtx, err := buildRequestContext(req, "")
 	if err != nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	return buildContent(req, t)
+	t, err2 := h.s.GetTable(key)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+	}
+
+	if r := t.AsRow(); r.MatchPrimary(reqCtx.Filter) {
+		return buildContent(req, r.MatchFields(reqCtx.Matcher))
+	}
+	return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching table found")
 }
 
 // PutTable implements the TablesHandler interface.
