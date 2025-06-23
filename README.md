@@ -36,7 +36,7 @@ Install the following tools
 
 ### Building
 
-To build everything this command from the root directory
+To build everything this command from the root directory.
 
 ```shell
 make all

@@ -1,0 +1,9 @@
+apis:
+  policies@v1:
+    root: ../../oas/policies/openapi.yaml
+    x-openapi-ts:
+      output: ./src/oas/policies.ts
+  attributes@v1:
+    root: ../../oas/attributes/openapi.yaml
+    x-openapi-ts:
+          output: ./src/oas/attributes.ts
