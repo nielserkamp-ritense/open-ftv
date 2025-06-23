@@ -28,7 +28,7 @@ func NewDataspaceHandler(s store.Storage, logger *slog.Logger) DataspaceHandler 
 func (h *dataspaceHandler) GetDataspace(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, DataspaceVersion)
 
-	reqCtx, err := buildRequestContext(req, nil, "")
+	reqCtx, err := buildRequestContext(req, "")
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}

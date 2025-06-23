@@ -35,7 +35,7 @@ func (h *datasourceHandler) GetDatasources(req *fiber.Ctx) error {
 
 	var list models.Rows
 	for _, source := range sources {
-		reqCtx, err := buildRequestContext(req, source.Definition(), "")
+		reqCtx, err := buildRequestContext(req, "")
 		if err != nil {
 			return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 		}
@@ -65,7 +65,15 @@ func (h *datasourceHandler) GetDatasource(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, fmt.Sprintf("datasource [%s] not found", key))
 	}
 
-	return buildContent(req, d)
+	reqCtx, err := buildRequestContext(req, "")
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	if r := d.AsRow(); r.MatchPrimary(reqCtx.Filter) {
+		return buildContent(req, r.MatchFields(reqCtx.Matcher))
+	}
+	return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching datasource found")
 }
 
 // PutDatasource implements the DatasourcesHandler interface.

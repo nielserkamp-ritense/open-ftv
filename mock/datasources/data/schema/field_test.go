@@ -108,7 +108,7 @@ func TestField_Fix(t *testing.T) {
 			t.Parallel()
 
 			f := tc.field
-			f.Fix(tc.parent, tc.parentTable, tc.parentField)
+			f.Fix(tc.parentTable, tc.parentField)
 
 			assert.Equal(t, &tc.parent.Parent, f.parent)
 			assert.Equal(t, tc.parentTable, f.parentTable)

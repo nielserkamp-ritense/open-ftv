@@ -8,7 +8,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
@@ -29,57 +28,81 @@ type RequestContext struct {
 //
 // Special values in the body are either appended to the corresponding query value (field filter)
 // or overwrite the corresponding query value (filter & params).
-func New(query map[string]string, body map[string]any, ds *schema.Datasource, primary string) (*RequestContext, error) {
+func New(query map[string]string, body map[string]any, primary string) (*RequestContext, error) {
 	var fields string
 	var params map[string]any
+	var filter filtering.Filterer
 
 	if query != nil {
-		fields = query["@fields"]
-		delete(query, "@fields")
+		if fields2, ok := query["@fields"]; ok {
+			delete(query, "@fields")
+			fields = fields2
+		}
 
-		params = convertParams(query["@params"])
-		delete(query, "@params")
+		if params2, ok := query["@params"]; ok {
+			delete(query, "@params")
+			params = convertParams(params2)
+		}
 	}
 
 	if body != nil {
 		if fields2, ok := body["@fields"]; ok {
-			fields = strings.Join([]string{fields, convert.AnyToString(fields2)}, ",")
 			delete(body, "@fields")
+			fields = strings.Join([]string{fields, convert.AnyToString(fields2)}, ",")
 		}
 
 		if params2, ok := body["@params"]; ok {
-			m := convertParams(convert.AnyToString(params2))
-			maps.Insert(params, maps.All(m))
 			delete(body, "@params")
-		}
 
-		if filter, ok := body["@filter"]; ok {
-			if m2, ok2 := filter.(map[string]any); ok2 {
-				b, _ := json.Marshal(m2)
-				query["@filter"] = string(b)
+			m := convertParams(params2)
+			if params == nil {
+				params = m
 			} else {
-				query["@filter"] = convert.AnyToString(filter)
+				maps.Insert(params, maps.All(m))
 			}
-			delete(body, "@filter")
 		}
 
+		if filter2, ok := body["@filter"]; ok {
+			delete(body, "@filter")
+
+			switch t := filter2.(type) {
+			case string:
+				filter = filtering.FilterFromAny(primary, t)
+			case filtering.Filterer:
+				filter = t
+			case map[string]any:
+				filter = filtering.FilterFromMap(primary, t)
+			default:
+				filter = filtering.FilterFromAny(primary, convert.AnyToString(filter2))
+			}
+		}
+	}
+
+	if filter == nil {
+		// use an optional filter from the query only if the body didn't produce a filter.
+		filter = filtering.FilterFromQuery(primary, query)
 	}
 
 	return &RequestContext{
-		Filter:        filtering.FilterFromQuery(ds, primary, query),
+		Filter:        filter,
 		Matcher:       matching.NewFieldMatcher(fields),
 		Params:        params,
 		RemainingBody: body,
 	}, nil
 }
 
-func convertParams(in string) map[string]any {
+func convertParams(in any) map[string]any {
+	if m, ok := in.(map[string]any); ok {
+		return m
+	}
+
+	s := convert.AnyToString(in)
 	out := make(map[string]any)
-	if err := json.Unmarshal([]byte(in), &out); err == nil {
+	if err := json.Unmarshal([]byte(s), &out); err == nil {
 		return out
 	}
 
-	parts := strings.Split(in, ",")
+	parts := strings.Split(s, ",")
 	for i := range parts {
 		kv := strings.Split(parts[i], "=")
 		if len(kv) == 2 {

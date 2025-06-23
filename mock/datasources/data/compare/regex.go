@@ -9,23 +9,23 @@ import (
 )
 
 // RXFromLike builds a regular expression for a 'like' comparison.
-func RXFromLike(in string) (*regexp.Regexp, error) {
+func RXFromLike(in any) (*regexp.Regexp, error) {
 	return buildRX(likeReplacer.Replace(convert.AnyToString(in)))
 }
 
 // RXFromString builds a regular expression for a 'regex' comparison.
-func RXFromString(in string) (*regexp.Regexp, error) {
+func RXFromString(in any) (*regexp.Regexp, error) {
 	return buildRX(convert.AnyToString(in))
 }
 
-func buildRX(s string) (*regexp.Regexp, error) {
-	if !strings.HasPrefix(s, "^") {
-		s = fmt.Sprintf("^%s", s)
+func buildRX(in string) (*regexp.Regexp, error) {
+	if !strings.HasPrefix(in, "^") {
+		in = fmt.Sprintf("^%s", in)
 	}
-	if !strings.HasSuffix(s, "$") {
-		s = fmt.Sprintf("%s$", s)
+	if !strings.HasSuffix(in, "$") {
+		in = fmt.Sprintf("%s$", in)
 	}
-	return regexp.Compile(s)
+	return regexp.Compile(in)
 }
 
 var likeReplacer = strings.NewReplacer(".", "\\.", "+", "\\+", "(", "\\(", ")", "\\)", "[", "\\[", "]", "\\]", "{", "\\{", "}", "\\}", "%", ".*", "*", ".*", "?", ".")

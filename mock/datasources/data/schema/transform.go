@@ -207,8 +207,10 @@ func (t *Transformation) Fix(table *Table) {
 
 func (t *Transformation) fix(table *Table) {
 	if table != nil {
-		t.Object.fix(&table.Parent, table, nil)
+		t.Object.fix(&table.Parent)
+		t.Object.parentTable = table
 
+		t.Object.fields = make(map[string]*Field, len(t.InputFields))
 		for i := range t.InputFields {
 			id := t.InputFields[i]
 			if f := table.fields[id]; f != nil {
@@ -226,9 +228,9 @@ func (t *Transformation) fix(table *Table) {
 
 		switch t.CompareType {
 		case enums.IsLike, enums.IsNotLike:
-			t.rx, _ = compare.RXFromLike(convert.AnyToString(t.InputValues[2]))
+			t.rx, _ = compare.RXFromLike(t.InputValues[2])
 		case enums.MatchRegex, enums.NotMatchRegex:
-			t.rx, _ = compare.RXFromString(convert.AnyToString(t.InputValues[2]))
+			t.rx, _ = compare.RXFromString(t.InputValues[2])
 		default:
 		}
 	}

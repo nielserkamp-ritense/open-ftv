@@ -5,21 +5,27 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
 )
 
-func (p *runner) convert() any {
-	v, _ := p.getValueAndType(1)
+func (r *runner) convert() any {
+	v, _ := r.getValueAndType(1)
+	if v == nil {
+		return nil
+	}
+	return r.fixResultType(v)
+}
 
-	switch p.transform.ResultType {
+func (r *runner) fixResultType(in any) any {
+	switch r.transform.ResultType {
 	case enums.IntegerType:
-		return convert.AnyToInt64(v)
+		return convert.AnyToInt64(in)
 	case enums.UnsignedIntegerType:
-		return convert.AnyToUint64(v)
+		return convert.AnyToUint64(in)
 	case enums.FloatType:
-		return convert.AnyToFloat64(v)
+		return convert.AnyToFloat64(in)
 	case enums.BooleanType:
-		return convert.AnyToBool(v)
+		return convert.AnyToBool(in)
 	case enums.DateType, enums.TimeType, enums.DateTimeType:
-		return convert.AnyToDateTime(v)
+		return convert.AnyToDateTime(in)
 	default:
-		return convert.AnyToString(v)
+		return convert.AnyToString(in)
 	}
 }

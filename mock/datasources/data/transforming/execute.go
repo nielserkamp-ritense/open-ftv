@@ -14,26 +14,26 @@ func Execute(rec map[string]any, qualified bool, transform *schema.Transformatio
 	return p.rec
 }
 
-func (p *runner) run() any {
-	switch p.transform.TransformationType {
+func (r *runner) run() any {
+	switch r.transform.TransformationType {
 	case enums.TransformCompare:
-		return p.compare()
+		return r.compare()
 	case enums.TransformConvert:
-		return p.convert()
+		return r.convert()
 	case enums.TransformAge:
-		return p.age()
+		return r.age()
 	default:
 		return nil
 	}
 }
 
-func (p *runner) addResult(v any) {
+func (r *runner) addResult(v any) {
 	// for the value nil, we must suppress the output!
 	if v != nil {
-		if p.qualified {
-			p.rec[p.transform.FQID()] = v
+		if r.qualified {
+			r.rec[r.transform.FQID()] = v
 		} else {
-			p.rec[p.transform.ID] = v
+			r.rec[r.transform.ID] = v
 		}
 	}
 }

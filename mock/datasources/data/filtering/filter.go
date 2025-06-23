@@ -14,13 +14,13 @@ type Filter struct {
 	AnyOfFilter
 }
 
-// FilterFromValue attempts to convert the given input to a filter.
+// FilterFromAny attempts to convert the given input to a filter.
 //
 // This function will attempt to decode the input in the following sequence:
 // - as JSON format
 // - as YAML format
 // - as text format (work-in-progress)
-func FilterFromValue(in string) *Filter {
+func FilterFromAny(primary, in string) *Filter {
 	out := new(Filter)
 
 	// try JSON decoding.
@@ -33,9 +33,7 @@ func FilterFromValue(in string) *Filter {
 		return out
 	}
 
-	// TODO: textual format
-
-	return out
+	return FilterFromString(primary, in)
 }
 
 // String implements the Stringer interface.

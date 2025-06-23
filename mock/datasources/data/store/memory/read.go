@@ -21,13 +21,8 @@ func (s *storage) SelectPK(tableID string, pk []any, matcher matching.FieldMatch
 		return nil, fmt.Errorf("selectPK: field count mismatch")
 	}
 
-	t, err2 := s.findUnqualifiedTable(table.Definition().ID)
-	if err2 != nil {
-		return nil, fmt.Errorf("selectPK: %w", err2)
-	}
-
 	key := models.KeyFromData(pk, table.Definition().PrimaryKey)
-	if rec := t.PK[key]; rec != nil {
+	if rec := table.PK[key]; rec != nil {
 		return rec.MatchFields(matcher), nil
 	}
 	return nil, fmt.Errorf("selectPK: primary key %v not found", pk)
@@ -49,13 +44,8 @@ func (s *storage) SelectIX(tableID string, id string, keys []any, matcher matchi
 		return nil, fmt.Errorf("selectIX: field count mismatch")
 	}
 
-	t, err2 := s.findUnqualifiedTable(table.Definition().ID)
-	if err2 != nil {
-		return nil, fmt.Errorf("selectIX: %w", err2)
-	}
-
 	key := models.KeyFromData(keys, index)
-	if indexData := t.Indexes[id]; indexData != nil {
+	if indexData := table.Indexes[id]; indexData != nil {
 		if list := indexData[key]; len(list) > 0 {
 			return list.MatchFields(matcher), nil
 		}
@@ -70,15 +60,9 @@ func (s *storage) Search(tableID string, reqCtx *context.RequestContext) (models
 		return nil, fmt.Errorf("search: %w", err)
 	}
 
-	def := table.Definition()
-	t, err2 := s.findTable(def.Parent.ID, def.ID)
-	if err2 != nil {
-		return nil, fmt.Errorf("search: %w", err2)
-	}
-
 	var out models.Rows
-	for i := range t.Data {
-		rec := t.Data[i]
+	for i := range table.Data {
+		rec := table.Data[i]
 		// vertical data-minimalization.
 		if rec.MatchPrimary(reqCtx.Filter) {
 			// horizontal data-minimalization.

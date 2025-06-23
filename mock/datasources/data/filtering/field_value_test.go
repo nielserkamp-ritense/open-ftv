@@ -71,7 +71,7 @@ func TestExists(t *testing.T) {
 			require.NotNil(t, got)
 
 			if tc.table != "" {
-				got2 := got.OnTable(tc.table)
+				got2 := got.OnAnyTable(tc.table)
 				require.Equal(t, got, got2)
 			}
 			if tc.join != "" {
@@ -225,19 +225,40 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 	f2 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.IntegerType}
 	f3 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.BooleanType}
 	f4 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "f4"}}, Type: enums.StringType}
+	f5 := &schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "geboortedatum"}}, Type: enums.DateType}
+
+	tr1 := &schema.Transformation{
+		Object:             schema.Object{Parent: schema.Parent{ID: "leeftijd"}},
+		TransformationType: enums.TransformAge,
+		ResultType:         enums.IntegerType,
+		IsPII:              true,
+		InputFields:        map[int]string{1: "geboortedatum"},
+	}
+
+	tr2 := &schema.Transformation{
+		Object:             schema.Object{Parent: schema.Parent{ID: "volwassen"}},
+		TransformationType: enums.TransformCompare,
+		ResultType:         enums.BooleanType,
+		CompareType:        enums.IsGreaterOrEqual,
+		IsPII:              true,
+		InputFields:        map[int]string{1: "leeftijd"},
+		InputValues:        map[int]any{2: 18},
+	}
 
 	t1 := &schema.Table{
 		Object: schema.Object{
 			Parent: schema.Parent{ID: "t1"},
-			Fields: []*schema.Field{f1, f2, f3},
+			Fields: []*schema.Field{f1, f2, f3, f5},
 		},
+		Transforms: []*schema.Transformation{tr1},
 	}
 
 	t2 := &schema.Table{
 		Object: schema.Object{
 			Parent: schema.Parent{ID: "t2"},
-			Fields: []*schema.Field{f4, f1},
+			Fields: []*schema.Field{f4, f1, f5},
 		},
+		Transforms: []*schema.Transformation{tr1, tr2},
 	}
 
 	ds := &schema.Datasource{
@@ -256,16 +277,17 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 	j3.Fix(ds)
 
 	testCases := []struct {
-		name      string
-		f         *FieldValueFilter
-		ds        *schema.Datasource
-		joins     []*schema.Join
-		wantErr   bool
-		wantTable *schema.Table
-		wantJoin  *schema.Join
-		wantField *schema.Field
-		wantRX    string
-		wantList  map[string]struct{}
+		name          string
+		f             *FieldValueFilter
+		ds            *schema.Datasource
+		joins         []*schema.Join
+		wantErr       bool
+		wantTable     *schema.Table
+		wantJoin      *schema.Join
+		wantField     *schema.Field
+		wantTransform *schema.Transformation
+		wantRX        string
+		wantList      map[string]struct{}
 	}{
 		{
 			name:    "table and join",
@@ -349,6 +371,13 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 			wantField: f1,
 		},
 		{
+			name:          "good table, good transform",
+			f:             &FieldValueFilter{Level: enums.AnyLevel, Table: "t2", Field: "volwassen", Compare: enums.IsEqual, Value: true},
+			ds:            ds,
+			wantTable:     t2,
+			wantTransform: tr2,
+		},
+		{
 			name:    "join at wrong level",
 			f:       &FieldValueFilter{Level: enums.PrimaryLevel, Join: "join", Compare: enums.Exists},
 			ds:      ds,
@@ -397,6 +426,12 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "duplicate transform",
+			f:       &FieldValueFilter{Field: "leeftijd", Compare: enums.Exists},
+			ds:      ds,
+			wantErr: true,
+		},
+		{
 			name:    "unknown field table",
 			f:       &FieldValueFilter{Field: "xyz.f1", Compare: enums.Exists},
 			ds:      ds,
@@ -415,6 +450,20 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 			wantTable: t1,
 			wantField: f2,
 			wantList:  map[string]struct{}{"1": {}, "2.34": {}, "true": {}},
+		},
+		{
+			name:          "equal with value",
+			f:             &FieldValueFilter{Field: "volwassen", Compare: enums.IsEqual, Value: true},
+			ds:            ds,
+			wantTable:     t2,
+			wantTransform: tr2,
+		},
+		{
+			name:          "exists",
+			f:             &FieldValueFilter{Field: "t2.leeftijd", Compare: enums.Exists},
+			ds:            ds,
+			wantTable:     t2,
+			wantTransform: tr1,
 		},
 		{
 			name:      "like with a value",
@@ -446,6 +495,7 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 				assert.Equal(t, tc.wantTable, tc.f.table)
 				assert.Equal(t, tc.wantJoin, tc.f.join)
 				assert.Equal(t, tc.wantField, tc.f.field)
+				assert.Equal(t, tc.wantTransform, tc.f.transform)
 
 				if tc.wantRX != "" {
 					assert.Equal(t, tc.wantRX, tc.f.rx.String())
@@ -453,6 +503,81 @@ func TestFieldValueFilter_Prepare(t *testing.T) {
 
 				assert.EqualValues(t, tc.wantList, tc.f.list)
 			}
+		})
+	}
+}
+
+func TestFieldValueFilter_String(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		f    *FieldValueFilter
+		want string
+	}{
+		{
+			name: "primary equal",
+			f: &FieldValueFilter{
+				Level:       enums.PrimaryLevel,
+				Insensitive: true,
+				Field:       "voornaam",
+				Compare:     enums.IsEqual,
+				Value:       "pieter",
+			},
+			want: "{level=primary,case-insensitive,field=voornaam,compare-type=IsEqual,value=pieter}",
+		},
+		{
+			name: "primary in list",
+			f: &FieldValueFilter{
+				Level:       enums.PrimaryLevel,
+				Insensitive: true,
+				Field:       "voornaam",
+				Compare:     enums.InList,
+				Values:      []any{"pieter", "piet", "pietje"},
+			},
+			want: "{level=primary,case-insensitive,field=voornaam,compare-type=InList,values=[pieter piet pietje]}",
+		},
+		{
+			name: "primary exists",
+			f: &FieldValueFilter{
+				Level:       enums.PrimaryLevel,
+				Insensitive: true,
+				Field:       "bsn",
+				Compare:     enums.Exists,
+			},
+			want: "{level=primary,case-insensitive,field=bsn,compare-type=Exists}",
+		},
+		{
+			name: "join not equal",
+			f: &FieldValueFilter{
+				Level:       enums.JoinLevel,
+				Insensitive: true,
+				Join:        "adres",
+				Field:       "postcode",
+				Compare:     enums.IsNotEqual,
+				Value:       "9999zz",
+			},
+			want: "{level=join,case-insensitive,join=adres,field=postcode,compare-type=IsNotEqual,value=9999zz}",
+		},
+		{
+			name: "table regex",
+			f: &FieldValueFilter{
+				Level:   enums.AnyLevel,
+				Table:   "adres",
+				Field:   "postcode",
+				Compare: enums.MatchRegex,
+				Value:   "(1111|2222|3333)[a-z][a-z]",
+			},
+			want: "{level=any,table=adres,field=postcode,compare-type=MatchRegex,value=(1111|2222|3333)[a-z][a-z]}",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.f.String()
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }

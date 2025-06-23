@@ -13,7 +13,7 @@ type AnyOfFilter struct {
 
 // String implements the Stringer interface.
 func (a *AnyOfFilter) String() string {
-	return fmt.Sprintf("AnyOf: %v", a.AnyOf)
+	return fmt.Sprintf("{anyOf:%v}", a.AnyOf)
 }
 
 // Prepare implements the Filterer interface.

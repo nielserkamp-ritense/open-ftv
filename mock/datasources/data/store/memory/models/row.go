@@ -151,9 +151,14 @@ func (r *Row) MatchFields(matcher matching.FieldMatcher) *Row {
 	}
 
 	r.def.IterateFields(func(f *schema.Field) {
-		if matcher.Match(f.ID) {
-			out.Data[f.ID] = r.Data[f.ID]
-			out.def.Fields = append(out.def.Fields, f)
+		if out.isQualified {
+			if matcher.Match(f.FQID()) {
+				out.Data[f.FQID()] = r.Data[f.FQID()]
+			}
+		} else {
+			if matcher.Match(f.ID) {
+				out.Data[f.ID] = r.Data[f.ID]
+			}
 		}
 	})
 	return out

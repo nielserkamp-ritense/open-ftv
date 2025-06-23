@@ -45,6 +45,7 @@ func (s *Datasource) AsRow() *Row {
 		&fieldDefDescription,
 		&fieldDefTables,
 	}}
+	def.FixFields(nil, nil)
 
 	out := &Row{Data: make(map[string]any), def: def}
 

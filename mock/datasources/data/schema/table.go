@@ -156,11 +156,13 @@ func (t *Table) Fix(d *Datasource) {
 
 func (t *Table) fix(d *Datasource) {
 	if d == nil {
-		t.Object.fix(nil, nil, nil)
+		t.Object.fix(nil)
 	} else {
-		t.Object.fix(&d.Parent, nil, nil)
+		t.Object.fix(&d.Parent)
 		t.parentSource = d
 	}
+
+	t.Object.fixFields(t, nil)
 
 	if t.PrimaryKey != nil {
 		t.PrimaryKey.Fix(t)

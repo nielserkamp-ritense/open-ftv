@@ -7,68 +7,71 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
 )
 
-func (p *runner) getValueAndType(i int) (any, enums.FieldType) {
-	if v, tp, ok := p.getFieldValueAndType(i); ok {
+func (r *runner) getValueAndType(i int) (any, enums.FieldType) {
+	if v, tp, ok := r.getFieldValueAndType(i); ok {
 		return v, tp
 	}
 
-	if v, tp, ok := p.getTransformValueAndType(i); ok {
+	if v, tp, ok := r.getTransformValueAndType(i); ok {
 		return v, tp
 	}
 
-	return p.testType(p.transform.InputValues[i])
+	return r.testType(r.transform.InputValues[i])
 }
 
-func (p *runner) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
-	id, ok := p.transform.InputFields[i]
+func (r *runner) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
+	id, ok := r.transform.InputFields[i]
 	if !ok {
 		return nil, 0, false
 	}
 
-	f := p.transform.GetField(id)
+	f := r.transform.GetField(id)
 	if f == nil {
 		return nil, 0, false
 	}
 
 	var v any
-	if p.qualified {
-		v = p.rec[f.FQID()]
+	if r.qualified {
+		v = r.rec[f.FQID()]
 	} else {
-		v = p.rec[f.ID]
+		v = r.rec[f.ID]
 	}
 	return v, f.Type, true
 }
 
-func (p *runner) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
-	id, ok := p.transform.InputTransforms[i]
+func (r *runner) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
+	id, ok := r.transform.InputTransforms[i]
 	if !ok {
 		return nil, 0, false
 	}
 
-	transform := p.transform.GetTransformation(id)
+	transform := r.transform.GetTransformation(id)
 	if transform == nil {
 		return nil, 0, false
 	}
 
 	var v any
-	if p.qualified {
-		v = p.rec[transform.FQID()]
-	} else {
-		v = p.rec[transform.ID]
+	if r.qualified {
+		v = r.rec[transform.FQID()]
+	}
+
+	if !r.qualified || v == nil {
+		v = r.rec[transform.ID]
 	}
 
 	if v != nil {
 		return v, transform.ResultType, true
 	}
 
-	p2 := &runner{rec: p.rec, qualified: p.qualified, transform: transform}
+	// if the transformation hasn't been executed yet, we'll force it here.
+	p2 := &runner{rec: r.rec, qualified: r.qualified, transform: transform}
 	return p2.run(), transform.ResultType, true
 }
 
-func (p *runner) testType(in any) (any, enums.FieldType) {
+func (r *runner) testType(in any) (any, enums.FieldType) {
 	switch t := in.(type) {
 	case string:
-		return p.testParameter(t)
+		return r.testParameter(t)
 	case bool:
 		return t, enums.BooleanType
 	case int, int8, int16, int32, int64:
@@ -84,11 +87,11 @@ func (p *runner) testType(in any) (any, enums.FieldType) {
 	}
 }
 
-func (p *runner) testParameter(s string) (any, enums.FieldType) {
+func (r *runner) testParameter(s string) (any, enums.FieldType) {
 	// a string like ":xyz:" represents a parameter with the key "xyz".
 	if strings.HasPrefix(s, ":") && strings.HasSuffix(s, ":") {
-		if v, ok := p.params[s[1:len(s)-1]]; ok {
-			return p.testType(v)
+		if v, ok := r.params[s[1:len(s)-1]]; ok {
+			return r.testType(v)
 		}
 		return nil, enums.AnyType
 	}
