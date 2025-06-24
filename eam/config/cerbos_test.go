@@ -16,10 +16,11 @@ func TestCerbos(t *testing.T) {
 	const goodCfg = `
 cerbos:
   address: "https://localhost:1234"
-  adminAddress: "https://localhost:1234/admin"
   ca: "/etc/ssl/certs/ca.crt"
-  adminUser: "mickey"
-  adminPassword: "mouse"
+  admin:
+    address: "https://localhost:1234/admin"
+    user: "mickey"
+    password: "mouse"
 `
 
 	dir := t.TempDir()
@@ -39,7 +40,7 @@ cerbos:
 		{
 			name:    "bad input",
 			file:    "cerbos1.yaml",
-			data:    "%not yaml%",
+			data:    "\001\002",
 			wantErr: true,
 		},
 		{
