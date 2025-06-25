@@ -1,5 +1,5 @@
 build_review_eam:
-  stage: Build
+  stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -10,35 +10,22 @@ build_review_eam:
           - pdp
           - manager
   before_script:
-    - export SEMANTIC_RELEASE_NEXT_VERSION=$(cat ci_semantic_release_next_version.txt)
-    - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
-    - echo "component version=${COMPONENT_VERSION}"
-    - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
+    - echo "container tag=${CI_COMMIT_TAG}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - echo -n "${CI_COMMIT_TAG}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
-      --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
+      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
       --context "."
       --dockerfile "apps/${APP}/Dockerfile"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - oas/**/*
-          - eam/**/*
-          - apps/${APP}/**/*
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -48,11 +35,9 @@ build_review_eam:
   needs:
     - job: unit-tests
       optional: true
-    - job: next-version
-      optional: false
 
 build_review_fsc:
-  stage: Build
+  stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -60,12 +45,9 @@ build_review_fsc:
         APP:
           - fsc-auth
   before_script:
-    - export SEMANTIC_RELEASE_NEXT_VERSION=$(cat ci_semantic_release_next_version.txt)
-    - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
-    - echo "component version=${COMPONENT_VERSION}"
-    - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
+    - echo "container tag=${CI_COMMIT_TAG}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - echo -n "${CI_COMMIT_TAG}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
@@ -76,19 +58,9 @@ build_review_fsc:
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - oas/**/*
-          - eam/**/*
-          - apps/fsc-auth/**/*
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -98,11 +70,9 @@ build_review_fsc:
   needs:
     - job: unit-tests
       optional: true
-    - job: next-version
-      optional: false
 
 build_review_mock_ds:
-  stage: Build
+  stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -110,12 +80,9 @@ build_review_mock_ds:
         APP:
           - generic
   before_script:
-    - export SEMANTIC_RELEASE_NEXT_VERSION=$(cat ci_semantic_release_next_version.txt)
-    - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
-    - echo "component version=${COMPONENT_VERSION}"
-    - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
+    - echo "container tag=${CI_COMMIT_TAG}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - echo -n "${CI_COMMIT_TAG}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
@@ -126,18 +93,9 @@ build_review_mock_ds:
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - eam/**/*
-          - mock/datasources/**/*
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -147,6 +105,3 @@ build_review_mock_ds:
   needs:
     - job: unit-tests
       optional: true
-    - job: next-version
-      optional: false
-

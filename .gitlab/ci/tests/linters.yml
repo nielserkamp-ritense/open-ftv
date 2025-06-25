@@ -1,5 +1,5 @@
 openapi:
-  stage: Linters
+  stage: Linter
   image:
     name: stoplight/spectral:latest
     entrypoint: [""]
