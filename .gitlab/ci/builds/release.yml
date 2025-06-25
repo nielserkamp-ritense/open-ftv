@@ -1,4 +1,4 @@
-build_review_eam:
+build_release_eam:
   stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
@@ -26,17 +26,12 @@ build_review_eam:
       --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
-    expire_in: 2 weeks
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
-  needs:
-    - job: unit-tests
-      optional: true
 
-build_review_fsc:
+build_release_fsc:
   stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
@@ -61,17 +56,12 @@ build_review_fsc:
       --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
-    expire_in: 2 weeks
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
-  needs:
-    - job: unit-tests
-      optional: true
 
-build_review_mock_ds:
+build_release_mock_ds:
   stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
@@ -96,12 +86,7 @@ build_review_mock_ds:
       --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_TAG}-${ARCH}
   rules:
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
-    expire_in: 2 weeks
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
-  needs:
-    - job: unit-tests
-      optional: true

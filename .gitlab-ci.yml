@@ -7,7 +7,7 @@ stages:
   - Linter
   - UnitTests
   - Build
-#  - Deploy
+  - Release
 #  - Redeploy
 #  - Security
 #  - E2E tests
