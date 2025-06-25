@@ -37,8 +37,10 @@ build_review_eam:
           - oas/**/*
           - eam/**/*
           - apps/${APP}/**/*
+          - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
+          - semver.sh
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -87,8 +89,10 @@ build_review_fsc:
           - oas/**/*
           - eam/**/*
           - apps/fsc-auth/**/*
+          - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
+          - semver.sh
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -136,8 +140,10 @@ build_review_mock_ds:
           - utilities-no-ci/**/*
           - eam/**/*
           - mock/datasources/**/*
+          - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
+          - semver.sh
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
