@@ -3,10 +3,10 @@ variables:
   pattern_release_tag: '/^v\d*\.\d*\.\d*$/'
 
 stages:
-#  - Version
-  - Linters
+  - Version
+  - Linter
   - UnitTests
-  - Builds
+  - Build
 #  - Deploy
 #  - Redeploy
 #  - Security
