@@ -1,15 +1,13 @@
-# OpenFTV - Policy Administration Point
+# OpenFTV - Policy Information Point
 
 # Welcome
-This code module implements a Policy Administration Point (PAP).
+This code module implements a Policy Information Point (PIP).
 
 It supports the following interfaces:
-- API endpoints to manage policies; intended for userinterfaces.
+- API endpoints to manage attributes, entities and relations; intended for userinterfaces.
 - API endpoints to push attributes; intended for external PIP systems, such as HR, IAM, etc.
 - functionality to pull attributes from external PIPs.
-- *TODO*: API endpoint to retrieve a batch of policies; intended for PDPs.
-- *TODO*: functionality to push a batch of policies to a PDP.
-- *TODO*: functionality to push a policy or batch of policies to a git repository.
+- *TODO*: functionality to push a batch of attributes, entities and/or relations to a PDP.
 
 ## Building and running
 
@@ -18,7 +16,7 @@ See the [README](../../README.md) in the top-level directory.
 ## Docker images
 
 The Gitlab CI/CD is set up to automatically create docker images in the
-[Gitlab container registry](https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/container_registry/8582425).
+[Gitlab container registry](https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/container_registry/8582424).
 
 ## Configuration options
 
@@ -32,9 +30,9 @@ Options are read and processed in the following order:
 In case configuration options are defined in multiple places, only the last value will be retained and used.
 
 The service searches for one or more configuration files with **YAML** encoding in the following locations:
-- */etc/pap/default.conf*
-- *./etc/pap.yaml* (relative to the running binary)
-- *./pap.yaml* (relative to the running binary)
+- */etc/pip/default.conf*
+- *./etc/pip.yaml* (relative to the running binary)
+- *./pip.yaml* (relative to the running binary)
 
 ### Configuration file (YAML)
 
@@ -60,7 +58,7 @@ log:   # options for the application-log.
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
 
-persist:   # this is where the PAP stores policies; see the section "About persistence" below for examples.
+persist:   # this is where the PIP stores attributes, entities and relations; see the section "About persistence" below for examples.
   type: "<type>"                # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
   addresses: "<addresses>"      # One or more addresses of persistence services (no default).
   base: "<prefix>"              # Prefix to use for policy keys in the persistence backend (no default).
@@ -114,59 +112,59 @@ These match the corresponding options in a configuration file.
 
 ```text
 # options for the API endpoint server.
-PAP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
-PAP_PORT=<port>                             # port the service should listen on (default 8080).
-PAP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
-PAP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
-PAP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
-PAP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
-PAP_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
-PAP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
-PAP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
+PIP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+PIP_PORT=<port>                             # port the service should listen on (default 8080).
+PIP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+PIP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
+PIP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
+PIP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
+PIP_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
+PIP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
+PIP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 
 # options for the application-log.
-PAP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
-PAP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
-PAP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
-PAP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
+PIP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
+PIP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
+PIP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
+PIP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# this is where the PAP stores policies; see the section "About persistence" below for examples.
-PAP_PERSIST_TYPE=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
-PAP_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
-PAP_PERSIST_PREFIX=<prefix>                 # Prefix to use for policy keys in the persistence backend (no default).
-PAP_PERSIST_TIMEOUT=<duration>              # Connection timeout for the persistence backend (no default).
-PAP_PERSIST_ETCD_SYNC=<duration>            # Synchronization period for an ETCD backend (no default).
-PAP_PERSIST_ETCD_USER=<user>                # User-id to authenticate with an ETCD backend (no default).
-PAP_PERSIST_ETCD_PASSWORD=<password>        # Password to authenticate with an ETCD backend (no default).
-PAP_PERSIST_CONSUL_TOKEN=<token>            # Token to authenticate with a Consul backend (no default).
-PAP_PERSIST_CONSUL_NAMESPACE=<namespace>    # Namespace to use with a Consul backend (no default).
-PAP_PERSIST_POSTGRES_URL=<url>              # URL to connect and authenticate to a Postgres backend (no default).
-PAP_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Postgres backend (no default).
-PAP_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
-PAP_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
+# this is where the PIP stores policies; see the section "About persistence" below for examples.
+PIP_PERSIST_TYPE=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
+PIP_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
+PIP_PERSIST_PREFIX=<prefix>                 # Prefix to use for policy keys in the persistence backend (no default).
+PIP_PERSIST_TIMEOUT=<duration>              # Connection timeout for the persistence backend (no default).
+PIP_PERSIST_ETCD_SYNC=<duration>            # Synchronization period for an ETCD backend (no default).
+PIP_PERSIST_ETCD_USER=<user>                # User-id to authenticate with an ETCD backend (no default).
+PIP_PERSIST_ETCD_PASSWORD=<password>        # Password to authenticate with an ETCD backend (no default).
+PIP_PERSIST_CONSUL_TOKEN=<token>            # Token to authenticate with a Consul backend (no default).
+PIP_PERSIST_CONSUL_NAMESPACE=<namespace>    # Namespace to use with a Consul backend (no default).
+PIP_PERSIST_POSTGRES_URL=<url>              # URL to connect and authenticate to a Postgres backend (no default).
+PIP_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Postgres backend (no default).
+PIP_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
+PIP_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
 
 # options used during the authentication stage of a user interface request.
-PAP_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
+PIP_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
 
 # options used during the authorization stage of a user interface request.
-PAP_AUTHORIZATION_AUTHENTICATE=true|false   # Flag to force authentication of the user before performing authorization (default false).
+PIP_AUTHORIZATION_AUTHENTICATE=true|false   # Flag to force authentication of the user before performing authorization (default false).
 
 # policies used for authorizing user interface requests.
-PAP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
-PAP_POLICIES_STORE=<directory>              # Location on disk where static policy files can be found (no default).
-PAP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
+PIP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
+PIP_POLICIES_STORE=<directory>              # Location on disk where static policy files can be found (no default).
+PIP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
 
 # attributes used for authorizing user interface requests.
-PAP_PIP_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
-PAP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
-PAP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+PIP_PIP_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
+PIP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
+PIP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
-PAP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.
-PAP_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin API.
-PAP_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
-PAP_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
-PAP_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
+PIP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.
+PIP_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin API.
+PIP_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
+PIP_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
+PIP_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
 ```
 
 ### Command-line flags
@@ -192,8 +190,8 @@ These match the corresponding options in a configuration file.
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# this is where the PAP stores policies; see the section "About persistence" below for examples.
---persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
+# this is where the PIP stores policies; see the section "About persistence" below for examples.
+--persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres", "memory" (default "memory").
 --persist-addresses=<addresses>           # One or more addresses of persistence services (no default).
 --persist-timeout=<prefix>                # Prefix to use for policy keys in the persistence backend (no default).
 --persist-timeout=<duration>              # Connection timeout for the persistence backend (no default).
@@ -291,7 +289,7 @@ However, for brevity, we will only include the YAML layout above, as a JSON or T
 
 ### About persistence
 
-Policies and metadata are persisted in a key-value store.
+Attributes, entities and relations are persisted in a key-value store.
 This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
 
 The following storage backends are currently supported:
@@ -301,7 +299,7 @@ The following storage backends are currently supported:
 - **in-memory**: using a custom-built Valkeyrie interface (non-persistent).
 
 If no persistence backend is configured, the **in-memory** backend will be used.
-This means that when the service is restarted, all created and/or updated policies will be gone.
+This means that when the service is restarted, all created and/or updated attributes, entities and/or relations will be gone.
 For proper persistence, please configure the use of **Postgres**, **etcd** or **Consul**.
 
 Example of a Postgres configuration:
@@ -310,7 +308,7 @@ persist:
   type: "postgres"
   postgres:
     url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
-    table: "policies"
+    table: "data"
     connection:
       ttl: "120s"
       max: 20
