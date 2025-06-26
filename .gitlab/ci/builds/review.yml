@@ -26,7 +26,7 @@ build_review_eam:
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: $CI_COMMIT_BRANCH
       changes:
@@ -41,6 +41,7 @@ build_review_eam:
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
           - semver.sh
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -78,7 +79,7 @@ build_review_fsc:
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: $CI_COMMIT_BRANCH
       changes:
@@ -93,6 +94,7 @@ build_review_fsc:
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
           - semver.sh
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -130,7 +132,7 @@ build_review_mock_ds:
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: $CI_COMMIT_BRANCH
       changes:
@@ -144,6 +146,7 @@ build_review_mock_ds:
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
           - semver.sh
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
