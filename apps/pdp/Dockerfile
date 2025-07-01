@@ -12,7 +12,7 @@ COPY ./utilities-no-ci ./utilities-no-ci
 RUN cd apps/pap \
   && go mod tidy \
   && go mod download \
-  && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /build/pdp ./cmd/*.go
+  && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/pdp ./cmd/*.go
 
 # Stage 2 - run
 FROM digilabpublic.azurecr.io/alpine:3.21

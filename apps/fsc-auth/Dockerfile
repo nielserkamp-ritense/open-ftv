@@ -10,9 +10,9 @@ COPY ./utilities ./utilities
 COPY ./utilities-no-ci ./utilities-no-ci
 
 RUN cd apps/fsc-auth \
-    && go mod tidy \
-    && go mod download \
-    && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /build/fsc-auth ./cmd/*.go
+  && go mod tidy \
+  && go mod download \
+  && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/fsc-auth ./cmd/*.go
 
 # Stage 2 - run
 FROM digilabpublic.azurecr.io/alpine:3.21

@@ -3,7 +3,9 @@ build_review_eam:
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
-      - ARCH: amd64
+      - ARCH:
+          - amd64
+          - arm64
         APP:
           - pip
           - pap
@@ -53,13 +55,17 @@ build_review_eam:
       optional: true
     - job: next-version
       optional: false
+  tags:
+    - ${ARCH}
 
 build_review_fsc:
   stage: Build
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
-      - ARCH: amd64
+      - ARCH:
+          - amd64
+          - arm64
         APP:
           - fsc-auth
   before_script:
@@ -106,13 +112,17 @@ build_review_fsc:
       optional: true
     - job: next-version
       optional: false
+  tags:
+    - ${ARCH}
 
 build_review_mock_ds:
   stage: Build
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
-      - ARCH: amd64
+      - ARCH:
+          - amd64
+          - arm64
         APP:
           - generic
   before_script:
@@ -158,4 +168,5 @@ build_review_mock_ds:
       optional: true
     - job: next-version
       optional: false
-
+  tags:
+    - ${ARCH}
