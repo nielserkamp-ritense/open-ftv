@@ -15,6 +15,8 @@ import (
 func TestDMYFromNumber(t *testing.T) {
 	t.Parallel()
 
+	fixedToday()
+
 	testCases := []struct {
 		name  string
 		in    any
@@ -181,7 +183,9 @@ func TestRunner_Age(t *testing.T) {
 }
 
 func fixedToday() {
-	sync.OnceFunc(func() {
+	todaySetter.Do(func() {
 		today = func() time.Time { return time.Date(2025, 6, 18, 0, 0, 0, 0, time.UTC) }
 	})
 }
+
+var todaySetter sync.Once
