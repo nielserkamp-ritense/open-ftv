@@ -3,7 +3,7 @@ package authlog
 import (
 	"time"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // AuthRecord represents the details to be stored in the authorisation log.

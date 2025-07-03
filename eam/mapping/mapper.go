@@ -3,7 +3,7 @@ package mapping
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Mapper is the function signature for mapping specific attributes from known locations into a preferred location.

@@ -4,7 +4,7 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2"
 
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 )
 
 // HealthVersion is the full semantic API version for the health endpoints.

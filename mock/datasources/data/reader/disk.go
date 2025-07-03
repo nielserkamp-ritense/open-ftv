@@ -12,10 +12,10 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/reader/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/reader/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 // LoadFromPath loads all data-space and -source definitions from disk,

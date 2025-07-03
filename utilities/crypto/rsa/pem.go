@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	pem2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/crypto/pem"
+	pem2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/crypto/pem"
 )
 
 // LoadPrivateKeyFile returns the private key from the given PEM block, or an error if it fails.

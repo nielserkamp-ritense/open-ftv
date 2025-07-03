@@ -1,29 +1,29 @@
 package models
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 
 func indexAsRow(ix *schema.Index) *Row {
-	def := &schema.Object{Fields: make([]*schema.Field, 0)}
+	def := &schema.Object{Fields: []*schema.Field{
+		&fieldDefFQDN,
+		&fieldDefID,
+		&fieldDefDescription,
+		&fieldDefIndexFields,
+		&fieldDefIndexOrders,
+	}}
+
 	out := &Row{Data: make(map[string]any), def: def}
 
-	out.Data["fqdn"] = ix.FQDN()
-	def.Fields = append(def.Fields, &fieldDefFQDN)
-	out.Data["id"] = ix.ID
-	def.Fields = append(def.Fields, &fieldDefID)
+	out.Data[fieldDefFQDN.ID] = ix.FQDN()
+	out.Data[fieldDefID.ID] = ix.ID
 
 	if ix.Description != "" {
-		out.Data["description"] = ix.Description
-		def.Fields = append(def.Fields, &fieldDefDescription)
+		out.Data[fieldDefDescription.ID] = ix.Description
 	}
-
 	if len(ix.Fields) > 0 {
-		out.Data["fields"] = ix.Fields
-		def.Fields = append(def.Fields, &fieldDefIndexFields)
+		out.Data[fieldDefIndexFields.ID] = ix.Fields
 	}
-
 	if len(ix.Orders) > 0 {
-		out.Data["orders"] = ix.Orders
-		def.Fields = append(def.Fields, &fieldDefIndexOrders)
+		out.Data[fieldDefIndexOrders.ID] = ix.Orders
 	}
 
 	return out

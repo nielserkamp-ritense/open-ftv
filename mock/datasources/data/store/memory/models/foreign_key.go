@@ -1,29 +1,29 @@
 package models
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 
 func fkAsRow(fk *schema.ForeignKey) *Row {
-	def := &schema.Object{Fields: make([]*schema.Field, 0)}
+	def := &schema.Object{Fields: []*schema.Field{
+		&fieldDefFQDN,
+		&fieldDefID,
+		&fieldDefDescription,
+		&fieldDefForeignTable,
+		&fieldDefIndexFields,
+	}}
+
 	out := &Row{Data: make(map[string]any), def: def}
 
-	out.Data["fqdn"] = fk.FQDN()
-	def.Fields = append(def.Fields, &fieldDefFQDN)
-	out.Data["id"] = fk.ID
-	def.Fields = append(def.Fields, &fieldDefID)
+	out.Data[fieldDefFQDN.ID] = fk.FQDN()
+	out.Data[fieldDefID.ID] = fk.ID
 
 	if fk.Description != "" {
-		out.Data["description"] = fk.Description
-		def.Fields = append(def.Fields, &fieldDefDescription)
+		out.Data[fieldDefDescription.ID] = fk.Description
 	}
-
 	if fk.ForeignTable != "" {
-		out.Data["table"] = fk.ForeignTable
-		def.Fields = append(def.Fields, &fieldDefForeignTable)
+		out.Data[fieldDefForeignTable.ID] = fk.ForeignTable
 	}
-
 	if len(fk.Fields) > 0 {
-		out.Data["fields"] = fk.Fields
-		def.Fields = append(def.Fields, &fieldDefIndexFields)
+		out.Data[fieldDefIndexFields.ID] = fk.Fields
 	}
 
 	return out

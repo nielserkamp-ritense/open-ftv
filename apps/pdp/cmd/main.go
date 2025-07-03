@@ -2,8 +2,8 @@
 package main
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pdp/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pdp/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/server"
 )
 
 func main() {

@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip"
+	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
 func (s *service) newPIP() (pip2.PIP, error) {

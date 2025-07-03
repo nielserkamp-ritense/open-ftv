@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Option represents the function signature to pass options for instantiating an authentication handler.

@@ -6,10 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	handle1 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/handlers/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	handle2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/handlers/fiber"
+	handle1 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
+	handle2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/handlers/fiber"
 )
 
 func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
@@ -19,6 +19,7 @@ func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
 	meta := v1.Group("/meta")
 	data := v1.Group("/data")
 
+	// schema metadata endpoints.
 	spaceHandler := handle2.NewDataspaceHandler(s.db, s.logger)
 	meta.Get(handle2.PathDataspace, spaceHandler.GetDataspace)
 	meta.Put(handle2.PathDataspace, spaceHandler.PutDataspace)
@@ -39,6 +40,9 @@ func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
 	meta.Post(handle2.PathTable, tableHandler.PostTable)
 	meta.Delete(handle2.PathTable, tableHandler.DeleteTable)
 
+	// TODO: endpoint endpoints
+
+	// table data endpoints.
 	dataHandler := handle2.NewTableDataHandler(s.db, s.logger)
 	data.Get(handle2.PathTableRecords, dataHandler.GetRecords)
 	data.Get(handle2.PathTableRecord, dataHandler.GetRecord)
@@ -46,6 +50,7 @@ func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
 	data.Post(handle2.PathTableRecord, dataHandler.PostRecord)
 	data.Delete(handle2.PathTableRecord, dataHandler.DeleteRecord)
 
+	// custom data endpoints.
 	versions := map[uint8]fiber.Router{1: v1}
 
 	s.db.IterateEndpoints(func(def *schema.Endpoint) {

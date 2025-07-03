@@ -3,40 +3,42 @@ package server
 import (
 	"context"
 	"log/slog"
-	"os"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/reader"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/store/memory"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/generic/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/reader"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store/memory"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/config"
 )
 
-func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
+func NewService(cfg *config.Config, logger *slog.Logger) (server.Service, error) {
 	db := memory.New(nil)
 
 	if err := reader.LoadFromPath(db, cfg.DataPath); err != nil {
 		logger.Error("failed to load dataspace definition(s)", "path", cfg.DataPath, "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, db: db}
 
-	s.Service = fiber.New(
-		logger,
-		s.initRoutes,
+	opts := []server.Option{
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
 		server.WithAppName(config.AppName),
-		server.WithTLS(cfg.CA, cfg.Cert, cfg.Key),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
-		server.WithRecovery(),
+		// server.WithRecovery(),
 		server.WithSecurity(),
-	)
+	}
 
-	return s
+	if cfg.Cert != "" {
+		opts = append(opts, server.WithTLS(cfg.CA, cfg.Cert, cfg.Key))
+	}
+
+	s.Service = fiber.New(logger, s.initRoutes, opts...)
+
+	return s, nil
 }
 
 type service struct {

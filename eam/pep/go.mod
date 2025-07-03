@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep
 
 go 1.23.8
 
@@ -8,9 +8,9 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-00010101000000-000000000000
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip v0.0.0-00010101000000-000000000000
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250415141202-eea5915a6d13
 )
 
 require (
@@ -34,8 +34,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype v0.0.0-00010101000000-000000000000 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server v0.0.0-20250415141202-eea5915a6d13 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-00010101000000-000000000000 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server v0.0.0-20250415141202-eea5915a6d13 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.4 // indirect
@@ -59,10 +59,10 @@ require (
 )
 
 replace (
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype => ../mimetype
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models => ../models
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../pip
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server => ../server
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../oas
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype => ../mimetype
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models => ../models
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip => ../pip
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server => ../server
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ../../oas
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../utilities
 )

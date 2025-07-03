@@ -1,6 +1,6 @@
 package rdf
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 
 // FromString converts an RDF literal into a Golang variable of the appropriate type.
 //

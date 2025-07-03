@@ -6,7 +6,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
 )
 
 type ForeignKey struct {

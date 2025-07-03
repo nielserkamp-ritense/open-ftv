@@ -8,7 +8,7 @@ import (
 	"gitlab.com/gjuyn/go-config/config"
 	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 type Config struct {

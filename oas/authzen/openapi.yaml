@@ -8,7 +8,7 @@ info:
   title: "AuthZEN"
   contact:
     name: G. Juijn
-    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
 
 servers:
   - url: https://localhost:8080/authzen/v1

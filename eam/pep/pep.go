@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // PEP represents the interface for a Policy Enforcement Point.

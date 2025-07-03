@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Authenticator represents the interface to authenticate users.

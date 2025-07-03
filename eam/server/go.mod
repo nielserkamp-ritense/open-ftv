@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server
 
 go 1.23.8
 
@@ -8,8 +8,8 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250410082626-e73c066519bd
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250410082626-e73c066519bd
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250410082626-e73c066519bd
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250410082626-e73c066519bd
 )
 
 require (
@@ -31,6 +31,6 @@ require (
 )
 
 replace (
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../oas
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ../../oas
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../utilities
 )

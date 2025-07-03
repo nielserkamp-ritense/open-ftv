@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mapping
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping
 
 go 1.23.8
 
@@ -6,9 +6,9 @@ toolchain go1.24.2
 
 require (
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-00010101000000-000000000000
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep v0.0.0-00010101000000-000000000000
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250415141202-eea5915a6d13
 )
 
 require (
@@ -31,9 +31,9 @@ require (
 )
 
 replace (
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype => ../mimetype
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models => ../models
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep => ../pep
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../pip
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype => ../mimetype
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models => ../models
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep => ../pep
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip => ../pip
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../utilities
 )

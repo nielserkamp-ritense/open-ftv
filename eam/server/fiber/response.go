@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/authzen"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
 
 // SendBasicResponse sends a basic response corresponding with the given status code.

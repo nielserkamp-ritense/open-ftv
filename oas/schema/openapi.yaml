@@ -1,0 +1,763 @@
+openapi: 3.0.0
+
+info:
+  title: Dataspace management.
+  version: 1.0.0
+  description: |
+    OpenAPI specification for maintaining a top-level dataspace model.
+  contact:
+    name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server with TLS.
+
+tags:
+  - name: dataspace
+    description: Operations on dataspaces.
+  - name: datasource
+    description: Operations on datasources.
+  - name: table
+    description: Operations on datasource tables.
+  - name: endpoint
+    description: Operations on datasource endpoints.
+  - name: data
+    description: Operations on data-records.
+
+paths:
+  /meta/dataspace:
+    get:
+      operationId: "get-dataspace"
+      summary: Retrieve metadata for dataspace.
+      description: Endpoint to retrieve the metadata of the top-level dataspace.
+      tags:
+        - dataspace
+      parameters:
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+      responses:
+        "200":
+          $ref: "#/components/responses/DataspaceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /meta/datasources:
+    get:
+      operationId: "get-datasources"
+      summary: Retrieve metadata for all datasources.
+      description: Endpoint to retrieve the metadata of all datasources.
+      tags:
+        - datasource
+      parameters:
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+      responses:
+        "200":
+          $ref: "#/components/responses/DatasourcesResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /meta/datasource/{key}:
+    get:
+      operationId: "get-datasource"
+      summary: Retrieve metadata for a specific datasource.
+      description: Endpoint to retrieve the metadata of a specific datasource.
+      tags:
+        - datasource
+      parameters:
+        - $ref: "#/components/parameters/DatasourceKey"
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+      responses:
+        "200":
+          $ref: "#/components/responses/DatasourceResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /meta/tables:
+    get:
+      operationId: "get-tables"
+      summary: Retrieve metadata for all tables.
+      description: Endpoint to retrieve the metadata of all tables.
+      tags:
+        - table
+      parameters:
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+      responses:
+        "200":
+          $ref: "#/components/responses/TablesResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /meta/table/{key}:
+    get:
+      operationId: "get-table"
+      summary: Retrieve metadata for a specific table.
+      description: Endpoint to retrieve the metadata of a specific table.
+      tags:
+        - table
+      parameters:
+        - $ref: "#/components/parameters/TableKey"
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+      responses:
+        "200":
+          $ref: "#/components/responses/TableResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /data/table/{key}/records:
+    get:
+      operationId: "get-table-data"
+      summary: Retrieve data-records for a specific table.
+      description: Endpoint to retrieve data-records from a specific table.
+      tags:
+        - data
+      parameters:
+        - $ref: "#/components/parameters/TableKey"
+        - $ref: "#/components/parameters/FieldFilter"
+        - $ref: "#/components/parameters/RowFilter"
+        - $ref: "#/components/parameters/Parameters"
+      responses:
+        "200":
+          $ref: "#/components/responses/DataResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  parameters:
+    DatasourceKey:
+      in: path
+      name: key
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+      required: true
+      description: Unique key of a datasource.
+
+    TableKey:
+      in: path
+      name: key
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+      required: true
+      description: Unique key of a table.
+
+    FieldFilter:
+      in: query
+      name: "@fields"
+      schema:
+        type: string
+      required: false
+      description: "Returned fields are filtered on id. If this filter is empty, all fields are returned"
+
+    RowFilter:
+      in: query
+      name: "@filter"
+      schema:
+        type: string
+      required: false
+      description: "Returned rows are filtered on the given filter expression. If the expression is empty, all rows are returned"
+
+    Parameters:
+      in: query
+      name: "@params"
+      schema:
+        type: string
+      required: false
+      description: "Optional expression containing parameters to be used for transformations"
+
+  responses:
+    BadRequest:
+      description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+
+    NotAuthorized:
+      description: Not authorized.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+
+    AccessDenied:
+      description: Access denied.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+
+    NotFound:
+      description: Resource not found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+
+#    AlreadyExists:
+#      description: Resource already exists.
+#      headers:
+#        API-Version:
+#          schema:
+#            type: string
+#          description: Full version number of the API.
+#      content:
+#        application/json:
+#          schema:
+#            $ref: "#/components/schemas/ErrorObject"
+
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+
+    DataspaceResponse:
+      description: A single dataspace record.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+        text/json:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+        application/yaml:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+        text/yaml:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+        application/csv:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+        text/csv:
+          schema:
+            $ref: "#/components/schemas/Dataspace"
+
+    DatasourcesResponse:
+      description: A set of datasource records.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+        text/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+        application/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+        text/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+        application/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+        text/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Datasource"
+
+    DatasourceResponse:
+      description: A single datasource record.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+        text/json:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+        application/yaml:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+        text/yaml:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+        application/csv:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+        text/csv:
+          schema:
+            $ref: "#/components/schemas/Datasource"
+
+    TablesResponse:
+      description: A set of datasource table records.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+        text/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+        application/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+        text/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+        application/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+        text/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Table"
+
+    TableResponse:
+      description: A single datasource table record.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Table"
+        text/json:
+          schema:
+            $ref: "#/components/schemas/Table"
+        application/yaml:
+          schema:
+            $ref: "#/components/schemas/Table"
+        text/yaml:
+          schema:
+            $ref: "#/components/schemas/Table"
+        application/csv:
+          schema:
+            $ref: "#/components/schemas/Table"
+        text/csv:
+          schema:
+            $ref: "#/components/schemas/Table"
+
+    DataResponse:
+      description: A set of datasource table data records.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+        text/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+        application/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+        text/yaml:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+        application/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+        text/csv:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Row"
+
+  schemas:
+    Dataspace:
+      type: object
+      description: The metadata of a dataspace.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds"
+        id:
+          type: string
+          description: Unique identifier.
+          example: "fds"
+        description:
+          type: string
+          description: Description.
+          example: "Federatief Data Stelsel"
+        sources:
+          type: array
+          description: List of datasources.
+          items:
+            $ref: "#/components/schemas/Datasource"
+      required:
+        - fqdn
+        - id
+
+    Datasource:
+      type: object
+      description: The metadata of a datasource.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds.brp"
+        id:
+          type: string
+          description: Unique identifier.
+          example: "brp"
+        description:
+          type: string
+          description: Description.
+          example: "Basis Registratie Personen"
+        tables:
+          type: array
+          description: List of tables.
+          items:
+            $ref: "#/components/schemas/Table"
+      required:
+        - fqdn
+        - id
+
+    Table:
+      type: object
+      description: The metadata of a datasource table.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds.brp.persoon"
+        id:
+          type: string
+          description: Unique identifier.
+          example: "persoon"
+        description:
+          type: string
+          description: Description.
+          example: "BRP - personen"
+        fields:
+          type: array
+          description: List of fields.
+          items:
+            $ref: "#/components/schemas/Field"
+        primaryKey:
+          $ref: "#/components/schemas/Index"
+        secondaryIndexes:
+          type: array
+          description: List of secondary indexes.
+          items:
+            $ref: "#/components/schemas/Index"
+        foreignKeys:
+          type: array
+          description: List of foreign keys.
+          items:
+            $ref: "#/components/schemas/ForeignKey"
+
+      required:
+        - fqdn
+        - id
+
+    Index:
+      type: object
+      description: The metadata of a datasource table index.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds.brp.persoon.pk"
+        id:
+          type: string
+          description: Unique identifier.
+          example: "pk"
+        description:
+          type: string
+          description: Description.
+          example: "BRP - personen - primary key"
+        fields:
+          type: array
+          description: List of fields.
+          example: ["bsn", "postcode"]
+          items:
+            type: string
+        orders:
+          type: array
+          description: List of field orderings.
+          example: ["asc", "desc"]
+          items:
+            $ref: "#/components/schemas/Order"
+      required:
+        - fqdn
+        - id
+
+    ForeignKey:
+      type: object
+      description: The metadata of a datasource table foreign key.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds.brp.adres.fk1"
+        id:
+          type: string
+          description: Unique identifier.
+          example: "fk1"
+        description:
+          type: string
+          description: Description.
+          example: "BRP - adressen - foreign key bsn"
+        table:
+          type: string
+          description: List of field order directions.
+          example: "persoon"
+        fields:
+          type: array
+          description: List of fields.
+          example: ["bsn"]
+          items:
+            type: string
+      required:
+        - fqdn
+        - id
+
+    Order:
+      type: string
+      description: Order ascending or descending.
+      enum:
+        - asc
+        - desc
+
+    Field:
+      type: object
+      description: The metadata of a datasource table field.
+      properties:
+        fqdn:
+          type: string
+          description: Fully qualified domain name.
+          example: "fds.brp.persoon.bsn"
+        id:
+          type: string
+          description: Unique identifier of the field.
+          example: "bsn"
+        type:
+          type: string
+          description: Type of field.
+          example: "string"
+        description:
+          type: string
+          description: Description of the field.
+          example: "Burger Service Nummer"
+        isArray:
+          type: boolean
+          description: Indicates the field is an array.
+          example: true
+        isEnum:
+          type: boolean
+          description: Indicates the field is an enumeration type.
+          example: true
+        isPii:
+          type: boolean
+          description: Indicates the field is persoonlijk identificeerbare informatie.
+          example: true
+        format:
+          type: string
+          description: Formatting of the field data.
+          example: "brp-date"
+        minimumLength:
+          type: integer
+          description: Minimum length of the field data.
+          example: 2
+        maximumLength:
+          type: integer
+          description: Maximum length of the field data.
+          example: 100
+        minimumValue:
+          $ref: "#/components/schemas/MinimumValue"
+        maximumValue:
+          $ref: "#/components/schemas/MaximumValue"
+        allowedValues:
+          type: array
+          description: List of allowed values for the field.
+          items:
+            $ref: "#/components/schemas/AllowedValue"
+        fields:
+          type: array
+          description: List of sub-fields.
+          items:
+            $ref: "#/components/schemas/Field"
+      required:
+        - fqdn
+        - id
+        - type
+
+    MinimumValue:
+      description: Minimum value of the field data.
+      example: "18000101"
+      anyOf:
+        - type: string
+        - type: boolean
+        - type: integer
+
+    MaximumValue:
+      description: Maximum value of the field data.
+      example: "99991231"
+      anyOf:
+        - type: string
+        - type: boolean
+        - type: integer
+
+    AllowedValue:
+      description: Allowed value for the field data.
+      example: "asc"
+      anyOf:
+        - type: string
+        - type: boolean
+        - type: integer
+
+    Row:
+      description: A single record of data.
+      type: object
+
+    ErrorObject:
+      type: object
+      description: The response for an error (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

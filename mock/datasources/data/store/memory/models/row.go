@@ -7,11 +7,11 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/filtering"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/matching"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/writer/csv"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/filtering"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/matching"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/writer/csv"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // RowFromData returns a structured record from the given data using the given object definition.
@@ -152,15 +152,16 @@ func (r *Row) MatchFields(matcher matching.FieldMatcher) *Row {
 
 	r.def.IterateFields(func(f *schema.Field) {
 		if out.isQualified {
-			if matcher.Match(f.FQID()) {
-				out.Data[f.FQID()] = r.Data[f.FQID()]
+			if s := f.FQID(); matcher.Match(s) {
+				out.Data[s] = r.Data[s]
 			}
 		} else {
-			if matcher.Match(f.ID) {
-				out.Data[f.ID] = r.Data[f.ID]
+			if s := f.ID; matcher.Match(s) {
+				out.Data[s] = r.Data[s]
 			}
 		}
 	})
+
 	return out
 }
 

@@ -3,7 +3,7 @@ package filtering
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 // NewTableFilter reduces the filter to the fields that exist in the given table.

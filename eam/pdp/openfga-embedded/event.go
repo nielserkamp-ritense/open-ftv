@@ -11,8 +11,8 @@ import (
 	"github.com/openfga/language/pkg/go/transformer"
 	tuple2 "github.com/openfga/openfga/pkg/tuple"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
 // Handle implements the EventSink interface.

@@ -6,9 +6,9 @@ import (
 
 	"github.com/goccy/go-yaml"
 
-	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
-	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
+	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 func (p *pip) loadEntities(path string) {

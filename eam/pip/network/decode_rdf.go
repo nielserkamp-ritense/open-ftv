@@ -5,7 +5,7 @@ import (
 
 	"github.com/deiu/rdf2go"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/turtle"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
 )
 
 func (r *runner) decodeRDF(data []byte, mime string) error {

@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models
 
 go 1.23
 

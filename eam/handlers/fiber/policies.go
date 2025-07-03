@@ -8,11 +8,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization/fiber"
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap"
-	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas/policies"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.

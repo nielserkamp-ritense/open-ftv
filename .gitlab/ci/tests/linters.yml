@@ -20,6 +20,6 @@ openapi:
           - oas/**/*
           - \.gitlab/ci/tests/linters.yml
           - \.golang-ci.yml
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/ftv-implementatie" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks

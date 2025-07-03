@@ -3,7 +3,7 @@ package rdf
 import (
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
 // IsClass returns true if the given identifier can be identified as a class.

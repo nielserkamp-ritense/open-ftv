@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/enums"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 func TestFieldAsRecord(t *testing.T) {
@@ -43,7 +43,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"id":          "f2",
 				"description": "field 2",
 				"type":        enums.IntegerType,
-				"is-array":    true,
+				"isArray":     true,
 			}},
 		},
 		{
@@ -58,7 +58,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"id":          "f3",
 				"description": "field 3",
 				"type":        enums.IntegerType,
-				"is-enum":     true,
+				"isEnum":      true,
 			}},
 		},
 		{
@@ -73,7 +73,7 @@ func TestFieldAsRecord(t *testing.T) {
 				"id":          "f4",
 				"description": "field 4",
 				"type":        enums.StringType,
-				"is-pii":      true,
+				"isPii":       true,
 			}},
 		},
 		{
@@ -100,12 +100,12 @@ func TestFieldAsRecord(t *testing.T) {
 				MaxLen: 20,
 			},
 			want: &Row{Data: map[string]any{
-				"fqdn":           "f6",
-				"id":             "f6",
-				"description":    "field 6",
-				"type":           enums.StringType,
-				"minimum-length": 1,
-				"maximum-length": 20,
+				"fqdn":          "f6",
+				"id":            "f6",
+				"description":   "field 6",
+				"type":          enums.StringType,
+				"minimumLength": 1,
+				"maximumLength": 20,
 			}},
 		},
 		{
@@ -117,12 +117,12 @@ func TestFieldAsRecord(t *testing.T) {
 				MaxValue: 10,
 			},
 			want: &Row{Data: map[string]any{
-				"fqdn":          "f7",
-				"id":            "f7",
-				"description":   "field 7",
-				"type":          enums.UnsignedIntegerType,
-				"minimum-value": 1,
-				"maximum-value": 10,
+				"fqdn":         "f7",
+				"id":           "f7",
+				"description":  "field 7",
+				"type":         enums.UnsignedIntegerType,
+				"minimumValue": 1,
+				"maximumValue": 10,
 			}},
 		},
 		{
@@ -134,12 +134,12 @@ func TestFieldAsRecord(t *testing.T) {
 				AllowedValues: []any{"M", "V", "O"},
 			},
 			want: &Row{Data: map[string]any{
-				"fqdn":           "f8",
-				"id":             "f8",
-				"description":    "field 8",
-				"type":           enums.StringType,
-				"is-enum":        true,
-				"allowed-values": []any{"M", "V", "O"},
+				"fqdn":          "f8",
+				"id":            "f8",
+				"description":   "field 8",
+				"type":          enums.StringType,
+				"isEnum":        true,
+				"allowedValues": []any{"M", "V", "O"},
 			}},
 		},
 	}

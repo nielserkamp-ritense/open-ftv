@@ -7,7 +7,7 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 // BytesEncoder represents the interface for encoding field values in CSV format to a bytes buffer.
@@ -40,7 +40,9 @@ func (e *encoder) WriteSeparator() {
 
 // WriteEOL implements the CSV Encoder interface.
 func (e *encoder) WriteEOL() {
-	e.Truncate(e.Len() - 1)
+	if l := e.Len(); l > 0 {
+		e.Truncate(l - 1)
+	}
 	e.WriteByte('\n')
 }
 

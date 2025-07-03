@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
 
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func TestPAP(t *testing.T) {

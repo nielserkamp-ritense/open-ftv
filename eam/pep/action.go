@@ -1,6 +1,6 @@
 package pep
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 
 func (c *collector) determineAction() {
 	if c.req.Method != "" {

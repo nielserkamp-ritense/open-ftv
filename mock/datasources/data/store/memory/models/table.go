@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"sync"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/transforming"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/transforming"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // Table contains the data rows of a data table.
@@ -51,6 +51,7 @@ func (t *Table) AsRow() *Row {
 		&fieldDefFQDN,
 		&fieldDefID,
 		&fieldDefDescription,
+		&fieldDefFields,
 		&fieldDefPK,
 		&fieldDefIndexes,
 		&fieldDefFK,
@@ -65,20 +66,28 @@ func (t *Table) AsRow() *Row {
 		out.Data[fieldDefDescription.ID] = t.def.Description
 	}
 
+	if l := len(t.def.Fields); l > 0 {
+		out2 := make([]*Row, 0, l)
+		for _, f2 := range t.def.Fields {
+			out2 = append(out2, fieldAsRow(f2))
+		}
+		out.Data[fieldDefFields.ID] = out2
+	}
+
 	if t.def.PrimaryKey != nil {
 		out.Data[fieldDefPK.ID] = indexAsRow(t.def.PrimaryKey)
 	}
 
-	if len(t.def.SecondaryIndexes) > 0 {
-		out2 := make(Rows, 0, len(t.def.SecondaryIndexes))
+	if l := len(t.def.SecondaryIndexes); l > 0 {
+		out2 := make(Rows, 0, l)
 		for _, ix := range t.def.SecondaryIndexes {
 			out2 = append(out2, indexAsRow(ix))
 		}
 		out.Data[fieldDefIndexes.ID] = out2
 	}
 
-	if len(t.def.ForeignKeys) > 0 {
-		out2 := make(Rows, 0, len(t.def.ForeignKeys))
+	if l := len(t.def.ForeignKeys); l > 0 {
+		out2 := make(Rows, 0, l)
 		for _, fk := range t.def.ForeignKeys {
 			out2 = append(out2, fkAsRow(fk))
 		}

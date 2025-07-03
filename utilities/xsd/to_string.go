@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // ToString converts a Golang variable into a string according to the XSD data-type.

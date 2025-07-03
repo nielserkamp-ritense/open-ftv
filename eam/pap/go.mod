@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap
 
 go 1.23.8
 
@@ -11,9 +11,9 @@ require (
 	github.com/kvtools/etcdv3 v1.0.2
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models v0.0.0-20250415141202-eea5915a6d13
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas v0.0.0-20250415141202-eea5915a6d13
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250415141202-eea5915a6d13
 )
 
 require (
@@ -41,18 +41,18 @@ require (
 )
 
 replace (
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authentication => ../authentication
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mapping => ../mapping
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/mimetype => ../mimetype
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models => ../models
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pap => ../pap
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/cedar-embedded => ../pdp/cedar-embedded
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller => ../pdp/controller
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/opa-embedded => ../pdp/opa-embedded
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pep => ../pep
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pip => ../pip
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server => ../server
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas => ../../oas
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../utilities
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci => ../../utilities-no-ci
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication => ../authentication
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping => ../mapping
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype => ../mimetype
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models => ../models
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap => ../pap
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded => ../pdp/cedar-embedded
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller => ../pdp/controller
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded => ../pdp/opa-embedded
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep => ../pep
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip => ../pip
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server => ../server
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ../../oas
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../utilities
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci => ../../utilities-no-ci
 )

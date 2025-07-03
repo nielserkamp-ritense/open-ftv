@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci
 
 go 1.23.0
 

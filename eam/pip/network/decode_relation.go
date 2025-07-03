@@ -1,7 +1,7 @@
 package network
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 func (r *runner) decodeRelation(obj *RelationMapping) {
