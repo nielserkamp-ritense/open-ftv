@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authentication"
-	authorization2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/authorization"
-	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	authorization2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 )
 
 // Authorization contains the configuration variables for API endpoints to authorize access for users and/or external processes.

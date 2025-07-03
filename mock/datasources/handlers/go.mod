@@ -1,4 +1,4 @@
-module gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/handlers
+module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/handlers
 
 go 1.23.8
 
@@ -23,4 +23,4 @@ require (
 	golang.org/x/sys v0.32.0 // indirect
 )
 
-replace gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities => ../../../utilities
+replace gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../../utilities

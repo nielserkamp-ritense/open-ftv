@@ -8,7 +8,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/pelletier/go-toml/v2"
 
-	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
+	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 // FileType represents the detected type of file.

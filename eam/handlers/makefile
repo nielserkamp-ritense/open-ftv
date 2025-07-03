@@ -1,5 +1,5 @@
 PROJECT_NAME := "handlers"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/$(PROJECT_NAME)"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
@@ -15,11 +15,11 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/oas
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities-no-ci
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server
 	@go mod tidy
 
 fmt: tidy dep ${GO_FILES}  ## format all source code

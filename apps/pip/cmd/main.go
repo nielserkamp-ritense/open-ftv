@@ -2,8 +2,8 @@
 package main
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pip/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/apps/pip/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pip/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pip/server"
 )
 
 func main() {

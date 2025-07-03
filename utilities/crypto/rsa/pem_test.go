@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pem2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/crypto/pem"
+	pem2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/crypto/pem"
 )
 
 func TestPrivateKeyFromPEM(t *testing.T) {

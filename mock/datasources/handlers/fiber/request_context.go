@@ -3,8 +3,8 @@ package fiber
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/context"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/decode"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/context"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/decode"
 )
 
 func buildRequestContext(req *fiber.Ctx, primary string) (*context.RequestContext, error) {

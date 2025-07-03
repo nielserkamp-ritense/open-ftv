@@ -3,7 +3,7 @@ package schema
 import (
 	"sync"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/maps"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/maps"
 )
 
 // Object represents a datasource object; e.g., a datasource table or structured field.
@@ -20,12 +20,13 @@ type Object struct {
 
 // GetField returns the field definition for the given identifier.
 func (o *Object) GetField(id string) *Field {
+	o.FixFields(nil, nil)
 	return o.fields[id]
 }
 
 // IterateFields iterates over the field definitions in the object and calls the closure for each field.
 func (o *Object) IterateFields(f func(*Field)) {
-	o.Fix(nil)
+	o.FixFields(nil, nil)
 	maps.ProcessOrdered(o.fields, func(_ string, v *Field) {
 		f(v)
 	})
@@ -52,6 +53,10 @@ func (o *Object) FixFields(table *Table, field *Field) {
 }
 
 func (o *Object) fixFields(table *Table, field *Field) {
+	if o.fields != nil {
+		return
+	}
+
 	o.fields = make(map[string]*Field, len(o.Fields))
 	for _, f2 := range o.Fields {
 		f2.Fix(table, field)

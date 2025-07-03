@@ -1,70 +1,71 @@
 package models
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 func fieldAsRow(f *schema.Field) *Row {
-	def := &schema.Object{Fields: []*schema.Field{}}
+	def := &schema.Object{Fields: []*schema.Field{
+		&fieldDefFQDN,
+		&fieldDefID,
+		&fieldDefDescription,
+		&fieldDefType,
+		&fieldDefDescription,
+		&fieldDefArray,
+		&fieldDefEnum,
+		&fieldDefFormat,
+		&fieldDefMinLen,
+		&fieldDefMaxLen,
+		&fieldDefMinValue,
+		&fieldDefMaxValue,
+		&fieldDefAllowed,
+		&fieldDefFields,
+	}}
+
 	out := &Row{Data: make(map[string]any), def: def}
 
-	out.Data["fqdn"] = f.FQDN()
-	def.Fields = append(def.Fields, &fieldDefFQDN)
-	out.Data["id"] = f.ID
-	def.Fields = append(def.Fields, &fieldDefID)
-	out.Data["type"] = f.Type
-	def.Fields = append(def.Fields, &fieldDefType)
+	out.Data[fieldDefFQDN.ID] = f.FQDN()
+	out.Data[fieldDefID.ID] = f.ID
+	out.Data[fieldDefType.ID] = f.Type
 
 	if f.Description != "" {
-		out.Data["description"] = f.Description
-		def.Fields = append(def.Fields, &fieldDefDescription)
+		out.Data[fieldDefDescription.ID] = f.Description
 	}
 	if f.IsArray {
-		out.Data["is-array"] = f.IsArray
-		def.Fields = append(def.Fields, &fieldDefArray)
+		out.Data[fieldDefArray.ID] = f.IsArray
 	}
 	if f.IsEnum {
-		out.Data["is-enum"] = f.IsEnum
-		def.Fields = append(def.Fields, &fieldDefEnum)
+		out.Data[fieldDefEnum.ID] = f.IsEnum
 	}
 	if f.IsPII {
-		out.Data["is-pii"] = f.IsPII
+		out.Data[fieldDefPII.ID] = f.IsPII
 		def.Fields = append(def.Fields, &fieldDefPII)
 	}
 	if f.Format != "" {
-		out.Data["format"] = f.Format
-		def.Fields = append(def.Fields, &fieldDefFormat)
+		out.Data[fieldDefFormat.ID] = f.Format
 	}
 	if f.MinLen != 0 {
-		out.Data["minimum-length"] = f.MinLen
-		def.Fields = append(def.Fields, &fieldDefMinLen)
+		out.Data[fieldDefMinLen.ID] = f.MinLen
 	}
 	if f.MaxLen != 0 {
-		out.Data["maximum-length"] = f.MaxLen
-		def.Fields = append(def.Fields, &fieldDefMaxLen)
+		out.Data[fieldDefMaxLen.ID] = f.MaxLen
 	}
 	if f.MinValue != nil {
-		out.Data["minimum-value"] = f.MinValue
-		def.Fields = append(def.Fields, &fieldDefMinValue)
+		out.Data[fieldDefMinValue.ID] = f.MinValue
 	}
 	if f.MaxValue != nil {
-		out.Data["maximum-value"] = f.MaxValue
-		def.Fields = append(def.Fields, &fieldDefMaxValue)
+		out.Data[fieldDefMaxValue.ID] = f.MaxValue
 	}
 	if len(f.AllowedValues) > 0 {
-		out.Data["allowed-values"] = f.AllowedValues
-		def.Fields = append(def.Fields, &fieldDefAllowed)
+		out.Data[fieldDefAllowed.ID] = f.AllowedValues
 	}
 
 	if f.Fields != nil {
 		out2 := make([]*Row, 0, len(f.Fields))
-
 		for _, f2 := range f.Fields {
 			out2 = append(out2, fieldAsRow(f2))
 		}
-
-		out.Data["fields"] = out2
-		def.Fields = append(def.Fields, &fieldDefFields)
+		out.Data[fieldDefFields.ID] = out2
 	}
 
 	return out

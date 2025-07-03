@@ -3,7 +3,7 @@ package models
 import (
 	"strings"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 // NewSource instantiates a new datasource.
@@ -57,7 +57,7 @@ func (s *Datasource) AsRow() *Row {
 	}
 
 	if len(s.Tables) > 0 {
-		out2 := make(Rows, len(s.Tables))
+		out2 := make(Rows, 0, len(s.Tables))
 		for _, t := range s.Tables {
 			out2 = append(out2, t.AsRow())
 		}

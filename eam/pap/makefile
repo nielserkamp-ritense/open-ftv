@@ -1,5 +1,5 @@
 PROJECT_NAME := "pap"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/$(PROJECT_NAME)"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 

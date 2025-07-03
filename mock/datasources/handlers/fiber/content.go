@@ -8,13 +8,13 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gofiber/fiber/v2"
 
-	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server/fiber"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 )
 
 func buildContent(req *fiber.Ctx, data any) error {
 	ct := fiber.MIMEApplicationJSON
 
-	list := req.GetReqHeaders()[fiber.HeaderAcceptEncoding]
+	list := req.GetReqHeaders()[fiber.HeaderAccept]
 	if len(list) > 0 {
 		ct = list[0]
 	}

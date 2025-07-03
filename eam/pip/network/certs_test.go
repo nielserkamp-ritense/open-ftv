@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	certs "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/x509"
+	certs "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/x509"
 )
 
 func makeIntermediate(t *testing.T) (rootFile, caFile string, caCert *x509.Certificate, caKey *rsa.PrivateKey) {

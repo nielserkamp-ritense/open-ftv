@@ -1,5 +1,5 @@
 PROJECT_NAME := "openfga-embedded"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/pdp/$(PROJECT_NAME)"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 

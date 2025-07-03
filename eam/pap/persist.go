@@ -10,7 +10,7 @@ import (
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // PathSeparator is the standard separator character to use with multi-level keys.

@@ -12,7 +12,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/server"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 )
 
 // Router is the function signature for setting up the service endpoints and custom middleware.

@@ -3,7 +3,7 @@ package filtering
 import (
 	"fmt"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
 // AnyOfFilter represents an "or" filter, which means it matches if one of the underlying filters is matched.

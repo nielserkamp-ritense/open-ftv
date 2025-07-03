@@ -3,7 +3,7 @@ package config
 import (
 	"log/slog"
 
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 // Log contains the configuration variables for application level logging.

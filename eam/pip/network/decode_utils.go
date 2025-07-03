@@ -1,6 +1,6 @@
 package network
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/convert"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 
 func findElement(keys []string, data any) any {
 	if len(keys) == 0 {

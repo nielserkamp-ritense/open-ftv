@@ -1,5 +1,5 @@
 PROJECT_NAME := "data"
-PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasource/$(PROJECT_NAME)"
+PKG := "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasource/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ./...)
 GO_FILES := $(shell find . -name '*.go' | grep -v _test.go)
 
@@ -18,7 +18,7 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
-	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities
 	@go mod tidy
 
 fmt: tidy dep ${GO_FILES}  ## format source code

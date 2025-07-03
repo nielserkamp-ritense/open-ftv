@@ -19,9 +19,9 @@ type Dataspace struct {
 }
 
 // Source returns the source definition for the given id.
-func (s *Dataspace) Source(sourceID string) *Datasource {
-	s.Fix()
-	return s.sources[sourceID]
+func (d *Dataspace) Source(sourceID string) *Datasource {
+	d.Fix()
+	return d.sources[sourceID]
 }
 
 // MarshalJSON implements the JSON Marshaler interface.

@@ -9,7 +9,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/pelletier/go-toml/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/io"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 // LoadConfig loads the external sources configuration from the given path.

@@ -1,6 +1,6 @@
 package models
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/data/schema"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 
 // NewSpace instantiates a new data source.
 func NewSpace(def *schema.Dataspace) *Dataspace {
@@ -44,7 +44,7 @@ func (s *Dataspace) AsRow() *Row {
 	}
 
 	if len(s.Sources) > 0 {
-		out2 := make(Rows, len(s.Sources))
+		out2 := make(Rows, 0, len(s.Sources))
 		for _, source := range s.Sources {
 			out2 = append(out2, source.AsRow())
 		}

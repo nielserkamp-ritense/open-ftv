@@ -1,7 +1,7 @@
 // Package rdf contains functionality for working with RDF data.
 package rdf
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/xsd"
+import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 
 // List of well-known RDF prefixes.
 const (

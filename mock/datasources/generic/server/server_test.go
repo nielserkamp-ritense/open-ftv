@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/mock/datasources/generic/config"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/utilities/slog"
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/config"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func TestServe(t *testing.T) {
@@ -34,7 +34,8 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s, err := NewService(cfg, logger)
+		require.NoError(t, err)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -74,7 +75,8 @@ func TestErrorHandler(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s, err := NewService(cfg, logger)
+		require.NoError(t, err)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)

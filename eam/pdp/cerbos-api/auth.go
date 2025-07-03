@@ -6,7 +6,7 @@ import (
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/ftv-implementatie/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Authorize implements the Controller interface.
