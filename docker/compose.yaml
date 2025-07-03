@@ -1,0 +1,58 @@
+services:
+  pip:
+    build:
+      context: ../
+      dockerfile: ./apps/pip/Dockerfile
+    container_name: openftv-pip
+    ports:
+      - "9000:8443"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/mydb?sslmode=disable
+    networks:
+      - openftv
+  pap:
+    build:
+      context: ../
+      dockerfile: ./apps/pap/Dockerfile
+    container_name: openftv-pap
+    ports:
+      - "9001:8443"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/mydb?sslmode=disable
+    networks:
+      - openftv
+  frontend:
+    build:
+      context: ../apps/management-interface/
+    container_name: openftv-management-ui
+    ports:
+      - "8080:80"
+    depends_on:
+      - pip
+      - pap
+    networks:
+      - openftv
+  db:
+    image: postgres:15
+    container_name: openftv-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "5400:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - openftv
+
+volumes:
+  postgres-data:
+
+networks:
+  openftv:
+    driver: bridge
