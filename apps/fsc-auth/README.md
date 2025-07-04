@@ -1,27 +1,13 @@
-# OpenFTV - Policy Decision Point
+# OpenFTV - FSC Authorization Plugin
 
 # Welcome
-This code module implements a Policy Decision Point (PDP).
-
-It acts as an adapter around existing open-source PDP code.
-
-The service can be configured to support the following policy languages:
-- OPA/Rego (embedded engine),
-- Cedar (embedded engine),
-- Cerbos (as sidecar container),
-- OpenFGA (embedded engine).
+This code module implements an authorization plugin for the OpenFSC Inway and Outway services.
 
 It supports the following interfaces:
-- AuthZEN evaluation API.
-- deprecated OpenFSC Authorization plugin API.
-- API endpoint to push policies; intended for external PAP systems.
-- API endpoint to push attributes; intended for external PIP systems, such as HR, IAM, etc.
-- locally stored policies and attributes (read-only).
+- API endpoint to handle authorization requests (AuthZEN Evaluation API).
+- API endpoint to handle authorization requests (deprecated OpenFSC Authorization API).
+- API endpoints to push attributes; intended for external PIP systems, such as HR, IAM, etc.
 - functionality to pull attributes from external PIPs.
-- functionality to pull policies from external PAPs.
-- **TODO**: AuthZEN evaluations API.
-- **TODO**: AuthZEN search API.
-- **TODO**: AuthZEN discovery API.
 
 ## Building and running
 
@@ -30,7 +16,7 @@ See the [README](../../README.md) in the top-level directory.
 ## Docker images
 
 The Gitlab CI/CD is set up to automatically create docker images in the
-[Gitlab container registry](https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/container_registry/8582426).
+[Gitlab container registry](https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/container_registry/8465187).
 
 ## Configuration options
 
@@ -44,9 +30,9 @@ Options are read and processed in the following order:
 In case configuration options are defined in multiple places, only the last value will be retained and used.
 
 The service searches for one or more configuration files with **YAML** encoding in the following locations:
-- */etc/pap/default.conf*
-- *./etc/pap.yaml* (relative to the running binary)
-- *./pap.yaml* (relative to the running binary)
+- */etc/pip/default.conf*
+- *./etc/pip.yaml* (relative to the running binary)
+- *./pip.yaml* (relative to the running binary)
 
 ### Configuration file (YAML)
 
@@ -72,20 +58,20 @@ log:   # options for the application-log.
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
 
-policies:   # policies used for authorizing user interface requests.
+policies:   # policies used for authorizing FSC requests.
   language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
   store:
     path: "<directory>"         # Location on disk where static policy files can be found (no default).
     recurse: true|false         # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
 
-pip:   # attributes used for authorizing user interface requests.
+pip:   # attributes used for authorizing FSC requests.
   store:
     path: "<directory>"         # Location on disk where static attribute files can be found (no default).
     recurse: true|false         # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
   pull:   # see the section "Pull configurations" below for more information.
     configPath: "<file>"        # Location on disk where a "pull configuration" file can be found (no default).
 
-cerbos:   # options for connecting with a cerbos PDP (sidecar) for authorizing a user interface request.
+cerbos:   # options for connecting with a cerbos PDP (sidecar) for authorizing FSC requests.
   address: "<address>"          # Address of the Cerbos API.
   ca: "<file>"                  # CA certificate to use with the Cerbos APIs.
   admin:
@@ -101,38 +87,38 @@ These match the corresponding options in a configuration file.
 
 ```text
 # options for the API endpoint server.
-PDP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
-PDP_PORT=<port>                             # port the service should listen on (default 8080).
-PDP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
-PDP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
-PDP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
-PDP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
-PDP_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
-PDP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
-PDP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
+FSC_AUTH_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+FSC_AUTH_PORT=<port>                             # port the service should listen on (default 8080).
+FSC_AUTH_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+FSC_AUTH_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
+FSC_AUTH_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
+FSC_AUTH_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
+FSC_AUTH_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
+FSC_AUTH_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
+FSC_AUTH_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 
 # options for the application-log.
-PDP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
-PDP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
-PDP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
-PDP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
+FSC_AUTH_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
+FSC_AUTH_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
+FSC_AUTH_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
+FSC_AUTH_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# policies used for authorizing user interface requests.
-PDP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
-PDP_POLICIES_STORE=<directory>              # Location on disk where static policy files can be found (no default).
-PDP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
+# policies used for authorizing FSC requests.
+FSC_AUTH_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
+FSC_AUTH_POLICIES_STORE=<directory>              # Location on disk where static policy files can be found (no default).
+FSC_AUTH_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
 
-# attributes used for authorizing user interface requests.
-PDP_PIP_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
-PDP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
-PDP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+# attributes used for authorizing FSC requests.
+FSC_AUTH_FSC_AUTH_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
+FSC_AUTH_FSC_AUTH_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
+FSC_AUTH_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
 
-# options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
-PDP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.
-PDP_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin API.
-PDP_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
-PDP_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
-PDP_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
+# options for connecting with a cerbos PDP (sidecar) for authorizing FSC requests.
+FSC_AUTH_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.
+FSC_AUTH_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin API.
+FSC_AUTH_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
+FSC_AUTH_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
+FSC_AUTH_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
 ```
 
 ### Command-line flags
@@ -158,17 +144,17 @@ These match the corresponding options in a configuration file.
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# policies used for authorizing user interface requests.
+# policies used for authorizing FSC requests.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
 --policies-store=<directory>              # Location on disk where static policy files can be found (no default).
 --policies-store-recurse=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
 
-# attributes used for authorizing user interface requests.
+# attributes used for authorizing FSC requests.
 --pip-store=<directory>                   # Location on disk where static attribute files can be found (no default).
 --pip-store-recurse=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
 --pip-pull-configs=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
-# options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
+# options for connecting with a cerbos PDP (sidecar) for authorizing FSC requests.
 --cerbos-address=<address>                # Address of the Cerbos API.
 --cerbos-admin=<address>                  # Address of the Cerbos admin API.
 --cerbos-user=<user>                      # User-id to authenticate with the Cerbos admin API.
@@ -179,7 +165,7 @@ These match the corresponding options in a configuration file.
 ### Pull configurations
 
 A pull configuration is used to schedule pulling attributes from external PIP systems, such as IAM, HR, etc.
-Retrieved attributes are cached in the PIP.
+Retrieved attributes are cached in the PIP of the service.
 The cache is refreshed after a certain amount of time according to the given schedule.
 
 The location of this file is governed by the pip/pull/configPath option in the general configuration.
@@ -249,10 +235,6 @@ Various configuration options can be used to:
 Options for logging are processed first at startup.
 This means the log is ready before any other options are checked and possible errors are printed in the log.
 If logging options cause errors, these are printed using the standard Golang logging.
-
-## Decision log
-
-**TODO**
 
 ## License
 
