@@ -16,20 +16,22 @@ import (
 
 // PAP represents the interface for caching and retrieving policies.
 type PAP interface {
+	Language() models.Language                                       // default language for the PAP.
 	Create(in Policy) (Policy, error)                                // create a new policy.
 	Read(language, id string) (Policy, uint64, error)                // retrieve a policy.
 	Update(prev Policy, lastIndex uint64, in Policy) (Policy, error) // replace an existing policy.
 	Delete(prev Policy, lastIndex uint64) (Policy, error)            // remove an existing policy.
 	List(language string) ([]Policy, error)                          // list all policies.
 	AddEventSink(events models.EventSink)                            // add a closure to receive change events.
-	LoadFiles()                                                      // load policies from a given path.
+	LoadFiles()                                                      // load policies from the configured path.
+	LoadString(language, policy string) error                        // load a policy from the given string.
 }
 
 // New instantiates a new policy cache.
 //
 // The optional context can be used to signal an orderly shutdown.
 //
-// By default, a PAP uses an in-memory KV-cache.
+// By default, a PAP uses an in-memory KV cache.
 // Use the WithPersistence() option to connect a PAP to persistent storage.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 	if ctx == nil {
@@ -76,6 +78,11 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 		p.logger.Info("pap initialized", args...)
 	}
 	return p
+}
+
+// Language returns the default policy language for the PAP.
+func (p *pap) Language() models.Language {
+	return p.languageType
 }
 
 // Create adds a policy to cache/storage.
@@ -157,17 +164,18 @@ func (p *pap) sendEvent(eventType models.EventType, key string) {
 }
 
 type pap struct {
-	recurse     bool
-	policyStore string
-	language    string
-	ctx         context.Context
-	logger      *slog.Logger
-	watcher     *fsnotify.Watcher
-	wTimer      *time.Timer
-	updates     map[string]struct{}
-	deletes     map[string]struct{}
-	eventSinks  []models.EventSink
-	store       store.Store
-	persist     Persistence
-	mutex       sync.RWMutex
+	languageType models.Language
+	recurse      bool
+	policyStore  string
+	language     string
+	ctx          context.Context
+	logger       *slog.Logger
+	watcher      *fsnotify.Watcher
+	wTimer       *time.Timer
+	updates      map[string]struct{}
+	deletes      map[string]struct{}
+	eventSinks   []models.EventSink
+	store        store.Store
+	persist      Persistence
+	mutex        sync.RWMutex
 }

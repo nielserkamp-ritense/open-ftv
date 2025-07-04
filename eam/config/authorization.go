@@ -23,6 +23,11 @@ func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator a
 		authorization2.WithEntities(controller.PIP()),
 	}
 
+	lang := controller.PAP().Language()
+	if list, err := controller.PAP().List(lang.Language()); err != nil || len(list) == 0 {
+		opts = append(opts, authorization2.NoAuth())
+	}
+
 	if a.Authenticate {
 		if authenticator == nil {
 			return nil, fmt.Errorf("failed to initialize authorizer: no authenticator provided")

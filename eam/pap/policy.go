@@ -178,9 +178,15 @@ func (p *policy) UnmarshalJSON(data []byte) error {
 // SplitPolicyKey splits a policy-key into language and id.
 func SplitPolicyKey(key string) (string, string) {
 	parts := strings.Split(key, "/")
-	if len(parts) == 2 {
+	switch len(parts) {
+	case 2:
 		return parts[0], parts[1]
+	case 3:
+		if strings.EqualFold(parts[0], "opa") || strings.EqualFold(parts[0], "cerbos") {
+			return strings.Join(parts[0:2], "/"), parts[2]
+		}
 	}
+
 	return "", key
 }
 

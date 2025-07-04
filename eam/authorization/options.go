@@ -54,3 +54,9 @@ func WithAuthenticator(authenticator authentication.Authenticator) Option {
 		a.authenticator = authenticator
 	}
 }
+
+func NoAuth() Option {
+	return func(a *auth) {
+		a.noAuth = true
+	}
+}

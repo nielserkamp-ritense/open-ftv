@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/kvtools/valkeyrie/store"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Option represents the function signature for options when creating a new PAP.
@@ -14,6 +16,7 @@ type Option func(p *pap)
 func WithLanguage(language string) Option {
 	return func(p *pap) {
 		p.language = language
+		p.languageType = models.LanguageFromString(language)
 	}
 }
 

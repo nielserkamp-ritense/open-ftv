@@ -20,9 +20,18 @@ func (a *Authentication) NewAuthenticator(controller pdp.Controller) (authentica
 		authentication2.WithEntities(controller.PIP()),
 	}
 
+	// TODO: basic auth & jwt authentication handlers.
+
 	switch strings.ToLower(a.Type) {
 	case "bcrypt":
 		return authentication2.NewBCrypt(opts...), nil
+	case "none", "":
+		// !!NOTE!! default is no authentication.
+		return authentication2.NewDummy(opts...), nil
+	// case "basicauth":
+	// 	return authentication2.NewBasicAuth(opts...), nil
+	// case "jwt":
+	// 	return authentication2.NewJWT(opts...), nil
 	default:
 		return nil, nil
 	}
