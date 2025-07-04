@@ -20,7 +20,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, models.OPENFGA.Language()) {
+		if !strings.EqualFold(language, models.OPENFGA.Language()) && !strings.EqualFold(language, models.OPENFGA.String()) {
 			return
 		}
 

@@ -37,7 +37,7 @@ func New(opts ...Option) Authorizer {
 		opts[i](a)
 	}
 
-	// if a pep was not given, we'll create our own.
+	// if the pep was not given, we'll create our own.
 	if a.pep == nil {
 		a.pep = pep.New(a.ctx, a.log)
 	}
@@ -74,17 +74,19 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 
 		var err error
 		switch {
-		case user != "":
-			err = a.authenticator.AuthenticateUser(a.ctx, user, pswd)
-		case apikey != "":
+		case user == "" && apikey != "":
 			err = a.authenticator.AuthenticateApiKey(a.ctx, apikey)
 		default:
-			err = &authentication2.ErrUnauthenticated{}
+			err = a.authenticator.AuthenticateUser(a.ctx, user, pswd)
 		}
 
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if a.noAuth {
+		return &models.Response{Allowed: true}, nil
 	}
 
 	return a.pdp.Authorize(req.UID.String(), parc)
@@ -97,5 +99,6 @@ type auth struct {
 	pdp           pdp.Controller
 	entities      models.EntitySet
 	authenticator authentication2.Authenticator
+	noAuth        bool
 	debug         bool
 }

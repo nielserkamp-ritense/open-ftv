@@ -22,7 +22,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
 		language, id := pap.SplitPolicyKey(key)
-		if !strings.EqualFold(language, models.CERBOS.Language()) {
+		if !strings.EqualFold(language, models.CERBOS.Language()) && !strings.EqualFold(language, models.CERBOS.String()) {
 			return
 		}
 
