@@ -41,7 +41,7 @@ The following is an example of a configuration file containing all possible opti
 ---
 svc:   # options for the API endpoint server.
   host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8080).
+  port: <port>                  # port the service should listen on (default 8443).
   tls:
     ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
     cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
@@ -113,7 +113,7 @@ These match the corresponding options in a configuration file.
 ```text
 # options for the API endpoint server.
 PIP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
-PIP_PORT=<port>                             # port the service should listen on (default 8080).
+PIP_PORT=<port>                             # port the service should listen on (default 8443).
 PIP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PIP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 PIP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
@@ -175,7 +175,7 @@ These match the corresponding options in a configuration file.
 ```text
 # options for the API endpoint server.
 --address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
---port=<port>                             # port the service should listen on (default 8080).
+--port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 --tls-key=<key-file>                      # TLS private key to use with the service; turns on https support (no default).

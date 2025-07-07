@@ -138,4 +138,4 @@ type constructor struct {
 	result  *Filter
 }
 
-var filterRX = regexp.MustCompile(`(?i:^\s*([a-zA-Z0-9_.-]+)\s*(?:(==|!=|=>|>=|=<|<=|=|<|>|in|not in|!in|like|not like|regex|rx|not regex|not rx)\s*(.+)|(nil|is nil|!nil|not nil)\s*)$)`)
+var filterRX = regexp.MustCompile(`(?i:^\s*([a-zA-Z0-9_.-]+)\s*(?:(==|!=|=>|>=|=<|<=|=|<|>|in|not in|!in|like|not like|~|!~|regex|!regex|rx|!rx|not regex|not rx)\s*(.+)|(nil|is nil|!nil|not nil|is not nil)\s*)$)`)
