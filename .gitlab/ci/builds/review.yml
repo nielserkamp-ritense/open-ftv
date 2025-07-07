@@ -10,6 +10,7 @@ build_review_eam:
           - pap
           - pdp
           - manager
+          - management-interface
   before_script:
     - export SEMANTIC_RELEASE_NEXT_VERSION=$(cat ci_semantic_release_next_version.txt)
     - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
