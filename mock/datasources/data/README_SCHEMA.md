@@ -116,8 +116,6 @@ Each table definition has an ID and optional description, and may contain:
 - one or more secondary indexes,
 - one or more foreign keys.
 
-**TODO**
-
 ### Fields
 
 ```yaml
@@ -148,8 +146,6 @@ and may contain one or more of the following constraints:
 - a minimum value,
 - a maximum value,
 - a list of allowed values.
-
-**TODO**
 
 ### Transformations
 

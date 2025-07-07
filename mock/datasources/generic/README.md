@@ -26,7 +26,15 @@ Please create a [Gitlab issue](https://gitlab.com/digilab.overheid.nl/ecosystem/
 
 ## Building and running
 
-See the [README](../../../README.md) in the top-level directory.
+```shell
+git clone https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv.git
+cd open-ftv
+go run mock/datasources/generic/cmd/main.go --data=testdata/dataspaces/fds
+```
+In another shell:
+```shell
+curl -X POST -H'Content-Type: application/json' -H 'Accept: application/json' http://localhost:8443/v1/haalcentraal/api/brp/personen
+```
 
 ## Docker images
 
@@ -56,7 +64,7 @@ The following is an example of a configuration file containing all possible opti
 ---
 svc:   # options for the API endpoint server.
   host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8080).
+  port: <port>                  # port the service should listen on (default 8443).
   tls:
     ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
     cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
@@ -85,7 +93,7 @@ These match the corresponding options in a configuration file.
 ```text
 # options for the API endpoint server.
 GEN_DS_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
-GEN_DS_PORT=<port>                             # port the service should listen on (default 8080).
+GEN_DS_PORT=<port>                             # port the service should listen on (default 8443).
 GEN_DS_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 GEN_DS_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 GEN_DS_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
@@ -112,7 +120,7 @@ These match the corresponding options in a configuration file.
 ```text
 # options for the API endpoint server.
 --address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
---port=<port>                             # port the service should listen on (default 8080).
+--port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 --tls-key=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
