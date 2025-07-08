@@ -2,5 +2,5 @@ CREATE TABLE kv
 (
     key   VARCHAR(200) PRIMARY KEY NOT NULL,
     index BIGINT NOT NULL,
-    value JSONB not null
+    value JSONB NOT NULL
 );
