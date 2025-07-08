@@ -46,10 +46,6 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
 	}
 
-	if len(list) == 0 {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, "no policies found")
-	}
-
 	list2 := make([]*policies.Policy, len(list))
 	for i := range list {
 		list2[i] = h.convertPolicy(list[i])

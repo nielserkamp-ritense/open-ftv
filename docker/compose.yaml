@@ -9,7 +9,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/mydb?sslmode=disable
+      - DATABASE_URL=postgres://user:password@db:5432/openftv_pap?sslmode=disable
     networks:
       - openftv
   pap:
@@ -22,12 +22,15 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/mydb?sslmode=disable
+      - DATABASE_URL=postgres://user:password@db:5432/openftv_pap?sslmode=disable
+      - PAP_AUTHENTICATION_TYPE=none
+      - PAP_POLICIES_STORE=testdata/policies/cedar/pap
     networks:
       - openftv
   frontend:
     build:
-      context: ../apps/management-interface/
+      context: ../
+      dockerfile: ./apps/management-interface/Dockerfile
     container_name: openftv-management-ui
     ports:
       - "8080:80"
@@ -47,6 +50,7 @@ services:
       - "5400:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     networks:
       - openftv
 
