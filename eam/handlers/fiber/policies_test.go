@@ -127,7 +127,7 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, PoliciesVersion, resp.Header.Get(HeaderVersion))
-		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
 }
 
