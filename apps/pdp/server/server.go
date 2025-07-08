@@ -27,6 +27,7 @@ func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
 		server.WithMaxBody(cfg.Server.MaxBody),
 		server.WithRecovery(),
 		server.WithSecurity(),
+		server.WithCORS(cfg.CorsOrigins, cfg.CorsHeaders),
 	)
 
 	return s

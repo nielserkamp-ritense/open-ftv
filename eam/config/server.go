@@ -13,4 +13,6 @@ type Server struct {
 	WriteTimeout time.Duration `yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
 	IdleTimeout  time.Duration `yaml:"svc.timeout.idle,omitempty" env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
 	MaxBody      int           `yaml:"svc.maxBody,omitempty" env:"MAX_BODY_SIZE" flag:"max-body" default:"65536" desc:"Maximum size of request body"`
+	CorsOrigins  string        `yaml:"svc.cors.origins,omitempty" env:"CORS_ORIGINS" flag:"cors-origins" default:"*" desc:"Cors origins"`
+	CorsHeaders  string        `yaml:"svc.cors.headers,omitempty" env:"CORS_HEADERS" flag:"cors-headers" default:"*" desc:"Cors headers"`
 }
