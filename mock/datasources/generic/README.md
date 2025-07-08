@@ -74,6 +74,9 @@ svc:   # options for the API endpoint server.
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
   maxBody: <size>               # maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
 
 log:   # options for the application-log.
   output: "<destination>"       # File or standard stream for writing the log (default "stdout").
@@ -101,6 +104,8 @@ GEN_DS_READ_TIMEOUT=<duration>                 # the read timeout for API reques
 GEN_DS_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
 GEN_DS_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
 GEN_DS_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
+GEN_DS_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
+GEN_DS_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 GEN_DS_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -128,6 +133,8 @@ These match the corresponding options in a configuration file.
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
+--cors-origins=<origins>                  # CORS origins (default "*").
+--cors-headers=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").

@@ -13,6 +13,8 @@ It supports the following interfaces:
 
 See the [README](../../README.md) in the top-level directory.
 
+Also see the notes about persistence at the end of this README.
+
 ## Docker images
 
 The Gitlab CI/CD is set up to automatically create docker images in the
@@ -51,6 +53,9 @@ svc:   # options for the API endpoint server.
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
   maxBody: <size>               # maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
 
 log:   # options for the application-log.
   output: "<destination>"       # File or standard stream for writing the log (default "stdout").
@@ -121,6 +126,8 @@ PIP_READ_TIMEOUT=<duration>                 # the read timeout for API requests 
 PIP_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
 PIP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
 PIP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
+PIP_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
+PIP_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 PIP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -183,6 +190,8 @@ These match the corresponding options in a configuration file.
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
+--cors-origins=<origins>                  # CORS origins (default "*").
+--cors-headers=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -312,6 +321,19 @@ persist:
     connection:
       ttl: "120s"
       max: 20
+```
+
+Note that the service expects the database and the table to exist.
+Use the following CREATE statements in your initialization scripts:
+```SQL
+CREATE DATABASE open_ftv;
+
+CREATE TABLE data
+(
+    key   VARCHAR(200) PRIMARY KEY NOT NULL,
+    index BIGINT NOT NULL,
+    value JSONB NOT NULL
+);
 ```
 
 ## Application log

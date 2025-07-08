@@ -17,6 +17,8 @@ It supports the following interfaces:
 
 See the [README](../../README.md) in the top-level directory.
 
+Also see the notes about persistence at the end of this README.
+
 ## Docker images
 
 The Gitlab CI/CD is set up to automatically create docker images in the
@@ -55,6 +57,9 @@ svc:   # options for the API endpoint server.
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
   maxBody: <size>               # maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
 
 log:   # options for the application-log.
   output: "<destination>"       # File or standard stream for writing the log (default "stdout").
@@ -125,6 +130,8 @@ MANAGER_READ_TIMEOUT=<duration>                 # the read timeout for API reque
 MANAGER_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
 MANAGER_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
 MANAGER_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
+MANAGER_CORS_ORIGING=<origins>                  # CORS origins (default "*").
+MANAGER_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 MANAGER_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -187,6 +194,8 @@ These match the corresponding options in a configuration file.
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
+--cors-origins=<origins>                  # CORS origins (default "*").
+--cors-headers=<headers>                  # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -312,11 +321,26 @@ persist:
   type: "postgres"
   postgres:
     url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
-    table: "data"
+    table: "ftv"
     connection:
       ttl: "120s"
       max: 20
 ```
+
+Note that the service expects the database and the table to exist.
+Use the following CREATE statements in your initialization scripts:
+```SQL
+CREATE DATABASE open_ftv;
+
+CREATE TABLE ftv
+(
+    key   VARCHAR(200) PRIMARY KEY NOT NULL,
+    index BIGINT NOT NULL,
+    value JSONB NOT NULL
+);
+```
+
+The service uses an internal key prefix to make sure policy- and data-keys do not clash.
 
 ## Application log
 

@@ -26,10 +26,12 @@ func NewService(cfg *config.Config, logger *slog.Logger) (server.Service, error)
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
 		server.WithAppName(config.AppName),
+		server.WithTLS(cfg.CA, cfg.Cert, cfg.Key),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
-		// server.WithRecovery(),
+		server.WithRecovery(),
 		server.WithSecurity(),
+		server.WithCORS(cfg.CorsOrigins, cfg.CorsHeaders),
 	}
 
 	if cfg.Cert != "" {
