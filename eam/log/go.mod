@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log
 
-go 1.23.2
+go 1.24.4
 
 require (
 	github.com/stretchr/testify v1.10.0
@@ -13,7 +13,7 @@ require (
 	github.com/defensestation/osquery v1.0.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goccy/go-yaml v1.17.1 // indirect
+	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/opensearch-project/opensearch-go v1.1.0 // indirect

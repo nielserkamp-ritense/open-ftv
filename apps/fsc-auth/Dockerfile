@@ -1,5 +1,5 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.23.8-alpine AS golang_builder
+FROM digilabpublic.azurecr.io/golang:1.24.4-alpine AS golang_builder
 
 WORKDIR /build
 
@@ -15,7 +15,7 @@ RUN cd apps/fsc-auth \
   && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/fsc-auth ./cmd/*.go
 
 # Stage 2 - run
-FROM digilabpublic.azurecr.io/alpine:3.21
+FROM digilabpublic.azurecr.io/alpine:3.22
 
 COPY --from=golang_builder /build/fsc-auth /
 

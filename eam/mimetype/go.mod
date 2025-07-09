@@ -1,15 +1,13 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype
 
-go 1.23.8
-
-toolchain go1.24.2
+go 1.24.4
 
 require (
 	github.com/goccy/go-json v0.10.5
-	github.com/goccy/go-yaml v1.17.1
+	github.com/goccy/go-yaml v1.18.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250415141202-eea5915a6d13
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250708120440-2327e161c67a
 )
 
 require (

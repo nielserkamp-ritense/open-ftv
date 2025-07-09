@@ -1,17 +1,18 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/handlers
 
-go 1.23.8
-
-toolchain go1.24.2
+go 1.24.4
 
 require (
 	github.com/goccy/go-json v0.10.5
-	github.com/goccy/go-yaml v1.17.1
-	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/goccy/go-yaml v1.18.0
+	github.com/gofiber/fiber/v2 v2.52.8
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server v0.0.0-20250708120440-2327e161c67a
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250410082626-e73c066519bd
 )
 
 require (
-	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
@@ -19,8 +20,14 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.60.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	github.com/valyala/fasthttp v1.63.0 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250410082626-e73c066519bd // indirect
+	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
 
-replace gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../../utilities
+replace (
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data => ../data
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ../../../oas
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../../utilities
+)

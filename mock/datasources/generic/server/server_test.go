@@ -32,6 +32,7 @@ func TestServe(t *testing.T) {
 					MaxBody:      256,
 				},
 			},
+			DataPath: "../../../../testdata/dataspaces/fds",
 		}
 
 		s, err := NewService(cfg, logger)
@@ -73,6 +74,7 @@ func TestErrorHandler(t *testing.T) {
 					MaxBody:      256,
 				},
 			},
+			DataPath: "../../../../testdata/dataspaces/fds",
 		}
 
 		s, err := NewService(cfg, logger)
