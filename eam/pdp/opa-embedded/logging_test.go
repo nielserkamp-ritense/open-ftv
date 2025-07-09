@@ -130,19 +130,19 @@ func TestWrappedLogger_Write(t *testing.T) {
 			w := &wrappedLogger{logger: slog.New(h)}
 
 			for i := range tc.debug {
-				w.Debug(tc.debug[i])
+				w.Debug("%s", tc.debug[i])
 			}
 
 			for i := range tc.info {
-				w.Info(tc.info[i])
+				w.Info("%s", tc.info[i])
 			}
 
 			for i := range tc.warn {
-				w.Warn(tc.warn[i])
+				w.Warn("%s", tc.warn[i])
 			}
 
 			for i := range tc.error {
-				w.Error(tc.error[i])
+				w.Error("%s", tc.error[i])
 			}
 
 			assert.Equal(t, tc.wantLog, h.Count())

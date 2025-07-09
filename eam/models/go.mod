@@ -1,12 +1,10 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models
 
-go 1.23
-
-toolchain go1.24.2
+go 1.24.4
 
 require (
 	github.com/goccy/go-json v0.10.5
-	github.com/goccy/go-yaml v1.17.1
+	github.com/goccy/go-yaml v1.18.0
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
 )
