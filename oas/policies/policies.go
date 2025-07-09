@@ -26,17 +26,28 @@ type PoliciesResponse = []Policy
 
 // Policy The content of a policy.
 type Policy struct {
+	// Data Content of the policy. Required when the policy is stored internally.
+	Data string `json:"data,omitempty"`
+
 	// Id The unique identifier of the policy.
 	Id string `json:"id"`
 
 	// Language The language of the policy.
+	// The value is case-insensitive.
+	//
+	// Supported values:
+	// - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
+	// - "cedar".
+	// - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
+	// - "openfga"; alternative: "open-fga".
 	Language string `json:"language"`
 
 	// RvvaId The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+	// Required when the policy is linked 1-on-1 with an item in the RvVA.
 	RvvaId string `json:"rvvaId,omitempty"`
 
-	// Url Link to the actual policy.
-	Url string `json:"url"`
+	// Url Link to the policy. Required when the policy is stored externally.
+	Url string `json:"url,omitempty"`
 }
 
 // PolicyResponse The content of a policy.

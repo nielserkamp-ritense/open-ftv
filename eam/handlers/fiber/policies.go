@@ -1,7 +1,9 @@
 package fiber
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -10,25 +12,25 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.0.0"
+const PoliciesVersion = "1.3.0" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
 	GetPolicies(req *fiber.Ctx) error
 	GetPolicy(req *fiber.Ctx) error
-	PutPolicy(req *fiber.Ctx) error
 	PostPolicy(req *fiber.Ctx) error
+	PutPolicy(req *fiber.Ctx) error
 	DeletePolicy(req *fiber.Ctx) error
 }
 
 // NewPoliciesHandler instantiates a policy handler.
-func NewPoliciesHandler(logger *slog.Logger, cache pap2.PAP, authorizer authorization.Authorizer) PoliciesHandler {
+func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
 	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer}
 }
 
@@ -48,7 +50,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 	list2 := make([]*policies.Policy, len(list))
 	for i := range list {
-		list2[i] = h.convertPolicy(list[i])
+		list2[i] = h.convertPolicy(list[i], false)
 	}
 
 	return req.JSON(list2)
@@ -72,52 +74,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
-	return req.JSON(h.convertPolicy(pol))
-}
-
-// PutPolicy implements the PoliciesHandler interface.
-func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
-	req.Set(HeaderVersion, PoliciesVersion)
-
-	if ok, err := h.authorize(req); !ok || err != nil {
-		return err
-	}
-
-	language, id, ok, err := h.checkKey(req)
-	if !ok {
-		return err
-	}
-
-	upsert := req.QueryBool("forceUpsert")
-
-	var p *policies.Policy
-	if p, ok, err = h.checkBody(req, language, id); !ok {
-		return err
-	}
-
-	var pol pap2.Policy
-	if pol, ok, err = h.buildPolicy(req, p); !ok {
-		return err
-	}
-
-	if upsert {
-		// for upsert we check if the policy exists.
-		// if it exists, we replace it, otherwise we add it.
-		if prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id); err2 == nil && prev != nil {
-			pol2, err3 := h.cache.Update(prev, lastIndex, pol)
-			if err3 != nil {
-				return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
-			}
-			return req.JSON(h.convertPolicy(pol2))
-		}
-	}
-
-	pol2, err2 := h.cache.Create(pol)
-	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
-	}
-	return req.JSON(h.convertPolicy(pol2))
+	return req.JSON(h.convertPolicy(pol, true))
 }
 
 // PostPolicy implements the PoliciesHandler interface.
@@ -141,7 +98,53 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol pap2.Policy
+	var pol pap.Policy
+	if pol, ok, err = h.buildPolicy(req, p); !ok {
+		return err
+	}
+
+	if upsert {
+		// for upsert we check if the policy exists.
+		// if it exists, we replace it, otherwise we add it.
+		if prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id); err2 == nil && prev != nil {
+			pol2, err3 := h.cache.Update(prev, lastIndex, pol)
+			if err3 != nil {
+				return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
+			}
+			return req.JSON(h.convertPolicy(pol2, true))
+		}
+	}
+
+	pol2, err2 := h.cache.Create(pol)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+	}
+
+	return req.Status(fiber.StatusCreated).JSON(h.convertPolicy(pol2, true))
+}
+
+// PutPolicy implements the PoliciesHandler interface.
+func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
+	req.Set(HeaderVersion, PoliciesVersion)
+
+	if ok, err := h.authorize(req); !ok || err != nil {
+		return err
+	}
+
+	language, id, ok, err := h.checkKey(req)
+	if !ok {
+		return err
+	}
+
+	upsert := req.QueryBool("forceUpsert")
+
+	var p *policies.Policy
+	if p, ok, err = h.checkBody(req, language, id); !ok {
+		return err
+	}
+
+	var pol pap.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -156,7 +159,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 			if err3 != nil {
 				return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
 			}
-			return req.JSON(h.convertPolicy(pol2))
+			return req.JSON(h.convertPolicy(pol2, true))
 
 		case err2 != nil:
 			return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
@@ -170,7 +173,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	if err3 != nil {
 		return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
 	}
-	return req.JSON(h.convertPolicy(pol2))
+	return req.JSON(h.convertPolicy(pol2, true))
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
@@ -205,7 +208,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	if err3 != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}
-	return req.JSON(h.convertPolicy(pol))
+	return req.JSON(h.convertPolicy(pol, true))
 }
 
 func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, string, bool, error) {
@@ -245,7 +248,19 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*polic
 	return &p, true, nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap2.Policy, bool, error) {
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.Policy, bool, error) {
+	if p.Url == "" {
+		if p.Data == "" {
+			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "policy data or url required")
+		}
+
+		pol, err3 := pap.NewPolicy(p, bytes.NewBufferString(p.Data))
+		if err3 != nil {
+			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
+		}
+		return pol, true, nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -261,19 +276,29 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap2.
 
 	defer resp.Body.Close()
 
-	pol, err3 := pap2.NewPolicy(p, resp.Body)
+	pol, err3 := pap.NewPolicy(p, resp.Body)
 	if err3 != nil {
 		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 	}
 	return pol, true, nil
 }
 
-func (h *policiesHandler) convertPolicy(pol pap2.Policy) *policies.Policy {
+func (h *policiesHandler) convertPolicy(pol pap.Policy, withData bool) *policies.Policy {
+	if !withData || pol.URI() != "" {
+		return &policies.Policy{
+			Id:       pol.ID(),
+			Language: pol.Language(),
+			RvvaId:   pol.RvvaID(),
+			Url:      pol.URI(),
+		}
+	}
+
+	data, _ := io.ReadAll(pol.Content())
 	return &policies.Policy{
 		Id:       pol.ID(),
 		Language: pol.Language(),
 		RvvaId:   pol.RvvaID(),
-		Url:      pol.URI(),
+		Data:     string(data),
 	}
 }
 
@@ -291,6 +316,6 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 type policiesHandler struct {
 	logger     *slog.Logger
-	cache      pap2.PAP
+	cache      pap.PAP
 	authorizer authorization.Authorizer
 }

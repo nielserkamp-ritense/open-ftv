@@ -15,14 +15,14 @@ import (
 )
 
 // EntitiesVersion is the full semantic API version for the entity endpoints.
-const EntitiesVersion = "1.0.0"
+const EntitiesVersion = "1.1.0" // check against oas/attributes/openapi.yaml!
 
 // EntitiesHandler represents the interface for handling requests about entities.
 type EntitiesHandler interface {
 	GetEntities(req *fiber.Ctx) error
 	GetEntity(req *fiber.Ctx) error
-	PutEntity(req *fiber.Ctx) error
 	PostEntity(req *fiber.Ctx) error
+	PutEntity(req *fiber.Ctx) error
 	DeleteEntity(req *fiber.Ctx) error
 }
 
@@ -72,8 +72,8 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	return req.JSON(handlers.EntityToOAS(e))
 }
 
-// PutEntity implements the EntitiesHandler interface.
-func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
+// PostEntity implements the EntitiesHandler interface.
+func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
@@ -99,11 +99,11 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	}
 
 	h.cache.AddEntity(e2)
-	return req.JSON(handlers.EntityToOAS(e2))
+	return req.Status(fiber.StatusCreated).JSON(handlers.EntityToOAS(e2))
 }
 
-// PostEntity implements the EntitiesHandler interface.
-func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
+// PutEntity implements the EntitiesHandler interface.
+func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
