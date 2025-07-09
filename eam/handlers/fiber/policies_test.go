@@ -197,7 +197,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 	}
 }
 
-func TestPoliciesHandler_PutPolicy(t *testing.T) {
+func TestPoliciesHandler_PostPolicy(t *testing.T) {
 	t.Parallel()
 
 	badURL := `{
@@ -230,7 +230,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "duplicate id", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: PoliciesVersion},
-		{name: "all good", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
+		{name: "all good", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 5 * time.Second, wantStatus: fiber.StatusCreated, wantVer: PoliciesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -256,9 +256,9 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
-			srv.Put("/v1/policy/:language/:id", ph.PutPolicy)
+			srv.Post("/v1/policy/:language/:id", ph.PostPolicy)
 
-			req := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), tc.body)
+			req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))
@@ -284,7 +284,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 	}
 }
 
-func TestPoliciesHandler_PostPolicy(t *testing.T) {
+func TestPoliciesHandler_PutPolicy(t *testing.T) {
 	t.Parallel()
 
 	badURL := `{
@@ -343,9 +343,9 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
-			srv.Post("/v1/policy/:language/:id", ph.PostPolicy)
+			srv.Put("/v1/policy/:language/:id", ph.PutPolicy)
 
-			req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), tc.body)
+			req := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/v1/policy/%s/%s", tc.language, tc.id), tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))

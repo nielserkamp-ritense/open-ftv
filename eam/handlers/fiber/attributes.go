@@ -15,14 +15,14 @@ import (
 )
 
 // AttributesVersion is the full semantic API version for the attribute endpoints.
-const AttributesVersion = "1.0.0"
+const AttributesVersion = "1.1.0" // check against oas/attributes/openapi.yaml!
 
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
 	GetAttributes(req *fiber.Ctx) error
 	GetAttribute(req *fiber.Ctx) error
-	PutAttribute(req *fiber.Ctx) error
 	PostAttribute(req *fiber.Ctx) error
+	PutAttribute(req *fiber.Ctx) error
 	DeleteAttribute(req *fiber.Ctx) error
 }
 
@@ -72,8 +72,8 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	return req.JSON(handlers.AttributeToOAS(attr))
 }
 
-// PutAttribute implements the AttributesHandler interface.
-func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
+// PostAttribute implements the AttributesHandler interface.
+func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
@@ -98,11 +98,11 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 	a := handlers.AttributeFromOAS(p)
 	h.cache.AddAttribute(a.Key(), a.Value())
-	return req.JSON(&attributes.Attribute{Key: a.Key(), Value: a.Value()})
+	return req.Status(fiber.StatusCreated).JSON(&attributes.Attribute{Key: a.Key(), Value: a.Value()})
 }
 
-// PostAttribute implements the AttributesHandler interface.
-func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
+// PutAttribute implements the AttributesHandler interface.
+func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 

@@ -14,6 +14,6 @@ const HealthVersion = "1.0.0"
 //
 // There are no internal service checks, so for now it will always respond with a static OK message.
 func HealthZ(fc *fiber.Ctx) error {
-	fc.Set(HeaderVersion, AttributesVersion)
+	fc.Set(HeaderVersion, HealthVersion)
 	return fiber2.SendBasicResponse(fc, fiber.StatusOK)
 }

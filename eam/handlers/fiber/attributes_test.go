@@ -197,7 +197,7 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 	}
 }
 
-func TestAttributesHandler_PutAttribute(t *testing.T) {
+func TestAttributesHandler_PostAttribute(t *testing.T) {
 	t.Parallel()
 
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
@@ -220,7 +220,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "duplicate key", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: AttributesVersion},
 		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
+		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusCreated, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -246,9 +246,9 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
-			srv.Put("/v1/attribute/:key", ah.PutAttribute)
+			srv.Post("/v1/attribute/:key", ah.PostAttribute)
 
-			req := httptest.NewRequest(fiber.MethodPut, "/v1/attribute/"+tc.key, tc.body)
+			req := httptest.NewRequest(fiber.MethodPost, "/v1/attribute/"+tc.key, tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))
@@ -276,7 +276,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 	}
 }
 
-func TestAttributesHandler_PostAttribute(t *testing.T) {
+func TestAttributesHandler_PutAttribute(t *testing.T) {
 	t.Parallel()
 
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
@@ -325,9 +325,9 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
-			srv.Post("/v1/attribute/:key", ah.PostAttribute)
+			srv.Put("/v1/attribute/:key", ah.PutAttribute)
 
-			req := httptest.NewRequest(fiber.MethodPost, "/v1/attribute/"+tc.key, tc.body)
+			req := httptest.NewRequest(fiber.MethodPut, "/v1/attribute/"+tc.key, tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))

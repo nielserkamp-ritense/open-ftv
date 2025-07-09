@@ -207,7 +207,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 	}
 }
 
-func TestEntitiesHandler_PutEntity(t *testing.T) {
+func TestEntitiesHandler_PostEntity(t *testing.T) {
 	t.Parallel()
 
 	data1 := attributes.Entity{Type: "type", Id: "id"}
@@ -234,7 +234,7 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 		{name: "duplicate key", ns: "app", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: EntitiesVersion},
 		{name: "mismatched type", ns: "app", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched id", ns: "type", id: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "all good", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: EntitiesVersion},
+		{name: "all good", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusCreated, wantVer: EntitiesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -260,9 +260,9 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 			require.NotNil(t, eh)
 
 			srv := fiber.New()
-			srv.Put("/v1/entity/:type/:id", eh.PutEntity)
+			srv.Post("/v1/entity/:type/:id", eh.PostEntity)
 
-			req := httptest.NewRequest(fiber.MethodPut, "/v1/entity/"+tc.ns+"/"+tc.id, tc.body)
+			req := httptest.NewRequest(fiber.MethodPost, "/v1/entity/"+tc.ns+"/"+tc.id, tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))
@@ -290,7 +290,7 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 	}
 }
 
-func TestEntitiesHandler_PostEntity(t *testing.T) {
+func TestEntitiesHandler_PutEntity(t *testing.T) {
 	t.Parallel()
 
 	data1 := attributes.Entity{Type: "type", Id: "id"}
@@ -343,9 +343,9 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
-			srv.Post("/v1/entity/:type/:id", ah.PostEntity)
+			srv.Put("/v1/entity/:type/:id", ah.PutEntity)
 
-			req := httptest.NewRequest(fiber.MethodPost, "/v1/entity/"+tc.ns+"/"+tc.id, tc.body)
+			req := httptest.NewRequest(fiber.MethodPut, "/v1/entity/"+tc.ns+"/"+tc.id, tc.body)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 			resp, err2 := srv.Test(req, int(tc.timeout/time.Millisecond))
