@@ -27,7 +27,7 @@ export const policiesService = {
   getAllPolicies: async (): Promise<PoliciesResponse> => {
     return request<PoliciesResponse>({
       method: 'GET',
-      url: 'http://localhost:9001/v1/policies',
+      url: '/v1/policies',
     });
   },
 
@@ -40,7 +40,7 @@ export const policiesService = {
   getPolicy: async (language: string, id: string): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'GET',
-      url: `/policy/${language}/${id}`,
+      url: `/v1/policy/${language}/${id}`,
     });
   },
 
@@ -60,7 +60,7 @@ export const policiesService = {
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'POST',
-      url: `/policy/${language}/${id}`,
+      url: `/v1/policy/${language}/${id}`,
       params: force ? { force } : undefined,
       data: policy,
     });
@@ -82,7 +82,7 @@ export const policiesService = {
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'PUT',
-      url: `/policy/${language}/${id}`,
+      url: `/v1/policy/${language}/${id}`,
       params: force ? { force } : undefined,
       data: policy,
     });
@@ -102,7 +102,7 @@ export const policiesService = {
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'DELETE',
-      url: `/policy/${language}/${id}`,
+      url: `/v1/policy/${language}/${id}`,
       params: force ? { force } : undefined,
     });
   },
