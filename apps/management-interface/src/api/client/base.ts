@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Create a base API configuration
 const apiConfig: AxiosRequestConfig = {
-    baseURL: (import.meta.env.VITE_API_BASE_URL as string) || '/api',
+    baseURL: (import.meta.env.VITE_PAP_BASE_URL as string) || '/api',
     headers: {
         'Content-Type': 'application/json',
     },

@@ -9,7 +9,11 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/openftv_pap?sslmode=disable
+      - PIP_PERSIST_TYPE=postgres
+      - PIP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv_pip?sslmode=disable
+      - PIP_PERSIST_PREFIX=local
+      - PIP_PERSIST_POSTGRES_TABLE=kv
+      - PIP_AUTHENTICATION_TYPE=none
     networks:
       - openftv
   pap:
@@ -22,7 +26,10 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/openftv_pap?sslmode=disable
+      - PAP_PERSIST_TYPE=postgres
+      - PAP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv_pap?sslmode=disable
+      - PAP_PERSIST_PREFIX=local
+      - PAP_PERSIST_POSTGRES_TABLE=kv
       - PAP_AUTHENTICATION_TYPE=none
       - PAP_POLICIES_STORE=testdata/policies/cedar/pap
     networks:
