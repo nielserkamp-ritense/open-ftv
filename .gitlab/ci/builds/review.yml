@@ -30,6 +30,8 @@ build_review_eam:
       --cache-ttl="168h"
       --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
     - if: $CI_COMMIT_BRANCH
       changes:
         compare_to: $CI_DEFAULT_BRANCH
@@ -86,6 +88,8 @@ build_review_fsc:
       --cache-ttl="168h"
       --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
     - if: $CI_COMMIT_BRANCH
       changes:
         compare_to: $CI_DEFAULT_BRANCH
@@ -142,6 +146,8 @@ build_review_mock_ds:
       --cache-ttl="168h"
       --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
     - if: $CI_COMMIT_BRANCH
       changes:
         compare_to: $CI_DEFAULT_BRANCH
