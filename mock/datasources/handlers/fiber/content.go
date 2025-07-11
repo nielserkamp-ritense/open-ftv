@@ -15,7 +15,7 @@ func buildContent(req *fiber.Ctx, data any) error {
 	ct := fiber.MIMEApplicationJSON
 
 	list := req.GetReqHeaders()[fiber.HeaderAccept]
-	if len(list) > 0 {
+	if len(list) > 0 && list[0] != "*/*" {
 		ct = list[0]
 	}
 

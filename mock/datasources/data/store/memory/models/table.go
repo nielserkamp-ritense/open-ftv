@@ -155,7 +155,7 @@ func (t *Table) createRow(r *Row) {
 	}
 
 	for _, fk := range def.ForeignKeys {
-		key := r.KeyValueForFK(fk)
+		key := r.KeyValueForFK(fk, false)
 		foreign := t.ForeignKeys[fk.ID]
 		foreign[key] = append(foreign[key], r)
 		t.ForeignKeys[fk.ID] = foreign

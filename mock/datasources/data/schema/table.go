@@ -66,7 +66,7 @@ func (t *Table) FindForeignKey(foreign *Table) *ForeignKey {
 	t.Fix(nil)
 
 	for _, fk := range t.foreignKeys {
-		if strings.EqualFold(foreign.ID, fk.ForeignTable) && foreign.PrimaryKey.Equal(fk.Fields) {
+		if strings.EqualFold(foreign.ID, fk.ForeignTable) && fk.Equal(foreign.PrimaryKey.Fields) {
 			return fk
 		}
 	}

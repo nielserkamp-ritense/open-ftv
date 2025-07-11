@@ -3,6 +3,7 @@ package models
 import (
 	"bytes"
 	"fmt"
+	"slices"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -95,17 +96,26 @@ func (r *Row) KeyValueForIndex(index *schema.Index) string {
 }
 
 // KeyValueForFK returns a concatenated key of all the field values for the given foreign key.
-func (r *Row) KeyValueForFK(fk *schema.ForeignKey) string {
+func (r *Row) KeyValueForFK(fk *schema.ForeignKey, target bool) string {
+	var fields []string
+	if target {
+		fields = slices.Clone(fk.TargetFields)
+	} else {
+		fields = slices.Clone(fk.SourceFields)
+	}
+
+	if r.isQualified {
+		for i := range fields {
+			fields[i] = fmt.Sprintf("%s.%s", fk.ForeignTable, fields[i])
+		}
+	}
+
 	b := bytes.Buffer{}
 
-	fk.IterateFields(func(field *schema.Field) {
-		if r.isQualified {
-			b.WriteString(r.FieldString(field.FQID()))
-		} else {
-			b.WriteString(r.FieldString(field.ID))
-		}
+	for i := range fields {
+		b.WriteString(r.FieldString(fields[i]))
 		b.WriteByte('|')
-	})
+	}
 
 	if b.Len() > 0 {
 		b.Truncate(b.Len() - 1)
