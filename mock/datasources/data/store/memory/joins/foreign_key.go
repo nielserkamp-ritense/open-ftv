@@ -19,7 +19,7 @@ func (j *Join) joinOnFK(fk *schema.ForeignKey) (models.Rows, error) {
 		}
 
 		in := j.targetData[i]
-		if key := in.KeyValueForFK(fk); key != "" {
+		if key := in.KeyValueForFK(fk, true); key != "" {
 			recs := foreign[key]
 
 			var joinData models.Rows

@@ -2,7 +2,6 @@ package joins
 
 import (
 	"fmt"
-	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
@@ -31,7 +30,7 @@ func (j *Join) JoinOnFK(fk *schema.ForeignKey, filter filtering.Filterer, params
 	}
 
 	j.filter = filter
-	j.sourceFields, j.targetFields = splitFields(fk.Fields)
+	j.sourceFields, j.targetFields = fk.SourceFields, fk.TargetFields
 	j.params = params
 
 	return j.joinOnFK(fk)
@@ -48,7 +47,7 @@ func (j *Join) JoinOnFields(fields []string, filter filtering.Filterer, params m
 	}
 
 	j.filter = filter
-	j.sourceFields, j.targetFields = splitFields(fields)
+	j.sourceFields, j.targetFields = schema.SplitFields(fields)
 	j.params = params
 
 	return j.joinOnFields()
@@ -65,23 +64,4 @@ type Join struct {
 	sourceFields []string
 	targetFields []string
 	meta         store.MetaReader
-}
-
-func splitFields(list []string) ([]string, []string) {
-	sources := make([]string, len(list))
-	targets := make([]string, len(list))
-
-	for i := range list {
-		parts := strings.Split(list[i], ":")
-		switch len(parts) {
-		case 1:
-			targets[i] = parts[0]
-			sources[i] = parts[0]
-		default:
-			targets[i] = parts[0]
-			sources[i] = parts[1]
-		}
-	}
-
-	return sources, targets
 }

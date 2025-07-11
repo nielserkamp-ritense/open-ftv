@@ -12,6 +12,8 @@ import (
 type ForeignKey struct {
 	Index
 	ForeignTable string
+	SourceFields []string
+	TargetFields []string
 	// hidden fields
 	foreignTable  *Table
 	foreignFields []*Field
@@ -99,6 +101,8 @@ func (fk *ForeignKey) Fix(t *Table, tables map[string]*Table) {
 func (fk *ForeignKey) fix(t *Table, tables map[string]*Table) {
 	fk.Index.fix(t)
 
+	fk.SourceFields, fk.TargetFields = SplitFields(fk.Fields)
+
 	if tables == nil && t.parentSource != nil {
 		tables = t.parentSource.tables
 	}
@@ -109,20 +113,33 @@ func (fk *ForeignKey) fix(t *Table, tables map[string]*Table) {
 
 	if fk.foreignTable != nil && len(fk.foreignFields) == 0 {
 		fk.foreignFields = make([]*Field, 0, len(fk.Fields))
-		for _, id := range fk.Fields {
-			parts := strings.Split(id, ":")
-
-			var f *Field
-			switch len(parts) {
-			case 1:
-				f = fk.foreignTable.fields[parts[0]]
-			default:
-				f = fk.foreignTable.fields[parts[1]]
-			}
-
-			if f != nil {
+		for _, id := range fk.TargetFields {
+			if f := fk.foreignTable.fields[id]; f != nil {
 				fk.foreignFields = append(fk.foreignFields, f)
 			}
 		}
 	}
+}
+
+// SplitFields splits foreign key fields into their source and target parts.
+//
+// The source is the field in the table the foreign key is defined for.
+// The target is the field in the foreign table.
+func SplitFields(list []string) ([]string, []string) {
+	sources := make([]string, len(list))
+	targets := make([]string, len(list))
+
+	for i := range list {
+		parts := strings.Split(list[i], ":")
+		switch len(parts) {
+		case 1:
+			sources[i] = parts[0]
+			targets[i] = parts[0]
+		default:
+			sources[i] = parts[0]
+			targets[i] = parts[1]
+		}
+	}
+
+	return sources, targets
 }
