@@ -4,18 +4,18 @@
 This code module implements a Policy Information Point (PIP) and Policy Administration Point (PAP) in a single service.
 
 It supports the following interfaces:
-- API endpoints to manage policies; intended for userinterfaces.
-- API endpoints to manage attributes, entities and relations; intended for userinterfaces.
+- API endpoints to manage policies; intended for user interfaces.
+- API endpoints to manage attributes, entities and relations; intended for user interfaces.
 - API endpoints to push attributes; intended for external PIP systems, such as HR, IAM, etc.
 - functionality to pull attributes from external PIPs.
-- *TODO*: API endpoint to retrieve a batch of policies; intended for PDPs.
-- *TODO*: functionality to push a batch of policies to a PDP.
-- *TODO*: functionality to push a policy or batch of policies to a git repository.
-- *TODO*: functionality to push a batch of attributes, entities and/or relations to a PDP.
+- API endpoint to retrieve a batch of policies; intended for PDPs (**TODO**).
+- functionality to push a batch of policies to a PDP (**TODO**).
+- functionality to push a policy or batch of policies to a git repository (**TODO**).
+- functionality to push a batch of attributes, entities and/or relations to a PDP (**TODO**).
 
 ## Building and running
 
-See the [README](../../README.md) in the top-level directory.
+See the [README](../../README.md) in the top-level folder.
 
 Also see the notes about persistence at the end of this README.
 
@@ -95,13 +95,13 @@ authorization:   # options used during the authorization stage of a user interfa
 policies:   # policies used for authorizing user interface requests.
   language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
   store:
-    path: "<directory>"         # Location on disk where static policy files can be found (no default).
-    recurse: true|false         # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
+    path: "<folder>"            # Location on disk where static policy files can be found (no default).
+    recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
 pip:   # attributes used for authorizing user interface requests.
   store:
-    path: "<directory>"         # Location on disk where static attribute files can be found (no default).
-    recurse: true|false         # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
+    path: "<folder>"            # Location on disk where static attribute files can be found (no default).
+    recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
   pull:   # see the section "Pull configurations" below for more information.
     configPath: "<file>"        # Location on disk where a "pull configuration" file can be found (no default).
 
@@ -162,12 +162,12 @@ MANAGER_AUTHORIZATION_AUTHENTICATE=true|false   # Flag to force authentication o
 
 # policies used for authorizing user interface requests.
 MANAGER_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
-MANAGER_POLICIES_STORE=<directory>              # Location on disk where static policy files can be found (no default).
-MANAGER_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
+MANAGER_POLICIES_STORE=<folder>                 # Location on disk where static policy files can be found (no default).
+MANAGER_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
 # attributes used for authorizing user interface requests.
-MANAGER_MANAGER_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
-MANAGER_MANAGER_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
+MANAGER_MANAGER_STORE=<folder>                  # Location on disk where static attribute files can be found (no default).
+MANAGER_MANAGER_STORE_RECURSE=true|false        # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
 MANAGER_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
@@ -226,12 +226,12 @@ These match the corresponding options in a configuration file.
 
 # policies used for authorizing user interface requests.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
---policies-store=<directory>              # Location on disk where static policy files can be found (no default).
---policies-store-recurse=true|false       # Flag to indicate the given directory and its subdirectories must be search recursively for policy files (default false).
+--policies-store=<folder>                 # Location on disk where static policy files can be found (no default).
+--policies-store-recurse=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
 # attributes used for authorizing user interface requests.
---pip-store=<directory>                   # Location on disk where static attribute files can be found (no default).
---pip-store-recurse=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
+--pip-store=<folder>                      # Location on disk where static attribute files can be found (no default).
+--pip-store-recurse=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
 --pip-pull-configs=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
@@ -242,16 +242,108 @@ These match the corresponding options in a configuration file.
 --cerbos-ca=<file>                        # CA certificate to use with the Cerbos APIs.
 ```
 
+### Authentication & authorization
+
+#### EAM inside EAM.
+
+The Manager service has built-in EAM components. This may sound like a contradiction.
+However, the policies and data used for this are stored outside the application.
+Only the generic EAM code is embedded, as a proof of concept that a PDP, PAP and/or PIP do not necessarily need to be externalized.
+This can save a considerable amount of resource usage in your setup.
+It also significantly reduces latency between the various components.
+
+#### Policies and data
+
+The policies for authorization are loaded from the location indicated by the ```policies.store``` configuration parameter.
+These policies are kept separate from the policies maintained by the Manager service.
+The language of these policies should match the ```policies.language``` configuration parameter,
+so the embedded EAM controller knows which PDP engine to use (OPA, Cedar, Cerbos or OpenFGA).
+
+Local data for authentication and authorization is loaded from the location indicated by the ```pip.store``` configuration parameter.
+This data is kept separate from the data maintained by the Manager service.
+External data can be loaded with the pull configurations (see below).
+
+The policies and local data used by the embedded EAM components are meant to be read-only,
+and not to be maintained through the UI API of the Manager service.
+This is to ensure separation of duties!
+
+To modify policies, you need to restart the service with the modified policies.
+
+To maintain data elements (such as users), you can use the pull- or push-mechanisms of the embedded PIP.
+Or, alternatively, maintain a file (see below) and restart the service with the modified user-file.
+
+#### Authentication
+
+Authentication is configurable with the ```authentication.type``` configuration option.
+
+Currently supported methods are:
+- ```none``` = no authentication (for quick testing).
+- ```bcrypt``` = bcrypt hashed password.
+- ```basic``` = basic HTTP authentication (**TODO**).
+- ```jwt``` = token-based authentication (**TODO**).
+
+The authentication module requires a list of users with passwords.
+This list is configured through the embedded PIP as entity-styled data.
+
+Add a file to the configured ```pip.store``` folder as follows:
+```yaml
+- type: "user"
+  id: "mickey"
+  attributes:
+    name: "Mickey Mouse"
+    # bcrypt -nB mickey
+    password: "....."
+    roles: ["admin"]
+- type: "user"
+  id: "goofy"
+  attributes:
+    name: "Goofy"
+    # bcrypt -nB goofy
+    password: "....."
+    roles: ["auditor"]
+```
+
+This will provide the authentication module with the users that are allowed to access the Manager service.
+
+Note that if this list requires frequent changes,
+it will save time to use the push- and/or pull-mechanism of the embedded PIP.
+
+#### Authorization
+
+Authorization is configured with a single parameter (```authorization.authenticate```),
+and locally stored policies (```policies.store```).
+
+The ```authorization.authenticate``` parameter indicates that a user must be authenticated first.
+If this parameter is ```false``` (the default), authentication will be skipped.
+Turning off authentication can be useful in test scenarios, or when it has already been performed elsewhere.
+
+If one or more policies were found in the ```policies.store``` folder,
+they will be loaded into the embedded PDP at startup and used for authorizing all UI API requests.
+
+If no policies are found at startup, authorization is bypassed.
+This is useful for quick testing, but must not be used in production setups.
+
+#### Cerbos
+
+Most PDP engines are written in Golang and are thus easily embedded.
+The main exception is Cerbos, where the team developed the engine code in an internal folder
+which is not accessible to outside projects.
+This is why Cerbos needs to be configured as a sidecar.
+
+The Cerbos admin API needs to be accessible to allow the PAP to push its policies for authorization to the PDP.
+Check the [Cerbos documentation](https://docs.cerbos.dev/cerbos/latest/what-is-cerbos)
+on how to install and configure it.
+
 ### Pull configurations
 
 A pull configuration is used to schedule pulling attributes from external PIP systems, such as IAM, HR, etc.
-Retrieved attributes are cached in the Manager.
+Retrieved attributes are cached in the Manager service.
 The cache is refreshed after a certain amount of time according to the given schedule.
 
-The location of this file is governed by the pip/pull/configPath option in the general configuration.
+The location of this file is governed by the ```pip.pull.configPath``` option in the general configuration.
 Its use is optional.
 
-A pull configuration is a **YAML** encoded file with the following layout:
+A pull configuration is a YAML encoded file with the following layout:
 ```yaml
 description: "<text>"                  # optional description.
 sources:                               # list of sources to pull data from.
@@ -285,15 +377,15 @@ sources:                               # list of sources to pull data from.
 
 (*1) This option makes the https connection insecure by default. DO NOT USE IN PRODUCTION!
 
-(*2) Parameters for the "path" replace placeholders in the URI marked with two colon characters; e.g., *:param1:*, *:param2:*.
-For this to work, the **name** of the parameter must match the identifier between the two colons.
-Parameters for the "query" are added as query parameters to the URI.
-Parameters for the "body" are structured into an object and encoded as JSON or YAML, according to the **contentType** option.
+(*2) Parameters for the request URI path replace placeholders marked with two colon characters; e.g., ```:param1:```, ```:param2:```.
+For this to work, the ```name``` of the parameter must match the identifier between the two colons.
+Parameters for the request URI query are added as query parameters to the URI.
+Parameters for the request body are structured into an object and encoded as JSON or YAML, according to the ```contentType``` option.
 
 (*3) Options to describe the schedule or interval.
-Either **interval** (with an optional **initialInterval**) or **schedule** must be defined.
-If **interval** is defined, the request will be executed repeatedly, with the given **interval** between calls.
-If the **schedule** rule is defined, the request will be executed according to standard crontab rules.
+Either ```interval``` (with an optional ```initialInterval```) or ```schedule```* must be defined.
+If ```interval``` is defined, the request will be executed repeatedly, with the given **interval** between calls.
+If the ```schedule``` rule is defined, the request will be executed according to standard crontab rules.
 
 (*4) see [response.go](../../eam/pip/network/response.go) for details of the mapping mechanism.
 
@@ -306,14 +398,14 @@ Attributes, entities and relations are persisted in a key-value store.
 This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
 
 The following storage backends are currently supported:
-- **Postgres**: using a custom-built Valkeyrie interface.
-- **etcd**: using the standard Valkeyrie implementation.
-- **Consul**: using the standard Valkeyrie implementation.
-- **in-memory**: using a custom-built Valkeyrie interface (non-persistent).
+- ```Postgres```: using a custom-built Valkeyrie interface.
+- ```etcd```: using the standard Valkeyrie implementation.
+- ```Consul```: using the standard Valkeyrie implementation.
+- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent for testing only).
 
-If no persistence backend is configured, the **in-memory** backend will be used.
-This means that when the service is restarted, all created and/or updated attributes, entities and/or relations will be gone.
-For proper persistence, please configure the use of **Postgres**, **etcd** or **Consul**.
+If no persistence backend is configured, the ```in-memory``` backend will be used.
+This means that when the service is restarted, all created and/or updated policies will be gone.
+For proper persistence, please configure the use of ```Postgres```, ```etcd``` or ```Consul```.
 
 Example of a Postgres configuration:
 ```yaml
@@ -350,13 +442,13 @@ The service writes a single application log of relevant events, so that it can a
 - monitoring life-time events, such as displaying configuration options at startup.
 
 Various configuration options can be used to:
-- determine where the log is written,
-- how to format the log,
-- the verbosity level at which events will be logged.
+- determine where the log is written (```log.output```),
+- how to format the log (```log.format```),
+- the verbosity level at which events will be logged (```log.level```).
 
 Options for logging are processed first at startup.
 This means the log is ready before any other options are checked and possible errors are printed in the log.
-If logging options cause errors, these are printed using the standard Golang logging.
+If logging options cause errors, these are printed using the standard Golang log mechanism.
 
 ## License
 
