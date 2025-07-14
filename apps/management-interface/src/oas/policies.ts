@@ -75,15 +75,24 @@ export interface components {
         Policy: {
             /** @description The unique identifier of the policy. */
             id: string;
-            /**
-             * @description The language of the policy.
-             * @example rego
-             */
+            /** @description The language of the policy.
+             *     The value is case-insensitive.
+             *
+             *     Supported values:
+             *     - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
+             *     - "cedar".
+             *     - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
+             *     - "openfga"; alternative: "open-fga".
+             *      */
             language: string;
-            /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA). */
+            /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+             *     Required when the policy is linked 1-on-1 with an item in the RvVA.
+             *      */
             rvvaId?: string;
-            /** @description Link to the actual policy. */
-            url: string;
+            /** @description Link to the policy. Required when the policy is stored externally. */
+            url?: string;
+            /** @description Content of the policy. Required when the policy is stored internally. */
+            data?: string;
         };
         PoliciesResponse: components["schemas"]["Policy"][];
         PolicyResponse: components["schemas"]["Policy"];
@@ -214,7 +223,6 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
             "5XX": components["responses"]["UnexpectedError"];
         };
     };

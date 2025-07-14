@@ -1,9 +1,12 @@
 import { Heading } from '@/components/heading'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
-import { createFileRoute } from '@tanstack/react-router'
+// import { createFileRoute } from '@tanstack/react-router'
 import {usePolicies} from "@/services/policies.ts";
+import {ScaleLoader} from "react-spinners";
+import {createFileRoute} from "@tanstack/react-router";
+import {Button} from "@/components/button.tsx";
 
-export const Route = createFileRoute('/policies')({
+export const Route = createFileRoute('/policies/')({
   component: PoliciesComponent,
 })
 
@@ -11,7 +14,15 @@ export default function PoliciesComponent() {
     const { data, isLoading, error } = usePolicies();
 
     if (isLoading) {
-        return <div>Loading...</div>
+        return (
+            <>
+                <Heading>Policies</Heading>
+                <div className="mx-auto mt-4 flex w-[200px] items-center justify-center gap-y-2 flex-col">
+                    <ScaleLoader height={16}/>
+                    <div>Loading data...</div>
+                </div>
+            </>
+        )
     }
     if (error) {
         return <div>Error: {error.message}</div>;
@@ -19,7 +30,10 @@ export default function PoliciesComponent() {
 
     return (
       <>
-          <Heading>Policies</Heading>
+          <div className="flex items-center justify-between">
+              <Heading>Policies</Heading>
+              <Button color={"emerald"} href={"/policies/add"}>Add policy</Button>
+          </div>
           <Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
               <TableHead>
                   <TableRow>
