@@ -1,0 +1,119 @@
+---
+id: "vlierdam"
+description: "Gemeente Vlierdam"
+tables:
+  - id: "aanvraag"
+    description: "Aanvraag laadpaal vergunning"
+    fields:
+      - id: "id"
+        description: "Unieke identificatie van de aanvraag"
+        type: "integer"
+        minValue: 1
+        maxValue: 9999999999
+      - id: "postcode"
+        description: "Postcode waarvoor laadpaal wordt aangevraagd"
+        type: "string"
+        isPII: true
+        minLen: 6
+        maxLen: 6
+        minValue: "1000AA"
+        maxValue: "9999ZZ"
+      - id: "huisnummer"
+        description: "Huisnummer waarvoor laadpaal wordt aangevraagd"
+        type: "integer"
+        isPII: true
+        minValue: 1
+        maxValue: 99999
+      - id: "naam"
+        description: "Naam van de aanvrager"
+        type: "string"
+        isPII: true
+        minLen: 2
+        maxLen: 100
+      - id: "status"
+        description: "Status van de aanvraag"
+        type: "integer"
+        isEnum: true
+        allowedValues: [1,2,3,4,8,9]
+      - id: "status-datum"
+        description: "Datum van de laatste status wijziging"
+        type: "date"
+      - id: "afgekeurd-reden"
+        description: "Reden afkeuring"
+        type: "string"
+        minLen: 2
+        maxLen: 100
+      - id: "ingetrokken"
+        description: "Datum waarop de aanvraag is ingetrokken"
+        type: "date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: id"
+      fields: ["id"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: adres"
+        fields: ["postcode", "huisnummer"]
+      - id: "ix3"
+        description: "Index 3: naam"
+        fields: ["naam"]
+      - id: "ix4"
+        description: "Index 4: status"
+        fields: ["status"]
+      - id: "ix5"
+        description: "Index 5: status datum"
+        fields: ["status-datum"]
+      - id: "ix6"
+        description: "Index 6: ingetrokken"
+        fields: ["ingetrokken"]
+
+  - id: "laadpaal"
+    description: "Laadpaal gegevens"
+    fields:
+      - id: "id"
+        description: "Unieke identificatie"
+        type: "integer"
+        minValue: 1
+        maxValue: 9999999999
+      - id: "postcode"
+        description: "Postcode"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+        minValue: "1000AA"
+        maxValue: "9999ZZ"
+      - id: "huisnummer"
+        description: "Huisnummer"
+        type: "integer"
+        minValue: 1
+        maxValue: 99999
+    primaryKey:
+      id: "pk"
+      description: "Primary key: id"
+      fields: ["id"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: adres"
+        fields: ["postcode","huisnummer"]
+
+  - id: "status"
+    description: "Laadpaal aanvraag status codes"
+    fields:
+      - id: "status"
+        description: "Status code"
+        type: "integer"
+        minValue: 1
+        maxValue: 9
+      - id: "omschrijving"
+        description: "Omschrijving van de status"
+        type: "string"
+        minLen: 2
+        maxLen: 40
+    primaryKey:
+      id: "pk"
+      description: "Primary key"
+      fields: ["status"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: omschrijving"
+        fields: ["omschrijving"]

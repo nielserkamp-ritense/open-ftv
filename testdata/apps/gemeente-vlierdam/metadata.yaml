@@ -1,0 +1,17 @@
+---
+datasource:
+  - laadpalen/schema.yaml
+  - iam/schema.yaml
+  - rvva/schema.yaml
+endpoints:
+  - laadpalen/endpoints.yaml
+sourceData:
+  vlierdam:
+    aanvraag: laadpalen/aanvraag.csv
+    laadpaal: laadpalen/laadpaal.csv
+    status: laadpalen/status.csv
+  iam:
+    gebruiker: iam/gebruiker.csv
+  rvva:
+    activiteit: rvva/activiteit.csv
+    doelbinding: rvva/doelbinding.csv
