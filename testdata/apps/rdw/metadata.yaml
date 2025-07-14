@@ -1,0 +1,9 @@
+---
+datasource:
+  - brv/schema.yaml
+endpoints:
+  - brv/endpoints.yaml
+sourceData:
+  brv:
+    kenteken: brv/kenteken.csv
+    klasse: brv/klasse.csv

@@ -1,0 +1,15 @@
+---
+- id: voertuigen
+  version: 1
+  type: GET
+  calledAs: GET
+  path: /voertuigen
+  fullVersion: 1.0.0
+  datasource: brv
+  table: kenteken
+  joins:
+    - type: OptionalSibling
+      source: klasse
+      fields: ["klasse"]
+  fields:
+    - "*"
