@@ -61,7 +61,7 @@ The application uses TanStack Router with a file-based routing system:
 
 - **/__root.tsx**: The root layout with navigation sidebar and header
 - **/index.tsx**: The home page
-- **/policies.tsx**: The policies management page
+- **/policies/index.tsx**: The policies management page
 - **/attributes.tsx**: The attributes management page
 
 ### API Integration
