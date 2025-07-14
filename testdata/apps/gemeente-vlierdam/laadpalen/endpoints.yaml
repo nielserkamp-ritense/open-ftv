@@ -1,0 +1,27 @@
+---
+- id: laadpaal-gegevens
+  path: /aanvragen
+  description: Complete laadpaal-aanvraag gegevens ophalen
+  type: GET
+  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  joins:
+    - type: OptionalSibling
+      source: status
+      fields: ["status"]
+  fields:
+    - "*"
+- id: laadpalen
+  path: /laadpalen
+  description: Complete laadpaal gegevens ophalen
+  type: GET
+  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: laadpaal
+  fields:
+    - "*"

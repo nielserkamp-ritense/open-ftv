@@ -1,0 +1,45 @@
+---
+id: "iam"
+description: "Gemeente Vlierdam - IAM"
+tables:
+  - id: "gebruiker"
+    description: "Gebruikers"
+    fields:
+      - id: "id"
+        description: "Unieke identificatie van de gebruiker"
+        type: "integer"
+        minValue: 1
+        maxValue: 999999
+      - id: "naam"
+        description: "Naam van de gebruiker"
+        type: "string"
+        isPII: true
+        minLen: 2
+        maxLen: 40
+      - id: "wachtwoord"
+        description: "Wachtwoord van de gebruiker"
+        type: "string"
+        minLen: 6
+        maxLen: 200
+      - id: "afdeling"
+        description: "Afdeling"
+        type: "string"
+        minLen: 2
+        maxLen: 100
+      - id: "laadpaal-opleiding"
+        description: "Datum laatste laadpaal-opleiding"
+        type: "date"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: id"
+      fields: ["id"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: naam"
+        fields: ["naam"]
+      - id: "ix3"
+        description: "Index 3: afdeling"
+        fields: ["afdeling"]
+      - id: "ix4"
+        description: "Index 4: laadpaal-opleiding"
+        fields: ["laadpaal-opleiding"]
