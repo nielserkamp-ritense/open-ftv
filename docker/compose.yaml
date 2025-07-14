@@ -34,6 +34,20 @@ services:
       - PAP_POLICIES_STORE=testdata/policies/cedar/pap
     networks:
       - openftv
+  pdp:
+    build:
+      context: ../
+      dockerfile: ./apps/pdp/Dockerfile
+    container_name: openftv-pdp
+    ports:
+      - "9002:8443"
+    environment:
+      - PDP_POLICIES_LANGUAGE=OPA
+    depends_on:
+      - pap
+      - pip
+    networks:
+      - openftv
   frontend:
     build:
       context: ../

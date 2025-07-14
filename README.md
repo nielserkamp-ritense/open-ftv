@@ -47,6 +47,7 @@ make all
 A Docker Compose configuration is available in the `docker` directory to run a minimal version of OpenFTV. This setup includes:
 - OpenFTV PIP (Policy Information Point)
 - OpenFTV PAP (Policy Administration Point)
+- OpenFTV PDP (Policy Decision Point)
 - OpenFTV Management Interface
 
 To start the containers, run the following command from the project root:
@@ -57,6 +58,7 @@ docker compose -f docker/compose.yaml up
 The following services will be available:
 - PIP: http://localhost:9000
 - PAP: http://localhost:9001
+- PDP: http://localhost:9002
 - Management Interface: http://localhost:8080
 - PostgreSQL: localhost:5400 (credentials in compose file)
 
