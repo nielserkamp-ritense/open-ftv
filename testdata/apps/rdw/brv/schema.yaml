@@ -1,0 +1,54 @@
+---
+id: "brv"
+description: "Basis Registratie Voertuigen"
+tables:
+  - id: "kenteken"
+    description: "Kentekens"
+    fields:
+      - id: "kenteken"
+        description: "Kenteken"
+        type: "string"
+        minLen: 6
+        maxLen: 6
+      - id: "bsn"
+        description: "Burgerservicenummer"
+        type: "string"
+        isPII: true
+        minLen: 9
+        maxLen: 9
+        minValue: "000000000"
+        maxValue: "999999999"
+      - id: "klasse"
+        description: "Uitstoot klasse"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+      - id: "diplomatiek"
+        description: "Diplomatiek kenteken"
+        type: "boolean"
+    primaryKey:
+      id: "pk"
+      description: "Primary key: kenteken"
+      fields: ["kenteken"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: bsn"
+        fields: ["bsn"]
+
+  - id: "klasse"
+    description: "Uitstoot klassen"
+    fields:
+      - id: "klasse"
+        description: "Code"
+        type: "string"
+        minLen: 1
+        maxLen: 1
+      - id: "omschrijving"
+        description: "Omschrijving"
+        type: "string"
+        minLen: 4
+        maxLen: 40
+    primaryKey:
+      id: "pk"
+      description: "Primary key: klasse"
+      fields: ["klasse"]
