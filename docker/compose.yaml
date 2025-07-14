@@ -48,6 +48,19 @@ services:
       - pip
     networks:
       - openftv
+  gemeente:
+    build:
+      context: ../
+      dockerfile: ./mock/datasources/generic/Dockerfile
+    container_name: openftv-gemeente
+    ports:
+      - "9003:8443"
+    environment:
+      - GEN_DS_DATA_PATH=/tmp/data
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam:/tmp/data
+    networks:
+      - openftv
   frontend:
     build:
       context: ../
