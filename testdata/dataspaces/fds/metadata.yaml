@@ -1,24 +1,24 @@
 ---
 dataspace: fds.yaml
 datasource:
-  - brp/schema.yaml
+  - ../../apps/rvig/brp/schema.yaml
 endpoints:
-  - brp/endpoints.yaml
+  - ../../apps/rvig/brp/endpoints.yaml
 sourceData:
   brp:
-    adres: brp/adres.csv
-    afnemer: brp/afnemer.csv
-    contact: brp/contact.csv
-    gezagsverhouding: brp/gezagsverhouding.csv
-    inschrijving: brp/inschrijving.csv
-    kiesrecht: brp/kiesrecht.csv
-    kind: brp/kind.csv
-    nationaliteit: brp/nationaliteit.csv
-    ouder1: brp/ouder1.csv
-    ouder2: brp/ouder2.csv
-    overlijden: brp/overlijden.csv
-    persoon: brp/persoon.csv
-    reisdocument: brp/reisdocument.csv
-    tijdelijk-adres: brp/tijdelijk-adres.csv
-    verbintenis: brp/verbintenis.csv
-    verblijfstitel: brp/verblijfstitel.csv
+    adres: ../../apps/rvig/brp/adres.csv
+    afnemer: ../../apps/rvig/brp/afnemer.csv
+    contact: ../../apps/rvig/brp/contact.csv
+    gezagsverhouding: ../../apps/rvig/brp/gezagsverhouding.csv
+    inschrijving: ../../apps/rvig/brp/inschrijving.csv
+    kiesrecht: ../../apps/rvig/brp/kiesrecht.csv
+    kind: ../../apps/rvig/brp/kind.csv
+    nationaliteit: ../../apps/rvig/brp/nationaliteit.csv
+    ouder1: ../../apps/rvig/brp/ouder1.csv
+    ouder2: ../../apps/rvig/brp/ouder2.csv
+    overlijden: ../../apps/rvig/brp/overlijden.csv
+    persoon: ../../apps/rvig/brp/persoon.csv
+    reisdocument: ../../apps/rvig/brp/reisdocument.csv
+    tijdelijk-adres: ../../apps/rvig/brp/tijdelijk-adres.csv
+    verbintenis: ../../apps/rvig/brp/verbintenis.csv
+    verblijfstitel: ../../apps/rvig/brp/verblijfstitel.csv

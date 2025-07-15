@@ -11,8 +11,14 @@ https://vng-realisatie.github.io/ftv/
 
 ## Folder structure
 
+- `apps` contains the code for the subcomponents (e.g. `pap`, `pdp`, `pip` etc.)
+- `docker` contains docker and compose related scripts
+- `e2e` contains end-2-end scripts
+- `eam` contains shared EAM modules
+- `mock` contains mock services, including the generic mock data-service
 - `oas` contains the OpenAPI specifications for the project
-- `apps` contains the code for the subcomponents (e.g. `pap`, `pdp`, `pep` etc.)
+- `testdata` contains files with test data
+- `utilities*` contains shared utility modules
 
 ## Building and running
 
@@ -36,7 +42,7 @@ Install the following tools
 
 ### Building
 
-To build everything this command from the root directory.
+To build and test everything, this command from the project root directory:
 
 ```shell
 make all
@@ -50,7 +56,7 @@ A Docker Compose configuration is available in the `docker` directory to run a m
 - OpenFTV PDP (Policy Decision Point)
 - OpenFTV Management Interface
 
-To start the containers, run the following command from the project root:
+To start the containers, run the following command from the project root directory:
 
 ```shell
 docker compose -f docker/compose.yaml up
@@ -65,4 +71,4 @@ The following services will be available:
 
 ## License
 
-[Licensed under the EUPL](LICENCE.md)
+[Licensed under the EUPL](LICENSE.md)

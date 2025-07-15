@@ -26,12 +26,28 @@ DIRS := \
  ./apps/pap \
  ./apps/manager
 
-.PHONY: all oas $(DIRS)
+.PHONY: all
+all: oas $(DIRS) vlierdam rdw rvig
 
-all: oas $(DIRS)
+.PHONY: e2e
+e2e: vlierdam rdw rvig
 
+.PHONY: oas
 oas:
 	+$(MAKE) -C ./oas
 
+.PHONY: $(DIRS)
 $(DIRS):
 	+$(MAKE) -C $@ test
+
+.PHONY: vlierdam
+vlierdam:
+	@./e2e/gemeente-vlierdam/test.sh
+
+.PHONY: rdw
+rdw:
+	@./e2e/rdw/test.sh
+
+.PHONY: rvig
+rvig:
+	@./e2e/rvig/test.sh
