@@ -52,7 +52,6 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	for i := range list {
 		list2[i] = h.convertPolicy(list[i], false)
 	}
-
 	return req.JSON(list2)
 }
 

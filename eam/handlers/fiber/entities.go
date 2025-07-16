@@ -45,9 +45,6 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 		resp = append(resp, handlers.EntityToOAS(e))
 	})
 
-	if len(resp) == 0 {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, "no entities found")
-	}
 	return req.JSON(&resp)
 }
 

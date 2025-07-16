@@ -133,7 +133,7 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		defer resp.Body.Close()
 
 		assert.Equal(t, EntitiesVersion, resp.Header.Get(HeaderVersion))
-		assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
 }
 

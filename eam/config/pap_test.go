@@ -99,6 +99,75 @@ policies:
 	}
 }
 
+func TestPAP_ProcessYAML_Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("yaml file error", func(t *testing.T) {
+		t.Parallel()
+
+		p1 := &PAP{}
+		err := p1.procesYAML("/this/is/not/a/valid/file/duh")
+		require.Error(t, err)
+	})
+}
+
+func TestPAP_ProcessJSON_Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("json file error", func(t *testing.T) {
+		t.Parallel()
+
+		p1 := &PAP{}
+		err := p1.procesJSON("/this/is/not/a/valid/file/duh")
+		require.Error(t, err)
+	})
+}
+
+func TestPAP_Tags(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name    string
+		path    string
+		wantErr bool
+		want    int
+	}{
+		{
+			name:    "no path",
+			wantErr: true,
+		},
+		{
+			name:    "bad yaml",
+			path:    "../../testdata/unittest/bad/tags/yaml",
+			wantErr: true,
+		},
+		{
+			name:    "bad json",
+			path:    "../../testdata/unittest/bad/tags/json",
+			wantErr: true,
+		},
+		{
+			name: "good",
+			path: "../../testdata/apps/pap/tags",
+			want: 4,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			p1 := &PAP{TagsPath: tc.path}
+
+			err := p1.FixTags()
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.GreaterOrEqual(t, len(p1.Tags()), tc.want)
+			}
+		})
+	}
+}
+
 func TestPAP_NewPAP(t *testing.T) {
 	t.Parallel()
 

@@ -28,12 +28,28 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	// API v1.
 	v1 := svc.Group("/v1")
+	s.initLanguages(v1)
+	s.initTags(v1)
 	s.initPolicies(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
-	// liveness & readiness.
+	// liveness and readiness.
 	svc.Get("/healthz", handle.HealthZ)
+}
+
+func (s *service) initLanguages(group fiber.Router) {
+	languages := handle.NewLanguagesHandler(s.logger, s.auth.Authorizer())
+
+	// languages CRUD.
+	group.Get(handle.PathLanguages, languages.GetLanguages)
+}
+
+func (s *service) initTags(group fiber.Router) {
+	tags := handle.NewTagsHandler(s.logger, s.cfg.Tags(), s.auth.Authorizer())
+
+	// tags CRUD.
+	group.Get(handle.PathTags, tags.GetTags)
 }
 
 func (s *service) initPolicies(group fiber.Router) {
