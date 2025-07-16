@@ -13,7 +13,7 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "PAP 0.1"
+	AppName   = "PAP 0.2"
 	envPrefix = "PAP_"
 	cfg1      = "/etc/pap/default.conf"
 	cfg2      = "./etc/pap.yaml"
@@ -26,7 +26,7 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 
-	// put fixed and custom configuration options in appropriate order.
+	// put fixed and custom configuration options in the appropriate order.
 	opts = append(
 		append(
 			[]config.Option{

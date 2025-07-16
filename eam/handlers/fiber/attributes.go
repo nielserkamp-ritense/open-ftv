@@ -45,9 +45,6 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 		resp = append(resp, handlers.AttributeToOAS(attr))
 	})
 
-	if len(resp) == 0 {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, "no attributes found")
-	}
 	return req.JSON(resp)
 }
 

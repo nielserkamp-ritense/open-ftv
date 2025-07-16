@@ -61,7 +61,7 @@ app: fmt ## build binaries
 	@mkdir -f ${ROOT_DIR}/bin
 	@go build -ldflags "-s -w" -o ${ROOT_DIR}/bin/${PROJECT_NAME} cmd/*.go
 
-docker:
+docker: fmt ## build docker image
 	@cd ${ROOT_DIR} && docker build -t ${PROJECT_NAME}:${DOCKER_TAG} -f ./apps/pap/Dockerfile .
 
 help:

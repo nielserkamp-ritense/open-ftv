@@ -2,6 +2,10 @@ package fiber
 
 // List of API paths.
 const (
+	PathLanguages  = "/languages"
+	PathLanguage   = "/language/:language"
+	PathTags       = "/tags"
+	PathTag        = "/tag/:tag"
 	PathPolicies   = "/policies"
 	PathPolicy     = "/policy/:language/:id"
 	PathAttributes = "/attributes"
