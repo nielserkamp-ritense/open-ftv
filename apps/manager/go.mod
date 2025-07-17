@@ -6,8 +6,8 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.8
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication v0.0.0-20250715053539-0c59d719e91e
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250715053539-0c59d719e91e
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication v0.0.0-20250716162429-b106327fedfb
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250716162429-b106327fedfb
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers v0.0.0-20250715053539-0c59d719e91e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250708120440-2327e161c67a
