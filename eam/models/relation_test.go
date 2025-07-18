@@ -109,3 +109,48 @@ func TestRelationToAttribute(t *testing.T) {
 		assert.EqualValues(t, m, got.Value())
 	})
 }
+
+func TestRelation_AddTags(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		s    Entity
+		p    Entity
+		o    Entity
+		tags []string
+	}{
+		{
+			name: "single",
+			s:    NewEntity("user", "alice", nil),
+			p:    NewEntity("action", "POST", nil),
+			o:    NewEntity("resource", "http://localhost/person", nil),
+			tags: []string{"x"},
+		},
+		{
+			name: "few",
+			s:    NewEntity("user", "alice", nil),
+			p:    NewEntity("action", "POST", nil),
+			o:    NewEntity("resource", "http://localhost/person", nil),
+			tags: []string{"x", "y", "z"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewRelation(tc.s, tc.p, tc.o)
+			require.NotNil(t, got)
+
+			got.AddTags(tc.tags...)
+			assert.EqualValues(t, tc.tags, got.Tags())
+
+			for i := range tc.tags {
+				assert.True(t, got.HasTag(tc.tags[i]))
+			}
+
+			assert.False(t, got.HasTag("qqq"))
+		})
+	}
+}

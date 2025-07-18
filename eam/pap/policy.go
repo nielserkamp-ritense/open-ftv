@@ -8,10 +8,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
+	"golang.org/x/exp/maps"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
@@ -23,6 +25,10 @@ type Policy interface {
 	Key() string
 	Language() string
 	ID() string
+	Description() string
+	AddTags(tags ...string)
+	Tags() []string
+	HasTag(tag string) bool
 	RvvaID() string
 	URI() string
 	Path() string
@@ -54,6 +60,7 @@ func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Pol
 		rvvaID:   rvvaID,
 		uri:      uri,
 		content:  d,
+		tags:     make(map[string]struct{}),
 	}, nil
 }
 
@@ -92,13 +99,20 @@ func NewPolicyFromStore(language, path string, content io.Reader) (Policy, error
 }
 
 func newPolicy(p *policies.Policy, path string, d []byte) Policy {
+	tags := make(map[string]struct{})
+	for i := range p.AdditionalTags {
+		tags[p.AdditionalTags[i]] = struct{}{}
+	}
+
 	return &policy{
-		id:       p.Id,
-		language: strings.ToLower(p.Language),
-		rvvaID:   p.RvvaId,
-		uri:      p.Url,
-		path:     path,
-		content:  d,
+		id:          p.Id,
+		description: p.Description,
+		tags:        tags,
+		language:    strings.ToLower(p.Language),
+		rvvaID:      p.RvvaId,
+		uri:         p.Url,
+		path:        path,
+		content:     d,
 	}
 }
 
@@ -119,6 +133,34 @@ func (p *policy) Key() string {
 // Language implements the Policy interface.
 func (p *policy) Language() string {
 	return p.language
+}
+
+// Description implements the Policy interface.
+func (p *policy) Description() string {
+	return p.description
+}
+
+// AddTags implements the Policy interface.
+func (p *policy) AddTags(tags ...string) {
+	for i := range tags {
+		p.tags[tags[i]] = struct{}{}
+	}
+}
+
+// Tags implements the Policy interface.
+func (p *policy) Tags() []string {
+	tags := make([]string, 0, len(p.tags))
+	for k := range p.tags {
+		tags = append(tags, k)
+	}
+	slices.Sort(tags)
+	return tags
+}
+
+// HasTag implements the Policy interface.
+func (p *policy) HasTag(tag string) bool {
+	_, ok := p.tags[tag]
+	return ok
 }
 
 // ID implements the Policy interface.
@@ -146,15 +188,22 @@ func (p *policy) Content() io.Reader {
 	return bytes.NewReader(p.content)
 }
 
-// MarshalJSON implements the json.Marshaller interface.
+// MarshalJSON implements the json.Marshaler interface.
 func (p *policy) MarshalJSON() ([]byte, error) {
+	tags := make([]string, 0, len(p.tags))
+	for k := range p.tags {
+		tags = append(tags, k)
+	}
+
 	return json.Marshal(&policyJSON{
-		Language: p.language,
-		ID:       p.id,
-		RvvaID:   p.rvvaID,
-		URI:      p.uri,
-		Path:     p.path,
-		Content:  base64.StdEncoding.EncodeToString(p.content),
+		Language:    p.language,
+		ID:          p.id,
+		Description: p.description,
+		Tags:        tags,
+		RvvaID:      p.rvvaID,
+		URI:         p.uri,
+		Path:        p.path,
+		Content:     base64.StdEncoding.EncodeToString(p.content),
 	})
 }
 
@@ -171,6 +220,11 @@ func (p *policy) UnmarshalJSON(data []byte) error {
 	p.uri = p2.URI
 	p.path = p2.Path
 	p.content, _ = base64.StdEncoding.DecodeString(p2.Content)
+
+	maps.Clear(p.tags)
+	for i := range p2.Tags {
+		p.tags[p2.Tags[i]] = struct{}{}
+	}
 
 	return nil
 }
@@ -191,19 +245,23 @@ func SplitPolicyKey(key string) (string, string) {
 }
 
 type policy struct {
-	language string
-	id       string
-	rvvaID   string
-	uri      string
-	path     string
-	content  []byte
+	language    string
+	id          string
+	description string
+	tags        map[string]struct{}
+	rvvaID      string
+	uri         string
+	path        string
+	content     []byte
 }
 
 type policyJSON struct {
-	Language string `json:"language"`
-	ID       string `json:"id"`
-	RvvaID   string `json:"rvvaID,omitempty"`
-	URI      string `json:"uri,omitempty"`
-	Path     string `json:"path,omitempty"`
-	Content  string `json:"content"`
+	Language    string   `json:"language"`
+	ID          string   `json:"id"`
+	Description string   `json:"description,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	RvvaID      string   `json:"rvvaID,omitempty"`
+	URI         string   `json:"uri,omitempty"`
+	Path        string   `json:"path,omitempty"`
+	Content     string   `json:"content"`
 }

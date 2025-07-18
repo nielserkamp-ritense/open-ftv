@@ -146,7 +146,7 @@ func (s *wrapper) mustMarshal(p Policy) []byte {
 }
 
 func (s *wrapper) unmarshal(id string, kv *store.KVPair) (Policy, error) {
-	p := new(policy)
+	p := &policy{tags: make(map[string]struct{})}
 	if err := json.Unmarshal(kv.Value, p); err != nil {
 		return s.failure("unmarshal", id, err, true)
 	}

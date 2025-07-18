@@ -60,6 +60,15 @@ func (e *WrappedEntity) Parents() []string {
 	return out
 }
 
+// AddTags implements the Entity interface.
+func (e *WrappedEntity) AddTags(...string) {}
+
+// Tags implements the Entity interface.
+func (e *WrappedEntity) Tags() []string { return []string{} }
+
+// HasTag implements the Entity interface.
+func (e *WrappedEntity) HasTag(tag string) bool { return false }
+
 // MarshalJSON implements the JSON marshaller interface.
 func (e *WrappedEntity) MarshalJSON() ([]byte, error) {
 	return models.NewEntity(e.Type(), e.ID(), e.Attributes(), e.Parents()...).MarshalJSON()

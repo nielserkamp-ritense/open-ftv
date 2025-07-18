@@ -1,0 +1,9 @@
+---
+tag: "brp"
+policies: true
+data: true
+version: true
+targets:
+  - uri: "http://localhost:9010"
+    apiKey: "abcdef123456"
+    compress: "gzip"

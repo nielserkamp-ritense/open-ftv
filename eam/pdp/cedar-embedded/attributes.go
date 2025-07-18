@@ -13,14 +13,14 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// NewAttributeBuilder returns the function prototype for building a new Cedar based attribute set.
+// NewAttributeBuilder returns the function prototype for building a new Cedar-based attribute set.
 func NewAttributeBuilder(logger *slog.Logger) models.AttributesBuilder {
 	return func(in ...any) models.AttributeSet {
 		return NewAttributeSet(logger, in...)
 	}
 }
 
-// NewAttributeSet instantiates a new Cedar based attribute set.
+// NewAttributeSet instantiates a new Cedar-based attribute set.
 func NewAttributeSet(logger *slog.Logger, in ...any) models.AttributeSet {
 	a := &attributes{
 		logger:   logger,

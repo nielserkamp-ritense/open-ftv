@@ -16,6 +16,7 @@ use (
 	eam/mapping
 	eam/mimetype
 	eam/models
+	eam/bundles
 	eam/pap
 	eam/pdp/cedar-embedded
 	eam/pdp/cerbos-api

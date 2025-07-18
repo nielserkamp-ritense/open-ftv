@@ -110,3 +110,35 @@ func TestNewOriginalAttribute(t *testing.T) {
 		})
 	}
 }
+
+func TestAttribute_AddTags(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		key   string
+		value any
+		tags  []string
+	}{
+		{name: "single", key: "x1", value: 1, tags: []string{"x"}},
+		{name: "few", key: "x2", value: 2, tags: []string{"x", "y", "z"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewAttribute(tc.key, tc.value)
+			require.NotNil(t, got)
+
+			got.AddTags(tc.tags...)
+			assert.EqualValues(t, tc.tags, got.Tags())
+
+			for i := range tc.tags {
+				assert.True(t, got.HasTag(tc.tags[i]))
+			}
+
+			assert.False(t, got.HasTag("qqq"))
+		})
+	}
+}

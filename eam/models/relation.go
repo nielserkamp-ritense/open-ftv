@@ -1,15 +1,21 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // Relation represents the details of a relationship between a subject and an object.
 //
 // Relation is an immutable object and is by design safe for use by concurrent go-routines.
 type Relation interface {
-	UID() string       // return the unique identifier of this relation.
-	Subject() Entity   // returns the subject of the relation.
-	Predicate() Entity // returns the predicate of the relation.
-	Object() Entity    // returns the object of the relation.
+	UID() string            // return the unique identifier of this relation.
+	Subject() Entity        // returns the subject of the relation.
+	Predicate() Entity      // returns the predicate of the relation.
+	Object() Entity         // returns the object of the relation.
+	AddTags(tags ...string) // associate tags with the relation.
+	Tags() []string         // retrieve tags associated with the relation.
+	HasTag(tag string) bool // test if the relation contains a specific tag.
 }
 
 // NewRelationFromUID instantiates a new relation.
@@ -29,6 +35,7 @@ func NewRelation(subject, predicate, object Entity) Relation {
 		subject:   subject,
 		predicate: predicate,
 		object:    object,
+		tags:      make(map[string]struct{}),
 	}
 }
 
@@ -59,6 +66,29 @@ func (r *relation) Object() Entity {
 	return r.object
 }
 
+// AddTags implements the Relation interface.
+func (r *relation) AddTags(tags ...string) {
+	for i := range tags {
+		r.tags[tags[i]] = struct{}{}
+	}
+}
+
+// Tags implements the Relation interface.
+func (r *relation) Tags() []string {
+	tags := make([]string, 0, len(r.tags))
+	for k := range r.tags {
+		tags = append(tags, k)
+	}
+	slices.Sort(tags)
+	return tags
+}
+
+// HasTag implements the Relation interface.
+func (r *relation) HasTag(tag string) bool {
+	_, ok := r.tags[tag]
+	return ok
+}
+
 // RelationToAttribute can be used to convert a relation into an attribute.
 func RelationToAttribute(r Relation) Attribute {
 	s := mapFromEntity(r.Subject())
@@ -79,4 +109,5 @@ type relation struct {
 	subject   Entity
 	predicate Entity
 	object    Entity
+	tags      map[string]struct{}
 }

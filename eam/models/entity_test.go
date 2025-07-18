@@ -1,6 +1,7 @@
 package models
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -89,6 +90,7 @@ func TestEntityToAttribute(t *testing.T) {
 	testCases := []struct {
 		name      string
 		e         Entity
+		tags      []string
 		wantKey   string
 		wantValue map[string]any
 	}{
@@ -125,8 +127,20 @@ func TestEntityToAttribute(t *testing.T) {
 			},
 		},
 		{
+			name:    "with tags",
+			e:       NewEntity("user", "alice", NewAttributeSet()),
+			tags:    []string{"x", "y"},
+			wantKey: "user::alice",
+			wantValue: map[string]any{
+				"type": "user",
+				"id":   "alice",
+				"tags": []string{"x", "y"},
+			},
+		},
+		{
 			name:    "with all",
 			e:       NewEntity("user", "alice", NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 456)), "admin::bob"),
+			tags:    []string{"q", "z"},
 			wantKey: "user::alice",
 			wantValue: map[string]any{
 				"type": "user",
@@ -136,6 +150,7 @@ func TestEntityToAttribute(t *testing.T) {
 					"hello": "world",
 				},
 				"parents": []string{"admin::bob"},
+				"tags":    []string{"q", "z"},
 			},
 		},
 	}
@@ -144,9 +159,48 @@ func TestEntityToAttribute(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			if len(tc.tags) > 0 {
+				tc.e.AddTags(tc.tags...)
+			}
+
 			got := EntityToAttribute(tc.e)
 			assert.Equal(t, tc.wantKey, got.Key())
 			assert.EqualValues(t, tc.wantValue, got.Value())
+		})
+	}
+}
+
+func TestEntity_AddTags(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		ns   string
+		id   string
+		tags []string
+	}{
+		{name: "single", ns: "user", id: "bob", tags: []string{"x"}},
+		{name: "few", ns: "user", id: "alice", tags: []string{"x", "y", "z"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewEntity(tc.ns, tc.id, nil)
+			require.NotNil(t, got)
+
+			got.AddTags(tc.tags...)
+
+			tags := got.Tags()
+			slices.Sort(tags)
+			assert.EqualValues(t, tc.tags, tags)
+
+			for i := range tc.tags {
+				assert.True(t, got.HasTag(tc.tags[i]))
+			}
+
+			assert.False(t, got.HasTag("qqq"))
 		})
 	}
 }

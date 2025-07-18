@@ -7,6 +7,7 @@ DIRS := \
  ./eam/log \
  ./eam/mapping \
  ./eam/mimetype \
+ ./eam/bundles \
  ./eam/handlers \
  ./eam/server \
  ./eam/pep \

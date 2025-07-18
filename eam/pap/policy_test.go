@@ -132,16 +132,18 @@ func TestNewPolicyFromStore(t *testing.T) {
 	f1.Close()
 
 	testCases := []struct {
-		name         string
-		path         string
-		content      io.Reader
-		wantErr      bool
-		wantID       string
-		wantLanguage string
-		wantRvva     string
-		wantURI      string
-		wantPath     string
-		wantContent  string
+		name            string
+		path            string
+		content         io.Reader
+		wantErr         bool
+		wantID          string
+		wantDescription string
+		wantTags        []string
+		wantLanguage    string
+		wantRvva        string
+		wantURI         string
+		wantPath        string
+		wantContent     string
 	}{
 		{
 			name:    "nil",
@@ -159,25 +161,29 @@ func TestNewPolicyFromStore(t *testing.T) {
 			path:        path1,
 			content:     bytes.NewBufferString("some data"),
 			wantID:      "allow_post.cedar",
+			wantTags:    []string{},
 			wantPath:    path1,
 			wantContent: "some data",
 		},
 		{
-			name:         "with yaml metadata",
-			path:         path2,
-			content:      bytes.NewBufferString("some data"),
-			wantID:       "subsidies",
-			wantLanguage: "rego",
-			wantRvva:     "rvva1",
-			wantURI:      "https://my.site/pol/x1",
-			wantPath:     path2,
-			wantContent:  "some data",
+			name:            "with yaml metadata",
+			path:            path2,
+			content:         bytes.NewBufferString("some data"),
+			wantID:          "subsidies",
+			wantDescription: "beleidsregels voor subsidies",
+			wantTags:        []string{"brp", "rvva", "subsidies"},
+			wantLanguage:    "rego",
+			wantRvva:        "rvva1",
+			wantURI:         "https://my.site/pol/x1",
+			wantPath:        path2,
+			wantContent:     "some data",
 		},
 		{
 			name:         "with json metadata",
 			path:         path3,
 			content:      bytes.NewBufferString("some data"),
 			wantID:       "doelbinding.model",
+			wantTags:     []string{},
 			wantLanguage: "openfga",
 			wantRvva:     "rvva2",
 			wantURI:      "https://my.site/openfga/doelbinding.model",
@@ -199,6 +205,8 @@ func TestNewPolicyFromStore(t *testing.T) {
 				require.NotNil(t, got)
 
 				assert.Equal(t, tc.wantID, got.ID())
+				assert.Equal(t, tc.wantDescription, got.Description())
+				assert.EqualValues(t, tc.wantTags, got.Tags())
 				assert.Equal(t, tc.wantLanguage, got.Language())
 				assert.Equal(t, tc.wantRvva, got.RvvaID())
 				assert.Equal(t, tc.wantURI, got.URI())
@@ -208,6 +216,39 @@ func TestNewPolicyFromStore(t *testing.T) {
 				d, _ := io.ReadAll(r)
 				assert.Equal(t, tc.wantContent, string(d))
 			}
+		})
+	}
+}
+
+func TestPolicy_AddTags(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		id       string
+		language string
+		tags     []string
+	}{
+		{name: "single", id: "p1", language: "cedar", tags: []string{"x"}},
+		{name: "few", id: "p2", language: "rego", tags: []string{"x", "y", "z"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := NewPolicyFromData(tc.id, tc.language, "", "", bytes.NewBufferString("yo"))
+			require.NoError(t, err)
+			require.NotNil(t, got)
+
+			got.AddTags(tc.tags...)
+			assert.EqualValues(t, tc.tags, got.Tags())
+
+			for i := range tc.tags {
+				assert.True(t, got.HasTag(tc.tags[i]))
+			}
+
+			assert.False(t, got.HasTag("qqq"))
 		})
 	}
 }

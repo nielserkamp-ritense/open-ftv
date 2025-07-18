@@ -1,0 +1,10 @@
+{
+  "tag": "rdw",
+  "policies": true,
+  "data": true,
+  "version": true,
+  "targets": [
+    {"uri": "http://localhost:9110", "compress": "bz2"},
+    {"uri": "http://localhost:9120", "compress": "bz2"}
+  ]
+}
