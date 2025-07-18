@@ -1,0 +1,9 @@
+---
+tag: "ui"
+policies: true
+data: true
+version: false
+targets:
+  - uri: "http://localhost:9090"
+    compress: "bz2"
+    headers: ["bundle-version: skip"]
