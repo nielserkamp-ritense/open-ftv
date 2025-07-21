@@ -18,11 +18,11 @@ const PathSeparator = "/"
 
 // Persistence represents the interface to manage persistent storage for policies.
 type Persistence interface {
-	Create(p Policy) (Policy, error)
-	Read(language, id string) (Policy, uint64, error)
-	Update(prev Policy, lastIndex uint64, p Policy) (Policy, error)
-	Delete(prev Policy, lastIndex uint64) (Policy, error)
-	List(language string) ([]Policy, error)
+	Create(p *Policy) (*Policy, error)
+	Read(language, id string) (*Policy, uint64, error)
+	Update(prev *Policy, lastIndex uint64, p *Policy) (*Policy, error)
+	Delete(prev *Policy, lastIndex uint64) (*Policy, error)
+	List(language string) ([]*Policy, error)
 }
 
 // NewStore instantiates a new persistent storage handler for policies.
@@ -42,7 +42,7 @@ func NewStore(ctx context.Context, client store.Store, basePath string) Persiste
 }
 
 // Create implements the Persistence interface.
-func (s *wrapper) Create(p Policy) (Policy, error) {
+func (s *wrapper) Create(p *Policy) (*Policy, error) {
 	key := s.makeKey(p.Language(), p.ID())
 
 	s.mutex.Lock()
@@ -55,7 +55,7 @@ func (s *wrapper) Create(p Policy) (Policy, error) {
 }
 
 // Read implements the Persistence interface.
-func (s *wrapper) Read(language, id string) (Policy, uint64, error) {
+func (s *wrapper) Read(language, id string) (*Policy, uint64, error) {
 	key := s.bugFix(s.makeKey(language, id))
 
 	s.mutex.RLock()
@@ -77,7 +77,7 @@ func (s *wrapper) Read(language, id string) (Policy, uint64, error) {
 }
 
 // Update implements the Persistence interface.
-func (s *wrapper) Update(prev Policy, lastIndex uint64, p Policy) (Policy, error) {
+func (s *wrapper) Update(prev *Policy, lastIndex uint64, p *Policy) (*Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
 	s.mutex.Lock()
@@ -91,7 +91,7 @@ func (s *wrapper) Update(prev Policy, lastIndex uint64, p Policy) (Policy, error
 }
 
 // Delete implements the Persistence interface.
-func (s *wrapper) Delete(prev Policy, lastIndex uint64) (Policy, error) {
+func (s *wrapper) Delete(prev *Policy, lastIndex uint64) (*Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
 	s.mutex.Lock()
@@ -106,7 +106,7 @@ func (s *wrapper) Delete(prev Policy, lastIndex uint64) (Policy, error) {
 }
 
 // List implements the Persistence interface.
-func (s *wrapper) List(language string) ([]Policy, error) {
+func (s *wrapper) List(language string) ([]*Policy, error) {
 	key := s.basePath
 	if language != "" {
 		key = fmt.Sprintf("%s%s%s", key, language, PathSeparator)
@@ -124,9 +124,9 @@ func (s *wrapper) List(language string) ([]Policy, error) {
 		return nil, fmt.Errorf("failed to read policies: %w", err)
 	}
 
-	out := make([]Policy, 0, len(list))
+	out := make([]*Policy, 0, len(list))
 	for _, kv := range list {
-		p := new(policy)
+		p := new(Policy)
 		if err = json.Unmarshal(kv.Value, p); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal policies: %w", err)
 		}
@@ -140,20 +140,20 @@ func (s *wrapper) makeKey(language, id string) string {
 	return fmt.Sprintf("%s%s%s%s", s.basePath, language, PathSeparator, id)
 }
 
-func (s *wrapper) mustMarshal(p Policy) []byte {
+func (s *wrapper) mustMarshal(p *Policy) []byte {
 	b, _ := json.Marshal(p)
 	return b
 }
 
-func (s *wrapper) unmarshal(id string, kv *store.KVPair) (Policy, error) {
-	p := &policy{tags: make(map[string]struct{})}
+func (s *wrapper) unmarshal(id string, kv *store.KVPair) (*Policy, error) {
+	p := &Policy{tags: make(map[string]struct{})}
 	if err := json.Unmarshal(kv.Value, p); err != nil {
 		return s.failure("unmarshal", id, err, true)
 	}
 	return p, nil
 }
 
-func (s *wrapper) failure(op, id string, err error, mustFind bool) (Policy, error) {
+func (s *wrapper) failure(op, id string, err error, mustFind bool) (*Policy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
 	}

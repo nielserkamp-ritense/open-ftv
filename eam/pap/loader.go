@@ -9,7 +9,7 @@ import (
 )
 
 // LoadFiles loads all policies from the local file store.
-func (p *pap) LoadFiles() {
+func (p *PAP) LoadFiles() {
 	if p.policyStore == "" {
 		return
 	}
@@ -22,7 +22,7 @@ func (p *pap) LoadFiles() {
 }
 
 // LoadString loads the given policy.
-func (p *pap) LoadString(language, policy string) error {
+func (p *PAP) LoadString(language, policy string) error {
 	pol, err := NewPolicyFromData("*dummy*", language, "", "", bytes.NewBufferString(policy))
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (p *pap) LoadString(language, policy string) error {
 	return err
 }
 
-func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
+func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (p *pap) loadPolicy(path string, d fs.DirEntry, err error) error {
 	}
 	defer f.Close()
 
-	var pol Policy
+	var pol *Policy
 	if pol, err2 = NewPolicyFromStore(p.language, path, f); err2 != nil {
 		return err2
 	}

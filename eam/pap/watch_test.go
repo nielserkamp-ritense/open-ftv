@@ -40,7 +40,7 @@ func TestClearWatcher(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pap{}
+			p := &PAP{}
 
 			if len(tc.paths) > 0 {
 				p.watcher, _ = fsnotify.NewWatcher()
@@ -87,7 +87,7 @@ func TestProcessDeletes(t *testing.T) {
 
 			s := memory.New()
 
-			p := &pap{
+			p := &PAP{
 				deletes: tc.files,
 				store:   s,
 				persist: NewStore(nil, s, ""),
@@ -126,7 +126,7 @@ func TestProcessUpdates(t *testing.T) {
 
 			s := memory.New()
 
-			p := &pap{
+			p := &PAP{
 				updates: tc.files,
 				store:   s,
 				persist: NewStore(nil, s, ""),
@@ -196,7 +196,7 @@ func TestPolicyModified(t *testing.T) {
 
 			s := memory.New()
 
-			p := &pap{
+			p := &PAP{
 				store:   s,
 				persist: NewStore(nil, s, ""),
 				updates: map[string]struct{}{},
@@ -283,7 +283,7 @@ func TestWatchFiles(t *testing.T) {
 
 			s := memory.New()
 
-			p := &pap{
+			p := &PAP{
 				ctx:     ctx,
 				watcher: w,
 				store:   s,

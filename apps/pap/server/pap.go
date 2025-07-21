@@ -6,7 +6,7 @@ import (
 	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
-func (s *service) newPAP() (pap2.PAP, error) {
+func (s *service) newPAP() (*pap2.PAP, error) {
 	opts := make([]pap2.Option, 0)
 	opts = append(opts, pap2.WithLanguage(s.l.Language()))
 

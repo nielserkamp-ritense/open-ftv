@@ -40,5 +40,5 @@ type service struct {
 	logger *slog.Logger
 	l      models.Language
 	auth   AuthHandler
-	pap    pap.PAP
+	pap    *pap.PAP
 }

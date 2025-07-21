@@ -10,11 +10,11 @@ import (
 )
 
 // Option represents the function signature for options when creating a new PAP.
-type Option func(p *pap)
+type Option func(p *PAP)
 
 // WithLanguage sets the default policy language fopr the PAP.
 func WithLanguage(language string) Option {
-	return func(p *pap) {
+	return func(p *PAP) {
 		p.language = language
 		p.languageType = models.LanguageFromString(language)
 	}
@@ -24,7 +24,7 @@ func WithLanguage(language string) Option {
 //
 // By default, a PAP is created with an in-memory KV-cache.
 func WithPersistence(store store.Store, basePath string) Option {
-	return func(p *pap) {
+	return func(p *PAP) {
 		_ = p.store.Close()
 		p.store = store
 		p.persist = NewStore(p.ctx, store, basePath)
@@ -33,7 +33,7 @@ func WithPersistence(store store.Store, basePath string) Option {
 
 // WithFileStore adds a file storage location to the controller.
 func WithFileStore(fileStore string, recurse bool) Option {
-	return func(p *pap) {
+	return func(p *PAP) {
 		if ps, _ := filepath.Abs(fileStore); validPath(ps) {
 			p.policyStore = ps
 			p.recurse = recurse

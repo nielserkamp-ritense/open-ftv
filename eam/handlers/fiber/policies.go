@@ -30,7 +30,7 @@ type PoliciesHandler interface {
 }
 
 // NewPoliciesHandler instantiates a policy handler.
-func NewPoliciesHandler(logger *slog.Logger, cache pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
+func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
 	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer}
 }
 
@@ -97,7 +97,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol pap.Policy
+	var pol *pap.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -143,7 +143,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol pap.Policy
+	var pol *pap.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -247,7 +247,7 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*polic
 	return &p, true, nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.Policy, bool, error) {
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*pap.Policy, bool, error) {
 	if p.Url == "" {
 		if p.Data == "" {
 			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "policy data or url required")
@@ -282,7 +282,7 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (pap.P
 	return pol, true, nil
 }
 
-func (h *policiesHandler) convertPolicy(pol pap.Policy, withData bool) *policies.Policy {
+func (h *policiesHandler) convertPolicy(pol *pap.Policy, withData bool) *policies.Policy {
 	if !withData || pol.URI() != "" {
 		return &policies.Policy{
 			Id:       pol.ID(),
@@ -315,6 +315,6 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 type policiesHandler struct {
 	logger     *slog.Logger
-	cache      pap.PAP
+	cache      *pap.PAP
 	authorizer authorization.Authorizer
 }

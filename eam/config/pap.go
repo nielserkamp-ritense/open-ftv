@@ -25,7 +25,7 @@ type PAP struct {
 }
 
 // NewPAP instantiates a new PAP using the given configuration.
-func (p *PAP) NewPAP(ctx context.Context, logger *slog.Logger) (pap.PAP, error) {
+func (p *PAP) NewPAP(ctx context.Context, logger *slog.Logger) (*pap.PAP, error) {
 	return pap.New(ctx, logger, pap.WithLanguage(p.Language), pap.WithFileStore(p.Store, p.StoreRecurse)), nil
 }
 

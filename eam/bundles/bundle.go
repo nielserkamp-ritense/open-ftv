@@ -130,7 +130,7 @@ type Bundle struct {
 }
 
 // AddPolicy adds the given policy to the bundle if the language matches, and it contains one of the selection tags.
-func (b *Bundle) AddPolicy(p pap.Policy) bool {
+func (b *Bundle) AddPolicy(p *pap.Policy) bool {
 	if models.LanguageFromString(p.Language()) != b.l || !b.tagMatched(p.HasTag) {
 		return false
 	}

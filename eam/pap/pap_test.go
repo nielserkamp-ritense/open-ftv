@@ -25,14 +25,10 @@ func TestNew(t *testing.T) {
 		p := New(nil, slog.New(h))
 		require.NotNil(t, p)
 
-		p2, ok := p.(*pap)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-
-		assert.NotNil(t, p2.logger)
-		assert.NotNil(t, p2.eventSinks)
-		assert.NotNil(t, p2.updates)
-		assert.NotNil(t, p2.deletes)
+		assert.NotNil(t, p.logger)
+		assert.NotNil(t, p.eventSinks)
+		assert.NotNil(t, p.updates)
+		assert.NotNil(t, p.deletes)
 	})
 }
 
@@ -82,10 +78,6 @@ func TestPap_Add(t *testing.T) {
 				assert.Equal(t, tc.wantCount, e.added)
 				assert.Zero(t, e.replaced)
 				assert.Zero(t, e.removed)
-
-				p2, ok := p.(*pap)
-				require.True(t, ok)
-				require.NotNil(t, p2)
 			}
 		})
 	}
@@ -176,10 +168,6 @@ func TestPap_Replace(t *testing.T) {
 				assert.Equal(t, 1, e.replaced)
 				assert.Zero(t, e.removed)
 
-				p2, ok := p.(*pap)
-				require.True(t, ok)
-				require.NotNil(t, p2)
-
 				f, _, err5 := p.Read(parts[0], parts[1])
 				require.NoError(t, err5)
 				require.NotNil(t, f)
@@ -247,10 +235,6 @@ func TestPap_Remove(t *testing.T) {
 				assert.Equal(t, len(tc.cached), e.added)
 				assert.Zero(t, e.replaced)
 				assert.Equal(t, 1, e.removed)
-
-				p2, ok := p.(*pap)
-				require.True(t, ok)
-				require.NotNil(t, p2)
 
 				f, _, err4 := p.Read("", tc.key)
 				require.Error(t, err4)
