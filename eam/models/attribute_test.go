@@ -64,10 +64,7 @@ func TestNewAttributeWithType(t *testing.T) {
 			assert.Equal(t, tc.t, got.Type())
 
 			if tc.original != nil {
-				a, ok := got.(*attribute)
-				require.True(t, ok)
-				require.NotNil(t, a)
-				a.original = tc.original
+				got.original = tc.original
 			}
 
 			b, err := json.Marshal(got)

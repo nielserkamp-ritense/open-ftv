@@ -17,9 +17,9 @@ func TestProcessBody(t *testing.T) {
 	testCases := []struct {
 		name    string
 		body    []byte
-		attr    models.AttributeSet
+		attr    *models.AttributeSet
 		wantLog int
-		want    models.AttributeSet
+		want    *models.AttributeSet
 	}{
 		{
 			name: "empty",
@@ -142,14 +142,16 @@ func TestProcessBody(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.want != nil {
-				tc.want.IterateAttributes(func(attr models.Attribute) {
-					v2 := c.parc.Context.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
+				tc.want.IterateAttributes(func(a1 *models.Attribute) {
+					a2 := c.parc.Context.GetAttribute(a1.Key())
+					require.NotNil(t, a2)
+					assert.True(t, a1.Equals(a2))
 				})
 
-				c.parc.Context.IterateAttributes(func(attr models.Attribute) {
-					v2 := tc.want.GetAttributeValue(attr.Key())
-					assert.EqualValues(t, attr.Value(), v2)
+				c.parc.Context.IterateAttributes(func(a1 *models.Attribute) {
+					a2 := tc.want.GetAttribute(a1.Key())
+					require.NotNil(t, a2)
+					assert.True(t, a1.Equals(a2))
 				})
 			}
 		})

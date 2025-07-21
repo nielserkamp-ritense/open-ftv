@@ -59,7 +59,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 func (c *controller) loadAttributes() {
 	m := make(map[string]any)
-	c.PIP().IterateAttributes(func(attr models.Attribute) {
+	c.PIP().IterateAttributes(func(attr *models.Attribute) {
 		m[attr.Key()] = attr.Value()
 	})
 	c.loadData(m, "attributes")
@@ -67,7 +67,7 @@ func (c *controller) loadAttributes() {
 
 func (c *controller) loadEntities() {
 	m := make(map[string]any)
-	c.PIP().IterateEntities(func(entity models.Entity) {
+	c.PIP().IterateEntities(func(entity *models.Entity) {
 		m2, ok := m[entity.Type()].(map[string]any)
 		if !ok || m2 == nil {
 			m2 = make(map[string]any)

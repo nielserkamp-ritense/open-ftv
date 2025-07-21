@@ -22,8 +22,8 @@ func TestLoad(t *testing.T) {
 		path2          string
 		recurse        bool
 		wantLog        int
-		wantAttributes models.AttributeSet
-		wantEntities   models.EntitySet
+		wantAttributes *models.AttributeSet
+		wantEntities   *models.EntitySet
 	}{
 		{
 			name:    "no stores",
@@ -148,7 +148,7 @@ func TestLoad(t *testing.T) {
 			ap := NewAttributeStore(context.Background(), s, "attribute")
 			ep := NewEntityStore(context.Background(), s, "entity")
 
-			p := &pip{
+			p := &PIP{
 				attrStore:        tc.path1,
 				entityStore:      tc.path2,
 				recurse:          tc.recurse,
@@ -165,28 +165,30 @@ func TestLoad(t *testing.T) {
 
 			if tc.wantLog == 0 {
 				if tc.wantAttributes != nil {
-					tc.wantAttributes.IterateAttributes(func(attr models.Attribute) {
-						v2 := p.GetAttribute(attr.Key())
-						assert.EqualValues(t, attr.Value(), v2)
+					tc.wantAttributes.IterateAttributes(func(a1 *models.Attribute) {
+						a2 := p.GetAttribute(a1.Key())
+						require.NotNil(t, a2)
+						assert.True(t, a1.Equals(a2))
 					})
 
-					p.IterateAttributes(func(attr models.Attribute) {
-						v2 := tc.wantAttributes.GetAttribute(attr.Key())
-						assert.EqualValues(t, attr.Value(), v2)
+					p.IterateAttributes(func(a1 *models.Attribute) {
+						a2 := tc.wantAttributes.GetAttribute(a1.Key())
+						require.NotNil(t, a2)
+						assert.True(t, a1.Equals(a2))
 					})
 				}
 
 				if tc.wantEntities != nil {
-					tc.wantEntities.IterateEntities(func(e1 models.Entity) {
+					tc.wantEntities.IterateEntities(func(e1 *models.Entity) {
 						e2 := p.GetEntity(e1.UID())
 						require.NotNil(t, e2)
-						assert.EqualValues(t, e1, e2)
+						assert.True(t, e1.Equals(e2))
 					})
 
-					p.IterateEntities(func(e1 models.Entity) {
+					p.IterateEntities(func(e1 *models.Entity) {
 						e2 := tc.wantEntities.GetEntity(e1.UID())
 						require.NotNil(t, e2)
-						assert.EqualValues(t, e1, e2)
+						assert.True(t, e1.Equals(e2))
 					})
 				}
 			}

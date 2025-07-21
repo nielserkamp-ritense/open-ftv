@@ -18,7 +18,7 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		e         models.Entity
+		e         *models.Entity
 		wantPanic bool
 		wantErr   bool
 	}{
@@ -68,7 +68,7 @@ func TestMarshalUnmarshalEntities(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-				assert.True(t, models.EntityEqual(got, tc.e))
+				assert.True(t, got.Equals(tc.e))
 			}
 		})
 	}

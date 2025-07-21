@@ -200,9 +200,7 @@ func (r *Request) prepare() {
 		r.Method = http.MethodGet
 	}
 
-	dummy := &dummyGetter{}
-
-	query, static := r.prepareQuery(dummy)
+	query, static := r.prepareQuery(dummyGetter)
 	if static {
 		r.query = query
 	}
@@ -210,12 +208,12 @@ func (r *Request) prepare() {
 	// if there is a non-static query, the URI will also not be static.
 	// so we can only have a static URI if there is no query, or if it is static.
 	if query == "" || static {
-		if uri, static2 := r.prepareURI(query, true, dummy); static2 {
+		if uri, static2 := r.prepareURI(query, true, dummyGetter); static2 {
 			r.uri = uri
 		}
 	}
 
-	if body, bodyLen, static2 := r.prepareBody(dummy); static2 {
+	if body, bodyLen, static2 := r.prepareBody(dummyGetter); static2 {
 		r.body = body
 		r.bodyLen = bodyLen
 	}
@@ -230,7 +228,7 @@ func (r *Request) prepare() {
 	}
 }
 
-// dummyGetter is a GetAttribute interface which always returns a dummy Attribute with value nil.
-type dummyGetter struct{}
-
-func (n *dummyGetter) GetAttribute(key string) models.Attribute { return models.NewAttribute(key, nil) }
+// dummyGetter matches the GetAttribute interface, which always returns nil.
+func dummyGetter(string) any {
+	return nil
+}

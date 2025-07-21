@@ -62,19 +62,15 @@ func TestNewAttributeSet(t *testing.T) {
 			got := NewAttributeSet(tc.in...)
 			require.NotNil(t, got)
 
-			got2, ok := got.(*attributes)
-			require.True(t, ok)
+			got2 := MapFromAttributes(got)
 			require.NotNil(t, got2)
-
-			got3 := MapFromAttributes(got)
-			require.NotNil(t, got3)
 
 			for k, v := range tc.want {
 				v2 := got.GetAttributeValue(k)
 				assert.Equal(t, v, v2)
 			}
 
-			got.IterateAttributes(func(attr Attribute) {
+			got.IterateAttributes(func(attr *Attribute) {
 				assert.Equal(t, tc.want[attr.Key()], attr.Value())
 			})
 
@@ -92,14 +88,14 @@ func TestAttributes_AddAttribute(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		in    AttributeSet
+		in    *AttributeSet
 		key   string
 		value any
 		want  map[string]any
 	}{
 		{
 			name:  "empty",
-			in:    &attributes{set: make(map[string]Attribute)},
+			in:    &AttributeSet{set: make(map[string]*Attribute)},
 			key:   "hello",
 			value: 12345,
 			want:  map[string]any{"hello": 12345},
@@ -139,7 +135,7 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		in    AttributeSet
+		in    *AttributeSet
 		key   string
 		value any
 		tp    string
@@ -147,7 +143,7 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 	}{
 		{
 			name:  "empty",
-			in:    &attributes{set: make(map[string]Attribute)},
+			in:    &AttributeSet{set: make(map[string]*Attribute)},
 			key:   "hello",
 			value: 12345,
 			tp:    "xsd:integer",
@@ -195,7 +191,7 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		in    AttributeSet
+		in    *AttributeSet
 		key   string
 		value any
 		orig  any
@@ -204,7 +200,7 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 	}{
 		{
 			name:  "empty",
-			in:    &attributes{set: make(map[string]Attribute)},
+			in:    &AttributeSet{set: make(map[string]*Attribute)},
 			key:   "hello",
 			value: 12345,
 			orig:  int32(12345),
@@ -213,7 +209,7 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 		},
 		{
 			name:  "blank key",
-			in:    &attributes{set: make(map[string]Attribute)},
+			in:    &AttributeSet{set: make(map[string]*Attribute)},
 			key:   "",
 			value: 12345,
 			orig:  int32(12345),
@@ -288,14 +284,14 @@ func TestAddAttributePath(t *testing.T) {
 		attr := s.GetAttribute("a")
 		require.NotNil(t, attr)
 
-		s2, ok2 := attr.Value().(AttributeSet)
+		s2, ok2 := attr.Value().(*AttributeSet)
 		require.True(t, ok2)
 		require.NotNil(t, s2)
 
 		attr2 := s2.GetAttribute("b")
 		require.NotNil(t, attr2)
 
-		s3, ok3 := attr2.Value().(AttributeSet)
+		s3, ok3 := attr2.Value().(*AttributeSet)
 		require.True(t, ok3)
 		require.NotNil(t, s3)
 
@@ -318,13 +314,13 @@ func TestAttributes_RemoveAttribute(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   AttributeSet
+		in   *AttributeSet
 		key  string
 		want map[string]any
 	}{
 		{
 			name: "empty",
-			in:   &attributes{set: make(map[string]Attribute)},
+			in:   &AttributeSet{set: make(map[string]*Attribute)},
 			key:  "hello",
 			want: map[string]any{},
 		},
@@ -361,19 +357,19 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		in    AttributeSet
-		merge []AttributeSet
+		in    *AttributeSet
+		merge []*AttributeSet
 		want  map[string]any
 	}{
 		{
 			name: "both empty",
-			in:   &attributes{set: make(map[string]Attribute)},
+			in:   &AttributeSet{set: make(map[string]*Attribute)},
 			want: make(map[string]any),
 		},
 		{
 			name: "add one set",
 			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
-			merge: []AttributeSet{
+			merge: []*AttributeSet{
 				NewAttributeSet(NewAttribute("hello", "world2"), NewAttribute("bool", true)),
 			},
 			want: map[string]any{"hello": "world2", "int": 123, "bool": true},
@@ -381,7 +377,7 @@ func TestAttributes_MergeAttributes(t *testing.T) {
 		{
 			name: "add few sets",
 			in:   NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 234)),
-			merge: []AttributeSet{
+			merge: []*AttributeSet{
 				NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 				NewAttributeSet(NewAttribute("int", 456), NewAttribute("world", "hello")),
 				NewAttributeSet(NewAttribute("hello", "world2"), NewAttribute("bool", true)),
@@ -409,7 +405,7 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		attr []Attribute
+		attr []*Attribute
 		want string
 	}{
 		{
@@ -418,12 +414,12 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "single",
-			attr: []Attribute{NewAttribute("hello", "world")},
+			attr: []*Attribute{NewAttribute("hello", "world")},
 			want: `[{"key":"hello","value":"world"}]`,
 		},
 		{
 			name: "few",
-			attr: []Attribute{
+			attr: []*Attribute{
 				NewAttribute("int", 999),
 				NewAttribute("hello", "world"),
 				NewAttribute("double", 123.456),
@@ -451,7 +447,7 @@ func TestMapFromAttributes(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   AttributeSet
+		in   *AttributeSet
 		want map[string]any
 	}{
 		{
@@ -484,8 +480,8 @@ func TestAttributesEqual(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		s1   AttributeSet
-		s2   AttributeSet
+		s1   *AttributeSet
+		s2   *AttributeSet
 		want bool
 	}{
 		{
@@ -506,11 +502,6 @@ func TestAttributesEqual(t *testing.T) {
 		{
 			name: "s2 empty",
 			s1:   NewAttributeSet(NewAttribute("hello", "world")),
-			s2:   NewAttributeSet(),
-		},
-		{
-			name: "s1 bad",
-			s1:   &badSet{},
 			s2:   NewAttributeSet(),
 		},
 		{
@@ -546,20 +537,8 @@ func TestAttributesEqual(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := AttributesEqual(tc.s1, tc.s2)
+			got := tc.s1.Equals(tc.s2)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
-
-type badSet struct{}
-
-func (s *badSet) AddAttribute(string, any)                      {}
-func (s *badSet) AddAttributeWithType(string, any, string)      {}
-func (s *badSet) AddOriginalAttribute(string, any, any, string) {}
-func (s *badSet) GetAttribute(string) Attribute                 { return nil }
-func (s *badSet) GetAttributeValue(string) any                  { return nil }
-func (s *badSet) RemoveAttribute(string)                        {}
-func (s *badSet) IterateAttributes(AttributeIterator)           {}
-func (s *badSet) MergeAttributes(...AttributeSet)               {}
-func (s *badSet) MarshalJSON() ([]byte, error)                  { return nil, nil }

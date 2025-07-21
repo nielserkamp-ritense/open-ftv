@@ -10,7 +10,7 @@ import (
 
 // PARCFromRequest uses the given authorization request and other inputs
 // to collect the principal, action, resource and context to be used by the Policy Decision Point.
-func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.PARC {
+func (p *PEP) PARCFromRequest(req *models.Request, e models.GetEntity) *models.PARC {
 	logger := p.logger
 	if req.UID != nil {
 		logger = p.logger.With("uid", req.UID.String())
@@ -31,9 +31,9 @@ func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.P
 			Principal: req.Principal,
 			Action:    req.Action,
 			Resource:  req.Resource,
-			Context:   models.NewAttributeSet(req.PARC.Context),
+			Context:   models.NewAttributeSet(req.Context),
 		},
-		entities: e,
+		getEntity: e,
 	}
 
 	c.run()
@@ -42,16 +42,16 @@ func (p *pep) PARCFromRequest(req *models.Request, e models.EntitySet) *models.P
 
 // PARCFromHTTP uses the given HTTP request and other inputs
 // to collect the principal, action, resource and context to be used by the Policy Decision Point.
-func (p *pep) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) *models.PARC {
+func (p *PEP) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs *models.AttributeSet, e models.GetEntity) *models.PARC {
 	logger := p.logger.With("uid", uid.String())
 	debug := logger.Enabled(nil, slog.LevelDebug)
 
 	c := &collector{
-		debug:    debug,
-		logger:   logger,
-		req:      req,
-		parc:     &models.PARC{Context: models.NewAttributeSet(attrs)},
-		entities: e,
+		debug:     debug,
+		logger:    logger,
+		req:       req,
+		parc:      &models.PARC{Context: models.NewAttributeSet(attrs)},
+		getEntity: e,
 	}
 
 	c.run()
@@ -59,10 +59,10 @@ func (p *pep) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.
 }
 
 type collector struct {
-	debug    bool
-	logger   *slog.Logger
-	req      *models.HTTPRequest
-	parc     *models.PARC
-	newURI   string
-	entities models.EntitySet
+	debug     bool
+	logger    *slog.Logger
+	req       *models.HTTPRequest
+	parc      *models.PARC
+	newURI    string
+	getEntity models.GetEntity
 }

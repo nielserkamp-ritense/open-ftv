@@ -12,12 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -36,10 +37,10 @@ func TestAuthHandler_FSC(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, ip)
 
-		ap := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/unittest/cedar", true))
+		ap := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
 		require.NotNil(t, ap)
 
 		controller := cedar_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -90,10 +91,10 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true))
+		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, ip)
 
-		ap := pap2.New(ctx, logger, pap2.WithLanguage("rego"), pap2.WithFileStore("../../../testdata/unittest/opa", true))
+		ap := pap.New(ctx, logger, pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/unittest/opa", true))
 		require.NotNil(t, ap)
 
 		controller := opa_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -142,10 +143,10 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/unittest/cedar", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -194,10 +195,10 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/unittest/cedar", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -246,10 +247,10 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/unittest/cedar", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))

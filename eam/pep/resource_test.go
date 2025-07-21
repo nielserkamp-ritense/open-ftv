@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
@@ -13,9 +14,9 @@ func TestDetermineResource(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		resource models.Entity
+		resource *models.Entity
 		uri      string
-		want     models.Entity
+		want     *models.Entity
 	}{
 		{
 			name:     "empty, no uri",
@@ -55,13 +56,15 @@ func TestDetermineResource(t *testing.T) {
 			assert.Equal(t, tc.want.Type(), c.parc.Resource.Type())
 			assert.Equal(t, tc.want.ID(), c.parc.Resource.ID())
 
-			tc.want.Attributes().IterateAttributes(func(a1 models.Attribute) {
+			tc.want.Attributes().IterateAttributes(func(a1 *models.Attribute) {
 				a2 := c.parc.Resource.Attributes().GetAttribute(a1.Key())
+				require.NotNil(t, a2)
 				assert.EqualValues(t, a1, a2)
 			})
 
-			c.parc.Resource.Attributes().IterateAttributes(func(a1 models.Attribute) {
+			c.parc.Resource.Attributes().IterateAttributes(func(a1 *models.Attribute) {
 				a2 := tc.want.Attributes().GetAttribute(a1.Key())
+				require.NotNil(t, a2)
 				assert.EqualValues(t, a1, a2)
 			})
 		})

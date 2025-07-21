@@ -19,7 +19,7 @@ func TestNewEntitySet(t *testing.T) {
 	testCases := []struct {
 		name string
 		in   []any
-		want map[string]Entity
+		want map[string]*Entity
 	}{
 		{
 			name: "empty",
@@ -27,30 +27,30 @@ func TestNewEntitySet(t *testing.T) {
 		{
 			name: "one set",
 			in: []any{
-				&entities{set: map[string]Entity{e1.UID(): e1}},
+				&EntitySet{set: map[string]*Entity{e1.UID(): e1}},
 			},
-			want: map[string]Entity{e1.UID(): e1},
+			want: map[string]*Entity{e1.UID(): e1},
 		},
 		{
 			name: "mixed input - no dupes",
 			in: []any{
-				&entities{set: map[string]Entity{e3.UID(): e3, e1.UID(): e1}},
+				&EntitySet{set: map[string]*Entity{e3.UID(): e3, e1.UID(): e1}},
 				e2,
 				12345,
 			},
-			want: map[string]Entity{e1.UID(): e1, e2.UID(): e2, e3.UID(): e3},
+			want: map[string]*Entity{e1.UID(): e1, e2.UID(): e2, e3.UID(): e3},
 		},
 		{
 			name: "mixed input - 1 dupe",
 			in: []any{
 				e2,
-				&entities{set: map[string]Entity{e4.UID(): e4, e1.UID(): e1}},
+				&EntitySet{set: map[string]*Entity{e4.UID(): e4, e1.UID(): e1}},
 				e3,
 				12345,
 				dup2,
 				nil,
 			},
-			want: map[string]Entity{e1.UID(): e1, dup2.UID(): dup2, e3.UID(): e3, e4.UID(): e4},
+			want: map[string]*Entity{e1.UID(): e1, dup2.UID(): dup2, e3.UID(): e3, e4.UID(): e4},
 		},
 	}
 
@@ -61,17 +61,13 @@ func TestNewEntitySet(t *testing.T) {
 			got := NewEntitySet(tc.in...)
 			require.NotNil(t, got)
 
-			got2, ok := got.(*entities)
-			require.True(t, ok)
-			require.NotNil(t, got2)
-
 			for k, v := range tc.want {
 				v2 := got.GetEntity(k)
-				assert.True(t, EntityEqual(v, v2))
+				assert.True(t, v.Equals(v2))
 			}
 
-			got.IterateEntities(func(entity Entity) {
-				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
+			got.IterateEntities(func(entity *Entity) {
+				assert.True(t, tc.want[entity.UID()].Equals(entity))
 			})
 		})
 	}
@@ -88,27 +84,27 @@ func TestEntities_AddEntity(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   EntitySet
-		add  Entity
-		want map[string]Entity
+		in   *EntitySet
+		add  *Entity
+		want map[string]*Entity
 	}{
 		{
 			name: "empty",
 			in:   NewEntitySet(),
 			add:  e3,
-			want: map[string]Entity{e3.UID(): e3},
+			want: map[string]*Entity{e3.UID(): e3},
 		},
 		{
 			name: "new key",
 			in:   NewEntitySet(e1, e4),
 			add:  e3,
-			want: map[string]Entity{e1.UID(): e1, e3.UID(): e3, e4.UID(): e4},
+			want: map[string]*Entity{e1.UID(): e1, e3.UID(): e3, e4.UID(): e4},
 		},
 		{
 			name: "duplicate key",
-			in:   NewEntitySet(&entities{set: map[string]Entity{e2.UID(): e2, e3.UID(): e3}}),
+			in:   NewEntitySet(&EntitySet{set: map[string]*Entity{e2.UID(): e2, e3.UID(): e3}}),
 			add:  dup2,
-			want: map[string]Entity{dup2.UID(): dup2, e3.UID(): e3},
+			want: map[string]*Entity{dup2.UID(): dup2, e3.UID(): e3},
 		},
 	}
 
@@ -121,11 +117,11 @@ func TestEntities_AddEntity(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.True(t, EntityEqual(v, v2))
+				assert.True(t, v.Equals(v2))
 			}
 
-			e.IterateEntities(func(entity Entity) {
-				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
+			e.IterateEntities(func(entity *Entity) {
+				assert.True(t, tc.want[entity.UID()].Equals(entity))
 			})
 		})
 	}
@@ -141,27 +137,27 @@ func TestEntities_RemoveEntity(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   EntitySet
+		in   *EntitySet
 		key  string
-		want map[string]Entity
+		want map[string]*Entity
 	}{
 		{
 			name: "empty",
 			in:   NewEntitySet(),
 			key:  "hello::x1",
-			want: map[string]Entity{},
+			want: map[string]*Entity{},
 		},
 		{
 			name: "miss",
-			in:   NewEntitySet(&entities{set: map[string]Entity{e1.UID(): e1, e4.UID(): e4}}),
+			in:   NewEntitySet(&EntitySet{set: map[string]*Entity{e1.UID(): e1, e4.UID(): e4}}),
 			key:  "entity::x2",
-			want: map[string]Entity{e1.UID(): e1, e4.UID(): e4},
+			want: map[string]*Entity{e1.UID(): e1, e4.UID(): e4},
 		},
 		{
 			name: "hit",
 			in:   NewEntitySet(e2, e3),
 			key:  "entity::x2",
-			want: map[string]Entity{e3.UID(): e3},
+			want: map[string]*Entity{e3.UID(): e3},
 		},
 	}
 
@@ -174,11 +170,11 @@ func TestEntities_RemoveEntity(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.True(t, EntityEqual(v, v2))
+				assert.True(t, v.Equals(v2))
 			}
 
-			e.IterateEntities(func(entity Entity) {
-				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
+			e.IterateEntities(func(entity *Entity) {
+				assert.True(t, tc.want[entity.UID()].Equals(entity))
 			})
 		})
 	}
@@ -196,26 +192,26 @@ func TestEntities_MergeEntities(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		in    EntitySet
-		merge []EntitySet
-		want  map[string]Entity
+		in    *EntitySet
+		merge []*EntitySet
+		want  map[string]*Entity
 	}{
 		{
 			name: "both empty",
 			in:   NewEntitySet(),
-			want: make(map[string]Entity),
+			want: make(map[string]*Entity),
 		},
 		{
 			name:  "add one set",
 			in:    NewEntitySet(e1, e4),
-			merge: []EntitySet{NewEntitySet(e2, e3)},
-			want:  map[string]Entity{e1.UID(): e1, e2.UID(): e2, e3.UID(): e3, e4.UID(): e4},
+			merge: []*EntitySet{NewEntitySet(e2, e3)},
+			want:  map[string]*Entity{e1.UID(): e1, e2.UID(): e2, e3.UID(): e3, e4.UID(): e4},
 		},
 		{
 			name:  "add few sets",
 			in:    NewEntitySet(e1, e4),
-			merge: []EntitySet{NewEntitySet(e5, e3), NewEntitySet(e6, e4)},
-			want:  map[string]Entity{e1.UID(): e1, e3.UID(): e3, e4.UID(): e4, e5.UID(): e5, e6.UID(): e6},
+			merge: []*EntitySet{NewEntitySet(e5, e3), NewEntitySet(e6, e4)},
+			want:  map[string]*Entity{e1.UID(): e1, e3.UID(): e3, e4.UID(): e4, e5.UID(): e5, e6.UID(): e6},
 		},
 	}
 
@@ -228,11 +224,11 @@ func TestEntities_MergeEntities(t *testing.T) {
 
 			for k, v := range tc.want {
 				v2 := e.GetEntity(k)
-				assert.True(t, EntityEqual(v, v2))
+				assert.True(t, v.Equals(v2))
 			}
 
-			e.IterateEntities(func(entity Entity) {
-				assert.True(t, EntityEqual(tc.want[entity.UID()], entity))
+			e.IterateEntities(func(entity *Entity) {
+				assert.True(t, tc.want[entity.UID()].Equals(entity))
 			})
 		})
 	}

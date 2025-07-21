@@ -9,24 +9,17 @@ import (
 )
 
 // AttributesBuilder is the function prototype for creating a new set of attributes.
-type AttributesBuilder func(in ...any) AttributeSet
+type AttributesBuilder func(in ...any) *AttributeSet
 
 // AttributeIterator is the function prototype to iterate through a set of attributes.
-type AttributeIterator func(attr Attribute)
+type AttributeIterator func(attr *Attribute)
 
 // AttributeSet represents the interface to work with a set of attributes.
 //
 // An implementation must take care to protect against simultaneous use from concurrent go-routines.
-type AttributeSet interface {
-	AddAttribute(key string, value any)                              // add or replace an attribute without a specific type.
-	AddAttributeWithType(key string, value any, tp string)           // add or replace an attribute with the specified type.
-	AddOriginalAttribute(key string, value, original any, tp string) // add or replace an attribute with the specified type and original value.
-	GetAttribute(key string) Attribute                               // retrieve an attribute.
-	GetAttributeValue(key string) any                                // retrieve an attribute value.
-	RemoveAttribute(key string)                                      // remove an attribute.
-	IterateAttributes(f AttributeIterator)                           // iterate through all attributes.
-	MergeAttributes(in ...AttributeSet)                              // merge the given attribute sets into this one.
-	MarshalJSON() ([]byte, error)
+type AttributeSet struct {
+	set   map[string]*Attribute
+	mutex sync.RWMutex
 }
 
 // NewAttributeSet instantiates a new set of attributes.
@@ -36,18 +29,20 @@ type AttributeSet interface {
 // The given attribute sets will be copied into the returned new attribute set.
 // Duplicate keys from an input set will overwrite the previous value.
 // E.g. only the last value with the duplicate key will be retained.
-func NewAttributeSet(in ...any) AttributeSet {
-	out := &attributes{set: make(map[string]Attribute, 32)}
+func NewAttributeSet(in ...any) *AttributeSet {
+	out := &AttributeSet{set: make(map[string]*Attribute, 32)}
 
 	for _, p := range in {
 		switch t := p.(type) {
-		case Attribute:
+		case *Attribute:
 			out.set[t.Key()] = t
-		case AttributeSet:
-			t.IterateAttributes(func(attr Attribute) {
-				out.set[attr.Key()] = attr
-			})
-		case []Attribute:
+		case *AttributeSet:
+			if t != nil {
+				t.IterateAttributes(func(attr *Attribute) {
+					out.set[attr.Key()] = attr
+				})
+			}
+		case []*Attribute:
 			for i := range t {
 				attr := t[i]
 				out.set[attr.Key()] = attr
@@ -60,65 +55,64 @@ func NewAttributeSet(in ...any) AttributeSet {
 			}
 		}
 	}
-
 	return out
 }
 
-// AddAttribute implements the AttributeSet interface.
+// AddAttribute adds or updates an Attribute in the AttributeSet.
 //
 // A duplicate key will overwrite the previous value.
-// E.g. only the last value with the duplicate key will be retained.
-func (a *attributes) AddAttribute(key string, value any) {
-	a.AddOriginalAttribute(key, value, value, "")
+// E.g., only the last value with the duplicate key will be retained.
+func (s *AttributeSet) AddAttribute(key string, value any) {
+	s.AddOriginalAttribute(key, value, value, "")
 }
 
-// AddAttributeWithType implements the AttributeSet interface.
+// AddAttributeWithType adds or updates an Attribute in the AttributeSet with a specific type.
 //
 // A duplicate key will overwrite the previous value.
-// E.g. only the last value with the duplicate key will be retained.
-func (a *attributes) AddAttributeWithType(key string, value any, tp string) {
-	a.AddOriginalAttribute(key, value, value, tp)
+// E.g., only the last value with the duplicate key will be retained.
+func (s *AttributeSet) AddAttributeWithType(key string, value any, tp string) {
+	s.AddOriginalAttribute(key, value, value, tp)
 }
 
-// AddOriginalAttribute implements the AttributeSet interface.
+// AddOriginalAttribute adds or updates an Attribute in the AttributeSet with a specific type and original value.
 //
 // A duplicate key will overwrite the previous value.
-// E.g. only the last value with the duplicate key will be retained.
+// E.g., only the last value with the duplicate key will be retained.
 //
 // If the key contains dots, it is considered to be a multi-level attribute key.
 // Any key at a level that does not exist in the attribute tree will be created.
 // If an existing key level does not have an object as value, its value will be replaced with an object.
-func (a *attributes) AddOriginalAttribute(key string, value, original any, tp string) {
+func (s *AttributeSet) AddOriginalAttribute(key string, value, original any, tp string) {
 	if key == "" {
 		return
 	}
 
 	keys := strings.Split(key, ".")
 
-	a.mutex.Lock()
-	a.addOriginalAttribute(keys, value, original, tp)
-	a.mutex.Unlock()
+	s.mutex.Lock()
+	s.addOriginalAttribute(keys, value, original, tp)
+	s.mutex.Unlock()
 }
 
-func (a *attributes) addOriginalAttribute(keys []string, value, original any, tp string) {
+func (s *AttributeSet) addOriginalAttribute(keys []string, value, original any, tp string) {
 	key := keys[0]
 	if len(keys) == 1 {
-		a.set[key] = NewOriginalAttribute(key, value, original, tp)
+		s.set[key] = NewOriginalAttribute(key, value, original, tp)
 		return
 	}
 
-	upsert := func() *attributes {
+	upsert := func() *AttributeSet {
 		set := NewAttributeSet()
-		a.set[key] = NewAttribute(key, set)
-		return set.(*attributes)
+		s.set[key] = NewAttribute(key, set)
+		return set
 	}
 
-	var set *attributes
-	if attr := a.getAttribute(key); attr == nil {
+	var set *AttributeSet
+	if attr := s.getAttribute(key); attr == nil {
 		set = upsert()
 	} else {
 		var ok bool
-		if set, ok = attr.Value().(*attributes); !ok {
+		if set, ok = attr.Value().(*AttributeSet); !ok {
 			set = upsert()
 		}
 	}
@@ -126,120 +120,113 @@ func (a *attributes) addOriginalAttribute(keys []string, value, original any, tp
 	set.addOriginalAttribute(keys[1:], value, original, tp)
 }
 
-// GetAttribute implements the AttributeSet interface.
-func (a *attributes) GetAttribute(key string) Attribute {
-	a.mutex.RLock()
-	defer a.mutex.RUnlock()
-	return a.getAttribute(key)
+// GetAttribute retrieves an Attribute from the AttributeSet with the given uid.
+func (s *AttributeSet) GetAttribute(key string) *Attribute {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.getAttribute(key)
 }
 
-func (a *attributes) getAttribute(key string) Attribute {
-	return a.set[key]
+func (s *AttributeSet) getAttribute(key string) *Attribute {
+	return s.set[key]
 }
 
-// GetAttributeValue implements the AttributeSet interface.
-func (a *attributes) GetAttributeValue(key string) any {
-	if attr := a.GetAttribute(key); attr != nil {
+// GetAttributeValue retrieves an Attribute value from the AttributeSet with the given uid.
+func (s *AttributeSet) GetAttributeValue(key string) any {
+	if attr := s.GetAttribute(key); attr != nil {
 		return attr.Value()
 	}
 	return nil
 }
 
-// RemoveAttribute implements the AttributeSet interface.
-func (a *attributes) RemoveAttribute(key string) {
-	a.mutex.Lock()
-	delete(a.set, key)
-	a.mutex.Unlock()
+// RemoveAttribute removes an Attribute from the AttributeSet.
+func (s *AttributeSet) RemoveAttribute(key string) {
+	s.mutex.Lock()
+	delete(s.set, key)
+	s.mutex.Unlock()
 }
 
-// IterateAttributes implements the AttributeSet interface.
+// IterateAttributes iterates through all attributes in the set and calls the given closure for each.
 //
 // The supplied callback function should be as short-lived as possible,
 // as this function locks the attribute set against any updates.
-func (a *attributes) IterateAttributes(f AttributeIterator) {
-	a.mutex.RLock()
-	for k := range a.set {
-		f(a.set[k])
+func (s *AttributeSet) IterateAttributes(f AttributeIterator) {
+	s.mutex.RLock()
+	for k := range s.set {
+		f(s.set[k])
 	}
-	a.mutex.RUnlock()
+	s.mutex.RUnlock()
 }
 
-// MergeAttributes implements the AttributeSet interface.
+// MergeAttributes merges the given AttributeSet(s) into this AttributeSet.
 //
 // Duplicate keys from an input set will overwrite the previous value.
 // E.g. only the last value with the duplicate key will be retained.
-func (a *attributes) MergeAttributes(in ...AttributeSet) {
-	a.mutex.Lock()
+func (s *AttributeSet) MergeAttributes(in ...*AttributeSet) {
+	s.mutex.Lock()
 	for i := range in {
-		in[i].IterateAttributes(func(attr Attribute) {
-			a.set[attr.Key()] = attr
+		in[i].IterateAttributes(func(attr *Attribute) {
+			s.set[attr.Key()] = attr
 		})
 	}
-	a.mutex.Unlock()
+	s.mutex.Unlock()
 }
 
-// MarshalJSON implements the json.Marshaller interface.
-func (a *attributes) MarshalJSON() ([]byte, error) {
-	a.mutex.RLock()
-	defer a.mutex.RUnlock()
+// MarshalJSON implements the json.Marshaler interface.
+func (s *AttributeSet) MarshalJSON() ([]byte, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
-	keys := make([]string, 0, len(a.set))
-	for k := range a.set {
+	keys := make([]string, 0, len(s.set))
+	for k := range s.set {
 		keys = append(keys, k)
 	}
 	slices.Sort(keys)
 
-	list := make([]Attribute, 0, len(a.set))
+	list := make([]*Attribute, 0, len(s.set))
 	for i := range keys {
-		list = append(list, a.set[keys[i]])
+		list = append(list, s.set[keys[i]])
 	}
 
 	return json.Marshal(list)
 }
 
 // MapFromAttributes returns a standard map from the given attribute set.
-func MapFromAttributes(in AttributeSet) map[string]any {
+func MapFromAttributes(in *AttributeSet) map[string]any {
 	if in == nil {
 		return nil
 	}
 
 	out := make(map[string]any)
-	in.IterateAttributes(func(attr Attribute) {
+	in.IterateAttributes(func(attr *Attribute) {
 		out[attr.Key()] = attr.Value()
 	})
 
 	return out
 }
 
-// AttributesEqual returns true if the given sets of attributes match exactly.
-func AttributesEqual(s1, s2 AttributeSet) bool {
-	if s1 == nil && s2 == nil {
+// Equals returns true if this AttributeSet matches exactly the other AttributeSet.
+func (s *AttributeSet) Equals(other *AttributeSet) bool {
+	if s == nil && other == nil {
 		return true
 	}
 
-	as1, ok1 := s1.(*attributes)
-	as2, ok2 := s2.(*attributes)
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 
-	if !ok1 || !ok2 {
-		return false
-	}
+	other.mutex.RLock()
+	defer other.mutex.RUnlock()
 
-	as1.mutex.RLock()
-	defer as1.mutex.RUnlock()
-
-	as2.mutex.RLock()
-	defer as2.mutex.RUnlock()
-
-	for _, a1 := range as1.set {
-		a2 := as2.getAttribute(a1.Key())
-		if a2 == nil || !AttributeEqual(a1, a2) {
+	for _, a1 := range s.set {
+		a2 := other.getAttribute(a1.Key())
+		if a2 == nil || !a1.Equals(a2) {
 			return false
 		}
 	}
 
-	for _, a1 := range as2.set {
-		a2 := as1.getAttribute(a1.Key())
-		if a2 == nil || !AttributeEqual(a1, a2) {
+	for _, a1 := range other.set {
+		a2 := s.getAttribute(a1.Key())
+		if a2 == nil || !a1.Equals(a2) {
 			return false
 		}
 	}
@@ -247,13 +234,8 @@ func AttributesEqual(s1, s2 AttributeSet) bool {
 	return true
 }
 
-func (a *attributes) addMap(m map[string]any) {
+func (s *AttributeSet) addMap(m map[string]any) {
 	for k := range m {
-		a.set[k] = NewAttribute(k, m[k])
+		s.set[k] = NewAttribute(k, m[k])
 	}
-}
-
-type attributes struct {
-	set   map[string]Attribute
-	mutex sync.RWMutex
 }

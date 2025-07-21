@@ -72,7 +72,7 @@ func (r *runner) processRelation(sType, sID, pType, pID, oType, oID string, obj 
 		return
 	}
 
-	r.manager.relations.AddRelation(
+	r.manager.addRelation(
 		models.NewRelation(
 			models.NewEntity(sType, sID, r.manager.newAttributes()),
 			models.NewEntity(pType, pID, r.manager.newAttributes()),

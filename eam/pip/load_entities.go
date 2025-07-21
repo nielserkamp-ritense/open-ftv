@@ -11,7 +11,7 @@ import (
 	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
-func (p *pip) loadEntities(path string) {
+func (p *PIP) loadEntities(path string) {
 	f, err := os.Open(path)
 	if err != nil {
 		p.logger.Error("pip: error opening entities file", "path", path, "err", err)
@@ -46,7 +46,7 @@ func (p *pip) loadEntities(path string) {
 	p.loadEntitiesAny(entities)
 }
 
-func (p *pip) loadEntitiesAny(entities any) {
+func (p *PIP) loadEntitiesAny(entities any) {
 	switch t := entities.(type) {
 	case []any:
 		for i := range t {
@@ -61,7 +61,7 @@ func (p *pip) loadEntitiesAny(entities any) {
 	}
 }
 
-func (p *pip) loadEntityMap(attribute map[string]any) {
+func (p *PIP) loadEntityMap(attribute map[string]any) {
 	t, ok1 := attribute["type"].(string)
 	id, ok2 := attribute["id"].(string)
 

@@ -41,9 +41,9 @@ func TestDecodeData(t *testing.T) {
 		data     any
 		dec      *ResponseMapping
 		wantErr  bool
-		wantAttr map[string]models.Attribute
-		wantEnt  map[string]models.Entity
-		wantRel  map[string]models.Relation
+		wantAttr map[string]*models.Attribute
+		wantEnt  map[string]*models.Entity
+		wantRel  map[string]*models.Relation
 	}{
 		{
 			name: "no data",
@@ -68,7 +68,7 @@ func TestDecodeData(t *testing.T) {
 					{Base: "third.sub", Map: []*AttributeMapping{{KeyField: "hello", ValueField: "bool", TypeField: "type"}}},
 				},
 			},
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"world":   models.NewOriginalAttribute("world", int64(123), 123, "xsd:short"),
 				"mars":    models.NewOriginalAttribute("mars", "321", 321, "xsd:string"),
 				"jupiter": models.NewOriginalAttribute("jupiter", true, true, ""),
@@ -85,7 +85,7 @@ func TestDecodeData(t *testing.T) {
 					{Base: "first", TypeField: "hello", IDField: "int"},
 				},
 			},
-			wantEnt: map[string]models.Entity{
+			wantEnt: map[string]*models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::false":   models.NewEntity("mars", "false", models.NewAttributeSet()),
 				"jupiter::true": models.NewEntity("jupiter", "true", models.NewAttributeSet()),
@@ -99,7 +99,7 @@ func TestDecodeData(t *testing.T) {
 					{Base: "rel.second", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
 				},
 			},
-			wantRel: map[string]models.Relation{
+			wantRel: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -133,19 +133,19 @@ func TestDecodeData(t *testing.T) {
 					{Base: "ent.third.sub", TypeField: "hello", IDField: "bool"},
 				},
 			},
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"world":   models.NewOriginalAttribute("world", int64(123), 123, "xsd:short"),
 				"mars":    models.NewOriginalAttribute("mars", "321", 321, "xsd:string"),
 				"jupiter": models.NewOriginalAttribute("jupiter", true, true, ""),
 				"venus":   models.NewOriginalAttribute("venus", "true", true, "xsd:string"),
 				"uranus":  models.NewOriginalAttribute("uranus", "false", false, "xsd:anyType"),
 			},
-			wantEnt: map[string]models.Entity{
+			wantEnt: map[string]*models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::false":   models.NewEntity("mars", "false", models.NewAttributeSet()),
 				"jupiter::true": models.NewEntity("jupiter", "true", models.NewAttributeSet()),
 			},
-			wantRel: map[string]models.Relation{
+			wantRel: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -174,7 +174,7 @@ func TestDecodeData(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			m := &manager{logger: logger, attributes: attr, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}
+			m := &manager{logger: logger, addAttribute: attr.AddOriginalAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}
 
 			r := &runner{logger: logger, data: tc.data, manager: m}
 			r.decodeData(tc.dec, 200)
@@ -194,12 +194,12 @@ func TestDecodeData(t *testing.T) {
 				assert.Equal(t, want.ID(), got.ID())
 				assert.EqualValues(t, want.Parents(), got.Parents())
 
-				want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				want.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := got.Attributes().GetAttribute(attr1.Key())
 					assert.EqualValues(t, attr1, attr2)
 				})
 
-				got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				got.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := want.Attributes().GetAttribute(attr1.Key())
 					assert.EqualValues(t, attr1, attr2)
 				})
@@ -257,9 +257,9 @@ value = "first code"
 		content  string
 		dec      *ResponseMapping
 		wantErr  bool
-		wantAttr map[string]models.Attribute
-		wantEnt  map[string]models.Entity
-		wantRel  map[string]models.Relation
+		wantAttr map[string]*models.Attribute
+		wantEnt  map[string]*models.Entity
+		wantRel  map[string]*models.Relation
 	}{
 		{
 			name:    "no decoder",
@@ -315,7 +315,7 @@ value = "first code"
 					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"code": models.NewOriginalAttribute("code", int64(119), uint64(119), "xsd:short"),
 				"name": models.NewOriginalAttribute("name", "first code", "first code", ""),
 			},
@@ -328,7 +328,7 @@ value = "first code"
 					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"code": models.NewOriginalAttribute("code", int64(119), 119.0, "xsd:short"),
 				"name": models.NewOriginalAttribute("name", "first code", "first code", ""),
 			},
@@ -342,7 +342,7 @@ value = "first code"
 					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
 				},
 			},
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"code": models.NewOriginalAttribute("code", int64(119), int64(119), "xsd:short"),
 				"name": models.NewOriginalAttribute("name", "first code", "first code", ""),
 			},
@@ -376,7 +376,7 @@ value = "first code"
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			m := &manager{ctx: ctx, cancel: cancel, logger: logger, attributes: attr, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}
+			m := &manager{ctx: ctx, cancel: cancel, logger: logger, addAttribute: attr.AddOriginalAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}
 
 			req := &Request{
 				Name:    "test",
@@ -407,22 +407,22 @@ value = "first code"
 				for k := range tc.wantAttr {
 					want, got := tc.wantAttr[k], attr.GetAttribute(k)
 					require.NotNil(t, got)
-					require.True(t, models.AttributeEqual(want, got))
+					require.True(t, want.Equals(got))
 				}
 
 				for k := range tc.wantEnt {
 					want, got := tc.wantEnt[k], ent.GetEntity(k)
 					require.NotNil(t, got)
-					assert.True(t, models.EntityEqual(want, got))
+					assert.True(t, want.Equals(got))
 				}
 
 				for k := range tc.wantRel {
 					want, got := tc.wantRel[k], rel.GetRelation(k)
 					require.NotNil(t, got)
 					assert.Equal(t, want.UID(), got.UID())
-					assert.True(t, models.EntityEqual(want.Subject(), got.Subject()))
-					assert.True(t, models.EntityEqual(want.Predicate(), got.Predicate()))
-					assert.True(t, models.EntityEqual(want.Object(), got.Object()))
+					assert.True(t, want.Subject().Equals(got.Subject()))
+					assert.True(t, want.Predicate().Equals(got.Predicate()))
+					assert.True(t, want.Object().Equals(got.Object()))
 				}
 			}
 		})

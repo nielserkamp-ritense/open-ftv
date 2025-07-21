@@ -46,8 +46,8 @@ func TestNew(t *testing.T) {
 		path           string
 		recurse        bool
 		wantLog        int
-		wantAttributes models.AttributeSet
-		wantEntities   models.EntitySet
+		wantAttributes *models.AttributeSet
+		wantEntities   *models.EntitySet
 	}{
 		{
 			name:         "no store",
@@ -102,35 +102,31 @@ func TestNew(t *testing.T) {
 			p1 := New(nil, logger, WithFileStore(tc.path, tc.recurse))
 			require.NotNil(t, p1)
 
-			p2, ok := p1.(*pip)
-			require.True(t, ok)
-			require.NotNil(t, p2)
-
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantAttributes != nil {
-				list, err := p2.attributePersist.List()
+				list, err := p1.attributePersist.List()
 				require.NoError(t, err)
 
 				for i := range list {
 					attr := list[i]
 					attr2 := tc.wantAttributes.GetAttribute(attr.Key())
 					require.NotNil(t, attr2)
-					assert.True(t, models.AttributeEqual(attr, attr2))
+					assert.True(t, attr.Equals(attr2))
 				}
 			}
 
 			if tc.wantEntities != nil {
-				tc.wantEntities.IterateEntities(func(e1 models.Entity) {
-					e2 := p2.GetEntity(e1.UID())
+				tc.wantEntities.IterateEntities(func(e1 *models.Entity) {
+					e2 := p1.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.True(t, models.EntityEqual(e1, e2))
+					assert.True(t, e1.Equals(e2))
 				})
 
-				p2.IterateEntities(func(e1 models.Entity) {
+				p1.IterateEntities(func(e1 *models.Entity) {
 					e2 := tc.wantEntities.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.True(t, models.EntityEqual(e1, e2))
+					assert.True(t, e1.Equals(e2))
 				})
 			}
 		})
@@ -154,9 +150,7 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, "world", p.GetAttributeValue("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
-		// p2 := &pip{attributes: schema.NewAttributeSet(schema.NewAttribute("hello", "world2"), schema.NewAttribute("bool", true))}
-
-		p2 := New(context.Background(), logger)
+		p2 := models.NewAttributeSet()
 		p2.AddAttribute("hello", "world2")
 		p2.AddAttribute("bool", true)
 
@@ -172,7 +166,7 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Nil(t, p.GetAttributeValue("int"))
 
 		var count int
-		p.IterateAttributes(func(models.Attribute) {
+		p.IterateAttributes(func(*models.Attribute) {
 			count++
 		})
 		assert.Equal(t, 2, count)
@@ -186,7 +180,7 @@ func TestPIP_Entities(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(nil, logger).(*pip)
+		p := New(nil, logger)
 		require.NotNil(t, p)
 
 		p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
@@ -201,7 +195,7 @@ func TestPIP_Entities(t *testing.T) {
 		)
 
 		var count int
-		p.IterateEntities(func(entity models.Entity) {
+		p.IterateEntities(func(entity *models.Entity) {
 			count++
 		})
 		assert.Equal(t, 5, count)
@@ -216,7 +210,7 @@ func TestPIP_Entities(t *testing.T) {
 		p.RemoveEntity("q::x")
 
 		count = 0
-		p.IterateEntities(func(entity models.Entity) {
+		p.IterateEntities(func(entity *models.Entity) {
 			count++
 		})
 		assert.Equal(t, 3, count)

@@ -18,7 +18,7 @@ const (
 )
 
 // DeterminePrincipal determines the type of principal and its primary key.
-func DeterminePrincipal(a models.AttributeSet) (string, string) {
+func DeterminePrincipal(a *models.AttributeSet) (string, string) {
 	if rvvaID, ok := a.GetAttributeValue(models.AttrRvvaID).(string); ok {
 		return PrincipalRVVA, rvvaID
 	}

@@ -12,11 +12,11 @@ import (
 )
 
 // Option represents the function signature for options when creating a new PAP.
-type Option func(p *pip)
+type Option func(p *PIP)
 
 // WithFileStore adds a file storage location to the PIP.
 func WithFileStore(fileStore string, recurse bool) Option {
-	return func(p *pip) {
+	return func(p *PIP) {
 		if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
 			p.attrStore = as
 		}
@@ -31,14 +31,16 @@ func WithFileStore(fileStore string, recurse bool) Option {
 
 // WithPullConfigs adds the path where pull configurations can be found.
 func WithPullConfigs(path string) Option {
-	return func(p *pip) {
+	return func(p *PIP) {
 		if pullManager, err := network.NewManager(network.ManagerParams{
 			Ctx:           p.ctx,
 			Path:          path,
 			Logger:        p.logger,
 			NewAttributes: p.newAttributes,
-			Attributes:    p,
-			Entities:      p,
+			AddAttribute:  p.AddOriginalAttribute,
+			GetAttribute:  p.GetAttributeValue,
+			AddEntity:     p.AddEntity,
+			// AddRelation:  p.AddRelation,
 		}); err != nil {
 			p.logger.Error("failed to initialize pull manager", "path", path, "error", err)
 		} else {
@@ -49,9 +51,9 @@ func WithPullConfigs(path string) Option {
 
 // WithPersistence connects the PIP to persistent storage.
 //
-// By default, a PIP is created with an in-memory KV-cache.
+// By default, a PIP is created with an in-memory key-value cache.
 func WithPersistence(store store.Store, basePath string) Option {
-	return func(p *pip) {
+	return func(p *PIP) {
 		_ = p.store.Close()
 		p.store = store
 
@@ -63,7 +65,7 @@ func WithPersistence(store store.Store, basePath string) Option {
 
 // WithFactories adds instance factories for attribute and/or entity sets.
 func WithFactories(a models.AttributesBuilder, e models.EntitiesBuilder) Option {
-	return func(p *pip) {
+	return func(p *PIP) {
 		p.newAttributes = a
 		p.newEntities = e
 	}

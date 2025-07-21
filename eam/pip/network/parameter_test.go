@@ -12,6 +12,9 @@ import (
 func TestParameter_AttributeValue(t *testing.T) {
 	t.Parallel()
 
+	get1 := &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)}
+	get2 := &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)}
+
 	testCases := []struct {
 		name       string
 		value      any
@@ -25,7 +28,7 @@ func TestParameter_AttributeValue(t *testing.T) {
 		{
 			name:       "invalid attribute key, no value",
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       invalidValue,
 			wantType:   xsd.PrefixString,
 			wantStatic: true,
@@ -35,7 +38,7 @@ func TestParameter_AttributeValue(t *testing.T) {
 			value:      int64(123),
 			tp:         xsd.PrefixInt,
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       int64(123),
 			wantType:   xsd.PrefixInt,
 			wantStatic: true,
@@ -43,18 +46,18 @@ func TestParameter_AttributeValue(t *testing.T) {
 		{
 			name:     "valid attribute key, no value",
 			attrKey:  "abc",
-			get:      &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)},
+			get:      get1.GetAttribute,
 			want:     "hello world",
-			wantType: xsd.PrefixString,
+			wantType: xsd.PrefixAny,
 		},
 		{
 			name:     "valid attribute key, value",
 			value:    int64(123),
 			tp:       xsd.PrefixShort,
 			attrKey:  "abc",
-			get:      &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)},
+			get:      get2.GetAttribute,
 			want:     123.567,
-			wantType: xsd.PrefixDouble,
+			wantType: xsd.PrefixAny,
 		},
 	}
 
@@ -74,6 +77,9 @@ func TestParameter_AttributeValue(t *testing.T) {
 
 func TestParameter_ValueAny(t *testing.T) {
 	t.Parallel()
+
+	get1 := &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)}
+	get2 := &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)}
 
 	testCases := []struct {
 		name       string
@@ -102,7 +108,7 @@ func TestParameter_ValueAny(t *testing.T) {
 		{
 			name:       "invalid attribute key, no value",
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       invalidValue,
 			wantType:   xsd.PrefixString,
 			wantStatic: true,
@@ -112,7 +118,7 @@ func TestParameter_ValueAny(t *testing.T) {
 			value:      int64(123),
 			tp:         xsd.PrefixLong,
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       int64(123),
 			wantType:   xsd.PrefixLong,
 			wantStatic: true,
@@ -120,18 +126,18 @@ func TestParameter_ValueAny(t *testing.T) {
 		{
 			name:     "valid attribute key, no value",
 			attrKey:  "abc",
-			get:      &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)},
+			get:      get1.GetAttribute,
 			want:     "hello world",
-			wantType: xsd.PrefixString,
+			wantType: xsd.PrefixAny,
 		},
 		{
 			name:     "valid attribute key, value",
 			value:    int64(123),
 			tp:       xsd.PrefixLong,
 			attrKey:  "abc",
-			get:      &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)},
+			get:      get2.GetAttribute,
 			want:     123.567,
-			wantType: xsd.PrefixDouble,
+			wantType: xsd.PrefixAny,
 		},
 	}
 
@@ -151,6 +157,9 @@ func TestParameter_ValueAny(t *testing.T) {
 
 func TestParameter_ValueString(t *testing.T) {
 	t.Parallel()
+
+	get1 := &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)}
+	get2 := &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)}
 
 	testCases := []struct {
 		name       string
@@ -176,7 +185,7 @@ func TestParameter_ValueString(t *testing.T) {
 		{
 			name:       "invalid attribute key, no value",
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       invalidValue,
 			wantStatic: true,
 		},
@@ -185,7 +194,7 @@ func TestParameter_ValueString(t *testing.T) {
 			value:      int64(123),
 			t:          "xsd:long",
 			attrKey:    "abc",
-			get:        &nilGetter{},
+			get:        nilGetter,
 			want:       "123",
 			wantStatic: true,
 		},
@@ -193,7 +202,7 @@ func TestParameter_ValueString(t *testing.T) {
 			name:    "valid attribute key, no value",
 			t:       "xsd:string",
 			attrKey: "abc",
-			get:     &fixedGetter{attr: models.NewAttributeWithType("abc", "hello world", xsd.PrefixString)},
+			get:     get1.GetAttribute,
 			want:    "hello world",
 		},
 		{
@@ -201,7 +210,7 @@ func TestParameter_ValueString(t *testing.T) {
 			value:   int64(123),
 			t:       "xsd:double",
 			attrKey: "abc",
-			get:     &fixedGetter{attr: models.NewAttributeWithType("abc", 123.567, xsd.PrefixDouble)},
+			get:     get2.GetAttribute,
 			want:    "123.567",
 		},
 	}
@@ -220,11 +229,9 @@ func TestParameter_ValueString(t *testing.T) {
 }
 
 type fixedGetter struct {
-	attr models.Attribute
+	attr *models.Attribute
 }
 
-func (f *fixedGetter) GetAttribute(_ string) models.Attribute { return f.attr }
+func (f *fixedGetter) GetAttribute(_ string) any { return f.attr.Value() }
 
-type nilGetter struct{}
-
-func (f *nilGetter) GetAttribute(_ string) models.Attribute { return nil }
+func nilGetter(_ string) any { return nil }

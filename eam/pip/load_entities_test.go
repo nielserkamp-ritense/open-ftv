@@ -17,7 +17,7 @@ func TestLoadEntityMap(t *testing.T) {
 	testCases := []struct {
 		name string
 		in   map[string]any
-		want models.EntitySet
+		want *models.EntitySet
 	}{
 		{
 			name: "empty",
@@ -87,21 +87,17 @@ func TestLoadEntityMap(t *testing.T) {
 
 			h.Clear()
 
-			p2, ok := p.(*pip)
-			require.True(t, ok)
-			require.NotNil(t, p2)
-
-			p2.loadEntityMap(tc.in)
+			p.loadEntityMap(tc.in)
 			require.Zero(t, h.Count())
 
-			tc.want.IterateEntities(func(e1 models.Entity) {
+			tc.want.IterateEntities(func(e1 *models.Entity) {
 				e2 := p.GetEntity(e1.UID())
-				assert.EqualValues(t, e1, e2)
+				assert.True(t, e1.Equals(e2))
 			})
 
-			p.IterateEntities(func(e1 models.Entity) {
+			p.IterateEntities(func(e1 *models.Entity) {
 				e2 := tc.want.GetEntity(e1.UID())
-				assert.EqualValues(t, e1, e2)
+				assert.True(t, e1.Equals(e2))
 			})
 		})
 	}
@@ -113,7 +109,7 @@ func TestLoadEntitiesAny(t *testing.T) {
 	testCases := []struct {
 		name string
 		in   any
-		want models.EntitySet
+		want *models.EntitySet
 	}{
 		{
 			name: "nil",
@@ -171,21 +167,17 @@ func TestLoadEntitiesAny(t *testing.T) {
 
 			h.Clear()
 
-			p2, ok := p1.(*pip)
-			require.True(t, ok)
-			require.NotNil(t, p2)
-
-			p2.loadEntitiesAny(tc.in)
+			p1.loadEntitiesAny(tc.in)
 			require.Zero(t, h.Count())
 
-			tc.want.IterateEntities(func(e1 models.Entity) {
+			tc.want.IterateEntities(func(e1 *models.Entity) {
 				e2 := p1.GetEntity(e1.UID())
-				assert.True(t, models.EntityEqual(e1, e2))
+				assert.True(t, e1.Equals(e2))
 			})
 
-			p1.IterateEntities(func(e1 models.Entity) {
+			p1.IterateEntities(func(e1 *models.Entity) {
 				e2 := tc.want.GetEntity(e1.UID())
-				assert.True(t, models.EntityEqual(e1, e2))
+				assert.True(t, e1.Equals(e2))
 			})
 		})
 	}
@@ -198,7 +190,7 @@ func TestLoadEntities(t *testing.T) {
 		name    string
 		path    string
 		wantLog int
-		want    models.EntitySet
+		want    *models.EntitySet
 	}{
 		{
 			name:    "empty",
@@ -294,7 +286,7 @@ func TestLoadEntities(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := New(nil, logger).(*pip)
+			p := New(nil, logger)
 
 			h.Clear()
 
@@ -302,16 +294,16 @@ func TestLoadEntities(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantLog == 0 {
-				tc.want.IterateEntities(func(e1 models.Entity) {
+				tc.want.IterateEntities(func(e1 *models.Entity) {
 					e2 := p.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.EqualValues(t, e1, e2)
+					assert.True(t, e1.Equals(e2))
 				})
 
-				p.IterateEntities(func(e1 models.Entity) {
+				p.IterateEntities(func(e1 *models.Entity) {
 					e2 := tc.want.GetEntity(e1.UID())
 					require.NotNil(t, e2)
-					assert.EqualValues(t, e1, e2)
+					assert.True(t, e1.Equals(e2))
 				})
 			}
 		})

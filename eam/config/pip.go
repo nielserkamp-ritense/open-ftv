@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
@@ -17,7 +16,7 @@ type PIP struct {
 }
 
 // NewPIP instantiates a new PIP using the given configuration.
-func (p *PIP) NewPIP(ctx context.Context, logger *slog.Logger, language models.Language) (pip.PIP, error) {
+func (p *PIP) NewPIP(ctx context.Context, logger *slog.Logger, language models.Language) (*pip.PIP, error) {
 	opts := []pip.Option{pip.WithFileStore(p.Store, p.StoreRecurse)}
 
 	if p.PullConfigs != "" {
@@ -25,7 +24,7 @@ func (p *PIP) NewPIP(ctx context.Context, logger *slog.Logger, language models.L
 	}
 
 	if language == models.CEDAR {
-		opts = append(opts, pip.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		opts = append(opts, pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 	}
 
 	return pip.New(ctx, logger, opts...), nil

@@ -17,11 +17,11 @@ import (
 
 // AttributePersistence represents the interface to manage persistent storage for attributes.
 type AttributePersistence interface {
-	Create(models.Attribute) (models.Attribute, error)
-	Read(string) (models.Attribute, uint64, error)
-	Update(models.Attribute, uint64, models.Attribute) (models.Attribute, error)
-	Delete(models.Attribute, uint64) (models.Attribute, error)
-	List() ([]models.Attribute, error)
+	Create(*models.Attribute) (*models.Attribute, error)
+	Read(string) (*models.Attribute, uint64, error)
+	Update(*models.Attribute, uint64, *models.Attribute) (*models.Attribute, error)
+	Delete(*models.Attribute, uint64) (*models.Attribute, error)
+	List() ([]*models.Attribute, error)
 }
 
 // NewAttributeStore instantiates a new persistent storage handler for attributes.
@@ -41,7 +41,7 @@ func NewAttributeStore(ctx context.Context, client store.Store, basePath string)
 }
 
 // Create implements the AttributePersistence interface.
-func (s *attributeStore) Create(a models.Attribute) (models.Attribute, error) {
+func (s *attributeStore) Create(a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(a.Key())
 
 	s.mutex.Lock()
@@ -54,7 +54,7 @@ func (s *attributeStore) Create(a models.Attribute) (models.Attribute, error) {
 }
 
 // Read implements the AttributePersistence interface.
-func (s *attributeStore) Read(id string) (models.Attribute, uint64, error) {
+func (s *attributeStore) Read(id string) (*models.Attribute, uint64, error) {
 	key := s.bugFix(s.makeKey(id))
 
 	s.mutex.RLock()
@@ -74,7 +74,7 @@ func (s *attributeStore) Read(id string) (models.Attribute, uint64, error) {
 }
 
 // Update implements the AttributePersistence interface.
-func (s *attributeStore) Update(prev models.Attribute, lastIndex uint64, a models.Attribute) (models.Attribute, error) {
+func (s *attributeStore) Update(prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
@@ -88,7 +88,7 @@ func (s *attributeStore) Update(prev models.Attribute, lastIndex uint64, a model
 }
 
 // Delete implements the AttributePersistence interface.
-func (s *attributeStore) Delete(prev models.Attribute, lastIndex uint64) (models.Attribute, error) {
+func (s *attributeStore) Delete(prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
@@ -103,7 +103,7 @@ func (s *attributeStore) Delete(prev models.Attribute, lastIndex uint64) (models
 }
 
 // List implements the AttributePersistence interface.
-func (s *attributeStore) List() ([]models.Attribute, error) {
+func (s *attributeStore) List() ([]*models.Attribute, error) {
 	key := s.bugFix(s.basePath)
 
 	s.mutex.RLock()
@@ -117,7 +117,7 @@ func (s *attributeStore) List() ([]models.Attribute, error) {
 		return nil, fmt.Errorf("failed to read attributes: %w", err)
 	}
 
-	out := make([]models.Attribute, 0, len(list))
+	out := make([]*models.Attribute, 0, len(list))
 	for _, kv := range list {
 		a, err2 := unmarshalAttribute(kv.Value)
 		if err2 != nil {
@@ -129,12 +129,12 @@ func (s *attributeStore) List() ([]models.Attribute, error) {
 	return out, nil
 }
 
-func marshalAttribute(a models.Attribute) []byte {
+func marshalAttribute(a *models.Attribute) []byte {
 	b, _ := json.Marshal(toAttribute(a))
 	return b
 }
 
-func toAttribute(a models.Attribute) *attribute {
+func toAttribute(a *models.Attribute) *attribute {
 	buf := &bytes.Buffer{}
 	enc := gob.NewEncoder(buf)
 
@@ -159,7 +159,7 @@ func toAttribute(a models.Attribute) *attribute {
 	return &attribute{Key: a.Key(), Value: v, Original: o, Type: a.Type()}
 }
 
-func unmarshalAttribute(data []byte) (models.Attribute, error) {
+func unmarshalAttribute(data []byte) (*models.Attribute, error) {
 	a := &attribute{}
 	if err := json.Unmarshal(data, a); err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func unmarshalAttribute(data []byte) (models.Attribute, error) {
 	return fromAttribute(a)
 }
 
-func fromAttribute(a *attribute) (models.Attribute, error) {
+func fromAttribute(a *attribute) (*models.Attribute, error) {
 	buf := &bytes.Buffer{}
 	dec := gob.NewDecoder(buf)
 

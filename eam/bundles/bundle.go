@@ -142,7 +142,7 @@ func (b *Bundle) AddPolicy(p pap.Policy) bool {
 }
 
 // AddAttribute adds the given attribute to the bundle if it contains one of the selection tags.
-func (b *Bundle) AddAttribute(a models.Attribute) bool {
+func (b *Bundle) AddAttribute(a *models.Attribute) bool {
 	if !b.tagMatched(a.HasTag) {
 		return false
 	}
@@ -152,7 +152,7 @@ func (b *Bundle) AddAttribute(a models.Attribute) bool {
 }
 
 // AddEntity adds the given entity to the bundle if it contains one of the selection tags.
-func (b *Bundle) AddEntity(e models.Entity) bool {
+func (b *Bundle) AddEntity(e *models.Entity) bool {
 	if !b.tagMatched(e.HasTag) {
 		return false
 	}
@@ -160,7 +160,7 @@ func (b *Bundle) AddEntity(e models.Entity) bool {
 	e2 := &attributes.Entity{Type: e.Type(), Id: e.ID(), Attributes: make([]attributes.Attribute, 0)}
 
 	if list := e.Attributes(); list != nil {
-		list.IterateAttributes(func(a models.Attribute) {
+		list.IterateAttributes(func(a *models.Attribute) {
 			e2.Attributes = append(e2.Attributes, attributes.Attribute{Key: a.Key(), Type: a.Type(), Value: a.Value()})
 		})
 	}
@@ -170,7 +170,7 @@ func (b *Bundle) AddEntity(e models.Entity) bool {
 }
 
 // AddRelation adds the given relation to the bundle if it contains one of the selection tags.
-func (b *Bundle) AddRelation(r models.Relation) bool {
+func (b *Bundle) AddRelation(r *models.Relation) bool {
 	if !b.tagMatched(r.HasTag) {
 		return false
 	}

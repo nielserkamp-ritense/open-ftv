@@ -27,7 +27,7 @@ type EntitiesHandler interface {
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, pip pip.PIP, authorizer authorization.Authorizer) EntitiesHandler {
+func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) EntitiesHandler {
 	return &entitiesHandler{logger: logger, cache: pip, authorizer: authorizer}
 }
 
@@ -41,7 +41,7 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	}
 
 	resp := make([]*attributes.Entity, 0, 32)
-	h.cache.IterateEntities(func(e models.Entity) {
+	h.cache.IterateEntities(func(e *models.Entity) {
 		resp = append(resp, handlers.EntityToOAS(e))
 	})
 
@@ -209,7 +209,7 @@ func (h *entitiesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 type entitiesHandler struct {
 	logger     *slog.Logger
-	cache      pip.PIP
+	cache      *pip.PIP
 	authorizer authorization.Authorizer
 }
 

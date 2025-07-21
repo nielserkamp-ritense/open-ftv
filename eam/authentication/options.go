@@ -24,9 +24,9 @@ func WithLogger(logger *slog.Logger) Option {
 	}
 }
 
-// WithEntities passes the default set of entities to the authentication handler.
-func WithEntities(entities models.EntitySet) Option {
+// WithEntityGetter passes an entity retrieval function to the authentication handler.
+func WithEntityGetter(getter models.GetEntity) Option {
 	return func(b *base) {
-		b.entities = entities
+		b.getEntity = getter
 	}
 }

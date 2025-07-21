@@ -55,7 +55,7 @@ func TestLoadRDF(t *testing.T) {
 			ap := NewAttributeStore(context.Background(), s, "attribute")
 			ep := NewEntityStore(context.Background(), s, "entity")
 
-			p := &pip{
+			p := &PIP{
 				logger:           slog.New(h),
 				newAttributes:    models.NewAttributeSet,
 				newEntities:      models.NewEntitySet,
@@ -68,7 +68,7 @@ func TestLoadRDF(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			var count int
-			p.IterateAttributes(func(attribute models.Attribute) {
+			p.IterateAttributes(func(attribute *models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.wantAttributes, count)

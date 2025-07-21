@@ -15,7 +15,7 @@ import (
 )
 
 // AttributeFromOAS converts an OAS attribute model to the internal model.
-func AttributeFromOAS(in *attributes.Attribute) models.Attribute {
+func AttributeFromOAS(in *attributes.Attribute) *models.Attribute {
 	value := in.Value
 
 	if in.Type != "" {
@@ -31,7 +31,7 @@ func AttributeFromOAS(in *attributes.Attribute) models.Attribute {
 }
 
 // AttributeToOAS converts an internal attribute model to the OAS model.
-func AttributeToOAS(in models.Attribute) *attributes.Attribute {
+func AttributeToOAS(in *models.Attribute) *attributes.Attribute {
 	a := &attributes.Attribute{Key: in.Key(), Value: in.Original(), Type: in.Type()}
 
 	if a.Value == nil {
@@ -54,7 +54,7 @@ func AttributeToOAS(in models.Attribute) *attributes.Attribute {
 			a.Value, a.Type = t.Format(time.RFC3339Nano), "datetime"
 		case time.Duration:
 			a.Value, a.Type = t.String(), "duration"
-		case models.AttributeSet:
+		case *models.AttributeSet:
 			a.Value = models.MapFromAttributes(t)
 		// next types we leave the value and type as-is.
 		case []any, map[string]any:

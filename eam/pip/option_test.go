@@ -24,12 +24,8 @@ func TestWithPersistence(t *testing.T) {
 
 		p := New(nil, logger, WithPersistence(s, ""))
 		require.NotNil(t, p)
-
-		p2, ok := p.(*pip)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.Equal(t, s, p2.store)
-		assert.NotNil(t, p2.attributePersist)
+		assert.Equal(t, s, p.store)
+		assert.NotNil(t, p.attributePersist)
 	})
 }
 
@@ -48,12 +44,9 @@ func TestWithFileStore(t *testing.T) {
 		path2, err := filepath.Abs(path)
 		require.NoError(t, err)
 
-		p2, ok := p.(*pip)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.Equal(t, path2+"/attributes", p2.attrStore)
-		assert.Equal(t, path2+"/entities", p2.entityStore)
-		assert.True(t, p2.recurse)
+		assert.Equal(t, path2+"/attributes", p.attrStore)
+		assert.Equal(t, path2+"/entities", p.entityStore)
+		assert.True(t, p.recurse)
 	})
 }
 
@@ -67,11 +60,7 @@ func TestWithPullConfigs(t *testing.T) {
 		// empty but good
 		p := New(nil, logger, WithPullConfigs("../../testdata/unittest/pip2/pull/empty.yaml"))
 		require.NotNil(t, p)
-
-		p2, ok := p.(*pip)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.NotNil(t, p2.pullManager)
+		assert.NotNil(t, p.pullManager)
 
 		h.Clear()
 
@@ -79,11 +68,7 @@ func TestWithPullConfigs(t *testing.T) {
 		p3 := New(nil, logger, WithPullConfigs("../../testdata/unittest/pip2/pull/not_a_valid_file.xyz"))
 		require.NotNil(t, p3)
 		assert.GreaterOrEqual(t, h.Count(), 2)
-
-		p4, ok2 := p3.(*pip)
-		require.True(t, ok2)
-		require.NotNil(t, p4)
-		assert.Nil(t, p4.pullManager)
+		assert.Nil(t, p3.pullManager)
 	})
 }
 
@@ -112,10 +97,10 @@ func TestWithFactories(t *testing.T) {
 	})
 }
 
-func dummyAttributes(...any) models.AttributeSet {
+func dummyAttributes(...any) *models.AttributeSet {
 	return nil
 }
 
-func dummyEntities(...any) models.EntitySet {
+func dummyEntities(...any) *models.EntitySet {
 	return nil
 }

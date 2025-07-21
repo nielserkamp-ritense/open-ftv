@@ -13,7 +13,7 @@ func TestDeterminePrincipal(t *testing.T) {
 
 	testCases := []struct {
 		name  string
-		a     models.AttributeSet
+		a     *models.AttributeSet
 		want1 string
 		want2 string
 	}{
@@ -89,8 +89,8 @@ func TestDeterminePrincipal(t *testing.T) {
 			t.Parallel()
 
 			p1, p2 := DeterminePrincipal(tc.a)
-			assert.Equal(t, tc.want1, string(p1))
-			assert.Equal(t, tc.want2, string(p2))
+			assert.Equal(t, tc.want1, p1)
+			assert.Equal(t, tc.want2, p2)
 		})
 	}
 }

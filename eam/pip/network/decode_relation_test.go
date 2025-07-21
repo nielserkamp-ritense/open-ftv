@@ -25,7 +25,7 @@ func TestProcessRelation(t *testing.T) {
 		obj       *RelationMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Relation
+		wantValue *models.Relation
 	}{
 		{name: "no subject type", sID: "alice", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
 		{name: "no subject id", sType: "user", pType: "rel", pID: "knows", oType: "user", oID: "bob", obj: &RelationMapping{Base: "first"}, wantCount: 1},
@@ -61,7 +61,7 @@ func TestProcessRelation(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
 			r.processRelation(tc.sType, tc.sID, tc.pType, tc.pID, tc.oType, tc.oID, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -85,7 +85,7 @@ func TestDecodeRelationMap(t *testing.T) {
 		obj       *RelationMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Relation
+		wantValue *models.Relation
 	}{
 		{
 			name:      "no subject type code, no subject type value",
@@ -195,7 +195,7 @@ func TestDecodeRelationMap(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
 			r.decodeRelationMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -228,13 +228,13 @@ func TestDecodeRelationData(t *testing.T) {
 		data      any
 		obj       *RelationMapping
 		wantCount int
-		want      map[string]models.Relation
+		want      map[string]*models.Relation
 	}{
 		{
 			name: "ID from value",
 			data: "my_key_2",
 			obj:  &RelationMapping{Base: "first", SubjectTypeValue: "t1", SubjectIDValue: "id1", PredicateTypeValue: "t2", PredicateIDValue: "id2", ObjectTypeValue: "t3", ObjectIDValue: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"t1::id1|t2::id2|t3::id3": models.NewRelation(
 					models.NewEntity("t1", "id1", models.NewAttributeSet()),
 					models.NewEntity("t2", "id2", models.NewAttributeSet()),
@@ -246,7 +246,7 @@ func TestDecodeRelationData(t *testing.T) {
 			name: "map (1)",
 			data: m1,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -258,7 +258,7 @@ func TestDecodeRelationData(t *testing.T) {
 			name: "map (2)",
 			data: m2,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::janice|rel::knows|admin::danny": models.NewRelation(
 					models.NewEntity("user", "janice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -270,7 +270,7 @@ func TestDecodeRelationData(t *testing.T) {
 			name: "slice",
 			data: s1,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -300,7 +300,7 @@ func TestDecodeRelationData(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
 			r.decodeRelationData(tc.data, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -340,13 +340,13 @@ func TestDecodeRelation(t *testing.T) {
 		data      any
 		obj       *RelationMapping
 		wantCount int
-		want      map[string]models.Relation
+		want      map[string]*models.Relation
 	}{
 		{
 			name: "not map and not slice",
 			data: map[string]any{"first": 987654321},
 			obj:  &RelationMapping{Base: "first", SubjectTypeValue: "t1", SubjectIDValue: "id1", PredicateTypeValue: "t2", PredicateIDValue: "id2", ObjectTypeValue: "t3", ObjectIDValue: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"t1::id1|t2::id2|t3::id3": models.NewRelation(
 					models.NewEntity("t1", "id1", models.NewAttributeSet()),
 					models.NewEntity("t2", "id2", models.NewAttributeSet()),
@@ -358,7 +358,7 @@ func TestDecodeRelation(t *testing.T) {
 			name: "map (1)",
 			data: mm2,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -370,7 +370,7 @@ func TestDecodeRelation(t *testing.T) {
 			name: "map (2)",
 			data: mm3,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::janice|rel::knows|admin::danny": models.NewRelation(
 					models.NewEntity("user", "janice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -382,7 +382,7 @@ func TestDecodeRelation(t *testing.T) {
 			name: "slice",
 			data: mm4,
 			obj:  &RelationMapping{Base: "first", SubjectTypeField: "t1", SubjectIDField: "id1", PredicateTypeField: "t2", PredicateIDField: "id2", ObjectTypeField: "t3", ObjectIDField: "id3"},
-			want: map[string]models.Relation{
+			want: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -412,7 +412,7 @@ func TestDecodeRelation(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
 			r.decodeRelation(tc.obj)
 
 			if tc.wantCount > 0 {

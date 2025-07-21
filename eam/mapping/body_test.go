@@ -129,10 +129,10 @@ func TestBodyToContext(t *testing.T) {
 			got := BodyToContext(tc.in)
 			require.NotNil(t, got)
 
-			assert.True(t, models.EntityEqual(tc.want.Principal, got.Principal))
-			assert.True(t, models.EntityEqual(tc.want.Action, got.Action))
-			assert.True(t, models.EntityEqual(tc.want.Resource, got.Resource))
-			assert.True(t, models.AttributesEqual(tc.want.Context, got.Context))
+			assert.True(t, tc.want.Principal.Equals(got.Principal))
+			assert.True(t, tc.want.Action.Equals(got.Action))
+			assert.True(t, tc.want.Resource.Equals(got.Resource))
+			assert.True(t, tc.want.Context.Equals(got.Context))
 		})
 	}
 }

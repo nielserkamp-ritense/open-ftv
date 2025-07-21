@@ -21,18 +21,18 @@ func TestPip_PARCFromRequest(t *testing.T) {
 	testCases := []struct {
 		name    string
 		level   slog.Level
-		req     models.Request
+		req     *models.Request
 		wantLog int
-		want    models.AttributeSet
+		want    *models.AttributeSet
 	}{
 		{
 			name: "empty",
-			req:  models.Request{},
+			req:  &models.Request{},
 			want: models.NewAttributeSet(emptyHTTP),
 		},
 		{
 			name: "method",
-			req:  models.Request{Method: "POST"},
+			req:  &models.Request{Method: "POST"},
 			want: models.NewAttributeSet(
 				models.NewAttributeSet(
 					models.NewAttribute("http", map[string]any{"method": "POST"}),
@@ -42,7 +42,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		},
 		{
 			name: "url",
-			req: models.Request{URL: &url.URL{
+			req: &models.Request{URL: &url.URL{
 				Scheme:   "https",
 				Host:     "www.disney.land",
 				Path:     "/donald/duck",
@@ -61,7 +61,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		},
 		{
 			name: "headers",
-			req:  models.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
+			req:  &models.Request{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttributeSet(models.NewAttribute("headers", map[string]string{"hello": "kitties,world"})),
@@ -70,7 +70,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		},
 		{
 			name: "attributes",
-			req:  models.Request{PARC: models.PARC{Context: models.NewAttributeSet(map[string]any{"hello": "world", "int": 4567})}},
+			req:  &models.Request{PARC: models.PARC{Context: models.NewAttributeSet(map[string]any{"hello": "world", "int": 4567})}},
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttributeSet(
@@ -82,7 +82,7 @@ func TestPip_PARCFromRequest(t *testing.T) {
 		{
 			name:  "all with log",
 			level: slog.LevelDebug,
-			req: models.Request{
+			req: &models.Request{
 				Method: "POST",
 				URL: &url.URL{
 					Scheme:   "https",
@@ -120,27 +120,29 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			t.Parallel()
 
 			h := util.NewDummyHandler(tc.level)
-			p := &pep{logger: slog.New(h)}
+			p := &PEP{logger: slog.New(h)}
 
 			e := models.NewEntitySet()
 
 			uid, _ := uuid.NewUUID()
 			tc.req.UID = &uid
 
-			got := p.PARCFromRequest(&tc.req, e)
+			got := p.PARCFromRequest(tc.req, e.GetEntity)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			got.Context.RemoveAttribute("time")
 
-			tc.want.IterateAttributes(func(attr models.Attribute) {
-				v2 := got.Context.GetAttributeValue(attr.Key())
-				assert.EqualValues(t, attr.Value(), v2)
+			tc.want.IterateAttributes(func(a1 *models.Attribute) {
+				a2 := got.Context.GetAttribute(a1.Key())
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 
-			got.Context.IterateAttributes(func(attr models.Attribute) {
-				v2 := tc.want.GetAttributeValue(attr.Key())
-				assert.EqualValues(t, attr.Value(), v2)
+			got.Context.IterateAttributes(func(a1 *models.Attribute) {
+				a2 := tc.want.GetAttribute(a1.Key())
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 		})
 	}
@@ -154,19 +156,19 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 	testCases := []struct {
 		name    string
 		level   slog.Level
-		req     models.HTTPRequest
-		attrs   models.AttributeSet
+		req     *models.HTTPRequest
+		attrs   *models.AttributeSet
 		wantLog int
-		want    models.AttributeSet
+		want    *models.AttributeSet
 	}{
 		{
 			name: "empty",
-			req:  models.HTTPRequest{},
+			req:  &models.HTTPRequest{},
 			want: models.NewAttributeSet(emptyHTTP),
 		},
 		{
 			name: "method",
-			req:  models.HTTPRequest{Method: "POST"},
+			req:  &models.HTTPRequest{Method: "POST"},
 			want: models.NewAttributeSet(
 				models.NewAttribute("http", map[string]any{"method": "POST"}),
 				models.NewAttribute("action", "name::can_update"),
@@ -174,7 +176,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 		},
 		{
 			name: "url",
-			req: models.HTTPRequest{URL: &url.URL{
+			req: &models.HTTPRequest{URL: &url.URL{
 				Scheme:   "https",
 				Host:     "www.disney.land",
 				Path:     "/donald/duck",
@@ -193,7 +195,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 		},
 		{
 			name: "headers",
-			req:  models.HTTPRequest{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
+			req:  &models.HTTPRequest{Headers: map[string][]string{"Content-Type": {"text/json"}, "hello": {"kitties", "world"}}},
 			want: models.NewAttributeSet(
 				emptyHTTP,
 				models.NewAttribute("headers", map[string]string{"hello": "kitties,world"}),
@@ -202,7 +204,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 		},
 		{
 			name:  "attributes",
-			req:   models.HTTPRequest{},
+			req:   &models.HTTPRequest{},
 			attrs: models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 4567)),
 			want: models.NewAttributeSet(
 				emptyHTTP,
@@ -213,7 +215,7 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 		{
 			name:  "all with log",
 			level: slog.LevelDebug,
-			req: models.HTTPRequest{
+			req: &models.HTTPRequest{
 				Method: "POST",
 				URL: &url.URL{
 					Scheme:   "https",
@@ -251,26 +253,28 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			t.Parallel()
 
 			h := util.NewDummyHandler(tc.level)
-			p := &pep{logger: slog.New(h)}
+			p := &PEP{logger: slog.New(h)}
 
 			e := models.NewEntitySet()
 
 			uid, _ := uuid.NewUUID()
 
-			got := p.PARCFromHTTP(uid, &tc.req, tc.attrs, e)
+			got := p.PARCFromHTTP(uid, tc.req, tc.attrs, e.GetEntity)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			got.Context.RemoveAttribute("time")
 
-			tc.want.IterateAttributes(func(attr models.Attribute) {
-				v2 := got.Context.GetAttributeValue(attr.Key())
-				assert.EqualValues(t, attr.Value(), v2)
+			tc.want.IterateAttributes(func(a1 *models.Attribute) {
+				a2 := got.Context.GetAttribute(a1.Key())
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 
-			got.Context.IterateAttributes(func(attr models.Attribute) {
-				v2 := tc.want.GetAttributeValue(attr.Key())
-				assert.EqualValues(t, attr.Value(), v2)
+			got.Context.IterateAttributes(func(a1 *models.Attribute) {
+				a2 := tc.want.GetAttribute(a1.Key())
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 		})
 	}

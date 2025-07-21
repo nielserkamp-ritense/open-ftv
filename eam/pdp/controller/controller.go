@@ -22,9 +22,9 @@ type Controller interface {
 	Version() string
 	Context() context.Context
 	Logger() *slog.Logger
-	PEP() pep.PEP
+	PEP() *pep.PEP
 	PAP() pap.PAP
-	PIP() pip.PIP
+	PIP() *pip.PIP
 	Authorize(uid string, req *models.PARC) (*models.Response, error)
 }
 
@@ -35,9 +35,9 @@ type Base struct {
 	name     string
 	version  string
 	fullName string
-	pep      pep.PEP
+	pep      *pep.PEP
 	pap      pap.PAP
-	pip      pip.PIP
+	pip      *pip.PIP
 	mappers  []mapping.Mapper
 }
 
@@ -83,7 +83,7 @@ func (b *Base) Logger() *slog.Logger {
 }
 
 // PEP returns the PEP used by the controller.
-func (b *Base) PEP() pep.PEP {
+func (b *Base) PEP() *pep.PEP {
 	return b.pep
 }
 
@@ -93,7 +93,7 @@ func (b *Base) PAP() pap.PAP {
 }
 
 // PIP returns the PIP used by the controller.
-func (b *Base) PIP() pip.PIP {
+func (b *Base) PIP() *pip.PIP {
 	return b.pip
 }
 

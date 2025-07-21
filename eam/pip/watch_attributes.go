@@ -8,7 +8,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (p *pip) clearAttributeWatcher() {
+func (p *PIP) clearAttributeWatcher() {
 	if p.attributeWatcher == nil {
 		return
 	}
@@ -19,7 +19,7 @@ func (p *pip) clearAttributeWatcher() {
 	}
 }
 
-func (p *pip) watchAttributeFiles() {
+func (p *PIP) watchAttributeFiles() {
 	p.attributeTimer = time.NewTimer(watchTimerInterval)
 	p.attributeTimer.Stop()
 
@@ -42,7 +42,7 @@ func (p *pip) watchAttributeFiles() {
 	}
 }
 
-func (p *pip) attributesModified(e fsnotify.Event) {
+func (p *PIP) attributesModified(e fsnotify.Event) {
 	if p.attributeTimer != nil {
 		p.attributeTimer.Reset(watchTimerInterval)
 	}
@@ -66,7 +66,7 @@ func (p *pip) attributesModified(e fsnotify.Event) {
 	}
 }
 
-func (p *pip) processAttributeUpdates() {
+func (p *PIP) processAttributeUpdates() {
 	for {
 		var path string
 
@@ -94,7 +94,7 @@ func (p *pip) processAttributeUpdates() {
 	}
 }
 
-func (p *pip) processAttributeDeletes() {
+func (p *PIP) processAttributeDeletes() {
 	for {
 		var path string
 

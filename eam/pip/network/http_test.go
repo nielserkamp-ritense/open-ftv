@@ -390,11 +390,13 @@ entities:
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
+		entities := models.NewEntitySet()
+
 		m := &manager{
 			ctx:           ctx,
 			cancel:        cancel,
 			logger:        logger,
-			entities:      models.NewEntitySet(),
+			addEntity:     entities.AddEntity,
 			newAttributes: models.NewAttributeSet,
 		}
 
@@ -412,7 +414,7 @@ entities:
 		require.NoError(t, execErr)
 
 		var count int
-		m.entities.IterateEntities(func(e models.Entity) {
+		entities.IterateEntities(func(e *models.Entity) {
 			count++
 
 			assert.Equal(t, "fds_member", e.Type())

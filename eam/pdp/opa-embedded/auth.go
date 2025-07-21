@@ -92,7 +92,7 @@ func (c *controller) determinePath(parc *models.PARC) string {
 	}
 }
 
-func identifiersFromPrincipal(principal models.Entity) (string, string, bool) {
+func identifiersFromPrincipal(principal *models.Entity) (string, string, bool) {
 	switch principal.Type() {
 	case pep.PrincipalRVVA:
 		return principal.ID(), "", true
@@ -103,7 +103,7 @@ func identifiersFromPrincipal(principal models.Entity) (string, string, bool) {
 	}
 }
 
-func identifiersFromContext(context models.AttributeSet) (string, string, bool) {
+func identifiersFromContext(context *models.AttributeSet) (string, string, bool) {
 	rvvaID := convert.AnyToString(context.GetAttributeValue(models.AttrRvvaID))
 	doelbinding := convert.AnyToString(context.GetAttributeValue(models.AttrDoelbinding))
 	return rvvaID, doelbinding, rvvaID != "" || doelbinding != ""

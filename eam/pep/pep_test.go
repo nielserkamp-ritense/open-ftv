@@ -20,11 +20,7 @@ func TestNew(t *testing.T) {
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		p2, ok := p.(*pep)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-
-		assert.NotNil(t, p2.ctx)
-		assert.Equal(t, logger, p2.logger)
+		assert.NotNil(t, p.ctx)
+		assert.Equal(t, logger, p.logger)
 	})
 }

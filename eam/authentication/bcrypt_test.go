@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -23,20 +22,18 @@ func TestNewBCrypt(t *testing.T) {
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/pip/users", false))
-	entities := models.NewEntitySet(p)
 
 	testCases := []struct {
-		name         string
-		opts         []Option
-		wantCtx      context.Context
-		wantLog      *slog.Logger
-		wantEntities models.EntitySet
+		name    string
+		opts    []Option
+		wantCtx context.Context
+		wantLog *slog.Logger
 	}{
 		{name: "no options"},
 		{name: "context", opts: []Option{WithContext(ctx)}, wantCtx: ctx},
 		{name: "logger", opts: []Option{WithLogger(log)}, wantLog: log},
-		{name: "entities", opts: []Option{WithEntities(entities)}, wantEntities: entities},
-		{name: "all", opts: []Option{WithLogger(log), WithEntities(entities), WithContext(ctx)}, wantCtx: ctx, wantLog: log, wantEntities: entities},
+		{name: "entities", opts: []Option{WithEntityGetter(p.GetEntity)}},
+		{name: "all", opts: []Option{WithLogger(log), WithEntityGetter(p.GetEntity), WithContext(ctx)}, wantCtx: ctx, wantLog: log},
 	}
 
 	for _, tc := range testCases {
@@ -52,16 +49,13 @@ func TestNewBCrypt(t *testing.T) {
 
 			assert.NotNil(t, got2.ctx)
 			assert.NotNil(t, got2.log)
-			assert.NotNil(t, got2.entities)
+			assert.NotNil(t, got2.getEntity)
 
 			if tc.wantCtx != nil {
 				assert.Equal(t, tc.wantCtx, got2.ctx)
 			}
 			if tc.wantLog != nil {
 				assert.Equal(t, tc.wantLog, got2.log)
-			}
-			if tc.wantEntities != nil {
-				assert.Equal(t, tc.wantEntities, got2.entities)
 			}
 		})
 	}
@@ -77,7 +71,6 @@ func TestBCrypt_AuthenticateUser(t *testing.T) {
 	log := slog.New(h)
 
 	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/unittest/auth", true))
-	entities := models.NewEntitySet(p)
 
 	testCases := []struct {
 		name    string
@@ -97,7 +90,7 @@ func TestBCrypt_AuthenticateUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			b := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntities(entities))
+			b := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntityGetter(p.GetEntity))
 			require.NotNil(t, b)
 
 			err := b.AuthenticateUser(ctx, tc.user, tc.pswd)

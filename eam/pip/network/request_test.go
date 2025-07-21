@@ -66,6 +66,8 @@ func TestRequest_Prepare(t *testing.T) {
 				{Name: "count", In: "query", Value: 25, Type: "xsd:int"},
 				{Name: "format", In: "query", Value: "application/json", Type: "xsd:string"},
 			},
+			wantQuery: "count=25&format=application%2Fjson&key=%24invalid%24",
+			wantURI:   "http://localhost:9900/v1/attribute?count=25&format=application%2Fjson&key=%24invalid%24",
 		},
 		{
 			name:    "single parameter - path",
@@ -120,7 +122,8 @@ func TestRequest_Prepare(t *testing.T) {
 				{Name: "type", In: "body", Value: "service", Type: "xsd:string"},
 				{Name: "id", In: "body", Value: 25, Attribute: "id"},
 			},
-			wantURI: "http://localhost:9900/v1/entity",
+			wantURI:  "http://localhost:9900/v1/entity",
+			wantBody: "id: \"25\"\ntype: service\n",
 		},
 		{
 			name:   "many parameters - body",
@@ -258,12 +261,14 @@ func TestRequest_HTTPRequest(t *testing.T) {
 			method:  "GET",
 			uri:     "http://localhost:9900/v1/attribute",
 			content: "application/json",
-			get:     &getAttributeKey{},
+			get:     getAttributeKey,
 			parameters: []*Parameter{
 				{Name: "key", In: "query", Attribute: "key"},
 				{Name: "count", In: "query", Value: 25, Type: "xsd:int"},
 			},
-			wantURI2: "http://localhost:9900/v1/attribute?count=25&key=25",
+			wantQuery: "count=25&key=%24invalid%24",
+			wantURI:   "http://localhost:9900/v1/attribute?count=25&key=%24invalid%24",
+			wantURI2:  "http://localhost:9900/v1/attribute?count=25&key=%24invalid%24",
 		},
 		{
 			name:    "single parameter - path",
@@ -320,15 +325,15 @@ func TestRequest_HTTPRequest(t *testing.T) {
 			method:  "GET",
 			uri:     "http://localhost:9900/v1/entity",
 			content: "application/yaml",
-			get:     &getAttributeID{},
+			get:     getAttributeID,
 			parameters: []*Parameter{
 				{Name: "type", In: "body", Value: "service", Type: "xsd:string"},
 				{Name: "id", In: "body", Value: 25, Attribute: "id"},
 			},
 			wantURI:      "http://localhost:9900/v1/entity",
+			wantBody:     "id: \"25\"\ntype: service\n",
 			wantURI2:     "http://localhost:9900/v1/entity",
-			wantBody2:    "id: 123\ntype: service\n",
-			wantHeaders2: map[string]string{"Content-Type": "application/yaml", "Content-Length": "22"},
+			wantHeaders2: map[string]string{"Content-Type": "application/yaml", "Content-Length": "23"},
 		},
 		{
 			name:   "many parameters - body",
@@ -423,14 +428,6 @@ func TestRequest_HTTPRequest(t *testing.T) {
 	}
 }
 
-type getAttributeKey struct{}
+func getAttributeKey(_ string) any { return 25 }
 
-func (t *getAttributeKey) GetAttribute(_ string) models.Attribute {
-	return models.NewAttributeWithType("key", 25, "xsd:integer")
-}
-
-type getAttributeID struct{}
-
-func (t *getAttributeID) GetAttribute(_ string) models.Attribute {
-	return models.NewAttributeWithType("id", 123, "xsd:short")
-}
+func getAttributeID(_ string) any { return 123 }

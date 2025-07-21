@@ -13,12 +13,13 @@ type Manager interface{}
 // ManagerParams defines the parameters to instantiate a new external sources manager.
 type ManagerParams struct {
 	Ctx           context.Context          // optional context.
-	Path          string                   // required path to config file.
+	Path          string                   // required path to config-file.
 	Logger        *slog.Logger             // required log sink.
 	NewAttributes models.AttributesBuilder // required for managing entities and/or relations.
-	Attributes    models.AttributeSet      // required for managing attributes.
-	Entities      models.EntitySet         // required for managing entities.
-	Relations     models.RelationSet       // required for managing relations.
+	AddAttribute  models.AddAttribute      // required for adding attributes.
+	GetAttribute  models.GetAttribute      // required for retrieving attribute values.
+	AddEntity     models.AddEntity         // required for adding entities.
+	AddRelation   models.AddRelation       // required for adding relations.
 }
 
 // NewManager instantiates a new external sources manager.
@@ -33,9 +34,10 @@ func NewManager(params ManagerParams) (Manager, error) {
 		cfg:           cfg,
 		logger:        params.Logger,
 		newAttributes: params.NewAttributes,
-		attributes:    params.Attributes,
-		entities:      params.Entities,
-		relations:     params.Relations,
+		addAttribute:  params.AddAttribute,
+		getAttribute:  params.GetAttribute,
+		addEntity:     params.AddEntity,
+		addRelation:   params.AddRelation,
 	}
 
 	ctx := params.Ctx
@@ -55,7 +57,8 @@ type manager struct {
 	logger        *slog.Logger
 	cfg           *Config
 	newAttributes models.AttributesBuilder
-	attributes    models.AttributeSet
-	entities      models.EntitySet
-	relations     models.RelationSet
+	addAttribute  models.AddAttribute
+	getAttribute  models.GetAttribute
+	addEntity     models.AddEntity
+	addRelation   models.AddRelation
 }

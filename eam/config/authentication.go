@@ -17,7 +17,7 @@ func (a *Authentication) NewAuthenticator(controller pdp.Controller) (authentica
 	opts := []authentication2.Option{
 		authentication2.WithContext(controller.Context()),
 		authentication2.WithLogger(controller.Logger()),
-		authentication2.WithEntities(controller.PIP()),
+		authentication2.WithEntityGetter(controller.PIP().GetEntity),
 	}
 
 	// TODO: basic auth & jwt authentication handlers.

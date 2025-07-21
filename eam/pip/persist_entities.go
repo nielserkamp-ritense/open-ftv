@@ -20,11 +20,11 @@ import (
 
 // EntityPersistence represents the interface to manage persistent storage for attributes.
 type EntityPersistence interface {
-	Create(models.Entity) (models.Entity, error)
-	Read(string) (models.Entity, uint64, error)
-	Update(models.Entity, uint64, models.Entity) (models.Entity, error)
-	Delete(models.Entity, uint64) (models.Entity, error)
-	List() ([]models.Entity, error)
+	Create(*models.Entity) (*models.Entity, error)
+	Read(string) (*models.Entity, uint64, error)
+	Update(*models.Entity, uint64, *models.Entity) (*models.Entity, error)
+	Delete(*models.Entity, uint64) (*models.Entity, error)
+	List() ([]*models.Entity, error)
 }
 
 // NewEntityStore instantiates a new persistent storage handler for attributes.
@@ -44,7 +44,7 @@ func NewEntityStore(ctx context.Context, client store.Store, basePath string) En
 }
 
 // Create implements the EntityPersistence interface.
-func (s *entityStore) Create(e models.Entity) (models.Entity, error) {
+func (s *entityStore) Create(e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(e.UID())
 
 	s.mutex.Lock()
@@ -57,7 +57,7 @@ func (s *entityStore) Create(e models.Entity) (models.Entity, error) {
 }
 
 // Read implements the EntityPersistence interface.
-func (s *entityStore) Read(id string) (models.Entity, uint64, error) {
+func (s *entityStore) Read(id string) (*models.Entity, uint64, error) {
 	key := s.bugFix(s.makeKey(id))
 
 	s.mutex.RLock()
@@ -77,7 +77,7 @@ func (s *entityStore) Read(id string) (models.Entity, uint64, error) {
 }
 
 // Update implements the EntityPersistence interface.
-func (s *entityStore) Update(prev models.Entity, lastIndex uint64, e models.Entity) (models.Entity, error) {
+func (s *entityStore) Update(prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
@@ -91,7 +91,7 @@ func (s *entityStore) Update(prev models.Entity, lastIndex uint64, e models.Enti
 }
 
 // Delete implements the EntityPersistence interface.
-func (s *entityStore) Delete(prev models.Entity, lastIndex uint64) (models.Entity, error) {
+func (s *entityStore) Delete(prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
@@ -106,7 +106,7 @@ func (s *entityStore) Delete(prev models.Entity, lastIndex uint64) (models.Entit
 }
 
 // List implements the EntityPersistence interface.
-func (s *entityStore) List() ([]models.Entity, error) {
+func (s *entityStore) List() ([]*models.Entity, error) {
 	key := s.bugFix(s.basePath)
 
 	s.mutex.RLock()
@@ -120,7 +120,7 @@ func (s *entityStore) List() ([]models.Entity, error) {
 		return nil, fmt.Errorf("failed to read entities: %w", err)
 	}
 
-	out := make([]models.Entity, 0, len(list))
+	out := make([]*models.Entity, 0, len(list))
 	for _, kv := range list {
 		e, err2 := unmarshalEntity(kv.Value)
 		if err2 != nil {
@@ -132,7 +132,7 @@ func (s *entityStore) List() ([]models.Entity, error) {
 	return out, nil
 }
 
-func marshalEntity(e models.Entity) []byte {
+func marshalEntity(e *models.Entity) []byte {
 	buf := &bytes.Buffer{}
 	enc := gob.NewEncoder(buf)
 
@@ -140,7 +140,7 @@ func marshalEntity(e models.Entity) []byte {
 
 	if s := e.Attributes(); s != nil {
 		q := make([]*attribute, 0)
-		e.Attributes().IterateAttributes(func(attr models.Attribute) {
+		e.Attributes().IterateAttributes(func(attr *models.Attribute) {
 			q = append(q, toAttribute(attr))
 		})
 
@@ -158,7 +158,7 @@ func marshalEntity(e models.Entity) []byte {
 	return b
 }
 
-func unmarshalEntity(data []byte) (models.Entity, error) {
+func unmarshalEntity(data []byte) (*models.Entity, error) {
 	buf := &bytes.Buffer{}
 	dec := gob.NewDecoder(buf)
 
