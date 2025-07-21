@@ -44,7 +44,7 @@ func WithPEP(p *pep.PEP) Option {
 }
 
 // WithPAP adds a Policy Administration Point to the controller.
-func WithPAP(p pap.PAP) Option {
+func WithPAP(p *pap.PAP) Option {
 	return func(c *Base) {
 		c.pap = p
 	}

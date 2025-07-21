@@ -21,24 +21,19 @@ import (
 // Policy represents a policy and its metadata.
 //
 // A policy is designed to be read-only, so it is safe to use across concurrent go-routines.
-type Policy interface {
-	Key() string
-	Language() string
-	ID() string
-	Description() string
-	AddTags(tags ...string)
-	Tags() []string
-	HasTag(tag string) bool
-	RvvaID() string
-	URI() string
-	Path() string
-	Content() io.Reader
-	MarshalJSON() ([]byte, error)
-	UnmarshalJSON(data []byte) error
+type Policy struct {
+	language    string
+	id          string
+	description string
+	tags        map[string]struct{}
+	rvvaID      string
+	uri         string
+	path        string
+	content     []byte
 }
 
 // NewPolicy instantiates a new policy from the given OAS model.
-func NewPolicy(p *policies.Policy, content io.Reader) (Policy, error) {
+func NewPolicy(p *policies.Policy, content io.Reader) (*Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
@@ -48,13 +43,13 @@ func NewPolicy(p *policies.Policy, content io.Reader) (Policy, error) {
 }
 
 // NewPolicyFromData instantiates a new policy from the given details.
-func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Policy, error) {
+func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (*Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
 	}
 
-	return &policy{
+	return &Policy{
 		id:       id,
 		language: strings.ToLower(language),
 		rvvaID:   rvvaID,
@@ -68,7 +63,7 @@ func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (Pol
 //
 // The function will also attempt to load the policy's corresponding metadata from the same location.
 // This file can be encoded as YAML or as JSON.
-func NewPolicyFromStore(language, path string, content io.Reader) (Policy, error) {
+func NewPolicyFromStore(language, path string, content io.Reader) (*Policy, error) {
 	d, err := testContent(content)
 	if err != nil {
 		return nil, err
@@ -98,13 +93,13 @@ func NewPolicyFromStore(language, path string, content io.Reader) (Policy, error
 	return newPolicy(&p, path, d), nil
 }
 
-func newPolicy(p *policies.Policy, path string, d []byte) Policy {
+func newPolicy(p *policies.Policy, path string, d []byte) *Policy {
 	tags := make(map[string]struct{})
 	for i := range p.AdditionalTags {
 		tags[p.AdditionalTags[i]] = struct{}{}
 	}
 
-	return &policy{
+	return &Policy{
 		id:          p.Id,
 		description: p.Description,
 		tags:        tags,
@@ -126,29 +121,29 @@ func testContent(content io.Reader) ([]byte, error) {
 }
 
 // Key implements the Policy interface.
-func (p *policy) Key() string {
+func (p *Policy) Key() string {
 	return fmt.Sprintf("%s/%s", strings.ToLower(p.language), p.id)
 }
 
 // Language implements the Policy interface.
-func (p *policy) Language() string {
+func (p *Policy) Language() string {
 	return p.language
 }
 
 // Description implements the Policy interface.
-func (p *policy) Description() string {
+func (p *Policy) Description() string {
 	return p.description
 }
 
 // AddTags implements the Policy interface.
-func (p *policy) AddTags(tags ...string) {
+func (p *Policy) AddTags(tags ...string) {
 	for i := range tags {
 		p.tags[tags[i]] = struct{}{}
 	}
 }
 
 // Tags implements the Policy interface.
-func (p *policy) Tags() []string {
+func (p *Policy) Tags() []string {
 	tags := make([]string, 0, len(p.tags))
 	for k := range p.tags {
 		tags = append(tags, k)
@@ -158,38 +153,38 @@ func (p *policy) Tags() []string {
 }
 
 // HasTag implements the Policy interface.
-func (p *policy) HasTag(tag string) bool {
+func (p *Policy) HasTag(tag string) bool {
 	_, ok := p.tags[tag]
 	return ok
 }
 
 // ID implements the Policy interface.
-func (p *policy) ID() string {
+func (p *Policy) ID() string {
 	return p.id
 }
 
 // RvvaID implements the Policy interface.
-func (p *policy) RvvaID() string {
+func (p *Policy) RvvaID() string {
 	return p.rvvaID
 }
 
 // URI implements the Policy interface.
-func (p *policy) URI() string {
+func (p *Policy) URI() string {
 	return p.uri
 }
 
 // Path implements the Policy interface.
-func (p *policy) Path() string {
+func (p *Policy) Path() string {
 	return p.path
 }
 
 // Content implements the Policy interface.
-func (p *policy) Content() io.Reader {
+func (p *Policy) Content() io.Reader {
 	return bytes.NewReader(p.content)
 }
 
 // MarshalJSON implements the json.Marshaler interface.
-func (p *policy) MarshalJSON() ([]byte, error) {
+func (p *Policy) MarshalJSON() ([]byte, error) {
 	tags := make([]string, 0, len(p.tags))
 	for k := range p.tags {
 		tags = append(tags, k)
@@ -208,7 +203,7 @@ func (p *policy) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
-func (p *policy) UnmarshalJSON(data []byte) error {
+func (p *Policy) UnmarshalJSON(data []byte) error {
 	p2 := &policyJSON{}
 	if err := json.Unmarshal(data, p2); err != nil {
 		return err
@@ -242,17 +237,6 @@ func SplitPolicyKey(key string) (string, string) {
 	}
 
 	return "", key
-}
-
-type policy struct {
-	language    string
-	id          string
-	description string
-	tags        map[string]struct{}
-	rvvaID      string
-	uri         string
-	path        string
-	content     []byte
 }
 
 type policyJSON struct {

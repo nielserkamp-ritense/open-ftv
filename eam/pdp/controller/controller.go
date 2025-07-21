@@ -23,7 +23,7 @@ type Controller interface {
 	Context() context.Context
 	Logger() *slog.Logger
 	PEP() *pep.PEP
-	PAP() pap.PAP
+	PAP() *pap.PAP
 	PIP() *pip.PIP
 	Authorize(uid string, req *models.PARC) (*models.Response, error)
 }
@@ -36,7 +36,7 @@ type Base struct {
 	version  string
 	fullName string
 	pep      *pep.PEP
-	pap      pap.PAP
+	pap      *pap.PAP
 	pip      *pip.PIP
 	mappers  []mapping.Mapper
 }
@@ -88,7 +88,7 @@ func (b *Base) PEP() *pep.PEP {
 }
 
 // PAP returns the PAP used by the controller.
-func (b *Base) PAP() pap.PAP {
+func (b *Base) PAP() *pap.PAP {
 	return b.pap
 }
 

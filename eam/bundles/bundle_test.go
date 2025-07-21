@@ -28,7 +28,7 @@ func addPolicies(b *Bundle) {
 	p6.AddTags("a", "b", "x")
 	p7.AddTags("a", "c", "z")
 
-	policies := []pap.Policy{p1, p2, p3, p4, p5, p6, p7}
+	policies := []*pap.Policy{p1, p2, p3, p4, p5, p6, p7}
 
 	for i := range policies {
 		b.AddPolicy(policies[i])

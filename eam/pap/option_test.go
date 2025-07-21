@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -22,10 +23,9 @@ func TestWithLanguage(t *testing.T) {
 		p := New(nil, logger, WithLanguage("Cedar"))
 		require.NotNil(t, p)
 
-		p2, ok := p.(*pap)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.Equal(t, "Cedar", p2.language)
+		assert.Equal(t, "Cedar", p.language)
+		assert.Equal(t, models.CEDAR, p.languageType)
+		assert.Equal(t, "Cedar", p.Language().String())
 	})
 }
 
@@ -41,11 +41,8 @@ func TestWithPersistence(t *testing.T) {
 		p := New(nil, logger, WithPersistence(s, ""))
 		require.NotNil(t, p)
 
-		p2, ok := p.(*pap)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.Equal(t, s, p2.store)
-		assert.NotNil(t, p2.persist)
+		assert.Equal(t, s, p.store)
+		assert.NotNil(t, p.persist)
 	})
 }
 
@@ -64,10 +61,7 @@ func TestWithFileStore(t *testing.T) {
 		path2, err := filepath.Abs(path)
 		require.NoError(t, err)
 
-		p2, ok := p.(*pap)
-		require.True(t, ok)
-		require.NotNil(t, p2)
-		assert.Equal(t, path2, p2.policyStore)
-		assert.True(t, p2.recurse)
+		assert.Equal(t, path2, p.policyStore)
+		assert.True(t, p.recurse)
 	})
 }

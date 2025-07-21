@@ -85,7 +85,7 @@ func TestLoadFiles_ForceBadPath(t *testing.T) {
 
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 
-		p := &pap{policyStore: "/this/is/not/a/directory/at/all/!", logger: slog.New(h)}
+		p := &PAP{policyStore: "/this/is/not/a/directory/at/all/!", logger: slog.New(h)}
 		p.LoadFiles()
 		assert.GreaterOrEqual(t, h.Count(), 1)
 	})

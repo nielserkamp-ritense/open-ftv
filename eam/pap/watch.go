@@ -7,7 +7,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (p *pap) clearWatcher() {
+func (p *PAP) clearWatcher() {
 	if p.watcher == nil {
 		return
 	}
@@ -18,7 +18,7 @@ func (p *pap) clearWatcher() {
 	}
 }
 
-func (p *pap) watchFiles() {
+func (p *PAP) watchFiles() {
 	p.wTimer = time.NewTimer(watchTimerInterval)
 	p.wTimer.Stop()
 
@@ -41,7 +41,7 @@ func (p *pap) watchFiles() {
 	}
 }
 
-func (p *pap) policyModified(e fsnotify.Event) {
+func (p *PAP) policyModified(e fsnotify.Event) {
 	if p.wTimer != nil {
 		p.wTimer.Reset(watchTimerInterval)
 	}
@@ -59,7 +59,7 @@ func (p *pap) policyModified(e fsnotify.Event) {
 	}
 }
 
-func (p *pap) processUpdates() {
+func (p *PAP) processUpdates() {
 	for {
 		var path string
 
@@ -82,7 +82,7 @@ func (p *pap) processUpdates() {
 	}
 }
 
-func (p *pap) processUpdate(path string) {
+func (p *PAP) processUpdate(path string) {
 	f, err := os.Open(path)
 	if err != nil {
 		return
@@ -101,7 +101,7 @@ func (p *pap) processUpdate(path string) {
 	}
 }
 
-func (p *pap) processDeletes() {
+func (p *PAP) processDeletes() {
 	for {
 		var path string
 

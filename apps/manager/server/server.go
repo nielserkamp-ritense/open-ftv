@@ -44,6 +44,6 @@ type service struct {
 	auth   AuthHandler
 	l      models.Language
 	store  store.Store
-	pap    pap.PAP
+	pap    *pap.PAP
 	pip    *pip.PIP
 }

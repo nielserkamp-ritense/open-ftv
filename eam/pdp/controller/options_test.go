@@ -42,7 +42,7 @@ func TestOptions(t *testing.T) {
 		wantCtx     context.Context
 		wantLogger  *slog.Logger
 		wantPEP     *pep.PEP
-		wantPAP     pap.PAP
+		wantPAP     *pap.PAP
 		wantPIP     *pip.PIP
 		wantMapping []mapping.Mapper
 	}{

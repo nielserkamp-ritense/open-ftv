@@ -15,16 +15,21 @@ import (
 )
 
 // PAP represents the interface for caching and retrieving policies.
-type PAP interface {
-	Language() models.Language                                       // default language for the PAP.
-	Create(in Policy) (Policy, error)                                // create a new policy.
-	Read(language, id string) (Policy, uint64, error)                // retrieve a policy.
-	Update(prev Policy, lastIndex uint64, in Policy) (Policy, error) // replace an existing policy.
-	Delete(prev Policy, lastIndex uint64) (Policy, error)            // remove an existing policy.
-	List(language string) ([]Policy, error)                          // list all policies.
-	AddEventSink(events models.EventSink)                            // add a closure to receive change events.
-	LoadFiles()                                                      // load policies from the configured path.
-	LoadString(language, policy string) error                        // load a policy from the given string.
+type PAP struct {
+	languageType models.Language
+	recurse      bool
+	policyStore  string
+	language     string
+	ctx          context.Context
+	logger       *slog.Logger
+	watcher      *fsnotify.Watcher
+	wTimer       *time.Timer
+	updates      map[string]struct{}
+	deletes      map[string]struct{}
+	eventSinks   []models.EventSink
+	store        store.Store
+	persist      Persistence
+	mutex        sync.RWMutex
 }
 
 // New instantiates a new policy cache.
@@ -33,7 +38,7 @@ type PAP interface {
 //
 // By default, a PAP uses an in-memory key-value cache.
 // Use the WithPersistence() option to connect a PAP to persistent storage.
-func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
+func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -46,7 +51,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 	s := memory.New()
 	pp := NewStore(ctx, s, "")
 
-	p := &pap{
+	p := &PAP{
 		ctx:        ctx,
 		logger:     logger,
 		watcher:    w,
@@ -81,14 +86,14 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 }
 
 // Language returns the default policy language for the PAP.
-func (p *pap) Language() models.Language {
+func (p *PAP) Language() models.Language {
 	return p.languageType
 }
 
 // Create adds a policy to cache/storage.
 //
 // An error is returned if the policy-id already exists.
-func (p *pap) Create(in Policy) (out Policy, err error) {
+func (p *PAP) Create(in *Policy) (out *Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Create(in)
 	p.mutex.Unlock()
@@ -102,7 +107,7 @@ func (p *pap) Create(in Policy) (out Policy, err error) {
 // Read retrieves a policy from cache/storage.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *pap) Read(language, id string) (Policy, uint64, error) {
+func (p *PAP) Read(language, id string) (*Policy, uint64, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.Read(language, id)
@@ -111,7 +116,7 @@ func (p *pap) Read(language, id string) (Policy, uint64, error) {
 // Update modifies a policy in cache/storage with a newer version.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *pap) Update(prev Policy, lastIndex uint64, in Policy) (out Policy, err error) {
+func (p *PAP) Update(prev *Policy, lastIndex uint64, in *Policy) (out *Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Update(prev, lastIndex, in)
 	p.mutex.Unlock()
@@ -126,7 +131,7 @@ func (p *pap) Update(prev Policy, lastIndex uint64, in Policy) (out Policy, err 
 // Delete removes a policy from cache/storage.
 //
 // An error is returned if the policy key doesn't exist.
-func (p *pap) Delete(prev Policy, lastIndex uint64) (out Policy, err error) {
+func (p *PAP) Delete(prev *Policy, lastIndex uint64) (out *Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Delete(prev, lastIndex)
 	p.mutex.Unlock()
@@ -143,39 +148,22 @@ func (p *pap) Delete(prev Policy, lastIndex uint64) (out Policy, err error) {
 // If the optional language parameter is supplied,
 // the function lists all policies with that language.
 // Otherwise, all policies, regardless of language, will be listed.
-func (p *pap) List(language string) ([]Policy, error) {
+func (p *PAP) List(language string) ([]*Policy, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.List(language)
 }
 
-func (p *pap) AddEventSink(events models.EventSink) {
+func (p *PAP) AddEventSink(events models.EventSink) {
 	p.mutex.Lock()
 	p.eventSinks = append(p.eventSinks, events)
 	p.mutex.Unlock()
 }
 
-func (p *pap) sendEvent(eventType models.EventType, key string) {
+func (p *PAP) sendEvent(eventType models.EventType, key string) {
 	p.mutex.RLock()
 	for i := range p.eventSinks {
 		p.eventSinks[i].Handle(eventType, key)
 	}
 	p.mutex.RUnlock()
-}
-
-type pap struct {
-	languageType models.Language
-	recurse      bool
-	policyStore  string
-	language     string
-	ctx          context.Context
-	logger       *slog.Logger
-	watcher      *fsnotify.Watcher
-	wTimer       *time.Timer
-	updates      map[string]struct{}
-	deletes      map[string]struct{}
-	eventSinks   []models.EventSink
-	store        store.Store
-	persist      Persistence
-	mutex        sync.RWMutex
 }
