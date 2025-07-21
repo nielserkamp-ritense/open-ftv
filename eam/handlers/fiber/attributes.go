@@ -27,7 +27,7 @@ type AttributesHandler interface {
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, pip pip.PIP, authorizer authorization.Authorizer) AttributesHandler {
+func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) AttributesHandler {
 	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer}
 }
 
@@ -41,7 +41,7 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	}
 
 	resp := make([]*attributes.Attribute, 0, 32)
-	h.cache.IterateAttributes(func(attr models.Attribute) {
+	h.cache.IterateAttributes(func(attr *models.Attribute) {
 		resp = append(resp, handlers.AttributeToOAS(attr))
 	})
 
@@ -188,7 +188,7 @@ func (h *attributesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 type attributesHandler struct {
 	logger     *slog.Logger
-	cache      pip.PIP
+	cache      *pip.PIP
 	authorizer authorization.Authorizer
 }
 

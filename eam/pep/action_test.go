@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
@@ -13,9 +14,9 @@ func TestDetermineAction(t *testing.T) {
 
 	testCases := []struct {
 		name   string
-		action models.Entity
+		action *models.Entity
 		req    *models.HTTPRequest
-		want   models.Entity
+		want   *models.Entity
 	}{
 		{
 			name:   "empty, no method",
@@ -81,14 +82,16 @@ func TestDetermineAction(t *testing.T) {
 			assert.Equal(t, tc.want.Type(), c.parc.Action.Type())
 			assert.Equal(t, tc.want.ID(), c.parc.Action.ID())
 
-			tc.want.Attributes().IterateAttributes(func(a1 models.Attribute) {
+			tc.want.Attributes().IterateAttributes(func(a1 *models.Attribute) {
 				a2 := c.parc.Action.Attributes().GetAttribute(a1.Key())
-				assert.EqualValues(t, a1, a2)
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 
-			c.parc.Action.Attributes().IterateAttributes(func(a1 models.Attribute) {
+			c.parc.Action.Attributes().IterateAttributes(func(a1 *models.Attribute) {
 				a2 := tc.want.Attributes().GetAttribute(a1.Key())
-				assert.EqualValues(t, a1, a2)
+				require.NotNil(t, a2)
+				assert.True(t, a1.Equals(a2))
 			})
 		})
 	}

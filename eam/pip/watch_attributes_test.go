@@ -42,7 +42,7 @@ func TestClearAttributeWatcher(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{}
+			p := &PIP{}
 
 			if len(tc.paths) > 0 {
 				p.attributeWatcher, _ = fsnotify.NewWatcher()
@@ -87,7 +87,7 @@ func TestAttributeDeletes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{attributeDeletes: tc.files}
+			p := &PIP{attributeDeletes: tc.files}
 			p.processAttributeDeletes()
 			assert.Empty(t, p.attributeDeletes)
 		})
@@ -119,7 +119,7 @@ func TestAttributeUpdates(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{attributeUpdates: tc.files}
+			p := &PIP{attributeUpdates: tc.files}
 			p.processAttributeUpdates()
 			assert.Empty(t, p.attributeUpdates)
 		})
@@ -172,7 +172,7 @@ func TestAttributesModified(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			p := &pip{}
+			p := &PIP{}
 
 			for i := range tc.create {
 				p.attributesModified(fsnotify.Event{Name: tc.create[i], Op: fsnotify.Create})
@@ -252,7 +252,7 @@ func TestWatchAttributeFiles(t *testing.T) {
 			s := memory.New()
 			ap := NewAttributeStore(ctx, s, "attribute")
 
-			p := &pip{ctx: ctx, attributeWatcher: w, store: s, attributePersist: ap}
+			p := &PIP{ctx: ctx, attributeWatcher: w, store: s, attributePersist: ap}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
@@ -299,7 +299,7 @@ func TestWatchAttributeFiles(t *testing.T) {
 			p.mutex.RUnlock()
 
 			var count int
-			p.IterateAttributes(func(attribute models.Attribute) {
+			p.IterateAttributes(func(attribute *models.Attribute) {
 				count++
 			})
 			assert.Equal(t, tc.want, count)

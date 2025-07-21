@@ -8,7 +8,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (p *pip) clearEntityWatcher() {
+func (p *PIP) clearEntityWatcher() {
 	if p.entityWatcher == nil {
 		return
 	}
@@ -19,7 +19,7 @@ func (p *pip) clearEntityWatcher() {
 	}
 }
 
-func (p *pip) watchEntityFiles() {
+func (p *PIP) watchEntityFiles() {
 	p.entityTimer = time.NewTimer(watchTimerInterval)
 	p.entityTimer.Stop()
 
@@ -42,7 +42,7 @@ func (p *pip) watchEntityFiles() {
 	}
 }
 
-func (p *pip) entitiesModified(e fsnotify.Event) {
+func (p *PIP) entitiesModified(e fsnotify.Event) {
 	if p.entityTimer != nil {
 		p.entityTimer.Reset(watchTimerInterval)
 	}
@@ -66,7 +66,7 @@ func (p *pip) entitiesModified(e fsnotify.Event) {
 	}
 }
 
-func (p *pip) processEntityUpdates() {
+func (p *PIP) processEntityUpdates() {
 	for {
 		var path string
 
@@ -94,7 +94,7 @@ func (p *pip) processEntityUpdates() {
 	}
 }
 
-func (p *pip) processEntityDeletes() {
+func (p *PIP) processEntityDeletes() {
 	for {
 		var path string
 

@@ -6,7 +6,7 @@ import (
 )
 
 // EntityFromOAS converts an OAS entity model to an internal model.
-func EntityFromOAS(in *attributes.Entity, attrs models.AttributeSet) models.Entity {
+func EntityFromOAS(in *attributes.Entity, attrs *models.AttributeSet) *models.Entity {
 	for i := range in.Attributes {
 		a := AttributeFromOAS(&in.Attributes[i])
 		attrs.AddOriginalAttribute(a.Key(), a.Value(), a.Original(), a.Type())
@@ -15,14 +15,14 @@ func EntityFromOAS(in *attributes.Entity, attrs models.AttributeSet) models.Enti
 }
 
 // EntityToOAS converts an internal entity model to an OAS model.
-func EntityToOAS(in models.Entity) *attributes.Entity {
+func EntityToOAS(in *models.Entity) *attributes.Entity {
 	out := &attributes.Entity{
 		Type:       in.Type(),
 		Id:         in.ID(),
 		Attributes: make([]attributes.Attribute, 0),
 	}
 
-	in.Attributes().IterateAttributes(func(attr models.Attribute) {
+	in.Attributes().IterateAttributes(func(attr *models.Attribute) {
 		a := AttributeToOAS(attr)
 		out.Attributes = append(out.Attributes, *a)
 	})

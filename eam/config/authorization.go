@@ -20,7 +20,7 @@ func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator a
 		authorization2.WithLogger(controller.Logger()),
 		authorization2.WithPEP(controller.PEP()),
 		authorization2.WithPDP(controller),
-		authorization2.WithEntities(controller.PIP()),
+		authorization2.WithEntityGetter(controller.PIP().GetEntity),
 	}
 
 	lang := controller.PAP().Language()

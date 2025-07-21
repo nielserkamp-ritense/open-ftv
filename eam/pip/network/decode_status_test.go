@@ -36,9 +36,9 @@ func TestDecodeStatus(t *testing.T) {
 		data     any
 		dec      *ResponseMapping
 		status   int
-		wantAttr map[string]models.Attribute
-		wantEnt  map[string]models.Entity
-		wantRel  map[string]models.Relation
+		wantAttr map[string]*models.Attribute
+		wantEnt  map[string]*models.Entity
+		wantRel  map[string]*models.Relation
 	}{
 		{
 			name: "200 match - no data",
@@ -66,7 +66,7 @@ func TestDecodeStatus(t *testing.T) {
 				},
 			},
 			status: 200,
-			wantAttr: map[string]models.Attribute{
+			wantAttr: map[string]*models.Attribute{
 				"world":   models.NewOriginalAttribute("world", int64(123), 123, "xsd:short"),
 				"mars":    models.NewOriginalAttribute("mars", "321", 321, "xsd:string"),
 				"jupiter": models.NewOriginalAttribute("jupiter", true, true, ""),
@@ -99,7 +99,7 @@ func TestDecodeStatus(t *testing.T) {
 				},
 			},
 			status: 200,
-			wantEnt: map[string]models.Entity{
+			wantEnt: map[string]*models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"jupiter::true": models.NewEntity("jupiter", "true", models.NewAttributeSet()),
 			},
@@ -117,7 +117,7 @@ func TestDecodeStatus(t *testing.T) {
 				},
 			},
 			status: 200,
-			wantRel: map[string]models.Relation{
+			wantRel: map[string]*models.Relation{
 				"user::alice|rel::knows|user::bob": models.NewRelation(
 					models.NewEntity("user", "alice", models.NewAttributeSet()),
 					models.NewEntity("rel", "knows", models.NewAttributeSet()),
@@ -146,7 +146,7 @@ func TestDecodeStatus(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			m := &manager{logger: logger, attributes: attr, entities: ent, relations: rel, newAttributes: models.NewAttributeSet}
+			m := &manager{logger: logger, addAttribute: attr.AddOriginalAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}
 
 			r := &runner{logger: logger, data: tc.data, manager: m}
 			r.decodeData(tc.dec, tc.status)
@@ -166,12 +166,12 @@ func TestDecodeStatus(t *testing.T) {
 				assert.Equalf(t, want.ID(), got.ID(), k)
 				assert.EqualValuesf(t, want.Parents(), got.Parents(), k)
 
-				want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				want.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := got.Attributes().GetAttribute(attr1.Key())
 					assert.EqualValuesf(t, attr1, attr2, k)
 				})
 
-				got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				got.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := want.Attributes().GetAttribute(attr1.Key())
 					assert.EqualValuesf(t, attr1, attr2, k)
 				})

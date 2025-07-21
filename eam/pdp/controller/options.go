@@ -37,7 +37,7 @@ func WithLogger(logger *slog.Logger) Option {
 }
 
 // WithPEP adds a Policy Enforcement Point to the controller.
-func WithPEP(p pep.PEP) Option {
+func WithPEP(p *pep.PEP) Option {
 	return func(c *Base) {
 		c.pep = p
 	}
@@ -51,7 +51,7 @@ func WithPAP(p pap.PAP) Option {
 }
 
 // WithPIP adds a Policy Information Point to the controller.
-func WithPIP(p pip.PIP) Option {
+func WithPIP(p *pip.PIP) Option {
 	return func(c *Base) {
 		c.pip = p
 	}

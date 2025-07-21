@@ -15,7 +15,7 @@ func TestNewEntity(t *testing.T) {
 		name     string
 		ns       string
 		id       string
-		attr     AttributeSet
+		attr     *AttributeSet
 		parents  []string
 		wantUID  string
 		wantJSON string
@@ -66,10 +66,6 @@ func TestNewEntity(t *testing.T) {
 			got := NewEntity(tc.ns, tc.id, tc.attr, tc.parents...)
 			require.NotNil(t, got)
 
-			got2, ok := got.(*entity)
-			require.True(t, ok)
-			require.NotNil(t, got2)
-
 			assert.Equal(t, tc.wantUID, got.UID())
 			assert.Equal(t, tc.ns, got.Type())
 			assert.Equal(t, tc.id, got.ID())
@@ -89,7 +85,7 @@ func TestEntityToAttribute(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		e         Entity
+		e         *Entity
 		tags      []string
 		wantKey   string
 		wantValue map[string]any

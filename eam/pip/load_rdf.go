@@ -14,7 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
-func (p *pip) loadRDF(f io.Reader, path, mt string) {
+func (p *PIP) loadRDF(f io.Reader, path, mt string) {
 	if f == nil {
 		p.logger.Error("pip: nil input", "path", path, "mimetype", mt)
 		return
@@ -228,5 +228,5 @@ type loader struct {
 	mt     string
 	logger *slog.Logger
 	graph  *rdf2go.Graph
-	p      *pip
+	p      *PIP
 }

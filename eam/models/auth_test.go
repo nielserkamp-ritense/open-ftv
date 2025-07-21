@@ -22,27 +22,27 @@ func TestRequest(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   Request
+		in   *Request
 		want string
 	}{
 		{
 			name: "empty",
-			in:   Request{},
+			in:   &Request{},
 			want: `{}`,
 		},
 		{
 			name: "UID",
-			in:   Request{UID: &uid},
+			in:   &Request{UID: &uid},
 			want: fmt.Sprintf(`{"uid":"%s"}`, uid.String()),
 		},
 		{
 			name: "URL",
-			in:   Request{URL: u},
+			in:   &Request{URL: u},
 			want: fmt.Sprintf(`{"url":%s}`, string(j)),
 		},
 		{
 			name: "RequestTime",
-			in:   Request{RequestTime: &rt},
+			in:   &Request{RequestTime: &rt},
 			want: `{"requestTime":"2024-10-29T12:13:14.999Z"}`,
 		},
 	}

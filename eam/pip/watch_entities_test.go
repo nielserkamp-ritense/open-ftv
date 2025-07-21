@@ -43,7 +43,7 @@ func TestClearEntityWatcher(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{}
+			p := &PIP{}
 
 			if len(tc.paths) > 0 {
 				p.entityWatcher, _ = fsnotify.NewWatcher()
@@ -88,7 +88,7 @@ func TestEntityDeletes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{entityDeletes: tc.files}
+			p := &PIP{entityDeletes: tc.files}
 			p.processEntityDeletes()
 			assert.Empty(t, p.entityDeletes)
 		})
@@ -120,7 +120,7 @@ func TestEntityUpdates(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{entityUpdates: tc.files}
+			p := &PIP{entityUpdates: tc.files}
 			p.processEntityUpdates()
 			assert.Empty(t, p.entityUpdates)
 		})
@@ -177,7 +177,7 @@ func TestEntitiesModified(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pip{}
+			p := &PIP{}
 
 			for i := range tc.create {
 				p.entitiesModified(fsnotify.Event{Name: tc.create[i], Op: fsnotify.Create})
@@ -261,7 +261,7 @@ func TestWatchEntityFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := New(ctx, logger).(*pip)
+			p := New(ctx, logger)
 			require.NotNil(t, p)
 
 			p.entityWatcher = w
@@ -311,7 +311,7 @@ func TestWatchEntityFiles(t *testing.T) {
 			p.mutex.RUnlock()
 
 			var count int
-			p.IterateEntities(func(models.Entity) {
+			p.IterateEntities(func(*models.Entity) {
 				count++
 			})
 			assert.Equal(t, tc.want, count)

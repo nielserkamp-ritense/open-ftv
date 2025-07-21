@@ -17,7 +17,7 @@ func TestEntityFromOAS(t *testing.T) {
 	testCases := []struct {
 		name string
 		in   *attributes.Entity
-		want models.Entity
+		want *models.Entity
 	}{
 		{
 			name: "no attributes",
@@ -71,7 +71,7 @@ func TestEntityFromOAS(t *testing.T) {
 			got := EntityFromOAS(tc.in, models.NewAttributeSet())
 			assert.Equal(t, tc.want.Type(), got.Type())
 			assert.Equal(t, tc.want.ID(), got.ID())
-			assert.True(t, models.AttributesEqual(tc.want.Attributes(), got.Attributes()))
+			assert.True(t, tc.want.Attributes().Equals(got.Attributes()))
 			assert.EqualValues(t, tc.want.Parents(), got.Parents())
 		})
 	}
@@ -82,7 +82,7 @@ func TestEntityToOAS(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   models.Entity
+		in   *models.Entity
 		want *attributes.Entity
 	}{
 		{

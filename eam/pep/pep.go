@@ -4,27 +4,18 @@ package pep
 import (
 	"context"
 	"log/slog"
-
-	"github.com/google/uuid"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// PEP represents the interface for a Policy Enforcement Point.
-type PEP interface {
-	PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs models.AttributeSet, e models.EntitySet) *models.PARC
-	PARCFromRequest(req *models.Request, e models.EntitySet) *models.PARC
+// PEP contains the interface for a Policy Enforcement Point.
+type PEP struct {
+	ctx    context.Context
+	logger *slog.Logger
 }
 
 // New instantiates a new Policy Enforcement Point.
-func New(ctx context.Context, logger *slog.Logger) PEP {
+func New(ctx context.Context, logger *slog.Logger) *PEP {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	return &pep{ctx: ctx, logger: logger}
-}
-
-type pep struct {
-	ctx    context.Context
-	logger *slog.Logger
+	return &PEP{ctx: ctx, logger: logger}
 }

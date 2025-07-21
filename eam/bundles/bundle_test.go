@@ -54,7 +54,7 @@ func addAttributes(b *Bundle) {
 	a7.AddTags("b", "c")
 	a8.AddTags("a", "c")
 
-	attributes := []models.Attribute{a1, a2, a3, a4, a5, a6, a7, a8}
+	attributes := []*models.Attribute{a1, a2, a3, a4, a5, a6, a7, a8}
 
 	for i := range attributes {
 		b.AddAttribute(attributes[i])
@@ -80,7 +80,7 @@ func addEntities(b *Bundle) {
 	e7.AddTags("b", "c")
 	e8.AddTags("a", "c")
 
-	entities := []models.Entity{e1, e2, e3, e4, e5, e6, e7, e8}
+	entities := []*models.Entity{e1, e2, e3, e4, e5, e6, e7, e8}
 
 	for i := range entities {
 		b.AddEntity(entities[i])
@@ -113,7 +113,7 @@ func addRelations(b *Bundle) {
 	r7.AddTags("b", "c")
 	r8.AddTags("a", "c")
 
-	relations := []models.Relation{r1, r2, r3, r4, r5, r6, r7, r8}
+	relations := []*models.Relation{r1, r2, r3, r4, r5, r6, r7, r8}
 
 	for i := range relations {
 		b.AddRelation(relations[i])

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	authentication2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
@@ -28,9 +28,9 @@ type Authorizer interface {
 func New(opts ...Option) Authorizer {
 	// initialize with default context, logger and empty entity set.
 	a := &auth{
-		ctx:      context.Background(),
-		log:      slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-		entities: models.NewEntitySet(),
+		ctx:    context.Background(),
+		log:    slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		getter: dummyGetter,
 	}
 
 	for i := range opts {
@@ -65,7 +65,7 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 		Body:    req.Body,
 	}
 
-	parc := a.pep.PARCFromRequest(r, a.entities)
+	parc := a.pep.PARCFromRequest(r, a.getter)
 
 	if a.authenticator != nil {
 		user := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
@@ -95,10 +95,12 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 type auth struct {
 	ctx           context.Context
 	log           *slog.Logger
-	pep           pep.PEP
+	pep           *pep.PEP
 	pdp           pdp.Controller
-	entities      models.EntitySet
-	authenticator authentication2.Authenticator
+	getter        models.GetEntity
+	authenticator authentication.Authenticator
 	noAuth        bool
 	debug         bool
 }
+
+func dummyGetter(string) *models.Entity { return nil }

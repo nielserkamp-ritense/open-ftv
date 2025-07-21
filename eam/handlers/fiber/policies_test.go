@@ -16,10 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -34,10 +35,10 @@ func TestNewPoliciesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -58,10 +59,10 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -104,10 +105,10 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/non_existing_folder", true))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/non_existing_folder", true))
 		require.NotNil(t, p1)
 
-		p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/non_existing_folder", true))
+		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/non_existing_folder", true))
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -158,10 +159,10 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 			require.NotNil(t, p1)
 
-			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -243,10 +244,10 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 			require.NotNil(t, p1)
 
-			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -330,10 +331,10 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 			require.NotNil(t, p1)
 
-			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -398,10 +399,10 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true), pip2.WithFactories(cedar_embedded.NewAttributeBuilder(logger), cedar_embedded.NewEntityBuilder(logger)))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
 			require.NotNil(t, p1)
 
-			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
+			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))

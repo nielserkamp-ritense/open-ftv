@@ -18,12 +18,12 @@ func TestProcessEntity(t *testing.T) {
 		name      string
 		tp        string
 		id        string
-		attrs     models.AttributeSet
+		attrs     *models.AttributeSet
 		parents   []string
 		obj       *EntityMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Entity
+		wantValue *models.Entity
 	}{
 		{
 			name:      "no type",
@@ -56,7 +56,7 @@ func TestProcessEntity(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
 			r.processEntity(tc.tp, tc.id, tc.attrs, tc.parents, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -99,7 +99,7 @@ func TestDecodeEntityMap(t *testing.T) {
 		obj       *EntityMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Entity
+		wantValue *models.Entity
 	}{
 		{
 			name:      "no type code, no type value",
@@ -239,7 +239,7 @@ func TestDecodeEntityMap(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
 			r.decodeEntityMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -255,14 +255,14 @@ func TestDecodeEntityMap(t *testing.T) {
 				assert.Equal(t, tc.wantValue.ID(), got.ID())
 				assert.EqualValues(t, tc.wantValue.Parents(), got.Parents())
 
-				tc.wantValue.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				tc.wantValue.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := got.Attributes().GetAttribute(attr1.Key())
-					assert.EqualValues(t, attr1, attr2)
+					assert.True(t, attr1.Equals(attr2))
 				})
 
-				got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+				got.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 					attr2 := tc.wantValue.Attributes().GetAttribute(attr1.Key())
-					assert.EqualValues(t, attr1, attr2)
+					assert.True(t, attr1.Equals(attr2))
 				})
 			}
 		})
@@ -283,31 +283,31 @@ func TestDecodeEntityData(t *testing.T) {
 		data      any
 		obj       *EntityMapping
 		wantCount int
-		want      map[string]models.Entity
+		want      map[string]*models.Entity
 	}{
 		{
 			name: "ID from value",
 			data: "my_key_2",
 			obj:  &EntityMapping{Base: "first", TypeValue: "key", IDFromValue: true},
-			want: map[string]models.Entity{"key::my_key_2": models.NewEntity("key", "my_key_2", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"key::my_key_2": models.NewEntity("key", "my_key_2", models.NewAttributeSet())},
 		},
 		{
 			name: "map (1)",
 			data: m1,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "int"},
-			want: map[string]models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
 		},
 		{
 			name: "map (2)",
 			data: m2,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "bool"},
-			want: map[string]models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
 		},
 		{
 			name: "slice",
 			data: s1,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "int"},
-			want: map[string]models.Entity{
+			want: map[string]*models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::321":     models.NewEntity("mars", "321", models.NewAttributeSet()),
 				"jupiter::true": models.NewEntity("jupiter", "true", models.NewAttributeSet()),
@@ -324,7 +324,7 @@ func TestDecodeEntityData(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, entities: ent, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
 			r.decodeEntityData(tc.data, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -341,14 +341,16 @@ func TestDecodeEntityData(t *testing.T) {
 					assert.Equal(t, want.ID(), got.ID())
 					assert.EqualValues(t, want.Parents(), got.Parents())
 
-					want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+					want.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 						attr2 := got.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
+						require.NotNil(t, attr2)
+						assert.True(t, attr1.Equals(attr2))
 					})
 
-					got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+					got.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 						attr2 := want.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
+						require.NotNil(t, attr2)
+						assert.True(t, attr1.Equals(attr2))
 					})
 				}
 			}
@@ -376,37 +378,37 @@ func TestDecodeEntity(t *testing.T) {
 		data      any
 		obj       *EntityMapping
 		wantCount int
-		want      map[string]models.Entity
+		want      map[string]*models.Entity
 	}{
 		{
 			name: "ID from value",
 			data: mm1,
 			obj:  &EntityMapping{Base: "first", TypeValue: "key", IDFromValue: true},
-			want: map[string]models.Entity{"key::this_key": models.NewEntity("key", "this_key", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"key::this_key": models.NewEntity("key", "this_key", models.NewAttributeSet())},
 		},
 		{
 			name: "not map and not slice",
 			data: map[string]any{"first": 987654321},
 			obj:  &EntityMapping{Base: "first", TypeValue: "key"},
-			want: map[string]models.Entity{"key::987654321": models.NewEntity("key", "987654321", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"key::987654321": models.NewEntity("key", "987654321", models.NewAttributeSet())},
 		},
 		{
 			name: "map (1)",
 			data: mm2,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "int"},
-			want: map[string]models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"world::123": models.NewEntity("world", "123", models.NewAttributeSet())},
 		},
 		{
 			name: "map (2)",
 			data: mm3,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "bool"},
-			want: map[string]models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
+			want: map[string]*models.Entity{"mars::false": models.NewEntity("mars", "false", models.NewAttributeSet())},
 		},
 		{
 			name: "slice",
 			data: mm4,
 			obj:  &EntityMapping{Base: "first", TypeField: "hello", IDField: "int"},
-			want: map[string]models.Entity{
+			want: map[string]*models.Entity{
 				"world::123":    models.NewEntity("world", "123", models.NewAttributeSet()),
 				"mars::321":     models.NewEntity("mars", "321", models.NewAttributeSet()),
 				"jupiter::true": models.NewEntity("jupiter", "true", models.NewAttributeSet()),
@@ -423,7 +425,7 @@ func TestDecodeEntity(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, entities: ent, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
 			r.decodeEntity(tc.obj)
 
 			if tc.wantCount > 0 {
@@ -440,14 +442,16 @@ func TestDecodeEntity(t *testing.T) {
 					assert.Equal(t, want.ID(), got.ID())
 					assert.EqualValues(t, want.Parents(), got.Parents())
 
-					want.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+					want.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 						attr2 := got.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
+						require.NotNil(t, attr2)
+						assert.True(t, attr1.Equals(attr2))
 					})
 
-					got.Attributes().IterateAttributes(func(attr1 models.Attribute) {
+					got.Attributes().IterateAttributes(func(attr1 *models.Attribute) {
 						attr2 := want.Attributes().GetAttribute(attr1.Key())
-						assert.EqualValues(t, attr1, attr2)
+						require.NotNil(t, attr2)
+						assert.True(t, attr1.Equals(attr2))
 					})
 				}
 			}

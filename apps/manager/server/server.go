@@ -45,5 +45,5 @@ type service struct {
 	l      models.Language
 	store  store.Store
 	pap    pap.PAP
-	pip    pip.PIP
+	pip    *pip.PIP
 }

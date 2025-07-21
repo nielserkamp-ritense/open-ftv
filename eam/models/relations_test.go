@@ -81,7 +81,7 @@ func TestNewRelationSet(t *testing.T) {
 			got := NewRelationSet(entSet1, tc.in...)
 			require.NotNil(t, got)
 
-			got.IterateRelations(func(r Relation) {
+			got.IterateRelations(func(r *Relation) {
 				assert.Contains(t, tc.wantUID, r.UID())
 			})
 
@@ -150,14 +150,14 @@ func TestRelationSet_AddRelation(t *testing.T) {
 
 			for _, in := range tc.in {
 				switch q := in.(type) {
-				case Relation:
+				case *Relation:
 					got.AddRelation(q)
-				case RelationSet:
+				case *RelationSet:
 					got.MergeRelations(q)
 				}
 			}
 
-			got.IterateRelations(func(r Relation) {
+			got.IterateRelations(func(r *Relation) {
 				assert.Contains(t, tc.wantUID, r.UID())
 			})
 
@@ -212,7 +212,7 @@ func TestRelationSet_AddRelationFromUID(t *testing.T) {
 				got.AddRelationFromUID(tc.subject[i], tc.predicate[i], tc.object[i])
 			}
 
-			got.IterateRelations(func(r Relation) {
+			got.IterateRelations(func(r *Relation) {
 				assert.Contains(t, tc.wantUID, r.UID())
 			})
 
@@ -285,7 +285,7 @@ func TestRelationSet_RemoveRelation(t *testing.T) {
 				got.RemoveRelation(uid)
 			}
 
-			got.IterateRelations(func(r Relation) {
+			got.IterateRelations(func(r *Relation) {
 				assert.Contains(t, tc.wantUID, r.UID())
 			})
 

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
 func TestProcessHeaders(t *testing.T) {
@@ -275,12 +275,12 @@ func TestProcessActivityID(t *testing.T) {
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	ip := pip2.New(nil, logger, pip2.WithFileStore("../../testdata/unittest/pip2", true))
+	ip := pip.New(nil, logger, pip.WithFileStore("../../testdata/unittest/pip2", true))
 
 	testCases := []struct {
 		name string
 		id   string
-		e    models.EntitySet
+		e    models.GetEntity
 		want any
 	}{
 		{
@@ -288,22 +288,22 @@ func TestProcessActivityID(t *testing.T) {
 		},
 		{
 			name: "empty",
-			e:    ip,
+			e:    ip.GetEntity,
 		},
 		{
 			name: "not found",
 			id:   "abc",
-			e:    ip,
+			e:    ip.GetEntity,
 		},
 		{
 			name: "found, invalid",
-			e:    ip,
+			e:    ip.GetEntity,
 			id:   "bad",
 		},
 		{
 			name: "found, valid",
 			id:   "good",
-			e:    ip,
+			e:    ip.GetEntity,
 			want: "zorgtoeslag",
 		},
 	}
@@ -313,11 +313,11 @@ func TestProcessActivityID(t *testing.T) {
 			t.Parallel()
 
 			c := &collector{
-				debug:    true,
-				logger:   logger,
-				req:      &models.HTTPRequest{},
-				parc:     &models.PARC{Context: models.NewAttributeSet()},
-				entities: tc.e,
+				debug:     true,
+				logger:    logger,
+				req:       &models.HTTPRequest{},
+				parc:      &models.PARC{Context: models.NewAttributeSet()},
+				getEntity: tc.e,
 			}
 			c.convertActivityID(tc.id)
 

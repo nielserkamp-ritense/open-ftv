@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -20,7 +19,6 @@ func TestBCrypt_AuthenticateApiKey(t *testing.T) {
 	log := slog.New(h)
 
 	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/unittest/auth", true))
-	entities := models.NewEntitySet(p)
 
 	testCases := []struct {
 		name    string
@@ -34,7 +32,7 @@ func TestBCrypt_AuthenticateApiKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntities(entities))
+			a := NewBCrypt(WithContext(ctx), WithLogger(log), WithEntityGetter(p.GetEntity))
 			require.NotNil(t, a)
 
 			err := a.AuthenticateApiKey(ctx, tc.apikey)

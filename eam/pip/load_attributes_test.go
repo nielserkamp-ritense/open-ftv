@@ -33,11 +33,7 @@ func TestLoadAttributeMap(t *testing.T) {
 			p1 := New(nil, logger)
 			require.NotNil(t, p1)
 
-			p2, ok := p1.(*pip)
-			require.True(t, ok)
-			require.NotNil(t, p2)
-
-			p2.loadAttributeMap(tc.in)
+			p1.loadAttributeMap(tc.in)
 
 			if k, ok2 := tc.in["key"].(string); ok2 {
 				got := p1.GetAttributeValue(k)
@@ -97,11 +93,7 @@ func TestLoadAttributesAny(t *testing.T) {
 			p1 := New(nil, logger)
 			require.NotNil(t, p1)
 
-			p2, ok := p1.(*pip)
-			require.True(t, ok)
-			require.NotNil(t, p2)
-
-			p2.loadAttributesAny(tc.in)
+			p1.loadAttributesAny(tc.in)
 
 			for k := range tc.want {
 				got := p1.GetAttributeValue(k)
@@ -119,7 +111,7 @@ func TestLoadAttributes(t *testing.T) {
 		name    string
 		path    string
 		wantLog int
-		want    models.AttributeSet
+		want    *models.AttributeSet
 	}{
 		{
 			name:    "empty",
@@ -198,7 +190,7 @@ func TestLoadAttributes(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := New(nil, logger).(*pip)
+			p := New(nil, logger)
 
 			h.Clear()
 
@@ -206,10 +198,10 @@ func TestLoadAttributes(t *testing.T) {
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 
 			if tc.wantLog == 0 {
-				tc.want.IterateAttributes(func(attr models.Attribute) {
+				tc.want.IterateAttributes(func(attr *models.Attribute) {
 					attr2, _, err := p.attributePersist.Read(attr.Key())
 					require.NoError(t, err)
-					assert.True(t, models.AttributeEqual(attr, attr2))
+					assert.True(t, attr.Equals(attr2))
 				})
 
 				list, err := p.attributePersist.List()
@@ -217,7 +209,7 @@ func TestLoadAttributes(t *testing.T) {
 				for i := range list {
 					attr := list[i]
 					attr2 := tc.want.GetAttribute(attr.Key())
-					assert.True(t, models.AttributeEqual(attr, attr2))
+					assert.True(t, attr.Equals(attr2))
 				}
 			}
 		})

@@ -24,13 +24,12 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	}
 
 	if c.PIP() != nil {
-		c.PIP().IterateEntities(func(entity models.Entity) {
-			if wrapped, ok := entity.(*WrappedEntity); ok {
-				c.entities[wrapped.ce.UID] = *wrapped.ce
-			} else {
-				e2 := entityToCedar(entity)
-				c.entities[e2.UID] = *e2
+		c.PIP().IterateEntities(func(entity *models.Entity) {
+			e2, err := entityToCedar(entity)
+			if err != nil {
+				c.Logger().Warn("failed to convert PIP entity to cedar format", "key", entity.UID(), "err", err)
 			}
+			c.entities[e2.UID] = *e2
 		})
 	}
 

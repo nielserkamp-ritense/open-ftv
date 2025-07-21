@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -84,10 +84,10 @@ func TestController_Authorize(t *testing.T) {
 
 			ep := pep.New(nil, logger)
 
-			ip := pip2.New(nil, logger, pip2.WithFileStore(tc.store1, tc.recurse1))
+			ip := pip.New(nil, logger, pip.WithFileStore(tc.store1, tc.recurse1))
 			require.NotNil(t, ip)
 
-			ap := pap2.New(nil, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore(tc.store2, tc.recurse2))
+			ap := pap.New(nil, logger, pap.WithLanguage("cedar"), pap.WithFileStore(tc.store2, tc.recurse2))
 			require.NotNil(t, ap)
 
 			c := NewController(pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -95,7 +95,7 @@ func TestController_Authorize(t *testing.T) {
 
 			h.Clear()
 
-			parc := c.PEP().PARCFromRequest(&tc.req, c.PIP())
+			parc := c.PEP().PARCFromRequest(&tc.req, c.PIP().GetEntity)
 			require.NotNil(t, parc)
 
 			got, err := c.Authorize(tc.req.UID.String(), parc)

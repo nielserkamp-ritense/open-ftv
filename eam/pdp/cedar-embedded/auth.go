@@ -39,16 +39,19 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 func (c *controller) buildCedarRequest(parc *models.PARC) cedar.Request {
 	parc = c.Map(parc)
 
-	ca, ok := parc.Context.(*attributes)
-	if !ok {
-		a := NewAttributeSet(c.Logger(), parc.Context)
-		ca, _ = a.(*attributes)
-	}
+	ca := make(cedar.RecordMap)
+	parc.Context.IterateAttributes(func(attr *models.Attribute) {
+		v, err := anyToValue(attr.Value())
+		if err != nil {
+			c.Logger().Warn("failed to convert context attribute to cedar format", "key", attr.Key(), "type", attr.Type, "value", attr.Value(), "err", err)
+		}
+		ca[cedar.String(attr.Key())] = v
+	})
 
 	return cedar.Request{
 		Principal: cedar.NewEntityUID(cedar.EntityType(parc.Principal.Type()), cedar.String(parc.Principal.ID())),
 		Action:    cedar.NewEntityUID(cedar.EntityType(parc.Action.Type()), cedar.String(parc.Action.ID())),
 		Resource:  cedar.NewEntityUID(cedar.EntityType(parc.Resource.Type()), cedar.String(parc.Resource.ID())),
-		Context:   cedar.NewRecord(ca.cedarSet),
+		Context:   cedar.NewRecord(ca),
 	}
 }

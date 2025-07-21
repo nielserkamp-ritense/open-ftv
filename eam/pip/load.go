@@ -8,7 +8,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func (p *pip) loadFromStore() {
+func (p *PIP) loadFromStore() {
 	if p.attrStore != "" {
 		p.clearAttributeWatcher()
 		p.iterateFolders(p.attrStore, p.recurse, p.attributeWatcher, p.loadAttributes)
@@ -19,7 +19,7 @@ func (p *pip) loadFromStore() {
 	}
 }
 
-func (p *pip) iterateFolders(path string, recurse bool, watcher *fsnotify.Watcher, f func(path string)) {
+func (p *PIP) iterateFolders(path string, recurse bool, watcher *fsnotify.Watcher, f func(path string)) {
 	err := filepath.WalkDir(path, func(path2 string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

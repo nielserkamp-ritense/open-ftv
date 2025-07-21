@@ -31,7 +31,7 @@ type PAP interface {
 //
 // The optional context can be used to signal an orderly shutdown.
 //
-// By default, a PAP uses an in-memory KV cache.
+// By default, a PAP uses an in-memory key-value cache.
 // Use the WithPersistence() option to connect a PAP to persistent storage.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) PAP {
 	if ctx == nil {

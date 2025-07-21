@@ -68,12 +68,12 @@ func (c *collector) processHeaders() {
 }
 
 func (c *collector) convertActivityID(id string) {
-	if c.entities == nil {
+	if c.getEntity == nil {
 		return
 	}
 
 	// An activity is an entity with type 'rva'.
-	entity := c.entities.GetEntity(fmt.Sprintf("rva::%s", id))
+	entity := c.getEntity(fmt.Sprintf("rva::%s", id))
 	if entity == nil {
 		return
 	}

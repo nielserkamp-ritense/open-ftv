@@ -115,9 +115,9 @@ func TestRelation_AddTags(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		s    Entity
-		p    Entity
-		o    Entity
+		s    *Entity
+		p    *Entity
+		o    *Entity
 		tags []string
 	}{
 		{

@@ -109,7 +109,7 @@ func TestController_Authorize(t *testing.T) {
 
 			h.Clear()
 
-			parc := c.PEP().PARCFromRequest(&tc.req, c.PIP())
+			parc := c.PEP().PARCFromRequest(&tc.req, c.PIP().GetEntity)
 			require.NotNil(t, parc)
 
 			got, err := c.Authorize(tc.req.UID.String(), parc)

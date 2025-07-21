@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
@@ -20,20 +19,18 @@ func TestNewBase(t *testing.T) {
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/pip/users", false))
-	entities := models.NewEntitySet(p)
 
 	testCases := []struct {
-		name         string
-		opts         []Option
-		wantCtx      context.Context
-		wantLog      *slog.Logger
-		wantEntities models.EntitySet
+		name    string
+		opts    []Option
+		wantCtx context.Context
+		wantLog *slog.Logger
 	}{
 		{name: "no options"},
 		{name: "context", opts: []Option{WithContext(ctx)}, wantCtx: ctx},
 		{name: "logger", opts: []Option{WithLogger(log)}, wantLog: log},
-		{name: "entities", opts: []Option{WithEntities(entities)}, wantEntities: entities},
-		{name: "all", opts: []Option{WithLogger(log), WithEntities(entities), WithContext(ctx)}, wantCtx: ctx, wantLog: log, wantEntities: entities},
+		{name: "entities", opts: []Option{WithEntityGetter(p.GetEntity)}},
+		{name: "all", opts: []Option{WithLogger(log), WithEntityGetter(p.GetEntity), WithContext(ctx)}, wantCtx: ctx, wantLog: log},
 	}
 
 	for _, tc := range testCases {
@@ -43,16 +40,12 @@ func TestNewBase(t *testing.T) {
 
 			assert.NotNil(t, got.ctx)
 			assert.NotNil(t, got.log)
-			assert.NotNil(t, got.entities)
 
 			if tc.wantCtx != nil {
 				assert.Equal(t, tc.wantCtx, got.ctx)
 			}
 			if tc.wantLog != nil {
 				assert.Equal(t, tc.wantLog, got.log)
-			}
-			if tc.wantEntities != nil {
-				assert.Equal(t, tc.wantEntities, got.entities)
 			}
 		})
 	}

@@ -40,7 +40,7 @@ func (r *runner) decodeEntityMap(m map[string]any, obj *EntityMapping) {
 	attrs := r.manager.newAttributes()
 	for _, attrObj := range obj.Attributes {
 		if data := findElement(splitKeys(attrObj.Base), m); data != nil {
-			r.decodeAttributesData(data, attrObj, attrs)
+			r.decodeAttributesData(data, attrObj, attrs.AddOriginalAttribute)
 		}
 	}
 
@@ -62,7 +62,7 @@ func (r *runner) decodeEntityMap(m map[string]any, obj *EntityMapping) {
 	r.processEntity(tp, id, attrs, parents, obj)
 }
 
-func (r *runner) processEntity(tp string, id string, attrs models.AttributeSet, parents []string, obj *EntityMapping) {
+func (r *runner) processEntity(tp string, id string, attrs *models.AttributeSet, parents []string, obj *EntityMapping) {
 	if tp == "" {
 		r.logger.Warn("entity type is required", "entity.base", obj.Base, "id", id)
 		return
@@ -76,5 +76,5 @@ func (r *runner) processEntity(tp string, id string, attrs models.AttributeSet, 
 		attrs = r.manager.newAttributes()
 	}
 
-	r.manager.entities.AddEntity(models.NewEntity(tp, id, attrs, parents...))
+	r.manager.addEntity(models.NewEntity(tp, id, attrs, parents...))
 }

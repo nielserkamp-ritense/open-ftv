@@ -21,7 +21,7 @@ func (c *collector) run() {
 	}
 
 	if a := attrs.GetAttribute(models.AttrTime); a == nil {
-		// See AuthZEN spec Information Model - Context (link is subject to change):
+		// See AuthZEN spec Information Model - Context (the link is subject to change):
 		// https://openid.net/specs/authorization-api-1_0-01.html#name-context
 		attrs.AddAttribute(models.AttrTime, time.Now().UTC())
 	}
@@ -52,7 +52,7 @@ func (c *collector) run() {
 
 	if c.debug {
 		kv := make(map[string]any)
-		attrs.IterateAttributes(func(attr models.Attribute) {
+		attrs.IterateAttributes(func(attr *models.Attribute) {
 			kv[attr.Key()] = attr.Value()
 		})
 		c.logger.Debug("attributes collected", "attributes", kv)

@@ -8,8 +8,8 @@ import (
 // Parameter defines a parameter for a retrieval request.
 //
 // In should be one of:
-// - "path" -> a parameter in the URI path of the request represented as :name:.
-// - "query" -> a parameter in the URI query of the request.
+// - "path" -> a parameter in the URI path of the request represented as :name:,
+// - "query" -> a parameter in the URI query of the request,
 // - "body" -> a parameter in the body of the request.
 //
 // Either Value + Type, or Attribute should be specified, but not both.
@@ -32,7 +32,7 @@ type Parameter struct {
 // ValueString returns the value of the parameter as a string.
 //
 // It will first attempt to retrieve the value from the Attribute code.
-// If this fails, or the Attribute key is empty, Value will be returned.
+// If this fails, or the Attribute key is empty, the parameter Value will be returned.
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
@@ -45,7 +45,7 @@ func (p *Parameter) ValueString(get models.GetAttribute) (string, bool) {
 // ValueAny returns the value of the parameter.
 //
 // It will first attempt to retrieve the value from the Attribute code.
-// If this fails, or the Attribute key is empty, Value will be returned.
+// If this fails, or the Attribute key is empty, the parameter Value will be returned.
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
@@ -62,13 +62,13 @@ func (p *Parameter) ValueAny(get models.GetAttribute) (any, string, bool) {
 
 // AttributeValue retrieves the attribute by the key given in the parameter and returns its value.
 //
-// If the attribute cannot be found, Value is returned.
+// If the attribute cannot be found, the parameter Value is returned.
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
 func (p *Parameter) AttributeValue(get models.GetAttribute) (any, string, bool) {
-	if attr := get.GetAttribute(p.Attribute); attr != nil {
-		return attr.Value(), attr.Type(), false
+	if attr := get(p.Attribute); attr != nil {
+		return attr, xsd.PrefixAny, false
 	}
 
 	if p.Value != nil {

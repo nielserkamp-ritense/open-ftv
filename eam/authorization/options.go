@@ -35,16 +35,16 @@ func WithPDP(pdp pdp.Controller) Option {
 }
 
 // WithPEP passes a PEP to the authorization handler.
-func WithPEP(pep pep.PEP) Option {
+func WithPEP(pep *pep.PEP) Option {
 	return func(a *auth) {
 		a.pep = pep
 	}
 }
 
-// WithEntities passes the default set of entities to the authorization handler.
-func WithEntities(entities models.EntitySet) Option {
+// WithEntityGetter passes the default set of entities to the authorization handler.
+func WithEntityGetter(getter models.GetEntity) Option {
 	return func(a *auth) {
-		a.entities = entities
+		a.getter = getter
 	}
 }
 

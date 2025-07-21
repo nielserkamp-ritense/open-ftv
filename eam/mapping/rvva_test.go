@@ -33,7 +33,7 @@ func TestRvvaAsPrincipal(t *testing.T) {
 		parc         *models.PARC
 		wantType     string
 		wantID       string
-		wantOriginal models.Attribute
+		wantOriginal *models.Attribute
 	}{
 		{
 			name:     "not found",
@@ -82,7 +82,7 @@ func TestRvvaAsPrincipal(t *testing.T) {
 			if tc.wantOriginal != nil {
 				orig := got.Context.GetAttributeValue(models.AttrClientPrincipal)
 				require.NotNil(t, orig)
-				assert.True(t, models.AttributeEqual(tc.wantOriginal, models.NewAttribute(tc.wantOriginal.Key(), orig)))
+				assert.True(t, tc.wantOriginal.Equals(models.NewAttribute(tc.wantOriginal.Key(), orig)))
 			}
 		})
 	}

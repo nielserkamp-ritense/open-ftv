@@ -10,7 +10,7 @@ import (
 	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
-func (p *pip) loadAttributes(path string) {
+func (p *PIP) loadAttributes(path string) {
 	f, err := os.Open(path)
 	if err != nil {
 		p.logger.Error("pip: error opening attributes file", "path", path, "err", err)
@@ -45,7 +45,7 @@ func (p *pip) loadAttributes(path string) {
 	p.loadAttributesAny(attributes)
 }
 
-func (p *pip) loadAttributesAny(attributes any) {
+func (p *PIP) loadAttributesAny(attributes any) {
 	switch t := attributes.(type) {
 	case []any:
 		for i := range t {
@@ -60,7 +60,7 @@ func (p *pip) loadAttributesAny(attributes any) {
 	}
 }
 
-func (p *pip) loadAttributeMap(attribute map[string]any) {
+func (p *PIP) loadAttributeMap(attribute map[string]any) {
 	k, ok1 := attribute["key"].(string)
 	v, ok2 := attribute["value"]
 	if ok1 && ok2 {

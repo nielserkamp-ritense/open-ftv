@@ -16,9 +16,9 @@ type Authenticator interface {
 
 func newBase(opts []Option) *base {
 	b := &base{
-		ctx:      context.Background(),
-		log:      slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-		entities: models.NewEntitySet(),
+		ctx:       context.Background(),
+		log:       slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		getEntity: dummyGetter,
 	}
 
 	for i := range opts {
@@ -28,7 +28,9 @@ func newBase(opts []Option) *base {
 }
 
 type base struct {
-	ctx      context.Context
-	log      *slog.Logger
-	entities models.EntitySet
+	ctx       context.Context
+	log       *slog.Logger
+	getEntity models.GetEntity
 }
+
+func dummyGetter(string) *models.Entity { return nil }

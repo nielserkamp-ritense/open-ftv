@@ -112,10 +112,10 @@ func TestRun(t *testing.T) {
 
 			c.parc.Context.RemoveAttribute("time")
 
-			assert.True(t, models.EntityEqual(tc.want.Principal, c.parc.Principal))
-			assert.True(t, models.EntityEqual(tc.want.Action, c.parc.Action))
-			assert.True(t, models.EntityEqual(tc.want.Resource, c.parc.Resource))
-			assert.True(t, models.AttributesEqual(tc.want.Context, c.parc.Context))
+			assert.True(t, tc.want.Principal.Equals(c.parc.Principal))
+			assert.True(t, tc.want.Action.Equals(c.parc.Action))
+			assert.True(t, tc.want.Resource.Equals(c.parc.Resource))
+			assert.True(t, tc.want.Context.Equals(c.parc.Context))
 			assert.Equal(t, tc.wantURI, c.newURI)
 
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)

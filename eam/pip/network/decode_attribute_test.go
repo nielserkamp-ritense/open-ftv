@@ -22,7 +22,7 @@ func TestProcessAttribute(t *testing.T) {
 		obj       *AttributesMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Attribute
+		wantValue *models.Attribute
 	}{
 		{
 			name:      "no key",
@@ -74,7 +74,7 @@ func TestProcessAttribute(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.processAttribute(tc.obj.Base, tc.key, tc.value, tc.tp, attr)
+			r.processAttribute(tc.obj.Base, tc.key, tc.value, tc.tp, attr.AddOriginalAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -98,7 +98,7 @@ func TestDecodeAttributeMap(t *testing.T) {
 		obj       *AttributeMapping
 		wantCount int
 		wantKey   string
-		wantValue models.Attribute
+		wantValue *models.Attribute
 	}{
 		{
 			name:      "no key code, no key value",
@@ -203,7 +203,7 @@ func TestDecodeAttributeMap(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.decodeAttributeMap(tc.base, tc.m, tc.obj, attr)
+			r.decodeAttributeMap(tc.base, tc.m, tc.obj, attr.AddOriginalAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -233,35 +233,35 @@ func TestDecodeAttributeData(t *testing.T) {
 		base      string
 		obj       *AttributeMapping
 		wantCount int
-		want      map[string]models.Attribute
+		want      map[string]*models.Attribute
 	}{
 		{
 			name: "value as-is",
 			data: m1,
 			base: "first",
 			obj:  &AttributeMapping{KeyValue: "key", ValueAsIs: true},
-			want: map[string]models.Attribute{"key": models.NewOriginalAttribute("key", m1, m1, "")},
+			want: map[string]*models.Attribute{"key": models.NewOriginalAttribute("key", m1, m1, "")},
 		},
 		{
 			name: "map (1)",
 			data: m2,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "int", TypeField: "type"},
-			want: map[string]models.Attribute{"world": models.NewOriginalAttribute("world", int64(123), 123, "xsd:short")},
+			want: map[string]*models.Attribute{"world": models.NewOriginalAttribute("world", int64(123), 123, "xsd:short")},
 		},
 		{
 			name: "map (2)",
 			data: m3,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "bool", TypeField: "type"},
-			want: map[string]models.Attribute{"mars": models.NewOriginalAttribute("mars", "false", false, "xsd:string")},
+			want: map[string]*models.Attribute{"mars": models.NewOriginalAttribute("mars", "false", false, "xsd:string")},
 		},
 		{
 			name: "slice",
 			data: s1,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "int", TypeField: "type"},
-			want: map[string]models.Attribute{
+			want: map[string]*models.Attribute{
 				"world":   models.NewOriginalAttribute("world", int64(123), 123, "xsd:short"),
 				"mars":    models.NewOriginalAttribute("mars", "321", 321, "xsd:string"),
 				"jupiter": models.NewOriginalAttribute("jupiter", true, true, ""),
@@ -279,7 +279,7 @@ func TestDecodeAttributeData(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.decodeAttributeData(tc.base, tc.data, tc.obj, attr)
+			r.decodeAttributeData(tc.base, tc.data, tc.obj, attr.AddOriginalAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -316,42 +316,42 @@ func TestDecodeAttribute(t *testing.T) {
 		base      string
 		obj       *AttributeMapping
 		wantCount int
-		want      map[string]models.Attribute
+		want      map[string]*models.Attribute
 	}{
 		{
 			name: "value as-is",
 			data: mm1,
 			base: "first",
 			obj:  &AttributeMapping{KeyValue: "key", ValueAsIs: true},
-			want: map[string]models.Attribute{"key": models.NewOriginalAttribute("key", m1, m1, "")},
+			want: map[string]*models.Attribute{"key": models.NewOriginalAttribute("key", m1, m1, "")},
 		},
 		{
 			name: "not map and not slice",
 			data: map[string]any{"first": 987654321},
 			base: "first",
 			obj:  &AttributeMapping{KeyValue: "key", TypeValue: "xsd:string"},
-			want: map[string]models.Attribute{"key": models.NewOriginalAttribute("key", "987654321", 987654321, "xsd:string")},
+			want: map[string]*models.Attribute{"key": models.NewOriginalAttribute("key", "987654321", 987654321, "xsd:string")},
 		},
 		{
 			name: "map (1)",
 			data: mm2,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "int", TypeField: "type"},
-			want: map[string]models.Attribute{"world": models.NewOriginalAttribute("world", int64(123), 123, "xsd:short")},
+			want: map[string]*models.Attribute{"world": models.NewOriginalAttribute("world", int64(123), 123, "xsd:short")},
 		},
 		{
 			name: "map (2)",
 			data: mm3,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "bool", TypeField: "type"},
-			want: map[string]models.Attribute{"mars": models.NewOriginalAttribute("mars", "false", false, "xsd:string")},
+			want: map[string]*models.Attribute{"mars": models.NewOriginalAttribute("mars", "false", false, "xsd:string")},
 		},
 		{
 			name: "slice",
 			data: mm4,
 			base: "first",
 			obj:  &AttributeMapping{KeyField: "hello", ValueField: "int", TypeField: "type"},
-			want: map[string]models.Attribute{
+			want: map[string]*models.Attribute{
 				"world":   models.NewOriginalAttribute("world", int64(123), 123, "xsd:short"),
 				"mars":    models.NewOriginalAttribute("mars", "321", 321, "xsd:string"),
 				"jupiter": models.NewOriginalAttribute("jupiter", true, true, ""),
@@ -368,7 +368,7 @@ func TestDecodeAttribute(t *testing.T) {
 
 			attr := models.NewAttributeSet()
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, attributes: attr}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addAttribute: attr.AddOriginalAttribute}}
 			r.decodeAttribute(&AttributesMapping{
 				Base: tc.base,
 				Map:  []*AttributeMapping{tc.obj},

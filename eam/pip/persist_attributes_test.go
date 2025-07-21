@@ -21,7 +21,7 @@ func TestMarshalUnmarshalAttributes(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		a         models.Attribute
+		a         *models.Attribute
 		wantPanic bool
 		wantErr   bool
 	}{
@@ -76,7 +76,7 @@ func TestMarshalUnmarshalAttributes(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, got)
-				assert.True(t, models.AttributeEqual(got, tc.a))
+				assert.True(t, got.Equals(tc.a))
 			}
 		})
 	}

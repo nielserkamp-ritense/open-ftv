@@ -19,7 +19,7 @@ func TestConvertFromOAS(t *testing.T) {
 	testCases := []struct {
 		name string
 		in   *attributes.Attribute
-		want models.Attribute
+		want *models.Attribute
 	}{
 		{name: "no type - string", in: &attributes.Attribute{Key: "key", Value: "value"}, want: models.NewAttribute("key", "value")},
 		{name: "no type - integer", in: &attributes.Attribute{Key: "key", Value: 123}, want: models.NewAttribute("key", 123)},
@@ -148,7 +148,7 @@ func TestConvertToOAS(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		in   models.Attribute
+		in   *models.Attribute
 		want *attributes.Attribute
 	}{
 		{name: "string", in: models.NewAttribute("key", "value"), want: &attributes.Attribute{Key: "key", Value: "value", Type: "string"}},
