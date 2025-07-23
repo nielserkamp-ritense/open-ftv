@@ -1,5 +1,4 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
     ":semanticCommits",
@@ -15,5 +14,23 @@
   "gitlabci": {
     "fileMatch": ["^\\.gitlab\\/ci\\/.*\\.yml$"]
   },
-  "commitBody": "Issue: open-ftv#18"
+  "commitBody": "Issue: open-ftv#18",
+  "packageRules": [
+    {
+      "groupName": "v8.x has been converted to an ES Module which we don't (yet) support",
+      "packageNames": ["replace-in-file"],
+      "managers": ["npm"],
+      "allowedVersions": "7.2.0"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.gitlab\\/ci\\/.*\\.yml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION: (\"|')(?<currentValue>.*)(\"|')\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
+  ]
 }
