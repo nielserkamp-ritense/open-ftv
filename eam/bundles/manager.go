@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -23,6 +25,19 @@ func NewManager(path string, recurse bool, logger *slog.Logger) *Manager {
 
 	m.load()
 	return m
+}
+
+// Bundles returns a list of configured bundles.
+func (m *Manager) Bundles() []*Config {
+	out := make([]*Config, 0, len(m.bundles))
+	for _, v := range m.bundles {
+		out = append(out, v)
+	}
+
+	slices.SortFunc(out, func(a, b *Config) int {
+		return strings.Compare(a.Tag, b.Tag)
+	})
+	return out
 }
 
 // Manager represents the interface to manage bundles.

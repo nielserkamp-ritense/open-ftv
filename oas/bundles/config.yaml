@@ -1,0 +1,6 @@
+package: bundles
+output: bundles.go
+generate:
+  models: true
+output-options:
+  skip-prune: true

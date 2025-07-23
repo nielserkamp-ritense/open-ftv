@@ -59,4 +59,5 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
+	config2.Bundle
 }

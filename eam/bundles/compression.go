@@ -9,6 +9,10 @@ type CompressionType uint8
 const (
 	CompressGZ CompressionType = iota + 1
 	CompressBZ2
+
+	CompressMIN   = CompressGZ
+	CompressMAX   = CompressBZ2
+	CompressCount = CompressMAX - CompressMIN + 1
 )
 
 // String implements the Stringer interface.
