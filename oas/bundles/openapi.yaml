@@ -1,0 +1,469 @@
+openapi: 3.0.0
+
+info:
+  description: |
+    OpenAPI specification for bundle management.
+  version: 1.0.0
+  title: Bundle management
+  contact:
+    name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server.
+
+tags:
+  - name: status
+    description: Operations on deployment statuses.
+  - name: compression
+    description: Operations on bundle compression types.
+  - name: config
+    description: Operations on bundle configuration.
+  - name: deployment
+    description: Operations on bundle deployments.
+  - name: bundle
+    description: Operations with bundles.
+
+paths:
+  /statuses:
+    get:
+      operationId: "get-statuses"
+      summary: Retrieve deployment status codes.
+      description: Endpoint to retrieve all deployment status codes and names.
+      tags:
+        - status
+      responses:
+        "200":
+          $ref: "#/components/responses/StatusesFound"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /compression-types:
+    get:
+      operationId: "get-compression-types"
+      summary: Retrieve deployment compression types.
+      description: Endpoint to retrieve all bundle compression types.
+      tags:
+        - compression
+      responses:
+        "200":
+          $ref: "#/components/responses/CompressTypesFound"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /bundle-configurations:
+    post:
+      operationId: "get-configurations"
+      summary: Retrieve bundle configurations.
+      description: Endpoint to retrieve the list of bundle configurations.
+      tags:
+        - config
+      responses:
+        "200":
+          $ref: "#/components/responses/ConfigFound"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /deployments:
+    get:
+      operationId: "get-deployments"
+      summary: Retrieve deployments.
+      description: Endpoint to retrieve the details of all deployments.
+      tags:
+        - deployment
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentsFound"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /deployment/{key}:
+    get:
+      operationId: "get-deployment"
+      summary: Retrieve deployment.
+      description: Endpoint to retrieve the details of a specific deployment.
+      tags:
+        - deployment
+      parameters:
+        - $ref: "#/components/parameters/DeploymentID"
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /deployment:
+    post:
+      operationId: "start-deployment"
+      summary: Deploy a new version.
+      description: Endpoint to start a new deployment.
+      tags:
+        - deployment
+      responses:
+        "201":
+          $ref: "#/components/responses/DeployStarted"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /bundle:
+    post:
+      operationId: "push-bundle"
+      summary: Receive a new deployment bundle.
+      description: Endpoint to receive a new deployment bundle and update the PDP policies and static data.
+      tags:
+        - bundle
+      responses:
+        "201":
+          $ref: "#/components/responses/BundleActivated"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  parameters:
+    DeploymentID:
+      in: path
+      name: key
+      schema:
+        type: integer
+      required: true
+      description: Unique version number of a deployment.
+
+  responses:
+    StatusesFound:
+      description: Statuses found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Statuses"
+
+    CompressTypesFound:
+      description: Compression types found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CompressTypes"
+
+    ConfigFound:
+      description: Bundle configurations found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BundleConfigs"
+
+    DeploymentsFound:
+      description: Deployments found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Deployments"
+
+    DeploymentFound:
+      description: Deployment found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Deployment"
+
+    DeployStarted:
+      description: Bundle deployment started.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Deployment"
+
+    BundleActivated:
+      description: Deployment bundle activated.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BundleActivated"
+
+    BadRequest:
+      description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+
+    NotAuthorized:
+      description: Not authorized.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+
+    AccessDenied:
+      description: Access denied.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+
+    NotFound:
+      description: Resource not found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorMessage"
+
+  schemas:
+    Statuses:
+      type: array
+      description: List of deployment status codes and names.
+      items:
+        $ref: "#/components/schemas/Status"
+
+    Status:
+      type: object
+      description: The code and name of a deployment status.
+      properties:
+        code:
+          type: integer
+          description: Code of the status.
+          example: 1
+        name:
+          type: string
+          description: Display name for the status.
+          example: "Created"
+      required:
+        - code
+        - name
+
+    CompressTypes:
+      type: array
+      description: List of compression type codes and names.
+      items:
+        $ref: "#/components/schemas/CompressType"
+
+    CompressType:
+      type: object
+      description: The code and name of a compression type.
+      properties:
+        code:
+          type: integer
+          description: Code of the compression type.
+          example: 2
+        name:
+          type: string
+          description: Display name for the compression type.
+          example: "BZip2"
+      required:
+        - code
+        - name
+
+    BundleConfigs:
+      type: array
+      description: List of bundle deployment configurations.
+      items:
+        $ref: "#/components/schemas/BundleConfig"
+
+    BundleConfig:
+      type: object
+      description: Bundle deployment configuration.
+      properties:
+        tag:
+          type: string
+          description: Tag to match against.
+        version:
+          type: boolean
+          description: Indicates to bundle the version number.
+        policies:
+          type: boolean
+          description: Indicates to bundle policies with matching tag.
+        data:
+          type: boolean
+          description: Indicates to bundle attributes, entities and relations with matching tag.
+        targets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Target"
+      required:
+        - tag
+        - targets
+
+    Target:
+      type: object
+      description: The details of a bundle target.
+      properties:
+        uri:
+          type: string
+          description: URI of the target PDP.
+        tls:
+          type: boolean
+          description: Indicates the connection will force the use of TLS.
+        apikey:
+          type: boolean
+          description: Indicates an API-key is configured.
+        compression:
+          type: integer
+          description: Type of compression to use for the bundle (default = gzip).
+        headers:
+          type: array
+          description: List of optional HTTP headers to send.
+          items:
+            type: string
+      required:
+        - uri
+
+    Deployments:
+      type: array
+      description: List of bundle deployments.
+      items:
+        $ref: "#/components/schemas/Deployment"
+
+    Deployment:
+      type: object
+      description: The details of a bundle deployment.
+      properties:
+        version:
+          type: integer
+          description: Version number of the last deployment.
+        description:
+          type: string
+          description: Description of the deployment.
+        status:
+          type: integer
+          description: Status of the last deployment.
+        created:
+          type: string
+          description: Date and time the deployment was started (UTC - RFC3339).
+        updated:
+          type: string
+          description: Date and time the deployment was last updated (UTC - RFC3339).
+      required:
+        - version
+        - description
+        - status
+        - created
+
+    BundleActivated:
+      type: object
+      description: The details of a deployment bundle activation.
+      properties:
+        previousVersion:
+          type: integer
+          description: Version number of the replaced deployment.
+      required:
+        - previousVersion
+
+    ErrorMessage:
+      type: object
+      description: The response for an error (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

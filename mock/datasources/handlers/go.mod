@@ -27,6 +27,7 @@ require (
 )
 
 replace (
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server => ../../../eam/server
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data => ../data
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ../../../oas
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../../utilities

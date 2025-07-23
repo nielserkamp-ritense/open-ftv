@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
@@ -31,6 +32,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initLanguages(v1)
 	s.initTags(v1)
 	s.initPolicies(v1)
+	s.initBundles(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -39,26 +41,39 @@ func (s *service) initHealth(svc *fiber.App) {
 }
 
 func (s *service) initLanguages(group fiber.Router) {
-	languages := handle.NewLanguagesHandler(s.logger, s.auth.Authorizer())
+	apis := handle.NewLanguagesHandler(s.logger, s.auth.Authorizer())
 
 	// languages CRUD.
-	group.Get(handle.PathLanguages, languages.GetLanguages)
+	group.Get(handle.PathLanguages, apis.GetLanguages)
 }
 
 func (s *service) initTags(group fiber.Router) {
-	tags := handle.NewTagsHandler(s.logger, s.cfg.Tags(), s.auth.Authorizer())
+	apis := handle.NewTagsHandler(s.logger, s.cfg.Tags(), s.auth.Authorizer())
 
 	// tags CRUD.
-	group.Get(handle.PathTags, tags.GetTags)
+	group.Get(handle.PathTags, apis.GetTags)
 }
 
 func (s *service) initPolicies(group fiber.Router) {
-	policies := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
+	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
-	group.Get(handle.PathPolicies, policies.GetPolicies)
-	group.Get(handle.PathPolicy, policies.GetPolicy)
-	group.Put(handle.PathPolicy, policies.PutPolicy)
-	group.Post(handle.PathPolicy, policies.PostPolicy)
-	group.Delete(handle.PathPolicy, policies.DeletePolicy)
+	group.Get(handle.PathPolicies, apis.GetPolicies)
+	group.Get(handle.PathPolicy, apis.GetPolicy)
+	group.Put(handle.PathPolicy, apis.PutPolicy)
+	group.Post(handle.PathPolicy, apis.PostPolicy)
+	group.Delete(handle.PathPolicy, apis.DeletePolicy)
+}
+
+func (s *service) initBundles(group fiber.Router) {
+	manager := bundles.NewManager(s.cfg.Bundle.Path, true, s.logger)
+	apis := handle.NewBundlesHandler(s.logger, manager, s.auth.Authorizer())
+
+	// bundles CRUD.
+	group.Get(handle.PathStatuses, apis.GetStatuses)
+	group.Get(handle.PathCompressionTypes, apis.GetCompressTypes)
+	group.Get(handle.PathConfigs, apis.GetConfigs)
+	group.Get(handle.PathDeployments, apis.GetDeployments)
+	group.Get(handle.PathDeploymentID, apis.GetDeployment)
+	group.Post(handle.PathDeployment, apis.PostDeployment)
 }

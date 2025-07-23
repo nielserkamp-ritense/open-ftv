@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
@@ -36,6 +37,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initAttributes(v1)
 	s.initEntities(v1)
 	s.initPolicies(v1)
+	s.initBundles(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -44,34 +46,47 @@ func (s *service) initHealth(svc *fiber.App) {
 }
 
 func (s *service) initAttributes(group fiber.Router) {
-	attributes := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
+	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// attributes CRUD.
-	group.Get(handle.PathAttributes, attributes.GetAttributes)
-	group.Get(handle.PathAttribute, attributes.GetAttribute)
-	group.Put(handle.PathAttribute, attributes.PutAttribute)
-	group.Post(handle.PathAttribute, attributes.PostAttribute)
-	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+	group.Get(handle.PathAttributes, apis.GetAttributes)
+	group.Get(handle.PathAttribute, apis.GetAttribute)
+	group.Put(handle.PathAttribute, apis.PutAttribute)
+	group.Post(handle.PathAttribute, apis.PostAttribute)
+	group.Delete(handle.PathAttribute, apis.DeleteAttribute)
 }
 
 func (s *service) initEntities(group fiber.Router) {
-	entities := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
+	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// entities CRUD.
-	group.Get(handle.PathEntities, entities.GetEntities)
-	group.Get(handle.PathEntity, entities.GetEntity)
-	group.Put(handle.PathEntity, entities.PutEntity)
-	group.Post(handle.PathEntity, entities.PostEntity)
-	group.Delete(handle.PathEntity, entities.DeleteEntity)
+	group.Get(handle.PathEntities, apis.GetEntities)
+	group.Get(handle.PathEntity, apis.GetEntity)
+	group.Put(handle.PathEntity, apis.PutEntity)
+	group.Post(handle.PathEntity, apis.PostEntity)
+	group.Delete(handle.PathEntity, apis.DeleteEntity)
 }
 
 func (s *service) initPolicies(group fiber.Router) {
-	policies := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
+	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
-	group.Get(handle.PathPolicies, policies.GetPolicies)
-	group.Get(handle.PathPolicy, policies.GetPolicy)
-	group.Put(handle.PathPolicy, policies.PutPolicy)
-	group.Post(handle.PathPolicy, policies.PostPolicy)
-	group.Delete(handle.PathPolicy, policies.DeletePolicy)
+	group.Get(handle.PathPolicies, apis.GetPolicies)
+	group.Get(handle.PathPolicy, apis.GetPolicy)
+	group.Put(handle.PathPolicy, apis.PutPolicy)
+	group.Post(handle.PathPolicy, apis.PostPolicy)
+	group.Delete(handle.PathPolicy, apis.DeletePolicy)
+}
+
+func (s *service) initBundles(group fiber.Router) {
+	manager := bundles.NewManager(s.cfg.Bundle.Path, true, s.logger)
+	apis := handle.NewBundlesHandler(s.logger, manager, s.auth.Authorizer())
+
+	// bundles CRUD.
+	group.Get(handle.PathStatuses, apis.GetStatuses)
+	group.Get(handle.PathCompressionTypes, apis.GetCompressTypes)
+	group.Get(handle.PathConfigs, apis.GetConfigs)
+	group.Get(handle.PathDeployments, apis.GetDeployments)
+	group.Get(handle.PathDeploymentID, apis.GetDeployment)
+	group.Post(handle.PathDeployment, apis.PostDeployment)
 }
