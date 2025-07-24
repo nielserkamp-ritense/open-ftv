@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
@@ -24,10 +25,10 @@ func TestNewStore(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p, err := NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
+		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
@@ -41,7 +42,7 @@ func TestNewStore(t *testing.T) {
 		require.NotNil(t, p3)
 		assert.EqualValues(t, p, p3)
 
-		p, err = NewPolicyFromData("1", "blanco", "-", "https://localhost:8080/v1/policy/1", strings.NewReader("blanco content"))
+		p, err = models.NewPolicyFromData("1", "blanco", "-", "https://localhost:8080/v1/policy/1", strings.NewReader("blanco content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
@@ -70,10 +71,10 @@ func TestNewStore_DupError(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p, err := NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
+		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
@@ -101,7 +102,7 @@ func TestNewStore_Read_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
 		p2, _, err2 := s.Read("none", "bad")
@@ -123,10 +124,10 @@ func TestNewStore_Update_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p, err := NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
+		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
@@ -149,10 +150,10 @@ func TestNewStore_Delete_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p, err2 := NewPolicyFromData("x", "y", "", "", strings.NewReader(""))
+		p, err2 := models.NewPolicyFromData("x", "y", "", "", strings.NewReader(""))
 		require.NoError(t, err2)
 		require.NotNil(t, p)
 
@@ -172,7 +173,7 @@ func TestNewStore_List(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	s := NewStore(ctx, client, "/base")
+	s := NewPersistence(ctx, client, "/base")
 	require.NotNil(t, s)
 
 	policies := []struct {
@@ -188,7 +189,7 @@ func TestNewStore_List(t *testing.T) {
 	}
 
 	for _, data := range policies {
-		p, err := NewPolicyFromData(data.id, data.language, "", "", strings.NewReader("no content"))
+		p, err := models.NewPolicyFromData(data.id, data.language, "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
@@ -248,10 +249,10 @@ func TestRead_UnmarshalError(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewStore(ctx, client, "/base")
+		s := NewPersistence(ctx, client, "/base")
 		require.NotNil(t, s)
 
-		p, err := NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
+		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 

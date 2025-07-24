@@ -7,10 +7,10 @@ type Status uint8
 const (
 	Creating Status = iota + 1
 	Gathering
-	Versioning
 	Merging
 	Bundling
 	Sending
+	Failed
 	Completed
 
 	StatusMIN   = Creating
@@ -25,14 +25,14 @@ func (s Status) String() string {
 		return "Creating new deployment"
 	case Gathering:
 		return "Gathering policies & data"
-	case Versioning:
-		return "Calculating new deployment version"
 	case Merging:
 		return "Merging new deployment version in Git"
 	case Bundling:
 		return "Bundling policies & data"
 	case Sending:
 		return "Sending bundles"
+	case Failed:
+		return "Failed to complete successfully"
 	case Completed:
 		return "Finished successfully"
 	default:

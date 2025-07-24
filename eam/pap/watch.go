@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 func (p *PAP) clearWatcher() {
@@ -89,7 +91,7 @@ func (p *PAP) processUpdate(path string) {
 	}
 	defer f.Close()
 
-	pol, err2 := NewPolicyFromStore(p.language, path, f)
+	pol, err2 := models.NewPolicyFromStore(p.language, path, f)
 	if err2 != nil {
 		return
 	}

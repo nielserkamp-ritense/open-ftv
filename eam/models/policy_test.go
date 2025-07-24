@@ -1,4 +1,4 @@
-package pap
+package models
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -20,21 +21,30 @@ func TestNewPolicy(t *testing.T) {
 		p       *policies.Policy
 		data    string
 		wantErr bool
+		wantKey string
 	}{
 		{
-			name: "only id",
-			p:    &policies.Policy{Id: "x1"},
-			data: "policy-1",
+			name:    "no data",
+			p:       &policies.Policy{Id: "x1"},
+			wantErr: true,
 		},
 		{
-			name: "some meta",
-			p:    &policies.Policy{Id: "x2"},
-			data: "policy-2",
+			name:    "only id",
+			p:       &policies.Policy{Id: "x1"},
+			data:    "policy-1",
+			wantKey: "/x1",
 		},
 		{
-			name: "all meta",
-			p:    &policies.Policy{Id: "x3", Language: "opa", RvvaId: "e3", Url: "https://some.site/policies/x3"},
-			data: "policy-3",
+			name:    "some meta",
+			p:       &policies.Policy{Id: "x2"},
+			data:    "policy-2",
+			wantKey: "/x2",
+		},
+		{
+			name:    "all meta",
+			p:       &policies.Policy{Id: "x3", Language: "opa", RvvaId: "e3", Url: "https://some.site/policies/x3"},
+			data:    "policy-3",
+			wantKey: "opa/x3",
 		},
 	}
 
@@ -42,7 +52,12 @@ func TestNewPolicy(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := NewPolicy(tc.p, bytes.NewBufferString(tc.data))
+			var d io.Reader
+			if tc.data != "" {
+				d = bytes.NewBufferString(tc.data)
+			}
+
+			got, err := NewPolicy(tc.p, d)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -50,6 +65,7 @@ func TestNewPolicy(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, got)
 
+				assert.Equal(t, tc.wantKey, got.Key())
 				assert.Equal(t, tc.p.Id, got.ID())
 				assert.Equal(t, tc.p.Language, got.Language())
 				assert.Equal(t, tc.p.RvvaId, got.RvvaID())
@@ -76,6 +92,11 @@ func TestNewPolicyFromData(t *testing.T) {
 		wantErr  bool
 	}{
 		{
+			name:    "no data",
+			id:      "x0",
+			wantErr: true,
+		},
+		{
 			name: "only id",
 			id:   "x1",
 			data: "policy-1",
@@ -99,7 +120,12 @@ func TestNewPolicyFromData(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := NewPolicyFromData(tc.id, tc.language, tc.rvvaID, tc.uri, bytes.NewBufferString(tc.data))
+			var d io.Reader
+			if tc.data != "" {
+				d = bytes.NewBufferString(tc.data)
+			}
+
+			got, err := NewPolicyFromData(tc.id, tc.language, tc.rvvaID, tc.uri, d)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -126,6 +152,7 @@ func TestNewPolicyFromStore(t *testing.T) {
 	path1 := "../../testdata/unittest/cedar/allow_post.cedar"
 	path2 := "../../testdata/unittest/opa/subsidies.rego"
 	path3 := "../../testdata/unittest/openfga/doelbinding.model"
+	path4 := "../../testdata/unittest/opa2/bad_meta.rego"
 
 	f1, err := os.Open(path1)
 	require.NoError(t, err)
@@ -190,6 +217,12 @@ func TestNewPolicyFromStore(t *testing.T) {
 			wantPath:     path3,
 			wantContent:  "some data",
 		},
+		{
+			name:    "with bad json",
+			path:    path4,
+			content: bytes.NewBufferString("some data"),
+			wantErr: true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -249,6 +282,98 @@ func TestPolicy_AddTags(t *testing.T) {
 			}
 
 			assert.False(t, got.HasTag("qqq"))
+		})
+	}
+}
+
+func TestPolicy_JSON(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		p    *policies.Policy
+		tags []string
+		data string
+		want string
+	}{
+		{
+			name: "only id",
+			p:    &policies.Policy{Id: "x1"},
+			data: "policy-1",
+			want: `{"language":"","id":"x1","content":"cG9saWN5LTE="}`,
+		},
+		{
+			name: "some meta",
+			p:    &policies.Policy{Id: "x2"},
+			data: "policy-2",
+			want: `{"language":"","id":"x2","content":"cG9saWN5LTI="}`,
+		},
+		{
+			name: "tags",
+			p:    &policies.Policy{Id: "x1"},
+			tags: []string{"x", "y", "z"},
+			data: "policy-1",
+			want: `{"language":"","id":"x1","tags":["x","y","z"],"content":"cG9saWN5LTE="}`,
+		},
+		{
+			name: "all meta",
+			p:    &policies.Policy{Id: "x3", Language: "opa", RvvaId: "e3", Url: "https://some.site/policies/x3"},
+			tags: []string{"x", "y", "z"},
+			data: "policy-3",
+			want: `{"language":"opa","id":"x3","tags":["x","y","z"],"rvvaID":"e3","uri":"https://some.site/policies/x3","content":"cG9saWN5LTM="}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p, err := NewPolicy(tc.p, bytes.NewBufferString(tc.data))
+			require.NoError(t, err)
+			require.NotNil(t, p)
+
+			if len(tc.tags) > 0 {
+				p.AddTags(tc.tags...)
+			}
+
+			b, err2 := json.Marshal(p)
+			require.NoError(t, err2)
+			require.NotNil(t, b)
+			assert.Equal(t, tc.want, string(b))
+
+			p2 := new(Policy)
+			err = json.Unmarshal([]byte(b), p2)
+			require.NoError(t, err)
+			assert.EqualValues(t, p, p2)
+		})
+	}
+}
+
+func TestSplitPolicyKey(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		key   string
+		want1 string
+		want2 string
+	}{
+		{name: "empty"},
+		{name: "just separator", key: "/"},
+		{name: "only id", key: "/x", want2: "x"},
+		{name: "simple", key: "x/y", want1: "x", want2: "y"},
+		{name: "opa", key: "Opa/X/y", want1: "Opa/X", want2: "y"},
+		{name: "cerbos", key: "CERBOS/x/Y", want1: "CERBOS/x", want2: "Y"},
+		{name: "cedar", key: "cedar/x/y", want2: "cedar/x/y"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got1, got2 := SplitPolicyKey(tc.key)
+			assert.Equal(t, tc.want1, got1)
+			assert.Equal(t, tc.want2, got2)
 		})
 	}
 }

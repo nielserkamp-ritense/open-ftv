@@ -7,14 +7,13 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(event models.EventType, key string) {
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.REGO.Language()) && !strings.EqualFold(language, models.REGO.String()) {
 			return
 		}
@@ -39,7 +38,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 		}
 
 	case models.PolicyRemoved:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.REGO.Language()) {
 			return
 		}

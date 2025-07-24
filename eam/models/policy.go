@@ -1,4 +1,4 @@
-package pap
+package models
 
 import (
 	"bytes"
@@ -189,6 +189,7 @@ func (p *Policy) MarshalJSON() ([]byte, error) {
 	for k := range p.tags {
 		tags = append(tags, k)
 	}
+	slices.Sort(tags)
 
 	return json.Marshal(&policyJSON{
 		Language:    p.language,
@@ -216,7 +217,12 @@ func (p *Policy) UnmarshalJSON(data []byte) error {
 	p.path = p2.Path
 	p.content, _ = base64.StdEncoding.DecodeString(p2.Content)
 
-	maps.Clear(p.tags)
+	if p.tags == nil {
+		p.tags = make(map[string]struct{}, len(p2.Tags))
+	} else {
+		maps.Clear(p.tags)
+	}
+
 	for i := range p2.Tags {
 		p.tags[p2.Tags[i]] = struct{}{}
 	}

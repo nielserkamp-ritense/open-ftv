@@ -124,6 +124,12 @@ paths:
       description: Endpoint to start a new deployment.
       tags:
         - deployment
+      requestBody:
+        description: Parameters for a new bundle deployment.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewDeploymentBody"
       responses:
         "201":
           $ref: "#/components/responses/DeployStarted"
@@ -138,7 +144,7 @@ paths:
     post:
       operationId: "push-bundle"
       summary: Receive a new deployment bundle.
-      description: Endpoint to receive a new deployment bundle and update the PDP policies and static data.
+      description: Endpoint to receive a new deployment bundle and replace the full set of policies and static data.
       tags:
         - bundle
       responses:
@@ -307,6 +313,14 @@ components:
             $ref: "#/components/schemas/ErrorMessage"
 
   schemas:
+    NewDeploymentBody:
+      type: object
+      description: Body content for a new deployment request.
+      properties:
+        description:
+          type: string
+          description: Description of the new deployment.
+
     Statuses:
       type: array
       description: List of deployment status codes and names.
@@ -424,6 +438,9 @@ components:
         status:
           type: integer
           description: Status of the last deployment.
+        message:
+          type: string
+          description: Message for a failed deployment.
         created:
           type: string
           description: Date and time the deployment was started (UTC - RFC3339).

@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
@@ -68,7 +70,10 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		eh := NewEntitiesHandler(logger, controller.PIP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		eh := NewEntitiesHandler(logger, controller.PIP(), auth)
 		require.NotNil(t, eh)
 
 		srv := fiber.New()
@@ -120,7 +125,10 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		eh := NewEntitiesHandler(logger, controller.PIP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		eh := NewEntitiesHandler(logger, controller.PIP(), auth)
 		require.NotNil(t, eh)
 
 		srv := fiber.New()
@@ -176,7 +184,10 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			eh := NewEntitiesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			eh := NewEntitiesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, eh)
 
 			srv := fiber.New()
@@ -257,7 +268,10 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			eh := NewEntitiesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			eh := NewEntitiesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, eh)
 
 			srv := fiber.New()
@@ -340,7 +354,10 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewEntitiesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ah := NewEntitiesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -411,7 +428,10 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewEntitiesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ah := NewEntitiesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()

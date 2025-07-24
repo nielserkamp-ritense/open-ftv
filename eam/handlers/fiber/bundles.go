@@ -2,13 +2,13 @@ package fiber
 
 import (
 	"log/slog"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 )
@@ -16,28 +16,28 @@ import (
 // BundlesVersion is the full semantic API version for the bundle endpoints.
 const BundlesVersion = "1.0.0" // check against oas/bundles/openapi.yaml!
 
-// BundlesHandler represents the interface for handling requests about bundles.
-type BundlesHandler interface {
-	GetStatuses(req *fiber.Ctx) error
-	GetCompressTypes(req *fiber.Ctx) error
-	GetConfigs(req *fiber.Ctx) error
-	GetDeployments(req *fiber.Ctx) error
-	GetDeployment(req *fiber.Ctx) error
-	PostDeployment(req *fiber.Ctx) error
+// BundlesHandler contains the details for handling requests about bundles and deployments.
+type BundlesHandler struct {
+	push       bool
+	logger     *slog.Logger
+	pap        *pap.PAP
+	manager    *bundles.Manager
+	cfg        []*bundles.Config
+	authorizer authorization.Authorizer
 }
 
 // NewBundlesHandler instantiates a bundle deployment handler (no push function!).
-func NewBundlesHandler(logger *slog.Logger, manager *bundles.Manager, authorizer authorization.Authorizer) BundlesHandler {
-	return &bundlesHandler{logger: logger, manager: manager, cfg: manager.Bundles(), authorizer: authorizer}
+func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer) *BundlesHandler {
+	return &BundlesHandler{logger: logger, pap: pap, manager: manager, cfg: manager.Bundles(), authorizer: authorizer}
 }
 
 // NewBundlePushHandler instantiates a bundle push endpoint handler (only push function!).
-func NewBundlePushHandler(logger *slog.Logger, authorizer authorization.Authorizer) BundlesHandler {
-	return &bundlesHandler{logger: logger, authorizer: authorizer, push: true}
+func NewBundlePushHandler(logger *slog.Logger, authorizer authorization.Authorizer) *BundlesHandler {
+	return &BundlesHandler{logger: logger, authorizer: authorizer, push: true}
 }
 
 // GetStatuses implements the BundlesHandler interface.
-func (h *bundlesHandler) GetStatuses(req *fiber.Ctx) error {
+func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -57,7 +57,7 @@ func (h *bundlesHandler) GetStatuses(req *fiber.Ctx) error {
 }
 
 // GetCompressTypes implements the BundlesHandler interface.
-func (h *bundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
+func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -77,7 +77,7 @@ func (h *bundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 }
 
 // GetConfigs implements the BundlesHandler interface.
-func (h *bundlesHandler) GetConfigs(req *fiber.Ctx) error {
+func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -119,7 +119,7 @@ func (h *bundlesHandler) GetConfigs(req *fiber.Ctx) error {
 }
 
 // GetDeployments implements the BundlesHandler interface.
-func (h *bundlesHandler) GetDeployments(req *fiber.Ctx) error {
+func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -131,15 +131,15 @@ func (h *bundlesHandler) GetDeployments(req *fiber.Ctx) error {
 		return err
 	}
 
-	resp := make(bundles2.Deployments, 0, 8)
-
-	// TODO: retrieve deployments
-
+	resp, err := h.pap.ListDeployments()
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+	}
 	return req.JSON(resp)
 }
 
 // GetDeployment implements the BundlesHandler interface.
-func (h *bundlesHandler) GetDeployment(req *fiber.Ctx) error {
+func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -151,21 +151,20 @@ func (h *bundlesHandler) GetDeployment(req *fiber.Ctx) error {
 		return err
 	}
 
-	// TODO: start deployment
-
-	resp := &bundles2.Deployment{
-		Version:     1,
-		Description: "new deployment #1",
-		Status:      int(bundles.Creating),
-		Created:     time.Now().UTC().Format(time.RFC3339),
-		Updated:     time.Now().UTC().Format(time.RFC3339),
+	version, err := req.ParamsInt("key")
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
+	resp, err2 := h.pap.ReadDeployment(uint64(version))
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
 	return req.JSON(resp)
 }
 
 // PostDeployment implements the BundlesHandler interface.
-func (h *bundlesHandler) PostDeployment(req *fiber.Ctx) error {
+func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
@@ -177,34 +176,28 @@ func (h *bundlesHandler) PostDeployment(req *fiber.Ctx) error {
 		return err
 	}
 
-	// TODO: retrieve bundle from body
+	var body bundles2.NewDeploymentBody
+	if err := req.BodyParser(&body); err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
 
-	// TODO: decompress bundle
-
-	// TODO: deploy bundle
-
-	resp := &bundles2.BundleActivated{PreviousVersion: 0}
+	resp, err := h.pap.NewDeployment(body.Description, h.manager)
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
 	return req.JSON(resp)
 }
 
-func (h *bundlesHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *BundlesHandler) authorize(req *fiber.Ctx) (bool, error) {
 	if h.authorizer == nil {
 		return true, nil
 	}
 
 	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
 
-	// TODO: log authorization decision to audit log.
+	// TODO: log authorization decision to auth-decision log.
 
 	return authRequest.Check(req, resp, err)
-}
-
-type bundlesHandler struct {
-	push       bool
-	logger     *slog.Logger
-	manager    *bundles.Manager
-	cfg        []*bundles.Config
-	authorizer authorization.Authorizer
 }
 
 const (

@@ -8,17 +8,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
 func addPolicies(b *Bundle) {
-	p1, _ := pap.NewPolicyFromData("p1", "opa", "", "", bytes.NewBufferString("haha"))
-	p2, _ := pap.NewPolicyFromData("p2", "cedar", "", "", bytes.NewBufferString("haha"))
-	p3, _ := pap.NewPolicyFromData("p3", "opa/rego", "", "", bytes.NewBufferString("haha"))
-	p4, _ := pap.NewPolicyFromData("p4", "cerbos", "", "", bytes.NewBufferString("haha"))
-	p5, _ := pap.NewPolicyFromData("p5", "openFGA", "", "", bytes.NewBufferString("haha"))
-	p6, _ := pap.NewPolicyFromData("p6", "cedar", "", "", bytes.NewBufferString("haha"))
-	p7, _ := pap.NewPolicyFromData("p7", "cel", "", "", bytes.NewBufferString("haha"))
+	p1, _ := models.NewPolicyFromData("p1", "opa", "", "", bytes.NewBufferString("haha"))
+	p2, _ := models.NewPolicyFromData("p2", "cedar", "", "", bytes.NewBufferString("haha"))
+	p3, _ := models.NewPolicyFromData("p3", "opa/rego", "", "", bytes.NewBufferString("haha"))
+	p4, _ := models.NewPolicyFromData("p4", "cerbos", "", "", bytes.NewBufferString("haha"))
+	p5, _ := models.NewPolicyFromData("p5", "openFGA", "", "", bytes.NewBufferString("haha"))
+	p6, _ := models.NewPolicyFromData("p6", "cedar", "", "", bytes.NewBufferString("haha"))
+	p7, _ := models.NewPolicyFromData("p7", "cel", "", "", bytes.NewBufferString("haha"))
 
 	p1.AddTags("x", "y", "z")
 	p2.AddTags("x")
@@ -28,7 +27,7 @@ func addPolicies(b *Bundle) {
 	p6.AddTags("a", "b", "x")
 	p7.AddTags("a", "c", "z")
 
-	policies := []*pap.Policy{p1, p2, p3, p4, p5, p6, p7}
+	policies := []*models.Policy{p1, p2, p3, p4, p5, p6, p7}
 
 	for i := range policies {
 		b.AddPolicy(policies[i])

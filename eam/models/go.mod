@@ -7,6 +7,8 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250723072950-f3dd075b1605
+	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
 )
 
 require (

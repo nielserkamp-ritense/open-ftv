@@ -6,6 +6,7 @@ import (
 
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
@@ -22,12 +23,16 @@ func WithLanguage(language string) Option {
 
 // WithPersistence connects the PAP to persistent storage.
 //
-// By default, a PAP is created with an in-memory KV-cache.
+// By default, a PAP is created with an in-memory key-value cache.
 func WithPersistence(store store.Store, basePath string) Option {
 	return func(p *PAP) {
-		_ = p.store.Close()
+		if p.store != nil {
+			_ = p.store.Close()
+		}
+
 		p.store = store
-		p.persist = NewStore(p.ctx, store, basePath)
+		p.persist = NewPersistence(p.ctx, store, basePath)
+		p.deployer = bundles.NewPersistence(p.ctx, store, basePath)
 	}
 }
 

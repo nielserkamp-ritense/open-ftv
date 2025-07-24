@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -80,7 +81,10 @@ func (s *service) initPolicies(group fiber.Router) {
 
 func (s *service) initBundles(group fiber.Router) {
 	manager := bundles.NewManager(s.cfg.Bundle.Path, true, s.logger)
-	apis := handle.NewBundlesHandler(s.logger, manager, s.auth.Authorizer())
+	apis := handle.NewBundlesHandler(s.logger, s.pap, manager, s.auth.Authorizer())
+
+	// restart the last interrupted bundle deployment run if needed.
+	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(manager) })
 
 	// bundles CRUD.
 	group.Get(handle.PathStatuses, apis.GetStatuses)

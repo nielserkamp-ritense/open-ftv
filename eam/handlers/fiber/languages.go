@@ -49,7 +49,7 @@ func (h *LanguagesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
 
-	// TODO: log authorization decision to audit log.
+	// TODO: log authorization decision to auth-decision log.
 
 	return authRequest.Check(req, resp, err)
 }

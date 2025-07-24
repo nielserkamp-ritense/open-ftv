@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -63,7 +64,7 @@ func TestPap_Add(t *testing.T) {
 
 			p.AddEventSink(e)
 
-			pol, err2 := NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
+			pol, err2 := models.NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, pol)
@@ -138,7 +139,7 @@ func TestPap_Replace(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -148,11 +149,11 @@ func TestPap_Replace(t *testing.T) {
 
 			parts := strings.Split(tc.key, "/")
 
-			prev, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+			prev, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
-			pol, err3 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, tc.data)
+			pol, err3 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, tc.data)
 			require.NoError(t, err3)
 			require.NotNil(t, pol)
 
@@ -211,7 +212,7 @@ func TestPap_Remove(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -220,7 +221,7 @@ func TestPap_Remove(t *testing.T) {
 			}
 
 			parts := strings.Split(tc.key, "/")
-			prev, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+			prev, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
@@ -270,7 +271,7 @@ func TestPap_ListAllKeys(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -290,6 +291,114 @@ func TestPap_ListAllKeys(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPAP_NewDeployment(t *testing.T) {
+	t.Parallel()
+
+	t.Run("new deployment", func(t *testing.T) {
+		t.Parallel()
+
+		h := slog2.NewDummyHandler(0)
+		logger := slog.New(h)
+
+		p := New(nil, logger)
+		require.NotNil(t, p)
+
+		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		require.NotNil(t, m)
+
+		d, err := p.NewDeployment("merry easter", m)
+		require.NoError(t, err)
+		require.NotNil(t, d)
+
+		assert.Equal(t, uint64(1), d.Version())
+		assert.Equal(t, bundles.Creating, d.Status())
+	})
+}
+
+func TestPAP_LastDeployment(t *testing.T) {
+	t.Parallel()
+
+	t.Run("last deployment", func(t *testing.T) {
+		t.Parallel()
+
+		h := slog2.NewDummyHandler(0)
+		logger := slog.New(h)
+
+		p := New(nil, logger)
+		require.NotNil(t, p)
+
+		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		require.NotNil(t, m)
+
+		d, err := p.NewDeployment("merry easter", m)
+		require.NoError(t, err)
+		require.NotNil(t, d)
+
+		d2, err2 := p.LastDeployment()
+		require.NoError(t, err2)
+		require.NotNil(t, d2)
+		assert.Equal(t, uint64(1), d2.Version())
+		assert.Equal(t, bundles.Creating, d2.Status())
+	})
+}
+
+func TestPAP_ReadDeployment(t *testing.T) {
+	t.Parallel()
+
+	t.Run("read deployment", func(t *testing.T) {
+		t.Parallel()
+
+		h := slog2.NewDummyHandler(0)
+		logger := slog.New(h)
+
+		p := New(nil, logger)
+		require.NotNil(t, p)
+
+		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		require.NotNil(t, m)
+
+		d, err := p.NewDeployment("merry easter", m)
+		require.NoError(t, err)
+		require.NotNil(t, d)
+
+		d2, err2 := p.ReadDeployment(1)
+		require.NoError(t, err2)
+		require.NotNil(t, d2)
+		assert.Equal(t, uint64(1), d2.Version())
+		assert.Equal(t, bundles.Creating, d2.Status())
+
+		d3, err3 := p.ReadDeployment(2)
+		require.Error(t, err3)
+		require.Nil(t, d3)
+	})
+}
+
+func TestPAP_ListDeployments(t *testing.T) {
+	t.Parallel()
+
+	t.Run("list deployments", func(t *testing.T) {
+		t.Parallel()
+
+		h := slog2.NewDummyHandler(0)
+		logger := slog.New(h)
+
+		p := New(nil, logger)
+		require.NotNil(t, p)
+
+		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		require.NotNil(t, m)
+
+		d, err := p.NewDeployment("merry easter", m)
+		require.NoError(t, err)
+		require.NotNil(t, d)
+
+		list, err2 := p.ListDeployments()
+		require.NoError(t, err2)
+		require.NotNil(t, list)
+		assert.Equal(t, 1, len(list))
+	})
 }
 
 type eventCounter struct {
