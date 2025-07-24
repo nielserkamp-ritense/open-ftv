@@ -1,7 +1,7 @@
 github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=
 github.com/andybalholm/brotli v1.2.0/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
-github.com/cedar-policy/cedar-go v1.2.4 h1:pZjlqxXAVk2nO1XLNMWAZYdcyCXgwBS4ReevQuD6M/I=
-github.com/cedar-policy/cedar-go v1.2.4/go.mod h1:Ahhlu3DxDzvGTR88v/+j/EeiMEyvta11hlkdDgj4AZU=
+github.com/cedar-policy/cedar-go v1.2.5 h1:JDyW1DrXR2f27bRIaS1mPWYULnZsCzi/Jjh397vxvoU=
+github.com/cedar-policy/cedar-go v1.2.5/go.mod h1:h5+3CVW1oI5LXVskJG+my9TFCYI5yjh/+Ul3EJie6MI=
 github.com/coreos/go-semver v0.3.1 h1:yi21YpKnrx1gt5R+la8n5WgS0kCrsPp33dmEyHReZr4=
 github.com/coreos/go-semver v0.3.1/go.mod h1:irMmmIw/7yzSRPWryHsK7EYSg09caPQL03VsM8rvUec=
 github.com/coreos/go-systemd/v22 v22.5.0 h1:RrqgGjYQKalulkV8NGVIfkXQf6YYmOyiJKk8iXXhfZs=
