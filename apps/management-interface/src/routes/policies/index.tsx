@@ -1,10 +1,13 @@
 import { Heading } from '@/components/heading'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
-// import { createFileRoute } from '@tanstack/react-router'
-import {usePolicies} from "@/services/policies.ts";
+import {useDeletePolicy, usePolicies} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
 import {createFileRoute} from "@tanstack/react-router";
 import {Button} from "@/components/button.tsx";
+import {Dropdown, DropdownButton, DropdownItem, DropdownMenu} from '@/components/dropdown';
+import {EllipsisHorizontalIcon} from "@heroicons/react/16/solid";
+import {useState} from "react";
+import {Alert, AlertActions, AlertDescription, AlertTitle} from "@/components/alert.tsx";
 
 export const Route = createFileRoute('/policies/')({
   component: PoliciesComponent,
@@ -12,6 +15,30 @@ export const Route = createFileRoute('/policies/')({
 
 export default function PoliciesComponent() {
     const { data, isLoading, error } = usePolicies();
+    const deletePolicyMutation = useDeletePolicy();
+    const [isOpen, setIsOpen] = useState(false)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
+
+    function showDeleteModal(id: string) {
+        setSelectedId(id)
+        setIsOpen(true)
+    }
+
+    function deletePolicy() {
+        const policy = data?.find(x => x.id == selectedId)
+
+        if (!policy) {
+            setIsOpen(false)
+            return;
+        }
+
+        deletePolicyMutation.mutate({
+            language: policy.language,
+            id: policy.id,
+        })
+
+        setIsOpen(false)
+    }
 
     if (isLoading) {
         return (
@@ -34,6 +61,18 @@ export default function PoliciesComponent() {
               <Heading>Policies</Heading>
               <Button color={"emerald"} href={"/policies/add"}>Add policy</Button>
           </div>
+          <Alert open={isOpen} onClose={setIsOpen}>
+              <AlertTitle>Are you sure you want to delete policy {selectedId}?</AlertTitle>
+              <AlertDescription>
+                  This action cannot be undone. This will permanently delete the policy and all of its data.
+              </AlertDescription>
+              <AlertActions>
+                  <Button plain onClick={() => setIsOpen(false)}>
+                      Cancel
+                  </Button>
+                  <Button color={"red"} onClick={deletePolicy}>Delete</Button>
+              </AlertActions>
+          </Alert>
           <Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
               <TableHead>
                   <TableRow>
@@ -41,15 +80,30 @@ export default function PoliciesComponent() {
                       <TableHeader>Language</TableHeader>
                       <TableHeader>URL</TableHeader>
                       <TableHeader className="text-right">rvvaId</TableHeader>
+                      <TableHeader className="text-right">Actions</TableHeader>
                   </TableRow>
               </TableHead>
               <TableBody>
                   {data?.map((order) => (
-                      <TableRow key={order.id} href={order.url} title={`Policy #${order.id}`}>
+                      <TableRow key={order.id} href={"/policies/"+order.id} title={`Policy #${order.id}`}>
                           <TableCell>{order.id}</TableCell>
                           <TableCell className="text-zinc-500">{order.language}</TableCell>
                           <TableCell>{order.url}</TableCell>
                           <TableCell className="text-right">{order.rvvaId}</TableCell>
+                          <TableCell>
+                              <div className="pr-2 -mx-3 -my-1.5 sm:-mx-2.5 text-right">
+                                  <Dropdown>
+                                      <DropdownButton plain aria-label="More options">
+                                          <EllipsisHorizontalIcon />
+                                      </DropdownButton>
+                                      <DropdownMenu anchor="bottom end">
+                                          <DropdownItem>View</DropdownItem>
+                                          <DropdownItem>Edit</DropdownItem>
+                                          <DropdownItem onClick={() => showDeleteModal(order.id)}>Delete</DropdownItem>
+                                      </DropdownMenu>
+                                  </Dropdown>
+                              </div>
+                          </TableCell>
                       </TableRow>
                   ))}
               </TableBody>
