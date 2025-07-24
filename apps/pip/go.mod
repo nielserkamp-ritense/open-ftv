@@ -3,7 +3,7 @@ module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pip
 go 1.24.4
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication v0.0.0-20250716162429-b106327fedfb
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250716162429-b106327fedfb
