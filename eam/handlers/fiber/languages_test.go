@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -34,7 +36,10 @@ func TestLanguagesHandler_GetPolicies(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		ph := NewLanguagesHandler(logger, nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		ph := NewLanguagesHandler(logger, auth)
 		require.NotNil(t, ph)
 
 		srv := fiber.New()

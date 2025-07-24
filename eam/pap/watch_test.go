@@ -90,7 +90,7 @@ func TestProcessDeletes(t *testing.T) {
 			p := &PAP{
 				deletes: tc.files,
 				store:   s,
-				persist: NewStore(nil, s, ""),
+				persist: NewPersistence(nil, s, ""),
 			}
 
 			p.processDeletes()
@@ -129,7 +129,7 @@ func TestProcessUpdates(t *testing.T) {
 			p := &PAP{
 				updates: tc.files,
 				store:   s,
-				persist: NewStore(nil, s, ""),
+				persist: NewPersistence(nil, s, ""),
 			}
 
 			p.processUpdates()
@@ -198,7 +198,7 @@ func TestPolicyModified(t *testing.T) {
 
 			p := &PAP{
 				store:   s,
-				persist: NewStore(nil, s, ""),
+				persist: NewPersistence(nil, s, ""),
 				updates: map[string]struct{}{},
 				deletes: map[string]struct{}{},
 			}
@@ -287,7 +287,7 @@ func TestWatchFiles(t *testing.T) {
 				ctx:     ctx,
 				watcher: w,
 				store:   s,
-				persist: NewStore(nil, s, ""),
+				persist: NewPersistence(nil, s, ""),
 				updates: map[string]struct{}{},
 				deletes: map[string]struct{}{},
 			}

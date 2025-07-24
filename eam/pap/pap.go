@@ -10,6 +10,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -28,7 +29,8 @@ type PAP struct {
 	deletes      map[string]struct{}
 	eventSinks   []models.EventSink
 	store        store.Store
-	persist      Persistence
+	persist      *Persistence
+	deployer     *bundles.Persistence
 	mutex        sync.RWMutex
 }
 
@@ -48,15 +50,10 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 		w = nil // this means file handles are exhausted!
 	}
 
-	s := memory.New()
-	pp := NewStore(ctx, s, "")
-
 	p := &PAP{
 		ctx:        ctx,
 		logger:     logger,
 		watcher:    w,
-		store:      s,
-		persist:    pp,
 		updates:    make(map[string]struct{}),
 		deletes:    make(map[string]struct{}),
 		eventSinks: make([]models.EventSink, 0),
@@ -66,22 +63,27 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 		options[i](p)
 	}
 
+	persist := p.store != nil
+	if !persist {
+		// force in-memory storage.
+		WithPersistence(memory.New(), "")(p)
+	}
+
 	if w != nil {
 		go p.watchFiles()
 	}
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		args := make([]any, 0, 8)
-
 		if p.policyStore != "" {
 			args = append(args, "policyStore", p.policyStore, "recurse", p.recurse)
 		}
-		if p.persist != pp {
+		if persist {
 			args = append(args, "persistence", true)
 		}
-
 		p.logger.Info("pap initialized", args...)
 	}
+
 	return p
 }
 
@@ -93,7 +95,7 @@ func (p *PAP) Language() models.Language {
 // Create adds a policy to cache/storage.
 //
 // An error is returned if the policy-id already exists.
-func (p *PAP) Create(in *Policy) (out *Policy, err error) {
+func (p *PAP) Create(in *models.Policy) (out *models.Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Create(in)
 	p.mutex.Unlock()
@@ -107,7 +109,7 @@ func (p *PAP) Create(in *Policy) (out *Policy, err error) {
 // Read retrieves a policy from cache/storage.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *PAP) Read(language, id string) (*Policy, uint64, error) {
+func (p *PAP) Read(language, id string) (*models.Policy, uint64, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.Read(language, id)
@@ -116,7 +118,7 @@ func (p *PAP) Read(language, id string) (*Policy, uint64, error) {
 // Update modifies a policy in cache/storage with a newer version.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *PAP) Update(prev *Policy, lastIndex uint64, in *Policy) (out *Policy, err error) {
+func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy) (out *models.Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Update(prev, lastIndex, in)
 	p.mutex.Unlock()
@@ -131,7 +133,7 @@ func (p *PAP) Update(prev *Policy, lastIndex uint64, in *Policy) (out *Policy, e
 // Delete removes a policy from cache/storage.
 //
 // An error is returned if the policy key doesn't exist.
-func (p *PAP) Delete(prev *Policy, lastIndex uint64) (out *Policy, err error) {
+func (p *PAP) Delete(prev *models.Policy, lastIndex uint64) (out *models.Policy, err error) {
 	p.mutex.Lock()
 	out, err = p.persist.Delete(prev, lastIndex)
 	p.mutex.Unlock()
@@ -148,12 +150,59 @@ func (p *PAP) Delete(prev *Policy, lastIndex uint64) (out *Policy, err error) {
 // If the optional language parameter is supplied,
 // the function lists all policies with that language.
 // Otherwise, all policies, regardless of language, will be listed.
-func (p *PAP) List(language string) ([]*Policy, error) {
+func (p *PAP) List(language string) ([]*models.Policy, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.List(language)
 }
 
+// NewDeployment creates a new deployment in the store.
+func (p *PAP) NewDeployment(description string, manager *bundles.Manager) (*bundles.Deployment, error) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
+	d, err := p.deployer.Generate(description)
+	if err != nil {
+		return nil, err
+	}
+
+	manager.Run(d, p.deployer)
+	return d, nil
+}
+
+// RestartDeployment checks if a bundle deployment was interrupted and restarts the run if so.
+func (p *PAP) RestartDeployment(manager *bundles.Manager) {
+	if p.deployer != nil {
+		if d, err2 := p.deployer.LastDeployment(); err2 == nil {
+			if s := d.Status(); s != bundles.Failed && s != bundles.Completed {
+				manager.Run(d, p.deployer)
+			}
+		}
+	}
+}
+
+// LastDeployment retrieves the last deployment from the store.
+func (p *PAP) LastDeployment() (*bundles.Deployment, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.deployer.LastDeployment()
+}
+
+// ReadDeployment retrieves a deployment from the store.
+func (p *PAP) ReadDeployment(version uint64) (*bundles.Deployment, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.deployer.ReadDeployment(version)
+}
+
+// ListDeployments retrieves all deployments from the store.
+func (p *PAP) ListDeployments() ([]*bundles.Deployment, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.deployer.ListDeployments()
+}
+
+// AddEventSink adds an event processor to the PAP.
 func (p *PAP) AddEventSink(events models.EventSink) {
 	p.mutex.Lock()
 	p.eventSinks = append(p.eventSinks, events)

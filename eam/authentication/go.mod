@@ -34,11 +34,13 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-20250708120440-2327e161c67a // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250723072950-f3dd075b1605 // indirect
 	go.etcd.io/etcd/api/v3 v3.6.1 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.1 // indirect
 	go.etcd.io/etcd/client/v3 v3.6.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
+	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
@@ -49,8 +51,8 @@ require (
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apimachinery v0.33.2 // indirect
-	k8s.io/client-go v0.33.2 // indirect
+	k8s.io/apimachinery v0.33.3 // indirect
+	k8s.io/client-go v0.33.3 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
 )

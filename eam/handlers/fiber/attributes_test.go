@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
@@ -68,7 +70,10 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ah := NewAttributesHandler(logger, controller.PIP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		ah := NewAttributesHandler(logger, controller.PIP(), auth)
 		require.NotNil(t, ah)
 
 		srv := fiber.New()
@@ -114,7 +119,10 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ah := NewAttributesHandler(logger, controller.PIP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		ah := NewAttributesHandler(logger, controller.PIP(), auth)
 		require.NotNil(t, ah)
 
 		srv := fiber.New()
@@ -166,7 +174,10 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ah := NewAttributesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -243,7 +254,10 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ah := NewAttributesHandler(logger, controller.PIP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ah := NewAttributesHandler(logger, controller.PIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()

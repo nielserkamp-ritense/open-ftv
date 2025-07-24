@@ -48,6 +48,9 @@ type Deployment struct {
 	// Description Description of the deployment.
 	Description string `json:"description"`
 
+	// Message Message for a failed deployment.
+	Message string `json:"message,omitempty"`
+
 	// Status Status of the last deployment.
 	Status int `json:"status"`
 
@@ -77,6 +80,12 @@ type ErrorMessage struct {
 
 	// Type Identification of the problem.
 	Type string `json:"type,omitempty"`
+}
+
+// NewDeploymentBody Body content for a new deployment request.
+type NewDeploymentBody struct {
+	// Description Description of the new deployment.
+	Description string `json:"description,omitempty"`
 }
 
 // Status The code and name of a deployment status.
@@ -144,3 +153,6 @@ type StatusesFound = Statuses
 
 // UnexpectedError The response for an error (as defined by RFC9457).
 type UnexpectedError = ErrorMessage
+
+// StartDeploymentJSONRequestBody defines body for StartDeployment for application/json ContentType.
+type StartDeploymentJSONRequestBody = NewDeploymentBody

@@ -12,14 +12,13 @@ import (
 	tuple2 "github.com/openfga/openfga/pkg/tuple"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
 // Handle implements the EventSink interface.
 func (c *controller) Handle(t models.EventType, key string) {
 	switch t {
 	case models.PolicyAdded, models.PolicyReplaced:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.OPENFGA.Language()) && !strings.EqualFold(language, models.OPENFGA.String()) {
 			return
 		}
@@ -41,7 +40,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 		}
 
 	case models.PolicyRemoved:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.OPENFGA.Language()) {
 			return
 		}

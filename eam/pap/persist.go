@@ -10,22 +10,14 @@ import (
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // PathSeparator is the standard separator character to use with multi-level keys.
 const PathSeparator = "/"
 
-// Persistence represents the interface to manage persistent storage for policies.
-type Persistence interface {
-	Create(p *Policy) (*Policy, error)
-	Read(language, id string) (*Policy, uint64, error)
-	Update(prev *Policy, lastIndex uint64, p *Policy) (*Policy, error)
-	Delete(prev *Policy, lastIndex uint64) (*Policy, error)
-	List(language string) ([]*Policy, error)
-}
-
-// NewStore instantiates a new persistent storage handler for policies.
+// NewPersistence instantiates a new persistent storage handler for policies.
 //
 // It creates a CRUD wrapper around the given Valkeyrie Store interface.
 // This means it can be used with various distributed KV backends,
@@ -37,12 +29,20 @@ type Persistence interface {
 // A trailing PathSeparator character in basePath is automatically appended if it is missing from the input.
 //
 // The given context is passed in every call to the KV backend.
-func NewStore(ctx context.Context, client store.Store, basePath string) Persistence {
-	return &wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}
+func NewPersistence(ctx context.Context, client store.Store, basePath string) *Persistence {
+	return &Persistence{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}
 }
 
-// Create implements the Persistence interface.
-func (s *wrapper) Create(p *Policy) (*Policy, error) {
+// Persistence contains the details to manage persistent storage for policies.
+type Persistence struct {
+	ctx      context.Context
+	client   store.Store
+	basePath string
+	mutex    sync.RWMutex
+}
+
+// Create adds a policy to the store.
+func (s *Persistence) Create(p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(p.Language(), p.ID())
 
 	s.mutex.Lock()
@@ -54,8 +54,8 @@ func (s *wrapper) Create(p *Policy) (*Policy, error) {
 	return p, nil
 }
 
-// Read implements the Persistence interface.
-func (s *wrapper) Read(language, id string) (*Policy, uint64, error) {
+// Read retrieves a policy from the store.
+func (s *Persistence) Read(language, id string) (*models.Policy, uint64, error) {
 	key := s.bugFix(s.makeKey(language, id))
 
 	s.mutex.RLock()
@@ -76,8 +76,8 @@ func (s *wrapper) Read(language, id string) (*Policy, uint64, error) {
 	return p, kv.LastIndex, nil
 }
 
-// Update implements the Persistence interface.
-func (s *wrapper) Update(prev *Policy, lastIndex uint64, p *Policy) (*Policy, error) {
+// Update replaces a policy in the store.
+func (s *Persistence) Update(prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
 	s.mutex.Lock()
@@ -90,8 +90,8 @@ func (s *wrapper) Update(prev *Policy, lastIndex uint64, p *Policy) (*Policy, er
 	return p, nil
 }
 
-// Delete implements the Persistence interface.
-func (s *wrapper) Delete(prev *Policy, lastIndex uint64) (*Policy, error) {
+// Delete removes a policy from the store.
+func (s *Persistence) Delete(prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	key := s.makeKey(prev.Language(), prev.ID())
 
 	s.mutex.Lock()
@@ -105,8 +105,8 @@ func (s *wrapper) Delete(prev *Policy, lastIndex uint64) (*Policy, error) {
 	return prev, nil
 }
 
-// List implements the Persistence interface.
-func (s *wrapper) List(language string) ([]*Policy, error) {
+// List returns all policies from the store.
+func (s *Persistence) List(language string) ([]*models.Policy, error) {
 	key := s.basePath
 	if language != "" {
 		key = fmt.Sprintf("%s%s%s", key, language, PathSeparator)
@@ -124,9 +124,9 @@ func (s *wrapper) List(language string) ([]*Policy, error) {
 		return nil, fmt.Errorf("failed to read policies: %w", err)
 	}
 
-	out := make([]*Policy, 0, len(list))
+	out := make([]*models.Policy, 0, len(list))
 	for _, kv := range list {
-		p := new(Policy)
+		p := new(models.Policy)
 		if err = json.Unmarshal(kv.Value, p); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal policies: %w", err)
 		}
@@ -136,24 +136,24 @@ func (s *wrapper) List(language string) ([]*Policy, error) {
 	return out, nil
 }
 
-func (s *wrapper) makeKey(language, id string) string {
+func (s *Persistence) makeKey(language, id string) string {
 	return fmt.Sprintf("%s%s%s%s", s.basePath, language, PathSeparator, id)
 }
 
-func (s *wrapper) mustMarshal(p *Policy) []byte {
+func (s *Persistence) mustMarshal(p *models.Policy) []byte {
 	b, _ := json.Marshal(p)
 	return b
 }
 
-func (s *wrapper) unmarshal(id string, kv *store.KVPair) (*Policy, error) {
-	p := &Policy{tags: make(map[string]struct{})}
+func (s *Persistence) unmarshal(id string, kv *store.KVPair) (*models.Policy, error) {
+	p := new(models.Policy)
 	if err := json.Unmarshal(kv.Value, p); err != nil {
 		return s.failure("unmarshal", id, err, true)
 	}
 	return p, nil
 }
 
-func (s *wrapper) failure(op, id string, err error, mustFind bool) (*Policy, error) {
+func (s *Persistence) failure(op, id string, err error, mustFind bool) (*models.Policy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
 	}
@@ -163,20 +163,12 @@ func (s *wrapper) failure(op, id string, err error, mustFind bool) (*Policy, err
 	return nil, fmt.Errorf("policy '%s' already exists", id)
 }
 
-func (s *wrapper) bugFix(in string) string {
+func (s *Persistence) bugFix(in string) string {
 	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
 	if _, ok := s.client.(*etcdv3.Store); ok {
 		return "/" + in
 	}
 	return in
-}
-
-type wrapper struct {
-	ctx       context.Context
-	client    store.Store
-	basePath  string
-	mutex     sync.RWMutex
-	storeLock store.Locker
 }
 
 var (

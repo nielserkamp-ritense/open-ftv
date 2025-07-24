@@ -9,7 +9,6 @@ import (
 	"github.com/goccy/go-yaml"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 )
 
 // Handle implements the EventSink interface.
@@ -21,7 +20,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 
 	switch event {
 	case models.PolicyAdded, models.PolicyReplaced:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.CERBOS.Language()) && !strings.EqualFold(language, models.CERBOS.String()) {
 			return
 		}
@@ -36,7 +35,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 		c.upsertPolicy(language, id, id2)
 
 	case models.PolicyRemoved:
-		language, id := pap.SplitPolicyKey(key)
+		language, id := models.SplitPolicyKey(key)
 		if !strings.EqualFold(language, models.CERBOS.Language()) {
 			return
 		}

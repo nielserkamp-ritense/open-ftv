@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
@@ -97,7 +98,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol *pap.Policy
+	var pol *models.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -143,7 +144,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	var pol *pap.Policy
+	var pol *models.Policy
 	if pol, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
@@ -247,13 +248,13 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*polic
 	return &p, true, nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*pap.Policy, bool, error) {
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*models.Policy, bool, error) {
 	if p.Url == "" {
 		if p.Data == "" {
 			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "policy data or url required")
 		}
 
-		pol, err3 := pap.NewPolicy(p, bytes.NewBufferString(p.Data))
+		pol, err3 := models.NewPolicy(p, bytes.NewBufferString(p.Data))
 		if err3 != nil {
 			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 		}
@@ -275,14 +276,14 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*pap.
 
 	defer resp.Body.Close()
 
-	pol, err3 := pap.NewPolicy(p, resp.Body)
+	pol, err3 := models.NewPolicy(p, resp.Body)
 	if err3 != nil {
 		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 	}
 	return pol, true, nil
 }
 
-func (h *policiesHandler) convertPolicy(pol *pap.Policy, withData bool) *policies.Policy {
+func (h *policiesHandler) convertPolicy(pol *models.Policy, withData bool) *policies.Policy {
 	if !withData || pol.URI() != "" {
 		return &policies.Policy{
 			Id:       pol.ID(),
@@ -308,7 +309,7 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
 
-	// TODO: log authorization decision to audit log.
+	// TODO: log authorization decision to auth-decision log.
 
 	return authRequest.Check(req, resp, err)
 }

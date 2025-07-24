@@ -12,7 +12,6 @@ import (
 	"github.com/goccy/go-json"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
@@ -130,7 +129,7 @@ type Bundle struct {
 }
 
 // AddPolicy adds the given policy to the bundle if the language matches, and it contains one of the selection tags.
-func (b *Bundle) AddPolicy(p *pap.Policy) bool {
+func (b *Bundle) AddPolicy(p *models.Policy) bool {
 	if models.LanguageFromString(p.Language()) != b.l || !b.tagMatched(p.HasTag) {
 		return false
 	}

@@ -32,7 +32,7 @@ func TestWithLanguage(t *testing.T) {
 func TestWithPersistence(t *testing.T) {
 	t.Parallel()
 
-	t.Run("with language", func(t *testing.T) {
+	t.Run("with persistence", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
@@ -43,6 +43,7 @@ func TestWithPersistence(t *testing.T) {
 
 		assert.Equal(t, s, p.store)
 		assert.NotNil(t, p.persist)
+		assert.NotNil(t, p.deployer)
 	})
 }
 

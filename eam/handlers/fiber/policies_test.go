@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
@@ -68,7 +70,10 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 		require.NotNil(t, ph)
 
 		srv := fiber.New()
@@ -114,7 +119,10 @@ func TestPoliciesHandler_GetPolicies_NotFOund(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+		require.NotNil(t, auth)
+
+		ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 		require.NotNil(t, ph)
 
 		srv := fiber.New()
@@ -168,7 +176,10 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -253,7 +264,10 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -340,7 +354,10 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
@@ -408,7 +425,10 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 			require.NotNil(t, controller)
 
-			ph := NewPoliciesHandler(logger, controller.PAP(), nil)
+			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
+			require.NotNil(t, auth)
+
+			ph := NewPoliciesHandler(logger, controller.PAP(), auth)
 			require.NotNil(t, ph)
 
 			srv := fiber.New()
