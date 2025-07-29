@@ -4,6 +4,46 @@
  */
 
 export interface paths {
+    "/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve languages.
+         * @description Endpoint to retrieve the list of supported policy languages.
+         */
+        get: operations["get-languages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve tags.
+         * @description Endpoint to retrieve the list of tags.
+         */
+        get: operations["get-tags"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/policies": {
         parameters: {
             query?: never;
@@ -47,14 +87,14 @@ export interface paths {
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
-        put: operations["replace-policy"];
+        put: operations["update-policy"];
         /**
          * Add policy.
          * @description If the unique identifier of the policy already exists, a 409 status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
-        post: operations["add-policy"];
+        post: operations["create-policy"];
         /**
          * Remove policy.
          * @description If the unique identifier of the policy does not exist, a 404 status code will be returned.
@@ -71,12 +111,30 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Languages: components["schemas"]["Language"][];
+        /** @description The details of a policy language. */
+        Language: {
+            /** @description The unique identifier of the policy language. */
+            id?: string;
+            /** @description Name of the policy language in human-readable form. */
+            name?: string;
+        };
+        Tags: components["schemas"]["Tag"][];
+        /** @description The details of a tag. */
+        Tag: {
+            /** @description The unique identifier of the tag. */
+            id?: string;
+            /** @description Name of the tag in human-readable form. */
+            name?: string;
+        };
+        Policies: components["schemas"]["Policy"][];
         /** @description The content of a policy. */
         Policy: {
             /** @description The unique identifier of the policy. */
             id: string;
             /** @description The language of the policy.
              *     The value is case-insensitive.
+             *     The value is considered as one of the tags of the policy.
              *
              *     Supported values:
              *     - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
@@ -85,19 +143,30 @@ export interface components {
              *     - "openfga"; alternative: "open-fga".
              *      */
             language: string;
+            /** @description The most recent version number of the policy.
+             *     This is a read-only field.
+             *     It is automatically updated during the deploy process.
+             *      */
+            version?: number;
+            /** @description Description and/or comments for the policy. */
+            description?: string;
             /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
-             *     Required when the policy is linked 1-on-1 with an item in the RvVA.
+             *     Only required when the policy is linked directly with an item in the RvVA.
+             *     The value is considered as one of the tags of the policy.
              *      */
             rvvaId?: string;
+            /** @description List of additional tags associated with the policy.
+             *     This is used to determine which PDP (or set of PDPs) policies can be pushed to.
+             *     Note that the language and rvvaId fields are also tags.
+             *      */
+            additionalTags?: string[];
             /** @description Link to the policy. Required when the policy is stored externally. */
             url?: string;
             /** @description Content of the policy. Required when the policy is stored internally. */
             data?: string;
         };
-        PoliciesResponse: components["schemas"]["Policy"][];
-        PolicyResponse: components["schemas"]["Policy"];
         /** @description The response for an error (as defined by RFC9457). */
-        ErrorResponse: {
+        ErrorMessage: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -117,6 +186,83 @@ export interface components {
         };
     };
     responses: {
+        /** @description Languages found. */
+        LanguagesFound: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Languages"];
+            };
+        };
+        /** @description Tags found. */
+        TagsFound: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Tags"];
+            };
+        };
+        /** @description Policies found. */
+        PoliciesFound: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Policies"];
+            };
+        };
+        /** @description Policy found. */
+        PolicyFound: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Policy"];
+            };
+        };
+        /** @description Policy created. */
+        PolicyCreated: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Policy"];
+            };
+        };
+        /** @description Policy replaced. */
+        PolicyReplaced: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Policy"];
+            };
+        };
+        /** @description Policy removed. */
+        PolicyRemoved: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Policy"];
+            };
+        };
         /** @description Bad request. */
         BadRequest: {
             headers: {
@@ -125,7 +271,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
         /** @description Not authorized. */
@@ -136,7 +282,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
         /** @description Access denied. */
@@ -147,7 +293,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
         /** @description Resource not found. */
@@ -158,7 +304,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
         /** @description Resource already exists. */
@@ -169,7 +315,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
         /** @description Unexpected error. */
@@ -180,7 +326,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["ErrorMessage"];
             };
         };
     };
@@ -200,6 +346,38 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "get-languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["LanguagesFound"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            "5XX": components["responses"]["UnexpectedError"];
+        };
+    };
+    "get-tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["TagsFound"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            "5XX": components["responses"]["UnexpectedError"];
+        };
+    };
     "get-policies": {
         parameters: {
             query?: never;
@@ -209,17 +387,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Policies found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PoliciesResponse"];
-                };
-            };
+            200: components["responses"]["PoliciesFound"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -240,17 +408,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Policy found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyResponse"];
-                };
-            };
+            200: components["responses"]["PolicyFound"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -258,7 +416,7 @@ export interface operations {
             "5XX": components["responses"]["UnexpectedError"];
         };
     };
-    "replace-policy": {
+    "update-policy": {
         parameters: {
             query?: {
                 /** @description Force upsert during a put/post operation. */
@@ -280,17 +438,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Policy replaced. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyResponse"];
-                };
-            };
+            200: components["responses"]["PolicyReplaced"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -298,7 +446,7 @@ export interface operations {
             "5XX": components["responses"]["UnexpectedError"];
         };
     };
-    "add-policy": {
+    "create-policy": {
         parameters: {
             query?: {
                 /** @description Force upsert during a put/post operation. */
@@ -320,17 +468,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Policy created. */
-            201: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyResponse"];
-                };
-            };
+            201: components["responses"]["PolicyCreated"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -355,17 +493,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Policy removed. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyResponse"];
-                };
-            };
+            200: components["responses"]["PolicyRemoved"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
