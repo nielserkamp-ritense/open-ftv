@@ -3,9 +3,9 @@ import { components } from '../oas/policies';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Types for the policies service
-type Policy = components['schemas']['Policy'];
-type PoliciesResponse = components['schemas']['PoliciesResponse'];
-type PolicyResponse = components['schemas']['PolicyResponse'];
+export type Policy = components['schemas']['Policy'];
+export type PoliciesResponse = components['schemas']['Policies'];
+export type PolicyResponse = components['schemas']['Policy'];
 
 const POLICIES_QUERY_KEYS = {
   all: ['policies'] as const,

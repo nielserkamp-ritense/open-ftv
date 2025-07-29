@@ -16,9 +16,11 @@ function AddPolicyComponent() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     policy_name: '',
-    language: 'Cedar',
+    language: 'cedar',
     data: '',
-    rvvaId: ''
+    rvvaId: '',
+    description: '',
+    tags: ['']
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +38,7 @@ function AddPolicyComponent() {
     e.preventDefault();
     setError(null);
 
-    if (!formData.policy_name || !formData.language || !formData.data) {
+    if (!formData.description || !formData.language || !formData.data) {
       setError('All fields are required');
       return;
     }
@@ -51,6 +53,7 @@ function AddPolicyComponent() {
           language: formData.language.toLowerCase(),
           data: formData.data,
           rvvaId: formData.rvvaId,
+          description: formData.description,
         }
       });
 
@@ -73,10 +76,10 @@ function AddPolicyComponent() {
           <Fieldset>
             <FieldGroup>
               <Field>
-                <Label>Policy name</Label>
+                <Label>Policy description</Label>
                 <Input 
-                  name="policy_name" 
-                  value={formData.policy_name} 
+                  name="description"
+                  value={formData.description}
                   onChange={handleChange} 
                   required 
                 />
@@ -85,7 +88,7 @@ function AddPolicyComponent() {
                 <Label>Language</Label>
                 <Select 
                   name="language" 
-                  value={formData.rvvaId}
+                  value={formData.language}
                   onChange={handleChange}
                 >
                   <option value="cedar">Cedar</option>

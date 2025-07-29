@@ -25,7 +25,7 @@ export default function PoliciesComponent() {
     }
 
     function deletePolicy() {
-        const policy = data?.find(x => x.id == selectedId)
+        const policy = data?.find(x => x.id == selectedId);
 
         if (!policy) {
             setIsOpen(false)
@@ -84,12 +84,12 @@ export default function PoliciesComponent() {
                   </TableRow>
               </TableHead>
               <TableBody>
-                  {data?.map((order) => (
-                      <TableRow key={order.id} href={"/policies/"+order.id} title={`Policy #${order.id}`}>
-                          <TableCell>{order.id}</TableCell>
-                          <TableCell className="text-zinc-500">{order.language}</TableCell>
-                          <TableCell>{order.url}</TableCell>
-                          <TableCell className="text-right">{order.rvvaId}</TableCell>
+                  {data?.map((policy) => (
+                      <TableRow key={policy.id} href={"/policies/"+policy.language+"/"+policy.id} title={`Policy #${policy.id}`}>
+                          <TableCell>{policy.id}</TableCell>
+                          <TableCell className="text-zinc-500">{policy.language}</TableCell>
+                          <TableCell>{policy.url}</TableCell>
+                          <TableCell className="text-right">{policy.rvvaId}</TableCell>
                           <TableCell>
                               <div className="pr-2 -mx-3 -my-1.5 sm:-mx-2.5 text-right">
                                   <Dropdown>
@@ -99,7 +99,7 @@ export default function PoliciesComponent() {
                                       <DropdownMenu anchor="bottom end">
                                           <DropdownItem>View</DropdownItem>
                                           <DropdownItem>Edit</DropdownItem>
-                                          <DropdownItem onClick={() => showDeleteModal(order.id)}>Delete</DropdownItem>
+                                          <DropdownItem onClick={() => showDeleteModal(policy.id)}>Delete</DropdownItem>
                                       </DropdownMenu>
                                   </Dropdown>
                               </div>
