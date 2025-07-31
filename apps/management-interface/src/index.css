@@ -3,11 +3,11 @@
 @theme {
     --font-sans: Inter, sans-serif;
     --color-content-primary: var(--color-zinc-950);
-    --color-content-secondary: var(#FAFAFA);
-    --color-content-tertiary: var(#FAFAFA);
+    --color-content-secondary: #FAFAFA;
+    --color-content-tertiary: #FAFAFA;
     --color-content-inverse-primary: var(--color-zinc-950);
-    --color-content-inverse-secondary: var(#FAFAFA);
-    --color-content-inverse-tertiary: var(#FAFAFA);
+    --color-content-inverse-secondary: #FAFAFA;
+    --color-content-inverse-tertiary: #FAFAFA;
     --color-background-primary: var(--color-zinc-200);
     --color-background-secondary: #FAFAFA;
     --color-background-tertiary: var(--color-zinc-50);
@@ -26,12 +26,4 @@
     --color-border-hover-overlay: rgba(0, 0, 0, 0.2);
     --color-border-inverse-hover-overlay: rgba(255, 255, 255, 0.1);
     --color-cool-grey: #0F172A;
-    --radius-sm: 2px;
-    --radius-md: 4px;
-    --radius-base: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
-    --radius-2xl: 16px;
-    --radius-3xl: 24px;
-    --radius-full: 1000px;
   }
