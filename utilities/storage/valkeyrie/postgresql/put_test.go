@@ -22,7 +22,7 @@ func TestDB_Put(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec(`INSERT INTO "myTable" (key, index, value) VALUES ($1, 1, $2)
- ON CONFLICT (key) DO UPDATE SET index = index + 1, value = EXCLUDED.value`).
+ ON CONFLICT (key) DO UPDATE SET index = myTable.index + 1, value = EXCLUDED.value`).
 			WithArgs("xyz", []byte("blah")).
 			WillReturnResult(pgxmock.NewResult("INSERT", 1))
 		mock.ExpectCommit()
@@ -85,7 +85,7 @@ func TestDB_Put_FailExec(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec(`INSERT INTO "myTable" (key, index, value) VALUES ($1, 1, $2)
- ON CONFLICT (key) DO UPDATE SET index = index + 1, value = EXCLUDED.value`).
+ ON CONFLICT (key) DO UPDATE SET index = myTable.index + 1, value = EXCLUDED.value`).
 			WithArgs("xyz", []byte("blah")).
 			WillReturnError(errors.New("fail"))
 		mock.ExpectRollback()

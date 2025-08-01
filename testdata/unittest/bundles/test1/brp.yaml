@@ -1,8 +1,9 @@
 ---
-tag: "brp"
+id: "brp"
 policies: true
 data: true
 version: true
+tags: ["brp", "werktijden"]
 targets:
   - uri: "http://localhost:9010"
     apiKey: "abcdef123456"

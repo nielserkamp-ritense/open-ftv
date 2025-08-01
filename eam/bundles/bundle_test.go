@@ -11,11 +11,11 @@ import (
 )
 
 func addPolicies(b *Bundle) {
-	p1, _ := models.NewPolicyFromData("p1", "opa", "", "", bytes.NewBufferString("haha"))
-	p2, _ := models.NewPolicyFromData("p2", "cedar", "", "", bytes.NewBufferString("haha"))
-	p3, _ := models.NewPolicyFromData("p3", "opa/rego", "", "", bytes.NewBufferString("haha"))
-	p4, _ := models.NewPolicyFromData("p4", "cerbos", "", "", bytes.NewBufferString("haha"))
-	p5, _ := models.NewPolicyFromData("p5", "openFGA", "", "", bytes.NewBufferString("haha"))
+	p1, _ := models.NewPolicyFromData("myP1", "opa", "", "", bytes.NewBufferString("haha"))
+	p2, _ := models.NewPolicyFromData("myP2", "cedar", "", "", bytes.NewBufferString("haha"))
+	p3, _ := models.NewPolicyFromData("myP3", "opa/rego", "", "", bytes.NewBufferString("haha"))
+	p4, _ := models.NewPolicyFromData("myP4", "cerbos", "", "", bytes.NewBufferString("haha"))
+	p5, _ := models.NewPolicyFromData("myP5", "openFGA", "", "", bytes.NewBufferString("haha"))
 	p6, _ := models.NewPolicyFromData("p6", "cedar", "", "", bytes.NewBufferString("haha"))
 	p7, _ := models.NewPolicyFromData("p7", "cel", "", "", bytes.NewBufferString("haha"))
 
@@ -35,10 +35,10 @@ func addPolicies(b *Bundle) {
 }
 
 func addAttributes(b *Bundle) {
-	a1 := models.NewAttribute("a1", 1)
-	a2 := models.NewAttribute("a2", 1)
-	a3 := models.NewAttribute("a3", 1)
-	a4 := models.NewAttribute("a4", 1)
+	a1 := models.NewAttribute("myA1", 1)
+	a2 := models.NewAttribute("myA2", 1)
+	a3 := models.NewAttribute("myA3", 1)
+	a4 := models.NewAttribute("myA4", 1)
 	a5 := models.NewAttribute("a5", 1)
 	a6 := models.NewAttribute("a6", 1)
 	a7 := models.NewAttribute("a7", 1)
@@ -61,13 +61,13 @@ func addAttributes(b *Bundle) {
 }
 
 func addEntities(b *Bundle) {
-	e1 := models.NewEntity("user", "e1", models.NewAttributeSet(models.NewAttribute("a1", 1)))
+	e1 := models.NewEntity("user", "e1", models.NewAttributeSet(models.NewAttribute("myA1", 1)))
 	e2 := models.NewEntity("user", "e2", nil)
-	e3 := models.NewEntity("user", "e3", models.NewAttributeSet(models.NewAttribute("a3", 1)))
+	e3 := models.NewEntity("user", "e3", models.NewAttributeSet(models.NewAttribute("myA3", 1)))
 	e4 := models.NewEntity("user", "e4", nil)
-	e5 := models.NewEntity("user", "e5", models.NewAttributeSet(models.NewAttribute("a1", 1)))
+	e5 := models.NewEntity("user", "e5", models.NewAttributeSet(models.NewAttribute("myA1", 1)))
 	e6 := models.NewEntity("user", "e6", nil)
-	e7 := models.NewEntity("user", "e7", models.NewAttributeSet(models.NewAttribute("a3", 1)))
+	e7 := models.NewEntity("user", "e7", models.NewAttributeSet(models.NewAttribute("myA3", 1)))
 	e8 := models.NewEntity("user", "e8", nil)
 
 	e1.AddTags("x", "y", "z")
@@ -124,7 +124,7 @@ func TestNewBundle(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		version  int
+		version  uint64
 		language string
 		tags     []string
 	}{
@@ -326,7 +326,7 @@ func TestBundle_Transfer(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		version  int
+		version  uint64
 		language string
 		tags     []string
 		compress CompressionType

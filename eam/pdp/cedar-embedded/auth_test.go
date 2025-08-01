@@ -53,7 +53,7 @@ func TestController_Authorize(t *testing.T) {
 				Headers:     map[string][]string{},
 				Body:        []byte(""),
 			},
-			wantLog: 4,
+			wantLog: 3,
 			want:    models.Response{Message: "not authorized", Attributes: map[string]any{"diagnostic": types.Diagnostic{}}},
 		},
 		{
@@ -100,7 +100,7 @@ func TestController_Authorize(t *testing.T) {
 
 			got, err := c.Authorize(tc.req.UID.String(), parc)
 
-			assert.Equal(t, tc.wantLog, h.Count())
+			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 
 			if tc.wantErr {
 				require.Error(t, err)

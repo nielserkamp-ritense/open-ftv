@@ -6,11 +6,11 @@ import (
 )
 
 func (c *collector) decodeBody() {
-	if c.req.Body == nil {
+	if len(c.req.Body) == 0 {
 		return
 	}
 
-	ct, _ := c.parc.Context.GetAttributeValue(models.HeaderContentType).(string)
+	ct, _ := c.parc.Context.GetAttributeValue(models.AttrContentType).(string)
 	attr, err := decode.ParseBody(c.req.Body, ct)
 	if err != nil {
 		c.logger.Error("failed to parse body", "content-type", ct, "error", err)

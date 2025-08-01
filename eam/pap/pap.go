@@ -156,6 +156,17 @@ func (p *PAP) List(language string) ([]*models.Policy, error) {
 	return p.persist.List(language)
 }
 
+// Iterate calls the given closure for all policies in the store.
+func (p *PAP) Iterate(f models.PolicyIterator) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+
+	list, _ := p.persist.List("")
+	for i := range list {
+		f(list[i])
+	}
+}
+
 // NewDeployment creates a new deployment in the store.
 func (p *PAP) NewDeployment(description string, manager *bundles.Manager) (*bundles.Deployment, error) {
 	p.mutex.Lock()

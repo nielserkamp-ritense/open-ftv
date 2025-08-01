@@ -37,7 +37,7 @@ import (
 // so the receiving handler will know the type of compression used.
 //
 // The version and language are included in an encoded bundle. The selection tags are not.
-func NewBundle(version int, language string, tags ...string) *Bundle {
+func NewBundle(version uint64, language string, tags ...string) *Bundle {
 	b := newBundle()
 
 	b.Version = version
@@ -117,7 +117,7 @@ func newBundle() *Bundle {
 //
 // It has a specific version number and a policy language to indicate the language of the included policies.
 type Bundle struct {
-	Version    int                              `json:"version"              yaml:"version"`
+	Version    uint64                           `json:"version"              yaml:"version"`
 	Language   string                           `json:"language"             yaml:"language"`
 	Policies   map[string]*policies.Policy      `json:"policies,omitempty"   yaml:"policies,omitempty"`
 	Attributes map[string]*attributes.Attribute `json:"attributes,omitempty" yaml:"attributes,omitempty"`

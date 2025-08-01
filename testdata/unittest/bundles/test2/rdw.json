@@ -1,8 +1,9 @@
 {
-  "tag": "rdw",
+  "id": "rdw",
   "policies": true,
   "data": true,
   "version": true,
+  "tags": ["rdw", "werktijden"],
   "targets": [
     {"uri": "http://localhost:9110", "compress": "bz2"},
     {"uri": "http://localhost:9120", "compress": "bz2"}
