@@ -49,7 +49,7 @@ export function SidebarLayout({
   sidebar,
   children,
 }: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
-  let [showSidebar, setShowSidebar] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
 
   return (
     <div className="relative isolate flex min-h-svh w-full bg-content-secondary max-lg:flex-col dark:bg-zinc-900 dark:lg:bg-zinc-950">
@@ -72,8 +72,8 @@ export function SidebarLayout({
       </header>
 
       {/* Content */}
-      <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pt-2">
-        <div className="grow p-6 bg-background-secondary lg:p-6">
+      <main className="flex flex-1 flex-col pb-2 lg:min-w-0">
+        <div className="grow p-4 bg-background-secondary">
           <div className="w-full">{children}</div>
         </div>
       </main>

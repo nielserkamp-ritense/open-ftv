@@ -1,39 +1,24 @@
-import { Avatar } from '@/components/avatar'
+import {Navbar} from '@/components/navbar'
+import {Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarSection, SidebarSpacer,} from '@/components/sidebar'
+import {SidebarLayout} from '@/components/sidebar-layout'
+import {createRootRoute, Outlet} from '@tanstack/react-router'
+import {TanStackRouterDevtools} from '@tanstack/react-router-devtools'
 import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownLabel,
-  DropdownMenu,
-} from '@/components/dropdown'
-import { Navbar } from '@/components/navbar'
-import {
-  Sidebar,
-  SidebarBody,
-  SidebarHeader,
-  SidebarItem,
-  SidebarLabel,
-  SidebarSection,
-  SidebarSpacer,
-} from '@/components/sidebar'
-import { SidebarLayout } from '@/components/sidebar-layout'
-import {
-  ChevronDownIcon,
-  Cog8ToothIcon,
-} from '@heroicons/react/16/solid'
-import {
-  HomeIcon,
-  QuestionMarkCircleIcon,
-  SparklesIcon,
-} from '@heroicons/react/20/solid'
-import { Square3Stack3DIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
-import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+  IconDatabase,
+  IconFileText,
+  IconHelpCircleFilled,
+  IconLayoutDashboard,
+  IconLogs,
+  IconNews,
+  IconSettings
+} from "@tabler/icons-react";
+import {Header} from "@/components/header.tsx";
 
 
-export const Route = createRootRoute({
-  component: () => (
+const RootComponent = () => {
+  return (
     <>
+      <Header/>
       <div className="px-3 xl:px-[150px]">
         <SidebarLayout
             navbar={
@@ -41,56 +26,50 @@ export const Route = createRootRoute({
             }
             sidebar={
               <Sidebar>
-                <SidebarHeader>
-                  <Dropdown>
-                    <DropdownButton as={SidebarItem} className="lg:mb-2.5">
-                      <Avatar src="/logo-ftv.png" square />
-                      <SidebarLabel>FTV Portal</SidebarLabel>
-                      <ChevronDownIcon />
-                    </DropdownButton>
-                    <DropdownMenu className="min-w-80 lg:min-w-64" anchor="bottom start">
-                      <DropdownItem href="/teams/1/settings">
-                        <Cog8ToothIcon />
-                        <DropdownLabel>Settings</DropdownLabel>
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </SidebarHeader>
                 <SidebarBody>
-                  <SidebarSection>
-                    <SidebarItem href="/">
-                      <HomeIcon />
-                      <SidebarLabel>Home</SidebarLabel>
+                  <SidebarSection className="gap-2">
+                    <SidebarItem href="/" className={"text-rhc-sidenav-link-color"}>
+                      <IconLayoutDashboard/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Overzicht</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="/policies">
-                      <Square3Stack3DIcon />
-                      <SidebarLabel>Policies</SidebarLabel>
+                    <SidebarItem href="/policies" className={"text-rhc-sidenav-link-color"}>
+                      <IconFileText/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Beleid</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="/attributes">
-                      <AdjustmentsHorizontalIcon />
-                      <SidebarLabel>Attributes</SidebarLabel>
+                    <SidebarItem href="/attributes" className={"text-rhc-sidenav-link-color"}>
+                      <IconDatabase/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Bronnen</SidebarLabel>
                     </SidebarItem>
-                  </SidebarSection>
-                  <SidebarSpacer />
-                  <SidebarSection>
-                    <SidebarItem href="https://vng-realisatie.github.io/ftv/">
-                      <QuestionMarkCircleIcon />
-                      <SidebarLabel>Mattermost</SidebarLabel>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                      <IconLogs/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Logboek</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="/changelog">
-                      <SparklesIcon />
-                      <SidebarLabel>Changelog</SidebarLabel>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                      <IconSettings/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Systeem</SidebarLabel>
+                    </SidebarItem>
+                    <SidebarSpacer/>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                      <IconHelpCircleFilled/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Ondersteuning</SidebarLabel>
+                    </SidebarItem>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                      <IconNews/>
+                      <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Nieuws</SidebarLabel>
                     </SidebarItem>
                   </SidebarSection>
                 </SidebarBody>
               </Sidebar>
             }
         >
-          <Outlet />
-          <TanStackRouterDevtools />
+          <Outlet/>
+          <TanStackRouterDevtools/>
         </SidebarLayout>
       </div>
     </>
-  ),
-})
+  );
+};
 
+export const Route = createRootRoute({
+  component: RootComponent,
+})
