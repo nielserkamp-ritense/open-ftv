@@ -59,7 +59,7 @@ A Docker Compose configuration is available in the `docker` directory to run a m
 To start the containers, run the following command from the project root directory:
 
 ```shell
-docker compose -f docker/compose.yaml up
+docker compose -f docker/compose.yaml up --build
 ```
 The following services will be available:
 - PIP: http://localhost:9000
@@ -67,6 +67,17 @@ The following services will be available:
 - PDP: http://localhost:9002
 - Management Interface: http://localhost:8080
 - PostgreSQL: localhost:5400 (credentials in compose file)
+
+### FAQ
+
+**I get the following error when starting the docker compose containers: database "openftv_pap" does not exist**
+
+This sometimes happens when the initialization did not run. Try removing the existing postgres volume by running:
+```shell
+docker compose -f docker/compose.yaml down -v
+```
+
+**Warning** this will delete existing data.
 
 
 ## License

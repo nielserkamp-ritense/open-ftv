@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-    --font-sans: Inter, sans-serif;
+    --font-sans: 'Fira Sans', sans-serif;
     --color-content-primary: var(--color-zinc-950);
     --color-content-secondary: #FAFAFA;
     --color-content-tertiary: #FAFAFA;
@@ -11,7 +11,7 @@
     --color-background-primary: var(--color-zinc-200);
     --color-background-secondary: #FAFAFA;
     --color-background-tertiary: var(--color-zinc-50);
-    --color-background-inverse-primary: var(--color-zinc-700);
+    --color-background-inverse-primary: #18181B;
     --color-background-inverse-secondary: var(--color-zinc-800);
     --color-background-inverse-tertiary: var(--color-zinc-950);
     --color-background-hover: var(--color-blue-500);
@@ -26,4 +26,64 @@
     --color-border-hover-overlay: rgba(0, 0, 0, 0.2);
     --color-border-inverse-hover-overlay: rgba(255, 255, 255, 0.1);
     --color-cool-grey: #0F172A;
-  }
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-base: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-2xl: 16px;
+    --radius-3xl: 24px;
+    --radius-full: 1000px;
+
+    /* Custom RHC stijlen */
+    --spacing-rhc-space-300: 24px;
+    --spacing-rhc-space-500: 40px;
+    --color-heading-primary: #F7E8E8;
+    --color-rhc-color-cool-grey-900: #0F172A;
+    --text-rhc-sidenav-link-font-size: 20px;
+    --font-weight-rhc-sidenav-link-font-weight: 400;
+    --color-rhc-sidenav-link-color: #01689B;
+    --color-rhc-sidenav-current-background-color: #D9EBF7;
+}
+
+/* Fira Sans Font Family */
+@font-face {
+    font-family: 'Fira Sans';
+    src: url('/fonts/FiraSans-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Fira Sans';
+    src: url('/fonts/FiraSans-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Fira Sans';
+    src: url('/fonts/FiraSans-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Fira Sans';
+    src: url('/fonts/FiraSans-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Fira Sans';
+    src: url('/fonts/FiraSans-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+

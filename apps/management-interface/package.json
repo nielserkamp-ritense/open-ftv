@@ -13,6 +13,7 @@
   "dependencies": {
     "@headlessui/react": "2.2.4",
     "@heroicons/react": "2.2.0",
+    "@tabler/icons-react": "^3.34.1",
     "@tailwindcss/vite": "4.1.10",
     "@tanstack/react-query": "5.81.5",
     "@tanstack/react-query-devtools": "5.81.5",

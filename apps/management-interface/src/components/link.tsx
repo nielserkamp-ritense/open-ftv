@@ -8,7 +8,9 @@ export const Link = forwardRef(function Link(
 ) {
   return (
     <Headless.DataInteractive>
-      <TLink {...props} to={props.href} ref={ref} />
+      <TLink {...props} to={props.href} ref={ref} activeOptions={{exact: false}} activeProps={{
+          className: "bg-rhc-sidenav-current-background-color",
+      }}/>
     </Headless.DataInteractive>
   )
 })
