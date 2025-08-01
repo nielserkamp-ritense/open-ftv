@@ -94,10 +94,11 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	for i := range h.cfg {
 		cfg := h.cfg[i]
 		cfg2 := bundles2.BundleConfig{
-			Tag:      cfg.Tag,
+			Id:       cfg.ID,
 			Version:  cfg.Version,
 			Policies: cfg.Policies,
 			Data:     cfg.Data,
+			Tags:     cfg.Tags,
 			Targets:  make([]bundles2.Target, 0, len(cfg.Targets)),
 		}
 
@@ -158,7 +159,7 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 
 	resp, err2 := h.pap.ReadDeployment(uint64(version))
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
 	return req.JSON(resp)
 }
@@ -168,8 +169,8 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if !h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgNoPushEndpoint)
+	if h.push {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
 	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {

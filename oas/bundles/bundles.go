@@ -14,11 +14,14 @@ type BundleConfig struct {
 	// Data Indicates to bundle attributes, entities and relations with matching tag.
 	Data bool `json:"data,omitempty"`
 
+	// Id Unique identifier of this bundle deployment configuration.
+	Id string `json:"id,omitempty"`
+
 	// Policies Indicates to bundle policies with matching tag.
 	Policies bool `json:"policies,omitempty"`
 
-	// Tag Tag to match against.
-	Tag     string   `json:"tag"`
+	// Tags Tags to match against. A single matching tag is sufficient.
+	Tags    []string `json:"tags,omitempty"`
 	Targets []Target `json:"targets"`
 
 	// Version Indicates to bundle the version number.

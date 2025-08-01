@@ -22,7 +22,7 @@ func (db *pgDB) Put(ctx context.Context, key string, value []byte, _ *store.Writ
 		}
 	}()
 
-	q := strings.Replace(upsertSQL, "kv", db.table, 1)
+	q := strings.Replace(upsertSQL, "kv", db.table, -1)
 
 	if _, err = tx.Exec(ctx, q, key, value); err != nil {
 		return db.queryError(err, q, key)
@@ -48,11 +48,11 @@ func (db *pgDB) AtomicPut(ctx context.Context, key string, value []byte, previou
 	var params []any
 
 	if previous == nil {
-		q = strings.Replace(insertSQL, "kv", db.table, 1)
+		q = strings.Replace(insertSQL, "kv", db.table, -1)
 		params = []any{key, value}
 		next = &store.KVPair{Key: key, Value: value, LastIndex: 1}
 	} else {
-		q = strings.Replace(updateSQL, "kv", db.table, 1)
+		q = strings.Replace(updateSQL, "kv", db.table, -1)
 		params = []any{value, key, previous.LastIndex}
 		next = &store.KVPair{Key: key, Value: value, LastIndex: previous.LastIndex + 1}
 	}
@@ -66,7 +66,7 @@ func (db *pgDB) AtomicPut(ctx context.Context, key string, value []byte, previou
 // upsert statement; new index == 1, otherwise += 1.
 const upsertSQL = `
 INSERT INTO "kv" (key, index, value) VALUES ($1, 1, $2)
- ON CONFLICT (key) DO UPDATE SET index = index + 1, value = EXCLUDED.value`
+ ON CONFLICT (key) DO UPDATE SET index = kv.index + 1, value = EXCLUDED.value`
 
 // insert statement; initial index == 1.
 const insertSQL = `

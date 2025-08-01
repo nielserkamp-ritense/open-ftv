@@ -2,6 +2,7 @@ package pap
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -299,13 +300,16 @@ func TestPAP_NewDeployment(t *testing.T) {
 	t.Run("new deployment", func(t *testing.T) {
 		t.Parallel()
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
 		d, err := p.NewDeployment("merry easter", m)
@@ -323,13 +327,16 @@ func TestPAP_LastDeployment(t *testing.T) {
 	t.Run("last deployment", func(t *testing.T) {
 		t.Parallel()
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
 		d, err := p.NewDeployment("merry easter", m)
@@ -350,13 +357,16 @@ func TestPAP_ReadDeployment(t *testing.T) {
 	t.Run("read deployment", func(t *testing.T) {
 		t.Parallel()
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
 		d, err := p.NewDeployment("merry easter", m)
@@ -381,13 +391,16 @@ func TestPAP_ListDeployments(t *testing.T) {
 	t.Run("list deployments", func(t *testing.T) {
 		t.Parallel()
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		m := bundles.NewManager("../../testdata/unittests/bundles/test1", false, logger)
+		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
 		d, err := p.NewDeployment("merry easter", m)

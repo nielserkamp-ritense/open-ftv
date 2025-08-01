@@ -1,12 +1,16 @@
 package bundles
 
 import (
+	"context"
 	"io/fs"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -15,19 +19,26 @@ import (
 )
 
 // NewManager instantiates a new bundle manager.
-func NewManager(path string, recurse bool, logger *slog.Logger) *Manager {
+func NewManager(ctx context.Context, logger *slog.Logger, opts ...Option) *Manager {
 	m := &Manager{
-		path:    path,
-		recurse: recurse,
-		bundles: make(map[string]*Config),
-		logger:  logger,
+		ctx:           ctx,
+		logger:        logger,
+		bundles:       make(map[string]*Config),
+		workers:       runtime.NumCPU(),
+		bundleTimeout: time.Minute,
 	}
+
+	for i := range opts {
+		opts[i](m)
+	}
+
+	m.client = &http.Client{Timeout: m.bundleTimeout}
 
 	m.load()
 	return m
 }
 
-// Bundles returns a list of configured bundles.
+// Bundles returns a list of configured bundles, ordered by unique identifier.
 func (m *Manager) Bundles() []*Config {
 	out := make([]*Config, 0, len(m.bundles))
 	for _, v := range m.bundles {
@@ -35,17 +46,26 @@ func (m *Manager) Bundles() []*Config {
 	}
 
 	slices.SortFunc(out, func(a, b *Config) int {
-		return strings.Compare(a.Tag, b.Tag)
+		return strings.Compare(a.ID, b.ID)
 	})
 	return out
 }
 
-// Manager represents the interface to manage bundles.
+// Manager contains the data and logic to manage bundles.
 type Manager struct {
-	path    string
-	recurse bool
-	bundles map[string]*Config
-	logger  *slog.Logger
+	ctx           context.Context
+	logger        *slog.Logger
+	path          string
+	recurse       bool
+	workers       int
+	stageDelay    time.Duration
+	bundleTimeout time.Duration
+	policies      PolicyLister
+	attributes    AttributeLister
+	entities      EntityLister
+	relations     RelationLister
+	bundles       map[string]*Config
+	client        *http.Client
 }
 
 func (m *Manager) load() {
@@ -88,7 +108,7 @@ func (m *Manager) loadYAML(path string) error {
 		return err
 	}
 
-	m.bundles[b.Tag] = &b
+	m.bundles[b.ID] = &b
 	return nil
 }
 
@@ -104,6 +124,6 @@ func (m *Manager) loadJSON(path string) error {
 		return err
 	}
 
-	m.bundles[b.Tag] = &b
+	m.bundles[b.ID] = &b
 	return nil
 }

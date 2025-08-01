@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
@@ -126,11 +127,13 @@ func (s *Persistence) List(language string) ([]*models.Policy, error) {
 
 	out := make([]*models.Policy, 0, len(list))
 	for _, kv := range list {
-		p := new(models.Policy)
-		if err = json.Unmarshal(kv.Value, p); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal policies: %w", err)
+		if !strings.Contains(kv.Key, "$$$") {
+			p := new(models.Policy)
+			if err = json.Unmarshal(kv.Value, p); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal policies: %w", err)
+			}
+			out = append(out, p)
 		}
-		out = append(out, p)
 	}
 
 	return out, nil

@@ -1,6 +1,7 @@
 package bundles
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -61,16 +62,26 @@ func TestNewManager(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			m := NewManager(tc.path, tc.recurse, logger)
+			m := NewManager(ctx, logger, WithConfig(tc.path, tc.recurse))
 			require.NotNil(t, m)
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 
 			for i := range tc.want {
 				b := m.bundles[tc.want[i]]
 				assert.NotNilf(t, b, tc.want[i])
+			}
+
+			list := m.Bundles()
+			require.Len(t, list, len(tc.want))
+
+			for i := range list {
+				assert.Equal(t, tc.want[i], list[i].ID)
 			}
 		})
 	}

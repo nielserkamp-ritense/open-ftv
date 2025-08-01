@@ -33,7 +33,10 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initLanguages(v1)
 	s.initTags(v1)
 	s.initPolicies(v1)
-	s.initBundles(v1)
+
+	if s.cfg.BundlePath != "" {
+		s.initBundles(v1)
+	}
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -67,7 +70,16 @@ func (s *service) initPolicies(group fiber.Router) {
 }
 
 func (s *service) initBundles(group fiber.Router) {
-	manager := bundles.NewManager(s.cfg.Bundle.Path, true, s.logger)
+	manager := bundles.NewManager(
+		s.ctx,
+		s.logger,
+		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
+		bundles.WithPolicyLister(s.pap),
+		bundles.MaxWorkers(s.cfg.Workers),
+		bundles.WithStageDelay(s.cfg.StageDelay),
+		bundles.BundleTimeout(s.cfg.BundleTimeout),
+	)
+
 	apis := handle.NewBundlesHandler(s.logger, s.pap, manager, s.auth.Authorizer())
 
 	// restart the last interrupted bundle deployment run if needed.

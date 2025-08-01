@@ -18,6 +18,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
+// PolicyIterator is the function prototype to iterate through a set of policies.
+type PolicyIterator func(p *Policy)
+
 // Policy represents a policy and its metadata.
 //
 // A policy is designed to be read-only, so it is safe to use across concurrent go-routines.

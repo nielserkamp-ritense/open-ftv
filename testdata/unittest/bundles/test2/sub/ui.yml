@@ -1,8 +1,9 @@
 ---
-tag: "ui"
+id: "ui"
 policies: true
 data: true
 version: false
+tags: ["ui", "werktijden"]
 targets:
   - uri: "http://localhost:9090"
     compress: "bz2"

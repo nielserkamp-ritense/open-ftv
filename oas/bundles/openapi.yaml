@@ -375,9 +375,9 @@ components:
       type: object
       description: Bundle deployment configuration.
       properties:
-        tag:
+        id:
           type: string
-          description: Tag to match against.
+          description: Unique identifier of this bundle deployment configuration.
         version:
           type: boolean
           description: Indicates to bundle the version number.
@@ -387,6 +387,11 @@ components:
         data:
           type: boolean
           description: Indicates to bundle attributes, entities and relations with matching tag.
+        tags:
+          type: array
+          description: Tags to match against. A single matching tag is sufficient.
+          items:
+            type: string
         targets:
           type: array
           items:
