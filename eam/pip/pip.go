@@ -33,11 +33,11 @@ type PIP struct {
 	entityTimer      *time.Timer
 	entityUpdates    []string
 	entityDeletes    []string
-	events           models.EventSink
+	eventSinks       []models.EventSink
 	store            store.Store
 	attributePersist AttributePersistence
 	entityPersist    EntityPersistence
-	mutex            sync.RWMutex
+	eventMutex       sync.RWMutex
 }
 
 // New instantiates a new Policy Information Point.
@@ -107,137 +107,6 @@ func (p *PIP) NewEntitySet() *models.EntitySet {
 	return p.newEntities()
 }
 
-// AddAttribute implements the AttributeSet interface.
-//
-// Use this to add a default attribute to the PIP.
-func (p *PIP) AddAttribute(key string, value any) {
-	_ = p.addAttribute(models.NewAttribute(key, value))
-}
-
-// AddAttributeWithType implements the AttributeSet interface.
-//
-// Use this to add a default attribute to the PIP.
-func (p *PIP) AddAttributeWithType(key string, value any, tp string) {
-	_ = p.addAttribute(models.NewAttributeWithType(key, value, tp))
-}
-
-// AddOriginalAttribute implements the AttributeSet interface.
-//
-// Use this to add a default attribute to the PIP.
-func (p *PIP) AddOriginalAttribute(key string, value, original any, tp string) {
-	_ = p.addAttribute(models.NewOriginalAttribute(key, value, original, tp))
-}
-
-func (p *PIP) addAttribute(a *models.Attribute) error {
-	prev, ix, err := p.attributePersist.Read(a.Key())
-	if err != nil || prev == nil {
-		_, err = p.attributePersist.Create(a)
-	} else {
-		_, err = p.attributePersist.Update(prev, ix, a)
-	}
-	return err
-}
-
-// GetAttribute implements the AttributeSet interface.
-//
-// Use this to read a default attribute from the PIP.
-func (p *PIP) GetAttribute(key string) *models.Attribute {
-	a, _, _ := p.attributePersist.Read(key)
-	return a
-}
-
-// GetAttributeValue implements the AttributeSet interface.
-//
-// Use this to read a default attribute value from the PIP.
-func (p *PIP) GetAttributeValue(key string) any {
-	if a, _, _ := p.attributePersist.Read(key); a != nil {
-		return a.Value()
-	}
-	return nil
-}
-
-// RemoveAttribute implements the AttributeSet interface.
-//
-// Use this to remove a default attribute from the PIP.
-func (p *PIP) RemoveAttribute(key string) {
-	if prev, ix, err := p.attributePersist.Read(key); err == nil {
-		_, _ = p.attributePersist.Delete(prev, ix)
-	}
-}
-
-// IterateAttributes implements the AttributeSet interface.
-//
-// Use this to iterate through all default attributes from the PIP.
-func (p *PIP) IterateAttributes(f models.AttributeIterator) {
-	if list, err := p.attributePersist.List(); err == nil {
-		for i := range list {
-			f(list[i])
-		}
-	}
-}
-
-// MergeAttributes implements the AttributeSet interface.
-//
-// Use this to merge an attribute set into the default attributes of the PIP.
-func (p *PIP) MergeAttributes(in ...*models.AttributeSet) {
-	for i := range in {
-		in[i].IterateAttributes(func(attr *models.Attribute) {
-			_ = p.addAttribute(attr)
-		})
-	}
-}
-
-// AddEntity implements the EntitySet interface.
-//
-// Use this to add an entity to the PIP.
-func (p *PIP) AddEntity(entity *models.Entity) {
-	prev, ix, err := p.entityPersist.Read(entity.UID())
-	if err != nil || prev == nil {
-		_, err = p.entityPersist.Create(entity)
-	} else {
-		_, err = p.entityPersist.Update(prev, ix, entity)
-	}
-}
-
-// GetEntity implements the EntitySet interface.
-//
-// Use this to read an entity from the PIP.
-func (p *PIP) GetEntity(uid string) *models.Entity {
-	e, _, _ := p.entityPersist.Read(uid)
-	return e
-}
-
-// RemoveEntity implements the EntitySet interface.
-//
-// Use this to remove an entity from the PIP.
-func (p *PIP) RemoveEntity(uid string) {
-	if prev, ix, err := p.entityPersist.Read(uid); err == nil {
-		_, _ = p.entityPersist.Delete(prev, ix)
-	}
-}
-
-// IterateEntities implements the EntitySet interface.
-//
-// Use this to iterate through all entities from the PIP.
-func (p *PIP) IterateEntities(f models.EntityIterator) {
-	if list, err := p.entityPersist.List(); err == nil {
-		for i := range list {
-			f(list[i])
-		}
-	}
-}
-
-// MergeEntities implements the EntitySet interface.
-//
-// Use this to merge an attribute set into the entities of the PIP.
-func (p *PIP) MergeEntities(in ...*models.EntitySet) {
-	for i := range in {
-		in[i].IterateEntities(func(e *models.Entity) {
-			p.AddEntity(e)
-		})
-	}
-}
-
 // MarshalJSON implements the json.Marshaler interface.
 func (p *PIP) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
@@ -259,4 +128,19 @@ func (p *PIP) entitiesToMap() map[string]any {
 	})
 
 	return out
+}
+
+// AddEventSink adds an event processor to the PIP.
+func (p *PIP) AddEventSink(events models.EventSink) {
+	p.eventMutex.Lock()
+	p.eventSinks = append(p.eventSinks, events)
+	p.eventMutex.Unlock()
+}
+
+func (p *PIP) sendEvent(eventType models.EventType, key string) {
+	p.eventMutex.Lock()
+	for i := range p.eventSinks {
+		p.eventSinks[i].Handle(eventType, key)
+	}
+	defer p.eventMutex.Unlock()
 }

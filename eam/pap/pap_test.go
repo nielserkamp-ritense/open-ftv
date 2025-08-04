@@ -77,9 +77,9 @@ func TestPap_Add(t *testing.T) {
 				require.NoError(t, err3)
 				require.NotNil(t, pol2)
 
-				assert.Equal(t, tc.wantCount, e.added)
-				assert.Zero(t, e.replaced)
-				assert.Zero(t, e.removed)
+				assert.Equal(t, tc.wantCount, e.created)
+				assert.Zero(t, e.updated)
+				assert.Zero(t, e.deleted)
 			}
 		})
 	}
@@ -166,9 +166,9 @@ func TestPap_Replace(t *testing.T) {
 				require.NoError(t, err4)
 				require.NotNil(t, pol2)
 
-				assert.Equal(t, len(tc.cached), e.added)
-				assert.Equal(t, 1, e.replaced)
-				assert.Zero(t, e.removed)
+				assert.Equal(t, len(tc.cached), e.created)
+				assert.Equal(t, 1, e.updated)
+				assert.Zero(t, e.deleted)
 
 				f, _, err5 := p.Read(parts[0], parts[1])
 				require.NoError(t, err5)
@@ -234,9 +234,9 @@ func TestPap_Remove(t *testing.T) {
 				require.NoError(t, err3)
 				require.NotNil(t, pol)
 
-				assert.Equal(t, len(tc.cached), e.added)
-				assert.Zero(t, e.replaced)
-				assert.Equal(t, 1, e.removed)
+				assert.Equal(t, len(tc.cached), e.created)
+				assert.Zero(t, e.updated)
+				assert.Equal(t, 1, e.deleted)
 
 				f, _, err4 := p.Read("", tc.key)
 				require.Error(t, err4)
@@ -414,20 +414,85 @@ func TestPAP_ListDeployments(t *testing.T) {
 	})
 }
 
+func TestPAP_ReplaceAll(t *testing.T) {
+	t.Parallel()
+
+	p1, err1 := models.NewPolicyFromData("p1", "cedar", "", "", bytes.NewBufferString("allow = true;"))
+	require.NoError(t, err1)
+	require.NotNil(t, p1)
+
+	p2, err2 := models.NewPolicyFromData("p2", "cedar", "", "", bytes.NewBufferString("allow = true;"))
+	require.NoError(t, err2)
+	require.NotNil(t, p2)
+
+	p3, err3 := models.NewPolicyFromData("p3", "cedar", "", "", bytes.NewBufferString("allow = true;"))
+	require.NoError(t, err3)
+	require.NotNil(t, p3)
+
+	p4, err4 := models.NewPolicyFromData("p4", "cedar", "", "", bytes.NewBufferString("allow = true;"))
+	require.NoError(t, err4)
+	require.NotNil(t, p4)
+
+	testCases := []struct {
+		name string
+		list []*models.Policy
+		want int
+	}{
+		{name: "nil", want: 0},
+		{name: "empty", list: []*models.Policy{}},
+		{name: "one", list: []*models.Policy{p4}, want: 1},
+		{name: "three", list: []*models.Policy{p3, p4, p1}, want: 3},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := slog2.NewDummyHandler(0)
+			e := &eventCounter{}
+
+			p := New(nil, slog.New(h))
+			require.NotNil(t, p)
+
+			p.AddEventSink(e)
+
+			_, err := p.Create(p1)
+			require.NoError(t, err)
+			_, err = p.Create(p2)
+			require.NoError(t, err)
+			_, err = p.Create(p3)
+			require.NoError(t, err)
+
+			assert.Equal(t, 3, e.created)
+			assert.Zero(t, e.updated)
+			assert.Zero(t, e.deleted)
+
+			e.created = 0
+
+			err = p.ReplaceAll(tc.list)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.want, e.created)
+			assert.Zero(t, e.updated)
+			assert.Equal(t, 3, e.deleted)
+		})
+	}
+}
+
 type eventCounter struct {
-	added    int
-	replaced int
-	removed  int
+	created int
+	updated int
+	deleted int
 }
 
 func (e *eventCounter) Handle(t models.EventType, _ string) {
 	switch t {
 	case models.PolicyAdded:
-		e.added++
+		e.created++
 	case models.PolicyReplaced:
-		e.replaced++
+		e.updated++
 	case models.PolicyRemoved:
-		e.removed++
+		e.deleted++
 	default:
 	}
 }

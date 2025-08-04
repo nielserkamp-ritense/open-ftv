@@ -329,10 +329,10 @@ func TestWatchFiles(t *testing.T) {
 
 			assert.Nil(t, p.watcher)
 
-			p.mutex.Lock()
+			p.deployMutex.Lock()
 			assert.Empty(t, p.updates)
 			assert.Empty(t, p.deletes)
-			p.mutex.Unlock()
+			p.deployMutex.Unlock()
 		})
 	}
 }

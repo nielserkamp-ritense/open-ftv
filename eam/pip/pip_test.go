@@ -1,7 +1,6 @@
 package pip
 
 import (
-	"context"
 	"log/slog"
 	"testing"
 
@@ -131,91 +130,4 @@ func TestNew(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestPIP_Attributes(t *testing.T) {
-	t.Parallel()
-
-	t.Run("pip as AttributeSet", func(t *testing.T) {
-		h := util.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		p := New(context.Background(), logger)
-		require.NotNil(t, p)
-
-		p.AddAttribute("hello", "world")
-		p.AddAttribute("int", "987")
-		p.AddAttribute("float", "987.789")
-
-		assert.Equal(t, "world", p.GetAttributeValue("hello"))
-		assert.Nil(t, p.GetAttribute("bool"))
-
-		p2 := models.NewAttributeSet()
-		p2.AddAttribute("hello", "world2")
-		p2.AddAttribute("bool", true)
-
-		p.MergeAttributes(p2)
-
-		assert.Equal(t, "world2", p.GetAttributeValue("hello"))
-		assert.Equal(t, true, p.GetAttributeValue("bool"))
-		assert.Equal(t, "987", p.GetAttributeValue("int"))
-
-		p.RemoveAttribute("bool")
-		p.RemoveAttribute("int")
-		assert.Nil(t, p.GetAttributeValue("bool"))
-		assert.Nil(t, p.GetAttributeValue("int"))
-
-		var count int
-		p.IterateAttributes(func(*models.Attribute) {
-			count++
-		})
-		assert.Equal(t, 2, count)
-	})
-}
-
-func TestPIP_Entities(t *testing.T) {
-	t.Parallel()
-
-	t.Run("pip as EntitySet", func(t *testing.T) {
-		h := util.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		p := New(nil, logger)
-		require.NotNil(t, p)
-
-		p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
-		p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
-
-		p.MergeEntities(
-			models.NewEntitySet(
-				models.NewEntity("q", "x", models.NewAttributeSet()),
-				models.NewEntity("q", "y", models.NewAttributeSet()),
-				models.NewEntity("q", "z", models.NewAttributeSet()),
-			),
-		)
-
-		var count int
-		p.IterateEntities(func(entity *models.Entity) {
-			count++
-		})
-		assert.Equal(t, 5, count)
-
-		e := p.GetEntity("x::y")
-		require.NotNil(t, e)
-
-		e = p.GetEntity("x::x")
-		require.Nil(t, e)
-
-		p.RemoveEntity("q::y")
-		p.RemoveEntity("q::x")
-
-		count = 0
-		p.IterateEntities(func(entity *models.Entity) {
-			count++
-		})
-		assert.Equal(t, 3, count)
-
-		e = p.GetEntity("q::y")
-		require.Nil(t, e)
-	})
 }

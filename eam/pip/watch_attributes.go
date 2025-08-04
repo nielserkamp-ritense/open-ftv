@@ -49,18 +49,18 @@ func (p *PIP) attributesModified(e fsnotify.Event) {
 
 	switch e.Op {
 	case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		p.attributeUpdates = append(p.attributeUpdates, e.Name)
 		slices.Sort(p.attributeUpdates)
 		p.attributeUpdates = slices.Compact(p.attributeUpdates)
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 	case fsnotify.Remove:
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		p.attributeDeletes = append(p.attributeDeletes, e.Name)
 		slices.Sort(p.attributeDeletes)
 		p.attributeDeletes = slices.Compact(p.attributeDeletes)
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 	default:
 	}
@@ -70,13 +70,13 @@ func (p *PIP) processAttributeUpdates() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		l := len(p.attributeUpdates)
 		if l > 0 {
 			path = p.attributeUpdates[0]
 			p.attributeUpdates = p.attributeUpdates[1:]
 		}
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 		if l == 0 {
 			return
@@ -98,13 +98,13 @@ func (p *PIP) processAttributeDeletes() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		l := len(p.attributeDeletes)
 		if l > 0 {
 			path = p.attributeDeletes[0]
 			p.attributeDeletes = p.attributeDeletes[1:]
 		}
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 		if l == 0 {
 			return
