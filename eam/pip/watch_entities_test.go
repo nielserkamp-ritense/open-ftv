@@ -305,10 +305,10 @@ func TestWatchEntityFiles(t *testing.T) {
 
 			assert.Nil(t, p.entityWatcher)
 
-			p.mutex.RLock()
+			p.eventMutex.RLock()
 			assert.Empty(t, p.entityUpdates)
 			assert.Empty(t, p.entityDeletes)
-			p.mutex.RUnlock()
+			p.eventMutex.RUnlock()
 
 			var count int
 			p.IterateEntities(func(*models.Entity) {

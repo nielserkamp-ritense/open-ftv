@@ -293,10 +293,10 @@ func TestWatchAttributeFiles(t *testing.T) {
 
 			assert.Nil(t, p.attributeWatcher)
 
-			p.mutex.RLock()
+			p.eventMutex.RLock()
 			assert.Empty(t, p.attributeUpdates)
 			assert.Empty(t, p.attributeDeletes)
-			p.mutex.RUnlock()
+			p.eventMutex.RUnlock()
 
 			var count int
 			p.IterateAttributes(func(attribute *models.Attribute) {

@@ -50,14 +50,14 @@ func (p *PAP) policyModified(e fsnotify.Event) {
 
 	switch e.Op {
 	case fsnotify.Remove:
-		p.mutex.Lock()
+		p.deployMutex.Lock()
 		p.deletes[e.Name] = struct{}{}
-		p.mutex.Unlock()
+		p.deployMutex.Unlock()
 
 	default:
-		p.mutex.Lock()
+		p.deployMutex.Lock()
 		p.updates[e.Name] = struct{}{}
-		p.mutex.Unlock()
+		p.deployMutex.Unlock()
 	}
 }
 
@@ -65,13 +65,13 @@ func (p *PAP) processUpdates() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.deployMutex.Lock()
 		for k := range p.updates {
 			path = k
 			delete(p.updates, k)
 			break
 		}
-		p.mutex.Unlock()
+		p.deployMutex.Unlock()
 
 		if path == "" {
 			return
@@ -107,13 +107,13 @@ func (p *PAP) processDeletes() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.deployMutex.Lock()
 		for k := range p.deletes {
 			path = k
 			delete(p.deletes, k)
 			break
 		}
-		p.mutex.Unlock()
+		p.deployMutex.Unlock()
 
 		if path == "" {
 			return

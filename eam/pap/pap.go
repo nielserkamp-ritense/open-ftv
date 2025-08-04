@@ -31,7 +31,8 @@ type PAP struct {
 	store        store.Store
 	persist      *Persistence
 	deployer     *bundles.Persistence
-	mutex        sync.RWMutex
+	eventMutex   sync.RWMutex
+	deployMutex  sync.RWMutex
 }
 
 // New instantiates a new policy cache.
@@ -96,11 +97,7 @@ func (p *PAP) Language() models.Language {
 //
 // An error is returned if the policy-id already exists.
 func (p *PAP) Create(in *models.Policy) (out *models.Policy, err error) {
-	p.mutex.Lock()
-	out, err = p.persist.Create(in)
-	p.mutex.Unlock()
-
-	if err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.persist.Create(in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyAdded, out.Key())
 	}
 	return
@@ -110,8 +107,6 @@ func (p *PAP) Create(in *models.Policy) (out *models.Policy, err error) {
 //
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Read(language, id string) (*models.Policy, uint64, error) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
 	return p.persist.Read(language, id)
 }
 
@@ -119,14 +114,9 @@ func (p *PAP) Read(language, id string) (*models.Policy, uint64, error) {
 //
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy) (out *models.Policy, err error) {
-	p.mutex.Lock()
-	out, err = p.persist.Update(prev, lastIndex, in)
-	p.mutex.Unlock()
-
-	if err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.persist.Update(prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyReplaced, out.Key())
 	}
-
 	return
 }
 
@@ -134,33 +124,50 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy) (
 //
 // An error is returned if the policy key doesn't exist.
 func (p *PAP) Delete(prev *models.Policy, lastIndex uint64) (out *models.Policy, err error) {
-	p.mutex.Lock()
-	out, err = p.persist.Delete(prev, lastIndex)
-	p.mutex.Unlock()
-
-	if err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.persist.Delete(prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyRemoved, out.Key())
 	}
-
 	return
 }
 
-// List returns a sorted list of all cached/stored policy keys.
+// ReplaceAll removes all policies from cache/storage and adds the given list.
+func (p *PAP) ReplaceAll(list []*models.Policy) error {
+	// delete all existing policies.
+	old, _ := p.persist.List("")
+	for _, policy := range old {
+		_, ix, err := p.persist.Read(policy.Language(), policy.ID())
+		if err != nil {
+			return err
+		}
+		if _, err = p.Delete(policy, ix); err != nil {
+			return err
+		}
+	}
+
+	// add all given policies.
+	for i := range list {
+		if _, err := p.Create(list[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// List returns a sorted list of all cached/stored policies.
 //
 // If the optional language parameter is supplied,
 // the function lists all policies with that language.
 // Otherwise, all policies, regardless of language, will be listed.
 func (p *PAP) List(language string) ([]*models.Policy, error) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
 	return p.persist.List(language)
 }
 
 // Iterate calls the given closure for all policies in the store.
+//
+// Note that the PAP is locked during the iteration,
+// so make sure the given closure does not block or take a long time to process.
 func (p *PAP) Iterate(f models.PolicyIterator) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
-
 	list, _ := p.persist.List("")
 	for i := range list {
 		f(list[i])
@@ -169,8 +176,8 @@ func (p *PAP) Iterate(f models.PolicyIterator) {
 
 // NewDeployment creates a new deployment in the store.
 func (p *PAP) NewDeployment(description string, manager *bundles.Manager) (*bundles.Deployment, error) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	p.deployMutex.Lock()
+	defer p.deployMutex.Unlock()
 
 	d, err := p.deployer.Generate(description)
 	if err != nil {
@@ -194,36 +201,36 @@ func (p *PAP) RestartDeployment(manager *bundles.Manager) {
 
 // LastDeployment retrieves the last deployment from the store.
 func (p *PAP) LastDeployment() (*bundles.Deployment, error) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
+	p.deployMutex.RLock()
+	defer p.deployMutex.RUnlock()
 	return p.deployer.LastDeployment()
 }
 
 // ReadDeployment retrieves a deployment from the store.
 func (p *PAP) ReadDeployment(version uint64) (*bundles.Deployment, error) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
+	p.deployMutex.RLock()
+	defer p.deployMutex.RUnlock()
 	return p.deployer.ReadDeployment(version)
 }
 
 // ListDeployments retrieves all deployments from the store.
 func (p *PAP) ListDeployments() ([]*bundles.Deployment, error) {
-	p.mutex.RLock()
-	defer p.mutex.RUnlock()
+	p.deployMutex.RLock()
+	defer p.deployMutex.RUnlock()
 	return p.deployer.ListDeployments()
 }
 
 // AddEventSink adds an event processor to the PAP.
 func (p *PAP) AddEventSink(events models.EventSink) {
-	p.mutex.Lock()
+	p.eventMutex.Lock()
 	p.eventSinks = append(p.eventSinks, events)
-	p.mutex.Unlock()
+	p.eventMutex.Unlock()
 }
 
 func (p *PAP) sendEvent(eventType models.EventType, key string) {
-	p.mutex.RLock()
+	p.eventMutex.Lock()
 	for i := range p.eventSinks {
 		p.eventSinks[i].Handle(eventType, key)
 	}
-	p.mutex.RUnlock()
+	defer p.eventMutex.Unlock()
 }

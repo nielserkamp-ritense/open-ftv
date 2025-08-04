@@ -49,18 +49,18 @@ func (p *PIP) entitiesModified(e fsnotify.Event) {
 
 	switch e.Op {
 	case fsnotify.Create, fsnotify.Write, fsnotify.Rename:
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		p.entityUpdates = append(p.entityUpdates, e.Name)
 		slices.Sort(p.entityUpdates)
 		p.entityUpdates = slices.Compact(p.entityUpdates)
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 	case fsnotify.Remove:
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		p.entityDeletes = append(p.entityDeletes, e.Name)
 		slices.Sort(p.entityDeletes)
 		p.entityDeletes = slices.Compact(p.entityDeletes)
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 	default:
 	}
@@ -70,13 +70,13 @@ func (p *PIP) processEntityUpdates() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		l := len(p.entityUpdates)
 		if l > 0 {
 			path = p.entityUpdates[0]
 			p.entityUpdates = p.entityUpdates[1:]
 		}
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 		if l == 0 {
 			return
@@ -98,13 +98,13 @@ func (p *PIP) processEntityDeletes() {
 	for {
 		var path string
 
-		p.mutex.Lock()
+		p.eventMutex.Lock()
 		l := len(p.entityDeletes)
 		if l > 0 {
 			path = p.entityDeletes[0]
 			p.entityDeletes = p.entityDeletes[1:]
 		}
-		p.mutex.Unlock()
+		p.eventMutex.Unlock()
 
 		if l == 0 {
 			return
