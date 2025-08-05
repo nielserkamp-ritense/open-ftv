@@ -165,7 +165,7 @@ func TestRunner_SendBundles(t *testing.T) {
 				return
 			}
 
-			ct := CompressionTypeFromString(r.Header.Get("Content-Type"))
+			ct := CompressionTypeFromString(r.Header.Get("Content-Encoding"))
 			if ct != CompressGZ && ct != CompressBZ2 {
 				w.WriteHeader(http.StatusBadRequest)
 				return

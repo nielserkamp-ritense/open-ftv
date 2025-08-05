@@ -5,6 +5,7 @@ package opa_embedded
 import (
 	"bytes"
 	"context"
+	"sync"
 
 	"github.com/open-policy-agent/opa/hooks"
 	"github.com/open-policy-agent/opa/sdk"
@@ -30,13 +31,13 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		RegoVersion:   1,
 		ID:            "opa-controller",
 		Config:        bytes.NewReader([]byte(cfg)),
-		ConsoleLogger: &wrappedLogger{logger: c.Logger()},
+		ConsoleLogger: &wrappedLogger{logger: c.Logger},
 		Ready:         wait,
 		Hooks:         hooks.Hooks{},
 		Store:         c.mem,
 	})
 	if err != nil {
-		c.Logger().Error("Failed to initialize OPA SDK", "error", err)
+		c.Logger.Error("Failed to initialize OPA SDK", "error", err)
 		return nil
 	}
 
@@ -48,18 +49,18 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	c.loadAttributes()
 	c.loadEntities()
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-		c.PAP().LoadFiles()
+	if c.PAP != nil {
+		c.PAP.AddEventSink(c)
+		c.PAP.LoadFiles()
 	}
 
-	c.Logger().Info("pdp controller initialized", "controller", c.String())
+	c.Logger.Info("pdp controller initialized", "controller", c.String())
 	return c
 }
 
 func (c *controller) loadAttributes() {
 	m := make(map[string]any)
-	c.PIP().IterateAttributes(func(attr *models.Attribute) {
+	c.PIP.IterateAttributes(func(attr *models.Attribute) {
 		m[attr.Key()] = attr.Value()
 	})
 	c.loadData(m, "attributes")
@@ -67,7 +68,7 @@ func (c *controller) loadAttributes() {
 
 func (c *controller) loadEntities() {
 	m := make(map[string]any)
-	c.PIP().IterateEntities(func(entity *models.Entity) {
+	c.PIP.IterateEntities(func(entity *models.Entity) {
 		m2, ok := m[entity.Type()].(map[string]any)
 		if !ok || m2 == nil {
 			m2 = make(map[string]any)
@@ -83,22 +84,22 @@ func (c *controller) loadData(m map[string]any, key string) {
 		return
 	}
 
-	t, _ := c.mem.NewTransaction(c.Context(), storage.TransactionParams{Write: true})
-	if err := c.mem.Write(c.Context(), t, storage.AddOp, storage.Path{key}, m); err != nil {
-		c.Logger().Error("failed to add/replace data", "controller", c.String(), "document-key", key, "error", err)
+	t, _ := c.mem.NewTransaction(c.Ctx, storage.TransactionParams{Write: true})
+	if err := c.mem.Write(c.Ctx, t, storage.AddOp, storage.Path{key}, m); err != nil {
+		c.Logger.Error("failed to add/replace data", "controller", c.String(), "document-key", key, "error", err)
 	}
-	if err := c.mem.Commit(c.Context(), t); err != nil {
-		c.Logger().Error("failed to commit transaction to add/replace data", "controller", c.String(), "document-key", key, "error", err)
+	if err := c.mem.Commit(c.Ctx, t); err != nil {
+		c.Logger.Error("failed to commit transaction to add/replace data", "controller", c.String(), "document-key", key, "error", err)
 	} else {
-		c.Logger().Info("data added/replaced successfully", "controller", c.String(), "document-key", key)
+		c.Logger.Info("data added/replaced successfully", "controller", c.String(), "document-key", key)
 	}
 }
 
 type controller struct {
 	pdp.Base
-	pdp *sdk.OPA
-	mem storage.Store
-	m   map[string]any
+	pdp      *sdk.OPA
+	mem      storage.Store
+	pdpMutex sync.Mutex
 }
 
 const cfg = `{

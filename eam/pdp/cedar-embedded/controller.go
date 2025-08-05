@@ -3,6 +3,8 @@
 package cedar_embedded
 
 import (
+	"sync"
+
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -23,25 +25,26 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		entities: make(cedar.EntityMap),
 	}
 
-	if c.PIP() != nil {
-		c.PIP().IterateEntities(func(entity *models.Entity) {
+	if c.PIP != nil {
+		// c.PIP.AddEventSink(c)
+		c.PIP.IterateEntities(func(entity *models.Entity) {
 			e2, err := entityToCedar(entity)
 			if err != nil {
-				c.Logger().Warn("failed to convert PIP entity to cedar format", "key", entity.UID(), "err", err)
+				c.Logger.Warn("failed to convert PIP entity to cedar format", "key", entity.UID(), "err", err)
 			}
 			c.entities[e2.UID] = *e2
 		})
 	}
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-		c.PAP().LoadFiles()
+	if c.PAP != nil {
+		c.PAP.AddEventSink(c)
+		c.PAP.LoadFiles()
 	}
 
 	mod := "github.com/cedar-policy/cedar-go"
 	modVersion := module.GetModuleVersion(mod)
 
-	c.Logger().Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
+	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
 	return c
 }
 
@@ -49,4 +52,5 @@ type controller struct {
 	pdp.Base
 	pdp      *cedar.PolicySet
 	entities cedar.EntityMap
+	pdpMutex sync.Mutex
 }

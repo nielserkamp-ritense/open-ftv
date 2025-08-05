@@ -17,43 +17,43 @@ type Option func(c *Base)
 // WithContext adds a context to the controller.
 func WithContext(ctx context.Context) Option {
 	return func(c *Base) {
-		c.ctx = ctx
+		c.Ctx = ctx
 	}
 }
 
 // WithNameVersion adds the name of the policy engine and the version to a controller.
 func WithNameVersion(name, version string) Option {
 	return func(c *Base) {
-		c.name = name
-		c.version = version
+		c.Name = name
+		c.Version = version
 	}
 }
 
 // WithLogger adds a logger instance to the controller.
 func WithLogger(logger *slog.Logger) Option {
 	return func(c *Base) {
-		c.logger = logger
+		c.Logger = logger
 	}
 }
 
 // WithPEP adds a Policy Enforcement Point to the controller.
 func WithPEP(p *pep.PEP) Option {
 	return func(c *Base) {
-		c.pep = p
+		c.PEP = p
 	}
 }
 
 // WithPAP adds a Policy Administration Point to the controller.
 func WithPAP(p *pap.PAP) Option {
 	return func(c *Base) {
-		c.pap = p
+		c.PAP = p
 	}
 }
 
 // WithPIP adds a Policy Information Point to the controller.
 func WithPIP(p *pip.PIP) Option {
 	return func(c *Base) {
-		c.pip = p
+		c.PIP = p
 	}
 }
 

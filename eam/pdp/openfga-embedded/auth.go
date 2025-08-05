@@ -14,21 +14,25 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response, error) {
-	debug := c.Logger().Enabled(nil, slog.LevelDebug)
+	debug := c.Logger.Enabled(nil, slog.LevelDebug)
 	out := &models.Response{Allowed: false}
 
 	fgaReq, msg := c.buildCheckRequest(parc)
 	if msg != "" {
 		out.Message = msg
 		if debug {
-			c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", uid, "message", msg)
+			c.Logger.Error("authorization failed", "controller", c.String(), "request-uid", uid, "message", msg)
 		}
 		return out, nil
 	}
 
+	c.AuthMutex.RLock()
+
 	started := time.Now()
 	resp, err := c.engine.Check(context.Background(), fgaReq)
 	duration := time.Since(started)
+
+	c.AuthMutex.RUnlock()
 
 	if err != nil {
 		out.Message = err.Error()
@@ -39,9 +43,9 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 
 	if debug {
 		if out.Allowed {
-			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+			c.Logger.Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 		} else {
-			c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", uid, "message", out.Message, "pdp elapsed", duration.String())
+			c.Logger.Warn("authorization failed", "controller", c.String(), "request-uid", uid, "message", out.Message, "pdp elapsed", duration.String())
 		}
 	}
 

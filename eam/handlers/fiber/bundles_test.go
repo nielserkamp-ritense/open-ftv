@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"log/slog"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -40,73 +39,6 @@ func TestNewBundlesHandler(t *testing.T) {
 
 		ah := NewBundlesHandler(logger, p1, manager, nil)
 		require.NotNil(t, ah)
-	})
-}
-
-func TestNewBundlesPushHandler(t *testing.T) {
-	t.Parallel()
-
-	t.Run("test new bundles push handler", func(t *testing.T) {
-		t.Parallel()
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		logger := slog.New(h)
-
-		ah := NewBundlePushHandler(logger, nil)
-		require.NotNil(t, ah)
-
-		srv := fiber.New()
-		srv.Get("/v1/statuses", ah.GetStatuses)
-		srv.Get("/v1/compress-types", ah.GetCompressTypes)
-		srv.Get("/v1/bundle-configurations", ah.GetConfigs)
-		srv.Get("/v1/deployments", ah.GetDeployments)
-		srv.Get("/v1/deployment/:key", ah.GetDeployment)
-		srv.Post("/v1/deployment", ah.PostDeployment)
-
-		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/statuses", nil)
-		resp, err2 := srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		req = httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/compress-types", nil)
-		resp, err2 = srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		req = httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/bundle-configurations", nil)
-		resp, err2 = srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		req = httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/deployments", nil)
-		resp, err2 = srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		req = httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/deployment/1", nil)
-		resp, err2 = srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		req = httptest.NewRequestWithContext(ctx, fiber.MethodPost, "/v1/deployment", bytes.NewBufferString(`{}`))
-		resp, err2 = srv.Test(req, 100)
-		require.NoError(t, err2)
-		require.NotNil(t, resp)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
 

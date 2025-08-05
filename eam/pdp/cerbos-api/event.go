@@ -25,6 +25,9 @@ func (c *controller) Handle(event models.EventType, key string) {
 			return
 		}
 
+		c.pdpMutex.Lock()
+		defer c.pdpMutex.Unlock()
+
 		id2 := c.getPolicyID(language, id)
 
 		oldID, ok := c.policyIDs[id]
@@ -36,9 +39,12 @@ func (c *controller) Handle(event models.EventType, key string) {
 
 	case models.PolicyRemoved:
 		language, id := models.SplitPolicyKey(key)
-		if !strings.EqualFold(language, models.CERBOS.Language()) {
+		if !strings.EqualFold(language, models.CERBOS.Language()) && !strings.EqualFold(language, models.CERBOS.String()) {
 			return
 		}
+
+		c.pdpMutex.Lock()
+		defer c.pdpMutex.Unlock()
 
 		if id2, ok := c.policyIDs[id]; ok && id2 != "" {
 			c.deletePolicy(id, id2)
@@ -50,7 +56,7 @@ func (c *controller) Handle(event models.EventType, key string) {
 }
 
 func (c *controller) upsertPolicy(language, id, id2 string) {
-	policy, _, err := c.PAP().Read(language, id)
+	policy, _, err := c.PAP.Read(language, id)
 	if err != nil {
 		c.logger.Error("failed to get policy", "policy-id", id, "error", err)
 		return
@@ -59,7 +65,7 @@ func (c *controller) upsertPolicy(language, id, id2 string) {
 	set := cerbos.NewPolicySet().AddPolicyFromReader(policy.Content())
 	if err = set.Validate(); err != nil {
 		c.logger.Error("failed to decode policy", "policy-id", id, "error", err)
-	} else if err = c.admin.AddOrUpdatePolicy(c.Context(), set); err != nil {
+	} else if err = c.admin.AddOrUpdatePolicy(c.Ctx, set); err != nil {
 		c.logger.Error("failed to add/replace policy", "policy-id", id, "error", err)
 	} else {
 		c.policyIDs[id] = id2
@@ -68,7 +74,7 @@ func (c *controller) upsertPolicy(language, id, id2 string) {
 }
 
 func (c *controller) deletePolicy(id, id2 string) {
-	if _, err := c.admin.DisablePolicy(c.Context(), id2); err != nil {
+	if _, err := c.admin.DisablePolicy(c.Ctx, id2); err != nil {
 		c.logger.Error("failed to remove policy", "policy-id", id, "policy-key", id2, "error", err)
 	} else {
 		delete(c.policyIDs, id)
@@ -77,7 +83,7 @@ func (c *controller) deletePolicy(id, id2 string) {
 }
 
 func (c *controller) getPolicyID(language, id string) string {
-	policy, _, err := c.PAP().Read(language, id)
+	policy, _, err := c.PAP.Read(language, id)
 	if err != nil {
 		return ""
 	}

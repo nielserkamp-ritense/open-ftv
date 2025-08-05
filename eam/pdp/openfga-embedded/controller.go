@@ -28,26 +28,26 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		return nil
 	}
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-		c.PAP().LoadFiles()
+	if c.PAP != nil {
+		c.PAP.AddEventSink(c)
+		c.PAP.LoadFiles()
 	}
 
 	mod := "github.com/openfga/openfga"
 	modVersion := module.GetModuleVersion(mod)
 
-	c.Logger().Info("eam controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
+	c.Logger.Info("eam controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
 	return c
 }
 
 func (c *controller) newServer() {
 	engine, err := server.NewServerWithOpts(
 		server.WithDatastore(memory.New()),
-		server.WithLogger(newZapper(c.Logger())),
+		server.WithLogger(newZapper(c.Logger)),
 	)
 
 	if err != nil {
-		c.Logger().Error("Failed to create server", "error", err)
+		c.Logger.Error("Failed to create server", "error", err)
 		return
 	}
 
@@ -56,9 +56,9 @@ func (c *controller) newServer() {
 
 type controller struct {
 	pdp.Base
-	engine *server.Server      // OpenFGA PDP
-	stores map[string]*details // key = principal type
-	mutex  sync.RWMutex
+	engine   *server.Server      // OpenFGA PDP
+	stores   map[string]*details // key = principal type
+	pdpMutex sync.Mutex
 }
 
 type details struct {

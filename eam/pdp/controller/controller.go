@@ -4,7 +4,9 @@ package controller
 import (
 	"context"
 	"log/slog"
+	"sync"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
@@ -13,88 +15,81 @@ import (
 )
 
 // Controller represents the interface for an EAM controller component,
-// which may encompass a PEP, PIP, PAP and/or PDP.
+// which embeds a PDP-wrapper for authorization requests, along with a PAP, a PIP and an optional PEP.
 //
-// Each policy language specific PDP (in the submodules) must be represented by a Controller interface.
+// Each PDP-wrapper, in the language-specific submodules, must implement Controller.Authorize().
+// Each PDP-wrapper must also embed the Base struct to support all generic functions.
 type Controller interface {
-	String() string // name & version.
-	Name() string
-	Version() string
-	Context() context.Context
-	Logger() *slog.Logger
-	PEP() *pep.PEP
-	PAP() *pap.PAP
-	PIP() *pip.PIP
-	Authorize(uid string, req *models.PARC) (*models.Response, error)
+	Authorize(uid string, req *models.PARC) (*models.Response, error) // must be implemented by the PDP wrapper.
+	GetContext() context.Context                                      // implemented by Base.
+	GetLogger() *slog.Logger                                          // implemented by Base.
+	GetPEP() *pep.PEP                                                 // implemented by Base.
+	GetPAP() *pap.PAP                                                 // implemented by Base.
+	GetPIP() *pip.PIP                                                 // implemented by Base.
+	PARCFromRequest(req *models.Request) *models.PARC                 // implemented by Base (requires the PEP).
+	NewBundle(bundle *bundles.Bundle) (uint64, error)                 // implemented by Base.
 }
 
 // Base contains the common attributes of a controller.
 type Base struct {
-	ctx      context.Context
-	logger   *slog.Logger
-	name     string
-	version  string
+	Ctx           context.Context
+	Logger        *slog.Logger
+	Name          string
+	Version       string
+	PEP           *pep.PEP
+	PAP           *pap.PAP
+	PIP           *pip.PIP
+	AuthMutex     *sync.RWMutex
+	BundleVersion uint64
+	// hidden fields
 	fullName string
-	pep      *pep.PEP
-	pap      *pap.PAP
-	pip      *pip.PIP
 	mappers  []mapping.Mapper
 }
 
 // NewBase instantiates a new controller base.
 func NewBase(options ...Option) Base {
-	b := Base{ctx: context.Background()}
+	b := Base{Ctx: context.Background(), AuthMutex: &sync.RWMutex{}}
 
 	for i := range options {
 		options[i](&b)
 	}
 
-	b.fullName = b.name
-	if b.version != "" {
-		b.fullName += " " + b.version
+	b.fullName = b.Name
+	if b.Version != "" {
+		b.fullName += " " + b.Version
 	}
 
 	return b
 }
 
-// String implements the Controller interface.
+// String returns the full name of the controller.
 func (b *Base) String() string {
 	return b.fullName
 }
 
-// Name implements the Controller interface.
-func (b *Base) Name() string {
-	return b.name
+// GetContext returns the context of the controller.
+func (b *Base) GetContext() context.Context {
+	return b.Ctx
 }
 
-// Version implements the Controller interface.
-func (b *Base) Version() string {
-	return b.version
+// GetLogger returns the logger of the controller.
+func (b *Base) GetLogger() *slog.Logger {
+	return b.Logger
 }
 
-// Context returns the context used by the controller.
-func (b *Base) Context() context.Context {
-	return b.ctx
+// GetPEP returns the PEP of the controller.
+func (b *Base) GetPEP() *pep.PEP {
+	return b.PEP
 }
 
-// Logger returns the logger used by the controller.
-func (b *Base) Logger() *slog.Logger {
-	return b.logger
+// GetPAP returns the PAP of the controller.
+func (b *Base) GetPAP() *pap.PAP {
+	return b.PAP
 }
 
-// PEP returns the PEP used by the controller.
-func (b *Base) PEP() *pep.PEP {
-	return b.pep
-}
-
-// PAP returns the PAP used by the controller.
-func (b *Base) PAP() *pap.PAP {
-	return b.pap
-}
-
-// PIP returns the PIP used by the controller.
-func (b *Base) PIP() *pip.PIP {
-	return b.pip
+// GetPIP returns the PIP of the controller.
+func (b *Base) GetPIP() *pip.PIP {
+	return b.PIP
 }
 
 // Map performs the configured mappings on the given PARC.
@@ -104,4 +99,9 @@ func (b *Base) Map(parc *models.PARC) *models.PARC {
 		p = b.mappers[i](p)
 	}
 	return p
+}
+
+// PARCFromRequest convert an authorization-request into an AuthZEN compatible PARC struct.
+func (b *Base) PARCFromRequest(req *models.Request) *models.PARC {
+	return b.PEP.PARCFromRequest(req, b.PIP.GetEntity)
 }

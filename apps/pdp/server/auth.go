@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -22,12 +23,19 @@ import (
 type AuthHandler interface {
 	Controller() pdp.Controller
 	AuthZEN(req *fiber.Ctx) error
+	Authorizer() authorization.Authorizer
 }
 
 func (s *service) newAuth() AuthHandler {
 	controller, err := s.newController()
 	if controller == nil {
 		s.logger.Error("failed to initialize pdp controller", "error", err)
+		return nil
+	}
+
+	authorizer, err2 := s.cfg.Authorization.NewAuthorizer(controller, nil)
+	if err2 != nil {
+		s.logger.Error("failed to initialize authorizer", "error", err2)
 		return nil
 	}
 
@@ -42,7 +50,12 @@ func (s *service) newAuth() AuthHandler {
 
 	zen := handlers.NewAuthHandlerZEN(s.logger, authLogger, controller)
 
-	return &authHandler{logger: s.logger, controller: controller, zen: zen}
+	return &authHandler{
+		logger:     s.logger,
+		controller: controller,
+		zen:        zen,
+		authorizer: authorizer,
+	}
 }
 
 func (s *service) newController() (pdp.Controller, error) {
@@ -81,8 +94,12 @@ func (h *authHandler) Controller() pdp.Controller { return h.controller }
 // AuthZEN authorizes an AuthZEN authorization request.
 func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req) }
 
+// Authorizer returns the authorizer.
+func (h *authHandler) Authorizer() authorization.Authorizer { return h.authorizer }
+
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
 	zen        handlers.AuthZENAuthorizer
+	authorizer authorization.Authorizer
 }

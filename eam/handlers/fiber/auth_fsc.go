@@ -123,7 +123,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 	}
 
 	p.reqUID = uid.String()
-	p.parc = p.controller.PEP().PARCFromRequest(authReq, p.controller.PIP().GetEntity)
+	p.parc = p.controller.PARCFromRequest(authReq)
 }
 
 func (p *authProcess) authorizeFSC() error {

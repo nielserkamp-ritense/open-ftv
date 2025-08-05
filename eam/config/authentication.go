@@ -1,10 +1,12 @@
 package config
 
 import (
+	"context"
+	"log/slog"
 	"strings"
 
 	authentication2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
-	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Authentication contains the configuration variables for API endpoints to authenticate users and/or external processes.
@@ -13,11 +15,11 @@ type Authentication struct {
 }
 
 // NewAuthenticator instantiates a new authenticator using the given configuration.
-func (a *Authentication) NewAuthenticator(controller pdp.Controller) (authentication2.Authenticator, error) {
+func (a *Authentication) NewAuthenticator(ctx context.Context, logger *slog.Logger, getter models.GetEntity) (authentication2.Authenticator, error) {
 	opts := []authentication2.Option{
-		authentication2.WithContext(controller.Context()),
-		authentication2.WithLogger(controller.Logger()),
-		authentication2.WithEntityGetter(controller.PIP().GetEntity),
+		authentication2.WithContext(ctx),
+		authentication2.WithLogger(logger),
+		authentication2.WithEntityGetter(getter),
 	}
 
 	// TODO: basic auth & jwt authentication handlers.

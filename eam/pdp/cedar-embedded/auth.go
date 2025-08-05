@@ -11,26 +11,30 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, error) {
-	debug := c.Logger().Enabled(nil, slog.LevelDebug)
+	debug := c.Logger.Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", uid)
+		c.Logger.Debug("authorization request", "controller", c.String(), "request-uid", uid)
 	}
 
 	req2 := c.buildCedarRequest(req)
 
+	c.AuthMutex.RLock()
+
 	started := time.Now()
-	decision, diagnostic := c.pdp.IsAuthorized(c.entities, req2)
+	decision, diagnostic := cedar.Authorize(c.pdp, c.entities, req2)
 	duration := time.Since(started)
+
+	c.AuthMutex.RUnlock()
 
 	if decision {
 		if debug {
-			c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+			c.Logger.Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 		}
 		return &models.Response{Allowed: true}, nil
 	}
 
 	if debug {
-		c.Logger().Warn("authorization failed", "controller", c.String(), "request-uid", uid, "diagnostic", diagnostic, "pdp elapsed", duration.String())
+		c.Logger.Warn("authorization failed", "controller", c.String(), "request-uid", uid, "diagnostic", diagnostic, "pdp elapsed", duration.String())
 	}
 
 	return &models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
@@ -43,7 +47,7 @@ func (c *controller) buildCedarRequest(parc *models.PARC) cedar.Request {
 	parc.Context.IterateAttributes(func(attr *models.Attribute) {
 		v, err := anyToValue(attr.Value())
 		if err != nil {
-			c.Logger().Warn("failed to convert context attribute to cedar format", "key", attr.Key(), "type", attr.Type, "value", attr.Value(), "err", err)
+			c.Logger.Warn("failed to convert context attribute to cedar format", "key", attr.Key(), "type", attr.Type, "value", attr.Value(), "err", err)
 		}
 		ca[cedar.String(attr.Key())] = v
 	})

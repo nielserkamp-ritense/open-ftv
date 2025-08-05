@@ -24,16 +24,18 @@ func TestAuthorization_NewAuthorizer(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
+		p1 := pip.New(ctx, logger)
+
 		c := cedar_embedded.NewController(
 			pdp.WithContext(ctx),
 			pdp.WithLogger(logger),
 			pdp.WithPEP(pep.New(ctx, logger)),
-			pdp.WithPIP(pip.New(ctx, logger)),
+			pdp.WithPIP(p1),
 			pdp.WithPAP(pap.New(ctx, logger)),
 		)
 
 		a1 := &Authentication{Type: "bcrypt"}
-		a2, err := a1.NewAuthenticator(c)
+		a2, err := a1.NewAuthenticator(ctx, logger, p1.GetEntity)
 		require.NoError(t, err)
 		require.NotNil(t, a2)
 

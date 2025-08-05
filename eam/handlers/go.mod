@@ -3,6 +3,7 @@ module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers
 go 1.24.4
 
 require (
+	github.com/dsnet/compress v0.0.1
 	github.com/goccy/go-json v0.10.5
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
@@ -42,7 +43,6 @@ require (
 	github.com/defensestation/osquery v1.0.0 // indirect
 	github.com/deiu/gon3 v0.0.0-20241212124032-93153c038193 // indirect
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25 // indirect
-	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
