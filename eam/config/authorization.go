@@ -16,15 +16,15 @@ type Authorization struct {
 // NewAuthorizer instantiates a new authorizer using the given configuration.
 func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator) (authorization2.Authorizer, error) {
 	opts := []authorization2.Option{
-		authorization2.WithContext(controller.Context()),
-		authorization2.WithLogger(controller.Logger()),
-		authorization2.WithPEP(controller.PEP()),
+		authorization2.WithContext(controller.GetContext()),
+		authorization2.WithLogger(controller.GetLogger()),
+		authorization2.WithPEP(controller.GetPEP()),
 		authorization2.WithPDP(controller),
-		authorization2.WithEntityGetter(controller.PIP().GetEntity),
+		authorization2.WithEntityGetter(controller.GetPIP().GetEntity),
 	}
 
-	lang := controller.PAP().Language()
-	if list, err := controller.PAP().List(lang.Language()); err != nil || len(list) == 0 {
+	lang := controller.GetPAP().Language()
+	if list, err := controller.GetPAP().List(lang.Language()); err != nil || len(list) == 0 {
 		opts = append(opts, authorization2.NoAuth())
 	}
 

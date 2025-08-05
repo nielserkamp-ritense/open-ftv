@@ -80,4 +80,5 @@ type Config struct {
 	config2.PAP
 	config2.Cerbos
 	config2.OpenSearch
+	config2.Authorization
 }

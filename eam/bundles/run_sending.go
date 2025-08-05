@@ -175,7 +175,7 @@ func sendBundle(ctx context.Context, job *sendJob) (int, error) {
 		return 0, err
 	}
 
-	req.Header.Set("Content-Type", ct.String())
+	req.Header.Set("Content-Encoding", ct.String())
 
 	if job.target.APIKey != "" {
 		req.Header.Set("Api-Key", job.target.APIKey)

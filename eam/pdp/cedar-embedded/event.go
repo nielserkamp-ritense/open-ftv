@@ -18,9 +18,9 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
-		f, _, err := c.PAP().Read(language, id)
+		f, _, err := c.PAP.Read(language, id)
 		if err != nil {
-			c.Logger().Error("failed to get policy", "controller", c.String(), "policy-id", id, "error", err)
+			c.Logger.Error("failed to get policy", "controller", c.String(), "policy-id", id, "error", err)
 			return
 		}
 
@@ -28,10 +28,13 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 		var policy cedar.Policy
 		if err = policy.UnmarshalCedar(d); err == nil {
+			c.pdpMutex.Lock()
 			c.pdp.Add(cedar.PolicyID(id), &policy)
-			c.Logger().Info("policy added/replaced", "controller", c.String(), "policy-id", id)
+			c.pdpMutex.Unlock()
+
+			c.Logger.Info("policy added/replaced", "controller", c.String(), "policy-id", id)
 		} else {
-			c.Logger().Error("error decoding policy", "controller", c.String(), "policy-id", id, "error", err)
+			c.Logger.Error("error decoding policy", "controller", c.String(), "policy-id", id, "error", err)
 		}
 
 	case models.PolicyRemoved:
@@ -40,8 +43,11 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
+		c.pdpMutex.Lock()
 		c.pdp.Remove(cedar.PolicyID(id))
-		c.Logger().Info("policy removed", "controller", c.String(), "policy-id", id)
+		c.pdpMutex.Unlock()
+
+		c.Logger.Info("policy removed", "controller", c.String(), "policy-id", id)
 
 	default:
 		// TODO: attributes, entities, relations

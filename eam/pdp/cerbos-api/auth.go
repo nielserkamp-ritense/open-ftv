@@ -11,7 +11,7 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, error) {
-	debug := c.Logger().Enabled(nil, slog.LevelDebug)
+	debug := c.Logger.Enabled(nil, slog.LevelDebug)
 	if debug {
 		c.logger.Debug("authorization request", "request-uid", uid)
 	}
@@ -19,9 +19,13 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 	principal, resource, action := c.buildCerbosRequest(req)
 	batch := cerbos.NewResourceBatch().Add(resource, action)
 
+	c.AuthMutex.RLock()
+
 	started := time.Now()
-	decision, err := c.engine.CheckResources(c.Context(), principal, batch)
+	decision, err := c.engine.CheckResources(c.Ctx, principal, batch)
 	duration := time.Since(started)
+
+	c.AuthMutex.RUnlock()
 
 	if err == nil {
 		match := decision.GetResource(resource.ID())

@@ -46,7 +46,7 @@ func TestNewEntitiesHandler(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		eh := NewEntitiesHandler(logger, controller.PIP(), nil)
+		eh := NewEntitiesHandler(logger, controller.GetPIP(), nil)
 		require.NotNil(t, eh)
 	})
 }
@@ -73,7 +73,7 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 		require.NotNil(t, auth)
 
-		eh := NewEntitiesHandler(logger, controller.PIP(), auth)
+		eh := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 		require.NotNil(t, eh)
 
 		srv := fiber.New()
@@ -128,7 +128,7 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 		require.NotNil(t, auth)
 
-		eh := NewEntitiesHandler(logger, controller.PIP(), auth)
+		eh := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 		require.NotNil(t, eh)
 
 		srv := fiber.New()
@@ -187,7 +187,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 			require.NotNil(t, auth)
 
-			eh := NewEntitiesHandler(logger, controller.PIP(), auth)
+			eh := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 			require.NotNil(t, eh)
 
 			srv := fiber.New()
@@ -271,7 +271,7 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 			require.NotNil(t, auth)
 
-			eh := NewEntitiesHandler(logger, controller.PIP(), auth)
+			eh := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 			require.NotNil(t, eh)
 
 			srv := fiber.New()
@@ -357,7 +357,7 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 			require.NotNil(t, auth)
 
-			ah := NewEntitiesHandler(logger, controller.PIP(), auth)
+			ah := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()
@@ -431,7 +431,7 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))
 			require.NotNil(t, auth)
 
-			ah := NewEntitiesHandler(logger, controller.PIP(), auth)
+			ah := NewEntitiesHandler(logger, controller.GetPIP(), auth)
 			require.NotNil(t, ah)
 
 			srv := fiber.New()

@@ -14,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -23,13 +24,13 @@ type AuthHandler interface {
 }
 
 func (s *service) newAuth() AuthHandler {
-	controller, err := s.newController()
+	controller, p1, err := s.newController()
 	if controller == nil {
 		s.logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
 	}
 
-	authenticator, err2 := s.cfg.Authentication.NewAuthenticator(controller)
+	authenticator, err2 := s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, p1.GetEntity)
 	if err2 != nil {
 		s.logger.Error("failed to initialize authenticator", "error", err2)
 		return nil
@@ -49,33 +50,33 @@ func (s *service) newAuth() AuthHandler {
 	}
 }
 
-func (s *service) newController() (pdp.Controller, error) {
+func (s *service) newController() (pdp.Controller, *pip.PIP, error) {
 	ep := pep.New(s.ctx, s.logger)
 
 	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ap, err2 := s.cfg.PAP.NewPAP(s.ctx, s.logger)
 	if err2 != nil {
-		return nil, err2
+		return nil, nil, err2
 	}
 
 	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap)}
 
 	switch s.l {
 	case models.CEDAR:
-		return cedar_embedded.NewController(options...), nil
+		return cedar_embedded.NewController(options...), ip, nil
 	case models.REGO:
-		return opa_embedded.NewController(options...), nil
+		return opa_embedded.NewController(options...), ip, nil
 	case models.OPENFGA:
-		return openfga_embedded.NewController(options...), nil
+		return openfga_embedded.NewController(options...), ip, nil
 	case models.CERBOS:
 		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}
-		return cerbos_api.NewController(cerbosCFG, options...), nil
+		return cerbos_api.NewController(cerbosCFG, options...), ip, nil
 	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
+		return nil, nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
 	}
 }
 

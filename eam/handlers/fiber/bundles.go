@@ -18,7 +18,6 @@ const BundlesVersion = "1.0.0" // check against oas/bundles/openapi.yaml!
 
 // BundlesHandler contains the details for handling requests about bundles and deployments.
 type BundlesHandler struct {
-	push       bool
 	logger     *slog.Logger
 	pap        *pap.PAP
 	manager    *bundles.Manager
@@ -26,24 +25,15 @@ type BundlesHandler struct {
 	authorizer authorization.Authorizer
 }
 
-// NewBundlesHandler instantiates a bundle deployment handler (no push function!).
+// NewBundlesHandler instantiates a bundle deployment handler.
 func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer) *BundlesHandler {
 	return &BundlesHandler{logger: logger, pap: pap, manager: manager, cfg: manager.Bundles(), authorizer: authorizer}
 }
 
-// NewBundlePushHandler instantiates a bundle push endpoint handler (only push function!).
-func NewBundlePushHandler(logger *slog.Logger, authorizer authorization.Authorizer) *BundlesHandler {
-	return &BundlesHandler{logger: logger, authorizer: authorizer, push: true}
-}
-
-// GetStatuses implements the BundlesHandler interface.
+// GetStatuses is the endpoint for retrieving the list of bundle status codes.
 func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -56,14 +46,10 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-// GetCompressTypes implements the BundlesHandler interface.
+// GetCompressTypes is the endpoint for retrieving the list of compression types.
 func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -76,14 +62,10 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-// GetConfigs implements the BundlesHandler interface.
+// GetConfigs is the endpoint for retrieving the bundle configurations.
 func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -119,14 +101,10 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-// GetDeployments implements the BundlesHandler interface.
+// GetDeployments is the endpoint for retrieving the list of all bundle deployments.
 func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -139,14 +117,10 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-// GetDeployment implements the BundlesHandler interface.
+// GetDeployment is the endpoint for retrieving a specific bundle deployment.
 func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -164,14 +138,10 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-// PostDeployment implements the BundlesHandler interface.
+// PostDeployment is the endpoint for starting a new bundle deployment.
 func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
-
-	if h.push {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, msgOnlyPushEndpoint)
-	}
 
 	if ok, err := h.authorize(req); !ok || err != nil {
 		return err
@@ -200,8 +170,3 @@ func (h *BundlesHandler) authorize(req *fiber.Ctx) (bool, error) {
 
 	return authRequest.Check(req, resp, err)
 }
-
-const (
-	msgOnlyPushEndpoint = "only bundle push endpoint configured"
-	msgNoPushEndpoint   = "no bundle push endpoint configured"
-)

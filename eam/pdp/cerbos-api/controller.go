@@ -5,6 +5,7 @@ package cerbos_api
 import (
 	"errors"
 	"log/slog"
+	"sync"
 
 	"github.com/cerbos/cerbos-sdk-go/cerbos"
 
@@ -29,13 +30,13 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 	options = append(options, pdp.WithNameVersion(models.CERBOS.String(), Version))
 
 	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
-	c.logger = c.Logger().With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)
+	c.logger = c.Logger.With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)
 
 	c.initClients()
 
-	if c.PAP() != nil {
-		c.PAP().AddEventSink(c)
-		c.PAP().LoadFiles()
+	if c.PAP != nil {
+		c.PAP.AddEventSink(c)
+		c.PAP.LoadFiles()
 	}
 
 	if c.engine != nil {
@@ -68,7 +69,7 @@ func (c *controller) initClients() {
 	case err2 != nil:
 		c.logger.Error("failed to initialize admin client", "error", err2)
 	default:
-		if c.info, err = c.engine.ServerInfo(c.Context()); err != nil || c.info == nil {
+		if c.info, err = c.engine.ServerInfo(c.Ctx); err != nil || c.info == nil {
 			c.logger.Error("failed to retrieve server-info", "error", err)
 		} else {
 			c.logger = c.logger.With("serverInfo", c.info)
@@ -89,4 +90,5 @@ type controller struct {
 	engine    *cerbos.GRPCClient
 	info      *cerbos.ServerInfo
 	policyIDs map[string]string
+	pdpMutex  sync.Mutex
 }

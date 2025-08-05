@@ -16,25 +16,30 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Response, err error) {
-	debug := c.Logger().Enabled(nil, slog.LevelDebug)
+	debug := c.Logger.Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.Logger().Debug("authorization request", "controller", c.String(), "request-uid", uid)
+		c.Logger.Debug("authorization request", "controller", c.String(), "request-uid", uid)
 	}
 
 	opts := c.buildDecisionOptions(uid, parc)
 
 	var decision *sdk.DecisionResult
+
+	c.AuthMutex.RLock()
+
 	started := time.Now()
 	decision, err = c.pdp.Decision(context.Background(), opts)
 	duration := time.Since(started)
 
+	c.AuthMutex.RUnlock()
+
 	if err != nil {
-		c.Logger().Error("authorization failed", "controller", c.String(), "request-uid", uid, "err", err, "pdp elapsed", duration.String())
+		c.Logger.Error("authorization failed", "controller", c.String(), "request-uid", uid, "err", err, "pdp elapsed", duration.String())
 	} else {
 		if m, ok := decision.Result.(map[string]any); ok {
 			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 				if debug {
-					c.Logger().Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+					c.Logger.Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 				}
 				resp = &models.Response{Allowed: true}
 				return
@@ -42,7 +47,7 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 		}
 
 		if debug {
-			c.Logger().Warn("authorization not granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+			c.Logger.Warn("authorization not granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
 		}
 	}
 

@@ -61,12 +61,12 @@ func TestNewBase(t *testing.T) {
 			require.NotNil(t, b)
 
 			assert.Equal(t, tc.want, b.String())
-			assert.Equal(t, tc.id, b.Name())
-			assert.Equal(t, tc.version, b.Version())
-			assert.Equal(t, logger, b.Logger())
-			assert.Equal(t, ap, b.PAP())
-			assert.Equal(t, ip, b.PIP())
-			assert.Equal(t, ep, b.PEP())
+			assert.Equal(t, tc.id, b.Name)
+			assert.Equal(t, tc.version, b.Version)
+			assert.Equal(t, logger, b.GetLogger())
+			assert.Equal(t, ap, b.GetPAP())
+			assert.Equal(t, ip, b.GetPIP())
+			assert.Equal(t, ep, b.GetPEP())
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
 	}
