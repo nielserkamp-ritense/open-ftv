@@ -12,32 +12,6 @@ type Action struct {
 	Properties map[string]any `json:"properties,omitempty"`
 }
 
-// AuthorizationRequest Authorization request model.
-type AuthorizationRequest struct {
-	// Action The action associated with an authorization request.
-	Action Action `json:"action"`
-
-	// Context Optional context of the request.
-	Context map[string]any `json:"context,omitempty"`
-
-	// Resource The entity associated with an authorization request.
-	// This can be the subject (e.g. principal) or the resource.
-	Resource Entity `json:"resource"`
-
-	// Subject The entity associated with an authorization request.
-	// This can be the subject (e.g. principal) or the resource.
-	Subject Entity `json:"subject"`
-}
-
-// AuthorizationResponse Authorization response model.
-type AuthorizationResponse struct {
-	// Context Specifies a particular reason.
-	Context *ReasonObject `json:"context,omitempty"`
-
-	// Decision true if the request is authorized.
-	Decision bool `json:"decision"`
-}
-
 // Entity The entity associated with an authorization request.
 // This can be the subject (e.g. principal) or the resource.
 type Entity struct {
@@ -69,6 +43,98 @@ type ErrorResponse struct {
 	Type string `json:"type,omitempty"`
 }
 
+// EvaluationDecision Evaluation decision model.
+type EvaluationDecision struct {
+	// Context Specifies a particular reason.
+	Context ReasonObject `json:"context,omitempty"`
+
+	// Decision true if the request is authorized.
+	Decision bool `json:"decision"`
+}
+
+// EvaluationObject Evaluation object model.
+type EvaluationObject struct {
+	// Action The action associated with an authorization request.
+	Action Action `json:"action"`
+
+	// Context Optional context of the request.
+	Context map[string]any `json:"context,omitempty"`
+
+	// Resource The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Resource Entity `json:"resource"`
+
+	// Subject The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Subject Entity `json:"subject"`
+}
+
+// EvaluationsDecision Evaluations decision model.
+type EvaluationsDecision struct {
+	// Evaluations List of evaluation decisions.
+	Evaluations []EvaluationDecision `json:"evaluations"`
+}
+
+// EvaluationsObject Evaluations object model.
+type EvaluationsObject struct {
+	// Action The action associated with an authorization request.
+	Action Action `json:"action,omitempty"`
+
+	// Context Optional default context of the request.
+	Context map[string]any `json:"context,omitempty"`
+
+	// Evaluations list of evaluation requests to test.
+	Evaluations []EvaluationObject `json:"evaluations"`
+
+	// Options Options for the evaluations request.
+	Options struct {
+		// EvaluationSemantics By default, every request in the evaluations array is executed and a response returned in the same array order.
+		// This is the most common use-case for boxcarring multiple evaluation requests in a single payload.
+		//
+		// To select the desired evaluations semantic, use exactly one of the following values:
+		//   - execute_all = default.
+		//   - deny_on_first_deny = halt processing after first deny.
+		//   - permit_on_first_permit = halt processing after first allow.
+		EvaluationSemantics string `json:"evaluation_semantics,omitempty"`
+	} `json:"options,omitempty"`
+
+	// Resource The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Resource Entity `json:"resource,omitempty"`
+
+	// Subject The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Subject Entity `json:"subject,omitempty"`
+}
+
+// MetadataObject Metadata model.
+//
+// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+// However AuthZEN named the metadata response properties in *kebab_case*.
+// So the properties in this model will be flagged when using the NL API Design Rules.
+type MetadataObject struct {
+	// AccessEvaluationEndpoint URL to AuthZEN compatible evaluation endpoint.
+	AccessEvaluationEndpoint string `json:"access_evaluation_endpoint"`
+
+	// AccessEvaluationsEndpoint URL to AuthZEN compatible evaluations endpoint.
+	AccessEvaluationsEndpoint string `json:"access_evaluations_endpoint,omitempty"`
+
+	// PolicyDecisionPoint Base URL of the PDP. Must match with the base URL used to retrieve the metadata.
+	PolicyDecisionPoint string `json:"policy_decision_point"`
+
+	// SearchActionEndpoint URL to AuthZEN action search endpoint.
+	SearchActionEndpoint string `json:"search_action_endpoint,omitempty"`
+
+	// SearchResourceEndpoint URL to AuthZEN compatible resource search endpoint.
+	SearchResourceEndpoint string `json:"search_resource_endpoint,omitempty"`
+
+	// SearchSubjectEndpoint URL to AuthZEN compatible subject search endpoint.
+	SearchSubjectEndpoint string `json:"search_subject_endpoint,omitempty"`
+
+	// SignedMetadata JWT containing metadata parameters about the endpoints as claims.
+	SignedMetadata string `json:"signed_metadata,omitempty"`
+}
+
 // ReasonField Map of one or more reasons, with a language-identifier as the key.
 type ReasonField = map[string]any
 
@@ -84,17 +150,130 @@ type ReasonObject struct {
 	ReasonUser ReasonField `json:"reasonUser,omitempty"`
 }
 
+// SearchActionObject Search action object model.
+type SearchActionObject struct {
+	// Context Optional context of the request.
+	Context map[string]any `json:"context,omitempty"`
+
+	// Page Pagination options.
+	Page struct {
+		// NextToken Token used for pagination.
+		NextToken string `json:"next_token,omitempty"`
+	} `json:"page,omitempty"`
+
+	// Resource The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Resource Entity `json:"resource"`
+
+	// Subject The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Subject Entity `json:"subject"`
+}
+
+// SearchActionResult Search action result model.
+type SearchActionResult struct {
+	// Name The name of the action.
+	Name string `json:"name,omitempty"`
+}
+
+// SearchActionResults Search action results model.
+type SearchActionResults struct {
+	// Page Pagination options.
+	Page struct {
+		// NextToken Token used for pagination.
+		NextToken string `json:"next_token,omitempty"`
+	} `json:"page,omitempty"`
+
+	// Results List of action search results.
+	Results []SearchActionResult `json:"results"`
+}
+
+// SearchObject Search object model.
+type SearchObject struct {
+	// Action The action associated with an authorization request.
+	Action Action `json:"action"`
+
+	// Context Optional context of the request.
+	Context map[string]any `json:"context,omitempty"`
+
+	// Page Pagination options.
+	Page struct {
+		// NextToken Token used for pagination.
+		NextToken string `json:"next_token,omitempty"`
+	} `json:"page,omitempty"`
+
+	// Resource The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Resource Entity `json:"resource"`
+
+	// Subject The entity associated with an authorization request.
+	// This can be the subject (e.g. principal) or the resource.
+	Subject Entity `json:"subject"`
+}
+
+// SearchResult Search result model.
+type SearchResult struct {
+	// Id The unique ID of the entity.
+	Id string `json:"id,omitempty"`
+
+	// Type The type of the entity.
+	Type string `json:"type,omitempty"`
+}
+
+// SearchResults Search results model.
+type SearchResults struct {
+	// Page Pagination options.
+	Page struct {
+		// NextToken Token used for pagination.
+		NextToken string `json:"next_token,omitempty"`
+	} `json:"page,omitempty"`
+
+	// Results List of search results.
+	Results []SearchResult `json:"results"`
+}
+
 // AccessDenied Error response model (as defined by RFC9457).
 type AccessDenied = ErrorResponse
 
 // BadRequest Error response model (as defined by RFC9457).
 type BadRequest = ErrorResponse
 
+// EvaluationResponse Evaluation decision model.
+type EvaluationResponse = EvaluationDecision
+
+// EvaluationsResponse Evaluations decision model.
+type EvaluationsResponse = EvaluationsDecision
+
+// MetadataResponse Metadata model.
+//
+// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+// However AuthZEN named the metadata response properties in *kebab_case*.
+// So the properties in this model will be flagged when using the NL API Design Rules.
+type MetadataResponse = MetadataObject
+
 // NotAuthorized Error response model (as defined by RFC9457).
 type NotAuthorized = ErrorResponse
 
+// SearchActionResponse Search action results model.
+type SearchActionResponse = SearchActionResults
+
+// SearchResponse Search results model.
+type SearchResponse = SearchResults
+
 // UnexpectedError Error response model (as defined by RFC9457).
 type UnexpectedError = ErrorResponse
+
+// EvaluationRequest Evaluation object model.
+type EvaluationRequest = EvaluationObject
+
+// EvaluationsRequest Evaluations object model.
+type EvaluationsRequest = EvaluationsObject
+
+// SearchActionRequest Search action object model.
+type SearchActionRequest = SearchActionObject
+
+// SearchRequest Search object model.
+type SearchRequest = SearchObject
 
 // AccessEvaluationParams defines parameters for AccessEvaluation.
 type AccessEvaluationParams struct {
@@ -106,5 +285,57 @@ type AccessEvaluationParams struct {
 	XRequestID string `json:"X-Request-ID,omitempty"`
 }
 
+// AccessEvaluationsParams defines parameters for AccessEvaluations.
+type AccessEvaluationsParams struct {
+	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
+	Authorization string `json:"Authorization,omitempty"`
+
+	// XRequestID Request header containing the unique ID of the request.
+	// This will be returned in the response.
+	XRequestID string `json:"X-Request-ID,omitempty"`
+}
+
+// ActionSearchParams defines parameters for ActionSearch.
+type ActionSearchParams struct {
+	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
+	Authorization string `json:"Authorization,omitempty"`
+
+	// XRequestID Request header containing the unique ID of the request.
+	// This will be returned in the response.
+	XRequestID string `json:"X-Request-ID,omitempty"`
+}
+
+// ResourceSearchParams defines parameters for ResourceSearch.
+type ResourceSearchParams struct {
+	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
+	Authorization string `json:"Authorization,omitempty"`
+
+	// XRequestID Request header containing the unique ID of the request.
+	// This will be returned in the response.
+	XRequestID string `json:"X-Request-ID,omitempty"`
+}
+
+// SubjectSearchParams defines parameters for SubjectSearch.
+type SubjectSearchParams struct {
+	// Authorization Request header containing the credentials to authenticate the client (PEP) to the authentication service (PDP).
+	Authorization string `json:"Authorization,omitempty"`
+
+	// XRequestID Request header containing the unique ID of the request.
+	// This will be returned in the response.
+	XRequestID string `json:"X-Request-ID,omitempty"`
+}
+
 // AccessEvaluationJSONRequestBody defines body for AccessEvaluation for application/json ContentType.
-type AccessEvaluationJSONRequestBody = AuthorizationRequest
+type AccessEvaluationJSONRequestBody = EvaluationObject
+
+// AccessEvaluationsJSONRequestBody defines body for AccessEvaluations for application/json ContentType.
+type AccessEvaluationsJSONRequestBody = EvaluationsObject
+
+// ActionSearchJSONRequestBody defines body for ActionSearch for application/json ContentType.
+type ActionSearchJSONRequestBody = SearchActionObject
+
+// ResourceSearchJSONRequestBody defines body for ResourceSearch for application/json ContentType.
+type ResourceSearchJSONRequestBody = SearchObject
+
+// SubjectSearchJSONRequestBody defines body for SubjectSearch for application/json ContentType.
+type SubjectSearchJSONRequestBody = SearchObject
