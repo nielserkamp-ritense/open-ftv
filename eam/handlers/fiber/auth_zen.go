@@ -56,18 +56,18 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
 
-	p.newAuthRequestAuthZEN(req, fc.GetReqHeaders())
+	p.newAuthRequestAuthZEN(req)
 	return p.authorizeAuthZEN()
 }
 
-func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
+func (p *authProcess) verifyRequestAuthZEN() *authzen.EvaluationRequest {
 	p.status = fiber.StatusBadRequest
 
 	if req := p.fc.Request(); len(req.Header.ContentType()) == 0 {
 		req.Header.SetContentType(fiber.MIMEApplicationJSON)
 	}
 
-	req := &authzen.AuthorizationRequest{}
+	req := &authzen.EvaluationRequest{}
 	if p.err = p.fc.BodyParser(req); p.err != nil {
 		p.msg = "invalid input data"
 		return nil
@@ -92,7 +92,7 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.AuthorizationRequest {
 	return req
 }
 
-func (p *authProcess) newAuthRequestAuthZEN(req *authzen.AuthorizationRequest, headers map[string][]string) {
+func (p *authProcess) newAuthRequestAuthZEN(req *authzen.EvaluationRequest) {
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
 	action := models.NewEntity(models.EntityTypeName, req.Action.Name, models.NewAttributeSet(req.Action.Properties))
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
@@ -130,9 +130,9 @@ func (p *authProcess) authorizeAuthZEN() error {
 		}
 	}
 
-	return p.fc.JSON(&authzen.AuthorizationResponse{
+	return p.fc.JSON(&authzen.EvaluationDecision{
 		Decision: allowed,
-		Context:  &authzen.ReasonObject{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}},
+		Context:  authzen.ReasonObject{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}},
 	})
 }
 
