@@ -393,11 +393,10 @@ entities:
 		entities := models.NewEntitySet()
 
 		m := &manager{
-			ctx:           ctx,
-			cancel:        cancel,
-			logger:        logger,
-			addEntity:     entities.AddEntity,
-			newAttributes: models.NewAttributeSet,
+			ctx:       ctx,
+			cancel:    cancel,
+			logger:    logger,
+			addEntity: entities.AddEntity,
 		}
 
 		var execErr error

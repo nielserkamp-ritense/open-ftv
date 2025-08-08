@@ -39,9 +39,11 @@ func WithPersistence(store store.Store, basePath string) Option {
 // WithFileStore adds a file storage location to the controller.
 func WithFileStore(fileStore string, recurse bool) Option {
 	return func(p *PAP) {
-		if ps, _ := filepath.Abs(fileStore); validPath(ps) {
-			p.policyStore = ps
-			p.recurse = recurse
+		if fileStore != "" {
+			if ps, _ := filepath.Abs(fileStore); validPath(ps) {
+				p.policyStore = ps
+				p.recurse = recurse
+			}
 		}
 	}
 }

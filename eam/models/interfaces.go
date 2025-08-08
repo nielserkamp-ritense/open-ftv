@@ -1,10 +1,10 @@
 package models
 
 // AddAttribute is the function signature for adding attributes to a set.
-type AddAttribute func(key string, value any, original any, tp string)
+type AddAttribute func(*Attribute) (*Attribute, error)
 
-// GetAttribute is the function signature for retrieving attribute values from a set.
-type GetAttribute func(key string) any
+// GetAttributeValue is the function signature for retrieving attribute values from a set.
+type GetAttributeValue func(key string) any
 
 // AddEntity is the function signature for adding entities to a set.
 type AddEntity func(*Entity)

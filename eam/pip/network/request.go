@@ -78,7 +78,7 @@ type Request struct {
 }
 
 // HTTPRequest returns an HTTP request for retrieving the external data.
-func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttribute) (*http.Request, error) {
+func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttributeValue) (*http.Request, error) {
 	query, static := r.prepareQuery(get)
 	uri, _ := r.prepareURI(query, static, get)
 	body, bodyLen, _ := r.prepareBody(get)
@@ -105,7 +105,7 @@ func (r *Request) TLSConfig() *transport.TLSConfig {
 	return r.tls
 }
 
-func (r *Request) prepareQuery(get models.GetAttribute) (string, bool) {
+func (r *Request) prepareQuery(get models.GetAttributeValue) (string, bool) {
 	if r.query != "" {
 		return r.query, true
 	}
@@ -123,7 +123,7 @@ func (r *Request) prepareQuery(get models.GetAttribute) (string, bool) {
 	return q.Encode(), static
 }
 
-func (r *Request) prepareURI(query string, static bool, get models.GetAttribute) (string, bool) {
+func (r *Request) prepareURI(query string, static bool, get models.GetAttributeValue) (string, bool) {
 	if r.uri != "" {
 		return r.uri, true
 	}
@@ -145,7 +145,7 @@ func (r *Request) prepareURI(query string, static bool, get models.GetAttribute)
 	return uri, static
 }
 
-func (r *Request) prepareBody(get models.GetAttribute) (io.Reader, int, bool) {
+func (r *Request) prepareBody(get models.GetAttributeValue) (io.Reader, int, bool) {
 	if r.body != nil {
 		return r.body, r.bodyLen, true
 	}
@@ -228,7 +228,7 @@ func (r *Request) prepare() {
 	}
 }
 
-// dummyGetter matches the GetAttribute interface, which always returns nil.
+// dummyGetter matches the GetAttributeValue interface, which always returns nil.
 func dummyGetter(string) any {
 	return nil
 }

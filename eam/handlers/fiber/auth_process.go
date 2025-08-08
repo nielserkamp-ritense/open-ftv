@@ -70,16 +70,16 @@ func (p *authProcess) authLog() {
 	}
 
 	if p.resp.Message != "" {
-		rec.DecisionContext.AddAttribute("message", p.resp.Message)
+		rec.DecisionContext.AddAttributeKV("message", p.resp.Message)
 	}
 	if p.resp.PolicyKey != "" {
-		rec.DecisionContext.AddAttribute("policy", p.resp.PolicyKey)
+		rec.DecisionContext.AddAttributeKV("policy", p.resp.PolicyKey)
 	}
 	if p.resp.PolicyHash != "" {
-		rec.DecisionContext.AddAttribute("policyHash", p.resp.PolicyHash)
+		rec.DecisionContext.AddAttributeKV("policyHash", p.resp.PolicyHash)
 	}
 	if diag := p.resp.Attributes["diagnostic"]; diag != nil {
-		rec.DecisionContext.AddAttribute("diagnostic", diag)
+		rec.DecisionContext.AddAttributeKV("diagnostic", diag)
 	}
 
 	if err := p.authLogger.Log(context.Background(), false, rec); err != nil {

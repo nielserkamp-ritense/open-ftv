@@ -1,6 +1,7 @@
 id: "subsidies"
-description: "beleidsregels voor subsidies"
-additionalTags: ["brp", "subsidies", "rvva"]
 language: "Rego"
-rvvaId: "rvva1"
-url: "https://my.site/pol/x1"
+metadata:
+  description: "beleidsregels voor subsidies"
+  rvvaId: "rvva1"
+  url: "https://my.site/pol/x1"
+  tags: ["brp", "subsidies", "rvva"]

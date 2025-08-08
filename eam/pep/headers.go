@@ -19,37 +19,37 @@ func (c *collector) processHeaders() {
 
 			switch strings.ToLower(k) {
 			case models.HeaderContentType:
-				attrs.AddAttribute(models.AttrContentType, first)
+				attrs.AddAttributeKV(models.AttrContentType, first)
 			case models.HeaderAuthorization:
 				c.processAuth(first)
 			case models.HeaderFSCAuthorization:
 				c.processFSC(first)
 			case models.HeaderAPIKey, "apikey", "x-apikey", "x-api-key":
-				attrs.AddAttribute(models.AttrAPIKey, first)
+				attrs.AddAttributeKV(models.AttrAPIKey, first)
 			case models.HeaderRvvaID, models.HeaderObsoleteRvvaID:
 				activityID = first
-				attrs.AddAttribute(models.AttrRvvaID, activityID)
+				attrs.AddAttributeKV(models.AttrRvvaID, activityID)
 				c.convertActivityID(activityID)
 			case models.HeaderCoreUser, models.HeaderObsoleteCoreUser:
-				attrs.AddAttribute(models.AttrCoreUser, first)
+				attrs.AddAttributeKV(models.AttrCoreUser, first)
 			case models.HeaderGrondslag:
-				attrs.AddAttribute(models.AttrGrondslag, first)
+				attrs.AddAttributeKV(models.AttrGrondslag, first)
 			case models.HeaderDoelbinding:
-				attrs.AddAttribute(models.AttrDoelbinding, first)
+				attrs.AddAttributeKV(models.AttrDoelbinding, first)
 			case models.HeaderZaakType, "zaaktype":
-				attrs.AddAttribute(models.AttrZaakType, first)
+				attrs.AddAttributeKV(models.AttrZaakType, first)
 			case models.HeaderTaak:
-				attrs.AddAttribute(models.AttrTaak, first)
+				attrs.AddAttributeKV(models.AttrTaak, first)
 			case models.HeaderXForwardedFor:
 				fwd1 = strings.Join(list, ",")
 			case models.HeaderForwarded:
 				fwd2 = strings.Join(list, ",")
 			case models.HeaderDeviceID, models.HeaderObsoleteDeviceID:
-				c.parc.Principal.Attributes().AddAttribute(models.AttrDeviceID, first)
+				c.parc.Principal.Attributes().AddAttributeKV(models.AttrDeviceID, first)
 			case models.HeaderTraceParent:
-				attrs.AddAttribute(models.AttrTraceParent, first)
+				attrs.AddAttributeKV(models.AttrTraceParent, first)
 			case models.HeaderTraceState:
-				attrs.AddAttribute(models.AttrTraceState, first)
+				attrs.AddAttributeKV(models.AttrTraceState, first)
 			case "new-uri":
 				c.newURI = first
 			default:
@@ -63,7 +63,7 @@ func (c *collector) processHeaders() {
 	}
 
 	if len(other) > 0 {
-		attrs.AddAttribute(models.AttrHeaders, other)
+		attrs.AddAttributeKV(models.AttrHeaders, other)
 	}
 }
 
@@ -84,5 +84,5 @@ func (c *collector) convertActivityID(id string) {
 		return
 	}
 
-	c.parc.Context.AddAttribute(models.AttrDoelbinding, doel)
+	c.parc.Context.AddAttributeKV(models.AttrDoelbinding, doel)
 }

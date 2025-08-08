@@ -5,3 +5,4 @@ generate:
   models: true
 output-options:
   skip-prune: true
+  prefer-skip-optional-pointer: true

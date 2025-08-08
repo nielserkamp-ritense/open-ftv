@@ -7,7 +7,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -15,7 +14,7 @@ import (
 )
 
 // AttributesVersion is the full semantic API version for the attribute endpoints.
-const AttributesVersion = "1.1.0" // check against oas/attributes/openapi.yaml!
+const AttributesVersion = "1.2.0" // check against oas/attributes/openapi.yaml!
 
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
@@ -42,7 +41,7 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 
 	resp := make([]*attributes.Attribute, 0, 32)
 	h.cache.IterateAttributes(func(attr *models.Attribute) {
-		resp = append(resp, handlers.AttributeToOAS(attr))
+		resp = append(resp, attr.ToOAS())
 	})
 
 	return req.JSON(resp)
@@ -62,11 +61,11 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 		return err
 	}
 
-	attr := h.cache.GetAttribute(key)
-	if attr == nil {
+	a := h.cache.GetAttribute(key)
+	if a == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
-	return req.JSON(handlers.AttributeToOAS(attr))
+	return req.JSON(a.ToOAS())
 }
 
 // PostAttribute implements the AttributesHandler interface.
@@ -93,9 +92,8 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusConflict, attrExists)
 	}
 
-	a := handlers.AttributeFromOAS(p)
-	h.cache.AddAttribute(a.Key(), a.Value())
-	return req.Status(fiber.StatusCreated).JSON(&attributes.Attribute{Key: a.Key(), Value: a.Value()})
+	a, _ := h.cache.AddAttributeFromOAS(p)
+	return req.Status(fiber.StatusCreated).JSON(a.ToOAS())
 }
 
 // PutAttribute implements the AttributesHandler interface.
@@ -122,9 +120,8 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
-	a := handlers.AttributeFromOAS(p)
-	h.cache.AddAttributeWithType(a.Key(), a.Value(), a.Type())
-	return req.JSON(handlers.AttributeToOAS(a))
+	a, _ := h.cache.AddAttributeFromOAS(p)
+	return req.JSON(a.ToOAS())
 }
 
 // DeleteAttribute implements the AttributesHandler interface.
@@ -146,8 +143,8 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
-	h.cache.RemoveAttribute(key)
-	return req.JSON(handlers.AttributeToOAS(models.NewAttribute(key, value)))
+	a, _ := h.cache.RemoveAttribute(key)
+	return req.JSON(a.ToOAS())
 }
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {

@@ -64,6 +64,6 @@ func (p *PIP) loadAttributeMap(attribute map[string]any) {
 	k, ok1 := attribute["key"].(string)
 	v, ok2 := attribute["value"]
 	if ok1 && ok2 {
-		p.AddAttribute(k, v)
+		p.AddAttributeKV(k, v)
 	}
 }

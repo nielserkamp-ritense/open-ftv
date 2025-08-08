@@ -110,7 +110,87 @@ func TestRelationToAttribute(t *testing.T) {
 	})
 }
 
-func TestRelation_AddTags(t *testing.T) {
+func TestRelation_WithTitle(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		in    *Relation
+		title string
+	}{
+		{
+			name: "no title",
+			in: &Relation{
+				subject:   NewEntity("user", "alice", nil),
+				predicate: NewEntity("action", "POST", nil),
+				object:    NewEntity("resource", "http://localhost/person", nil),
+			},
+			title: "New title",
+		},
+		{
+			name: "existing title",
+			in: &Relation{
+				subject:   NewEntity("user", "alice", nil),
+				predicate: NewEntity("action", "POST", nil),
+				object:    NewEntity("resource", "http://localhost/person", nil),
+				title:     "Old title",
+			},
+			title: "New title 2",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.in.WithTitle(tc.title)
+			require.NotNil(t, got)
+			assert.Equal(t, tc.title, got.Title())
+		})
+	}
+}
+
+func TestRelation_WithDescription(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   *Relation
+		desc string
+	}{
+		{
+			name: "no description",
+			in: &Relation{
+				subject:   NewEntity("user", "alice", nil),
+				predicate: NewEntity("action", "POST", nil),
+				object:    NewEntity("resource", "http://localhost/person", nil),
+			},
+			desc: "New description",
+		},
+		{
+			name: "existing description",
+			in: &Relation{
+				subject:     NewEntity("user", "alice", nil),
+				predicate:   NewEntity("action", "POST", nil),
+				object:      NewEntity("resource", "http://localhost/person", nil),
+				description: "old description",
+			},
+			desc: "New description 2",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.in.WithDescription(tc.desc)
+			require.NotNil(t, got)
+			assert.Equal(t, tc.desc, got.Description())
+		})
+	}
+}
+
+func TestRelation_WithTags(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -143,7 +223,8 @@ func TestRelation_AddTags(t *testing.T) {
 			got := NewRelation(tc.s, tc.p, tc.o)
 			require.NotNil(t, got)
 
-			got.AddTags(tc.tags...)
+			got2 := got.WithTags(tc.tags...)
+			assert.Equal(t, got, got2)
 			assert.EqualValues(t, tc.tags, got.Tags())
 
 			for i := range tc.tags {

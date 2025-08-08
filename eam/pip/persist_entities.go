@@ -184,7 +184,7 @@ func unmarshalEntity(data []byte) (*models.Entity, error) {
 		if err2 != nil {
 			return nil, err2
 		}
-		s.AddOriginalAttribute(a.Key(), a.Value(), a.Original(), a.Type())
+		_, _ = s.AddAttribute(a)
 	}
 
 	return models.NewEntity(e.Type, e.ID, s, e.Parents...), nil

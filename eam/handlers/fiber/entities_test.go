@@ -17,7 +17,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -37,7 +36,7 @@ func TestNewEntitiesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -175,7 +174,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -259,7 +258,7 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -345,7 +344,7 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -419,7 +418,7 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))

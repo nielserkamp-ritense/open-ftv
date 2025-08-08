@@ -61,7 +61,7 @@ func TestProcessRelation(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
 			r.processRelation(tc.sType, tc.sID, tc.pType, tc.pID, tc.oType, tc.oID, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -195,7 +195,7 @@ func TestDecodeRelationMap(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
 			r.decodeRelationMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -300,7 +300,7 @@ func TestDecodeRelationData(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
 			r.decodeRelationData(tc.data, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -412,7 +412,7 @@ func TestDecodeRelation(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
 			r.decodeRelation(tc.obj)
 
 			if tc.wantCount > 0 {

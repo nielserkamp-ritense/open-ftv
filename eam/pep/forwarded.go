@@ -37,7 +37,7 @@ func (c *collector) processForwardedList(fwd []string) bool {
 		for j := 1; j < len(list); j++ {
 			if s := list[j]; len(s) > 0 {
 				if addr, err := netip.ParseAddr(s); err == nil && validIP(addr) {
-					c.parc.Principal.Attributes().AddAttribute(models.AttrClientIP, addr.String())
+					c.parc.Principal.Attributes().AddAttributeKV(models.AttrClientIP, addr.String())
 					return true
 				}
 			}

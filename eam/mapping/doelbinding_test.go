@@ -82,7 +82,9 @@ func TestDoelbindingAsPrincipal(t *testing.T) {
 			if tc.wantOriginal != nil {
 				orig := got.Context.GetAttributeValue(models.AttrClientPrincipal)
 				require.NotNil(t, orig)
-				assert.True(t, tc.wantOriginal.Equals(models.NewAttribute(tc.wantOriginal.Key(), orig)))
+
+				gotAttr := models.NewAttributeWithType(tc.wantOriginal.Key(), orig, "xsd:object")
+				assert.True(t, tc.wantOriginal.Equals(gotAttr))
 			}
 		})
 	}

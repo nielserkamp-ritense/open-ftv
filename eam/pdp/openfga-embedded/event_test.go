@@ -150,7 +150,7 @@ func TestController_HandleModel(t *testing.T) {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")
 
-				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
+				pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -358,7 +358,7 @@ func TestController_HandleRelations(t *testing.T) {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")
 
-				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
+				pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 

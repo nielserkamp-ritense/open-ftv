@@ -22,8 +22,6 @@ type PIP struct {
 	entityStore      string
 	logger           *slog.Logger
 	ctx              context.Context
-	newAttributes    models.AttributesBuilder
-	newEntities      models.EntitiesBuilder
 	pullManager      network.Manager
 	attributeWatcher *fsnotify.Watcher
 	attributeTimer   *time.Timer
@@ -38,6 +36,7 @@ type PIP struct {
 	attributePersist AttributePersistence
 	entityPersist    EntityPersistence
 	eventMutex       sync.RWMutex
+	bundleMutex      sync.RWMutex
 }
 
 // New instantiates a new Policy Information Point.
@@ -56,8 +55,6 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 	p := &PIP{
 		ctx:              ctx,
 		logger:           logger,
-		newAttributes:    models.NewAttributeSet,
-		newEntities:      models.NewEntitySet,
 		store:            s,
 		attributePersist: ap,
 		entityPersist:    ep,
@@ -72,7 +69,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		args := make([]any, 0, 8)
 
-		if p.attrStore != "" || p.entityStore != "" {
+		if (p.attrStore != "" && p.attrStore != "/") || (p.entityStore != "" && p.entityStore != "/") {
 			if p.attrStore != "" {
 				args = append(args, "attributeStore", p.attrStore)
 			}
@@ -95,16 +92,6 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 		}
 	}
 	return p
-}
-
-// NewAttributeSet implements the PIP interface.
-func (p *PIP) NewAttributeSet() *models.AttributeSet {
-	return p.newAttributes()
-}
-
-// NewEntitySet implements the PIP interface.
-func (p *PIP) NewEntitySet() *models.EntitySet {
-	return p.newEntities()
 }
 
 // MarshalJSON implements the json.Marshaler interface.

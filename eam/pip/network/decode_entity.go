@@ -37,10 +37,10 @@ func (r *runner) decodeEntityMap(m map[string]any, obj *EntityMapping) {
 	id := codeOrValueString(obj.IDField, obj.IDValue, m)
 
 	// determine optional attributes.
-	attrs := r.manager.newAttributes()
+	attrs := models.NewAttributeSet()
 	for _, attrObj := range obj.Attributes {
 		if data := findElement(splitKeys(attrObj.Base), m); data != nil {
-			r.decodeAttributesData(data, attrObj, attrs.AddOriginalAttribute)
+			r.decodeAttributesData(data, attrObj, attrs.AddAttribute)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (r *runner) processEntity(tp string, id string, attrs *models.AttributeSet,
 	}
 
 	if attrs == nil {
-		attrs = r.manager.newAttributes()
+		attrs = models.NewAttributeSet()
 	}
 
 	r.manager.addEntity(models.NewEntity(tp, id, attrs, parents...))

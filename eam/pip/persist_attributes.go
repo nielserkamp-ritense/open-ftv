@@ -156,7 +156,15 @@ func toAttribute(a *models.Attribute) *attribute {
 		o = ""
 	}
 
-	return &attribute{Key: a.Key(), Value: v, Original: o, Type: a.Type()}
+	return &attribute{
+		Key:         a.Key(),
+		Value:       v,
+		Original:    o,
+		Type:        a.Type(),
+		Title:       a.Title(),
+		Description: a.Description(),
+		Tags:        a.Tags(),
+	}
 }
 
 func unmarshalAttribute(data []byte) (*models.Attribute, error) {
@@ -197,7 +205,7 @@ func fromAttribute(a *attribute) (*models.Attribute, error) {
 		}
 	}
 
-	return models.NewOriginalAttribute(a.Key, v, o, a.Type), nil
+	return models.NewOriginalAttribute(a.Key, v, o, a.Type).WithTitle(a.Title).WithDescription(a.Description).WithTags(a.Tags...), nil
 }
 
 func (s *attributeStore) failure(op, id string, err error, mustFind bool) error {
@@ -215,8 +223,11 @@ type attributeStore struct {
 }
 
 type attribute struct {
-	Key      string `json:"key"`
-	Value    string `json:"value"`
-	Original string `json:"original,omitempty"`
-	Type     string `json:"type,omitempty"`
+	Key         string   `json:"key"`
+	Value       string   `json:"value"`
+	Original    string   `json:"original,omitempty"`
+	Type        string   `json:"type,omitempty"`
+	Title       string   `json:"title,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
 }

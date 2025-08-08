@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -93,7 +92,7 @@ func TestAuthorize(t *testing.T) {
 	log := slog.New(h)
 
 	ep := pep.New(ctx, log)
-	ip := pip.New(ctx, log, pip.WithFileStore("../../testdata/unittest/auth", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+	ip := pip.New(ctx, log, pip.WithFileStore("../../testdata/unittest/auth", true))
 	ap := pap.New(ctx, log, pap.WithLanguage("cedar"), pap.WithFileStore("../../testdata/unittest/auth/policies", true))
 	dp := cedar_embedded.NewController(pdp.WithLogger(log), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithPEP(ep))
 

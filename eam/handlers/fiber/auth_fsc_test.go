@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -37,7 +36,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, ip)
 
 		ap := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
@@ -143,7 +142,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
@@ -195,7 +194,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
@@ -247,7 +246,7 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))

@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for maintaining policies.
-  version: 1.4.0
+  version: 1.5.0
   title: Policy management
   contact:
     name: G. Juijn
@@ -31,7 +31,7 @@ paths:
         - language
       responses:
         "200":
-          $ref: "#/components/responses/LanguagesFound"
+          $ref: "#/components/responses/LanguagesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -50,7 +50,7 @@ paths:
         - tag
       responses:
         "200":
-          $ref: "#/components/responses/TagsFound"
+          $ref: "#/components/responses/TagsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -69,7 +69,7 @@ paths:
         - policy
       responses:
         "200":
-          $ref: "#/components/responses/PoliciesFound"
+          $ref: "#/components/responses/PoliciesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -92,7 +92,7 @@ paths:
         - policy
       responses:
         "200":
-          $ref: "#/components/responses/PolicyFound"
+          $ref: "#/components/responses/PolicyResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -122,7 +122,7 @@ paths:
               $ref: "#/components/schemas/Policy"
       responses:
         "201":
-          $ref: "#/components/responses/PolicyCreated"
+          $ref: "#/components/responses/PolicyResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -152,7 +152,7 @@ paths:
               $ref: "#/components/schemas/Policy"
       responses:
         "200":
-          $ref: "#/components/responses/PolicyReplaced"
+          $ref: "#/components/responses/PolicyResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -176,7 +176,7 @@ paths:
         - $ref: "#/components/parameters/IgnoreMissing"
       responses:
         "200":
-          $ref: "#/components/responses/PolicyRemoved"
+          $ref: "#/components/responses/PolicyResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -223,7 +223,7 @@ components:
       description: Ignore missing data during a delete operation.
 
   responses:
-    LanguagesFound:
+    LanguagesResponse:
       description: Languages found.
       headers:
         API-Version:
@@ -235,7 +235,7 @@ components:
           schema:
             $ref: "#/components/schemas/Languages"
 
-    TagsFound:
+    TagsResponse:
       description: Tags found.
       headers:
         API-Version:
@@ -247,7 +247,7 @@ components:
           schema:
             $ref: "#/components/schemas/Tags"
 
-    PoliciesFound:
+    PoliciesResponse:
       description: Policies found.
       headers:
         API-Version:
@@ -259,44 +259,8 @@ components:
           schema:
             $ref: "#/components/schemas/Policies"
 
-    PolicyFound:
-      description: Policy found.
-      headers:
-        API-Version:
-          schema:
-            type: string
-          description: Full version number of the API.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Policy"
-
-    PolicyCreated:
-      description: Policy created.
-      headers:
-        API-Version:
-          schema:
-            type: string
-          description: Full version number of the API.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Policy"
-
-    PolicyReplaced:
-      description: Policy replaced.
-      headers:
-        API-Version:
-          schema:
-            type: string
-          description: Full version number of the API.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Policy"
-
-    PolicyRemoved:
-      description: Policy removed.
+    PolicyResponse:
+      description: Policy found, created, replaced or removed.
       headers:
         API-Version:
           schema:
@@ -317,7 +281,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
     NotAuthorized:
       description: Not authorized.
@@ -329,7 +293,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
     AccessDenied:
       description: Access denied.
@@ -341,7 +305,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
     NotFound:
       description: Resource not found.
@@ -353,7 +317,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
     AlreadyExists:
       description: Resource already exists.
@@ -365,7 +329,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
     UnexpectedError:
       description: Unexpected error.
@@ -377,9 +341,73 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorMessage"
+            $ref: "#/components/schemas/Error"
 
   schemas:
+    Metadata:
+      type: object
+      description: The metadata associated with a policy.
+      properties:
+        title:
+          type: string
+          description: The title of the policy. E.g., a short description.
+        description:
+          type: string
+          description: Detailed description of the policy.
+        rvvaId:
+          type: string
+          description: |
+            The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+            Only required when the policy is linked directly with an item in the RvVA.
+            The value is considered as one of the tags of the policy.
+        url:
+          type: string
+          description: Link to the policy. Required when the policy is stored externally.
+        tags:
+          type: array
+          description: |
+            List of tags the policy is annotated with.
+            
+            This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+          items:
+            type: string
+        createDate:
+          type: string
+          description: Timestamp the policy was created (RFC3339 format).
+        createUser:
+          type: string
+          description: User that created the policy.
+        updateDate:
+          type: string
+          description: Timestamp the policy was last updated (RFC3339 format).
+        updateUser:
+          type: string
+          description: User that last updated the policy.
+
+    UsageData:
+      type: object
+      description: Metadata about how and where the policy is used.
+      properties:
+        bundles:
+          type: array
+          description: Bundles the policy is used by.
+          items:
+            type: string
+
+    AuditEntry:
+      type: object
+      description: Metadata about how, when and by whom an object has been manipulated.
+      properties:
+        timestamp:
+          type: string
+          description: Timestamp of the log entry in RFC3339 format.
+        operation:
+          type: string
+          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+        user:
+          type: string
+          description: Unique identifier of the user who operated on the object.
+
     Languages:
       type: array
       items:
@@ -411,6 +439,26 @@ components:
         name:
           type: string
           description: Name of the tag in human-readable form.
+        description:
+          type: string
+          description: Detailed description of the tag.
+        createDate:
+          type: string
+          description: Timestamp the tag was created (RFC3339 format).
+        createUser:
+          type: string
+          description: User that created the tag.
+        updateDate:
+          type: string
+          description: Timestamp the tag was last updated (RFC3339 format).
+        updateUser:
+          type: string
+          description: User that last updated the tag.
+        auditLog:
+          type: array
+          description: Audit log for the tag.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
 
     Policies:
       type: array
@@ -436,40 +484,23 @@ components:
             - "cedar".
             - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel". 
             - "openfga"; alternative: "open-fga".
-        version:
-          type: integer
-          description: |
-            The most recent version number of the policy.
-            This is a read-only field.
-            It is automatically updated during the deploy process.
-        description:
-          type: string
-          description: Description and/or comments for the policy.
-        rvvaId:
-          type: string
-          description: |
-            The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
-            Only required when the policy is linked directly with an item in the RvVA.
-            The value is considered as one of the tags of the policy.
-        additionalTags:
-          type: array
-          description: |
-            List of additional tags associated with the policy.
-            This is used to determine which PDP (or set of PDPs) policies can be pushed to.
-            Note that the language and rvvaId fields are also tags.
-          items:
-            type: string
-        url:
-          type: string
-          description: Link to the policy. Required when the policy is stored externally.
         data:
           type: string
           description: Content of the policy. Required when the policy is stored internally.
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
+        auditLog:
+          type: array
+          description: Audit log for the policy.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
       required:
         - id
         - language
 
-    ErrorMessage:
+    Error:
       type: object
       description: The response for an error (as defined by RFC9457).
       properties:

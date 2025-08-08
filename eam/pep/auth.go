@@ -45,7 +45,7 @@ func (c *collector) processBearer(bearer string) {
 		c.logger.Warn("jwt token without claims", "jwt", token)
 	}
 
-	c.parc.Context.AddAttribute(models.AttrJWT, m)
+	c.parc.Context.AddAttributeKV(models.AttrJWT, m)
 }
 
 func (c *collector) processBasic(basic string) {
@@ -63,6 +63,6 @@ func (c *collector) processBasic(basic string) {
 		return
 	}
 
-	c.parc.Context.AddAttribute(models.AttrBasicUser, s[:i])
-	c.parc.Context.AddAttribute(models.AttrBasicPswd, s[i+1:])
+	c.parc.Context.AddAttributeKV(models.AttrBasicUser, s[:i])
+	c.parc.Context.AddAttributeKV(models.AttrBasicPswd, s[i+1:])
 }

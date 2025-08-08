@@ -24,29 +24,49 @@ func TestPIP_Attributes(t *testing.T) {
 		p := New(context.Background(), logger)
 		require.NotNil(t, p)
 
-		p.AddAttribute("hello", "world")
-		p.AddAttributeWithType("int", "987", "xsd:string")
-		p.AddOriginalAttribute("float", 987.789, "987.789", "xsd:number")
+		a1, err1 := p.AddAttributeKV("hello", "world")
+		require.NoError(t, err1)
+		require.NotNil(t, a1)
+
+		a2, err2 := p.AddAttributeKVWithType("int", "987", "xsd:string")
+		require.NoError(t, err2)
+		require.NotNil(t, a2)
+
+		a3, err3 := p.AddOriginalAttribute("float", 987.789, "987.789", "xsd:number")
+		require.NoError(t, err3)
+		require.NotNil(t, a3)
 
 		assert.Equal(t, "world", p.GetAttributeValue("hello"))
 		assert.Nil(t, p.GetAttribute("bool"))
 
 		p2 := models.NewAttributeSet()
-		p2.AddAttribute("hello", "world2")
-		p2.AddAttribute("bool", true)
+		p2.AddAttributeKV("hello", "world2")
+		p2.AddAttributeKV("bool", true)
 
 		p.MergeAttributes(p2)
+
+		var count int
+		p.IterateAttributes(func(*models.Attribute) {
+			count++
+		})
+		assert.Equal(t, 4, count)
 
 		assert.Equal(t, "world2", p.GetAttributeValue("hello"))
 		assert.Equal(t, true, p.GetAttributeValue("bool"))
 		assert.Equal(t, "987", p.GetAttributeValue("int"))
 
-		p.RemoveAttribute("bool")
-		p.RemoveAttribute("int")
+		a1, err1 = p.RemoveAttribute("bool")
+		require.NoError(t, err1)
+		require.NotNil(t, a1)
+
+		a2, err2 = p.RemoveAttribute("int")
+		require.NoError(t, err2)
+		require.NotNil(t, a2)
+
 		assert.Nil(t, p.GetAttributeValue("bool"))
 		assert.Nil(t, p.GetAttributeValue("int"))
 
-		var count int
+		count = 0
 		p.IterateAttributes(func(*models.Attribute) {
 			count++
 		})
@@ -100,9 +120,9 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 			eh := &myAttributeSink{}
 			p.AddEventSink(eh)
 
-			p.AddAttribute("hello", "world")
-			p.AddAttribute("int", "987")
-			p.AddAttribute("float", "987.789")
+			_, _ = p.AddAttributeKV("hello", "world")
+			_, _ = p.AddAttributeKV("int", "987")
+			_, _ = p.AddAttributeKV("float", "987.789")
 
 			assert.Equal(t, 3, eh.inserts)
 			assert.Zero(t, eh.updates)

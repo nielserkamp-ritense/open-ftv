@@ -66,11 +66,11 @@ func (p *PIP) loadEntityMap(attribute map[string]any) {
 	id, ok2 := attribute["id"].(string)
 
 	if ok1 && ok2 {
-		attrs := p.newAttributes()
+		attrs := models.NewAttributeSet()
 		if q := attribute["attributes"]; q != nil {
 			if m, ok3 := q.(map[string]any); ok3 {
 				for k := range m {
-					attrs.AddAttribute(k, m[k])
+					attrs.AddAttributeKV(k, m[k])
 				}
 			}
 		}

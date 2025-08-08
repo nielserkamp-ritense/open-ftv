@@ -3,7 +3,6 @@ package fiber
 import (
 	"bytes"
 	"context"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -19,7 +18,7 @@ import (
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.3.0" // check against oas/policies/openapi.yaml!
+const PoliciesVersion = "1.5.0" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
@@ -51,7 +50,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 	list2 := make([]*policies.Policy, len(list))
 	for i := range list {
-		list2[i] = h.convertPolicy(list[i], false)
+		list2[i] = list[i].ToOAS(false)
 	}
 	return req.JSON(list2)
 }
@@ -74,7 +73,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
-	return req.JSON(h.convertPolicy(pol, true))
+	return req.JSON(pol.ToOAS(true))
 }
 
 // PostPolicy implements the PoliciesHandler interface.
@@ -111,7 +110,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 			if err3 != nil {
 				return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 			}
-			return req.JSON(h.convertPolicy(pol2, true))
+			return req.JSON(pol2.ToOAS(true))
 		}
 	}
 
@@ -120,7 +119,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
 	}
 
-	return req.Status(fiber.StatusCreated).JSON(h.convertPolicy(pol2, true))
+	return req.Status(fiber.StatusCreated).JSON(pol2.ToOAS(true))
 }
 
 // PutPolicy implements the PoliciesHandler interface.
@@ -159,7 +158,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 			if err3 != nil {
 				return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
 			}
-			return req.JSON(h.convertPolicy(pol2, true))
+			return req.JSON(pol2.ToOAS(true))
 
 		case err2 != nil:
 			return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
@@ -173,7 +172,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if err3 != nil {
 		return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
 	}
-	return req.JSON(h.convertPolicy(pol2, true))
+	return req.JSON(pol2.ToOAS(true))
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
@@ -208,7 +207,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	if err3 != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
 	}
-	return req.JSON(h.convertPolicy(pol, true))
+	return req.JSON(pol.ToOAS(true))
 }
 
 func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, string, bool, error) {
@@ -249,12 +248,12 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*polic
 }
 
 func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*models.Policy, bool, error) {
-	if p.Url == "" {
+	if p.Metadata.Url == "" {
 		if p.Data == "" {
 			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "policy data or url required")
 		}
 
-		pol, err3 := models.NewPolicy(p, bytes.NewBufferString(p.Data))
+		pol, err3 := models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
 		if err3 != nil {
 			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 		}
@@ -264,7 +263,7 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*mode
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Url, nil)
+	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Metadata.Url, nil)
 	if err != nil {
 		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
@@ -276,30 +275,11 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*mode
 
 	defer resp.Body.Close()
 
-	pol, err3 := models.NewPolicy(p, resp.Body)
+	pol, err3 := models.NewPolicyFromOAS(p, resp.Body)
 	if err3 != nil {
 		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
 	}
 	return pol, true, nil
-}
-
-func (h *policiesHandler) convertPolicy(pol *models.Policy, withData bool) *policies.Policy {
-	if !withData || pol.URI() != "" {
-		return &policies.Policy{
-			Id:       pol.ID(),
-			Language: pol.Language(),
-			RvvaId:   pol.RvvaID(),
-			Url:      pol.URI(),
-		}
-	}
-
-	data, _ := io.ReadAll(pol.Content())
-	return &policies.Policy{
-		Id:       pol.ID(),
-		Language: pol.Language(),
-		RvvaId:   pol.RvvaID(),
-		Data:     string(data),
-	}
 }
 
 func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {

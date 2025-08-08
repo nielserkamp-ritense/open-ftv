@@ -178,21 +178,21 @@ var (
 )
 
 func init() {
-	myP1.AddTags("t1", "t2")
-	myP2.AddTags("t1", "t3")
-	myP3.AddTags("t2", "t3")
-	myP4.AddTags("t1", "t4")
-	myP5.AddTags("t4", "t3")
+	myP1.WithTags("t1", "t2")
+	myP2.WithTags("t1", "t3")
+	myP3.WithTags("t2", "t3")
+	myP4.WithTags("t1", "t4")
+	myP5.WithTags("t4", "t3")
 
-	myA1.AddTags("t1", "t2")
-	myA2.AddTags("t3", "t2")
-	myA3.AddTags("t2", "t4")
-	myA4.AddTags("t4", "t1")
+	myA1.WithTags("t1", "t2")
+	myA2.WithTags("t3", "t2")
+	myA3.WithTags("t2", "t4")
+	myA4.WithTags("t4", "t1")
 
-	myU1.AddTags("t4", "t2")
-	myU2.AddTags("t3", "t2")
-	myU3.AddTags("t1", "t4")
+	myU1.WithTags("t4", "t2")
+	myU2.WithTags("t3", "t2")
+	myU3.WithTags("t1", "t4")
 
-	myR1.AddTags("t1", "t2")
-	myR2.AddTags("t4", "t2")
+	myR1.WithTags("t1", "t2")
+	myR2.WithTags("t4", "t2")
 }

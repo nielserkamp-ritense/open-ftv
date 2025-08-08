@@ -57,8 +57,6 @@ func TestLoadRDF(t *testing.T) {
 
 			p := &PIP{
 				logger:           slog.New(h),
-				newAttributes:    models.NewAttributeSet,
-				newEntities:      models.NewEntitySet,
 				store:            s,
 				attributePersist: ap,
 				entityPersist:    ep,

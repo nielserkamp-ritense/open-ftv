@@ -6,7 +6,6 @@ import (
 
 	"github.com/kvtools/valkeyrie/store"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
@@ -17,15 +16,17 @@ type Option func(p *PIP)
 // WithFileStore adds a file storage location to the PIP.
 func WithFileStore(fileStore string, recurse bool) Option {
 	return func(p *PIP) {
-		if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
-			p.attrStore = as
-		}
+		if fileStore != "" {
+			if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
+				p.attrStore = as
+			}
 
-		if es, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(es) {
-			p.entityStore = es
-		}
+			if es, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(es) {
+				p.entityStore = es
+			}
 
-		p.recurse = recurse
+			p.recurse = recurse
+		}
 	}
 }
 
@@ -33,13 +34,12 @@ func WithFileStore(fileStore string, recurse bool) Option {
 func WithPullConfigs(path string) Option {
 	return func(p *PIP) {
 		if pullManager, err := network.NewManager(network.ManagerParams{
-			Ctx:           p.ctx,
-			Path:          path,
-			Logger:        p.logger,
-			NewAttributes: p.newAttributes,
-			AddAttribute:  p.AddOriginalAttribute,
-			GetAttribute:  p.GetAttributeValue,
-			AddEntity:     p.AddEntity,
+			Ctx:          p.ctx,
+			Path:         path,
+			Logger:       p.logger,
+			AddAttribute: p.AddAttribute,
+			GetAttribute: p.GetAttributeValue,
+			AddEntity:    p.AddEntity,
 			// AddRelation:  p.AddRelation,
 		}); err != nil {
 			p.logger.Error("failed to initialize pull manager", "path", path, "error", err)
@@ -60,14 +60,6 @@ func WithPersistence(store store.Store, basePath string) Option {
 		base := convert.ForceSuffix(basePath, "/")
 		p.attributePersist = NewAttributeStore(p.ctx, store, base+"attribute/")
 		p.entityPersist = NewEntityStore(p.ctx, store, base+"entity/")
-	}
-}
-
-// WithFactories adds instance factories for attribute and/or entity sets.
-func WithFactories(a models.AttributesBuilder, e models.EntitiesBuilder) Option {
-	return func(p *PIP) {
-		p.newAttributes = a
-		p.newEntities = e
 	}
 }
 

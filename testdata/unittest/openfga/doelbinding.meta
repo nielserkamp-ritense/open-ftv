@@ -1,5 +1,9 @@
 {
  "language": "OpenFGA",
- "rvvaId": "rvva2",
- "url": "https://my.site/openfga/doelbinding.model"
+ "metadata": {
+  "title": "titel",
+  "description": "omschrijving",
+  "rvvaId": "rvva2",
+  "url": "https://my.site/openfga/doelbinding.model"
+ }
 }

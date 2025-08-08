@@ -63,5 +63,5 @@ func (c *collector) processFSCBearer(bearer string) {
 		}
 	}
 
-	c.parc.Context.AddAttribute(models.AttrFSC, m)
+	c.parc.Context.AddAttributeKV(models.AttrFSC, m)
 }
