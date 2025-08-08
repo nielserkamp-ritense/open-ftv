@@ -2,10 +2,11 @@ package models
 
 import (
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
 // AttributesBuilder is the function prototype for creating a new set of attributes.
@@ -28,7 +29,7 @@ type AttributeSet struct {
 //
 // The given attribute sets will be copied into the returned new attribute set.
 // Duplicate keys from an input set will overwrite the previous value.
-// E.g. only the last value with the duplicate key will be retained.
+// E.g., only the last value with the duplicate key will be retained.
 func NewAttributeSet(in ...any) *AttributeSet {
 	out := &AttributeSet{set: make(map[string]*Attribute, 32)}
 
@@ -36,19 +37,23 @@ func NewAttributeSet(in ...any) *AttributeSet {
 		switch t := p.(type) {
 		case *Attribute:
 			out.set[t.Key()] = t
+
 		case *AttributeSet:
 			if t != nil {
 				t.IterateAttributes(func(attr *Attribute) {
 					out.set[attr.Key()] = attr
 				})
 			}
+
 		case []*Attribute:
 			for i := range t {
 				attr := t[i]
 				out.set[attr.Key()] = attr
 			}
+
 		case map[string]any:
 			out.addMap(t)
+
 		case *map[string]any:
 			if t != nil {
 				out.addMap(*t)
@@ -62,62 +67,41 @@ func NewAttributeSet(in ...any) *AttributeSet {
 //
 // A duplicate key will overwrite the previous value.
 // E.g., only the last value with the duplicate key will be retained.
-func (s *AttributeSet) AddAttribute(key string, value any) {
+func (s *AttributeSet) AddAttribute(a *Attribute) (*Attribute, error) {
+	s.mutex.Lock()
+	s.set[a.Key()] = a
+	s.mutex.Unlock()
+	return a, nil
+}
+
+// AddAttributeKV adds or updates an Attribute in the AttributeSet with the specified key and value.
+//
+// A duplicate key will overwrite the previous value.
+// E.g., only the last value with the duplicate key will be retained.
+func (s *AttributeSet) AddAttributeKV(key string, value any) {
 	s.AddOriginalAttribute(key, value, value, "")
 }
 
-// AddAttributeWithType adds or updates an Attribute in the AttributeSet with a specific type.
+// AddAttributeKVWithType adds or updates an Attribute in the AttributeSet with the specified key, value and type.
 //
 // A duplicate key will overwrite the previous value.
 // E.g., only the last value with the duplicate key will be retained.
-func (s *AttributeSet) AddAttributeWithType(key string, value any, tp string) {
+func (s *AttributeSet) AddAttributeKVWithType(key string, value any, tp string) {
 	s.AddOriginalAttribute(key, value, value, tp)
 }
 
-// AddOriginalAttribute adds or updates an Attribute in the AttributeSet with a specific type and original value.
+// AddOriginalAttribute adds or updates an Attribute in the AttributeSet with a specified key, value, type and original value.
 //
 // A duplicate key will overwrite the previous value.
 // E.g., only the last value with the duplicate key will be retained.
-//
-// If the key contains dots, it is considered to be a multi-level attribute key.
-// Any key at a level that does not exist in the attribute tree will be created.
-// If an existing key level does not have an object as value, its value will be replaced with an object.
 func (s *AttributeSet) AddOriginalAttribute(key string, value, original any, tp string) {
 	if key == "" {
 		return
 	}
 
-	keys := strings.Split(key, ".")
-
 	s.mutex.Lock()
-	s.addOriginalAttribute(keys, value, original, tp)
+	s.set[key] = NewOriginalAttribute(key, value, original, tp)
 	s.mutex.Unlock()
-}
-
-func (s *AttributeSet) addOriginalAttribute(keys []string, value, original any, tp string) {
-	key := keys[0]
-	if len(keys) == 1 {
-		s.set[key] = NewOriginalAttribute(key, value, original, tp)
-		return
-	}
-
-	upsert := func() *AttributeSet {
-		set := NewAttributeSet()
-		s.set[key] = NewAttribute(key, set)
-		return set
-	}
-
-	var set *AttributeSet
-	if attr := s.getAttribute(key); attr == nil {
-		set = upsert()
-	} else {
-		var ok bool
-		if set, ok = attr.Value().(*AttributeSet); !ok {
-			set = upsert()
-		}
-	}
-
-	set.addOriginalAttribute(keys[1:], value, original, tp)
 }
 
 // GetAttribute retrieves an Attribute from the AttributeSet with the given uid.
@@ -161,7 +145,7 @@ func (s *AttributeSet) IterateAttributes(f AttributeIterator) {
 // MergeAttributes merges the given AttributeSet(s) into this AttributeSet.
 //
 // Duplicate keys from an input set will overwrite the previous value.
-// E.g. only the last value with the duplicate key will be retained.
+// E.g., only the last value with the duplicate key will be retained.
 func (s *AttributeSet) MergeAttributes(in ...*AttributeSet) {
 	s.mutex.Lock()
 	for i := range in {
@@ -170,6 +154,21 @@ func (s *AttributeSet) MergeAttributes(in ...*AttributeSet) {
 		})
 	}
 	s.mutex.Unlock()
+}
+
+// ToOAS converts the set of attributes to a slice of OAS models.
+func (s *AttributeSet) ToOAS() []attributes.Attribute {
+	keys := make([]string, 0, len(s.set))
+	for k := range s.set {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+
+	out := make([]attributes.Attribute, 0, len(s.set))
+	for i := range keys {
+		out = append(out, *s.set[keys[i]].ToOAS())
+	}
+	return out
 }
 
 // MarshalJSON implements the json.Marshaler interface.
@@ -203,6 +202,40 @@ func MapFromAttributes(in *AttributeSet) map[string]any {
 	})
 
 	return out
+}
+
+// AttributeSetFromOAS instantiates a new AttributeSet with the given OAS model(s).
+//
+// A duplicate key will overwrite the previous value.
+// E.g., only the last value with the duplicate key will be retained.
+func AttributeSetFromOAS(in ...any) *AttributeSet {
+	s := NewAttributeSet()
+
+	for i := range in {
+		switch t := in[i].(type) {
+		case attributes.Attribute:
+			a := NewAttributeFromOAS(&t)
+			s.set[a.Key()] = a
+
+		case *attributes.Attribute:
+			a := NewAttributeFromOAS(t)
+			s.set[a.Key()] = a
+
+		case []attributes.Attribute:
+			for j := range t {
+				a := NewAttributeFromOAS(&t[j])
+				s.set[a.Key()] = a
+			}
+
+		case []*attributes.Attribute:
+			for j := range t {
+				a := NewAttributeFromOAS(t[j])
+				s.set[a.Key()] = a
+			}
+		}
+	}
+
+	return s
 }
 
 // Equals returns true if this AttributeSet matches exactly the other AttributeSet.

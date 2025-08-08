@@ -36,7 +36,7 @@ type Parameter struct {
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
-func (p *Parameter) ValueString(get models.GetAttribute) (string, bool) {
+func (p *Parameter) ValueString(get models.GetAttributeValue) (string, bool) {
 	v, t, static := p.ValueAny(get)
 	s, _ := xsd.ToString(v, t)
 	return s, static
@@ -49,7 +49,7 @@ func (p *Parameter) ValueString(get models.GetAttribute) (string, bool) {
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
-func (p *Parameter) ValueAny(get models.GetAttribute) (any, string, bool) {
+func (p *Parameter) ValueAny(get models.GetAttributeValue) (any, string, bool) {
 	switch {
 	case p.Attribute != "":
 		return p.AttributeValue(get)
@@ -66,7 +66,7 @@ func (p *Parameter) ValueAny(get models.GetAttribute) (any, string, bool) {
 //
 // The returned bool indicates if the returned value is static for the parameter,
 // or if it is dynamically retrieved from the current value of the attribute it points to.
-func (p *Parameter) AttributeValue(get models.GetAttribute) (any, string, bool) {
+func (p *Parameter) AttributeValue(get models.GetAttributeValue) (any, string, bool) {
 	if attr := get(p.Attribute); attr != nil {
 		return attr, xsd.PrefixAny, false
 	}

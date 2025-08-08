@@ -174,7 +174,7 @@ func TestDecodeData(t *testing.T) {
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			m := &manager{logger: logger, addAttribute: attr.AddOriginalAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}
+			m := &manager{logger: logger, addAttribute: attr.AddAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation}
 
 			r := &runner{logger: logger, data: tc.data, manager: m}
 			r.decodeData(tc.dec, 200)
@@ -376,7 +376,7 @@ value = "first code"
 			ent := models.NewEntitySet()
 			rel := models.NewRelationSet(ent)
 
-			m := &manager{ctx: ctx, cancel: cancel, logger: logger, addAttribute: attr.AddOriginalAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation, newAttributes: models.NewAttributeSet}
+			m := &manager{ctx: ctx, cancel: cancel, logger: logger, addAttribute: attr.AddAttribute, addEntity: ent.AddEntity, addRelation: rel.AddRelation}
 
 			req := &Request{
 				Name:    "test",

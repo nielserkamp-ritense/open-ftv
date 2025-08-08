@@ -65,9 +65,6 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 	ep := pep.New(ctx, logger)
 
 	pipOpts := []pip2.Option{pip2.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip2.WithPullConfigs(cfg.PIP.PullConfigs)}
-	if l == models.CEDAR {
-		pipOpts = append(pipOpts, pip2.WithFactories(models.NewAttributeSet, models.NewEntitySet))
-	}
 	ip := pip2.New(ctx, logger, pipOpts...)
 
 	papOpts := []pap2.Option{pap2.WithLanguage(l.Language()), pap2.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}

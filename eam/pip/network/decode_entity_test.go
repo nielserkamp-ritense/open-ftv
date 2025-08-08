@@ -56,7 +56,7 @@ func TestProcessEntity(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
 			r.processEntity(tc.tp, tc.id, tc.attrs, tc.parents, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -239,7 +239,7 @@ func TestDecodeEntityMap(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
 			r.decodeEntityMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -324,7 +324,7 @@ func TestDecodeEntityData(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
 			r.decodeEntityData(tc.data, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -425,7 +425,7 @@ func TestDecodeEntity(t *testing.T) {
 
 			ent := models.NewEntitySet()
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity, newAttributes: models.NewAttributeSet}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
 			r.decodeEntity(tc.obj)
 
 			if tc.wantCount > 0 {

@@ -21,6 +21,6 @@ func (c *collector) determineAction() {
 			c.parc.Action = models.NewEntity(models.EntityTypeName, a, models.NewAttributeSet(c.parc.Action.Attributes()))
 		}
 
-		c.parc.Action.Attributes().AddAttribute(models.AttrMethod, c.req.Method)
+		c.parc.Action.Attributes().AddAttributeKV(models.AttrMethod, c.req.Method)
 	}
 }

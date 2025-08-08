@@ -49,7 +49,7 @@ func (l *loader) loadEntities() {
 			l.logger.Error("pip: error processing RDF entities", "path", l.path, "mimetype", l.mt, "err", err)
 		}
 
-		attributes := l.p.newAttributes()
+		attributes := models.NewAttributeSet()
 
 		attrList := l.graph.All(sub, rdf2go.NewResource(rdf.FTVEntityAttribute), nil)
 		for j := range attrList {
@@ -57,7 +57,7 @@ func (l *loader) loadEntities() {
 			if err2 != nil {
 				l.logger.Error("pip: error processing RDF entity attributes", "path", l.path, "mimetype", l.mt, "err", err2)
 			} else {
-				attributes.AddAttribute(k, v)
+				attributes.AddAttributeKV(k, v)
 			}
 		}
 
@@ -72,7 +72,7 @@ func (l *loader) loadAttributes() {
 		if err != nil {
 			l.logger.Error("pip: error processing RDF attributes", "path", l.path, "mimetype", l.mt, "err", err)
 		} else {
-			l.p.AddAttribute(k, v)
+			_, _ = l.p.AddAttributeKV(k, v)
 		}
 	}
 }

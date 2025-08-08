@@ -6,6 +6,8 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
 func TestNewAttributeSet(t *testing.T) {
@@ -121,7 +123,7 @@ func TestAttributes_AddAttribute(t *testing.T) {
 			t.Parallel()
 
 			a := tc.in
-			a.AddAttribute(tc.key, tc.value)
+			a.AddAttributeKV(tc.key, tc.value)
 
 			got := MapFromAttributes(a)
 			require.NotNil(t, got)
@@ -134,36 +136,40 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name  string
-		in    *AttributeSet
-		key   string
-		value any
-		tp    string
-		want  map[string]any
+		name      string
+		in        *AttributeSet
+		key       string
+		value     any
+		tp        string
+		wantValue any
+		want      map[string]any
 	}{
 		{
-			name:  "empty",
-			in:    &AttributeSet{set: make(map[string]*Attribute)},
-			key:   "hello",
-			value: 12345,
-			tp:    "xsd:integer",
-			want:  map[string]any{"hello": 12345},
+			name:      "empty",
+			in:        &AttributeSet{set: make(map[string]*Attribute)},
+			key:       "hello",
+			value:     12345,
+			tp:        "xsd:integer",
+			wantValue: int64(12345),
+			want:      map[string]any{"hello": int64(12345)},
 		},
 		{
-			name:  "new key",
-			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
-			key:   "float",
-			value: 12345.6789,
-			tp:    "xsd:double",
-			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
+			name:      "new key",
+			in:        NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:       "float",
+			value:     12345.6789,
+			tp:        "xsd:double",
+			wantValue: 12345.6789,
+			want:      map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
 		},
 		{
-			name:  "duplicate key",
-			in:    NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
-			key:   "int",
-			value: 12345.6789,
-			tp:    "xsd:double",
-			want:  map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
+			name:      "duplicate key",
+			in:        NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123), NewAttribute("bool", true)),
+			key:       "int",
+			value:     12345.6789,
+			tp:        "xsd:double",
+			wantValue: 12345.6789,
+			want:      map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
 		},
 	}
 
@@ -172,7 +178,7 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 			t.Parallel()
 
 			a := tc.in
-			a.AddAttributeWithType(tc.key, tc.value, tc.tp)
+			a.AddAttributeKVWithType(tc.key, tc.value, tc.tp)
 
 			got := MapFromAttributes(a)
 			require.NotNil(t, got)
@@ -180,7 +186,7 @@ func TestAttributes_AddAttributeWithType(t *testing.T) {
 
 			attr := a.GetAttribute(tc.key)
 			require.NotNil(t, attr)
-			assert.Equal(t, tc.value, attr.Value())
+			assert.Equal(t, tc.wantValue, attr.Value())
 			assert.Equal(t, tc.tp, attr.Type())
 		})
 	}
@@ -190,22 +196,24 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name  string
-		in    *AttributeSet
-		key   string
-		value any
-		orig  any
-		tp    string
-		want  map[string]any
+		name      string
+		in        *AttributeSet
+		key       string
+		value     any
+		orig      any
+		tp        string
+		wantValue any
+		want      map[string]any
 	}{
 		{
-			name:  "empty",
-			in:    &AttributeSet{set: make(map[string]*Attribute)},
-			key:   "hello",
-			value: 12345,
-			orig:  int32(12345),
-			tp:    "xsd:integer",
-			want:  map[string]any{"hello": 12345},
+			name:      "empty",
+			in:        &AttributeSet{set: make(map[string]*Attribute)},
+			key:       "hello",
+			value:     12345,
+			orig:      int32(12345),
+			tp:        "xsd:integer",
+			wantValue: int64(12345),
+			want:      map[string]any{"hello": int64(12345)},
 		},
 		{
 			name:  "blank key",
@@ -223,11 +231,12 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 				NewAttribute("int", 123),
 				NewAttribute("bool", true),
 			),
-			key:   "float",
-			value: 12345.6789,
-			orig:  "12345.6789",
-			tp:    "xsd:double",
-			want:  map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
+			key:       "float",
+			value:     12345.6789,
+			orig:      "12345.6789",
+			tp:        "xsd:double",
+			wantValue: 12345.6789,
+			want:      map[string]any{"hello": "world", "int": 123, "bool": true, "float": 12345.6789},
 		},
 		{
 			name: "duplicate key",
@@ -236,11 +245,12 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 				NewAttribute("int", 123),
 				NewAttribute("bool", true),
 			),
-			key:   "int",
-			value: 12345.6789,
-			orig:  "12345.6789",
-			tp:    "xsd:double",
-			want:  map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
+			key:       "int",
+			value:     12345.6789,
+			orig:      "12345.6789",
+			tp:        "xsd:double",
+			wantValue: 12345.6789,
+			want:      map[string]any{"hello": "world", "bool": true, "int": 12345.6789},
 		},
 	}
 
@@ -258,55 +268,12 @@ func TestAttributes_AddOriginalAttribute(t *testing.T) {
 			if tc.key != "" {
 				attr := a.GetAttribute(tc.key)
 				require.NotNil(t, attr)
-				assert.Equal(t, tc.value, attr.Value())
+				assert.Equal(t, tc.wantValue, attr.Value())
 				assert.Equal(t, tc.orig, attr.Original())
 				assert.Equal(t, tc.tp, attr.Type())
 			}
 		})
 	}
-}
-
-func TestAddAttributePath(t *testing.T) {
-	t.Parallel()
-
-	t.Run("add attribute with path", func(t *testing.T) {
-		s := NewAttributeSet(
-			NewAttribute("c", "hello world"),
-			NewAttribute("a", 123),
-			NewAttribute("b", true),
-		)
-		require.NotNil(t, s)
-
-		s.AddAttribute("a.b.c", "hello world")
-		s.AddAttribute("a.b.d", true)
-		s.AddAttribute("a.e", 123.456)
-
-		attr := s.GetAttribute("a")
-		require.NotNil(t, attr)
-
-		s2, ok2 := attr.Value().(*AttributeSet)
-		require.True(t, ok2)
-		require.NotNil(t, s2)
-
-		attr2 := s2.GetAttribute("b")
-		require.NotNil(t, attr2)
-
-		s3, ok3 := attr2.Value().(*AttributeSet)
-		require.True(t, ok3)
-		require.NotNil(t, s3)
-
-		attr3 := s3.GetAttribute("c")
-		require.NotNil(t, attr3)
-		assert.Equal(t, "hello world", attr3.Value())
-
-		attr3 = s3.GetAttribute("d")
-		require.NotNil(t, attr3)
-		assert.Equal(t, true, attr3.Value())
-
-		attr2 = s2.GetAttribute("e")
-		require.NotNil(t, attr2)
-		assert.Equal(t, 123.456, attr2.Value())
-	})
 }
 
 func TestAttributes_RemoveAttribute(t *testing.T) {
@@ -539,6 +506,108 @@ func TestAttributesEqual(t *testing.T) {
 
 			got := tc.s1.Equals(tc.s2)
 			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestAttributeSet_ToOAS(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   *AttributeSet
+		want []attributes.Attribute
+	}{
+		{
+			name: "empty",
+			in:   NewAttributeSet(),
+			want: []attributes.Attribute{},
+		},
+		{
+			name: "single",
+			in:   NewAttributeSet(NewAttribute("hello", "world")),
+			want: []attributes.Attribute{{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}}},
+		},
+		{
+			name: "few",
+			in: NewAttributeSet(
+				NewAttribute("hello", "world"),
+				NewAttribute("int", 123456),
+				NewAttribute("bool", true),
+				NewAttribute("float", 1.345),
+			),
+			want: []attributes.Attribute{
+				{Key: "bool", Value: true, Type: "bool", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "float", Value: 1.345, Type: "double", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "int", Value: 123456, Metadata: attributes.Metadata{Tags: []string{}}},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.in.ToOAS()
+			assert.EqualValues(t, tc.want, got)
+		})
+	}
+}
+
+func TestAttributeSeFromOAS(t *testing.T) {
+	t.Parallel()
+
+	a1 := attributes.Attribute{Key: "a1", Value: 123, Type: "xsd:integer"}
+	a2 := attributes.Attribute{Key: "a2", Value: true, Type: "xsd:bool"}
+	a3 := attributes.Attribute{Key: "a3", Value: "hello venus", Type: "xsd:string"}
+	a4 := attributes.Attribute{Key: "a4", Value: 3.141592, Type: "xsd:double"}
+	a5 := attributes.Attribute{Key: "a5", Value: -9999, Type: "xsd:integer"}
+	a6 := attributes.Attribute{Key: "a6", Value: 1, Type: "xsd:bool"}
+
+	testCases := []struct {
+		name string
+		add  []any
+		want *AttributeSet
+	}{
+		{
+			name: "none",
+			want: NewAttributeSet(),
+		},
+		{
+			name: "one attribute",
+			add:  []any{a1},
+			want: NewAttributeSet(NewAttributeFromOAS(&a1)),
+		},
+		{
+			name: "pointer to one attribute",
+			add:  []any{&a2},
+			want: NewAttributeSet(NewAttributeFromOAS(&a2)),
+		},
+		{
+			name: "list of attributes",
+			add:  []any{[]attributes.Attribute{a3, a4, a5}},
+			want: NewAttributeSet(NewAttributeFromOAS(&a3), NewAttributeFromOAS(&a5), NewAttributeFromOAS(&a4)),
+		},
+		{
+			name: "list of pointers to attributes",
+			add:  []any{[]*attributes.Attribute{&a4, &a2, &a6}},
+			want: NewAttributeSet(NewAttributeFromOAS(&a2), NewAttributeFromOAS(&a4), NewAttributeFromOAS(&a6)),
+		},
+		{
+			name: "combinations",
+			add:  []any{a1, []*attributes.Attribute{&a4, &a2}, &a5, []attributes.Attribute{a6, a3}},
+			want: NewAttributeSet(NewAttributeFromOAS(&a1), NewAttributeFromOAS(&a2), NewAttributeFromOAS(&a3), NewAttributeFromOAS(&a4), NewAttributeFromOAS(&a5), NewAttributeFromOAS(&a6)),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := AttributeSetFromOAS(tc.add...)
+			require.NotNil(t, got)
+			assert.True(t, tc.want.Equals(got))
 		})
 	}
 }

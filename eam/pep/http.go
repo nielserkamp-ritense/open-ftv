@@ -43,5 +43,5 @@ func (c *collector) processHTTP() {
 		}
 	}
 
-	c.parc.Context.AddAttribute(models.AttrHTTP, m)
+	c.parc.Context.AddAttributeKV(models.AttrHTTP, m)
 }

@@ -19,6 +19,7 @@ require (
 	github.com/opensearch-project/opensearch-go v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250723072950-f3dd075b1605 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250806094001-89fc982af2f3 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

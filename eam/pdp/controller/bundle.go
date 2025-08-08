@@ -29,7 +29,7 @@ func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
 func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 	list := make([]*models.Policy, 0, len(bundle.Policies))
 	for _, p1 := range bundle.Policies {
-		p2, err := models.NewPolicy(p1, bytes.NewBufferString(p1.Data))
+		p2, err := models.NewPolicyFromOAS(p1, bytes.NewBufferString(p1.Data))
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 func (b *Base) processAttributes(bundle *bundles.Bundle) {
 	list := models.NewAttributeSet()
 	for _, a := range bundle.Attributes {
-		list.AddAttributeWithType(a.Key, a.Value, a.Type)
+		list.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 	}
 
 	b.PIP.ReplaceAllAttributes(list)
@@ -53,7 +53,7 @@ func (b *Base) processEntities(bundle *bundles.Bundle) {
 	for _, e := range bundle.Entities {
 		attr := models.NewAttributeSet()
 		for _, a := range e.Attributes {
-			attr.AddAttributeWithType(a.Key, a.Value, a.Type)
+			attr.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 		}
 
 		list.AddEntity(models.NewEntity(e.Type, e.Id, attr))

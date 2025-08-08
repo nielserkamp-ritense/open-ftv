@@ -76,7 +76,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		args := make([]any, 0, 8)
-		if p.policyStore != "" {
+		if p.policyStore != "" && p.policyStore != "/" {
 			args = append(args, "policyStore", p.policyStore, "recurse", p.recurse)
 		}
 		if persist {

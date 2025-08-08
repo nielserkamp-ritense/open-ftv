@@ -69,5 +69,5 @@ func (r *runner) processAttribute(base, key string, value any, tp string, add mo
 		}
 	}
 
-	add(key, v1, value, tp)
+	_, _ = add(models.NewOriginalAttribute(key, v1, value, tp))
 }

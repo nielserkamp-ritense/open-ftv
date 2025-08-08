@@ -20,7 +20,7 @@ func TestParameter_AttributeValue(t *testing.T) {
 		value      any
 		tp         string
 		attrKey    string
-		get        models.GetAttribute
+		get        models.GetAttributeValue
 		want       any
 		wantType   string
 		wantStatic bool
@@ -86,7 +86,7 @@ func TestParameter_ValueAny(t *testing.T) {
 		value      any
 		tp         string
 		attrKey    string
-		get        models.GetAttribute
+		get        models.GetAttributeValue
 		want       any
 		wantType   string
 		wantStatic bool
@@ -166,7 +166,7 @@ func TestParameter_ValueString(t *testing.T) {
 		value      any
 		t          string
 		attrKey    string
-		get        models.GetAttribute
+		get        models.GetAttributeValue
 		want       string
 		wantStatic bool
 	}{

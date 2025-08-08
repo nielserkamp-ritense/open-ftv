@@ -24,6 +24,8 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250723072950-f3dd075b1605 h1:OE9f3EWt2YxeB1efPk0L6bbQNP6QJ69WbTzTjjUBhzQ=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250723072950-f3dd075b1605/go.mod h1:yqdb/OTfj13X9s0JGLN1k4znKQdNX43rlIOP6ZsTc94=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250806094001-89fc982af2f3 h1:uTumqhxxv0M1c8LPjEeocHpMT20Z4ZuSJQXsErZpves=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250806094001-89fc982af2f3/go.mod h1:Iophg11JJVZGWOJsyn6eYo2S00u/lUIpj7FPmEE/C6Y=
 golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 h1:R9PFI6EUdfVKgwKjZef7QIwGcBKu86OEFpJ9nUEP2l4=
 golang.org/x/exp v0.0.0-20250718183923-645b1fa84792/go.mod h1:A+z0yzpGtvnG90cToK5n2tu8UJVP2XUATh+r+sfOOOc=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

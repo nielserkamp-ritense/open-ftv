@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -70,37 +69,4 @@ func TestWithPullConfigs(t *testing.T) {
 		assert.GreaterOrEqual(t, h.Count(), 2)
 		assert.Nil(t, p3.pullManager)
 	})
-}
-
-func TestWithFactories(t *testing.T) {
-	t.Parallel()
-
-	t.Run("with factories", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		b1, b2 := dummyAttributes, dummyEntities
-
-		// with
-		p := New(nil, logger, WithFactories(b1, b2))
-		require.NotNil(t, p)
-
-		assert.Nil(t, p.NewAttributeSet())
-		assert.Nil(t, p.NewEntitySet())
-
-		// without
-		p2 := New(nil, logger)
-		require.NotNil(t, p2)
-
-		assert.NotNil(t, p2.NewAttributeSet())
-		assert.NotNil(t, p2.NewEntitySet())
-	})
-}
-
-func dummyAttributes(...any) *models.AttributeSet {
-	return nil
-}
-
-func dummyEntities(...any) *models.EntitySet {
-	return nil
 }

@@ -74,7 +74,7 @@ func TestProcessAttribute(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.processAttribute(tc.obj.Base, tc.key, tc.value, tc.tp, attr.AddOriginalAttribute)
+			r.processAttribute(tc.obj.Base, tc.key, tc.value, tc.tp, attr.AddAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -203,7 +203,7 @@ func TestDecodeAttributeMap(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.decodeAttributeMap(tc.base, tc.m, tc.obj, attr.AddOriginalAttribute)
+			r.decodeAttributeMap(tc.base, tc.m, tc.obj, attr.AddAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -279,7 +279,7 @@ func TestDecodeAttributeData(t *testing.T) {
 			attr := models.NewAttributeSet()
 
 			r := &runner{logger: logger}
-			r.decodeAttributeData(tc.base, tc.data, tc.obj, attr.AddOriginalAttribute)
+			r.decodeAttributeData(tc.base, tc.data, tc.obj, attr.AddAttribute)
 
 			if tc.wantCount > 0 {
 				assert.Equal(t, tc.wantCount, h.Count())
@@ -368,7 +368,7 @@ func TestDecodeAttribute(t *testing.T) {
 
 			attr := models.NewAttributeSet()
 
-			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addAttribute: attr.AddOriginalAttribute}}
+			r := &runner{logger: logger, data: tc.data, manager: &manager{logger: logger, addAttribute: attr.AddAttribute}}
 			r.decodeAttribute(&AttributesMapping{
 				Base: tc.base,
 				Map:  []*AttributeMapping{tc.obj},

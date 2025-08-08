@@ -1,5 +1,4 @@
-// Package handlers contains support for integration with HTTP services.
-package handlers
+package models
 
 import (
 	"fmt"
@@ -9,97 +8,86 @@ import (
 
 	"github.com/goccy/go-json"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
-// AttributeFromOAS converts an OAS attribute model to the internal model.
-func AttributeFromOAS(in *attributes.Attribute) *models.Attribute {
-	value := in.Value
-
-	if in.Type != "" {
+func valueFromOAS(in any, tp string) any {
+	if tp != "" {
 		// we have a preference for xsd types.
-		if f := conversions2[in.Type]; f != nil {
-			value = f(in.Value)
-		} else if f = conversions1[strings.ToLower(in.Type)]; f != nil {
-			value = f(in.Value)
+		if f := conversions2[tp]; f != nil {
+			return f(in)
+		}
+		if f := conversions1[strings.ToLower(tp)]; f != nil {
+			return f(in)
 		}
 	}
-
-	return models.NewOriginalAttribute(in.Key, value, in.Value, in.Type)
+	return in
 }
 
-// AttributeToOAS converts an internal attribute model to the OAS model.
-func AttributeToOAS(in *models.Attribute) *attributes.Attribute {
-	a := &attributes.Attribute{Key: in.Key(), Value: in.Original(), Type: in.Type()}
-
-	if a.Value == nil {
-		a.Value = in.Value()
+func valueToOAS(in any, tp string) (any, string) {
+	if in == nil {
+		return in, tp
 	}
 
-	if a.Type == "" {
-		switch t := a.Value.(type) {
+	if tp == "" {
+		switch t := in.(type) {
 		case string:
-			a.Type = "string"
+			tp = "string"
 		case int64:
-			a.Type = "long"
-		case float64:
-			a.Type = "double"
-		case json.Number:
-			a.Type = "long"
+			tp = "long"
+		case float64, json.Number:
+			tp = "double"
 		case bool:
-			a.Type = "bool"
+			tp = "bool"
 		case time.Time:
-			a.Value, a.Type = t.Format(time.RFC3339Nano), "datetime"
+			in, tp = t.Format(time.RFC3339Nano), "datetime"
 		case time.Duration:
-			a.Value, a.Type = t.String(), "duration"
-		case *models.AttributeSet:
-			a.Value = models.MapFromAttributes(t)
+			in, tp = t.String(), "duration"
+		case *AttributeSet:
+			in = MapFromAttributes(t)
 		// next types we leave the value and type as-is.
 		case []any, map[string]any:
 		case int, int8, int16, int32:
 		case uint, uint8, uint16, uint32, uint64:
 		default:
 			// everything else: convert to string.
-			a.Value, a.Type = fmt.Sprintf("%v", t), "string"
+			in, tp = fmt.Sprintf("%v", t), "string"
 		}
-	} else {
-		switch a.Type {
-		case "date", xsd.PrefixDate:
-			if d, ok := anyToDate(a.Value).(time.Time); ok {
-				a.Value = d.Format("2006-01-02")
-			}
 
-		case "time", xsd.PrefixTime:
-			if d, ok := anyToTime(a.Value).(time.Time); ok {
-				a.Value = d.Format("15:04:05")
-			}
+		return in, tp
+	}
 
-		case "datetime", "timestamp", xsd.PrefixDateTime:
-			if d, ok := anyToTimestamp(a.Value).(time.Time); ok {
-				a.Value = d.Format(time.RFC3339Nano)
-			}
+	switch tp {
+	case "date", xsd.PrefixDate:
+		if d, ok := anyToDate(in).(time.Time); ok {
+			in = d.Format("2006-01-02")
+		}
+	case "time", xsd.PrefixTime:
+		if d, ok := anyToTime(in).(time.Time); ok {
+			in = d.Format("15:04:05")
+		}
+	case "datetime", "timestamp", xsd.PrefixDateTime:
+		if d, ok := anyToTimestamp(in).(time.Time); ok {
+			in = d.Format(time.RFC3339Nano)
+		}
+	case "duration":
+		if d, ok := anyToDuration(in).(time.Duration); ok {
+			in = d.String()
+		}
 
-		case "duration":
-			if d, ok := anyToDuration(a.Value).(time.Duration); ok {
-				a.Value = d.String()
+	case xsd.PrefixDuration:
+		if d, ok := anyToDuration(in).(time.Duration); ok {
+			s := d.String()
+			if strings.HasSuffix(s, "ms") || strings.HasSuffix(s, "µs") || strings.HasSuffix(s, "ns") {
+				d += time.Second
+				s = d.String()
+				s = "0" + s[1:]
 			}
-
-		case xsd.PrefixDuration:
-			if d, ok := anyToDuration(a.Value).(time.Duration); ok {
-				s := d.String()
-				if strings.HasSuffix(s, "ms") || strings.HasSuffix(s, "µs") || strings.HasSuffix(s, "ns") {
-					d += time.Second
-					s = d.String()
-					s = "0" + s[1:]
-				}
-				a.Value = "PT" + strings.ToUpper(s)
-			}
+			in = "PT" + strings.ToUpper(s)
 		}
 	}
 
-	return a
+	return in, tp
 }
 
 type converter func(in any) any

@@ -23,7 +23,7 @@ func (c *collector) run() {
 	if a := attrs.GetAttribute(models.AttrTime); a == nil {
 		// See AuthZEN spec Information Model - Context (the link is subject to change):
 		// https://openid.net/specs/authorization-api-1_0-01.html#name-context
-		attrs.AddAttribute(models.AttrTime, time.Now().UTC())
+		attrs.AddAttributeKV(models.AttrTime, time.Now().UTC())
 	}
 
 	// process the HTTP request data.
@@ -41,13 +41,13 @@ func (c *collector) run() {
 
 	// TODO: are these duplications really needed?
 	if p := parc.Principal; p.ID() != "" && p.ID() != PrincipalInvalid {
-		attrs.AddAttribute(models.AttrPrincipal, parc.Principal.UID())
+		attrs.AddAttributeKV(models.AttrPrincipal, parc.Principal.UID())
 	}
 	if parc.Action.ID() != "" {
-		attrs.AddAttribute(models.AttrAction, parc.Action.UID())
+		attrs.AddAttributeKV(models.AttrAction, parc.Action.UID())
 	}
 	if parc.Resource.ID() != "" {
-		attrs.AddAttribute(models.AttrResource, parc.Resource.UID())
+		attrs.AddAttributeKV(models.AttrResource, parc.Resource.UID())
 	}
 
 	if c.debug {

@@ -15,6 +15,6 @@ func (c *collector) decodeBody() {
 	if err != nil {
 		c.logger.Error("failed to parse body", "content-type", ct, "error", err)
 	} else {
-		c.parc.Context.AddAttribute(models.AttrBody, attr)
+		c.parc.Context.AddAttributeKV(models.AttrBody, attr)
 	}
 }

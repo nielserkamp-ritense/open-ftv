@@ -19,13 +19,13 @@ func addPolicies(b *Bundle) {
 	p6, _ := models.NewPolicyFromData("p6", "cedar", "", "", bytes.NewBufferString("haha"))
 	p7, _ := models.NewPolicyFromData("p7", "cel", "", "", bytes.NewBufferString("haha"))
 
-	p1.AddTags("x", "y", "z")
-	p2.AddTags("x")
-	p3.AddTags("a", "b")
-	p4.AddTags("y", "z")
-	p5.AddTags("x", "y")
-	p6.AddTags("a", "b", "x")
-	p7.AddTags("a", "c", "z")
+	p1.WithTags("x", "y", "z")
+	p2.WithTags("x")
+	p3.WithTags("a", "b")
+	p4.WithTags("y", "z")
+	p5.WithTags("x", "y")
+	p6.WithTags("a", "b", "x")
+	p7.WithTags("a", "c", "z")
 
 	policies := []*models.Policy{p1, p2, p3, p4, p5, p6, p7}
 
@@ -44,14 +44,14 @@ func addAttributes(b *Bundle) {
 	a7 := models.NewAttribute("a7", 1)
 	a8 := models.NewAttribute("a8", 1)
 
-	a1.AddTags("x", "y", "z")
-	a2.AddTags("x", "y", "z")
-	a3.AddTags("x", "y")
-	a4.AddTags("x", "y")
-	a5.AddTags("a", "b", "c")
-	a6.AddTags("a", "b", "c")
-	a7.AddTags("b", "c")
-	a8.AddTags("a", "c")
+	a1.WithTags("x", "y", "z")
+	a2.WithTags("x", "y", "z")
+	a3.WithTags("x", "y")
+	a4.WithTags("x", "y")
+	a5.WithTags("a", "b", "c")
+	a6.WithTags("a", "b", "c")
+	a7.WithTags("b", "c")
+	a8.WithTags("a", "c")
 
 	attributes := []*models.Attribute{a1, a2, a3, a4, a5, a6, a7, a8}
 
@@ -70,14 +70,14 @@ func addEntities(b *Bundle) {
 	e7 := models.NewEntity("user", "e7", models.NewAttributeSet(models.NewAttribute("myA3", 1)))
 	e8 := models.NewEntity("user", "e8", nil)
 
-	e1.AddTags("x", "y", "z")
-	e2.AddTags("x", "y", "z")
-	e3.AddTags("x", "y")
-	e4.AddTags("x", "y")
-	e5.AddTags("a", "b", "c")
-	e6.AddTags("a", "b", "c")
-	e7.AddTags("b", "c")
-	e8.AddTags("a", "c")
+	e1.WithTags("x", "y", "z")
+	e2.WithTags("x", "y", "z")
+	e3.WithTags("x", "y")
+	e4.WithTags("x", "y")
+	e5.WithTags("a", "b", "c")
+	e6.WithTags("a", "b", "c")
+	e7.WithTags("b", "c")
+	e8.WithTags("a", "c")
 
 	entities := []*models.Entity{e1, e2, e3, e4, e5, e6, e7, e8}
 
@@ -103,14 +103,14 @@ func addRelations(b *Bundle) {
 	r7 := models.NewRelation(s2, p2, o1)
 	r8 := models.NewRelation(s2, p2, o2)
 
-	r1.AddTags("x", "y", "z")
-	r2.AddTags("x", "y", "z")
-	r3.AddTags("x", "y")
-	r4.AddTags("x", "y")
-	r5.AddTags("a", "b", "c")
-	r6.AddTags("a", "b", "c")
-	r7.AddTags("b", "c")
-	r8.AddTags("a", "c")
+	r1.WithTags("x", "y", "z")
+	r2.WithTags("x", "y", "z")
+	r3.WithTags("x", "y")
+	r4.WithTags("x", "y")
+	r5.WithTags("a", "b", "c")
+	r6.WithTags("a", "b", "c")
+	r7.WithTags("b", "c")
+	r8.WithTags("a", "c")
 
 	relations := []*models.Relation{r1, r2, r3, r4, r5, r6, r7, r8}
 

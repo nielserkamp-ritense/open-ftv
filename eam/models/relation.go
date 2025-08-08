@@ -9,11 +9,13 @@ import (
 //
 // Relation is an immutable object and is by design safe for use by concurrent go-routines.
 type Relation struct {
-	uid       string
-	subject   *Entity
-	predicate *Entity
-	object    *Entity
-	tags      map[string]struct{}
+	uid         string
+	subject     *Entity
+	predicate   *Entity
+	object      *Entity
+	title       string
+	description string
+	tags        map[string]struct{}
 }
 
 // NewRelationFromUID instantiates a new relation.
@@ -35,6 +37,26 @@ func NewRelation(subject, predicate, object *Entity) *Relation {
 		object:    object,
 		tags:      make(map[string]struct{}),
 	}
+}
+
+// WithTitle adds an optional title to the Relation.
+func (r *Relation) WithTitle(title string) *Relation {
+	r.title = title
+	return r
+}
+
+// WithDescription adds an optional description to the Relation.
+func (r *Relation) WithDescription(desc string) *Relation {
+	r.description = desc
+	return r
+}
+
+// WithTags annotates the Relation with the given tags.
+func (r *Relation) WithTags(tags ...string) *Relation {
+	for i := range tags {
+		r.tags[tags[i]] = struct{}{}
+	}
+	return r
 }
 
 func getUID(r *Entity) string {
@@ -64,11 +86,14 @@ func (r *Relation) Object() *Entity {
 	return r.object
 }
 
-// AddTags associates the Relation with the given tags.
-func (r *Relation) AddTags(tags ...string) {
-	for i := range tags {
-		r.tags[tags[i]] = struct{}{}
-	}
+// Title returns the title of the Relation.
+func (r *Relation) Title() string {
+	return r.title
+}
+
+// Description returns the description of the Relation.
+func (r *Relation) Description() string {
+	return r.description
 }
 
 // Tags returns the tags for the Relation.
@@ -81,7 +106,7 @@ func (r *Relation) Tags() []string {
 	return tags
 }
 
-// HasTag returns true if the Relations is associated with the given tag.
+// HasTag returns true if the Relations is annotated with the given tag.
 func (r *Relation) HasTag(tag string) bool {
 	_, ok := r.tags[tag]
 	return ok

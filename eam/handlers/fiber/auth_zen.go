@@ -99,7 +99,7 @@ func (p *authProcess) newAuthRequestAuthZEN(req *authzen.EvaluationRequest) {
 	ctx := models.NewAttributeSet(req.Context)
 
 	if t := convert.AnyToDateTime(ctx.GetAttributeValue(models.AttrTime)); t.IsZero() {
-		ctx.AddAttributeWithType(models.AttrTime, time.Now().UTC(), xsd.PrefixDateTime)
+		ctx.AddAttributeKVWithType(models.AttrTime, time.Now().UTC(), xsd.PrefixDateTime)
 	}
 
 	p.reqUID = uuid.New().String()

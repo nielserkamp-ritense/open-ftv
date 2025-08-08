@@ -34,7 +34,7 @@ func DoelbindingToPrincipal(parc *models.PARC, opts ...Option) *models.PARC {
 		}
 
 		old := models.EntityToAttribute(parc.Principal)
-		p.Context.AddAttribute(models.AttrClientPrincipal, old.Value())
+		p.Context.AddAttributeKV(models.AttrClientPrincipal, old.Value())
 		return p
 	}
 

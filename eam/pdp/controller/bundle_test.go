@@ -48,11 +48,11 @@ func TestBase_NewBundle(t *testing.T) {
 		{
 			name: "only policies",
 			bundle: &bundles.Bundle{Version: 9, Policies: map[string]*policies.Policy{
-				"p1": {Data: "allow=false", Description: "bah", Id: "p1", Language: "cedar"},
-				"p4": {Data: "allow=false", Description: "boh", Id: "p4", Language: "cedar"},
-				"p5": {Data: "allow=false", Description: "bih", Id: "p5", Language: "cedar"},
-				"p6": {Data: "allow=false", Description: "buh", Id: "p6", Language: "cedar"},
-				"p7": {Data: "allow=false", Description: "beh", Id: "p7", Language: "cedar"},
+				"p1": {Data: "allow=false", Id: "p1", Language: "cedar", Metadata: policies.Metadata{Description: "bah"}},
+				"p4": {Data: "allow=false", Id: "p4", Language: "cedar", Metadata: policies.Metadata{Description: "boh"}},
+				"p5": {Data: "allow=false", Id: "p5", Language: "cedar", Metadata: policies.Metadata{Description: "bih"}},
+				"p6": {Data: "allow=false", Id: "p6", Language: "cedar", Metadata: policies.Metadata{Description: "buh"}},
+				"p7": {Data: "allow=false", Id: "p7", Language: "cedar", Metadata: policies.Metadata{Description: "beh"}},
 			}},
 			lastV: 3,
 		},
@@ -82,8 +82,8 @@ func TestBase_NewBundle(t *testing.T) {
 			bundle: &bundles.Bundle{
 				Version: 9,
 				Policies: map[string]*policies.Policy{
-					"p1": {Data: "allow=false", Description: "bah", Id: "p1", Language: "cedar"},
-					"p7": {Data: "allow=false", Description: "beh", Id: "p7", Language: "cedar"},
+					"p1": {Data: "allow=false", Id: "p1", Language: "cedar", Metadata: policies.Metadata{Description: "bah"}},
+					"p7": {Data: "allow=false", Id: "p7", Language: "cedar", Metadata: policies.Metadata{Description: "beh"}},
 				},
 				Attributes: map[string]*attributes.Attribute{
 					"a2": {Key: "a2", Type: "xsd:integer", Value: 123456789},

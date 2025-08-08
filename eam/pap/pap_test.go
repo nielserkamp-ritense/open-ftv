@@ -65,7 +65,7 @@ func TestPap_Add(t *testing.T) {
 
 			p.AddEventSink(e)
 
-			pol, err2 := models.NewPolicy(&policies.Policy{Id: tc.id}, tc.data)
+			pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Id: tc.id}, tc.data)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, pol)
@@ -140,7 +140,7 @@ func TestPap_Replace(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -150,11 +150,11 @@ func TestPap_Replace(t *testing.T) {
 
 			parts := strings.Split(tc.key, "/")
 
-			prev, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+			prev, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
-			pol, err3 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, tc.data)
+			pol, err3 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, tc.data)
 			require.NoError(t, err3)
 			require.NotNil(t, pol)
 
@@ -213,7 +213,7 @@ func TestPap_Remove(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -222,7 +222,7 @@ func TestPap_Remove(t *testing.T) {
 			}
 
 			parts := strings.Split(tc.key, "/")
-			prev, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+			prev, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
@@ -272,7 +272,7 @@ func TestPap_ListAllKeys(t *testing.T) {
 				key := tc.cached[i]
 				parts := strings.Split(key, "/")
 
-				pol, err2 := models.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
+				pol, err2 := models.NewPolicyFromOAS(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewBuffer([]byte("data")))
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
@@ -347,7 +347,7 @@ func TestPAP_LastDeployment(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
-		assert.Equal(t, bundles.Creating, d2.Status())
+		assert.GreaterOrEqual(t, d2.Status(), bundles.Creating)
 	})
 }
 

@@ -7,7 +7,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -42,7 +41,7 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 
 	resp := make([]*attributes.Entity, 0, 32)
 	h.cache.IterateEntities(func(e *models.Entity) {
-		resp = append(resp, handlers.EntityToOAS(e))
+		resp = append(resp, e.ToOAS())
 	})
 
 	return req.JSON(&resp)
@@ -66,7 +65,7 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	if e == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
-	return req.JSON(handlers.EntityToOAS(e))
+	return req.JSON(e.ToOAS())
 }
 
 // PostEntity implements the EntitiesHandler interface.
@@ -88,7 +87,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	e2 := handlers.EntityFromOAS(e1, h.cache.NewAttributeSet())
+	e2 := models.EntityFromOAS(e1)
 
 	value := h.cache.GetEntity(e2.UID())
 	if value != nil && !req.QueryBool("forceUpsert") {
@@ -96,7 +95,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	}
 
 	h.cache.AddEntity(e2)
-	return req.Status(fiber.StatusCreated).JSON(handlers.EntityToOAS(e2))
+	return req.Status(fiber.StatusCreated).JSON(e2.ToOAS())
 }
 
 // PutEntity implements the EntitiesHandler interface.
@@ -118,7 +117,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	e2 := handlers.EntityFromOAS(e1, h.cache.NewAttributeSet())
+	e2 := models.EntityFromOAS(e1)
 
 	e3 := h.cache.GetEntity(e2.UID())
 	if e3 == nil && !req.QueryBool("forceUpsert") {
@@ -126,7 +125,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	}
 
 	h.cache.AddEntity(e2)
-	return req.JSON(handlers.EntityToOAS(e2))
+	return req.JSON(e2.ToOAS())
 }
 
 // DeleteEntity implements the EntitiesHandler interface.
@@ -151,11 +150,11 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	}
 
 	if e == nil {
-		e = models.NewEntity(ns, id, h.cache.NewAttributeSet())
+		e = models.NewEntity(ns, id, models.NewAttributeSet())
 	}
 
 	h.cache.RemoveEntity(uid)
-	return req.JSON(handlers.EntityToOAS(e))
+	return req.JSON(e.ToOAS())
 }
 
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {

@@ -12,14 +12,13 @@ type Manager interface{}
 
 // ManagerParams defines the parameters to instantiate a new external sources manager.
 type ManagerParams struct {
-	Ctx           context.Context          // optional context.
-	Path          string                   // required path to config-file.
-	Logger        *slog.Logger             // required log sink.
-	NewAttributes models.AttributesBuilder // required for managing entities and/or relations.
-	AddAttribute  models.AddAttribute      // required for adding attributes.
-	GetAttribute  models.GetAttribute      // required for retrieving attribute values.
-	AddEntity     models.AddEntity         // required for adding entities.
-	AddRelation   models.AddRelation       // required for adding relations.
+	Ctx          context.Context          // optional context.
+	Path         string                   // required path to config-file.
+	Logger       *slog.Logger             // required log sink.
+	AddAttribute models.AddAttribute      // required for adding attributes.
+	GetAttribute models.GetAttributeValue // required for retrieving attribute values.
+	AddEntity    models.AddEntity         // required for adding entities.
+	AddRelation  models.AddRelation       // required for adding relations.
 }
 
 // NewManager instantiates a new external sources manager.
@@ -31,13 +30,12 @@ func NewManager(params ManagerParams) (Manager, error) {
 	}
 
 	m := &manager{
-		cfg:           cfg,
-		logger:        params.Logger,
-		newAttributes: params.NewAttributes,
-		addAttribute:  params.AddAttribute,
-		getAttribute:  params.GetAttribute,
-		addEntity:     params.AddEntity,
-		addRelation:   params.AddRelation,
+		cfg:          cfg,
+		logger:       params.Logger,
+		addAttribute: params.AddAttribute,
+		getAttribute: params.GetAttribute,
+		addEntity:    params.AddEntity,
+		addRelation:  params.AddRelation,
 	}
 
 	ctx := params.Ctx
@@ -52,13 +50,12 @@ func NewManager(params ManagerParams) (Manager, error) {
 }
 
 type manager struct {
-	ctx           context.Context
-	cancel        context.CancelFunc
-	logger        *slog.Logger
-	cfg           *Config
-	newAttributes models.AttributesBuilder
-	addAttribute  models.AddAttribute
-	getAttribute  models.GetAttribute
-	addEntity     models.AddEntity
-	addRelation   models.AddRelation
+	ctx          context.Context
+	cancel       context.CancelFunc
+	logger       *slog.Logger
+	cfg          *Config
+	addAttribute models.AddAttribute
+	getAttribute models.GetAttributeValue
+	addEntity    models.AddEntity
+	addRelation  models.AddRelation
 }

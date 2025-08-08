@@ -195,7 +195,7 @@ func TestRequest_HTTPRequest(t *testing.T) {
 		content      string
 		timeout      time.Duration
 		parameters   []*Parameter
-		get          models.GetAttribute
+		get          models.GetAttributeValue
 		wantQuery    string
 		wantURI      string
 		wantBody     string

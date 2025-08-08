@@ -23,9 +23,5 @@ func (p *PIP) NewPIP(ctx context.Context, logger *slog.Logger, language models.L
 		opts = append(opts, pip.WithPullConfigs(p.PullConfigs))
 	}
 
-	if language == models.CEDAR {
-		opts = append(opts, pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
-	}
-
 	return pip.New(ctx, logger, opts...), nil
 }

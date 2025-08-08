@@ -153,7 +153,6 @@ func TestLoad(t *testing.T) {
 				entityStore:      tc.path2,
 				recurse:          tc.recurse,
 				logger:           slog.New(h),
-				newAttributes:    models.NewAttributeSet,
 				store:            s,
 				attributePersist: ap,
 				entityPersist:    ep,

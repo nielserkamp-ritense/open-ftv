@@ -18,7 +18,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -37,7 +36,7 @@ func TestNewPoliciesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -61,7 +60,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 		require.NotNil(t, p1)
 
 		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -167,7 +166,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -213,17 +212,17 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 	t.Parallel()
 
 	badURL := `{
- "source": "s1",
- "target": "t1",
- "rvvaID": "id1",
- "url": "http://localhost:29171/policy/xyzqqq"
+ "metadata": {
+  "rvvaID": "id1",
+  "url": "http://localhost:29171/policy/xyzqqq"
+ }
 }`
 
 	goodURL := `{
- "source": "s1",
- "target": "t1",
- "rvvaID": "id1",
- "url": "https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/-/blob/f086f33b2e2fc51e494e0a22bc7bbcc045847250/testdata/policies/cedar/brp/subsidies.cedar"
+ "metadata": {
+  "rvvaID": "id1",
+  "url": "https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/-/blob/f086f33b2e2fc51e494e0a22bc7bbcc045847250/testdata/policies/cedar/brp/subsidies.cedar"
+ }
 }`
 
 	testCases := []struct {
@@ -255,7 +254,7 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -303,17 +302,16 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 	t.Parallel()
 
 	badURL := `{
- "source": "s1",
- "target": "t1",
- "rvvaID": "id1",
- "url": "http://bad.url.xyz:\000/policy/xyzqqq"
+ "metadata": {
+  "rvvaID": "id1",
+  "url": "http://bad.url.xyz:\000/policy/xyzqqq"
+ }
 }`
 
 	goodURL := `{
- "source": "s1",
- "target": "t1",
- "rvvaID": "id1",
- "url": "https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/-/blob/f086f33b2e2fc51e494e0a22bc7bbcc045847250/testdata/policies/cedar/brp/subsidies.cedar"
+ "metadata": {
+  "url": "https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/-/blob/f086f33b2e2fc51e494e0a22bc7bbcc045847250/testdata/policies/cedar/brp/subsidies.cedar"
+ }
 }`
 
 	testCases := []struct {
@@ -345,7 +343,7 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
@@ -416,7 +414,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true), pip.WithFactories(models.NewAttributeSet, models.NewEntitySet))
+			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))

@@ -89,8 +89,8 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		bundle := &bundles.Bundle{
 			Version: 2,
 			Policies: map[string]*policies.Policy{
-				"p1": {Data: "allow=false", Description: "bah", Id: "p1", Language: "cedar"},
-				"p7": {Data: "allow=false", Description: "beh", Id: "p7", Language: "cedar"},
+				"p1": {Data: "allow=false", Id: "p1", Language: "cedar", Metadata: policies.Metadata{Description: "bah"}},
+				"p7": {Data: "allow=false", Id: "p7", Language: "cedar", Metadata: policies.Metadata{Description: "beh"}},
 			},
 			Attributes: map[string]*attributes.Attribute{
 				"a2": {Key: "a2", Type: "xsd:integer", Value: 123456789},

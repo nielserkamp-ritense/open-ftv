@@ -1,50 +1,28 @@
 #!/bin/bash
 
-function fix_code {
-  sed -i -e "s/*string /string /" $1.go
-  sed -i -e "s/*struct /struct /" $1.go
-  sed -i -e "s/*map/map/" $1.go
-  sed -i -e "s/*int /int /" $1.go
-  sed -i -e "s/*bool /bool /" $1.go
-  sed -i -e "s/*\[\]/\[\]/" $1.go
-  sed -i -e "s/*Action/Action/" $1.go
-  sed -i -e "s/*IgnoreMissing/IgnoreMissing/" $1.go
-  sed -i -e "s/*ForceUpsert/ForceUpsert/" $1.go
-  sed -i -e "s/*ReasonField/ReasonField/" $1.go
-  sed -i -e "s/*ReasonObject/ReasonObject/" $1.go
-  sed -i -e "s/*Entity/Entity/" $1.go
-  sed -i -e "s/interface{}/any/" $1.go
-  go fmt $1.go
-}
-
 ##### AuthZEN #####
 cd authzen
 oapi-codegen -config config.yaml openapi.yaml
-fix_code "authzen"
 cd ..
 
 ##### Policies #####
 cd policies
 oapi-codegen -config config.yaml openapi.yaml
-fix_code "policies"
 cd ..
 
 ##### Attributes #####
 cd attributes
 oapi-codegen -config config.yaml openapi.yaml
-fix_code "attributes"
 cd ..
 
 ##### Bundles #####
 cd bundles
 oapi-codegen -config config.yaml openapi.yaml
-fix_code "bundles"
 cd ..
 
 ##### Authlog #####
 cd authlog
 oapi-codegen -config config.yaml openapi.yaml
-fix_code "authlog"
 cd ..
 
 ##### FSC #####

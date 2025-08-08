@@ -1,8 +1,8 @@
 openapi: 3.0.0
 
 info:
-  title: Attribute management.
-  version: 1.1.0
+  title: Attributes, entities and relations management.
+  version: 1.2.0
   description: |
     OpenAPI specification for maintaining attributes, entities and/or relations between entities.
   contact:
@@ -14,6 +14,8 @@ servers:
     description: Local server.
 
 tags:
+  - name: open_ftv
+    description: OpenFTV
   - name: attribute
     description: Operations on attributes.
   - name: entity
@@ -26,21 +28,13 @@ paths:
     get:
       operationId: "get-attributes"
       summary: Retrieve attributes.
-      description: Endpoint to retrieve all attributes.
+      description: Retrieve a list of all attributes.
       tags:
+        - open_ftv
         - attribute
       responses:
         "200":
-          description: Attributes found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributesResponse"
+          $ref: "#/components/responses/AttributesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -59,27 +53,13 @@ paths:
     get:
       operationId: "get-attribute"
       summary: Retrieve attribute.
-      description: Retrieve a specified cached attribute.
+      description: Retrieve a single specified attribute.
       tags:
+        - open_ftv
         - attribute
       responses:
         "200":
-          description: Attribute found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
-              examples:
-                GET_WERKTIJDEN_200_OK:
-                  summary: Successful retrieval of attribute 'werktijden'.
-                  value:
-                    key: werktijden
-                    value: x
+          $ref: "#/components/responses/AttributeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -95,9 +75,12 @@ paths:
       operationId: "add-attribute"
       summary: Add attribute.
       description: |
+        Create a new attribute.
+        
         If the unique key of the attribute already exists, a 409 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - attribute
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -109,16 +92,7 @@ paths:
               $ref: "#/components/schemas/Attribute"
       responses:
         "201":
-          description: Attribute created.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
+          $ref: "#/components/responses/AttributeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -134,9 +108,12 @@ paths:
       operationId: "replace-attribute"
       summary: Replace attribute.
       description: |
+        Replace an existing attribute.
+        
         If the unique key of the attribute does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - attribute
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -148,16 +125,7 @@ paths:
               $ref: "#/components/schemas/Attribute"
       responses:
         "200":
-          description: Attribute replaced.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
+          $ref: "#/components/responses/AttributeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -173,24 +141,18 @@ paths:
       operationId: "remove-attribute"
       summary: Remove attribute.
       description: |
+        Remove an existing attribute.
+        
         If the unique key of the attribute does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - attribute
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
       responses:
         "200":
-          description: Attribute removed.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeResponse"
+          $ref: "#/components/responses/AttributeResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -206,21 +168,13 @@ paths:
     get:
       operationId: "get-entities"
       summary: Retrieve entities.
-      description: Endpoint to retrieve all entities.
+      description: Retrieve a list of all entities.
       tags:
+        - open_ftv
         - entity
       responses:
         "200":
-          description: Entities found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntitiesResponse"
+          $ref: "#/components/responses/EntitiesResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -240,21 +194,13 @@ paths:
     get:
       operationId: "get-entity"
       summary: Retrieve entity.
-      description: Retrieve a specified cached entity.
+      description: Retrieve a specified entity.
       tags:
+        - open_ftv
         - entity
       responses:
         "200":
-          description: Entity found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
+          $ref: "#/components/responses/EntityResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -270,9 +216,12 @@ paths:
       operationId: "add-entity"
       summary: Add entity.
       description: |
+        Create a new entity.
+        
         If the unique type+id of the entity already exists, a 409 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - entity
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -284,16 +233,7 @@ paths:
               $ref: "#/components/schemas/Entity"
       responses:
         "201":
-          description: Entity created.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
+          $ref: "#/components/responses/EntityResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -309,9 +249,12 @@ paths:
       operationId: "remove-entity"
       summary: Replace entity.
       description: |
+        Replace an existing entity.
+        
         If the unique type+id of the entity does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - entity
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -323,16 +266,7 @@ paths:
               $ref: "#/components/schemas/Entity"
       responses:
         "200":
-          description: Entity replaced.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
+          $ref: "#/components/responses/EntityResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -348,24 +282,18 @@ paths:
       operationId: "delete-entity"
       summary: Remove entity.
       description: |
+        Remove an existing entity.
+        
         If the unique type+id of the entity does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - entity
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
       responses:
         "200":
-          description: Entity removed.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EntityResponse"
+          $ref: "#/components/responses/EntityResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -382,21 +310,13 @@ paths:
     get:
       operationId: "get-relations"
       summary: Retrieve relations.
-      description: Endpoint to retrieve all relations.
+      description: Retrieve a list of all relations.
       tags:
+        - open_ftv
         - relation
       responses:
         "200":
-          description: Relations found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationsResponse"
+          $ref: "#/components/responses/RelationsResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -419,21 +339,13 @@ paths:
     get:
       operationId: "get-relation"
       summary: Retrieve relation.
-      description: Retrieve a specified cached relation.
+      description: Retrieve a specified relation.
       tags:
+        - open_ftv
         - relation
       responses:
         "200":
-          description: Relation found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
+          $ref: "#/components/responses/RelationResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -449,8 +361,11 @@ paths:
       operationId: "add-relation"
       summary: Add relation.
       tags:
+        - open_ftv
         - relation
       description: |
+        Create a new relation.
+        
         If the unique subject+relation+object of the relation already exists, a 409 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       parameters:
@@ -463,16 +378,7 @@ paths:
               $ref: "#/components/schemas/Relation"
       responses:
         "201":
-          description: Entity created.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
+          $ref: "#/components/responses/RelationResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -488,9 +394,12 @@ paths:
       operationId: "replace-relation"
       summary: Replace relation.
       description: |
+        Replace an existing relation.
+        
         If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - relation
       parameters:
         - $ref: "#/components/parameters/ForceUpsert"
@@ -502,16 +411,7 @@ paths:
               $ref: "#/components/schemas/Relation"
       responses:
         "200":
-          description: Relation replaced.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
+          $ref: "#/components/responses/RelationResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -527,24 +427,18 @@ paths:
       operationId: "remove-relation"
       summary: Remove relation.
       description: |
+        Remove an existing relation.
+        
         If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
         You can override this behavior by passing the 'force' parameter in the query.
       tags:
+        - open_ftv
         - relation
       parameters:
         - $ref: "#/components/parameters/IgnoreMissing"
       responses:
         "200":
-          description: Relation removed.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RelationResponse"
+          $ref: "#/components/responses/RelationResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -567,11 +461,6 @@ components:
         maxLength: 500
       required: true
       description: Unique key of an attribute.
-      examples:
-        GET_ATTRIBUTE_WERKTIJDEN_200_OK:
-          value: "werktijden"
-        GET_ATTRIBUTE_404_NOTFOUND:
-          value: "abc98def76"
 
     EntityType:
       in: path
@@ -660,6 +549,78 @@ components:
       description: Ignore missing data during a delete operation.
 
   responses:
+    AttributesResponse:
+      description: Attributes found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Attributes"
+            
+    AttributeResponse:
+      description: Attribute found, created, replaced or removed.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Attribute"
+
+    EntitiesResponse:
+      description: Entities found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Entities"
+    
+    EntityResponse:
+      description: Entity found, created, replaced or removed.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Entity"
+
+    RelationsResponse:
+      description: Relations found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Relations"
+    
+    RelationResponse:
+      description: Relation found, created, replaced or removed.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Relation"
+
     BadRequest:
       description: Bad request.
       headers:
@@ -670,7 +631,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/Error"
 
     NotAuthorized:
       description: Not authorized.
@@ -682,7 +643,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/Error"
 
     AccessDenied:
       description: Access denied.
@@ -694,7 +655,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/Error"
 
     NotFound:
       description: Resource not found.
@@ -706,12 +667,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
-          examples:
-            GET_ATTRIBUTE_404_NOTFOUND:
-              summary: Unsuccessful retrieval of unknown attribute.
-              value:
-                title: Not found
+            $ref: "#/components/schemas/Error"
 
     AlreadyExists:
       description: Resource already exists.
@@ -723,7 +679,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/Error"
 
     UnexpectedError:
       description: Unexpected error.
@@ -735,9 +691,69 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/Error"
 
   schemas:
+    Metadata:
+      type: object
+      description: The metadata associated with an object.
+      properties:
+        title:
+          type: string
+          description: The title of the object. E.g., a short description.
+        description:
+          type: string
+          description: Detailed description of the object.
+        tags:
+          type: array
+          description: |
+            List of tags the object is annotated with.
+            
+            This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+          items:
+            type: string
+        createDate:
+          type: string
+          description: Timestamp the object was created (RFC3339 format).
+        createUser:
+          type: string
+          description: User that created the object.
+        updateDate:
+          type: string
+          description: Timestamp the object was last updated (RFC3339 format).
+        updateUser:
+          type: string
+          description: User that last updated the object.
+
+    UsageData:
+      type: object
+      description: Metadata about how and where the object is used.
+      properties:
+        bundles:
+          type: array
+          description: Bundles the object is used by.
+          items:
+            type: string
+
+    AuditEntry:
+      type: object
+      description: Metadata about how, when and by whom an object has been manipulated.
+      properties:
+        timestamp:
+          type: string
+          description: Timestamp of the log entry in RFC3339 format.
+        operation:
+          type: string
+          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+        user:
+          type: string
+          description: Unique identifier of the user who operated on the object.
+
+    Attributes:
+      type: array
+      items:
+        $ref: "#/components/schemas/Attribute"
+
     Attribute:
       type: object
       description: The content of an attribute (key/value pair).
@@ -745,8 +761,10 @@ components:
         key:
           type: string
           description: The unique key of the attribute.
+          example: "gemeentecode"
         value:
           description: The value of the attribute.
+          example: "0123"
         type:
           type: string
           description: |
@@ -756,18 +774,32 @@ components:
             "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
             Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
             
-            An *integer* value is stored as a 64-bit signed integer.
+            An *integer* value (of any size) is stored as a 64-bit signed or unsigned integer.
             
             A *float* value is stored with double precision.
             
             A *boolean* value can be *true* (case-insensitive) or *1* to represent a true state,
             or any other value to represent a false state.
             
-            A *date*, *time* or *timestamp* value should adhere to the format as described in ISO-8601.
-            If it cannot be decoded according to ISO-8601, a 400 response status code will be returned.
+            A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
+            If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
+        auditLog:
+          type: array
+          description: Audit log for the attribute.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
       required:
         - key
         - value
+
+    Entities:
+      type: array
+      items:
+        $ref: "#/components/schemas/Entity"
 
     Entity:
       type: object
@@ -789,9 +821,23 @@ components:
           description: Optional attributes of the entity.
           items:
             $ref: "#/components/schemas/Attribute"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
+        auditLog:
+          type: array
+          description: Audit log for the entity.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
       required:
         - type
         - id
+
+    Relations:
+      type: array
+      items:
+        $ref: "#/components/schemas/Relation"
 
     Relation:
       type: object
@@ -825,6 +871,15 @@ components:
           description: Optional attributes of the relation.
           items:
             $ref: "#/components/schemas/Attribute"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
+        auditLog:
+          type: array
+          description: Audit log for the relation.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
       required:
         - subjectType
         - subjectId
@@ -832,31 +887,7 @@ components:
         - objectType
         - objectId
 
-    AttributesResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Attribute"
-
-    AttributeResponse:
-      $ref: "#/components/schemas/Attribute"
-
-    EntitiesResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Entity"
-
-    EntityResponse:
-      $ref: "#/components/schemas/Entity"
-
-    RelationsResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Relation"
-
-    RelationResponse:
-      $ref: "#/components/schemas/Relation"
-
-    ErrorResponse:
+    Error:
       type: object
       description: The response for an error (as defined by RFC9457).
       properties:
