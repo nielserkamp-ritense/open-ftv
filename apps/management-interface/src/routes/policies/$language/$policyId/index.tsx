@@ -5,8 +5,9 @@ import {usePolicy} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
 import {Textarea} from "@/components/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/description-list.tsx";
+import {Button} from "@/components/button.tsx";
 
-export const Route = createFileRoute('/policies/$language/$policyId')({
+export const Route = createFileRoute('/policies/$language/$policyId/')({
     component: RouteComponent,
 })
 
@@ -40,7 +41,10 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
             <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" header={
-                <Heading>Policy {data?.id}</Heading>
+                <div className="flex items-center justify-between gap-4">
+                    <Heading className="truncate">{data?.metadata?.title}</Heading>
+                    <Button href={`/policies/${language}/${policyId}/edit`}>Edit</Button>
+                </div>
             }>
                 <div className="flex flex-col h-full bg-content-tertiary">
                     <Textarea name="data" value={data?.data} readOnly={true} className="flex-1"/>
@@ -52,7 +56,7 @@ function RouteComponent() {
                 }>
                     <DescriptionList>
                         <DescriptionTerm>Description</DescriptionTerm>
-                        <DescriptionDetails>{data?.description}</DescriptionDetails>
+                        <DescriptionDetails>{data?.metadata?.description}</DescriptionDetails>
                     </DescriptionList>
                 </Card>
                 <Card className="flex-1" header={

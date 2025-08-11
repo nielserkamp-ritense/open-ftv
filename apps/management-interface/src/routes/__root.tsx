@@ -36,7 +36,7 @@ const RootComponent = () => {
                       <IconFileText/>
                       <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Beleid</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="/attributes" className={"text-rhc-sidenav-link-color"}>
+                    <SidebarItem href="/attributen" className={"text-rhc-sidenav-link-color"}>
                       <IconDatabase/>
                       <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Bronnen</SidebarLabel>
                     </SidebarItem>
