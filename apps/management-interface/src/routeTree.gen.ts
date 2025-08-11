@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PoliciesIndexRouteImport } from './routes/policies/index'
 import { Route as AttributenIndexRouteImport } from './routes/attributen/index'
 import { Route as PoliciesAddRouteImport } from './routes/policies/add'
+import { Route as AttributenToevoegenRouteImport } from './routes/attributen/toevoegen'
 import { Route as PoliciesLanguagePolicyIdIndexRouteImport } from './routes/policies/$language/$policyId/index'
 import { Route as PoliciesLanguagePolicyIdEditRouteImport } from './routes/policies/$language/$policyId/edit'
 
@@ -36,6 +37,11 @@ const PoliciesAddRoute = PoliciesAddRouteImport.update({
   path: '/policies/add',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttributenToevoegenRoute = AttributenToevoegenRouteImport.update({
+  id: '/attributen/toevoegen',
+  path: '/attributen/toevoegen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoliciesLanguagePolicyIdIndexRoute =
   PoliciesLanguagePolicyIdIndexRouteImport.update({
     id: '/policies/$language/$policyId/',
@@ -51,6 +57,7 @@ const PoliciesLanguagePolicyIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen': typeof AttributenIndexRoute
   '/policies': typeof PoliciesIndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen': typeof AttributenIndexRoute
   '/policies': typeof PoliciesIndexRoute
@@ -68,6 +76,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen/': typeof AttributenIndexRoute
   '/policies/': typeof PoliciesIndexRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen'
     | '/policies'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen'
     | '/policies'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen/'
     | '/policies/'
@@ -103,6 +115,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AttributenToevoegenRoute: typeof AttributenToevoegenRoute
   PoliciesAddRoute: typeof PoliciesAddRoute
   AttributenIndexRoute: typeof AttributenIndexRoute
   PoliciesIndexRoute: typeof PoliciesIndexRoute
@@ -140,6 +153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesAddRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attributen/toevoegen': {
+      id: '/attributen/toevoegen'
+      path: '/attributen/toevoegen'
+      fullPath: '/attributen/toevoegen'
+      preLoaderRoute: typeof AttributenToevoegenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/policies/$language/$policyId/': {
       id: '/policies/$language/$policyId/'
       path: '/policies/$language/$policyId'
@@ -159,6 +179,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AttributenToevoegenRoute: AttributenToevoegenRoute,
   PoliciesAddRoute: PoliciesAddRoute,
   AttributenIndexRoute: AttributenIndexRoute,
   PoliciesIndexRoute: PoliciesIndexRoute,
