@@ -58,8 +58,8 @@ export default function PoliciesComponent() {
     return (
       <>
           <div className="flex items-center justify-between">
-              <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Beleidsoverzicht</h1>
-              <Button color={"emerald"} href={"/policies/add"}>Toevoegen</Button>
+              <h1 className="text-rhc-color-cool-grey-900 font-bold   text-[32px] leading-10">Beleidsoverzicht</h1>
+              <Button color={"blue"} href={"/policies/add"}>Toevoegen</Button>
           </div>
           <Alert open={isOpen} onClose={setIsOpen}>
               <AlertTitle>Are you sure you want to delete policy {selectedId}?</AlertTitle>
