@@ -48,17 +48,17 @@ The following is an example of a configuration file containing all possible opti
 ```yaml
 ---
 svc:   # options for the API endpoint server.
-  host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8443).
+  host: "<address>"             # Address the service should listen on (default "0.0.0.0"; all host addresses).
+  port: <port>                  # Port the service should listen on (default 8443).
   tls:
     ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
     cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
     key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
   timeout:
-    read: "<duration>"          # the read timeout for API requests (default "30s").
-    write: "<duration>"         # the read timeout for API requests (default "30s").
-    idle: "<duration>"          # the read timeout for API requests (default "300s").
-  maxBody: <size>               # maximum allowed size of a request body (default 65536).
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -114,6 +114,13 @@ cerbos:   # options for connecting with a cerbos PDP (sidecar) for authorizing a
     address: "<address>"        # Address of the Cerbos admin API.
     user: "<user>"              # User-id to authenticate with the Cerbos admin API.
     password: "<user>"          # User-id to authenticate with the Cerbos admin API.
+
+bundles:   # options for bundle management (see below).
+  path: "<folder>"              # Location on disk where bundle configurations can be found.
+  recurse: true|false           # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+  sendTimeout: "<duration>"     # The read timeout for sending bundles to a PDP (default "1m").
+  workers: <number>             # Maximum number of worker threads for sending bundles (default #cpu).
+  stageDelay: "<duration>"      # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Environment variables
@@ -178,6 +185,13 @@ PAP_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin API.
 PAP_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
 PAP_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
 PAP_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
+
+# options for bundle management (see below).
+PAP_BUNDLE_CONFIGS=<folder>                 # Location on disk where bundle configurations can be found.
+PAP_BUNDLE_RECURSE=true|false               # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+PAP_BUNDLE_SEND_TIMEOUT=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
+PAP_BUNDLE_WORKERS=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
+PAP_BUNDLE_STAGE_DELAY=<duration>           # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Command-line flags
@@ -242,6 +256,13 @@ These match the corresponding options in a configuration file.
 --cerbos-user=<user>                      # User-id to authenticate with the Cerbos admin API.
 --cerbos-pswd=<user>                      # User-id to authenticate with the Cerbos admin API.
 --cerbos-ca=<file>                        # CA certificate to use with the Cerbos APIs.
+
+# options for bundle management (see below).
+--bundle-configs=<folder>                 # Location on disk where bundle configurations can be found.
+--bundle-recurse=true|false               # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+--bundle-send-timeout=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
+--bundle-workers=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
+--bundle-stage-delay=<duration>           # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Authentication & authorization
@@ -268,7 +289,7 @@ The policies and local data used by the embedded EAM components are meant to be 
 and not to be maintained through the UI API of the PAP service.
 This is to ensure separation of duties!
 
-To modify policies, you need to restart the service with the modified policies. 
+To modify policies, you need to restart the service with the modified policies.
 
 To maintain data elements (such as users), you can use the pull- or push-mechanisms of the embedded PIP.
 Or, alternatively, maintain a file (see below) and restart the service with the modified user-file.
@@ -311,7 +332,7 @@ it will save time to use the push- and/or pull-mechanism of the embedded PIP.
 
 #### Authorization
 
-Authorization is configured with a single parameter (```authorization.authenticate```), 
+Authorization is configured with a single parameter (```authorization.authenticate```),
 and locally stored policies (```policies.store```).
 
 The ```authorization.authenticate``` parameter indicates that a user must be authenticated first.
@@ -431,6 +452,65 @@ CREATE TABLE policies
     index BIGINT NOT NULL,
     value JSONB NOT NULL
 );
+```
+
+### Bundle management
+
+The PAP can be configured to manage deployment bundles.
+
+A bundle consists of all policies, attributes, entities and/or relations needed for a specific PDP or set of PDPs.
+
+Check the following files and folders for implementation details:
+- *oas/bundles*: Open-API spec.
+- *eam/config/bundle.go: bundle top-level configuration.
+- *eam/bundles*: bundle configuration and management.
+- *eam/handlers/bundles.go*: bundle UI API handlers (PAP).
+- *eam/handlers/bundle_receiver.go*: bundle receiver API handler (PDP).
+
+#### Deployment stages
+
+The deployment of bundles involves the following stages:
+- *Creating*: determine the next version number.
+- *Gathering*: gathering all policies, attributes, entities and/or relations needed.
+- *Merging*: merge the gathered elements into a git repository (e.g., change and history management).
+- *Bundling*: assembling bundles.
+- *Sending*: preparing bundles (compression) and sending to configured PDPs.
+
+Once all processing is complete, the status of the bundle is marked as *Completed*.
+If, at any stage, an unrecoverable error occurs, the bundle is marked as *Failed* with an appropriate error message.
+
+#### Annotation tags
+The selection of which policies and data go into a specific bundle is decided by the tags an element is annotated with.
+
+Each bundle is annotated with one or more tags.
+Any element annotated with one of these tags will be included in the bundle.
+Note that only a single tag needs to match.
+
+#### Bundle configuration
+
+A bundle configuration is a file in YAML or JSON format.
+
+An example of a bundle configuration:
+```yaml
+---
+id: "<identifier"                # **required** A unique identifier for the bundle.
+language: "<policy language>"    # **required** The code or name of the policy language for the PDP ("REGO", "CEDAR", "CERBOS", "OPENFGA").
+policies: true|false             # Flag to indicate the bundle should (or shouldn't) include matching policies.
+data: true|false                 # Flag to indicate the bundle should (or shouldn't) include matching attributes, entities and/or relations.
+version: true|false              # Flag to indicate the bundle should (or shouldn't) include the version number of the deployment.
+tags: ["<tag>", ...]             # **required** Tags to select the elements for inclusion in the bundle.
+targets: []                      # **required** A list of one or more target PDPs.
+```
+
+Example of a target PDP configuration:
+```yaml
+  - uri: "<uri>"                 # **required** URI on which the target PDP is listening for bundles.
+    ca: "<certificate-file>"     # CA certificate to use with the send-request; turns on https.
+    cert: "<certificate-file>"   # TLS certificate to use with the send-request; turns on https.
+    key: "<key-file>"            # TLS private key to use with the send-request; turns on https.
+    apiKey: "<api-key>"          # API key to include in the request.
+    headers: ["<header1>", ...]  # Headers to include in the request.
+    compress: "<type>"           # Type of compression used for the bundle ("GZIP", "BZIP2"; default "GZIP").
 ```
 
 ## Application log

@@ -434,6 +434,65 @@ CREATE TABLE ftv
 
 The service uses an internal key prefix to make sure policy- and data-keys do not clash.
 
+### Bundle management
+
+The service can be configured to manage deployment bundles.
+
+A bundle consists of all policies, attributes, entities and/or relations needed for a specific PDP or set of PDPs.
+
+Check the following files and folders for implementation details: 
+- *oas/bundles*: Open-API spec.
+- *eam/config/bundle.go: bundle top-level configuration.
+- *eam/bundles*: bundle configuration and management.
+- *eam/handlers/bundles.go*: bundle UI API handlers (PAP).
+- *eam/handlers/bundle_receiver.go*: bundle receiver API handler (PDP).
+
+#### Deployment stages
+
+The deployment of bundles involves the following stages:
+- *Creating*: determine the next version number.
+- *Gathering*: gathering all policies, attributes, entities and/or relations needed.
+- *Merging*: merge the gathered elements into a git repository (e.g., change and history management).
+- *Bundling*: assembling bundles.
+- *Sending*: preparing bundles (compression) and sending to configured PDPs.
+
+Once all processing is complete, the status of the bundle is marked as *Completed*.
+If, at any stage, an unrecoverable error occurs, the bundle is marked as *Failed* with an appropriate error message.
+
+#### Annotation tags
+The selection of which policies and data go into a specific bundle is decided by the tags an element is annotated with.
+
+Each bundle is annotated with one or more tags.
+Any element annotated with one of these tags will be included in the bundle.
+Note that only a single tag needs to match.
+
+#### Bundle configuration
+
+A bundle configuration is a file in YAML or JSON format.
+
+An example of a bundle configuration:
+```yaml
+---
+id: "<identifier"                # **required** A unique identifier for the bundle.
+language: "<policy language>"    # **required** The code or name of the policy language for the PDP ("REGO", "CEDAR", "CERBOS", "OPENFGA").
+policies: true|false             # Flag to indicate the bundle should (or shouldn't) include matching policies.
+data: true|false                 # Flag to indicate the bundle should (or shouldn't) include matching attributes, entities and/or relations.
+version: true|false              # Flag to indicate the bundle should (or shouldn't) include the version number of the deployment.
+tags: ["<tag>", ...]             # **required** Tags to select the elements for inclusion in the bundle.
+targets: []                      # **required** A list of one or more target PDPs.
+```
+
+Example of a target PDP configuration:
+```yaml
+  - uri: "<uri>"                 # **required** URI on which the target PDP is listening for bundles.
+    ca: "<certificate-file>"     # CA certificate to use with the send-request; turns on https.
+    cert: "<certificate-file>"   # TLS certificate to use with the send-request; turns on https.
+    key: "<key-file>"            # TLS private key to use with the send-request; turns on https.
+    apiKey: "<api-key>"          # API key to include in the request.
+    headers: ["<header1>", ...]  # Headers to include in the request.
+    compress: "<type>"           # Type of compression used for the bundle ("GZIP", "BZIP2"; default "GZIP").
+```
+
 ## Application log
 
 The service writes a single application log of relevant events, so that it can aid in:
