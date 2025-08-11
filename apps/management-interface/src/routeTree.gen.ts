@@ -9,17 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AttributesRouteImport } from './routes/attributes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PoliciesIndexRouteImport } from './routes/policies/index'
+import { Route as AttributenIndexRouteImport } from './routes/attributen/index'
 import { Route as PoliciesAddRouteImport } from './routes/policies/add'
-import { Route as PoliciesLanguagePolicyIdRouteImport } from './routes/policies/$language/$policyId'
+import { Route as PoliciesLanguagePolicyIdIndexRouteImport } from './routes/policies/$language/$policyId/index'
+import { Route as PoliciesLanguagePolicyIdEditRouteImport } from './routes/policies/$language/$policyId/edit'
 
-const AttributesRoute = AttributesRouteImport.update({
-  id: '/attributes',
-  path: '/attributes',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -30,81 +26,92 @@ const PoliciesIndexRoute = PoliciesIndexRouteImport.update({
   path: '/policies/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AttributenIndexRoute = AttributenIndexRouteImport.update({
+  id: '/attributen/',
+  path: '/attributen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoliciesAddRoute = PoliciesAddRouteImport.update({
   id: '/policies/add',
   path: '/policies/add',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoliciesLanguagePolicyIdRoute =
-  PoliciesLanguagePolicyIdRouteImport.update({
-    id: '/policies/$language/$policyId',
-    path: '/policies/$language/$policyId',
+const PoliciesLanguagePolicyIdIndexRoute =
+  PoliciesLanguagePolicyIdIndexRouteImport.update({
+    id: '/policies/$language/$policyId/',
+    path: '/policies/$language/$policyId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PoliciesLanguagePolicyIdEditRoute =
+  PoliciesLanguagePolicyIdEditRouteImport.update({
+    id: '/policies/$language/$policyId/edit',
+    path: '/policies/$language/$policyId/edit',
     getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/attributes': typeof AttributesRoute
   '/policies/add': typeof PoliciesAddRoute
+  '/attributen': typeof AttributenIndexRoute
   '/policies': typeof PoliciesIndexRoute
-  '/policies/$language/$policyId': typeof PoliciesLanguagePolicyIdRoute
+  '/policies/$language/$policyId/edit': typeof PoliciesLanguagePolicyIdEditRoute
+  '/policies/$language/$policyId': typeof PoliciesLanguagePolicyIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/attributes': typeof AttributesRoute
   '/policies/add': typeof PoliciesAddRoute
+  '/attributen': typeof AttributenIndexRoute
   '/policies': typeof PoliciesIndexRoute
-  '/policies/$language/$policyId': typeof PoliciesLanguagePolicyIdRoute
+  '/policies/$language/$policyId/edit': typeof PoliciesLanguagePolicyIdEditRoute
+  '/policies/$language/$policyId': typeof PoliciesLanguagePolicyIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/attributes': typeof AttributesRoute
   '/policies/add': typeof PoliciesAddRoute
+  '/attributen/': typeof AttributenIndexRoute
   '/policies/': typeof PoliciesIndexRoute
-  '/policies/$language/$policyId': typeof PoliciesLanguagePolicyIdRoute
+  '/policies/$language/$policyId/edit': typeof PoliciesLanguagePolicyIdEditRoute
+  '/policies/$language/$policyId/': typeof PoliciesLanguagePolicyIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/attributes'
     | '/policies/add'
+    | '/attributen'
     | '/policies'
+    | '/policies/$language/$policyId/edit'
     | '/policies/$language/$policyId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/attributes'
     | '/policies/add'
+    | '/attributen'
     | '/policies'
+    | '/policies/$language/$policyId/edit'
     | '/policies/$language/$policyId'
   id:
     | '__root__'
     | '/'
-    | '/attributes'
     | '/policies/add'
+    | '/attributen/'
     | '/policies/'
-    | '/policies/$language/$policyId'
+    | '/policies/$language/$policyId/edit'
+    | '/policies/$language/$policyId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AttributesRoute: typeof AttributesRoute
   PoliciesAddRoute: typeof PoliciesAddRoute
+  AttributenIndexRoute: typeof AttributenIndexRoute
   PoliciesIndexRoute: typeof PoliciesIndexRoute
-  PoliciesLanguagePolicyIdRoute: typeof PoliciesLanguagePolicyIdRoute
+  PoliciesLanguagePolicyIdEditRoute: typeof PoliciesLanguagePolicyIdEditRoute
+  PoliciesLanguagePolicyIdIndexRoute: typeof PoliciesLanguagePolicyIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/attributes': {
-      id: '/attributes'
-      path: '/attributes'
-      fullPath: '/attributes'
-      preLoaderRoute: typeof AttributesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -119,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attributen/': {
+      id: '/attributen/'
+      path: '/attributen'
+      fullPath: '/attributen'
+      preLoaderRoute: typeof AttributenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/policies/add': {
       id: '/policies/add'
       path: '/policies/add'
@@ -126,11 +140,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesAddRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/policies/$language/$policyId': {
-      id: '/policies/$language/$policyId'
+    '/policies/$language/$policyId/': {
+      id: '/policies/$language/$policyId/'
       path: '/policies/$language/$policyId'
       fullPath: '/policies/$language/$policyId'
-      preLoaderRoute: typeof PoliciesLanguagePolicyIdRouteImport
+      preLoaderRoute: typeof PoliciesLanguagePolicyIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies/$language/$policyId/edit': {
+      id: '/policies/$language/$policyId/edit'
+      path: '/policies/$language/$policyId/edit'
+      fullPath: '/policies/$language/$policyId/edit'
+      preLoaderRoute: typeof PoliciesLanguagePolicyIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -138,10 +159,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AttributesRoute: AttributesRoute,
   PoliciesAddRoute: PoliciesAddRoute,
+  AttributenIndexRoute: AttributenIndexRoute,
   PoliciesIndexRoute: PoliciesIndexRoute,
-  PoliciesLanguagePolicyIdRoute: PoliciesLanguagePolicyIdRoute,
+  PoliciesLanguagePolicyIdEditRoute: PoliciesLanguagePolicyIdEditRoute,
+  PoliciesLanguagePolicyIdIndexRoute: PoliciesLanguagePolicyIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

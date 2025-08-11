@@ -111,6 +111,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description The metadata associated with a policy. */
+        Metadata: {
+            /** @description The title of the policy. E.g., a short description. */
+            title?: string;
+            /** @description Detailed description of the policy. */
+            description?: string;
+            /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+             *     Only required when the policy is linked directly with an item in the RvVA.
+             *     The value is considered as one of the tags of the policy.
+             *      */
+            rvvaId?: string;
+            /** @description Link to the policy. Required when the policy is stored externally. */
+            url?: string;
+            /** @description List of tags the policy is annotated with.
+             *
+             *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+             *      */
+            tags?: string[];
+            /** @description Timestamp the policy was created (RFC3339 format). */
+            createDate?: string;
+            /** @description User that created the policy. */
+            createUser?: string;
+            /** @description Timestamp the policy was last updated (RFC3339 format). */
+            updateDate?: string;
+            /** @description User that last updated the policy. */
+            updateUser?: string;
+        };
+        /** @description Metadata about how and where the policy is used. */
+        UsageData: {
+            /** @description Bundles the policy is used by. */
+            bundles?: string[];
+        };
+        /** @description Metadata about how, when and by whom an object has been manipulated. */
+        AuditEntry: {
+            /** @description Timestamp of the log entry in RFC3339 format. */
+            timestamp?: string;
+            /** @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"]. */
+            operation?: string;
+            /** @description Unique identifier of the user who operated on the object. */
+            user?: string;
+        };
         Languages: components["schemas"]["Language"][];
         /** @description The details of a policy language. */
         Language: {
@@ -126,6 +167,18 @@ export interface components {
             id?: string;
             /** @description Name of the tag in human-readable form. */
             name?: string;
+            /** @description Detailed description of the tag. */
+            description?: string;
+            /** @description Timestamp the tag was created (RFC3339 format). */
+            createDate?: string;
+            /** @description User that created the tag. */
+            createUser?: string;
+            /** @description Timestamp the tag was last updated (RFC3339 format). */
+            updateDate?: string;
+            /** @description User that last updated the tag. */
+            updateUser?: string;
+            /** @description Audit log for the tag. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
         Policies: components["schemas"]["Policy"][];
         /** @description The content of a policy. */
@@ -143,30 +196,15 @@ export interface components {
              *     - "openfga"; alternative: "open-fga".
              *      */
             language: string;
-            /** @description The most recent version number of the policy.
-             *     This is a read-only field.
-             *     It is automatically updated during the deploy process.
-             *      */
-            version?: number;
-            /** @description Description and/or comments for the policy. */
-            description?: string;
-            /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
-             *     Only required when the policy is linked directly with an item in the RvVA.
-             *     The value is considered as one of the tags of the policy.
-             *      */
-            rvvaId?: string;
-            /** @description List of additional tags associated with the policy.
-             *     This is used to determine which PDP (or set of PDPs) policies can be pushed to.
-             *     Note that the language and rvvaId fields are also tags.
-             *      */
-            additionalTags?: string[];
-            /** @description Link to the policy. Required when the policy is stored externally. */
-            url?: string;
             /** @description Content of the policy. Required when the policy is stored internally. */
             data?: string;
+            metadata?: components["schemas"]["Metadata"];
+            usageData?: components["schemas"]["UsageData"];
+            /** @description Audit log for the policy. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
         /** @description The response for an error (as defined by RFC9457). */
-        ErrorMessage: {
+        Error: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -187,7 +225,7 @@ export interface components {
     };
     responses: {
         /** @description Languages found. */
-        LanguagesFound: {
+        LanguagesResponse: {
             headers: {
                 /** @description Full version number of the API. */
                 "API-Version"?: string;
@@ -198,7 +236,7 @@ export interface components {
             };
         };
         /** @description Tags found. */
-        TagsFound: {
+        TagsResponse: {
             headers: {
                 /** @description Full version number of the API. */
                 "API-Version"?: string;
@@ -209,7 +247,7 @@ export interface components {
             };
         };
         /** @description Policies found. */
-        PoliciesFound: {
+        PoliciesResponse: {
             headers: {
                 /** @description Full version number of the API. */
                 "API-Version"?: string;
@@ -219,41 +257,8 @@ export interface components {
                 "application/json": components["schemas"]["Policies"];
             };
         };
-        /** @description Policy found. */
-        PolicyFound: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Policy"];
-            };
-        };
-        /** @description Policy created. */
-        PolicyCreated: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Policy"];
-            };
-        };
-        /** @description Policy replaced. */
-        PolicyReplaced: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Policy"];
-            };
-        };
-        /** @description Policy removed. */
-        PolicyRemoved: {
+        /** @description Policy found, created, replaced or removed. */
+        PolicyResponse: {
             headers: {
                 /** @description Full version number of the API. */
                 "API-Version"?: string;
@@ -271,7 +276,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Not authorized. */
@@ -282,7 +287,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Access denied. */
@@ -293,7 +298,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Resource not found. */
@@ -304,7 +309,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Resource already exists. */
@@ -315,7 +320,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Unexpected error. */
@@ -326,7 +331,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["Error"];
             };
         };
     };
@@ -355,7 +360,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["LanguagesFound"];
+            200: components["responses"]["LanguagesResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -371,7 +376,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TagsFound"];
+            200: components["responses"]["TagsResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -387,7 +392,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["PoliciesFound"];
+            200: components["responses"]["PoliciesResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -408,7 +413,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["PolicyFound"];
+            200: components["responses"]["PolicyResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -438,7 +443,7 @@ export interface operations {
             };
         };
         responses: {
-            200: components["responses"]["PolicyReplaced"];
+            200: components["responses"]["PolicyResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -468,7 +473,7 @@ export interface operations {
             };
         };
         responses: {
-            201: components["responses"]["PolicyCreated"];
+            201: components["responses"]["PolicyResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -493,7 +498,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["PolicyRemoved"];
+            200: components["responses"]["PolicyResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];

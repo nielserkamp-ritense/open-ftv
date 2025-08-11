@@ -5,77 +5,109 @@ import {Select} from "@/components/select.tsx";
 import {Textarea} from "@/components/textarea.tsx";
 import {Heading} from "@/components/heading.tsx";
 import {Button} from "@/components/button.tsx";
-import {useState} from 'react';
-import {useAddPolicy} from '@/services/policies';
-import {v7 as uuidv7} from 'uuid';
+import {useEffect, useState} from 'react';
+import {PolicyResponse, usePolicy, useReplacePolicy} from '@/services/policies';
+import {ScaleLoader} from "react-spinners";
 
-export const Route = createFileRoute('/policies/add')({
-    component: AddPolicyComponent,
+export const Route = createFileRoute('/policies/$language/$policyId/edit')({
+    component: EditPolicyComponent,
 })
 
-function AddPolicyComponent() {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        policy_name: '',
-        title: '',
-        language: 'cedar',
+function EditPolicyComponent() {
+    const {language, policyId} = Route.useParams()
+    const {status, data, error} = usePolicy(language, policyId)
+    const [formData, setFormData] = useState<PolicyResponse>({
+        id: '',
+        language: '',
         data: '',
-        rvvaId: '',
-        description: '',
-        tags: [''],
-    });
-    const [error, setError] = useState<string | null>(null);
+        metadata: {
+            title: '',
+            description: '',
+            rvvaId: '',
+            url: '',
+        }
+    })
+    const navigate = useNavigate();
+    const replacePolicyMutation = useReplacePolicy();
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const addPolicyMutation = useAddPolicy();
+    useEffect(() => {
+        // @ts-expect-error error
+        setFormData(data)
+    }, [data]);
+
+    if (status == "pending") {
+        return <>
+            <div className="flex items-center justify-between">
+                <Heading className="lg:text-3xl ">Policy</Heading>
+            </div>
+            <div className="flex flex-col 2xl:flex-row py-3 gap-6">
+                <div className="mx-auto mt-4 flex w-[200px] items-center justify-center gap-y-2 flex-col">
+                    <ScaleLoader height={16}/>
+                    <div>Loading data...</div>
+                </div>
+            </div>
+        </>
+    }
+
+    if (status == "error") {
+        return <>
+            <span>Error: {error.message}</span>
+        </>
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        const metadataFields = new Set(["title", "description", "rvvaId", "url"]);
+        if (metadataFields.has(name)) {
+            setFormData((c) => ({
+                ...c,
+                metadata: {
+                    ...(c.metadata ?? {}),
+                    [name]: value,
+                },
+            }));
+        } else {
+            setFormData((c) => ({
+                ...c,
+                [name]: value,
+            }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
 
-        if (!formData.description || !formData.language || !formData.data) {
-            setError('All fields are required');
+        if (!formData?.metadata?.description || !formData?.language || !formData.data) {
             return;
         }
 
-        const id = uuidv7()
         try {
-            await addPolicyMutation.mutateAsync({
+            await replacePolicyMutation.mutateAsync({
                 language: formData.language.toLowerCase(),
-                id: id,
+                id: formData.id,
                 policy: {
-                    id: id,
+                    id: formData.id,
                     language: formData.language.toLowerCase(),
                     data: formData.data,
-                    metadata: {
-                        rvvaId: formData.rvvaId,
-                        description: formData.description,
-                        title: formData.title, 
-                    },
+                    metadata: formData.metadata,
                 }
             });
 
             // Redirect to policies list on success
             await navigate({to: '/policies'});
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add policy');
+            setErrorMessage(err instanceof Error ? err.message : 'Failed to add policy');
         }
     };
 
     return (
         <>
-            <form onSubmit={e => { void handleSubmit(e); }}>
-                <Heading>Add policy</Heading>
+            <form onSubmit={(e) => { void handleSubmit(e); }}>
+                <Heading>Edit policy</Heading>
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {error}
+                        {errorMessage}
                     </div>
                 )}
                 <Fieldset>
@@ -84,7 +116,7 @@ function AddPolicyComponent() {
                             <Label>Title</Label>
                             <Input
                                 name="title"
-                                value={formData.title}
+                                value={formData?.metadata?.title ?? ''}
                                 onChange={handleChange}
                             />
                         </Field>
@@ -92,7 +124,7 @@ function AddPolicyComponent() {
                             <Label>Policy description</Label>
                             <Input
                                 name="description"
-                                value={formData.description}
+                                value={formData?.metadata?.description ?? ''}
                                 onChange={handleChange}
                                 required
                             />
@@ -101,7 +133,7 @@ function AddPolicyComponent() {
                             <Label>Language</Label>
                             <Select
                                 name="language"
-                                value={formData.language}
+                                value={formData?.language}
                                 onChange={handleChange}
                             >
                                 <option value="cedar">Cedar</option>
@@ -115,7 +147,7 @@ function AddPolicyComponent() {
                             <Label>rvva ID</Label>
                             <Input
                                 name="rvvaId"
-                                value={formData.rvvaId}
+                                value={formData?.metadata?.rvvaId ?? ''}
                                 onChange={handleChange}
                             />
                         </Field>
@@ -124,7 +156,7 @@ function AddPolicyComponent() {
                             <Textarea
                                 name="data"
                                 rows={10}
-                                value={formData.data}
+                                value={formData?.data}
                                 onChange={handleChange}
                                 required
                             />
@@ -136,9 +168,9 @@ function AddPolicyComponent() {
                             <Button
                                 type="submit"
                                 color={"emerald"}
-                                disabled={addPolicyMutation.isPending}
+                                disabled={replacePolicyMutation.isPending}
                             >
-                                {addPolicyMutation.isPending ? 'Adding...' : 'Add policy'}
+                                {replacePolicyMutation.isPending ? 'Saving...' : 'Save'}
                             </Button>
                         </Fieldset>
                     </FieldGroup>

@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * Retrieve attributes.
-         * @description Endpoint to retrieve all attributes.
+         * @description Retrieve a list of all attributes.
          */
         get: operations["get-attributes"];
         put?: never;
@@ -36,26 +36,32 @@ export interface paths {
         };
         /**
          * Retrieve attribute.
-         * @description Retrieve a specified cached attribute.
+         * @description Retrieve a single specified attribute.
          */
         get: operations["get-attribute"];
         /**
          * Replace attribute.
-         * @description If the unique key of the attribute does not exist, a 404 response status code will be returned.
+         * @description Replace an existing attribute.
+         *
+         *     If the unique key of the attribute does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         put: operations["replace-attribute"];
         /**
          * Add attribute.
-         * @description If the unique key of the attribute already exists, a 409 response status code will be returned.
+         * @description Create a new attribute.
+         *
+         *     If the unique key of the attribute already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         post: operations["add-attribute"];
         /**
          * Remove attribute.
-         * @description If the unique key of the attribute does not exist, a 404 response status code will be returned.
+         * @description Remove an existing attribute.
+         *
+         *     If the unique key of the attribute does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
@@ -74,7 +80,7 @@ export interface paths {
         };
         /**
          * Retrieve entities.
-         * @description Endpoint to retrieve all entities.
+         * @description Retrieve a list of all entities.
          */
         get: operations["get-entities"];
         put?: never;
@@ -99,26 +105,32 @@ export interface paths {
         };
         /**
          * Retrieve entity.
-         * @description Retrieve a specified cached entity.
+         * @description Retrieve a specified entity.
          */
         get: operations["get-entity"];
         /**
          * Replace entity.
-         * @description If the unique type+id of the entity does not exist, a 404 response status code will be returned.
+         * @description Replace an existing entity.
+         *
+         *     If the unique type+id of the entity does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         put: operations["remove-entity"];
         /**
          * Add entity.
-         * @description If the unique type+id of the entity already exists, a 409 response status code will be returned.
+         * @description Create a new entity.
+         *
+         *     If the unique type+id of the entity already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         post: operations["add-entity"];
         /**
          * Remove entity.
-         * @description If the unique type+id of the entity does not exist, a 404 response status code will be returned.
+         * @description Remove an existing entity.
+         *
+         *     If the unique type+id of the entity does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
@@ -137,7 +149,7 @@ export interface paths {
         };
         /**
          * Retrieve relations.
-         * @description Endpoint to retrieve all relations.
+         * @description Retrieve a list of all relations.
          */
         get: operations["get-relations"];
         put?: never;
@@ -168,26 +180,32 @@ export interface paths {
         };
         /**
          * Retrieve relation.
-         * @description Retrieve a specified cached relation.
+         * @description Retrieve a specified relation.
          */
         get: operations["get-relation"];
         /**
          * Replace relation.
-         * @description If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
+         * @description Replace an existing relation.
+         *
+         *     If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         put: operations["replace-relation"];
         /**
          * Add relation.
-         * @description If the unique subject+relation+object of the relation already exists, a 409 response status code will be returned.
+         * @description Create a new relation.
+         *
+         *     If the unique subject+relation+object of the relation already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
         post: operations["add-relation"];
         /**
          * Remove relation.
-         * @description If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
+         * @description Remove an existing relation.
+         *
+         *     If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
          *
          */
@@ -201,11 +219,52 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description The metadata associated with an object. */
+        Metadata: {
+            /** @description The title of the object. E.g., a short description. */
+            title?: string;
+            /** @description Detailed description of the object. */
+            description?: string;
+            /** @description List of tags the object is annotated with.
+             *
+             *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+             *      */
+            tags?: string[];
+            /** @description Timestamp the object was created (RFC3339 format). */
+            createDate?: string;
+            /** @description User that created the object. */
+            createUser?: string;
+            /** @description Timestamp the object was last updated (RFC3339 format). */
+            updateDate?: string;
+            /** @description User that last updated the object. */
+            updateUser?: string;
+        };
+        /** @description Metadata about how and where the object is used. */
+        UsageData: {
+            /** @description Bundles the object is used by. */
+            bundles?: string[];
+        };
+        /** @description Metadata about how, when and by whom an object has been manipulated. */
+        AuditEntry: {
+            /** @description Timestamp of the log entry in RFC3339 format. */
+            timestamp?: string;
+            /** @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"]. */
+            operation?: string;
+            /** @description Unique identifier of the user who operated on the object. */
+            user?: string;
+        };
+        Attributes: components["schemas"]["Attribute"][];
         /** @description The content of an attribute (key/value pair). */
         Attribute: {
-            /** @description The unique key of the attribute. */
+            /**
+             * @description The unique key of the attribute.
+             * @example gemeentecode
+             */
             key: string;
-            /** @description The value of the attribute. */
+            /**
+             * @description The value of the attribute.
+             * @example 0123
+             */
             value: unknown;
             /** @description The optional type of a value. By default a value is stored as-is.
              *
@@ -213,18 +272,23 @@ export interface components {
              *     "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
              *     Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
              *
-             *     An *integer* value is stored as a 64-bit signed integer.
+             *     An *integer* value (of any size) is stored as a 64-bit signed or unsigned integer.
              *
              *     A *float* value is stored with double precision.
              *
              *     A *boolean* value can be *true* (case-insensitive) or *1* to represent a true state,
              *     or any other value to represent a false state.
              *
-             *     A *date*, *time* or *timestamp* value should adhere to the format as described in ISO-8601.
-             *     If it cannot be decoded according to ISO-8601, a 400 response status code will be returned.
+             *     A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
+             *     If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
              *      */
             type?: string;
+            metadata?: components["schemas"]["Metadata"];
+            usageData?: components["schemas"]["UsageData"];
+            /** @description Audit log for the attribute. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
+        Entities: components["schemas"]["Entity"][];
         /** @description The content of an entity.
          *
          *     The combination of *type* and *id* defines the unique key of an entity.
@@ -242,7 +306,12 @@ export interface components {
             id: string;
             /** @description Optional attributes of the entity. */
             attributes?: components["schemas"]["Attribute"][];
+            metadata?: components["schemas"]["Metadata"];
+            usageData?: components["schemas"]["UsageData"];
+            /** @description Audit log for the entity. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
+        Relations: components["schemas"]["Relation"][];
         /** @description The content of a relation.
          *
          *     The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
@@ -275,15 +344,13 @@ export interface components {
             objectId: string;
             /** @description Optional attributes of the relation. */
             attributes?: components["schemas"]["Attribute"][];
+            metadata?: components["schemas"]["Metadata"];
+            usageData?: components["schemas"]["UsageData"];
+            /** @description Audit log for the relation. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
-        AttributesResponse: components["schemas"]["Attribute"][];
-        AttributeResponse: components["schemas"]["Attribute"];
-        EntitiesResponse: components["schemas"]["Entity"][];
-        EntityResponse: components["schemas"]["Entity"];
-        RelationsResponse: components["schemas"]["Relation"][];
-        RelationResponse: components["schemas"]["Relation"];
         /** @description The response for an error (as defined by RFC9457). */
-        ErrorResponse: {
+        Error: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -303,6 +370,72 @@ export interface components {
         };
     };
     responses: {
+        /** @description Attributes found. */
+        AttributesResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Attributes"];
+            };
+        };
+        /** @description Attribute found, created, replaced or removed. */
+        AttributeResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Attribute"];
+            };
+        };
+        /** @description Entities found. */
+        EntitiesResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Entities"];
+            };
+        };
+        /** @description Entity found, created, replaced or removed. */
+        EntityResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Entity"];
+            };
+        };
+        /** @description Relations found. */
+        RelationsResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Relations"];
+            };
+        };
+        /** @description Relation found, created, replaced or removed. */
+        RelationResponse: {
+            headers: {
+                /** @description Full version number of the API. */
+                "API-Version"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Relation"];
+            };
+        };
         /** @description Bad request. */
         BadRequest: {
             headers: {
@@ -311,7 +444,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Not authorized. */
@@ -322,7 +455,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Access denied. */
@@ -333,7 +466,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Resource not found. */
@@ -344,7 +477,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Resource already exists. */
@@ -355,7 +488,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
         /** @description Unexpected error. */
@@ -366,7 +499,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorResponse"];
+                "application/json": components["schemas"]["Error"];
             };
         };
     };
@@ -407,17 +540,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Attributes found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributesResponse"];
-                };
-            };
+            200: components["responses"]["AttributesResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -437,17 +560,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Attribute found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributeResponse"];
-                };
-            };
+            200: components["responses"]["AttributeResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -475,17 +588,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Attribute replaced. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributeResponse"];
-                };
-            };
+            200: components["responses"]["AttributeResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -513,17 +616,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Attribute created. */
-            201: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributeResponse"];
-                };
-            };
+            201: components["responses"]["AttributeResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -546,17 +639,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Attribute removed. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AttributeResponse"];
-                };
-            };
+            200: components["responses"]["AttributeResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -573,17 +656,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Entities found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntitiesResponse"];
-                };
-            };
+            200: components["responses"]["EntitiesResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -605,17 +678,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Entity found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
+            200: components["responses"]["EntityResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -645,17 +708,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Entity replaced. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
+            200: components["responses"]["EntityResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -685,17 +738,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Entity created. */
-            201: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
+            201: components["responses"]["EntityResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -720,17 +763,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Entity removed. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EntityResponse"];
-                };
-            };
+            200: components["responses"]["EntityResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -747,17 +780,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Relations found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationsResponse"];
-                };
-            };
+            200: components["responses"]["RelationsResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -785,17 +808,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Relation found. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationResponse"];
-                };
-            };
+            200: components["responses"]["RelationResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -831,17 +844,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Relation replaced. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationResponse"];
-                };
-            };
+            200: components["responses"]["RelationResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -877,17 +880,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Entity created. */
-            201: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationResponse"];
-                };
-            };
+            201: components["responses"]["RelationResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];
@@ -918,17 +911,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Relation removed. */
-            200: {
-                headers: {
-                    /** @description Full version number of the API. */
-                    "API-Version"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RelationResponse"];
-                };
-            };
+            200: components["responses"]["RelationResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["NotAuthorized"];
             403: components["responses"]["AccessDenied"];

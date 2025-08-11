@@ -32,7 +32,7 @@ function RouteComponent() {
             <AdjustmentsHorizontalIcon className="size-16 rounded-full" />
           </div>
           <div className="min-w-0 flex-1">
-            <Link to="/attributes" className="focus:outline-hidden">
+            <Link to="/attributen" className="focus:outline-hidden">
               <span aria-hidden="true" className="absolute inset-0" />
               <p className="text-sm font-medium text-gray-900">Attributes</p>
             </Link>

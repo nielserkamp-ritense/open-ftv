@@ -88,8 +88,8 @@ export default function PoliciesComponent() {
                       <TableRow key={policy.id} href={"/policies/"+policy.language+"/"+policy.id} title={`Policy #${policy.id}`}>
                           <TableCell>{policy.id}</TableCell>
                           <TableCell className="text-zinc-500">{policy.language}</TableCell>
-                          <TableCell>{policy.url}</TableCell>
-                          <TableCell className="text-right">{policy.rvvaId}</TableCell>
+                          <TableCell>{policy.metadata?.url}</TableCell>
+                          <TableCell className="text-right">{policy.metadata?.rvvaId}</TableCell>
                           <TableCell>
                               <div className="pr-2 -mx-3 -my-1.5 sm:-mx-2.5 text-right">
                                   <Dropdown>
@@ -97,8 +97,8 @@ export default function PoliciesComponent() {
                                           <EllipsisHorizontalIcon />
                                       </DropdownButton>
                                       <DropdownMenu anchor="bottom end">
-                                          <DropdownItem>View</DropdownItem>
-                                          <DropdownItem>Edit</DropdownItem>
+                                          <DropdownItem href={`/policies/${policy.language}/${policy.id}`}>View</DropdownItem>
+                                          <DropdownItem href={`/policies/${policy.language}/${policy.id}/edit`}>Edit</DropdownItem>
                                           <DropdownItem onClick={() => showDeleteModal(policy.id)}>Delete</DropdownItem>
                                       </DropdownMenu>
                                   </Dropdown>
