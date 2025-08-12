@@ -76,6 +76,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
     current,
     className,
     children,
+    disabled,
     ...props
   }: { current?: boolean; className?: string; children: React.ReactNode } & (
     | Omit<Headless.ButtonProps, 'as' | 'className'>
@@ -92,14 +93,18 @@ export const SidebarItem = forwardRef(function SidebarItem(
     '*:last:data-[slot=icon]:ml-auto *:last:data-[slot=icon]:size-5 sm:*:last:data-[slot=icon]:size-4',
     // Avatar
     '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-7 *:data-[slot=avatar]:[--ring-opacity:10%] sm:*:data-[slot=avatar]:size-6',
-    // Hover
-    'data-hover:bg-zinc-950/5 data-hover:*:data-[slot=icon]:fill-zinc-950',
     // Dark mode
     'dark:text-white dark:*:data-[slot=icon]:fill-zinc-400',
     'dark:data-hover:bg-white/5 dark:data-hover:*:data-[slot=icon]:fill-white',
     'dark:data-active:bg-white/5 dark:data-active:*:data-[slot=icon]:fill-white',
     'dark:data-current:*:data-[slot=icon]:fill-white'
   )
+  if (disabled) {
+      classes = clsx(classes, "text-gray-500")
+  } else {
+      // hover
+      classes = clsx(classes, "data-hover:bg-zinc-950/5 data-hover:*:data-[slot=icon]:fill-zinc-950")
+  }
 
   return (
     <span className={clsx(className, 'relative')}>
@@ -116,6 +121,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
           className={classes}
           data-current={current ? 'true' : undefined}
           ref={ref}
+          disabled={disabled}
         >
           <TouchTarget>{children}</TouchTarget>
         </Headless.CloseButton>

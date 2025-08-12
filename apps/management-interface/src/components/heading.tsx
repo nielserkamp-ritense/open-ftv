@@ -25,3 +25,12 @@ export function Subheading({ className, level = 2, ...props }: HeadingProps) {
     />
   )
 }
+
+export function FTVHeading({ className, ...props }: HeadingProps) {
+  return (
+      <h1
+          {...props}
+          className={clsx(className, 'font-normal text-3xl leading-9 tracking-tight text-rhc-lintblauw-500')}
+      />
+  )
+}

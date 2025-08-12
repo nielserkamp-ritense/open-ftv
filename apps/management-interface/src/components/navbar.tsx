@@ -8,7 +8,7 @@ import { TouchTarget } from './button'
 import { Link } from './link'
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
-  return <nav {...props} className={clsx(className, 'flex flex-1 items-center gap-4 py-2.5')} />
+  return <nav {...props} className={clsx(className, 'flex flex-1 items-center gap-4')} />
 }
 
 export function NavbarDivider({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -16,7 +16,7 @@ export function NavbarDivider({ className, ...props }: React.ComponentPropsWitho
 }
 
 export function NavbarSection({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  let id = useId()
+  const id = useId()
 
   return (
     <LayoutGroup id={id}>
@@ -41,9 +41,9 @@ export const NavbarItem = forwardRef(function NavbarItem(
   ),
   ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
 ) {
-  let classes = clsx(
+  const classes = clsx(
     // Base
-    'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950 sm:text-sm/5',
+    'relative flex min-w-0 items-center gap-1 rounded-lg p-2 text-left text-base/6 text-zinc-950',
     // Leading icon/icon-only
     '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:fill-zinc-500 sm:*:data-[slot=icon]:size-5',
     // Trailing icon (down chevron or similar)
@@ -65,13 +65,13 @@ export const NavbarItem = forwardRef(function NavbarItem(
       {current && (
         <motion.span
           layoutId="current-indicator"
-          className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-zinc-950 dark:bg-white"
+          className="absolute inset-x-1 -bottom-0 h-1 bg-zinc-950 dark:bg-white"
         />
       )}
       {'href' in props ? (
         <Link
           {...props}
-          className={classes}
+          className={clsx(classes, "text-xl font-normal")}
           data-current={current ? 'true' : undefined}
           ref={ref as React.ForwardedRef<HTMLAnchorElement>}
         >
