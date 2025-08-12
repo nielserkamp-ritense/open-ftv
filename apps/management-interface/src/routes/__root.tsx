@@ -40,11 +40,11 @@ const RootComponent = () => {
                       <IconDatabase/>
                       <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Bronnen</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"} disabled={true}>
                       <IconLogs/>
                       <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Logboek</SidebarLabel>
                     </SidebarItem>
-                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"}>
+                    <SidebarItem href="#" className={"text-rhc-sidenav-link-color"} disabled={true}>
                       <IconSettings/>
                       <SidebarLabel className="text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight">Systeem</SidebarLabel>
                     </SidebarItem>
