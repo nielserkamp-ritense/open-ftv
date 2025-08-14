@@ -137,7 +137,7 @@ function NewAttributeComponent() {
                     </FieldGroup>
                     <FieldGroup>
                         <Fieldset className={"flex justify-between"}>
-                            <Button type="button" href="/attributen/" color={"zinc"}>Discard</Button>
+                            <Button type="button" href="/attributen" color={"zinc"}>Discard</Button>
                             <Button type="submit" color={"emerald"} disabled={addMutation.isPending}>
                                 {addMutation.isPending ? 'Saving...' : 'Save'}
                             </Button>
