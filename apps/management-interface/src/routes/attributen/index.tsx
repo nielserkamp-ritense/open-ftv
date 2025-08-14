@@ -84,7 +84,7 @@ function RouteComponent() {
                         <Pagination>
                             <PaginationPrevious href={null} />
                             <PaginationList>
-                                <PaginationPage href="/attributen/" current>1</PaginationPage>
+                                <PaginationPage href="/attributen" current>1</PaginationPage>
                             </PaginationList>
                             <PaginationNext href={null} />
                         </Pagination>

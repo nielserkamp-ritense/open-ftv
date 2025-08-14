@@ -7,6 +7,8 @@ import {Textarea} from "@/components/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/description-list.tsx";
 import {Navbar, NavbarItem, NavbarSection} from "@/components/navbar.tsx";
 import {IconFileText, IconPlayerPlay, IconSettings, IconSourceCode} from "@tabler/icons-react";
+import { Badge } from "@/components/badge.tsx";
+import { badgeColorKeyFromString } from "@/utilities/color.ts";
 
 export const Route = createFileRoute('/policies/$language/$policyId/')({
     component: RouteComponent,
@@ -35,6 +37,8 @@ function RouteComponent() {
             <span>Error: {error.message}</span>
         </>
     }
+
+    const tags: string[] = data?.metadata?.tags ?? []
 
     return <>
         <div className="flex items-center justify-between">
@@ -80,7 +84,17 @@ function RouteComponent() {
                         <DescriptionTerm>URL</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.url}</DescriptionDetails>
                         <DescriptionTerm>Tags</DescriptionTerm>
-                        <DescriptionDetails>{data?.metadata?.tags}</DescriptionDetails>
+                        <DescriptionDetails>
+                            <div className="flex flex-wrap gap-2">
+                                {tags.length > 0 ? (
+                                    tags.map((tag) => (
+                                        <Badge key={tag} color={badgeColorKeyFromString(tag)}>{tag}</Badge>
+                                    ))
+                                ) : (
+                                    <span>Geen tags</span>
+                                )}
+                            </div>
+                        </DescriptionDetails>
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.createUser}</DescriptionDetails>
                         <DescriptionTerm>Laatst bijgewerkt</DescriptionTerm>

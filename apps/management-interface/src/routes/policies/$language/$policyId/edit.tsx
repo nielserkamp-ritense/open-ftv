@@ -5,9 +5,11 @@ import {Select} from "@/components/select.tsx";
 import {Textarea} from "@/components/textarea.tsx";
 import {Heading} from "@/components/heading.tsx";
 import {Button} from "@/components/button.tsx";
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {PolicyResponse, usePolicy, useReplacePolicy} from '@/services/policies';
+import {useTags} from '@/services/tags';
 import {ScaleLoader} from "react-spinners";
+import { TagsEditor } from "@/components/tags-editor";
 
 export const Route = createFileRoute('/policies/$language/$policyId/edit')({
     component: EditPolicyComponent,
@@ -25,11 +27,15 @@ function EditPolicyComponent() {
             description: '',
             rvvaId: '',
             url: '',
+            tags: [],
         }
     })
     const navigate = useNavigate();
     const replacePolicyMutation = useReplacePolicy();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const { data: allTagsData } = useTags();
+    const allTagNames = useMemo(() => (allTagsData ?? []).map((t) => t.name ?? '').filter(Boolean), [allTagsData]);
 
     useEffect(() => {
         // @ts-expect-error error
@@ -75,6 +81,7 @@ function EditPolicyComponent() {
         }
     };
 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -86,12 +93,7 @@ function EditPolicyComponent() {
             await replacePolicyMutation.mutateAsync({
                 language: formData.language.toLowerCase(),
                 id: formData.id,
-                policy: {
-                    id: formData.id,
-                    language: formData.language.toLowerCase(),
-                    data: formData.data,
-                    metadata: formData.metadata,
-                }
+                policy: formData
             });
 
             // Redirect to policies list on success
@@ -149,6 +151,23 @@ function EditPolicyComponent() {
                                 name="rvvaId"
                                 value={formData?.metadata?.rvvaId ?? ''}
                                 onChange={handleChange}
+                            />
+                        </Field>
+                        <Field>
+                            <Label>Tags</Label>
+                            <TagsEditor
+                                tags={formData?.metadata?.tags ?? []}
+                                allTagNames={allTagNames}
+                                onChange={(newTags) =>
+                                    setFormData((c) => ({
+                                        ...c,
+                                        metadata: {
+                                            ...(c.metadata ?? {}),
+                                            tags: newTags,
+                                        },
+                                    }))
+                                }
+                                className={"mt-3"}
                             />
                         </Field>
                         <Field>

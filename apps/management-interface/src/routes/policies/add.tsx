@@ -57,7 +57,8 @@ function AddPolicyComponent() {
                     metadata: {
                         rvvaId: formData.rvvaId,
                         description: formData.description,
-                        title: formData.title, 
+                        title: formData.title,
+                        tags: formData.tags,
                     },
                 }
             });
@@ -113,6 +114,15 @@ function AddPolicyComponent() {
                         </Field>
                         <Field>
                             <Label>rvva ID</Label>
+                            <Input
+                                name="rvvaId"
+                                value={formData.rvvaId}
+                                onChange={handleChange}
+                            />
+                        </Field>
+                        <Field>
+                            <Label>Tags</Label>
+                            <Description>Tags decide to which PDP the policies are deployed.</Description>
                             <Input
                                 name="rvvaId"
                                 value={formData.rvvaId}
