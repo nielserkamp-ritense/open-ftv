@@ -1,12 +1,15 @@
 package postgresql
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
 func TestNew(t *testing.T) {
@@ -23,10 +26,12 @@ func TestNew(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
 		db2, ok := db.(*pgDB)

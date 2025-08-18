@@ -89,8 +89,8 @@ func TestProcessDeletes(t *testing.T) {
 
 			p := &PAP{
 				deletes: tc.files,
-				store:   s,
-				persist: NewPersistence(nil, s, ""),
+				kvStore: s,
+				kvDB:    NewKeyValueDB(s, ""),
 			}
 
 			p.processDeletes()
@@ -128,8 +128,8 @@ func TestProcessUpdates(t *testing.T) {
 
 			p := &PAP{
 				updates: tc.files,
-				store:   s,
-				persist: NewPersistence(nil, s, ""),
+				kvStore: s,
+				kvDB:    NewKeyValueDB(s, ""),
 			}
 
 			p.processUpdates()
@@ -197,8 +197,8 @@ func TestPolicyModified(t *testing.T) {
 			s := memory.New()
 
 			p := &PAP{
-				store:   s,
-				persist: NewPersistence(nil, s, ""),
+				kvStore: s,
+				kvDB:    NewKeyValueDB(s, ""),
 				updates: map[string]struct{}{},
 				deletes: map[string]struct{}{},
 			}
@@ -286,8 +286,8 @@ func TestWatchFiles(t *testing.T) {
 			p := &PAP{
 				ctx:     ctx,
 				watcher: w,
-				store:   s,
-				persist: NewPersistence(nil, s, ""),
+				kvStore: s,
+				kvDB:    NewKeyValueDB(s, ""),
 				updates: map[string]struct{}{},
 				deletes: map[string]struct{}{},
 			}

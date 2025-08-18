@@ -21,18 +21,41 @@ func WithLanguage(language string) Option {
 	}
 }
 
-// WithPersistence connects the PAP to persistent storage.
+// WithKeyValueDB connects the PAP to a persistent KV backend.
 //
 // By default, a PAP is created with an in-memory key-value cache.
-func WithPersistence(store store.Store, basePath string) Option {
+func WithKeyValueDB(store store.Store, basePath string) Option {
 	return func(p *PAP) {
-		if p.store != nil {
-			_ = p.store.Close()
+		if p.kvStore != nil {
+			_ = p.kvStore.Close()
 		}
 
-		p.store = store
-		p.persist = NewPersistence(p.ctx, store, basePath)
+		p.kvStore = store
+		p.kvDB = NewKeyValueDB(store, basePath)
 		p.deployer = bundles.NewPersistence(p.ctx, store, basePath)
+	}
+}
+
+// WithPostgresDB connects the PAP to a persistent PostgreSQL backend.
+func WithPostgresDB(db *PostgresDB) Option {
+	return func(p *PAP) {
+		p.postgresDB = db
+	}
+}
+
+// WithMigration initializes database migrations.
+//
+// *source* defines the location of the migration scripts.
+// *db* is the URL used to open the database.
+//
+// If *auto* is set to true, the migration handler will upgrade the database to the highest level.
+// Otherwise, it will use the given *steps* to determine if it needs to migrate the database up (positive number) or down (negative number).
+func WithMigration(source, db string, auto bool, steps int) Option {
+	return func(p *PAP) {
+		p.migrateSource = source
+		p.migrateDB = db
+		p.migrateAuto = auto
+		p.migrateSteps = steps
 	}
 }
 

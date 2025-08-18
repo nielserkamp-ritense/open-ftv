@@ -1,5 +1,5 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.24.4-alpine AS golang_builder
+FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
 
 WORKDIR /build
 
@@ -7,6 +7,7 @@ COPY ./apps/pap ./apps/pap
 COPY ./oas ./oas
 COPY ./eam ./eam
 COPY ./utilities ./utilities
+COPY ./migrations ./migrations
 COPY ./utilities-no-ci ./utilities-no-ci
 
 RUN cd apps/pap \

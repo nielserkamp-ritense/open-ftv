@@ -23,7 +23,7 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
-		f, _, err := c.PAP.Read(language, id)
+		f, _, err := c.PAP.Read(id)
 		if err != nil {
 			c.Logger.Error("failed to get file", "controller", c.String(), "policy-id", id, "error", err)
 			return

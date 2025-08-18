@@ -36,7 +36,7 @@ func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 		list = append(list, p2)
 	}
 
-	return b.PAP.ReplaceAll(list)
+	return b.PAP.ReplaceAll(list, "*BUNDLE*")
 }
 
 func (b *Base) processAttributes(bundle *bundles.Bundle) {

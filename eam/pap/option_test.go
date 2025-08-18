@@ -1,9 +1,11 @@
 package pap
 
 import (
+	"context"
 	"log/slog"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,21 +31,41 @@ func TestWithLanguage(t *testing.T) {
 	})
 }
 
-func TestWithPersistence(t *testing.T) {
+func TestWithKeyValueDB(t *testing.T) {
 	t.Parallel()
 
-	t.Run("with persistence", func(t *testing.T) {
+	t.Run("with key/value DB", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
 		s := memory.New()
 
-		p := New(nil, logger, WithPersistence(s, ""))
+		p := New(nil, logger, WithKeyValueDB(s, ""))
 		require.NotNil(t, p)
 
-		assert.Equal(t, s, p.store)
-		assert.NotNil(t, p.persist)
+		assert.Equal(t, s, p.kvStore)
+		assert.NotNil(t, p.kvDB)
 		assert.NotNil(t, p.deployer)
+	})
+}
+
+func TestWithPostgresDB(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with postgres DB", func(t *testing.T) {
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		db, err := NewPostgresDB(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
+		require.NoError(t, err)
+
+		p := New(nil, logger, WithPostgresDB(db))
+		require.NotNil(t, p)
+
+		assert.Equal(t, db, p.postgresDB)
 	})
 }
 
@@ -64,5 +86,22 @@ func TestWithFileStore(t *testing.T) {
 
 		assert.Equal(t, path2, p.policyStore)
 		assert.True(t, p.recurse)
+	})
+}
+
+func TestWithMigration(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with migration", func(t *testing.T) {
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		p := New(nil, logger, WithMigration("/file", "/db", true, 3))
+		require.NotNil(t, p)
+
+		assert.Equal(t, "/file", p.migrateSource)
+		assert.Equal(t, "/db", p.migrateDB)
+		assert.True(t, p.migrateAuto)
+		assert.Equal(t, 3, p.migrateSteps)
 	})
 }

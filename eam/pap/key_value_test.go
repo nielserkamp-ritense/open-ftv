@@ -25,19 +25,19 @@ func TestNewStore(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
 		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Create(p)
+		p2, err2 := s.CreatePolicy(ctx, "", p)
 		require.NoError(t, err2)
 		require.NotNil(t, p2)
 		assert.EqualValues(t, p, p2)
 
-		p3, _, err3 := s.Read(p.Language(), p.ID())
+		p3, _, err3 := s.ReadPolicy(ctx, p.ID())
 		require.NoError(t, err3)
 		require.NotNil(t, p3)
 		assert.EqualValues(t, p, p3)
@@ -46,12 +46,12 @@ func TestNewStore(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p4, err4 := s.Update(p3, 0, p)
+		p4, err4 := s.UpdatePolicy(ctx, "", p3, 0, p)
 		require.NoError(t, err4)
 		require.NotNil(t, p4)
 		assert.EqualValues(t, p, p4)
 
-		p5, err5 := s.Delete(p, 0)
+		p5, err5 := s.DeletePolicy(ctx, "", p, 0)
 		require.NoError(t, err5)
 		require.NotNil(t, p5)
 		assert.EqualValues(t, p, p5)
@@ -71,19 +71,19 @@ func TestNewStore_DupError(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
 		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Create(p)
+		p2, err2 := s.CreatePolicy(ctx, "", p)
 		require.NoError(t, err2)
 		require.NotNil(t, p2)
 		assert.EqualValues(t, p, p2)
 
-		p3, err3 := s.Create(p)
+		p3, err3 := s.CreatePolicy(ctx, "", p)
 		require.Error(t, err3)
 		require.Nil(t, p3)
 	})
@@ -102,10 +102,10 @@ func TestNewStore_Read_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
-		p2, _, err2 := s.Read("none", "bad")
+		p2, _, err2 := s.ReadPolicy(ctx, "bad")
 		require.Error(t, err2)
 		require.Nil(t, p2)
 	})
@@ -124,14 +124,14 @@ func TestNewStore_Update_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
 		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Update(p, 0, p)
+		p2, err2 := s.UpdatePolicy(ctx, "", p, 0, p)
 		require.Error(t, err2)
 		require.Nil(t, p2)
 	})
@@ -150,14 +150,14 @@ func TestNewStore_Delete_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
 		p, err2 := models.NewPolicyFromData("x", "y", "", "", strings.NewReader(""))
 		require.NoError(t, err2)
 		require.NotNil(t, p)
 
-		p2, err3 := s.Delete(p, 0)
+		p2, err3 := s.DeletePolicy(ctx, "", p, 0)
 		require.Error(t, err3)
 		require.Nil(t, p2)
 	})
@@ -173,7 +173,7 @@ func TestNewStore_List(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	s := NewPersistence(ctx, client, "/base")
+	s := NewKeyValueDB(client, "/base")
 	require.NotNil(t, s)
 
 	policies := []struct {
@@ -183,9 +183,9 @@ func TestNewStore_List(t *testing.T) {
 		{language: "english", id: "1"},
 		{language: "english", id: "2"},
 		{language: "english", id: "3"},
-		{language: "dutch", id: "1"},
-		{language: "dutch", id: "2"},
-		{language: "french", id: "1"},
+		{language: "dutch", id: "4"},
+		{language: "dutch", id: "5"},
+		{language: "french", id: "6"},
 	}
 
 	for _, data := range policies {
@@ -193,7 +193,7 @@ func TestNewStore_List(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Create(p)
+		p2, err2 := s.CreatePolicy(ctx, "", p)
 		require.NoError(t, err2)
 		require.NotNil(t, p2)
 		assert.EqualValues(t, p, p2)
@@ -228,7 +228,7 @@ func TestNewStore_List(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			list, err4 := s.List(tc.language)
+			list, err4 := s.ListPolicies(ctx, tc.language)
 			require.NoError(t, err4)
 			require.NotNil(t, list)
 			assert.EqualValues(t, tc.wantCount, len(list))
@@ -249,26 +249,26 @@ func TestRead_UnmarshalError(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewPersistence(ctx, client, "/base")
+		s := NewKeyValueDB(client, "/base")
 		require.NotNil(t, s)
 
 		p, err := models.NewPolicyFromData("1", "blanco", "", "", strings.NewReader("no content"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		p2, err2 := s.Create(p)
+		p2, err2 := s.CreatePolicy(ctx, "", p)
 		require.NoError(t, err2)
 		require.NotNil(t, p2)
 		assert.EqualValues(t, p, p2)
 
-		err3 := client.Put(ctx, "/base/blanco/1", []byte("\000\001"), writeOptions)
+		err3 := client.Put(ctx, "/base/1", []byte("\000\001"), writeOptions)
 		require.NoError(t, err3)
 
-		p3, _, err4 := s.Read(p.Language(), p.ID())
+		p3, _, err4 := s.ReadPolicy(ctx, p.ID())
 		require.Error(t, err4)
 		require.Nil(t, p3)
 
-		list, err5 := s.List("")
+		list, err5 := s.ListPolicies(ctx, "")
 		require.Error(t, err5)
 		require.Nil(t, list)
 	})

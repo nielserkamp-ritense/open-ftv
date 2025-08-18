@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/fds/ledenlijst
 
-go 1.24.4
+go 1.24.6
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9

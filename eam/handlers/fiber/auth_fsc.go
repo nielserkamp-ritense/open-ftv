@@ -15,8 +15,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/fsc/auth"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/fsc/auth"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -56,21 +56,21 @@ func (h *authFSC) Authorize(fc *fiber.Ctx) error {
 	req := p.verifyRequestFSC()
 	if p.err != nil {
 		p.logger.Error("FSC authorization handler failed", "error", p.err)
-		return fiber2.SendMessageResponse(fc, p.status, p.msg)
+		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
 
 	p.newAuthRequestFSC(req)
 	return p.authorizeFSC()
 }
 
-func (p *authProcess) verifyRequestFSC() *auth.AuthorizationRequest {
+func (p *authProcess) verifyRequestFSC() *oas.AuthorizationRequest {
 	p.status = fiber.StatusBadRequest
 
 	if req := p.fc.Request(); len(req.Header.ContentType()) == 0 {
 		req.Header.SetContentType(fiber.MIMEApplicationJSON)
 	}
 
-	req := &auth.AuthorizationRequest{}
+	req := &oas.AuthorizationRequest{}
 	if p.err = p.fc.BodyParser(req); p.err != nil {
 		p.msg = "invalid input data"
 		return nil
@@ -95,7 +95,7 @@ func (p *authProcess) verifyRequestFSC() *auth.AuthorizationRequest {
 	return req
 }
 
-func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
+func (p *authProcess) newAuthRequestFSC(req *oas.AuthorizationRequest) {
 	s := req.Input.Path
 	if !strings.HasPrefix(s, "http") {
 		s = fmt.Sprintf("https://%s", s)
@@ -129,7 +129,7 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 func (p *authProcess) authorizeFSC() error {
 	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc); p.err != nil {
 		p.msg = "FSC authorization process failed"
-		return fiber2.SendMessageResponse(p.fc, p.status, p.msg)
+		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
 	allowed, msg := p.resp.Allowed, p.resp.Message
@@ -141,8 +141,8 @@ func (p *authProcess) authorizeFSC() error {
 		}
 	}
 
-	return p.fc.JSON(&auth.AuthorizationResponse{
-		Result: &auth.AuthorizationResponseData{
+	return p.fc.JSON(&oas.AuthorizationResponse{
+		Result: &oas.AuthorizationResponseData{
 			Allowed: &allowed,
 			Status: &struct {
 				Reason *string `json:"reason,omitempty"`

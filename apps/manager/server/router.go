@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,7 +22,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
-	if s.cfg.Persist.Type != "" {
+	if s.cfg.Persist.Type != "" && !strings.EqualFold(s.cfg.Persist.Type, "postgres") {
 		var err error
 		if s.store, err = s.cfg.Persist.NewStore(ctx); err != nil {
 			panic("failed to create persistence store: " + err.Error())
@@ -29,7 +30,11 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	}
 
 	s.pip = s.newPIP()
-	s.pap = s.newPAP()
+
+	var err error
+	if s.pap, err = s.newPAP(); err != nil {
+		panic("failed to initialize PAP handler")
+	}
 
 	s.initHealth(svc)
 

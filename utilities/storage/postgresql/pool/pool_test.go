@@ -1,10 +1,15 @@
-package postgresql
+package pool
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
@@ -76,7 +81,7 @@ func TestNewPool(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, p)
 
-				p2, ok := p.(*pool)
+				p2, ok := p.(*Pool)
 				require.True(t, ok)
 				require.NotNil(t, p2)
 
@@ -99,7 +104,7 @@ func TestPool_Ping(t *testing.T) {
 
 		mock.ExpectPing()
 
-		p := &pool{pool: mock}
+		p := &Pool{pool: mock}
 		err = p.Ping(context.Background())
 		require.NoError(t, err)
 		assert.NoError(t, mock.ExpectationsWereMet())
@@ -118,7 +123,7 @@ func TestPool_Ping_Fail(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
+		p := &Pool{pool: mock, cfg: cfg}
 		err = p.Ping(context.Background())
 		require.Error(t, err)
 		assert.NoError(t, mock.ExpectationsWereMet())
@@ -136,7 +141,7 @@ func TestPool_Begin(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectRollback()
 
-		p := &pool{pool: mock}
+		p := &Pool{pool: mock}
 		tx, err2 := p.Begin(context.Background())
 		require.NoError(t, err2)
 		require.NotNil(t, tx)
@@ -158,8 +163,116 @@ func TestPool_Close(t *testing.T) {
 
 		mock.ExpectClose()
 
-		p := &pool{pool: mock}
+		p := &Pool{pool: mock}
 		p.Close()
 		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestErrors2(t *testing.T) {
+	t.Parallel()
+
+	err := fmt.Errorf("test error")
+	cfg := &pgxpool.Config{ConnConfig: &pgx.ConnConfig{Config: pgconn.Config{Host: "localhost", Port: 5432, Database: "myDB"}}}
+	p := &Pool{cfg: cfg}
+	q := "INSERT INTO kv (key, index, value) VALUES ($1,$2,$3)"
+	params := []any{"key1", 9, "hello world", true}
+
+	id := "localhost:5432/myDB"
+	qp := `[]interface {}{"key1", 9, "hello world", true}`
+
+	testCases := []struct {
+		name      string
+		do        error
+		contains1 string
+		contains2 string
+		contains3 string
+		contains4 string
+	}{
+		{
+			name:      "pool - dsn",
+			do:        dsnError(err),
+			contains1: "dsn parsing",
+			contains2: "",
+		},
+		{
+			name:      "pool - connection",
+			do:        p.connectionError(err),
+			contains1: "connection",
+			contains2: id,
+		},
+		{
+			name:      "pool - ping",
+			do:        p.pingError(err),
+			contains1: "ping",
+			contains2: id,
+		},
+		{
+			name:      "pool - tx",
+			do:        p.TxError(err),
+			contains1: "begin transaction",
+			contains2: id,
+		},
+		{
+			name:      "pool - query",
+			do:        p.QueryError(err, q, params...),
+			contains1: "query",
+			contains2: id,
+			contains3: q,
+			contains4: qp,
+		},
+		{
+			name:      "pool - scan",
+			do:        p.ScanError(err, q, params...),
+			contains1: "row scan",
+			contains2: id,
+			contains3: q,
+			contains4: qp,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tc.do
+			require.NotNil(t, got)
+			assert.True(t, errors.Is(got, err))
+
+			s := got.Error()
+			assert.True(t, strings.Contains(s, tc.contains1))
+
+			if tc.contains2 != "" {
+				assert.True(t, strings.Contains(s, tc.contains2))
+			}
+			if tc.contains3 != "" {
+				assert.True(t, strings.Contains(s, tc.contains3))
+			}
+			if tc.contains4 != "" {
+				assert.True(t, strings.Contains(s, tc.contains4))
+			}
+		})
+	}
+}
+
+func TestNewWithPooler(t *testing.T) {
+	t.Parallel()
+
+	t.Run("new with pooler", func(t *testing.T) {
+		t.Parallel()
+
+		mock, err := pgxmock.NewPool()
+		require.NoError(t, err)
+		defer mock.Close()
+
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := NewWithPooler(context.Background(), dsn, mock, WithMaxLifetime(time.Second))
+		require.NoError(t, err2)
+		require.NotNil(t, p)
+
+		dsn = "oopsie"
+		p, err2 = NewWithPooler(context.Background(), dsn, mock, WithMaxLifetime(time.Second))
+		require.Error(t, err2)
+		require.Nil(t, p)
 	})
 }

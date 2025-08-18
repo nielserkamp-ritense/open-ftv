@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci
 
-go 1.24.4
+go 1.24.6
 
 require (
 	github.com/defensestation/osquery v1.0.0

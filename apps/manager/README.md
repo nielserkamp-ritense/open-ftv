@@ -398,19 +398,19 @@ Attributes, entities and relations are persisted in a key-value store.
 This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
 
 The following storage backends are currently supported:
-- ```Postgres```: using a custom-built Valkeyrie interface.
+- ```PostgreSQL```: using a custom-built Valkeyrie interface.
 - ```etcd```: using the standard Valkeyrie implementation.
 - ```Consul```: using the standard Valkeyrie implementation.
-- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent for testing only).
+- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent, for caching or testing only).
 
 If no persistence backend is configured, the ```in-memory``` backend will be used.
 This means that when the service is restarted, all created and/or updated policies will be gone.
-For proper persistence, please configure the use of ```Postgres```, ```etcd``` or ```Consul```.
+For proper persistence, please configure the use of ```PostgreSQL```, ```etcd``` or ```Consul```.
 
-Example of a Postgres configuration:
+Example of a PostgreSQL configuration:
 ```yaml
 persist:
-  type: "postgres"
+  type: "PostgreSQL"
   postgres:
     url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
     table: "ftv"
@@ -419,20 +419,28 @@ persist:
       max: 20
 ```
 
-Note that the service expects the database and the table to exist.
-Use the following CREATE statements in your initialization scripts:
-```SQL
-CREATE DATABASE open_ftv;
+Note that the *type* parameter is case-insensitive.
 
-CREATE TABLE ftv
-(
-    key   VARCHAR(200) PRIMARY KEY NOT NULL,
-    index BIGINT NOT NULL,
-    value JSONB NOT NULL
-);
-```
+For SQL databases (such as PostgreSQL) you previously had to make sure the database and table existed using initialization scripts.
+In the new version (2025/08/14), you can use the built-in database migrations (see below).
 
-The service uses an internal key prefix to make sure policy- and data-keys do not clash.
+### Database migrations
+
+When using an SQL database for persistence (such as PostgreSQL),
+the Manager service allows you to perform database migrations, either automatically or manually.
+
+The target database must have a valid URL in the persistence configuration.
+ALl other parameters are defined in the migration configuration.
+
+The *source* defines where the migration scripts are located.
+THis should be a disk folder or an embedded file system.
+
+The *auto* and *steps* parameter indicate how to perform the migration.
+- *auto* takes precedence, and indicates the migration must be performed to the highest possible level.
+- *steps* can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
+  A negative number indicates the number of levels to migrate downwards.
+
+If *auto* == false && *steps* == 0, no migration takes place.
 
 ### Bundle management
 

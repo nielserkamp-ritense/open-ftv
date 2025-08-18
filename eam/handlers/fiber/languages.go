@@ -6,9 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // NewLanguagesHandler instantiates a policy language handler.
@@ -21,9 +21,12 @@ func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
+
+	_ = user
 
 	languages := []models.Language{
 		models.REGO,
@@ -32,9 +35,9 @@ func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 		models.OPENFGA,
 	}
 
-	resp := make([]*policies.Language, 0, len(languages))
+	resp := make([]*oas.Language, 0, len(languages))
 	for _, l := range languages {
-		resp = append(resp, &policies.Language{
+		resp = append(resp, &oas.Language{
 			Id:   l.Language(),
 			Name: l.String(),
 		})
@@ -42,16 +45,16 @@ func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-func (h *LanguagesHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *LanguagesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	if h.authorizer == nil {
-		return true, nil
+		return auth.SystemUser, true, nil
 	}
 
-	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
 
 	// TODO: log authorization decision to auth-decision log.
 
-	return authRequest.Check(req, resp, err)
+	return auth.Check(req, resp, err, h.logger)
 }
 
 // LanguagesHandler implements the interface for handling requests about policy languages.

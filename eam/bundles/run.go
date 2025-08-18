@@ -78,6 +78,10 @@ type runner struct {
 //
 // It is designed to be called at the start of a deployment run and after each status update.
 func (r *runner) run() {
+	if r.ctx.Err() != nil {
+		return
+	}
+
 	switch r.d.status {
 	case Creating:
 		r.creating()

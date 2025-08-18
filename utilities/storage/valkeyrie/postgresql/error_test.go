@@ -1,24 +1,30 @@
 package postgresql
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
 func TestErrors(t *testing.T) {
 	t.Parallel()
 
-	err := fmt.Errorf("test error")
-	cfg := &pgxpool.Config{ConnConfig: &pgx.ConnConfig{Config: pgconn.Config{Host: "localhost", Port: 5432, Database: "myDB"}}}
-	p := &pool{cfg: cfg}
+	mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer mock.Close()
+
+	dsn := "postgresql://localhost:5432/myDB"
+	p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
+	require.NoError(t, err2)
+
 	db1 := &pgDB{pool: p}
 	db2 := &pgDB{}
 	q := "INSERT INTO kv (key, index, value) VALUES ($1,$2,$3)"
@@ -26,6 +32,8 @@ func TestErrors(t *testing.T) {
 
 	id := "localhost:5432/myDB"
 	qp := `[]interface {}{"key1", 9, "hello world", true}`
+
+	err = fmt.Errorf("test error")
 
 	testCases := []struct {
 		name      string
@@ -35,46 +43,6 @@ func TestErrors(t *testing.T) {
 		contains3 string
 		contains4 string
 	}{
-		{
-			name:      "pool - dsn",
-			do:        dsnError(err),
-			contains1: "dsn parsing",
-			contains2: "",
-		},
-		{
-			name:      "pool - connection",
-			do:        p.connectionError(err),
-			contains1: "connection",
-			contains2: id,
-		},
-		{
-			name:      "pool - ping",
-			do:        p.pingError(err),
-			contains1: "ping",
-			contains2: id,
-		},
-		{
-			name:      "pool - tx",
-			do:        p.txError(err),
-			contains1: "begin transaction",
-			contains2: id,
-		},
-		{
-			name:      "pool - query",
-			do:        p.queryError(err, q, params...),
-			contains1: "query",
-			contains2: id,
-			contains3: q,
-			contains4: qp,
-		},
-		{
-			name:      "pool - scan",
-			do:        p.scanError(err, q, params...),
-			contains1: "row scan",
-			contains2: id,
-			contains3: q,
-			contains4: qp,
-		},
 		{
 			name:      "db with pool - tx",
 			do:        db1.txError(err),

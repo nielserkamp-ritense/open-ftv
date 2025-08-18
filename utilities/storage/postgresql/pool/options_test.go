@@ -1,4 +1,4 @@
-package postgresql
+package pool
 
 import (
 	"testing"
@@ -41,7 +41,7 @@ func TestOptions(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			p := &pool{}
+			p := &Pool{}
 
 			for i := range tc.opts {
 				tc.opts[i](p)

@@ -63,10 +63,8 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 
 	if logger.Enabled(context.TODO(), slog.LevelInfo) {
 		sanitized := *cfg
-		sanitized.OpenSearch.User = ""
-		sanitized.OpenSearch.Pswd = ""
-		sanitized.Cerbos.User = ""
-		sanitized.Cerbos.Pswd = ""
+		sanitized.OpenSearch = *sanitized.OpenSearch.Sanitized()
+		sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 		logger.Info("configuration loaded successfully", "config", sanitized)
 	}
 

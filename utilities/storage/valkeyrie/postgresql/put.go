@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -18,7 +19,7 @@ func (db *pgDB) Put(ctx context.Context, key string, value []byte, _ *store.Writ
 		if err == nil {
 			err = tx.Commit(ctx)
 		} else {
-			_ = tx.Rollback(ctx)
+			err = errors.Join(err, tx.Rollback(ctx))
 		}
 	}()
 

@@ -9,6 +9,8 @@ import (
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
 func TestDB_Get(t *testing.T) {
@@ -32,14 +34,16 @@ func TestDB_Get(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.Get(context.Background(), "xyz", nil)
-		require.NoError(t, err4)
+		rec, err5 := db.Get(context.Background(), "xyz", nil)
+		require.NoError(t, err5)
 		require.NotNil(t, rec)
 
 		db.Close()
@@ -62,14 +66,16 @@ func TestDB_Get_FailTx(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.Get(context.Background(), "xyz", nil)
-		require.Error(t, err4)
+		rec, err5 := db.Get(context.Background(), "xyz", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -96,14 +102,16 @@ func TestDB_Get_FailQuery(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.Get(context.Background(), "xyz", nil)
-		require.Error(t, err4)
+		rec, err5 := db.Get(context.Background(), "xyz", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -132,14 +140,16 @@ func TestDB_Get_NotFound(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.Get(context.Background(), "xyz", nil)
-		require.Error(t, err4)
+		rec, err5 := db.Get(context.Background(), "xyz", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -168,14 +178,16 @@ func TestDB_Get_FailScan(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.Get(context.Background(), "xyz", nil)
-		require.Error(t, err4)
+		rec, err5 := db.Get(context.Background(), "xyz", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -205,14 +217,16 @@ func TestDB_List(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.List(context.Background(), "a", nil)
-		require.NoError(t, err4)
+		rec, err5 := db.List(context.Background(), "a", nil)
+		require.NoError(t, err5)
 		require.NotNil(t, rec)
 
 		db.Close()
@@ -235,14 +249,16 @@ func TestDB_List_FailTx(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.List(context.Background(), "a", nil)
-		require.Error(t, err4)
+		rec, err5 := db.List(context.Background(), "a", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -269,14 +285,16 @@ func TestDB_List_FailQuery(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.List(context.Background(), "a", nil)
-		require.Error(t, err4)
+		rec, err5 := db.List(context.Background(), "a", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -305,14 +323,16 @@ func TestDB_List_Empty(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.List(context.Background(), "a", nil)
-		require.Error(t, err4)
+		rec, err5 := db.List(context.Background(), "a", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -339,14 +359,16 @@ func TestDB_List_FailScan(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		rec, err4 := db.List(context.Background(), "a", nil)
-		require.Error(t, err4)
+		rec, err5 := db.List(context.Background(), "a", nil)
+		require.Error(t, err5)
 		require.Nil(t, rec)
 
 		db.Close()
@@ -375,14 +397,16 @@ func TestDB_Exists(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		ok, err4 := db.Exists(context.Background(), "xyz", nil)
-		require.NoError(t, err4)
+		ok, err5 := db.Exists(context.Background(), "xyz", nil)
+		require.NoError(t, err5)
 		require.True(t, ok)
 
 		db.Close()
@@ -405,14 +429,16 @@ func TestDB_Exists_Fail(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, cfg)
 
-		p := &pool{pool: mock, cfg: cfg}
-
-		db, err3 := New(p, "myTable")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err3 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err3)
+
+		db, err4 := New(p, "myTable")
+		require.NoError(t, err4)
 		require.NotNil(t, db)
 
-		ok, err4 := db.Exists(context.Background(), "xyz", nil)
-		require.Error(t, err4)
+		ok, err5 := db.Exists(context.Background(), "xyz", nil)
+		require.Error(t, err5)
 		require.False(t, ok)
 
 		db.Close()

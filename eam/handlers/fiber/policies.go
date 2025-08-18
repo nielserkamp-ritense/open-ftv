@@ -3,6 +3,7 @@ package fiber
 import (
 	"bytes"
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -10,15 +11,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.5.0" // check against oas/policies/openapi.yaml!
+const PoliciesVersion = "1.6.0" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
@@ -39,16 +40,19 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	list, err := h.cache.List("")
-	if err != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+	_ = user
+
+	list, err2 := h.cache.List("")
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	list2 := make([]*policies.Policy, len(list))
+	list2 := make([]*oas.Policy, len(list))
 	for i := range list {
 		list2[i] = list[i].ToOAS(false)
 	}
@@ -60,18 +64,21 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
-		return err
-	}
-
-	language, id, ok, err := h.checkKey(req)
+	user, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
 
-	pol, _, err2 := h.cache.Read(language, id)
+	_ = user
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	pol, _, err2 := h.cache.Read(id)
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+		return h.error(req, fiber.StatusNotFound, err2)
 	}
 	return req.JSON(pol.ToOAS(true))
 }
@@ -81,19 +88,20 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	language, id, ok, err := h.checkKey(req)
-	if !ok {
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
 	upsert := req.QueryBool("forceUpsert")
 
-	var p *policies.Policy
-	if p, ok, err = h.checkBody(req, language, id); !ok {
+	var p *oas.Policy
+	if p, ok, err = h.checkBody(req, id); !ok {
 		return err
 	}
 
@@ -105,18 +113,18 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	if upsert {
 		// for upsert we check if the policy exists.
 		// if it exists, we replace it, otherwise we add it.
-		if prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id); err2 == nil && prev != nil {
-			pol2, err3 := h.cache.Update(prev, lastIndex, pol)
+		if prev, lastIndex, err2 := h.cache.Read(p.Id); err2 == nil && prev != nil {
+			pol2, err3 := h.cache.Update(prev, lastIndex, pol, user)
 			if err3 != nil {
-				return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
+				return h.error(req, fiber.StatusNotFound, err3)
 			}
 			return req.JSON(pol2.ToOAS(true))
 		}
 	}
 
-	pol2, err2 := h.cache.Create(pol)
+	pol2, err2 := h.cache.Create(pol, user)
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusConflict, err2.Error())
+		return h.error(req, fiber.StatusConflict, err2)
 	}
 
 	return req.Status(fiber.StatusCreated).JSON(pol2.ToOAS(true))
@@ -127,19 +135,22 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	language, id, ok, err := h.checkKey(req)
-	if !ok {
+	_ = user
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
 	upsert := req.QueryBool("forceUpsert")
 
-	var p *policies.Policy
-	if p, ok, err = h.checkBody(req, language, id); !ok {
+	var p *oas.Policy
+	if p, ok, err = h.checkBody(req, id); !ok {
 		return err
 	}
 
@@ -148,29 +159,29 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	prev, lastIndex, err2 := h.cache.Read(p.Language, p.Id)
+	prev, lastIndex, err2 := h.cache.Read(p.Id)
 	if err2 != nil || prev == nil {
 		switch {
 		case upsert:
 			// for upsert we check if the policy exists.
 			// if it doesn't exist, we add it, otherwise we replace it.
-			pol2, err3 := h.cache.Create(pol)
+			pol2, err3 := h.cache.Create(pol, user)
 			if err3 != nil {
-				return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
+				return h.error(req, fiber.StatusConflict, err3)
 			}
 			return req.JSON(pol2.ToOAS(true))
 
 		case err2 != nil:
-			return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+			return h.error(req, fiber.StatusNotFound, err2)
 
 		default:
-			return server.SendMessageResponse(req, fiber.StatusNotFound, "not found")
+			return h.error(req, fiber.StatusNotFound, errors.New("not found"))
 		}
 	}
 
-	pol2, err3 := h.cache.Update(prev, lastIndex, pol)
+	pol2, err3 := h.cache.Update(prev, lastIndex, pol, user)
 	if err3 != nil {
-		return server.SendMessageResponse(req, fiber.StatusConflict, err3.Error())
+		return h.error(req, fiber.StatusConflict, err3)
 	}
 	return req.JSON(pol2.ToOAS(true))
 }
@@ -180,82 +191,104 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	language, id, ok, err := h.checkKey(req)
-	if !ok {
+	_ = user
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
 	ignore := req.QueryBool("ignoreMissing")
 
-	prev, lastIndex, err2 := h.cache.Read(language, id)
+	prev, lastIndex, err2 := h.cache.Read(id)
 	if err2 != nil || prev == nil {
 		switch {
 		case ignore:
-			return req.JSON(&policies.Policy{Language: language, Id: id})
+			return req.JSON(&oas.Policy{Id: id})
 		case err2 != nil:
-			return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+			return h.error(req, fiber.StatusNotFound, err2)
 		default:
-			return server.SendMessageResponse(req, fiber.StatusNotFound, "not found")
+			return h.error(req, fiber.StatusNotFound, errors.New("not found"))
 		}
 	}
 
-	pol, err3 := h.cache.Delete(prev, lastIndex)
+	pol, err3 := h.cache.Delete(prev, lastIndex, user)
 	if err3 != nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, err3.Error())
+		return h.error(req, fiber.StatusNotFound, err3)
 	}
 	return req.JSON(pol.ToOAS(true))
 }
 
-func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, string, bool, error) {
-	language := req.Params("language")
-	if language == "" || len(language) > 100 {
-		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, "language must be filled and not more than 100 characters")
-	}
-
+func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	id := req.Params("id")
-	if id == "" || len(id) > 500 {
-		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, "id must be filled and not more than 500 characters")
+	if id == "" || len(id) > 40 {
+		return "", false, h.error(req, fiber.StatusBadRequest, errors.New("id must be filled and not more than 40 characters"))
 	}
 
-	return language, id, true, nil
+	return id, true, nil
 }
 
-func (h *policiesHandler) checkBody(req *fiber.Ctx, language, id string) (*policies.Policy, bool, error) {
-	var p policies.Policy
+func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, bool, error) {
+	var p oas.Policy
 	if err := req.BodyParser(&p); err != nil {
-		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	if p.Language != language {
-		if p.Language != "" {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy language")
-		}
-		p.Language = language
-	}
-
+	var errs []error
 	if p.Id != id {
 		if p.Id != "" {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "mismatched policy id")
+			errs = append(errs, h.error(req, fiber.StatusBadRequest, errors.New("mismatched policy id")))
+		} else {
+			p.Id = id
 		}
-		p.Id = id
+	}
+
+	switch {
+	case p.Language == "":
+		errs = append(errs, errors.New("language must be filled"))
+	case len(p.Language) > 40:
+		errs = append(errs, errors.New("language too long (max 40 characters)"))
+	}
+
+	switch {
+	case p.Metadata.Title == "":
+		errs = append(errs, errors.New("title must be filled"))
+	case len(p.Language) > 80:
+		errs = append(errs, errors.New("title too long (max 80 characters)"))
+	}
+
+	switch {
+	case p.Metadata.Url == "" && p.Data == "":
+		errs = append(errs, errors.New("either uri or data must be filled"))
+	case p.Metadata.Url != "" && p.Data != "":
+		errs = append(errs, errors.New("only one of uri and data can be filled"))
+	case len(p.Metadata.Url) > 400:
+		errs = append(errs, errors.New("uri too long (max 400 characters)"))
+	}
+
+	// TODO: other checks!
+
+	if len(errs) > 0 {
+		return nil, false, h.error(req, fiber.StatusBadRequest, errors.Join(errs...))
 	}
 
 	return &p, true, nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*models.Policy, bool, error) {
+func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *oas.Policy) (*models.Policy, bool, error) {
 	if p.Metadata.Url == "" {
 		if p.Data == "" {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, "policy data or url required")
+			return nil, false, h.error(req, fiber.StatusBadRequest, errors.New("policy data or url required"))
 		}
 
 		pol, err3 := models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
 		if err3 != nil {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
+			return nil, false, h.error(req, fiber.StatusBadRequest, err3)
 		}
 		return pol, true, nil
 	}
@@ -265,33 +298,38 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *policies.Policy) (*mode
 
 	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Metadata.Url, nil)
 	if err != nil {
-		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	resp, err2 := http.DefaultClient.Do(req2)
 	if err2 != nil {
-		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
+		return nil, false, h.error(req, fiber.StatusBadRequest, err2)
 	}
 
 	defer resp.Body.Close()
 
 	pol, err3 := models.NewPolicyFromOAS(p, resp.Body)
 	if err3 != nil {
-		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err3.Error())
+		return nil, false, h.error(req, fiber.StatusBadRequest, err3)
 	}
 	return pol, true, nil
 }
 
-func (h *policiesHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *policiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	if h.authorizer == nil {
-		return true, nil
+		return auth.SystemUser, true, nil
 	}
 
-	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
 
 	// TODO: log authorization decision to auth-decision log.
 
-	return authRequest.Check(req, resp, err)
+	return auth.Check(req, resp, err, h.logger)
+}
+
+func (h *policiesHandler) error(req *fiber.Ctx, status int, err error) error {
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
+	return server.SendMessageResponse(req, status, err.Error())
 }
 
 type policiesHandler struct {

@@ -1,6 +1,6 @@
-go 1.24.4
+go 1.24.6
 
-toolchain go1.24.4
+toolchain go1.24.6
 
 use (
 	apps/fsc-auth
@@ -10,13 +10,13 @@ use (
 	apps/pip
 	eam/authentication
 	eam/authorization
+	eam/bundles
 	eam/config
 	eam/handlers
 	eam/log
 	eam/mapping
 	eam/mimetype
 	eam/models
-	eam/bundles
 	eam/pap
 	eam/pdp/cedar-embedded
 	eam/pdp/cerbos-api
@@ -33,6 +33,7 @@ use (
 	mock/datasources/handlers
 	mock/fds/ledenlijst
 	oas
+	migrations
 	utilities
 	utilities-no-ci
 )

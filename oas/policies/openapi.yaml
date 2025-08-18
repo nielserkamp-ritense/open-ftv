@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for maintaining policies.
-  version: 1.5.0
+  version: 1.6.0
   title: Policy management
   contact:
     name: G. Juijn
@@ -79,9 +79,8 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
-  /policy/{language}/{id}:
+  /policy/{id}:
     parameters:
-      - $ref: "#/components/parameters/PolicyLanguage"
       - $ref: "#/components/parameters/PolicyID"
 
     get:
@@ -190,14 +189,6 @@ paths:
 
 components:
   parameters:
-    PolicyLanguage:
-      in: path
-      name: language
-      schema:
-        type: string
-      required: true
-      description: Language of a policy.
-
     PolicyID:
       in: path
       name: id
@@ -205,6 +196,7 @@ components:
         type: string
       required: true
       description: Unique identifier of a policy.
+      example: "b4911124-e92a-482f-80b4-eb02383378ae"
 
     ForceUpsert:
       in: query
@@ -213,6 +205,7 @@ components:
         type: boolean
       required: false
       description: Force upsert during a put/post operation.
+      example: true
 
     IgnoreMissing:
       in: query
@@ -221,6 +214,7 @@ components:
         type: boolean
       required: false
       description: Ignore missing data during a delete operation.
+      example: true
 
   responses:
     LanguagesResponse:
@@ -230,6 +224,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -242,6 +237,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -254,6 +250,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -266,6 +263,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -278,6 +276,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -290,6 +289,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -302,6 +302,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -314,6 +315,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -326,6 +328,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -338,6 +341,7 @@ components:
           schema:
             type: string
           description: Full version number of the API.
+          example: "1.0.0"
       content:
         application/json:
           schema:
@@ -351,15 +355,18 @@ components:
         title:
           type: string
           description: The title of the policy. E.g., a short description.
+          example: "BRP:Person:Subsidy"
         description:
           type: string
           description: Detailed description of the policy.
+          example: "BRP - access person details for a subsidy"
         rvvaId:
           type: string
           description: |
             The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
             Only required when the policy is linked directly with an item in the RvVA.
             The value is considered as one of the tags of the policy.
+          example: "<RvVA-identifier>"
         url:
           type: string
           description: Link to the policy. Required when the policy is stored externally.
@@ -369,20 +376,58 @@ components:
             List of tags the policy is annotated with.
             
             This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+            
+            Verify with the tags endpoint.
           items:
             type: string
-        createDate:
+            example: "BRP"
+      required:
+        - title
+
+    ObjectAudit:
+      type: object
+      description: The audit details of an object.
+      properties:
+        created:
           type: string
-          description: Timestamp the policy was created (RFC3339 format).
-        createUser:
+          description: Timestamp the object was created (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        createdBy:
           type: string
-          description: User that created the policy.
-        updateDate:
+          description: User that created the object.
+          example: "alice@wonderland.cc"
+        updated:
           type: string
-          description: Timestamp the policy was last updated (RFC3339 format).
-        updateUser:
+          description: Timestamp the object was last updated (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        updatedBy:
           type: string
-          description: User that last updated the policy.
+          description: User that last updated the object.
+          example: "bob@wonderworld.cc"
+      required:
+        - created
+        - createdBy
+
+    AuditEntry:
+      type: object
+      description: Metadata about how, when and by whom an object has been manipulated.
+      properties:
+        created:
+          type: string
+          description: Timestamp of the log entry in RFC3339 format.
+          example: "2025-08-15T07:53:41.493415Z"
+        operation:
+          type: string
+          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+          example: "C"
+        user:
+          type: string
+          description: Unique identifier of the user who operated on the object.
+          example: "alice@wonderland.cc"
+      required:
+        - timestamp
+        - operation
+        - user
 
     UsageData:
       type: object
@@ -393,20 +438,7 @@ components:
           description: Bundles the policy is used by.
           items:
             type: string
-
-    AuditEntry:
-      type: object
-      description: Metadata about how, when and by whom an object has been manipulated.
-      properties:
-        timestamp:
-          type: string
-          description: Timestamp of the log entry in RFC3339 format.
-        operation:
-          type: string
-          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
-        user:
-          type: string
-          description: Unique identifier of the user who operated on the object.
+            example: "1"
 
     Languages:
       type: array
@@ -420,9 +452,22 @@ components:
         id:
           type: string
           description: The unique identifier of the policy language.
+          example: "rego"
         name:
           type: string
           description: Name of the policy language in human-readable form.
+          example: "Open Policy Agent - REGO language"
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
+        auditLog:
+          type: array
+          description: Audit log for the tag.
+          items:
+            $ref: "#/components/schemas/AuditEntry"
+      required:
+        - id
+        - name
+        - audit
 
     Tags:
       type: array
@@ -436,29 +481,25 @@ components:
         id:
           type: string
           description: The unique identifier of the tag.
+          example: "brp"
         name:
           type: string
           description: Name of the tag in human-readable form.
+          example: "Basis Registratie Personen"
         description:
           type: string
           description: Detailed description of the tag.
-        createDate:
-          type: string
-          description: Timestamp the tag was created (RFC3339 format).
-        createUser:
-          type: string
-          description: User that created the tag.
-        updateDate:
-          type: string
-          description: Timestamp the tag was last updated (RFC3339 format).
-        updateUser:
-          type: string
-          description: User that last updated the tag.
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
           description: Audit log for the tag.
           items:
             $ref: "#/components/schemas/AuditEntry"
+      required:
+        - id
+        - name
+        - audit
 
     Policies:
       type: array
@@ -472,6 +513,7 @@ components:
         id:
           type: string
           description: The unique identifier of the policy.
+          example: "<uuid>"
         language:
           type: string
           description: |
@@ -484,21 +526,38 @@ components:
             - "cedar".
             - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel". 
             - "openfga"; alternative: "open-fga".
+            
+            Verify with the languages endpoint.
+          example: "cedar"
         data:
           type: string
           description: Content of the policy. Required when the policy is stored internally.
+          example: |
+            permit (
+              principal == doelbinding::"subsidies",
+              action == action::"POST",
+              resource is service
+            )
+            when {
+              principal has brpPersonen &&
+              resource.code == "BRP"
+            };
         metadata:
           $ref: "#/components/schemas/Metadata"
-        usageData:
-          $ref: "#/components/schemas/UsageData"
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
           description: Audit log for the policy.
           items:
             $ref: "#/components/schemas/AuditEntry"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
       required:
         - id
         - language
+        - metadata
+        - audit
 
     Error:
       type: object

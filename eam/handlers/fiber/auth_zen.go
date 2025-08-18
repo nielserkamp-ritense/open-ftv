@@ -12,7 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
@@ -60,14 +60,14 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 	return p.authorizeAuthZEN()
 }
 
-func (p *authProcess) verifyRequestAuthZEN() *authzen.EvaluationRequest {
+func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 	p.status = fiber.StatusBadRequest
 
 	if req := p.fc.Request(); len(req.Header.ContentType()) == 0 {
 		req.Header.SetContentType(fiber.MIMEApplicationJSON)
 	}
 
-	req := &authzen.EvaluationRequest{}
+	req := &oas.EvaluationRequest{}
 	if p.err = p.fc.BodyParser(req); p.err != nil {
 		p.msg = "invalid input data"
 		return nil
@@ -92,7 +92,7 @@ func (p *authProcess) verifyRequestAuthZEN() *authzen.EvaluationRequest {
 	return req
 }
 
-func (p *authProcess) newAuthRequestAuthZEN(req *authzen.EvaluationRequest) {
+func (p *authProcess) newAuthRequestAuthZEN(req *oas.EvaluationRequest) {
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
 	action := models.NewEntity(models.EntityTypeName, req.Action.Name, models.NewAttributeSet(req.Action.Properties))
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
@@ -130,9 +130,9 @@ func (p *authProcess) authorizeAuthZEN() error {
 		}
 	}
 
-	return p.fc.JSON(&authzen.EvaluationDecision{
+	return p.fc.JSON(&oas.EvaluationDecision{
 		Decision: allowed,
-		Context:  authzen.ReasonObject{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}},
+		Context:  oas.ReasonObject{Id: "0", ReasonUser: oas.ReasonField{"en": msg}},
 	})
 }
 

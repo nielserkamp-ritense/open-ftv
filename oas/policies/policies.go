@@ -5,14 +5,14 @@ package policies
 
 // AuditEntry Metadata about how, when and by whom an object has been manipulated.
 type AuditEntry struct {
-	// Operation Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
-	Operation string `json:"operation,omitempty"`
+	// Created Timestamp of the log entry in RFC3339 format.
+	Created string `json:"created,omitempty"`
 
-	// Timestamp Timestamp of the log entry in RFC3339 format.
-	Timestamp string `json:"timestamp,omitempty"`
+	// Operation Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+	Operation string `json:"operation"`
 
 	// User Unique identifier of the user who operated on the object.
-	User string `json:"user,omitempty"`
+	User string `json:"user"`
 }
 
 // Error The response for an error (as defined by RFC9457).
@@ -35,11 +35,17 @@ type Error struct {
 
 // Language The details of a policy language.
 type Language struct {
+	// Audit The audit details of an object.
+	Audit ObjectAudit `json:"audit"`
+
+	// AuditLog Audit log for the tag.
+	AuditLog []AuditEntry `json:"auditLog,omitempty"`
+
 	// Id The unique identifier of the policy language.
-	Id string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// Name Name of the policy language in human-readable form.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 }
 
 // Languages defines model for Languages.
@@ -47,12 +53,6 @@ type Languages = []Language
 
 // Metadata The metadata associated with a policy.
 type Metadata struct {
-	// CreateDate Timestamp the policy was created (RFC3339 format).
-	CreateDate string `json:"createDate,omitempty"`
-
-	// CreateUser User that created the policy.
-	CreateUser string `json:"createUser,omitempty"`
-
 	// Description Detailed description of the policy.
 	Description string `json:"description,omitempty"`
 
@@ -64,19 +64,30 @@ type Metadata struct {
 	// Tags List of tags the policy is annotated with.
 	//
 	// This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+	//
+	// Verify with the tags endpoint.
 	Tags []string `json:"tags,omitempty"`
 
 	// Title The title of the policy. E.g., a short description.
-	Title string `json:"title,omitempty"`
-
-	// UpdateDate Timestamp the policy was last updated (RFC3339 format).
-	UpdateDate string `json:"updateDate,omitempty"`
-
-	// UpdateUser User that last updated the policy.
-	UpdateUser string `json:"updateUser,omitempty"`
+	Title string `json:"title"`
 
 	// Url Link to the policy. Required when the policy is stored externally.
 	Url string `json:"url,omitempty"`
+}
+
+// ObjectAudit The audit details of an object.
+type ObjectAudit struct {
+	// Created Timestamp the object was created (RFC3339 format).
+	Created string `json:"created"`
+
+	// CreatedBy User that created the object.
+	CreatedBy string `json:"createdBy"`
+
+	// Updated Timestamp the object was last updated (RFC3339 format).
+	Updated string `json:"updated,omitempty"`
+
+	// UpdatedBy User that last updated the object.
+	UpdatedBy string `json:"updatedBy,omitempty"`
 }
 
 // Policies defines model for Policies.
@@ -84,6 +95,9 @@ type Policies = []Policy
 
 // Policy The content of a policy.
 type Policy struct {
+	// Audit The audit details of an object.
+	Audit ObjectAudit `json:"audit"`
+
 	// AuditLog Audit log for the policy.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
 
@@ -102,10 +116,12 @@ type Policy struct {
 	// - "cedar".
 	// - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
 	// - "openfga"; alternative: "open-fga".
+	//
+	// Verify with the languages endpoint.
 	Language string `json:"language"`
 
 	// Metadata The metadata associated with a policy.
-	Metadata Metadata `json:"metadata,omitempty"`
+	Metadata Metadata `json:"metadata"`
 
 	// UsageData Metadata about how and where the policy is used.
 	UsageData UsageData `json:"usageData,omitempty"`
@@ -113,29 +129,20 @@ type Policy struct {
 
 // Tag The details of a tag.
 type Tag struct {
+	// Audit The audit details of an object.
+	Audit ObjectAudit `json:"audit"`
+
 	// AuditLog Audit log for the tag.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
-
-	// CreateDate Timestamp the tag was created (RFC3339 format).
-	CreateDate string `json:"createDate,omitempty"`
-
-	// CreateUser User that created the tag.
-	CreateUser string `json:"createUser,omitempty"`
 
 	// Description Detailed description of the tag.
 	Description string `json:"description,omitempty"`
 
 	// Id The unique identifier of the tag.
-	Id string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// Name Name of the tag in human-readable form.
-	Name string `json:"name,omitempty"`
-
-	// UpdateDate Timestamp the tag was last updated (RFC3339 format).
-	UpdateDate string `json:"updateDate,omitempty"`
-
-	// UpdateUser User that last updated the tag.
-	UpdateUser string `json:"updateUser,omitempty"`
+	Name string `json:"name"`
 }
 
 // Tags defines model for Tags.
@@ -155,9 +162,6 @@ type IgnoreMissing = bool
 
 // PolicyID defines model for PolicyID.
 type PolicyID = string
-
-// PolicyLanguage defines model for PolicyLanguage.
-type PolicyLanguage = string
 
 // AccessDenied The response for an error (as defined by RFC9457).
 type AccessDenied = Error

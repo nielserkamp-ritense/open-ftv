@@ -56,7 +56,7 @@ type Request struct {
 }
 
 // Authorize implements the Authorizer interface.
-func (a *auth) Authorize(req *Request) (*models.Response, error) {
+func (a *auth) Authorize(req *Request) (resp *models.Response, err error) {
 	r := &models.Request{
 		UID:     req.UID,
 		URL:     req.URL,
@@ -67,12 +67,12 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 
 	parc := a.pep.PARCFromRequest(r, a.getter)
 
+	var user string
 	if a.authenticator != nil {
-		user := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
+		user = convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
 		pswd := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicPswd))
 		apikey := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrAPIKey))
 
-		var err error
 		switch {
 		case user == "" && apikey != "":
 			err = a.authenticator.AuthenticateApiKey(a.ctx, apikey)
@@ -81,15 +81,25 @@ func (a *auth) Authorize(req *Request) (*models.Response, error) {
 		}
 
 		if err != nil {
-			return nil, err
+			return
 		}
 	}
 
 	if a.noAuth {
-		return &models.Response{Allowed: true}, nil
+		resp = &models.Response{Allowed: true}
+	} else {
+		resp, err = a.pdp.Authorize(req.UID.String(), parc)
 	}
 
-	return a.pdp.Authorize(req.UID.String(), parc)
+	if err == nil && user != "" {
+		if resp.Attributes == nil {
+			resp.Attributes = map[string]any{"user": user}
+		} else {
+			resp.Attributes["user"] = user
+		}
+	}
+
+	return
 }
 
 type auth struct {
