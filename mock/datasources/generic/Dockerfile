@@ -1,9 +1,10 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.24.4-alpine AS golang_builder
+FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
 
 WORKDIR /build
 
 COPY ./oas ./oas
+COPY ./migrations ./migrations
 COPY ./utilities ./utilities
 COPY ./utilities-no-ci ./utilities-no-ci
 COPY ./eam ./eam

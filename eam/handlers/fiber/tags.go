@@ -20,23 +20,26 @@ func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
+
+	_ = user
 
 	return req.JSON(h.tags)
 }
 
-func (h *TagsHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *TagsHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	if h.authorizer == nil {
-		return true, nil
+		return authRequest.SystemUser, true, nil
 	}
 
 	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
 
 	// TODO: log authorization decision to auth-decision log.
 
-	return authRequest.Check(req, resp, err)
+	return authRequest.Check(req, resp, err, h.logger)
 }
 
 // TagsHandler implements the interface for handling requests about policy tags.

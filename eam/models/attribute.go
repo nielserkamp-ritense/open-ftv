@@ -1,4 +1,4 @@
-// Package schema defines generic constants, enumerations and schema.
+// Package models defines generic constants, enumerations and models used for EAM.
 package models
 
 import (

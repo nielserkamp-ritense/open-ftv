@@ -11,11 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
-	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 )
 
 // BundleReceiverHandler is used to handle receiving new bundles.
@@ -35,12 +35,12 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	_, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
 	var r io.Reader
-	var err error
 
 	ct := bundles.CompressionTypeFromString(req.Get(fiber.HeaderContentEncoding))
 	switch ct {
@@ -64,18 +64,18 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}
 
-	resp := &bundles2.BundleActivated{PreviousVersion: int(oldVersion)}
+	resp := &oas.BundleActivated{PreviousVersion: int(oldVersion)}
 	return req.JSON(resp)
 }
 
-func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	if h.authorizer == nil {
-		return true, nil
+		return auth.SystemUser, true, nil
 	}
 
-	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
 
 	// TODO: log authorization decision to auth-decision log.
 
-	return authRequest.Check(req, resp, err)
+	return auth.Check(req, resp, err, h.logger)
 }

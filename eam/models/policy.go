@@ -12,12 +12,14 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 	"golang.org/x/exp/maps"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // PolicyIterator is the function prototype to iterate through a set of policies.
@@ -26,6 +28,8 @@ type PolicyIterator func(p *Policy)
 // Policy represents a policy and its metadata.
 //
 // A policy is safe to use across concurrent go-routines.
+//
+// The WithXYZ functions *should* only be used during initialization of the Policy.
 type Policy struct {
 	language    string
 	id          string
@@ -37,6 +41,7 @@ type Policy struct {
 	path        string
 	content     []byte
 	mutex       sync.RWMutex
+	Audit
 }
 
 // NewPolicyFromOAS instantiates a new policy from the given OAS model.
@@ -114,6 +119,12 @@ func newPolicy(p *policies.Policy, path string, d []byte) *Policy {
 		uri:         p.Metadata.Url,
 		path:        path,
 		content:     d,
+		Audit: Audit{
+			created:   convert.AnyToDateTime(p.Audit.Created),
+			createdBy: p.Audit.CreatedBy,
+			updated:   convert.AnyToDateTime(p.Audit.Updated),
+			updatedBy: p.Audit.UpdatedBy,
+		},
 	}
 }
 
@@ -146,6 +157,17 @@ func (p *Policy) WithTags(tags ...string) *Policy {
 	for i := range tags {
 		p.tags[tags[i]] = struct{}{}
 	}
+	p.mutex.Unlock()
+	return p
+}
+
+// WithAudit adds the audit details for the Policy.
+func (p *Policy) WithAudit(created time.Time, createdBy string, updated time.Time, updatedBy string) *Policy {
+	p.mutex.Lock()
+	p.Audit.created = created
+	p.Audit.createdBy = createdBy
+	p.Audit.updated = updated
+	p.Audit.updatedBy = updatedBy
 	p.mutex.Unlock()
 	return p
 }
@@ -245,17 +267,38 @@ func (p *Policy) Content() io.Reader {
 	return bytes.NewReader(p.content)
 }
 
+// ContentString returns the content of the Policy as a string.
+func (p *Policy) ContentString() string {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return string(p.content)
+}
+
 // ToOAS returns the OAS model for this Policy.
 func (p *Policy) ToOAS(withData bool) *policies.Policy {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+
 	out := &policies.Policy{
-		Id:       p.ID(),
-		Language: p.Language(),
+		Id:       p.id,
+		Language: p.language,
 		Metadata: policies.Metadata{
-			Title:       p.Title(),
-			Description: p.Description(),
-			RvvaId:      p.RvvaID(),
+			Title:       p.title,
+			Description: p.description,
+			RvvaId:      p.rvvaID,
 			Tags:        p.Tags(),
 		},
+		Audit: policies.ObjectAudit{
+			CreatedBy: p.createdBy,
+			UpdatedBy: p.updatedBy,
+		},
+	}
+
+	if !p.created.IsZero() {
+		out.Audit.Created = p.created.Format(time.RFC3339Nano)
+	}
+	if !p.updated.IsZero() {
+		out.Audit.Updated = p.updated.Format(time.RFC3339Nano)
 	}
 
 	if !withData || p.URI() != "" {
@@ -269,9 +312,12 @@ func (p *Policy) ToOAS(withData bool) *policies.Policy {
 
 // ToBundle returns the bundle model for this Policy.
 func (p *Policy) ToBundle() *policies.Policy {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+
 	return &policies.Policy{
-		Id:       p.ID(),
-		Language: p.Language(),
+		Id:       p.id,
+		Language: p.language,
 		Data:     string(p.content),
 	}
 }
@@ -306,6 +352,10 @@ func (p *Policy) UnmarshalJSON(data []byte) error {
 	p.uri = p2.URI
 	p.path = p2.Path
 	p.content, _ = base64.StdEncoding.DecodeString(p2.Content)
+	p.created = convert.AnyToDateTime(p2.Created)
+	p.createdBy = p2.CreatedBy
+	p.updated = convert.AnyToDateTime(p2.Updated)
+	p.updatedBy = p2.UpdatedBy
 
 	if p.tags == nil {
 		p.tags = make(map[string]struct{}, len(p2.Tags))
@@ -346,7 +396,7 @@ func (p *Policy) marshal() *marshalPolicy {
 	}
 	slices.Sort(tags)
 
-	return &marshalPolicy{
+	m := &marshalPolicy{
 		Language:    p.language,
 		ID:          p.id,
 		Title:       p.title,
@@ -356,9 +406,21 @@ func (p *Policy) marshal() *marshalPolicy {
 		URI:         p.uri,
 		Path:        p.path,
 		Content:     base64.StdEncoding.EncodeToString(p.content),
+		CreatedBy:   p.createdBy,
+		UpdatedBy:   p.updatedBy,
 	}
+
+	if !p.created.IsZero() {
+		m.Created = p.created.Format(time.RFC3339Nano)
+	}
+	if !p.updated.IsZero() {
+		m.Updated = p.updated.Format(time.RFC3339Nano)
+	}
+
+	return m
 }
 
+// Equals returns true if this Policy equals the other Policy.
 func (p *Policy) Equals(other *Policy) bool {
 	return p.language == other.language &&
 		p.title == other.title &&
@@ -366,6 +428,10 @@ func (p *Policy) Equals(other *Policy) bool {
 		p.rvvaID == other.rvvaID &&
 		p.uri == other.uri &&
 		p.path == other.path &&
+		p.created.Equal(other.created) &&
+		p.createdBy == other.createdBy &&
+		p.updated.Equal(other.updated) &&
+		p.updatedBy == other.updatedBy &&
 		bytes.Equal(p.content, other.content) &&
 		reflect.DeepEqual(p.tags, other.tags)
 }
@@ -379,5 +445,9 @@ type marshalPolicy struct {
 	RvvaID      string   `json:"rvvaID,omitempty"      yaml:"rvvaID,omitempty"`
 	URI         string   `json:"uri,omitempty"         yaml:"uri,omitempty"`
 	Path        string   `json:"path,omitempty"        yaml:"path,omitempty"`
-	Content     string   `json:"content"               yaml:"content"`
+	Content     string   `json:"content,omitempty"     yaml:"content,omitempty"`
+	Created     string   `json:"created,omitempty"     yaml:"created,omitempty"`
+	CreatedBy   string   `json:"createdBy,omitempty"   yaml:"createdBy,omitempty"`
+	Updated     string   `json:"updated,omitempty"     yaml:"updated,omitempty"`
+	UpdatedBy   string   `json:"updatedBy,omitempty"   yaml:"updatedBy,omitempty"`
 }

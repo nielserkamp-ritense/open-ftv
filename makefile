@@ -1,4 +1,5 @@
 DIRS := \
+ ./migrations \
  ./utilities \
  ./eam/authentication \
  ./eam/authorization \

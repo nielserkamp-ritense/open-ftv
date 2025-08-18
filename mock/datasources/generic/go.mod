@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic
 
-go 1.24.4
+go 1.24.6
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.9
@@ -129,6 +129,7 @@ replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data => ./../data
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/handlers => ./../handlers
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas => ./../../../oas
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations => ../../../migrations
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities => ../../../utilities
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci => ../../../utilities-no-ci
 )

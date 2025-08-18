@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Attributes, entities and relations management.
-  version: 1.2.0
+  version: 1.6.0
   description: |
     OpenAPI specification for maintaining attributes, entities and/or relations between entities.
   contact:
@@ -701,29 +701,71 @@ components:
         title:
           type: string
           description: The title of the object. E.g., a short description.
+          example: "Worktimes schedule"
         description:
           type: string
           description: Detailed description of the object.
+          example: "Daily schedule with start and end of working period"
         tags:
           type: array
           description: |
             List of tags the object is annotated with.
             
             This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+            
+            Verify with the policies.tags endpoint.
           items:
             type: string
-        createDate:
+            example: "FE"
+      required:
+        - title
+
+    ObjectAudit:
+      type: object
+      description: The audit details for an object.
+      properties:
+        created:
           type: string
           description: Timestamp the object was created (RFC3339 format).
-        createUser:
+          example: "2025-08-15T07:53:41.493415Z"
+        createdBy:
           type: string
           description: User that created the object.
-        updateDate:
+          example: "alice@wonderland.cc"
+        updated:
           type: string
           description: Timestamp the object was last updated (RFC3339 format).
-        updateUser:
+          example: "2025-08-15T07:53:41.493415Z"
+        updatedBy:
           type: string
           description: User that last updated the object.
+          example: "bob@wonderworld.cc"
+      required:
+        - created
+        - createdBy
+
+    AuditEntry:
+      type: object
+      description: Metadata about how, when and by whom an object has been manipulated.
+      properties:
+        created:
+          type: string
+          description: Timestamp of the log entry in RFC3339 format.
+          example: "2025-08-15T07:53:41.493415Z"
+        operation:
+          type: string
+          maxLength: 1
+          description: Operation performed on the object. Any of ["C", "U", "D"].
+          example: "C"
+        userId:
+          type: string
+          maxLength: 80
+          description: Unique identifier of the user who operated on the object.
+          example: "alice@wonderland.cc"
+      required:
+        - timestamp
+        - operation
+        - user
 
     UsageData:
       type: object
@@ -731,23 +773,10 @@ components:
       properties:
         bundles:
           type: array
-          description: Bundles the object is used by.
+          description: Deployment bundles the object is part of.
           items:
             type: string
-
-    AuditEntry:
-      type: object
-      description: Metadata about how, when and by whom an object has been manipulated.
-      properties:
-        timestamp:
-          type: string
-          description: Timestamp of the log entry in RFC3339 format.
-        operation:
-          type: string
-          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
-        user:
-          type: string
-          description: Unique identifier of the user who operated on the object.
+            example: "1"
 
     Attributes:
       type: array
@@ -768,7 +797,7 @@ components:
         type:
           type: string
           description: |
-            The optional type of a value. By default a value is stored as-is.
+            The optional type of a value. By default a value is stored as-is (e.g., JSON type).
             
             The following codes for type are supported: 
             "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
@@ -785,16 +814,20 @@ components:
             If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
         metadata:
           $ref: "#/components/schemas/Metadata"
-        usageData:
-          $ref: "#/components/schemas/UsageData"
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
           description: Audit log for the attribute.
           items:
             $ref: "#/components/schemas/AuditEntry"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
       required:
         - key
         - value
+        - metadata
+        - audit
 
     Entities:
       type: array
@@ -823,16 +856,20 @@ components:
             $ref: "#/components/schemas/Attribute"
         metadata:
           $ref: "#/components/schemas/Metadata"
-        usageData:
-          $ref: "#/components/schemas/UsageData"
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
           description: Audit log for the entity.
           items:
             $ref: "#/components/schemas/AuditEntry"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
       required:
         - type
         - id
+        - metadata
+        - audit
 
     Relations:
       type: array
@@ -844,8 +881,12 @@ components:
       description: |
         The content of a relation.
         
-        The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
+        The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
       properties:
+        id:
+          type: string
+          description: The unique identifier of the relation.
+          example: "<uuid>"
         subjectType:
           type: string
           description: The type of subject of the relation.
@@ -873,19 +914,24 @@ components:
             $ref: "#/components/schemas/Attribute"
         metadata:
           $ref: "#/components/schemas/Metadata"
-        usageData:
-          $ref: "#/components/schemas/UsageData"
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
           description: Audit log for the relation.
           items:
             $ref: "#/components/schemas/AuditEntry"
+        usageData:
+          $ref: "#/components/schemas/UsageData"
       required:
+        - id
         - subjectType
         - subjectId
         - relation
         - objectType
         - objectId
+        - metadata
+        - audit
 
     Error:
       type: object

@@ -7,6 +7,8 @@ import (
 
 	"github.com/kvtools/valkeyrie/store"
 	_ "github.com/lib/pq" // make sure we have access to a Postgres driver.
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
 // New instantiates a Valkeyrie Store using the pgx library to connect to a Postgres database as the storage engine.
@@ -15,7 +17,7 @@ import (
 //
 // The dsn parameter should represent a valid Postgres instance with appropriate credentials.
 // The table parameter should point to a table within the Postgres schema as defined by ./sql/create.sql.
-func New(pool Pooler, table string) (store.Store, error) {
+func New(pool pool.Pooler, table string) (store.Store, error) {
 	return &pgDB{pool: pool, table: table}, nil
 }
 
@@ -46,7 +48,7 @@ func (db *pgDB) NewLock(_ context.Context, _ string, _ *store.LockOptions) (stor
 }
 
 type pgDB struct {
-	pool  Pooler
+	pool  pool.Pooler
 	table string
 }
 

@@ -6,11 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	authRequest "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
-	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 )
 
 // BundlesVersion is the full semantic API version for the bundle endpoints.
@@ -35,13 +35,16 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	resp := make(bundles2.Statuses, 0, bundles.StatusCount)
+	_ = user
+
+	resp := make(oas.Statuses, 0, bundles.StatusCount)
 	for s := bundles.StatusMIN; s <= bundles.StatusMAX; s++ {
-		resp = append(resp, bundles2.Status{Code: int(s), Name: s.String()})
+		resp = append(resp, oas.Status{Code: int(s), Name: s.String()})
 	}
 	return req.JSON(resp)
 }
@@ -51,13 +54,16 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	resp := make(bundles2.CompressTypes, 0, bundles.CompressCount)
+	_ = user
+
+	resp := make(oas.CompressTypes, 0, bundles.CompressCount)
 	for s := bundles.CompressMIN; s <= bundles.CompressMAX; s++ {
-		resp = append(resp, bundles2.CompressType{Code: int(s), Name: s.String()})
+		resp = append(resp, oas.CompressType{Code: int(s), Name: s.String()})
 	}
 	return req.JSON(resp)
 }
@@ -67,26 +73,29 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	resp := make(bundles2.BundleConfigs, len(h.cfg))
+	_ = user
+
+	resp := make(oas.BundleConfigs, len(h.cfg))
 
 	for i := range h.cfg {
 		cfg := h.cfg[i]
-		cfg2 := bundles2.BundleConfig{
+		cfg2 := oas.BundleConfig{
 			Id:       cfg.ID,
 			Version:  cfg.Version,
 			Policies: cfg.Policies,
 			Data:     cfg.Data,
 			Tags:     cfg.Tags,
-			Targets:  make([]bundles2.Target, 0, len(cfg.Targets)),
+			Targets:  make([]oas.Target, 0, len(cfg.Targets)),
 		}
 
 		for j := range cfg.Targets {
 			target := cfg.Targets[j]
-			cfg2.Targets = append(cfg2.Targets, bundles2.Target{
+			cfg2.Targets = append(cfg2.Targets, oas.Target{
 				Uri:         target.URI,
 				Tls:         target.CA != "" || target.Cert != "" || target.Key != "",
 				Apikey:      target.APIKey != "",
@@ -106,12 +115,15 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	resp, err := h.pap.ListDeployments()
-	if err != nil {
+	_ = user
+
+	var resp []*bundles.Deployment
+	if resp, err = h.pap.ListDeployments(); err != nil {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
 	}
 	return req.JSON(resp)
@@ -122,18 +134,21 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	version, err := req.ParamsInt("key")
-	if err != nil {
+	_ = user
+
+	var version int
+	if version, err = req.ParamsInt("key"); err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	resp, err2 := h.pap.ReadDeployment(uint64(version))
-	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
+	var resp *bundles.Deployment
+	if resp, err = h.pap.ReadDeployment(uint64(version)); err != nil {
+		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 	return req.JSON(resp)
 }
@@ -143,30 +158,33 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if ok, err := h.authorize(req); !ok || err != nil {
+	user, ok, err := h.authorize(req)
+	if !ok {
 		return err
 	}
 
-	var body bundles2.NewDeploymentBody
-	if err := req.BodyParser(&body); err != nil {
+	_ = user
+
+	var body oas.NewDeploymentBody
+	if err = req.BodyParser(&body); err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	resp, err := h.pap.NewDeployment(body.Description, h.manager)
-	if err != nil {
+	var resp *bundles.Deployment
+	if resp, err = h.pap.NewDeployment(body.Description, h.manager); err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 	return req.JSON(resp)
 }
 
-func (h *BundlesHandler) authorize(req *fiber.Ctx) (bool, error) {
+func (h *BundlesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	if h.authorizer == nil {
-		return true, nil
+		return auth.SystemUser, true, nil
 	}
 
-	resp, err := h.authorizer.Authorize(authRequest.FormatRequest(req))
+	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
 
 	// TODO: log authorization decision to auth-decision log.
 
-	return authRequest.Check(req, resp, err)
+	return auth.Check(req, resp, err, h.logger)
 }

@@ -10,7 +10,7 @@ import (
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
-func TestCache_LoadFromStore(t *testing.T) {
+func TestPAP_LoadFiles(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -67,7 +67,6 @@ func TestCache_LoadFromStore(t *testing.T) {
 			t.Parallel()
 
 			h := slog2.NewDummyHandler(slog.LevelInfo)
-
 			p := New(nil, slog.New(h), WithFileStore(tc.path, tc.recurse))
 			require.NotNil(t, p)
 
@@ -77,7 +76,7 @@ func TestCache_LoadFromStore(t *testing.T) {
 	}
 }
 
-func TestLoadFiles_ForceBadPath(t *testing.T) {
+func TestPAP_LoadFiles_ForceBadPath(t *testing.T) {
 	t.Parallel()
 
 	t.Run("load files - force bad path", func(t *testing.T) {

@@ -1,7 +1,6 @@
 package pap
 
 import (
-	"bytes"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -21,17 +20,6 @@ func (p *PAP) LoadFiles() {
 	if err := filepath.WalkDir(p.policyStore, p.loadPolicy); err != nil {
 		p.logger.Error("pap: error loading policies", "policyStore", p.policyStore, "err", err)
 	}
-}
-
-// LoadString loads the given policy.
-func (p *PAP) LoadString(language, policy string) error {
-	pol, err := models.NewPolicyFromData("*dummy*", language, "", "", bytes.NewBufferString(policy))
-	if err != nil {
-		return err
-	}
-
-	_, err = p.Create(pol)
-	return err
 }
 
 func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
@@ -67,6 +55,8 @@ func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 		return err2
 	}
 
-	_, err2 = p.Create(pol)
+	_, err2 = p.Create(pol, loadUser)
 	return err2
 }
+
+const loadUser = "*LOADER*"

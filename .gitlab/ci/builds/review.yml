@@ -36,6 +36,7 @@ build_review_eam:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - migrations/**/*
           - utilities/**/*
           - utilities-no-ci/**/*
           - oas/**/*

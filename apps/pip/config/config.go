@@ -45,8 +45,8 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized := *c
-	sanitized.Persist.Sanitized()
-	sanitized.Cerbos.Sanitized()
+	sanitized.Persist = *sanitized.Persist.Sanitized()
+	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	logger.Info("configuration loaded successfully", "config", sanitized)
 }
 

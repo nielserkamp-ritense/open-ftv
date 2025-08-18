@@ -137,7 +137,7 @@ func TestController_Handle(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol)
+				_, err2 = p.Create(pol, "test")
 				require.NoError(t, err2)
 			}
 

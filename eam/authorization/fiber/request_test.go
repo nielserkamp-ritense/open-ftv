@@ -167,11 +167,14 @@ func TestCheck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			h := slog2.NewDummyHandler(slog.LevelDebug)
+			log := slog.New(h)
+
 			var got bool
 
 			srv := fiber.New()
 			srv.Get("/v1/attributes", func(req *fiber.Ctx) (err error) {
-				got, err = Check(req, tc.resp, tc.err)
+				_, got, err = Check(req, tc.resp, tc.err, log)
 				return
 			})
 

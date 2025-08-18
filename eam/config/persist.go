@@ -11,6 +11,7 @@ import (
 	"github.com/kvtools/valkeyrie"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/postgresql"
 )
 
@@ -62,11 +63,11 @@ func (p *Persist) NewStore(ctx context.Context) (store.Store, error) {
 }
 
 func (p *Persist) newPG(ctx context.Context) (store.Store, error) {
-	pool, err := postgresql.NewPool(
+	pool, err := pool.NewPool(
 		ctx,
 		p.PgURL,
-		postgresql.WithMaxLifetime(p.PgMaxLife),
-		postgresql.WithMaxConnections(p.PgMaxConn),
+		pool.WithMaxLifetime(p.PgMaxLife),
+		pool.WithMaxConnections(p.PgMaxConn),
 	)
 	if err != nil {
 		return nil, err

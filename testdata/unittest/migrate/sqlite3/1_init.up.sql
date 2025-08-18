@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS x (
+    ix INTEGER PRIMARY KEY,
+    message VARCHAR(200)
+)

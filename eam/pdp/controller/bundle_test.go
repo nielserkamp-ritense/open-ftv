@@ -112,9 +112,9 @@ func TestBase_NewBundle(t *testing.T) {
 			ap1 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
 			require.NotNil(t, ap1)
 
-			_, _ = ap1.Create(p1)
-			_, _ = ap1.Create(p2)
-			_, _ = ap1.Create(p3)
+			_, _ = ap1.Create(p1, "test")
+			_, _ = ap1.Create(p2, "test")
+			_, _ = ap1.Create(p3, "test")
 
 			ip1 := pip.New(ctx, logger)
 			require.NotNil(t, ip1)

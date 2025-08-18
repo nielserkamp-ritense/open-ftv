@@ -5,6 +5,9 @@ package attributes
 
 // Attribute The content of an attribute (key/value pair).
 type Attribute struct {
+	// Audit The audit details for an object.
+	Audit ObjectAudit `json:"audit"`
+
 	// AuditLog Audit log for the attribute.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
 
@@ -12,9 +15,9 @@ type Attribute struct {
 	Key string `json:"key"`
 
 	// Metadata The metadata associated with an object.
-	Metadata Metadata `json:"metadata,omitempty"`
+	Metadata Metadata `json:"metadata"`
 
-	// Type The optional type of a value. By default a value is stored as-is.
+	// Type The optional type of a value. By default a value is stored as-is (e.g., JSON type).
 	//
 	// The following codes for type are supported:
 	// "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
@@ -43,14 +46,14 @@ type Attributes = []Attribute
 
 // AuditEntry Metadata about how, when and by whom an object has been manipulated.
 type AuditEntry struct {
-	// Operation Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
-	Operation string `json:"operation,omitempty"`
+	// Created Timestamp of the log entry in RFC3339 format.
+	Created string `json:"created,omitempty"`
 
-	// Timestamp Timestamp of the log entry in RFC3339 format.
-	Timestamp string `json:"timestamp,omitempty"`
+	// Operation Operation performed on the object. Any of ["C", "U", "D"].
+	Operation string `json:"operation"`
 
-	// User Unique identifier of the user who operated on the object.
-	User string `json:"user,omitempty"`
+	// UserId Unique identifier of the user who operated on the object.
+	UserId string `json:"userId,omitempty"`
 }
 
 // Entities defines model for Entities.
@@ -63,6 +66,9 @@ type Entity struct {
 	// Attributes Optional attributes of the entity.
 	Attributes []Attribute `json:"attributes,omitempty"`
 
+	// Audit The audit details for an object.
+	Audit ObjectAudit `json:"audit"`
+
 	// AuditLog Audit log for the entity.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
 
@@ -70,7 +76,7 @@ type Entity struct {
 	Id string `json:"id"`
 
 	// Metadata The metadata associated with an object.
-	Metadata Metadata `json:"metadata,omitempty"`
+	Metadata Metadata `json:"metadata"`
 
 	// Type The type of entity.
 	Type string `json:"type"`
@@ -99,42 +105,53 @@ type Error struct {
 
 // Metadata The metadata associated with an object.
 type Metadata struct {
-	// CreateDate Timestamp the object was created (RFC3339 format).
-	CreateDate string `json:"createDate,omitempty"`
-
-	// CreateUser User that created the object.
-	CreateUser string `json:"createUser,omitempty"`
-
 	// Description Detailed description of the object.
 	Description string `json:"description,omitempty"`
 
 	// Tags List of tags the object is annotated with.
 	//
 	// This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+	//
+	// Verify with the policies.tags endpoint.
 	Tags []string `json:"tags,omitempty"`
 
 	// Title The title of the object. E.g., a short description.
-	Title string `json:"title,omitempty"`
+	Title string `json:"title"`
+}
 
-	// UpdateDate Timestamp the object was last updated (RFC3339 format).
-	UpdateDate string `json:"updateDate,omitempty"`
+// ObjectAudit The audit details for an object.
+type ObjectAudit struct {
+	// Created Timestamp the object was created (RFC3339 format).
+	Created string `json:"created"`
 
-	// UpdateUser User that last updated the object.
-	UpdateUser string `json:"updateUser,omitempty"`
+	// CreatedBy User that created the object.
+	CreatedBy string `json:"createdBy"`
+
+	// Updated Timestamp the object was last updated (RFC3339 format).
+	Updated string `json:"updated,omitempty"`
+
+	// UpdatedBy User that last updated the object.
+	UpdatedBy string `json:"updatedBy,omitempty"`
 }
 
 // Relation The content of a relation.
 //
-// The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
+// The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
 type Relation struct {
 	// Attributes Optional attributes of the relation.
 	Attributes []Attribute `json:"attributes,omitempty"`
 
+	// Audit The audit details for an object.
+	Audit ObjectAudit `json:"audit"`
+
 	// AuditLog Audit log for the relation.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
 
+	// Id The unique identifier of the relation.
+	Id string `json:"id"`
+
 	// Metadata The metadata associated with an object.
-	Metadata Metadata `json:"metadata,omitempty"`
+	Metadata Metadata `json:"metadata"`
 
 	// ObjectId The identifier of the object of the relation.
 	ObjectId string `json:"objectId"`
@@ -160,7 +177,7 @@ type Relations = []Relation
 
 // UsageData Metadata about how and where the object is used.
 type UsageData struct {
-	// Bundles Bundles the object is used by.
+	// Bundles Deployment bundles the object is part of.
 	Bundles []string `json:"bundles,omitempty"`
 }
 
@@ -225,7 +242,7 @@ type NotFound = Error
 
 // RelationResponse The content of a relation.
 //
-// The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
+// The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
 type RelationResponse = Relation
 
 // RelationsResponse defines model for RelationsResponse.

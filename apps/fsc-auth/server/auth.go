@@ -13,14 +13,14 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/fsc-auth/config"
 )
@@ -64,11 +64,11 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 
 	ep := pep.New(ctx, logger)
 
-	pipOpts := []pip2.Option{pip2.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip2.WithPullConfigs(cfg.PIP.PullConfigs)}
-	ip := pip2.New(ctx, logger, pipOpts...)
+	pipOpts := []pip.Option{pip.WithFileStore(cfg.PIP.Store, cfg.PIP.StoreRecurse), pip.WithPullConfigs(cfg.PIP.PullConfigs)}
+	ip := pip.New(ctx, logger, pipOpts...)
 
-	papOpts := []pap2.Option{pap2.WithLanguage(l.Language()), pap2.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}
-	ap := pap2.New(ctx, logger, papOpts...)
+	papOpts := []pap.Option{pap.WithLanguage(l.Language()), pap.WithFileStore(cfg.PAP.Store, cfg.PAP.StoreRecurse)}
+	ap := pap.New(ctx, logger, papOpts...)
 
 	pdpOpts := []pdp.Option{pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger)}
 	if cfg.RequestMappings != "" {

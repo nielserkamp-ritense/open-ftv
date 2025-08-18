@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kvtools/valkeyrie/store"
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
 func TestDB_Delete(t *testing.T) {
@@ -27,11 +28,9 @@ func TestDB_Delete(t *testing.T) {
 		mock.ExpectCommit()
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)
@@ -56,11 +55,9 @@ func TestDB_Delete_FailTx(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("fail"))
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)
@@ -89,11 +86,9 @@ func TestDB_Delete_FailExec(t *testing.T) {
 		mock.ExpectRollback()
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)
@@ -122,11 +117,9 @@ func TestDB_AtomicDelete(t *testing.T) {
 		mock.ExpectCommit()
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)
@@ -158,11 +151,9 @@ func TestDB_AtomicDelete_FailTx(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("fail"))
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)
@@ -198,11 +189,9 @@ func TestDB_AtomicDelete_FailExec(t *testing.T) {
 		mock.ExpectRollback()
 		mock.ExpectClose()
 
-		cfg, err2 := pgxpool.ParseConfig("postgresql://localhost:5432/myDB")
+		dsn := "postgresql://localhost:5432/myDB"
+		p, err2 := pool.NewWithPooler(context.Background(), dsn, mock)
 		require.NoError(t, err2)
-		require.NotNil(t, cfg)
-
-		p := &pool{pool: mock, cfg: cfg}
 
 		db, err3 := New(p, "myTable")
 		require.NoError(t, err3)

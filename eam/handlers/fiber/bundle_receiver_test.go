@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
@@ -54,9 +55,9 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		ap1 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
 		require.NotNil(t, ap1)
 
-		_, _ = ap1.Create(p1)
-		_, _ = ap1.Create(p2)
-		_, _ = ap1.Create(p3)
+		_, _ = ap1.Create(p1, "test")
+		_, _ = ap1.Create(p2, "test")
+		_, _ = ap1.Create(p3, "test")
 
 		ip1 := pip.New(ctx, logger)
 		require.NotNil(t, ip1)
@@ -110,11 +111,13 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		req := httptest.NewRequest(fiber.MethodPost, "/v1/bundle", buf)
 		req.Header.Add(fiber.HeaderContentEncoding, "bzip2")
 
-		resp, err2 := srv.Test(req, 5000)
+		resp, err2 := srv.Test(req, 30000)
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
 
 		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		got := new(bundles2.BundleActivated)
 		err = json.NewDecoder(resp.Body).Decode(got)

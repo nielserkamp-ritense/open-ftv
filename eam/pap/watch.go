@@ -96,10 +96,10 @@ func (p *PAP) processUpdate(path string) {
 		return
 	}
 
-	if prev, lastIndex, err3 := p.Read(pol.Language(), pol.ID()); err3 == nil {
-		_, _ = p.Update(prev, lastIndex, pol)
+	if prev, lastIndex, err3 := p.Read(pol.ID()); err3 == nil {
+		_, _ = p.Update(prev, lastIndex, pol, storageUser)
 	} else {
-		_, _ = p.Create(pol)
+		_, _ = p.Create(pol, storageUser)
 	}
 }
 
@@ -119,10 +119,13 @@ func (p *PAP) processDeletes() {
 			return
 		}
 
-		if prev, lastIndex, err := p.Read(p.language, path); err == nil {
-			_, _ = p.Delete(prev, lastIndex)
+		if prev, lastIndex, err := p.Read(path); err == nil {
+			_, _ = p.Delete(prev, lastIndex, storageUser)
 		}
 	}
 }
 
-const watchTimerInterval = 100 * time.Millisecond
+const (
+	watchTimerInterval = 100 * time.Millisecond
+	storageUser        = "*STORAGE*"
+)

@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -18,7 +19,7 @@ func (db *pgDB) Get(ctx context.Context, key string, _ *store.ReadOptions) (reco
 		if err == nil {
 			err = tx.Commit(ctx)
 		} else {
-			_ = tx.Rollback(ctx)
+			err = errors.Join(err, tx.Rollback(ctx))
 		}
 	}()
 
@@ -50,7 +51,7 @@ func (db *pgDB) List(ctx context.Context, directory string, _ *store.ReadOptions
 		if err == nil {
 			err = tx.Commit(ctx)
 		} else {
-			_ = tx.Rollback(ctx)
+			err = errors.Join(err, tx.Rollback(ctx))
 		}
 	}()
 

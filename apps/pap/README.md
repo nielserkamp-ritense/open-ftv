@@ -88,6 +88,11 @@ persist:   # this is where the PAP stores policies; see the section "About persi
       ttl: "<duration>"         # Timeout for closing inactive Postgres connections (default "5m").
       max: <number>             # Maximum number of connections to the Postgres backend (default 100).
 
+migrate:   # options for database migrations.
+  source: "<folder>"            # Location where migration files are stored.
+  steps: <number>               # Number of migration steps to perform; positive numbers are up, negative numbers down.
+  auto: true|false              # If true, the process migrates to the highest level (steps is ignored).
+
 authentication:   # options used during the authentication stage of a user interface request.
   type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
 
@@ -163,6 +168,11 @@ PAP_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Po
 PAP_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 PAP_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
 
+# options for database migrations.
+PAP_MIGRATE_SOURCE=<folder>                 # Location where migration files are stored.
+PAP_MIGRATE_STEPS=<number>                  # Number of migration steps to perform; positive numbers are up, negative numbers down.
+PAP_MIGRATE_AUTO=true|false                 # If true, the process migrates to the highest level (steps is ignored).
+
 # options used during the authentication stage of a user interface request.
 PAP_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
 
@@ -233,6 +243,11 @@ These match the corresponding options in a configuration file.
 --persist-postgres-table=<name>           # Name of the table to use with a Postgres backend (no default).
 --persist-postgres-conn-ttl=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 --persist-postgres-conn-max=<number>      # Maximum number of connections to the Postgres backend (default 100).
+
+# options for database migrations.
+--migrate-source=<folder>                 # Location where migration files are stored.
+--migrate-steps=<number>                  # Number of migration steps to perform; positive numbers are up, negative numbers down.
+--migrate-auto=true|false                 # If true, the process migrates to the highest level (steps is ignored).
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -420,19 +435,19 @@ Policies and their metadata are persisted in a key-value store.
 This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
 
 The following storage backends are currently supported:
-- ```Postgres```: using a custom-built Valkeyrie interface.
+- ```PostgreSQL```: using a custom-built Valkeyrie interface.
 - ```etcd```: using the standard Valkeyrie implementation.
 - ```Consul```: using the standard Valkeyrie implementation.
-- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent for testing only).
+- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent, for caching or testing only).
 
 If no persistence backend is configured, the ```in-memory``` backend will be used.
 This means that when the service is restarted, all created and/or updated policies will be gone.
-For proper persistence, please configure the use of ```Postgres```, ```etcd``` or ```Consul```.
+For proper persistence, please configure the use of ```PostgreSQL```, ```etcd``` or ```Consul```.
 
 Example of a Postgres configuration:
 ```yaml
 persist:
-  type: "postgres"
+  type: "PostgreSQL"
   postgres:
     url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
     table: "policies"
@@ -441,18 +456,28 @@ persist:
       max: 20
 ```
 
-Note that the service expects the database and the table to exist.
-Use the following CREATE statements in your initialization scripts:
-```SQL
-CREATE DATABASE open_ftv;
+Note that the *type* parameter is case-insensitive.
 
-CREATE TABLE policies
-(
-    key   VARCHAR(200) PRIMARY KEY NOT NULL,
-    index BIGINT NOT NULL,
-    value JSONB NOT NULL
-);
-```
+For SQL databases (such as PostgreSQL) you previously had to make sure the database and table existed using initialization scripts.
+In the new version (2025/08/14), you can use the built-in database migrations (see below).
+
+### Database migrations
+
+When using an SQL database for persistence (such as PostgreSQL),
+the PAP allows you to perform database migrations, either automatically or manually.
+
+The target database must have a valid URL in the persistence configuration.
+ALl other parameters are defined in the migration configuration.
+
+The *source* defines where the migration scripts are located.
+THis should be a disk folder or an embedded file system.
+
+The *auto* and *steps* parameter indicate how to perform the migration.
+- *auto* takes precedence, and indicates the migration must be performed to the highest possible level.
+- *steps* can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
+  A negative number indicates the number of levels to migrate downwards.
+
+If *auto* == false && *steps* == 0, no migration takes place. 
 
 ### Bundle management
 

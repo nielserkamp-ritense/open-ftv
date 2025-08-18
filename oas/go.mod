@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas
 
-go 1.24.4
+go 1.24.6
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 
