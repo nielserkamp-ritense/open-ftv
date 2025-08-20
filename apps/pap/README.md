@@ -104,6 +104,8 @@ policies:   # policies used for authorizing user interface requests.
   store:
     path: "<folder>"            # Location on disk where static policy files can be found (no default).
     recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
+  tags:
+    path: "<folder>"            # Location on disk where static tag files can de found (no default).
 
 pip:   # attributes used for authorizing user interface requests.
   store:
@@ -183,6 +185,7 @@ PAP_AUTHORIZATION_AUTHENTICATE=true|false   # Flag to force authentication of th
 PAP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
 PAP_POLICIES_STORE=<folder>                 # Location on disk where static policy files can be found (no default).
 PAP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
+PAP_TAGS_PATH=<folder>                      # Location on disk where static tag files can de found (no default).
 
 # attributes used for authorizing user interface requests.
 PAP_PIP_STORE=<folder>                      # Location on disk where static attribute files can be found (no default).
@@ -259,6 +262,7 @@ These match the corresponding options in a configuration file.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
 --policies-store=<folder>                 # Location on disk where static policy files can be found (no default).
 --policies-store-recurse=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
+--tags-path=<folder>                      # Location on disk where static tag files can de found (no default).
 
 # attributes used for authorizing user interface requests.
 --pip-store=<folder>                      # Location on disk where static attribute files can be found (no default).
@@ -370,6 +374,25 @@ This is why Cerbos needs to be configured as a sidecar.
 The Cerbos admin API needs to be accessible to allow the PAP to push its policies for authorization to the PDP.
 Check the [Cerbos documentation](https://docs.cerbos.dev/cerbos/latest/what-is-cerbos)
 on how to install and configure it.
+
+### Tags
+
+Tags are used to annotate policies, but also attributes, entities and relations.
+
+These annotation are used by the bundle management system to select the appropriate policies and data.
+
+Tags are currently stored in config files, in either YAML or JSON format:
+```yaml
+- id: "<identifier>"            # unique identifier of a tag.
+  name: "<name>"                # human-readable, descriptive name of a tag (used in drop-down menus).
+  description: "<description>"  # optional description of a tag.
+```
+
+Each file can contain one or more tags.
+The full set of tags is available from the ```/v1/tags``` endpoint.
+
+The tag definitions in files should not contain audit details.
+This is meant for a future version where tags are maintained through the API.
 
 ### Pull configurations
 

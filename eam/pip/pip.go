@@ -15,7 +15,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-// PIP represents the interface for a Policy Information Point.
+// PIP represents the interface for caching and retrieving attribute-, entity- and/or relation-data.
 type PIP struct {
 	recurse          bool
 	attrStore        string
@@ -23,18 +23,19 @@ type PIP struct {
 	logger           *slog.Logger
 	ctx              context.Context
 	pullManager      network.Manager
+	attributeDB      AttributePersister
 	attributeWatcher *fsnotify.Watcher
 	attributeTimer   *time.Timer
 	attributeUpdates []string
 	attributeDeletes []string
+	entityDB         EntityPersister
 	entityWatcher    *fsnotify.Watcher
 	entityTimer      *time.Timer
 	entityUpdates    []string
 	entityDeletes    []string
+	relationDB       RelationPersister
+	kvStore          store.Store
 	eventSinks       []models.EventSink
-	store            store.Store
-	attributePersist AttributePersistence
-	entityPersist    EntityPersistence
 	eventMutex       sync.RWMutex
 	bundleMutex      sync.RWMutex
 }
@@ -42,26 +43,37 @@ type PIP struct {
 // New instantiates a new Policy Information Point.
 //
 // By default, a PIP uses an in-memory key-value cache.
-// Use the WithPersistence() option to connect a PIP to persistent storage.
+// Use the WithKeyValueDB or WithPostgresDB option to connect a PIP to persistent storage.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	s := memory.New()
-	ap := NewAttributeStore(ctx, s, "attribute")
-	ep := NewEntityStore(ctx, s, "entity")
-
 	p := &PIP{
 		ctx:              ctx,
 		logger:           logger,
-		store:            s,
-		attributePersist: ap,
-		entityPersist:    ep,
+		attributeUpdates: make([]string, 0),
+		attributeDeletes: make([]string, 0),
+		entityUpdates:    make([]string, 0),
+		entityDeletes:    make([]string, 0),
 	}
 
 	for i := range options {
 		options[i](p)
+	}
+
+	if p.attributeDB == nil || p.entityDB == nil /* || p.relationDB == nil */ {
+		p.kvStore = memory.New()
+
+		if p.attributeDB == nil {
+			p.attributeDB = NewAttributeStore(p.kvStore, "attribute")
+		}
+		if p.entityDB == nil {
+			p.entityDB = NewEntityStore(p.kvStore, "entity")
+		}
+		// if p.relationDB == nil {
+		// 	p.relationDB = NewRelationStore(p.kvStore, "entity")
+		// }
 	}
 
 	p.loadFromStore()
@@ -79,12 +91,12 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 			args = append(args, "recurse", p.recurse)
 		}
 
-		if p.entityPersist != ep || p.attributePersist != ap {
+		if p.kvStore == nil && (p.entityDB != nil || p.attributeDB != nil) {
 			args = append(args, "persistence", true)
 		}
 
 		if p.logger.Enabled(nil, slog.LevelDebug) {
-			attrs, _ := p.attributePersist.List()
+			attrs, _ := p.attributeDB.ListAttributes(p.ctx)
 			args = append(args, "attributes", attrs, "entities", p.entitiesToMap())
 			p.logger.Debug("pip initialized", args...)
 		} else {

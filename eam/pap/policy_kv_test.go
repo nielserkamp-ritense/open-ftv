@@ -106,7 +106,7 @@ func TestNewStore_Read_NotFound(t *testing.T) {
 		require.NotNil(t, s)
 
 		p2, _, err2 := s.ReadPolicy(ctx, "bad")
-		require.Error(t, err2)
+		require.NoError(t, err2)
 		require.Nil(t, p2)
 	})
 }

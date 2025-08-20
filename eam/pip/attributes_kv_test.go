@@ -178,18 +178,18 @@ func TestNewAttributeStore(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:integer")
 		require.NotNil(t, a)
 
-		a2, err2 := s.Create(a)
+		a2, err2 := s.CreateAttribute(ctx, "", a)
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 		assert.EqualValues(t, a, a2)
 
-		a3, ix, err3 := s.Read(a.Key())
+		a3, ix, err3 := s.ReadAttribute(ctx, a.Key())
 		require.NoError(t, err3)
 		require.NotNil(t, a3)
 		assert.EqualValues(t, a, a3)
@@ -197,12 +197,12 @@ func TestNewAttributeStore(t *testing.T) {
 		a = models.NewOriginalAttribute("k1", "haha", "haha", "xsd:string")
 		require.NotNil(t, a)
 
-		a4, err4 := s.Update(a3, ix, a)
+		a4, err4 := s.UpdateAttribute(ctx, "", a3, ix, a)
 		require.NoError(t, err4)
 		require.NotNil(t, a4)
 		assert.EqualValues(t, a, a4)
 
-		a5, err5 := s.Delete(a, ix)
+		a5, err5 := s.DeleteAttribute(ctx, "", a, ix)
 		require.NoError(t, err5)
 		require.NotNil(t, a5)
 		assert.EqualValues(t, a, a5)
@@ -221,18 +221,18 @@ func TestNewAttributeStore_DupError(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
 		a := models.NewOriginalAttribute("k1", 123, "123", "")
 		require.NotNil(t, a)
 
-		a2, err2 := s.Create(a)
+		a2, err2 := s.CreateAttribute(ctx, "", a)
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 		assert.EqualValues(t, a, a2)
 
-		a3, err3 := s.Create(a)
+		a3, err3 := s.CreateAttribute(ctx, "", a)
 		require.Error(t, err3)
 		require.Nil(t, a3)
 	})
@@ -250,11 +250,11 @@ func TestNewAttributeStore_Read_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
-		a2, _, err2 := s.Read("bad")
-		require.Error(t, err2)
+		a2, _, err2 := s.ReadAttribute(ctx, "bad")
+		require.NoError(t, err2)
 		require.Nil(t, a2)
 	})
 }
@@ -271,13 +271,13 @@ func TestNewAttributeStore_Update_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
 		require.NotNil(t, a)
 
-		a2, err2 := s.Update(a, 0, a)
+		a2, err2 := s.UpdateAttribute(ctx, "", a, 0, a)
 		require.Error(t, err2)
 		require.Nil(t, a2)
 	})
@@ -295,13 +295,13 @@ func TestNewAttributeStore_Delete_NotFound(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
 		require.NotNil(t, a)
 
-		a2, err3 := s.Delete(a, 0)
+		a2, err3 := s.DeleteAttribute(ctx, "", a, 0)
 		require.Error(t, err3)
 		require.Nil(t, a2)
 	})
@@ -319,10 +319,10 @@ func TestNewAttributeStore_List(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := NewAttributeStore(ctx, client, "/base")
+		s := NewAttributeStore(client, "/base")
 		require.NotNil(t, s)
 
-		got, err := s.List()
+		got, err := s.ListAttributes(ctx)
 		require.Error(t, err)
 		require.Nil(t, got)
 
@@ -330,11 +330,11 @@ func TestNewAttributeStore_List(t *testing.T) {
 			a := models.NewOriginalAttribute(fmt.Sprintf("k%d", i+1), 123, "123", "xsd:positiveNumber")
 			require.NotNil(t, a)
 
-			_, err = s.Create(a)
+			_, err = s.CreateAttribute(ctx, "", a)
 			require.NoError(t, err)
 		}
 
-		got, err = s.List()
+		got, err = s.ListAttributes(ctx)
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.Equal(t, 5, len(got))

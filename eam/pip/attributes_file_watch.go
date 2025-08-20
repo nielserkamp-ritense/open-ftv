@@ -112,7 +112,7 @@ func (p *PIP) processAttributeDeletes() {
 
 		// TODO: implement
 		// for now we just ignore deletes; it will be safer to restart the service,
-		// as it some attributes from this file may have been replaced by another file.
+		// as some attributes from this file may have been replaced by another file.
 		_ = path
 
 	}

@@ -37,7 +37,10 @@ func TestPIP_Attributes(t *testing.T) {
 		require.NotNil(t, a3)
 
 		assert.Equal(t, "world", p.GetAttributeValue("hello"))
-		assert.Nil(t, p.GetAttribute("bool"))
+
+		a4, _, err4 := p.GetAttribute("bool")
+		require.NoError(t, err4)
+		assert.Nil(t, a4)
 
 		p2 := models.NewAttributeSet()
 		p2.AddAttributeKV("hello", "world2")
@@ -55,11 +58,11 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, true, p.GetAttributeValue("bool"))
 		assert.Equal(t, "987", p.GetAttributeValue("int"))
 
-		a1, err1 = p.RemoveAttribute("bool")
+		a1, err1 = p.RemoveAttribute("bool", "")
 		require.NoError(t, err1)
 		require.NotNil(t, a1)
 
-		a2, err2 = p.RemoveAttribute("int")
+		a2, err2 = p.RemoveAttribute("int", "")
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 
@@ -111,10 +114,13 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			h := util.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			p := New(context.Background(), logger)
+			p := New(ctx, logger)
 			require.NotNil(t, p)
 
 			eh := &myAttributeSink{}
@@ -129,7 +135,7 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 			assert.Zero(t, eh.deletes)
 			eh.inserts = 0
 
-			p.ReplaceAllAttributes(tc.list)
+			p.ReplaceAllAttributes(tc.list, "")
 
 			assert.Equal(t, tc.want, eh.inserts)
 			assert.Zero(t, eh.updates)

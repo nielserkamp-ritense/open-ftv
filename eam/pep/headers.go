@@ -73,7 +73,7 @@ func (c *collector) convertActivityID(id string) {
 	}
 
 	// An activity is an entity with type 'rva'.
-	entity := c.getEntity(fmt.Sprintf("rva::%s", id))
+	entity, _, _ := c.getEntity(fmt.Sprintf("rva::%s", id))
 	if entity == nil {
 		return
 	}

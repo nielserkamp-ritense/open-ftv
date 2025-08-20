@@ -113,4 +113,4 @@ type auth struct {
 	debug         bool
 }
 
-func dummyGetter(string) *models.Entity { return nil }
+func dummyGetter(string) (*models.Entity, uint64, error) { return nil, 0, nil }

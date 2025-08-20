@@ -101,6 +101,43 @@ func TestNewPostgresDB(t *testing.T) {
 	}
 }
 
+func TestNewPostgresWithPool(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name    string
+		dsn     string
+		maxLife time.Duration
+		maxConn int32
+		wantErr bool
+	}{
+		{name: "bad dsn", dsn: "hello world", maxLife: 10 * time.Minute, maxConn: 5, wantErr: true},
+		{name: "good dsn", dsn: "postgres://localhost:5432/myDB?sslmode=disable", maxLife: 10 * time.Minute, maxConn: 5},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			pool, err := postgresql.New(ctx, tc.dsn, tc.maxLife, tc.maxConn)
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, pool)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, pool)
+
+				got := NewPostgresWithPool(pool)
+				require.NotNil(t, got)
+				assert.Equal(t, pool, got.p)
+			}
+		})
+	}
+}
+
 func TestPostgresDB_CreatePolicy(t *testing.T) {
 	t.Parallel()
 

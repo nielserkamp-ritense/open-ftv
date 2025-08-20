@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 
 		assert.NotNil(t, p.logger)
 		assert.NotNil(t, p.eventSinks)
-		assert.NotNil(t, p.updates)
-		assert.NotNil(t, p.deletes)
+		assert.NotNil(t, p.policyUpdates)
+		assert.NotNil(t, p.policyDeletes)
 	})
 }

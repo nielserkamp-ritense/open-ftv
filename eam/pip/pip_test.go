@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -95,6 +96,9 @@ func TestNew(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			h := util.NewDummyHandler(tc.level)
 			logger := slog.New(h)
 
@@ -104,7 +108,7 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			if tc.wantAttributes != nil {
-				list, err := p1.attributePersist.List()
+				list, err := p1.attributeDB.ListAttributes(ctx)
 				require.NoError(t, err)
 
 				for i := range list {
@@ -117,7 +121,8 @@ func TestNew(t *testing.T) {
 
 			if tc.wantEntities != nil {
 				tc.wantEntities.IterateEntities(func(e1 *models.Entity) {
-					e2 := p1.GetEntity(e1.UID())
+					e2, _, err2 := p1.GetEntity(e1.UID())
+					require.NoError(t, err2)
 					require.NotNil(t, e2)
 					assert.True(t, e1.Equals(e2))
 				})

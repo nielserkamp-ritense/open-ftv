@@ -55,8 +55,12 @@ func TestProcessEntity(t *testing.T) {
 			logger := slog.New(h)
 
 			ent := models.NewEntitySet()
+			add := func(in *models.Entity) (*models.Entity, error) {
+				ent.AddEntity(in)
+				return in, nil
+			}
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: add}}
 			r.processEntity(tc.tp, tc.id, tc.attrs, tc.parents, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -238,8 +242,12 @@ func TestDecodeEntityMap(t *testing.T) {
 			logger := slog.New(h)
 
 			ent := models.NewEntitySet()
+			add := func(in *models.Entity) (*models.Entity, error) {
+				ent.AddEntity(in)
+				return in, nil
+			}
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: add}}
 			r.decodeEntityMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -323,8 +331,12 @@ func TestDecodeEntityData(t *testing.T) {
 			logger := slog.New(h)
 
 			ent := models.NewEntitySet()
+			add := func(in *models.Entity) (*models.Entity, error) {
+				ent.AddEntity(in)
+				return in, nil
+			}
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity}}
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: add}}
 			r.decodeEntityData(tc.data, tc.obj)
 
 			if tc.wantCount > 0 {

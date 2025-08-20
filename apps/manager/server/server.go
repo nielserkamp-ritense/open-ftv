@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
@@ -44,6 +45,7 @@ type service struct {
 	auth   AuthHandler
 	l      models.Language
 	store  store.Store
+	db     *postgresql.Postgres
 	pap    *pap.PAP
 	pip    *pip.PIP
 }

@@ -43,18 +43,18 @@ func TestClearWatcher(t *testing.T) {
 			p := &PAP{}
 
 			if len(tc.paths) > 0 {
-				p.watcher, _ = fsnotify.NewWatcher()
+				p.policyWatcher, _ = fsnotify.NewWatcher()
 
 				for i := range tc.paths {
-					_ = p.watcher.Add(tc.paths[i])
+					_ = p.policyWatcher.Add(tc.paths[i])
 				}
 			}
 
 			p.clearWatcher()
 			if len(tc.paths) == 0 {
-				assert.Nil(t, p.watcher)
+				assert.Nil(t, p.policyWatcher)
 			} else {
-				assert.Empty(t, p.watcher.WatchList())
+				assert.Empty(t, p.policyWatcher.WatchList())
 			}
 		})
 	}
@@ -88,13 +88,13 @@ func TestProcessDeletes(t *testing.T) {
 			s := memory.New()
 
 			p := &PAP{
-				deletes: tc.files,
-				kvStore: s,
-				kvDB:    NewKeyValueDB(s, ""),
+				policyDeletes: tc.files,
+				kvStore:       s,
+				policyDB:      NewKeyValueDB(s, ""),
 			}
 
 			p.processDeletes()
-			assert.Empty(t, p.deletes)
+			assert.Empty(t, p.policyDeletes)
 		})
 	}
 }
@@ -127,13 +127,13 @@ func TestProcessUpdates(t *testing.T) {
 			s := memory.New()
 
 			p := &PAP{
-				updates: tc.files,
-				kvStore: s,
-				kvDB:    NewKeyValueDB(s, ""),
+				policyUpdates: tc.files,
+				kvStore:       s,
+				policyDB:      NewKeyValueDB(s, ""),
 			}
 
 			p.processUpdates()
-			assert.Empty(t, p.updates)
+			assert.Empty(t, p.policyUpdates)
 		})
 	}
 }
@@ -197,10 +197,10 @@ func TestPolicyModified(t *testing.T) {
 			s := memory.New()
 
 			p := &PAP{
-				kvStore: s,
-				kvDB:    NewKeyValueDB(s, ""),
-				updates: map[string]struct{}{},
-				deletes: map[string]struct{}{},
+				kvStore:       s,
+				policyDB:      NewKeyValueDB(s, ""),
+				policyUpdates: map[string]struct{}{},
+				policyDeletes: map[string]struct{}{},
 			}
 
 			for i := range tc.create {
@@ -219,8 +219,8 @@ func TestPolicyModified(t *testing.T) {
 				p.policyModified(fsnotify.Event{Name: tc.remove[i], Op: fsnotify.Remove})
 			}
 
-			assert.EqualValues(t, tc.wantUpdates, p.updates)
-			assert.EqualValues(t, tc.wantDeletes, p.deletes)
+			assert.EqualValues(t, tc.wantUpdates, p.policyUpdates)
+			assert.EqualValues(t, tc.wantDeletes, p.policyDeletes)
 		})
 	}
 }
@@ -259,7 +259,7 @@ func TestWatchFiles(t *testing.T) {
 			want:   2,
 		},
 		{
-			name:   "few deletes",
+			name:   "few policyDeletes",
 			create: []string{"a.txt", "b.txt", "c.txt"},
 			remove: []string{"c.txt", "b.txt", "a.txt"},
 		},
@@ -284,12 +284,12 @@ func TestWatchFiles(t *testing.T) {
 			s := memory.New()
 
 			p := &PAP{
-				ctx:     ctx,
-				watcher: w,
-				kvStore: s,
-				kvDB:    NewKeyValueDB(s, ""),
-				updates: map[string]struct{}{},
-				deletes: map[string]struct{}{},
+				ctx:           ctx,
+				policyWatcher: w,
+				kvStore:       s,
+				policyDB:      NewKeyValueDB(s, ""),
+				policyUpdates: map[string]struct{}{},
+				policyDeletes: map[string]struct{}{},
 			}
 
 			wg := &sync.WaitGroup{}
@@ -327,11 +327,11 @@ func TestWatchFiles(t *testing.T) {
 
 			wg.Wait()
 
-			assert.Nil(t, p.watcher)
+			assert.Nil(t, p.policyWatcher)
 
 			p.deployMutex.Lock()
-			assert.Empty(t, p.updates)
-			assert.Empty(t, p.deletes)
+			assert.Empty(t, p.policyUpdates)
+			assert.Empty(t, p.policyDeletes)
 			p.deployMutex.Unlock()
 		})
 	}

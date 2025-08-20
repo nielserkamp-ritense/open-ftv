@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
@@ -22,19 +23,25 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
-	if s.cfg.Persist.Type != "" && !strings.EqualFold(s.cfg.Persist.Type, "postgres") {
-		var err error
-		if s.store, err = s.cfg.Persist.NewStore(ctx); err != nil {
-			panic("failed to create persistence store: " + err.Error())
-		}
-	}
-
-	s.pip = s.newPIP()
+	isPG := strings.EqualFold(s.cfg.Persist.Type, "postgres")
 
 	var err error
+	switch {
+	case isPG:
+		s.db, err = postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+	case s.cfg.Persist.Type != "":
+		s.store, err = s.cfg.Persist.NewStore(ctx)
+	}
+	if err != nil {
+		panic("failed to create persistence store: " + err.Error())
+	}
+
+	// initialize the PAP before the PIP, so database migrations happen before all else.
 	if s.pap, err = s.newPAP(); err != nil {
 		panic("failed to initialize PAP handler")
 	}
+
+	s.pip = s.newPIP()
 
 	s.initHealth(svc)
 

@@ -1,30 +1,56 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-func TestWithPersistence(t *testing.T) {
+func TestWithKeyValueDB(t *testing.T) {
 	t.Parallel()
 
-	t.Run("with language", func(t *testing.T) {
+	t.Run("with key/value db", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
 		s := memory.New()
 
-		p := New(nil, logger, WithPersistence(s, ""))
+		p := New(nil, logger, WithKeyValueDB(s, ""))
 		require.NotNil(t, p)
-		assert.Equal(t, s, p.store)
-		assert.NotNil(t, p.attributePersist)
+		assert.Equal(t, s, p.kvStore)
+		assert.NotNil(t, p.attributeDB)
+		assert.NotNil(t, p.entityDB)
+	})
+}
+
+func TestWithPostgresDB(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with postgres db", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		db, err := postgresql.New(ctx, "postgres://localhost:5432/open_ftv", time.Microsecond, 2)
+		require.NoError(t, err)
+		require.NotNil(t, db)
+
+		p := New(nil, logger, WithPostgresDB(NewPostgresWithPool(db)))
+		require.NotNil(t, p)
+		assert.Nil(t, p.kvStore)
+		assert.NotNil(t, p.attributeDB)
+		assert.NotNil(t, p.entityDB)
 	})
 }
 

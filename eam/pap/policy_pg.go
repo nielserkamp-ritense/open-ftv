@@ -23,10 +23,15 @@ func NewPostgresDB(ctx context.Context, dsn string, maxLife time.Duration, maxCo
 	return &PostgresDB{p: p, now: time.Now}, nil
 }
 
+// NewPostgresWithPool instantiates a new PostgreSQL database connection handler using the given connection pool.
+func NewPostgresWithPool(pool *postgresql.Postgres) *PostgresDB {
+	return &PostgresDB{p: pool, now: time.Now}
+}
+
 // PostgresDB wraps a PostgreSQL connection pool with policy management functions.
 type PostgresDB struct {
 	p   *postgresql.Postgres
-	now func() time.Time
+	now func() time.Time // for time-sensitive unit-tests.
 }
 
 // CreatePolicy creates a new policy into the database.
@@ -62,6 +67,10 @@ func (db *PostgresDB) ReadPolicy(ctx context.Context, id string) (*models.Policy
 
 	if err != nil || err2 != nil {
 		return nil, 0, errors.Join(err, err2)
+	}
+
+	if p == nil {
+		return nil, 0, nil
 	}
 	return p, timeToLastIndex(p.Updated()), nil
 }

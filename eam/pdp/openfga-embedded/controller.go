@@ -36,7 +36,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	mod := "github.com/openfga/openfga"
 	modVersion := module.GetModuleVersion(mod)
 
-	c.Logger.Info("eam controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
+	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
 	return c
 }
 

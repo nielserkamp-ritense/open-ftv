@@ -44,8 +44,8 @@ func TestWithKeyValueDB(t *testing.T) {
 		require.NotNil(t, p)
 
 		assert.Equal(t, s, p.kvStore)
-		assert.NotNil(t, p.kvDB)
-		assert.NotNil(t, p.deployer)
+		assert.NotNil(t, p.policyDB)
+		assert.NotNil(t, p.bundleDB)
 	})
 }
 
@@ -65,7 +65,8 @@ func TestWithPostgresDB(t *testing.T) {
 		p := New(nil, logger, WithPostgresDB(db))
 		require.NotNil(t, p)
 
-		assert.Equal(t, db, p.postgresDB)
+		assert.Nil(t, p.kvStore)
+		assert.Equal(t, db, p.policyDB)
 	})
 }
 

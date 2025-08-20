@@ -31,15 +31,15 @@ func WithKeyValueDB(store store.Store, basePath string) Option {
 		}
 
 		p.kvStore = store
-		p.kvDB = NewKeyValueDB(store, basePath)
-		p.deployer = bundles.NewPersistence(p.ctx, store, basePath)
+		p.policyDB = NewKeyValueDB(store, basePath)
+		p.bundleDB = bundles.NewPersistence(p.ctx, store, basePath)
 	}
 }
 
 // WithPostgresDB connects the PAP to a persistent PostgreSQL backend.
 func WithPostgresDB(db *PostgresDB) Option {
 	return func(p *PAP) {
-		p.postgresDB = db
+		p.policyDB = db
 	}
 }
 

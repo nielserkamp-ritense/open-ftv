@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -14,6 +17,15 @@ import (
 // EntityUID formats the unique identifier (UID) for an entity.
 func EntityUID(ns, id string) string {
 	return fmt.Sprintf("%s::%s", ns, id)
+}
+
+// SplitEntityUID decodes the type and id of an entity from a UID.
+func SplitEntityUID(in string) (string, string) {
+	parts := strings.Split(in, "::")
+	if len(parts) != 2 {
+		return in, ""
+	}
+	return parts[0], parts[1]
 }
 
 // Entity contains the details of an entity.
@@ -28,6 +40,8 @@ type Entity struct {
 	attrs       *AttributeSet       // optional attributes.
 	parents     []string            // optional set of unique identifiers of parent entities.
 	tags        map[string]struct{} // tags associated with the entity.
+	mutex       sync.RWMutex
+	Audit
 }
 
 // NewEntity instanties a new standard entity.
@@ -48,77 +62,116 @@ func NewEntity(ns, id string, attrs *AttributeSet, parents ...string) *Entity {
 
 // WithTitle adds an optional title to the Entity.
 func (e *Entity) WithTitle(title string) *Entity {
+	e.mutex.Lock()
 	e.title = title
+	e.mutex.Unlock()
 	return e
 }
 
 // WithDescription adds an optional description to the Entity.
 func (e *Entity) WithDescription(desc string) *Entity {
+	e.mutex.Lock()
 	e.description = desc
+	e.mutex.Unlock()
 	return e
 }
 
 // WithTags annotates the Entity with the given tags.
 func (e *Entity) WithTags(tags ...string) *Entity {
+	e.mutex.Lock()
 	for i := range tags {
 		e.tags[tags[i]] = struct{}{}
 	}
+	e.mutex.Unlock()
+	return e
+}
+
+// WithAudit adds the audit details for the Entity.
+func (e *Entity) WithAudit(created time.Time, createdBy string, updated time.Time, updatedBy string) *Entity {
+	e.mutex.Lock()
+	e.Audit.created = created
+	e.Audit.createdBy = createdBy
+	e.Audit.updated = updated
+	e.Audit.updatedBy = updatedBy
+	e.mutex.Unlock()
 	return e
 }
 
 // UID returns the unique identifier (Type() + ID()) for the Entity.
 func (e *Entity) UID() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.uid
 }
 
 // Type returns the type of Entity.
 func (e *Entity) Type() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.ns
 }
 
 // ID returns the identifier for the Entity.
 func (e *Entity) ID() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.id
 }
 
 // Title returns the title for the Entity.
 func (e *Entity) Title() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.title
 }
 
 // Description returns the description for the Entity.
 func (e *Entity) Description() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.description
 }
 
 // Attributes returns the attributes for the Entity.
 func (e *Entity) Attributes() *AttributeSet {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.attrs
 }
 
 // Parents returns the unique parents for the Entity.
 func (e *Entity) Parents() []string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return e.parents
 }
 
 // Tags returns the tags for the Entity.
 func (e *Entity) Tags() []string {
+	e.mutex.RLock()
 	tags := make([]string, 0, len(e.tags))
 	for k := range e.tags {
 		tags = append(tags, k)
 	}
+	e.mutex.RUnlock()
+
 	slices.Sort(tags)
 	return tags
 }
 
 // HasTag returns true if the Entity is annotated with the given tag.
 func (e *Entity) HasTag(tag string) bool {
+	e.mutex.RLock()
 	_, ok := e.tags[tag]
+	e.mutex.RUnlock()
 	return ok
 }
 
 // MarshalJSON implements the json.Marshaler interface.
 func (e *Entity) MarshalJSON() ([]byte, error) {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
 	return json.Marshal(marshalEntity{
 		Type:        e.ns,
 		ID:          e.id,
@@ -132,6 +185,9 @@ func (e *Entity) MarshalJSON() ([]byte, error) {
 
 // MarshalYAML implements the yaml.Marshaler interface.
 func (e *Entity) MarshalYAML() ([]byte, error) {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
 	return yaml.Marshal(marshalEntity{
 		Type:        e.ns,
 		ID:          e.id,
@@ -145,6 +201,8 @@ func (e *Entity) MarshalYAML() ([]byte, error) {
 
 // EntityToAttribute can be used to convert an entity into an attribute.
 func EntityToAttribute(e *Entity) *Attribute {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
 	return NewAttributeWithType(e.UID(), mapFromEntity(e), "xsd:object")
 }
 
@@ -182,6 +240,9 @@ func EntityFromOAS(in *attributes.Entity) *Entity {
 
 // ToOAS converts the Attribute to an OAS model.
 func (e *Entity) ToOAS() *attributes.Entity {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
 	return &attributes.Entity{
 		Type:       e.ns,
 		Id:         e.id,
@@ -196,6 +257,9 @@ func (e *Entity) ToOAS() *attributes.Entity {
 
 // ToBundle converts the Attribute to an OAS model for bundling.
 func (e *Entity) ToBundle() *attributes.Entity {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
 	return &attributes.Entity{
 		Type:       e.ns,
 		Id:         e.id,

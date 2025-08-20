@@ -23,19 +23,18 @@ type PAP struct {
 	language      string
 	ctx           context.Context
 	logger        *slog.Logger
-	watcher       *fsnotify.Watcher
-	wTimer        *time.Timer
-	updates       map[string]struct{}
-	deletes       map[string]struct{}
-	eventSinks    []models.EventSink
+	policyDB      PolicyPersister
+	policyWatcher *fsnotify.Watcher
+	policyTimer   *time.Timer
+	policyUpdates map[string]struct{}
+	policyDeletes map[string]struct{}
+	bundleDB      *bundles.Persistence
 	kvStore       store.Store
-	kvDB          *KeyValueDB
-	postgresDB    *PostgresDB
 	migrateSource string
 	migrateDB     string
 	migrateAuto   bool
 	migrateSteps  int
-	deployer      *bundles.Persistence
+	eventSinks    []models.EventSink
 	eventMutex    sync.RWMutex
 	deployMutex   sync.RWMutex
 }
@@ -57,12 +56,12 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 	}
 
 	p := &PAP{
-		ctx:        ctx,
-		logger:     logger,
-		watcher:    w,
-		updates:    make(map[string]struct{}),
-		deletes:    make(map[string]struct{}),
-		eventSinks: make([]models.EventSink, 0),
+		ctx:           ctx,
+		logger:        logger,
+		policyWatcher: w,
+		policyUpdates: make(map[string]struct{}),
+		policyDeletes: make(map[string]struct{}),
+		eventSinks:    make([]models.EventSink, 0),
 	}
 
 	for i := range options {
@@ -70,7 +69,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 	}
 
 	haveStore := p.policyStore != "" && p.policyStore != "/"
-	persist := p.kvStore != nil || p.postgresDB != nil
+	persist := p.policyDB != nil
 
 	if persist && p.migrateSource != "" && p.migrateDB != "" && (p.migrateAuto || p.migrateSteps != 0) {
 		// persistence and migration configured: run the migration.
@@ -94,7 +93,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 		if haveStore {
 			args = append(args, "policyStore", p.policyStore, "recurse", p.recurse)
 		}
-		if persist {
+		if persist && p.kvStore == nil {
 			args = append(args, "persistence", true)
 		}
 		p.logger.Info("pap initialized", args...)

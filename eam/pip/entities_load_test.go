@@ -91,7 +91,8 @@ func TestLoadEntityMap(t *testing.T) {
 			require.Zero(t, h.Count())
 
 			tc.want.IterateEntities(func(e1 *models.Entity) {
-				e2 := p.GetEntity(e1.UID())
+				e2, _, err2 := p.GetEntity(e1.UID())
+				require.NoError(t, err2)
 				assert.True(t, e1.Equals(e2))
 			})
 
@@ -171,7 +172,8 @@ func TestLoadEntitiesAny(t *testing.T) {
 			require.Zero(t, h.Count())
 
 			tc.want.IterateEntities(func(e1 *models.Entity) {
-				e2 := p1.GetEntity(e1.UID())
+				e2, _, err2 := p1.GetEntity(e1.UID())
+				require.NoError(t, err2)
 				assert.True(t, e1.Equals(e2))
 			})
 
@@ -295,7 +297,8 @@ func TestLoadEntities(t *testing.T) {
 
 			if tc.wantLog == 0 {
 				tc.want.IterateEntities(func(e1 *models.Entity) {
-					e2 := p.GetEntity(e1.UID())
+					e2, _, err2 := p.GetEntity(e1.UID())
+					require.NoError(t, err2)
 					require.NotNil(t, e2)
 					assert.True(t, e1.Equals(e2))
 				})

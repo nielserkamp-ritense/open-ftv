@@ -1,0 +1,8 @@
+BEGIN;
+
+ALTER TABLE entity DROP COLUMN value;
+ALTER TABLE entity DROP COLUMN original;
+ALTER TABLE entity DROP COLUMN content;
+ALTER TABLE entity ADD COLUMN attributes BYTEA;
+
+COMMIT;

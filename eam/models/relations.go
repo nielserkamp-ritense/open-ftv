@@ -38,10 +38,11 @@ func NewRelationSet(entities *EntitySet, in ...any) *RelationSet {
 }
 
 // AddRelation adds or updates a Relation in the RelationSet.
-func (s *RelationSet) AddRelation(r *Relation) {
+func (s *RelationSet) AddRelation(r *Relation) (*Relation, error) {
 	s.mutex.Lock()
 	s.set[r.UID()] = r
 	s.mutex.Unlock()
+	return r, nil
 }
 
 // AddRelationFromUID adds or updates a Relation in the RelationSet using the given UIDs.

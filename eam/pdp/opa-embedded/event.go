@@ -18,13 +18,13 @@ func (c *controller) Handle(event models.EventType, key string) {
 			return
 		}
 
-		f, _, err := c.PAP.Read(id)
-		if err != nil {
+		policy, _, err := c.PAP.Read(id)
+		if err != nil || policy == nil {
 			c.Logger.Error("failed to get policy", "controller", c.String(), "policy-id", id, "error", err)
 			return
 		}
 
-		d, _ := io.ReadAll(f.Content())
+		d, _ := io.ReadAll(policy.Content())
 
 		c.pdpMutex.Lock()
 		defer c.pdpMutex.Unlock()

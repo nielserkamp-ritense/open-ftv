@@ -35,12 +35,10 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	resp := make([]*oas.Entity, 0, 32)
 	h.cache.IterateEntities(func(e *models.Entity) {
@@ -55,19 +53,20 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	var ns, id string
 	if ns, id, ok, err = h.checkUID(req); !ok {
 		return err
 	}
 
-	e := h.cache.GetEntity(models.EntityUID(ns, id))
+	e, _, err2 := h.cache.GetEntity(models.EntityUID(ns, id))
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
 	if e == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
@@ -84,8 +83,6 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var ns, id string
 	if ns, id, ok, err = h.checkUID(req); !ok {
 		return err
@@ -98,12 +95,17 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 	e2 := models.EntityFromOAS(e1)
 
-	value := h.cache.GetEntity(e2.UID())
-	if value != nil && !req.QueryBool("forceUpsert") {
+	prev, _, err2 := h.cache.GetEntity(e2.UID())
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+	if prev != nil && !req.QueryBool("forceUpsert") {
 		return server.SendMessageResponse(req, fiber.StatusConflict, entityExists)
 	}
 
-	h.cache.AddEntity(e2)
+	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
 	return req.Status(fiber.StatusCreated).JSON(e2.ToOAS())
 }
 
@@ -117,8 +119,6 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var ns, id string
 	if ns, id, ok, err = h.checkUID(req); !ok {
 		return err
@@ -131,12 +131,18 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 	e2 := models.EntityFromOAS(e1)
 
-	e3 := h.cache.GetEntity(e2.UID())
-	if e3 == nil && !req.QueryBool("forceUpsert") {
+	prev, _, err2 := h.cache.GetEntity(e2.UID())
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+
+	if prev == nil && !req.QueryBool("forceUpsert") {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
 	}
 
-	h.cache.AddEntity(e2)
+	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
 	return req.JSON(e2.ToOAS())
 }
 
@@ -150,8 +156,6 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var ns, id string
 	if ns, id, ok, err = h.checkUID(req); !ok {
 		return err
@@ -159,17 +163,22 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 	uid := models.EntityUID(ns, id)
 
-	e := h.cache.GetEntity(uid)
-	if e == nil && !req.QueryBool("ignoreMissing") {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+	prev, _, err2 := h.cache.GetEntity(uid)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+	if prev == nil {
+		if !req.QueryBool("ignoreMissing") {
+			return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		} else {
+			return req.JSON(models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
+		}
 	}
 
-	if e == nil {
-		e = models.NewEntity(ns, id, models.NewAttributeSet())
+	if prev, err2 = h.cache.RemoveEntity(uid, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}
-
-	h.cache.RemoveEntity(uid)
-	return req.JSON(e.ToOAS())
+	return req.JSON(prev.ToOAS())
 }
 
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {

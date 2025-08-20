@@ -35,12 +35,10 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	resp := make([]*oas.Attribute, 0, 32)
 	h.cache.IterateAttributes(func(attr *models.Attribute) {
@@ -55,19 +53,21 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	var key string
 	if key, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
-	a := h.cache.GetAttribute(key)
+	a, _, err2 := h.cache.GetAttribute(key)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+
 	if a == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
@@ -84,25 +84,29 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var key string
 	if key, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
-	var p *oas.Attribute
-	if p, ok, err = h.checkBody(req, key); !ok || err != nil {
+	var a *oas.Attribute
+	if a, ok, err = h.checkBody(req, key); !ok || err != nil {
 		return err
 	}
 
-	value := h.cache.GetAttribute(p.Key)
-	if value != nil && !req.QueryBool("forceUpsert") {
+	a2, _, err2 := h.cache.GetAttribute(a.Key)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+
+	if a2 != nil && !req.QueryBool("forceUpsert") {
 		return server.SendMessageResponse(req, fiber.StatusConflict, attrExists)
 	}
 
-	a, _ := h.cache.AddAttributeFromOAS(p)
-	return req.Status(fiber.StatusCreated).JSON(a.ToOAS())
+	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+	return req.Status(fiber.StatusCreated).JSON(a2.ToOAS())
 }
 
 // PutAttribute implements the AttributesHandler interface.
@@ -115,26 +119,30 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var key string
 	key, ok, err = h.checkKey(req)
 	if !ok {
 		return err
 	}
 
-	var p *oas.Attribute
-	if p, ok, err = h.checkBody(req, key); !ok || err != nil {
+	var a *oas.Attribute
+	if a, ok, err = h.checkBody(req, key); !ok || err != nil {
 		return err
 	}
 
-	value := h.cache.GetAttribute(p.Key)
-	if value == nil && !req.QueryBool("forceUpsert") {
+	a2, _, err2 := h.cache.GetAttribute(a.Key)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+
+	if a2 == nil && !req.QueryBool("forceUpsert") {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
-	a, _ := h.cache.AddAttributeFromOAS(p)
-	return req.JSON(a.ToOAS())
+	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+	return req.JSON(a2.ToOAS())
 }
 
 // DeleteAttribute implements the AttributesHandler interface.
@@ -147,20 +155,24 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var key string
 	if key, ok, err = h.checkKey(req); !ok {
 		return err
 	}
 
-	value := h.cache.GetAttribute(key)
-	if value == nil && !req.QueryBool("ignoreMissing") {
+	a2, _, err2 := h.cache.GetAttribute(key)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+
+	if a2 == nil && !req.QueryBool("ignoreMissing") {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, attrNotFound)
 	}
 
-	a, _ := h.cache.RemoveAttribute(key)
-	return req.JSON(a.ToOAS())
+	if a2, err2 = h.cache.RemoveAttribute(key, user); err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+	}
+	return req.JSON(a2.ToOAS())
 }
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {

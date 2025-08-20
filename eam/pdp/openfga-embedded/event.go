@@ -23,8 +23,8 @@ func (c *controller) Handle(t models.EventType, key string) {
 			return
 		}
 
-		f, _, err := c.PAP.Read(id)
-		if err != nil {
+		r, _, err := c.PAP.Read(id)
+		if err != nil || r == nil {
 			c.Logger.Error("failed to get file", "controller", c.String(), "policy-id", id, "error", err)
 			return
 		}
@@ -37,9 +37,9 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 		switch ext {
 		case ".mdl", ".model":
-			c.addModel(store, f.Content())
+			c.addModel(store, r.Content())
 		case ".rel", ".relations":
-			c.addRelations(store, f.Content())
+			c.addRelations(store, r.Content())
 		}
 
 	case models.PolicyRemoved:

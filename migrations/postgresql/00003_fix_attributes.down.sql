@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE attribute ADD COLUMN content TEXT;
+
+COMMIT;
