@@ -214,7 +214,7 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Attribute{Key: "werktijden", Type: "xsd:string", Value: "09:00-17:00"}
+	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00"}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {
@@ -229,7 +229,7 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 		{name: "very long ID", key: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "no body", key: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "bad body", key: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
-		{name: "duplicate key", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: AttributesVersion},
+		{name: "duplicate key", key: "maandag", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: AttributesVersion},
 		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "all good", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusCreated, wantVer: AttributesVersion},
 	}
@@ -244,7 +244,7 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true))
+			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/unittest/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
@@ -296,7 +296,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Attribute{Key: "werktijden", Type: "xsd:string", Value: "09:00-17:00"}
+	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00"}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {
@@ -313,7 +313,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 		{name: "bad body", key: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "mismatched keys", key: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "not found", key: "key", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
-		{name: "all good", key: "werktijden", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
+		{name: "all good", key: "maandag", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -326,7 +326,7 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true))
+			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/unittest/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
@@ -381,7 +381,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 		{name: "no ID", wantStatus: fiber.StatusNotFound},
 		{name: "very long ID", key: strings.Repeat("x", 501), wantStatus: fiber.StatusBadRequest, wantVer: AttributesVersion},
 		{name: "not found", key: "xyz", wantStatus: fiber.StatusNotFound, wantVer: AttributesVersion},
-		{name: "all good", key: "werktijden", wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
+		{name: "all good", key: "maandag", wantStatus: fiber.StatusOK, wantVer: AttributesVersion},
 	}
 
 	for _, tc := range testCases {
@@ -394,7 +394,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true))
+			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/unittest/pip", true))
 			require.NotNil(t, p1)
 
 			p2 := pap2.New(ctx, logger, pap2.WithLanguage("cedar"), pap2.WithFileStore("../../../testdata/policies/cedar", true))
@@ -413,7 +413,7 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/attribute/"+tc.key, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req, 60000)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

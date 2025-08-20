@@ -59,9 +59,18 @@ func TestProcessRelation(t *testing.T) {
 			logger := slog.New(h)
 
 			ent := models.NewEntitySet()
-			rel := models.NewRelationSet(ent)
+			addE := func(in *models.Entity) (*models.Entity, error) {
+				ent.AddEntity(in)
+				return in, nil
+			}
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
+			rel := models.NewRelationSet(ent)
+			addR := func(in *models.Relation) (*models.Relation, error) {
+				rel.AddRelation(in)
+				return in, nil
+			}
+
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: addE, addRelation: addR}}
 			r.processRelation(tc.sType, tc.sID, tc.pType, tc.pID, tc.oType, tc.oID, tc.obj)
 
 			if tc.wantCount > 0 {
@@ -193,9 +202,18 @@ func TestDecodeRelationMap(t *testing.T) {
 			logger := slog.New(h)
 
 			ent := models.NewEntitySet()
-			rel := models.NewRelationSet(ent)
+			addE := func(in *models.Entity) (*models.Entity, error) {
+				ent.AddEntity(in)
+				return in, nil
+			}
 
-			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: ent.AddEntity, addRelation: rel.AddRelation}}
+			rel := models.NewRelationSet(ent)
+			addR := func(in *models.Relation) (*models.Relation, error) {
+				rel.AddRelation(in)
+				return in, nil
+			}
+
+			r := &runner{logger: logger, manager: &manager{logger: logger, addEntity: addE, addRelation: addR}}
 			r.decodeRelationMap(tc.m, tc.obj)
 
 			if tc.wantCount > 0 {

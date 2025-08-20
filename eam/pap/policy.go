@@ -6,15 +6,8 @@ import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 //
 // An error is returned if the policy-id already exists.
 func (p *PAP) Create(in *models.Policy, user string) (out *models.Policy, err error) {
-	switch {
-	case p.kvDB != nil:
-		if out, err = p.kvDB.CreatePolicy(p.ctx, user, in); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyAdded, out.Key())
-		}
-	case p.postgresDB != nil:
-		if out, err = p.postgresDB.CreatePolicy(p.ctx, user, in); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyAdded, out.Key())
-		}
+	if out, err = p.policyDB.CreatePolicy(p.ctx, user, in); err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyAdded, out.Key())
 	}
 	return
 }
@@ -23,28 +16,15 @@ func (p *PAP) Create(in *models.Policy, user string) (out *models.Policy, err er
 //
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Read(id string) (out *models.Policy, lastIndex uint64, err error) {
-	switch {
-	case p.kvDB != nil:
-		out, lastIndex, err = p.kvDB.ReadPolicy(p.ctx, id)
-	case p.postgresDB != nil:
-		out, lastIndex, err = p.postgresDB.ReadPolicy(p.ctx, id)
-	}
-	return
+	return p.policyDB.ReadPolicy(p.ctx, id)
 }
 
 // Update modifies a policy in cache/storage with a newer version.
 //
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, user string) (out *models.Policy, err error) {
-	switch {
-	case p.kvDB != nil:
-		if out, err = p.kvDB.UpdatePolicy(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyReplaced, out.Key())
-		}
-	case p.postgresDB != nil:
-		if out, err = p.postgresDB.UpdatePolicy(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyReplaced, out.Key())
-		}
+	if out, err = p.policyDB.UpdatePolicy(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyReplaced, out.Key())
 	}
 	return
 }
@@ -53,15 +33,8 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, u
 //
 // An error is returned if the policy key doesn't exist.
 func (p *PAP) Delete(prev *models.Policy, lastIndex uint64, user string) (out *models.Policy, err error) {
-	switch {
-	case p.kvDB != nil:
-		if out, err = p.kvDB.DeletePolicy(p.ctx, user, prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyRemoved, out.Key())
-		}
-	case p.postgresDB != nil:
-		if out, err = p.postgresDB.DeletePolicy(p.ctx, user, prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
-			p.sendEvent(models.PolicyRemoved, out.Key())
-		}
+	if out, err = p.policyDB.DeletePolicy(p.ctx, user, prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.PolicyRemoved, out.Key())
 	}
 	return
 }
@@ -96,13 +69,7 @@ func (p *PAP) ReplaceAll(list []*models.Policy, user string) error {
 // the function lists all policies with that language.
 // Otherwise, all policies, regardless of language, will be listed.
 func (p *PAP) List(language string) (out []*models.Policy, err error) {
-	switch {
-	case p.kvDB != nil:
-		out, err = p.kvDB.ListPolicies(p.ctx, language)
-	case p.postgresDB != nil:
-		out, err = p.postgresDB.ListPolicies(p.ctx, language)
-	}
-	return
+	return p.policyDB.ListPolicies(p.ctx, language)
 }
 
 // Iterate calls the given closure for all policies in the store.

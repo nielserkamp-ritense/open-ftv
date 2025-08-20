@@ -250,9 +250,9 @@ func TestWatchAttributeFiles(t *testing.T) {
 			require.NoError(t, err)
 
 			s := memory.New()
-			ap := NewAttributeStore(ctx, s, "attribute")
+			ap := NewAttributeStore(s, "attribute")
 
-			p := &PIP{ctx: ctx, attributeWatcher: w, store: s, attributePersist: ap}
+			p := &PIP{ctx: ctx, attributeWatcher: w, kvStore: s, attributeDB: ap}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(2)

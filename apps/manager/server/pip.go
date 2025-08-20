@@ -10,9 +10,12 @@ import (
 func (s *service) newPIP() *pip.PIP {
 	var opts []pip.Option
 
-	if s.store != nil {
+	switch {
+	case s.db != nil:
+		opts = append(opts, pip.WithPostgresDB(pip.NewPostgresWithPool(s.db)))
+	case s.store != nil:
 		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Persist.Base, pip.PathSeparator), "data", pip.PathSeparator)
-		opts = append(opts, pip.WithPersistence(s.store, base))
+		opts = append(opts, pip.WithKeyValueDB(s.store, base))
 	}
 
 	return pip.New(s.ctx, s.logger, opts...)

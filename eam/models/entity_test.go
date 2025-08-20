@@ -3,6 +3,7 @@ package models
 import (
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -179,6 +180,42 @@ func TestEntity_WithTags(t *testing.T) {
 			}
 
 			assert.False(t, got.HasTag("qqq"))
+		})
+	}
+}
+
+func TestEntity_WithAudit(t *testing.T) {
+	t.Parallel()
+
+	now1 := time.Now().UTC()
+	now2 := now1.Add(-13 * time.Hour)
+
+	testCases := []struct {
+		name  string
+		tp    string
+		id    string
+		time1 time.Time
+		user1 string
+		time2 time.Time
+		user2 string
+	}{
+		{name: "created", tp: "user", id: "jimmy", user1: "bob", time1: now1},
+		{name: "updated", tp: "action", id: "read", user2: "charlie", time2: now1},
+		{name: "both", tp: "resource", id: "book1", user1: "alice", time1: now2, user2: "charlie", time2: now1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := NewEntity(tc.tp, tc.id, NewAttributeSet())
+			require.NotNil(t, got)
+
+			got.WithAudit(tc.time1, tc.user1, tc.time2, tc.user2)
+			assert.EqualValues(t, tc.time1, got.Created())
+			assert.EqualValues(t, tc.user1, got.CreatedBy())
+			assert.EqualValues(t, tc.time2, got.Updated())
+			assert.EqualValues(t, tc.user2, got.UpdatedBy())
 		})
 	}
 }

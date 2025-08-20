@@ -45,7 +45,7 @@ func (b *Base) processAttributes(bundle *bundles.Bundle) {
 		list.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 	}
 
-	b.PIP.ReplaceAllAttributes(list)
+	b.PIP.ReplaceAllAttributes(list, "*BUNDLE*")
 }
 
 func (b *Base) processEntities(bundle *bundles.Bundle) {
@@ -59,7 +59,7 @@ func (b *Base) processEntities(bundle *bundles.Bundle) {
 		list.AddEntity(models.NewEntity(e.Type, e.Id, attr))
 	}
 
-	b.PIP.ReplaceAllEntities(list)
+	b.PIP.ReplaceAllEntities(list, "*BUNDLE*")
 }
 
 func (b *Base) processRelations(_ *bundles.Bundle) {

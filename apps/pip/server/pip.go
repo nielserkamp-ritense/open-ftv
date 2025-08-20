@@ -2,22 +2,32 @@ package server
 
 import (
 	"fmt"
+	"strings"
 
-	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
-func (s *service) newPIP() (*pip2.PIP, error) {
-	opts := make([]pip2.Option, 0)
+func (s *service) newPIP() (*pip.PIP, error) {
+	opts := make([]pip.Option, 0)
+	isPG := strings.EqualFold(s.cfg.Persist.Type, "postgres")
 
-	if s.cfg.Persist.Type != "" {
+	switch {
+	case isPG:
+		db, err := pip.NewPostgresDB(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect postgres backend: %w", err)
+		}
+		opts = append(opts, pip.WithPostgresDB(db))
+
+	case s.cfg.Persist.Type != "":
 		store, err := s.cfg.Persist.NewStore(s.ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create persistence store: %w", err)
 		}
 		if store != nil {
-			opts = append(opts, pip2.WithPersistence(store, s.cfg.Persist.Base))
+			opts = append(opts, pip.WithKeyValueDB(store, s.cfg.Persist.Base))
 		}
 	}
 
-	return pip2.New(s.ctx, s.logger, opts...), nil
+	return pip.New(s.ctx, s.logger, opts...), nil
 }

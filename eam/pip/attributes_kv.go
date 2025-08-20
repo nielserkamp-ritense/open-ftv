@@ -15,15 +15,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-// AttributePersistence represents the interface to manage persistent storage for attributes.
-type AttributePersistence interface {
-	Create(*models.Attribute) (*models.Attribute, error)
-	Read(string) (*models.Attribute, uint64, error)
-	Update(*models.Attribute, uint64, *models.Attribute) (*models.Attribute, error)
-	Delete(*models.Attribute, uint64) (*models.Attribute, error)
-	List() ([]*models.Attribute, error)
-}
-
 // NewAttributeStore instantiates a new persistent storage handler for attributes.
 //
 // It creates a CRUD wrapper around the given Valkeyrie Store interface.
@@ -36,33 +27,38 @@ type AttributePersistence interface {
 // A trailing pathSeparator character in basePath is automatically appended if it is missing from the input.
 //
 // The given context is passed in every call to the KV backend.
-func NewAttributeStore(ctx context.Context, client store.Store, basePath string) AttributePersistence {
-	return &attributeStore{wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
+func NewAttributeStore(client store.Store, basePath string) AttributePersister {
+	return &attributeStore{kvWrapper{client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
 }
 
-// Create implements the AttributePersistence interface.
-func (s *attributeStore) Create(a *models.Attribute) (*models.Attribute, error) {
+// CreateAttribute implements the AttributePersister interface.
+func (s *attributeStore) CreateAttribute(ctx context.Context, _ string, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(a.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalAttribute(a), nil, writeOptions); err != nil {
+	if _, _, err := s.client.AtomicPut(ctx, key, marshalAttribute(a), nil, writeOptions); err != nil {
 		return nil, s.failure("create", a.Key(), err, false)
 	}
 	return a, nil
 }
 
-// Read implements the AttributePersistence interface.
-func (s *attributeStore) Read(id string) (*models.Attribute, uint64, error) {
+// ReadAttribute implements the AttributePersister interface.
+func (s *attributeStore) ReadAttribute(ctx context.Context, id string) (*models.Attribute, uint64, error) {
 	key := s.bugFix(s.makeKey(id))
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	kv, err := s.client.Get(s.ctx, key, readOptions)
-	if err != nil || kv == nil {
+	kv, err := s.client.Get(ctx, key, readOptions)
+	switch {
+	case errors.Is(err, store.ErrKeyNotFound):
+		return nil, 0, nil
+	case err != nil:
 		return nil, 0, s.failure("read", id, err, true)
+	case kv == nil:
+		return nil, 0, nil
 	}
 
 	a, err2 := unmarshalAttribute(kv.Value)
@@ -73,43 +69,43 @@ func (s *attributeStore) Read(id string) (*models.Attribute, uint64, error) {
 	return a, kv.LastIndex, nil
 }
 
-// Update implements the AttributePersistence interface.
-func (s *attributeStore) Update(prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
+// UpdateAttribute implements the AttributePersister interface.
+func (s *attributeStore) UpdateAttribute(ctx context.Context, _ string, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	kv := store.KVPair{Key: key, Value: marshalAttribute(prev), LastIndex: lastIndex}
-	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalAttribute(a), &kv, writeOptions); err != nil {
+	if _, _, err := s.client.AtomicPut(ctx, key, marshalAttribute(a), &kv, writeOptions); err != nil {
 		return nil, s.failure("update", prev.Key(), err, true)
 	}
 	return a, nil
 }
 
-// Delete implements the AttributePersistence interface.
-func (s *attributeStore) Delete(prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
+// DeleteAttribute implements the AttributePersister interface.
+func (s *attributeStore) DeleteAttribute(ctx context.Context, _ string, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	kv := store.KVPair{Key: key, Value: marshalAttribute(prev), LastIndex: lastIndex}
-	if _, err := s.client.AtomicDelete(s.ctx, key, &kv); err != nil {
+	if _, err := s.client.AtomicDelete(ctx, key, &kv); err != nil {
 		return nil, s.failure("delete", prev.Key(), err, true)
 	}
 
 	return prev, nil
 }
 
-// List implements the AttributePersistence interface.
-func (s *attributeStore) List() ([]*models.Attribute, error) {
+// ListAttributes implements the AttributePersister interface.
+func (s *attributeStore) ListAttributes(ctx context.Context) ([]*models.Attribute, error) {
 	key := s.bugFix(s.basePath)
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	list, err := s.client.List(s.ctx, key, readOptions)
+	list, err := s.client.List(ctx, key, readOptions)
 	if err != nil || len(list) == 0 {
 		if errors.Is(err, store.ErrKeyNotFound) {
 			return nil, nil
@@ -219,7 +215,7 @@ func (s *attributeStore) failure(op, id string, err error, mustFind bool) error 
 }
 
 type attributeStore struct {
-	wrapper
+	kvWrapper
 }
 
 type attribute struct {

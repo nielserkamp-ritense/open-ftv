@@ -29,8 +29,8 @@ func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 
 	if d.IsDir() {
 		if p.recurse || path == p.policyStore {
-			if p.watcher != nil {
-				_ = p.watcher.Add(path)
+			if p.policyWatcher != nil {
+				_ = p.policyWatcher.Add(path)
 			}
 			return nil
 		}

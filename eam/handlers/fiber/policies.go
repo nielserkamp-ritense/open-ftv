@@ -23,11 +23,11 @@ const PoliciesVersion = "1.6.0" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
-	GetPolicies(req *fiber.Ctx) error
-	GetPolicy(req *fiber.Ctx) error
-	PostPolicy(req *fiber.Ctx) error
-	PutPolicy(req *fiber.Ctx) error
-	DeletePolicy(req *fiber.Ctx) error
+	GetPolicies(req *fiber.Ctx) error  // retrieve all policies.
+	GetPolicy(req *fiber.Ctx) error    // retrieve a single policy.
+	PostPolicy(req *fiber.Ctx) error   // create a new policy.
+	PutPolicy(req *fiber.Ctx) error    // update an existing policy.
+	DeletePolicy(req *fiber.Ctx) error // remove an existing policy.
 }
 
 // NewPoliciesHandler instantiates a policy handler.
@@ -40,12 +40,10 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	list, err2 := h.cache.List("")
 	if err2 != nil {
@@ -64,12 +62,10 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	var id string
 	if id, ok, err = h.checkKey(req); !ok {
@@ -78,7 +74,11 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 
 	pol, _, err2 := h.cache.Read(id)
 	if err2 != nil {
-		return h.error(req, fiber.StatusNotFound, err2)
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if pol == nil {
+		return h.error(req, fiber.StatusNotFound, errors.New(polNotFound))
 	}
 	return req.JSON(pol.ToOAS(true))
 }
@@ -98,36 +98,32 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	upsert := req.QueryBool("forceUpsert")
-
 	var p *oas.Policy
 	if p, ok, err = h.checkBody(req, id); !ok {
 		return err
 	}
 
-	var pol *models.Policy
-	if pol, ok, err = h.buildPolicy(req, p); !ok {
+	var p2 *models.Policy
+	if p2, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
 
-	if upsert {
-		// for upsert we check if the policy exists.
-		// if it exists, we replace it, otherwise we add it.
-		if prev, lastIndex, err2 := h.cache.Read(p.Id); err2 == nil && prev != nil {
-			pol2, err3 := h.cache.Update(prev, lastIndex, pol, user)
-			if err3 != nil {
-				return h.error(req, fiber.StatusNotFound, err3)
-			}
-			return req.JSON(pol2.ToOAS(true))
-		}
+	prev, lastIndex, err2 := h.cache.Read(p.Id)
+	switch {
+	case err2 != nil:
+		// no-op
+	case prev != nil && !req.QueryBool("forceUpsert"):
+		return h.error(req, fiber.StatusConflict, errors.New(polExists))
+	case prev != nil:
+		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
+	default:
+		p2, err2 = h.cache.Create(p2, user)
 	}
 
-	pol2, err2 := h.cache.Create(pol, user)
 	if err2 != nil {
-		return h.error(req, fiber.StatusConflict, err2)
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-
-	return req.Status(fiber.StatusCreated).JSON(pol2.ToOAS(true))
+	return req.Status(fiber.StatusCreated).JSON(p2.ToOAS(true))
 }
 
 // PutPolicy implements the PoliciesHandler interface.
@@ -140,50 +136,37 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var id string
 	if id, ok, err = h.checkKey(req); !ok {
 		return err
 	}
-
-	upsert := req.QueryBool("forceUpsert")
 
 	var p *oas.Policy
 	if p, ok, err = h.checkBody(req, id); !ok {
 		return err
 	}
 
-	var pol *models.Policy
-	if pol, ok, err = h.buildPolicy(req, p); !ok {
+	var p2 *models.Policy
+	if p2, ok, err = h.buildPolicy(req, p); !ok {
 		return err
 	}
 
 	prev, lastIndex, err2 := h.cache.Read(p.Id)
-	if err2 != nil || prev == nil {
-		switch {
-		case upsert:
-			// for upsert we check if the policy exists.
-			// if it doesn't exist, we add it, otherwise we replace it.
-			pol2, err3 := h.cache.Create(pol, user)
-			if err3 != nil {
-				return h.error(req, fiber.StatusConflict, err3)
-			}
-			return req.JSON(pol2.ToOAS(true))
-
-		case err2 != nil:
-			return h.error(req, fiber.StatusNotFound, err2)
-
-		default:
-			return h.error(req, fiber.StatusNotFound, errors.New("not found"))
-		}
+	switch {
+	case err2 != nil:
+		// no-op
+	case prev == nil && !req.QueryBool("forceUpsert"):
+		return server.SendMessageResponse(req, fiber.StatusNotFound, polNotFound)
+	case prev == nil:
+		p2, err2 = h.cache.Create(p2, user)
+	default:
+		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
 	}
 
-	pol2, err3 := h.cache.Update(prev, lastIndex, pol, user)
-	if err3 != nil {
-		return h.error(req, fiber.StatusConflict, err3)
+	if err2 != nil {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}
-	return req.JSON(pol2.ToOAS(true))
+	return req.JSON(p2.ToOAS(true))
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
@@ -203,25 +186,24 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 		return err
 	}
 
-	ignore := req.QueryBool("ignoreMissing")
+	var p2 *models.Policy
 
 	prev, lastIndex, err2 := h.cache.Read(id)
-	if err2 != nil || prev == nil {
-		switch {
-		case ignore:
-			return req.JSON(&oas.Policy{Id: id})
-		case err2 != nil:
-			return h.error(req, fiber.StatusNotFound, err2)
-		default:
-			return h.error(req, fiber.StatusNotFound, errors.New("not found"))
-		}
+	switch {
+	case err2 != nil:
+		// no-op
+	case prev == nil && !req.QueryBool("ignoreMissing"):
+		return h.error(req, fiber.StatusNotFound, errors.New(polNotFound))
+	case prev == nil:
+		p2, err2 = models.NewPolicyFromData(id, "", "", "", &bytes.Buffer{})
+	default:
+		p2, err2 = h.cache.Delete(prev, lastIndex, user)
 	}
 
-	pol, err3 := h.cache.Delete(prev, lastIndex, user)
-	if err3 != nil {
-		return h.error(req, fiber.StatusNotFound, err3)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(pol.ToOAS(true))
+	return req.JSON(p2.ToOAS(true))
 }
 
 func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
@@ -337,3 +319,10 @@ type policiesHandler struct {
 	cache      *pap.PAP
 	authorizer authorization.Authorizer
 }
+
+const (
+	polNotFound    = "policy not found"
+	polExists      = "policy already exists"
+	polKeyError    = "policy id must be filled and less or equal 500 characters"
+	polKeyMismatch = "policy id mismatch"
+)

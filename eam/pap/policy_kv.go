@@ -47,7 +47,7 @@ func (s *KeyValueDB) CreatePolicy(ctx context.Context, _ string, p *models.Polic
 	defer s.mutex.Unlock()
 
 	if _, _, err := s.client.AtomicPut(ctx, key, s.mustMarshal(p), nil, writeOptions); err != nil {
-		return s.failure("create", p.ID(), err, false)
+		return nil, s.failure("create", p.ID(), err, false)
 	}
 	return p, nil
 }
@@ -60,15 +60,18 @@ func (s *KeyValueDB) ReadPolicy(ctx context.Context, id string) (*models.Policy,
 	defer s.mutex.RUnlock()
 
 	kv, err := s.client.Get(ctx, key, readOptions)
-	if err != nil || kv == nil {
-		p, err2 := s.failure("read", id, err, true)
-		return p, 0, err2
+	switch {
+	case errors.Is(err, store.ErrKeyNotFound):
+		return nil, 0, nil
+	case err != nil:
+		return nil, 0, s.failure("read", id, err, true)
+	case kv == nil:
+		return nil, 0, nil
 	}
 
 	p, err2 := s.unmarshal(id, kv)
 	if err2 != nil {
-		p, err2 = s.failure("read", id, err2, true)
-		return p, 0, err2
+		return nil, 0, s.failure("read", id, err2, true)
 	}
 
 	return p, kv.LastIndex, nil
@@ -83,7 +86,7 @@ func (s *KeyValueDB) UpdatePolicy(ctx context.Context, _ string, prev *models.Po
 
 	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev), LastIndex: lastIndex}
 	if _, _, err := s.client.AtomicPut(ctx, key, s.mustMarshal(p), &kv, writeOptions); err != nil {
-		return s.failure("update", prev.ID(), err, true)
+		return nil, s.failure("update", prev.ID(), err, true)
 	}
 	return p, nil
 }
@@ -97,7 +100,7 @@ func (s *KeyValueDB) DeletePolicy(ctx context.Context, _ string, prev *models.Po
 
 	kv := store.KVPair{Key: key, Value: s.mustMarshal(prev), LastIndex: lastIndex}
 	if _, err := s.client.AtomicDelete(ctx, key, &kv); err != nil {
-		return s.failure("delete", prev.ID(), err, true)
+		return nil, s.failure("delete", prev.ID(), err, true)
 	}
 
 	return prev, nil
@@ -146,19 +149,19 @@ func (s *KeyValueDB) mustMarshal(p *models.Policy) []byte {
 func (s *KeyValueDB) unmarshal(id string, kv *store.KVPair) (*models.Policy, error) {
 	p := new(models.Policy)
 	if err := json.Unmarshal(kv.Value, p); err != nil {
-		return s.failure("unmarshal", id, err, true)
+		return nil, s.failure("unmarshal", id, err, true)
 	}
 	return p, nil
 }
 
-func (s *KeyValueDB) failure(op, id string, err error, mustFind bool) (*models.Policy, error) {
+func (s *KeyValueDB) failure(op, id string, err error, mustFind bool) error {
 	if err != nil {
-		return nil, fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
+		return fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
 	}
 	if mustFind {
-		return nil, fmt.Errorf("policy '%s' not found", id)
+		return fmt.Errorf("policy '%s' not found", id)
 	}
-	return nil, fmt.Errorf("policy '%s' already exists", id)
+	return fmt.Errorf("policy '%s' already exists", id)
 }
 
 func (s *KeyValueDB) bugFix(in string) string {

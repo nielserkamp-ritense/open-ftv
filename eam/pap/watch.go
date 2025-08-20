@@ -10,32 +10,32 @@ import (
 )
 
 func (p *PAP) clearWatcher() {
-	if p.watcher == nil {
+	if p.policyWatcher == nil {
 		return
 	}
 
-	list := p.watcher.WatchList()
+	list := p.policyWatcher.WatchList()
 	for i := range list {
-		_ = p.watcher.Remove(list[i])
+		_ = p.policyWatcher.Remove(list[i])
 	}
 }
 
 func (p *PAP) watchFiles() {
-	p.wTimer = time.NewTimer(watchTimerInterval)
-	p.wTimer.Stop()
+	p.policyTimer = time.NewTimer(watchTimerInterval)
+	p.policyTimer.Stop()
 
 	for {
 		select {
 		case <-p.ctx.Done():
-			_ = p.watcher.Close()
-			p.watcher = nil
+			_ = p.policyWatcher.Close()
+			p.policyWatcher = nil
 			return
 
-		case e := <-p.watcher.Events:
+		case e := <-p.policyWatcher.Events:
 			// cache changes in a separate go-routine, so we keep the watcher-loop tight.
 			go p.policyModified(e)
 
-		case <-p.wTimer.C:
+		case <-p.policyTimer.C:
 			// perform actual changes in separate go-routines, so we keep the watcher-loop tight.
 			go p.processUpdates()
 			go p.processDeletes()
@@ -44,19 +44,19 @@ func (p *PAP) watchFiles() {
 }
 
 func (p *PAP) policyModified(e fsnotify.Event) {
-	if p.wTimer != nil {
-		p.wTimer.Reset(watchTimerInterval)
+	if p.policyTimer != nil {
+		p.policyTimer.Reset(watchTimerInterval)
 	}
 
 	switch e.Op {
 	case fsnotify.Remove:
 		p.deployMutex.Lock()
-		p.deletes[e.Name] = struct{}{}
+		p.policyDeletes[e.Name] = struct{}{}
 		p.deployMutex.Unlock()
 
 	default:
 		p.deployMutex.Lock()
-		p.updates[e.Name] = struct{}{}
+		p.policyUpdates[e.Name] = struct{}{}
 		p.deployMutex.Unlock()
 	}
 }
@@ -66,9 +66,9 @@ func (p *PAP) processUpdates() {
 		var path string
 
 		p.deployMutex.Lock()
-		for k := range p.updates {
+		for k := range p.policyUpdates {
 			path = k
-			delete(p.updates, k)
+			delete(p.policyUpdates, k)
 			break
 		}
 		p.deployMutex.Unlock()
@@ -96,7 +96,7 @@ func (p *PAP) processUpdate(path string) {
 		return
 	}
 
-	if prev, lastIndex, err3 := p.Read(pol.ID()); err3 == nil {
+	if prev, lastIndex, err3 := p.Read(pol.ID()); err3 == nil && prev != nil {
 		_, _ = p.Update(prev, lastIndex, pol, storageUser)
 	} else {
 		_, _ = p.Create(pol, storageUser)
@@ -108,9 +108,9 @@ func (p *PAP) processDeletes() {
 		var path string
 
 		p.deployMutex.Lock()
-		for k := range p.deletes {
+		for k := range p.policyDeletes {
 			path = k
-			delete(p.deletes, k)
+			delete(p.policyDeletes, k)
 			break
 		}
 		p.deployMutex.Unlock()
@@ -119,7 +119,7 @@ func (p *PAP) processDeletes() {
 			return
 		}
 
-		if prev, lastIndex, err := p.Read(path); err == nil {
+		if prev, lastIndex, err := p.Read(path); err == nil && prev != nil {
 			_, _ = p.Delete(prev, lastIndex, storageUser)
 		}
 	}

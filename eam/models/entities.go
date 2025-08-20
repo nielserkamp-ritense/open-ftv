@@ -42,10 +42,11 @@ func NewEntitySet(in ...any) *EntitySet {
 }
 
 // AddEntity adds or updates an Entity in the EntitySet.
-func (s *EntitySet) AddEntity(entity *Entity) {
+func (s *EntitySet) AddEntity(entity *Entity) (*Entity, error) {
 	s.mutex.Lock()
 	s.set[entity.UID()] = entity
 	s.mutex.Unlock()
+	return entity, nil
 }
 
 // GetEntity retrieves an Entity from the EntitySet with the given uid.

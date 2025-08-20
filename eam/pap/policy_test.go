@@ -224,7 +224,7 @@ func TestPAP_Remove(t *testing.T) {
 				assert.Equal(t, 1, e.deleted)
 
 				f, _, err4 := p.Read(tc.key)
-				require.Error(t, err4)
+				require.NoError(t, err4)
 				require.Nil(t, f)
 			}
 		})

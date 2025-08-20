@@ -18,7 +18,7 @@ func NewBCrypt(opts ...Option) Authenticator {
 
 // AuthenticateUser implements the Authenticator interface.
 func (a *bcryptAuth) AuthenticateUser(_ context.Context, user, pswd string) error {
-	u := a.getEntity("user::" + user)
+	u, _, _ := a.getEntity("user::" + user)
 	if u == nil {
 		return &ErrUnauthenticated{err: fmt.Errorf("user not found")}
 	}

@@ -13,23 +13,6 @@ import (
 // Option represents the function signature for options when creating a new PAP.
 type Option func(p *PIP)
 
-// WithFileStore adds a file storage location to the PIP.
-func WithFileStore(fileStore string, recurse bool) Option {
-	return func(p *PIP) {
-		if fileStore != "" {
-			if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
-				p.attrStore = as
-			}
-
-			if es, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(es) {
-				p.entityStore = es
-			}
-
-			p.recurse = recurse
-		}
-	}
-}
-
 // WithPullConfigs adds the path where pull configurations can be found.
 func WithPullConfigs(path string) Option {
 	return func(p *PIP) {
@@ -49,17 +32,46 @@ func WithPullConfigs(path string) Option {
 	}
 }
 
-// WithPersistence connects the PIP to persistent storage.
+// WithKeyValueDB connects the PIP to persistent storage.
 //
 // By default, a PIP is created with an in-memory key-value cache.
-func WithPersistence(store store.Store, basePath string) Option {
+func WithKeyValueDB(store store.Store, basePath string) Option {
 	return func(p *PIP) {
-		_ = p.store.Close()
-		p.store = store
+		if p.kvStore != nil {
+			_ = p.kvStore.Close()
+		}
+
+		p.kvStore = store
 
 		base := convert.ForceSuffix(basePath, "/")
-		p.attributePersist = NewAttributeStore(p.ctx, store, base+"attribute/")
-		p.entityPersist = NewEntityStore(p.ctx, store, base+"entity/")
+		p.attributeDB = NewAttributeStore(store, base+"attribute/")
+		p.entityDB = NewEntityStore(store, base+"entity/")
+	}
+}
+
+// WithPostgresDB connects the PAP to a persistent PostgreSQL backend.
+func WithPostgresDB(db *PostgresDB) Option {
+	return func(p *PIP) {
+		p.attributeDB = db
+		p.entityDB = db
+		// p.relationDB = db
+	}
+}
+
+// WithFileStore adds a file storage location to the PIP.
+func WithFileStore(fileStore string, recurse bool) Option {
+	return func(p *PIP) {
+		if fileStore != "" {
+			if as, _ := filepath.Abs(filepath.Join(fileStore, "attributes")); validPath(as) {
+				p.attrStore = as
+			}
+
+			if es, _ := filepath.Abs(filepath.Join(fileStore, "entities")); validPath(es) {
+				p.entityStore = es
+			}
+
+			p.recurse = recurse
+		}
 	}
 }
 

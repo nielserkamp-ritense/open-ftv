@@ -5,60 +5,65 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
-// AddAttribute adds the given attribute to the PIP.
+// AddAttribute adds/replaces the given attribute in the PIP.
+//
+// If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
-	prev, ix, err := p.attributePersist.Read(in.Key())
+	return p.addAttributeWithUser(in, "")
+}
+
+// AddAttributeFromOAS adds/replaces an attribute in the PIP based on the given OAS model.
+func (p *PIP) AddAttributeFromOAS(in *attributes.Attribute, user string) (*models.Attribute, error) {
+	return p.addAttributeWithUser(models.NewAttributeFromOAS(in), user)
+}
+
+func (p *PIP) addAttributeWithUser(in *models.Attribute, user string) (*models.Attribute, error) {
+	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, in.Key())
 	if err != nil || prev == nil {
-		if _, err = p.attributePersist.Create(in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.CreateAttribute(p.ctx, user, in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeAdded, in.Key())
 		}
 	} else {
-		if _, err = p.attributePersist.Update(prev, ix, in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.UpdateAttribute(p.ctx, user, prev, ix, in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeReplaced, in.Key())
 		}
 	}
 	return in, err
 }
 
-// AddAttributeFromOAS adds an attribute to the PIP based on the given OAS model.
-func (p *PIP) AddAttributeFromOAS(in *attributes.Attribute) (*models.Attribute, error) {
-	return p.AddAttribute(models.NewAttributeFromOAS(in))
-}
-
-// AddAttributeKV adds an attribute to the PIP with the specified key and value.
+// AddAttributeKV adds/replaces an attribute in the PIP with the specified key and value.
 func (p *PIP) AddAttributeKV(key string, value any) (*models.Attribute, error) {
 	return p.AddAttribute(models.NewAttribute(key, value))
 }
 
-// AddAttributeKVWithType adds an attribute to the PIP with a specified key, value and type.
+// AddAttributeKVWithType adds/replaces an attribute in the PIP with a specified key, value and type.
 func (p *PIP) AddAttributeKVWithType(key string, value any, tp string) (*models.Attribute, error) {
 	return p.AddAttribute(models.NewAttributeWithType(key, value, tp))
 }
 
-// AddOriginalAttribute adds an attribute to the PIP with a specified key, value, type and original value.
+// AddOriginalAttribute adds/replaces an attribute in the PIP with a specified key, value, type and original value.
 func (p *PIP) AddOriginalAttribute(key string, value, original any, tp string) (*models.Attribute, error) {
 	return p.AddAttribute(models.NewOriginalAttribute(key, value, original, tp))
 }
 
 // GetAttribute retrieves an attribute from the PIP.
-func (p *PIP) GetAttribute(key string) *models.Attribute {
-	a, _, _ := p.attributePersist.Read(key)
-	return a
+func (p *PIP) GetAttribute(key string) (*models.Attribute, uint64, error) {
+	return p.attributeDB.ReadAttribute(p.ctx, key)
 }
 
 // GetAttributeValue retrieves the value of an attribute value from the PIP.
 func (p *PIP) GetAttributeValue(key string) any {
-	if a, _, _ := p.attributePersist.Read(key); a != nil {
+	if a, _, _ := p.attributeDB.ReadAttribute(p.ctx, key); a != nil {
 		return a.Value()
 	}
 	return nil
 }
 
 // RemoveAttribute removes an attribute from the PIP.
-func (p *PIP) RemoveAttribute(key string) (*models.Attribute, error) {
-	prev, ix, err := p.attributePersist.Read(key)
+func (p *PIP) RemoveAttribute(key, user string) (*models.Attribute, error) {
+	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, key)
 	if err == nil {
-		if _, err = p.attributePersist.Delete(prev, ix); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.DeleteAttribute(p.ctx, user, prev, ix); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeRemoved, key)
 		}
 	}
@@ -68,25 +73,28 @@ func (p *PIP) RemoveAttribute(key string) (*models.Attribute, error) {
 // ReplaceAllAttributes replaces all attributes with the new list.
 //
 // If an empty list is given, this function effectively clears all attributes from the PIP.
-func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet) {
+func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user string) {
+	// delete all existing attributes.
 	keys := make([]string, 0)
-
 	p.IterateAttributes(func(a *models.Attribute) {
 		keys = append(keys, a.Key())
 	})
 
 	for i := range keys {
-		_, _ = p.RemoveAttribute(keys[i])
+		_, _ = p.RemoveAttribute(keys[i], user)
 	}
 
 	if list != nil {
-		p.MergeAttributes(list)
+		// add all given attributes.
+		list.IterateAttributes(func(a *models.Attribute) {
+			_, _ = p.addAttributeWithUser(a, user)
+		})
 	}
 }
 
 // IterateAttributes calls the given closure for all attributes in the PIP.
 func (p *PIP) IterateAttributes(f models.AttributeIterator) {
-	if list, err := p.attributePersist.List(); err == nil {
+	if list, err := p.attributeDB.ListAttributes(p.ctx); err == nil {
 		for i := range list {
 			f(list[i])
 		}

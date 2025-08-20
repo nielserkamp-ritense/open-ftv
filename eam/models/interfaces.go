@@ -7,10 +7,10 @@ type AddAttribute func(*Attribute) (*Attribute, error)
 type GetAttributeValue func(key string) any
 
 // AddEntity is the function signature for adding entities to a set.
-type AddEntity func(*Entity)
+type AddEntity func(*Entity) (*Entity, error)
 
 // GetEntity is the function signature for retrieving entities from a set.
-type GetEntity func(uid string) *Entity
+type GetEntity func(uid string) (*Entity, uint64, error)
 
 // AddRelation is the function signature for adding relations to a set.
-type AddRelation func(*Relation)
+type AddRelation func(*Relation) (*Relation, error)

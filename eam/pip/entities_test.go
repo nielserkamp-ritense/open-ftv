@@ -21,8 +21,8 @@ func TestPIP_Entities(t *testing.T) {
 		p := New(nil, logger)
 		require.NotNil(t, p)
 
-		p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
-		p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
+		_, _ = p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
+		_, _ = p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
 
 		p.MergeEntities(
 			models.NewEntitySet(
@@ -38,14 +38,16 @@ func TestPIP_Entities(t *testing.T) {
 		})
 		assert.Equal(t, 5, count)
 
-		e := p.GetEntity("x::y")
+		e, _, err := p.GetEntity("x::y")
+		require.NoError(t, err)
 		require.NotNil(t, e)
 
-		e = p.GetEntity("x::x")
+		e, _, err = p.GetEntity("x::x")
+		require.NoError(t, err)
 		require.Nil(t, e)
 
-		p.RemoveEntity("q::y")
-		p.RemoveEntity("q::x")
+		_, _ = p.RemoveEntity("q::y", "")
+		_, _ = p.RemoveEntity("q::x", "")
 
 		count = 0
 		p.IterateEntities(func(entity *models.Entity) {
@@ -53,7 +55,8 @@ func TestPIP_Entities(t *testing.T) {
 		})
 		assert.Equal(t, 3, count)
 
-		e = p.GetEntity("q::y")
+		e, _, err = p.GetEntity("q::y")
+		require.NoError(t, err)
 		require.Nil(t, e)
 	})
 }
@@ -101,8 +104,8 @@ func TestPIP_ReplaceAllEntities(t *testing.T) {
 			p := New(nil, logger)
 			require.NotNil(t, p)
 
-			p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
-			p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
+			_, _ = p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
+			_, _ = p.AddEntity(models.NewEntity("x", "z", models.NewAttributeSet()))
 
 			p.MergeEntities(
 				models.NewEntitySet(
@@ -112,7 +115,7 @@ func TestPIP_ReplaceAllEntities(t *testing.T) {
 				),
 			)
 
-			p.ReplaceAllEntities(tc.list)
+			p.ReplaceAllEntities(tc.list, "*SYSTEM*")
 
 			var count int
 			p.IterateEntities(func(_ *models.Entity) {

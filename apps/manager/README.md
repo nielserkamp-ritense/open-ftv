@@ -334,6 +334,25 @@ The Cerbos admin API needs to be accessible to allow the PAP to push its policie
 Check the [Cerbos documentation](https://docs.cerbos.dev/cerbos/latest/what-is-cerbos)
 on how to install and configure it.
 
+### Tags
+
+Tags are used to annotate policies, but also attributes, entities and relations.
+
+These annotation are used by the bundle management system to select the appropriate policies and data.
+
+Tags are currently stored in config files, in either YAML or JSON format:
+```yaml
+- id: "<identifier>"            # unique identifier of a tag.
+  name: "<name>"                # human-readable, descriptive name of a tag (used in drop-down menus).
+  description: "<description>"  # optional description of a tag.
+```
+
+Each file can contain one or more tags.
+The full set of tags is available from the ```/v1/tags``` endpoint.
+
+The tag definitions in files should not contain audit details.
+This is meant for a future version where tags are maintained through the API.
+
 ### Pull configurations
 
 A pull configuration is used to schedule pulling attributes from external PIP systems, such as IAM, HR, etc.

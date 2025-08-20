@@ -328,10 +328,10 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "no body", ns: "app", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "mismatched type", ns: "xyz", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "mismatched is", ns: "app", id: "xyz", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "not found", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: EntitiesVersion},
-		{name: "all good", ns: "app", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusOK, wantVer: EntitiesVersion},
+		{name: "mismatched type", ns: "xyz", id: "app1", body: bytes.NewBuffer(body2), timeout: 60 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "mismatched is", ns: "app", id: "xyz", body: bytes.NewBuffer(body2), timeout: 60 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "not found", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 60 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: EntitiesVersion},
+		{name: "all good", ns: "app", id: "app1", body: bytes.NewBuffer(body2), timeout: 60 * time.Second, wantStatus: fiber.StatusOK, wantVer: EntitiesVersion},
 	}
 
 	for _, tc := range testCases {

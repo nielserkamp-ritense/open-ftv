@@ -122,12 +122,10 @@ func TestPip_PARCFromRequest(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
 			p := &PEP{logger: slog.New(h)}
 
-			e := models.NewEntitySet()
-
 			uid, _ := uuid.NewUUID()
 			tc.req.UID = &uid
 
-			got := p.PARCFromRequest(tc.req, e.GetEntity)
+			got := p.PARCFromRequest(tc.req, getEntity)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantLog, h.Count())
 
@@ -255,11 +253,9 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
 			p := &PEP{logger: slog.New(h)}
 
-			e := models.NewEntitySet()
-
 			uid, _ := uuid.NewUUID()
 
-			got := p.PARCFromHTTP(uid, tc.req, tc.attrs, e.GetEntity)
+			got := p.PARCFromHTTP(uid, tc.req, tc.attrs, getEntity)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantLog, h.Count())
 
@@ -278,4 +274,8 @@ func TestPip_PARCFromHTTP(t *testing.T) {
 			})
 		})
 	}
+}
+
+func getEntity(string) (*models.Entity, uint64, error) {
+	return nil, 0, nil
 }

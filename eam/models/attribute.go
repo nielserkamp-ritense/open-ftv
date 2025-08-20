@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -25,6 +26,7 @@ type Attribute struct {
 	tp          string
 	tags        map[string]struct{}
 	mutex       sync.RWMutex
+	Audit
 }
 
 // NewAttribute instantiates a new Attribute without a specific type.
@@ -83,6 +85,17 @@ func (a *Attribute) WithTags(tags ...string) *Attribute {
 	for i := range tags {
 		a.tags[tags[i]] = struct{}{}
 	}
+	a.mutex.Unlock()
+	return a
+}
+
+// WithAudit adds the audit details for the Policy.
+func (a *Attribute) WithAudit(created time.Time, createdBy string, updated time.Time, updatedBy string) *Attribute {
+	a.mutex.Lock()
+	a.Audit.created = created
+	a.Audit.createdBy = createdBy
+	a.Audit.updated = updated
+	a.Audit.updatedBy = updatedBy
 	a.mutex.Unlock()
 	return a
 }

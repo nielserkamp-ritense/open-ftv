@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -368,6 +369,44 @@ func TestPolicy_WithTags(t *testing.T) {
 			if tc.language != "" {
 				assert.True(t, got.HasTag(tc.language))
 			}
+		})
+	}
+}
+
+func TestPolicy_WithAudit(t *testing.T) {
+	t.Parallel()
+
+	now1 := time.Now().UTC()
+	now2 := now1.Add(-13 * time.Hour)
+
+	testCases := []struct {
+		name     string
+		id       string
+		language string
+		rvva     string
+		time1    time.Time
+		user1    string
+		time2    time.Time
+		user2    string
+	}{
+		{name: "created", id: "p1", language: "cedar", user1: "bob", time1: now1},
+		{name: "updated", id: "p2", language: "rego", rvva: "rvva1", user2: "charlie", time2: now1},
+		{name: "both", id: "p2", language: "rego", rvva: "rvva1", user1: "alice", time1: now2, user2: "charlie", time2: now1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := NewPolicyFromData(tc.id, tc.language, tc.rvva, "", bytes.NewBufferString("yo"))
+			require.NoError(t, err)
+			require.NotNil(t, got)
+
+			got.WithAudit(tc.time1, tc.user1, tc.time2, tc.user2)
+			assert.EqualValues(t, tc.time1, got.Created())
+			assert.EqualValues(t, tc.user1, got.CreatedBy())
+			assert.EqualValues(t, tc.time2, got.Updated())
+			assert.EqualValues(t, tc.user2, got.UpdatedBy())
 		})
 	}
 }

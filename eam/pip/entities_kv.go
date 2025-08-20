@@ -18,15 +18,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-// EntityPersistence represents the interface to manage persistent storage for attributes.
-type EntityPersistence interface {
-	Create(*models.Entity) (*models.Entity, error)
-	Read(string) (*models.Entity, uint64, error)
-	Update(*models.Entity, uint64, *models.Entity) (*models.Entity, error)
-	Delete(*models.Entity, uint64) (*models.Entity, error)
-	List() ([]*models.Entity, error)
-}
-
 // NewEntityStore instantiates a new persistent storage handler for attributes.
 //
 // It creates a CRUD entity store around the given Valkeyrie Store interface.
@@ -39,33 +30,38 @@ type EntityPersistence interface {
 // A trailing pathSeparator character in basePath is automatically appended if it is missing from the input.
 //
 // The given context is passed in every call to the KV backend.
-func NewEntityStore(ctx context.Context, client store.Store, basePath string) EntityPersistence {
-	return &entityStore{wrapper{ctx: ctx, client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
+func NewEntityStore(client store.Store, basePath string) EntityPersister {
+	return &entityStore{kvWrapper{client: client, basePath: convert.ForceSuffix(basePath, PathSeparator)}}
 }
 
-// Create implements the EntityPersistence interface.
-func (s *entityStore) Create(e *models.Entity) (*models.Entity, error) {
+// CreateEntity implements the EntityPersister interface.
+func (s *entityStore) CreateEntity(ctx context.Context, _ string, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(e.UID())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalEntity(e), nil, writeOptions); err != nil {
+	if _, _, err := s.client.AtomicPut(ctx, key, marshalEntity(e), nil, writeOptions); err != nil {
 		return nil, s.failure("create", e.UID(), err, false)
 	}
 	return e, nil
 }
 
-// Read implements the EntityPersistence interface.
-func (s *entityStore) Read(id string) (*models.Entity, uint64, error) {
-	key := s.bugFix(s.makeKey(id))
+// ReadEntity implements the EntityPersister interface.
+func (s *entityStore) ReadEntity(ctx context.Context, ns, id string) (*models.Entity, uint64, error) {
+	key := s.bugFix(s.makeKey(models.EntityUID(ns, id)))
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	kv, err := s.client.Get(s.ctx, key, readOptions)
-	if err != nil || kv == nil {
+	kv, err := s.client.Get(ctx, key, readOptions)
+	switch {
+	case errors.Is(err, store.ErrKeyNotFound):
+		return nil, 0, nil
+	case err != nil:
 		return nil, 0, s.failure("read", id, err, true)
+	case kv == nil:
+		return nil, 0, nil
 	}
 
 	e, err2 := unmarshalEntity(kv.Value)
@@ -76,43 +72,43 @@ func (s *entityStore) Read(id string) (*models.Entity, uint64, error) {
 	return e, kv.LastIndex, nil
 }
 
-// Update implements the EntityPersistence interface.
-func (s *entityStore) Update(prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
+// UpdateEntity implements the EntityPersister interface.
+func (s *entityStore) UpdateEntity(ctx context.Context, _ string, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	kv := store.KVPair{Key: key, Value: marshalEntity(prev), LastIndex: lastIndex}
-	if _, _, err := s.client.AtomicPut(s.ctx, key, marshalEntity(e), &kv, writeOptions); err != nil {
+	if _, _, err := s.client.AtomicPut(ctx, key, marshalEntity(e), &kv, writeOptions); err != nil {
 		return nil, s.failure("update", prev.UID(), err, true)
 	}
 	return e, nil
 }
 
-// Delete implements the EntityPersistence interface.
-func (s *entityStore) Delete(prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
+// DeleteEntity implements the EntityPersister interface.
+func (s *entityStore) DeleteEntity(ctx context.Context, _ string, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	kv := store.KVPair{Key: key, Value: marshalEntity(prev), LastIndex: lastIndex}
-	if _, err := s.client.AtomicDelete(s.ctx, key, &kv); err != nil {
+	if _, err := s.client.AtomicDelete(ctx, key, &kv); err != nil {
 		return nil, s.failure("delete", prev.UID(), err, true)
 	}
 
 	return prev, nil
 }
 
-// List implements the EntityPersistence interface.
-func (s *entityStore) List() ([]*models.Entity, error) {
+// ListEntities implements the EntityPersister interface.
+func (s *entityStore) ListEntities(ctx context.Context) ([]*models.Entity, error) {
 	key := s.bugFix(s.basePath)
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	list, err := s.client.List(s.ctx, key, readOptions)
+	list, err := s.client.List(ctx, key, readOptions)
 	if err != nil || len(list) == 0 {
 		if errors.Is(err, store.ErrKeyNotFound) {
 			return nil, nil
@@ -133,48 +129,71 @@ func (s *entityStore) List() ([]*models.Entity, error) {
 }
 
 func marshalEntity(e *models.Entity) []byte {
-	buf := &bytes.Buffer{}
-	enc := gob.NewEncoder(buf)
-
 	var v string
-
 	if s := e.Attributes(); s != nil {
-		q := make([]*attribute, 0)
-		e.Attributes().IterateAttributes(func(attr *models.Attribute) {
-			q = append(q, toAttribute(attr))
-		})
-
-		slices.SortFunc(q, func(a, b *attribute) int {
-			return strings.Compare(a.Key, b.Key)
-		})
-
-		if err := enc.Encode(&q); err != nil {
-			panic(err)
-		}
-		v = base64.StdEncoding.EncodeToString(buf.Bytes())
+		v = base64.StdEncoding.EncodeToString(gobEncodeAttributes(s))
 	}
 
 	b, _ := json.Marshal(&entity{Type: e.Type(), ID: e.ID(), Attributes: v, Parents: e.Parents()})
 	return b
 }
 
-func unmarshalEntity(data []byte) (*models.Entity, error) {
+// use gob encode so we don't lose the actual value and original value in lossy JSON encoding!
+func gobEncodeAttributes(s *models.AttributeSet) []byte {
 	buf := &bytes.Buffer{}
-	dec := gob.NewDecoder(buf)
+	enc := gob.NewEncoder(buf)
 
+	q := make([]*attribute, 0)
+	s.IterateAttributes(func(attr *models.Attribute) {
+		q = append(q, toAttribute(attr))
+	})
+
+	if len(q) == 0 {
+		return nil
+	}
+
+	slices.SortFunc(q, func(a, b *attribute) int {
+		return strings.Compare(a.Key, b.Key)
+	})
+
+	if err := enc.Encode(&q); err != nil {
+		panic(err)
+	}
+	return buf.Bytes()
+}
+
+func unmarshalEntity(data []byte) (*models.Entity, error) {
 	e := &entity{}
 	if err := json.Unmarshal(data, e); err != nil {
 		return nil, err
 	}
 
-	d, err := base64.StdEncoding.DecodeString(e.Attributes)
+	b, err := base64.StdEncoding.DecodeString(e.Attributes)
 	if err != nil {
 		return nil, err
 	}
-	buf.Write(d)
+
+	s, err2 := gobDecodeAttributes(b)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return models.NewEntity(e.Type, e.ID, s, e.Parents...), nil
+}
+
+// use gob decode so we can restore the value and original value without loss.
+func gobDecodeAttributes(b []byte) (*models.AttributeSet, error) {
+	if len(b) == 0 {
+		return models.NewAttributeSet(), nil
+	}
+
+	buf := &bytes.Buffer{}
+	dec := gob.NewDecoder(buf)
+
+	buf.Write(b)
 
 	m := make([]*attribute, 0)
-	if err = dec.Decode(&m); err != nil {
+	if err := dec.Decode(&m); err != nil {
 		return nil, err
 	}
 
@@ -187,7 +206,7 @@ func unmarshalEntity(data []byte) (*models.Entity, error) {
 		_, _ = s.AddAttribute(a)
 	}
 
-	return models.NewEntity(e.Type, e.ID, s, e.Parents...), nil
+	return s, nil
 }
 
 func (s *entityStore) failure(op, id string, err error, mustFind bool) error {
@@ -209,7 +228,7 @@ func (s *entityStore) bugFix(in string) string {
 }
 
 type entityStore struct {
-	wrapper
+	kvWrapper
 }
 
 type entity struct {

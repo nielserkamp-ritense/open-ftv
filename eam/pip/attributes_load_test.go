@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
@@ -187,6 +188,9 @@ func TestLoadAttributes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
@@ -199,12 +203,12 @@ func TestLoadAttributes(t *testing.T) {
 
 			if tc.wantLog == 0 {
 				tc.want.IterateAttributes(func(attr *models.Attribute) {
-					attr2, _, err := p.attributePersist.Read(attr.Key())
+					attr2, _, err := p.attributeDB.ReadAttribute(ctx, attr.Key())
 					require.NoError(t, err)
 					assert.True(t, attr.Equals(attr2))
 				})
 
-				list, err := p.attributePersist.List()
+				list, err := p.attributeDB.ListAttributes(ctx)
 				require.NoError(t, err)
 				for i := range list {
 					attr := list[i]

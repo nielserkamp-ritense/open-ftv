@@ -1,7 +1,6 @@
 package pip
 
 import (
-	"context"
 	"log/slog"
 	"testing"
 
@@ -145,17 +144,17 @@ func TestLoad(t *testing.T) {
 			h := util.NewDummyHandler(slog.LevelDebug)
 
 			s := memory.New()
-			ap := NewAttributeStore(context.Background(), s, "attribute")
-			ep := NewEntityStore(context.Background(), s, "entity")
+			ap := NewAttributeStore(s, "attribute")
+			ep := NewEntityStore(s, "entity")
 
 			p := &PIP{
-				attrStore:        tc.path1,
-				entityStore:      tc.path2,
-				recurse:          tc.recurse,
-				logger:           slog.New(h),
-				store:            s,
-				attributePersist: ap,
-				entityPersist:    ep,
+				attrStore:   tc.path1,
+				entityStore: tc.path2,
+				recurse:     tc.recurse,
+				logger:      slog.New(h),
+				kvStore:     s,
+				attributeDB: ap,
+				entityDB:    ep,
 			}
 
 			p.loadFromStore()
@@ -165,7 +164,8 @@ func TestLoad(t *testing.T) {
 			if tc.wantLog == 0 {
 				if tc.wantAttributes != nil {
 					tc.wantAttributes.IterateAttributes(func(a1 *models.Attribute) {
-						a2 := p.GetAttribute(a1.Key())
+						a2, _, err2 := p.GetAttribute(a1.Key())
+						require.NoError(t, err2)
 						require.NotNil(t, a2)
 						assert.True(t, a1.Equals(a2))
 					})
@@ -179,7 +179,8 @@ func TestLoad(t *testing.T) {
 
 				if tc.wantEntities != nil {
 					tc.wantEntities.IterateEntities(func(e1 *models.Entity) {
-						e2 := p.GetEntity(e1.UID())
+						e2, _, err2 := p.GetEntity(e1.UID())
+						require.NoError(t, err2)
 						require.NotNil(t, e2)
 						assert.True(t, e1.Equals(e2))
 					})
