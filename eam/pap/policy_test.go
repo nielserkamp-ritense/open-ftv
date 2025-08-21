@@ -423,7 +423,7 @@ func TestPAP_WithProgresDB(t *testing.T) {
 
 		mock, db := newMockPG(t, ctx, "postgres://localhost:5432/myDB", time.Minute, 3, now)
 
-		p := New(ctx, logger, WithPostgresDB(db))
+		p := New(ctx, logger, WithPolicyDB(db))
 		require.NotNil(t, p)
 
 		p.AddEventSink(e)

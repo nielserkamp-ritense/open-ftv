@@ -78,7 +78,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	}
 
 	if pol == nil {
-		return h.error(req, fiber.StatusNotFound, errors.New(polNotFound))
+		return h.error(req, fiber.StatusNotFound, polNotFound)
 	}
 	return req.JSON(pol.ToOAS(true))
 }
@@ -113,7 +113,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev != nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusConflict, errors.New(polExists))
+		return h.error(req, fiber.StatusConflict, polExists)
 	case prev != nil:
 		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
 	default:
@@ -156,7 +156,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("forceUpsert"):
-		return server.SendMessageResponse(req, fiber.StatusNotFound, polNotFound)
+		return h.error(req, fiber.StatusNotFound, polNotFound)
 	case prev == nil:
 		p2, err2 = h.cache.Create(p2, user)
 	default:
@@ -164,7 +164,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	}
 
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 	return req.JSON(p2.ToOAS(true))
 }
@@ -193,7 +193,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("ignoreMissing"):
-		return h.error(req, fiber.StatusNotFound, errors.New(polNotFound))
+		return h.error(req, fiber.StatusNotFound, polNotFound)
 	case prev == nil:
 		p2, err2 = models.NewPolicyFromData(id, "", "", "", &bytes.Buffer{})
 	default:
@@ -209,7 +209,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	id := req.Params("id")
 	if id == "" || len(id) > 40 {
-		return "", false, h.error(req, fiber.StatusBadRequest, errors.New("id must be filled and not more than 40 characters"))
+		return "", false, h.error(req, fiber.StatusBadRequest, polKeyError)
 	}
 
 	return id, true, nil
@@ -224,7 +224,7 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, boo
 	var errs []error
 	if p.Id != id {
 		if p.Id != "" {
-			errs = append(errs, h.error(req, fiber.StatusBadRequest, errors.New("mismatched policy id")))
+			errs = append(errs, h.error(req, fiber.StatusBadRequest, polKeyMismatch))
 		} else {
 			p.Id = id
 		}
@@ -265,7 +265,7 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, boo
 func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *oas.Policy) (*models.Policy, bool, error) {
 	if p.Metadata.Url == "" {
 		if p.Data == "" {
-			return nil, false, h.error(req, fiber.StatusBadRequest, errors.New("policy data or url required"))
+			return nil, false, h.error(req, fiber.StatusBadRequest, polUrlContent)
 		}
 
 		pol, err3 := models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
@@ -320,9 +320,10 @@ type policiesHandler struct {
 	authorizer authorization.Authorizer
 }
 
-const (
-	polNotFound    = "policy not found"
-	polExists      = "policy already exists"
-	polKeyError    = "policy id must be filled and less or equal 500 characters"
-	polKeyMismatch = "policy id mismatch"
+var (
+	polNotFound    = errors.New("policy not found")
+	polExists      = errors.New("policy already exists")
+	polKeyError    = errors.New("policy id must be filled and less or equal 40 characters")
+	polKeyMismatch = errors.New("policy id mismatch")
+	polUrlContent  = errors.New("policy data or url required")
 )

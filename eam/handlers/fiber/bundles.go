@@ -54,12 +54,10 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	resp := make(oas.CompressTypes, 0, bundles.CompressCount)
 	for s := bundles.CompressMIN; s <= bundles.CompressMAX; s++ {
@@ -73,12 +71,10 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	resp := make(oas.BundleConfigs, len(h.cfg))
 
@@ -115,16 +111,14 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
 
-	_ = user
-
 	var resp []*bundles.Deployment
 	if resp, err = h.pap.ListDeployments(); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err.Error())
+		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 	return req.JSON(resp)
 }
@@ -134,21 +128,19 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
 
-	_ = user
-
 	var version int
 	if version, err = req.ParamsInt("key"); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	var resp *bundles.Deployment
 	if resp, err = h.pap.ReadDeployment(uint64(version)); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+		return h.error(req, fiber.StatusNotFound, err)
 	}
 	return req.JSON(resp)
 }
@@ -167,12 +159,12 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 
 	var body oas.NewDeploymentBody
 	if err = req.BodyParser(&body); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	var resp *bundles.Deployment
 	if resp, err = h.pap.NewDeployment(body.Description, h.manager); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 	return req.JSON(resp)
 }
@@ -187,4 +179,9 @@ func (h *BundlesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	// TODO: log authorization decision to auth-decision log.
 
 	return auth.Check(req, resp, err, h.logger)
+}
+
+func (h *BundlesHandler) error(req *fiber.Ctx, status int, err error) error {
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
+	return server.SendMessageResponse(req, status, err.Error())
 }

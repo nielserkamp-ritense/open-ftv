@@ -1,6 +1,7 @@
 package fiber
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -65,10 +66,11 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 
 	e, _, err2 := h.cache.GetEntity(models.EntityUID(ns, id))
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	if e == nil {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return h.error(req, fiber.StatusNotFound, entityNotFound)
 	}
 	return req.JSON(e.ToOAS())
 }
@@ -97,14 +99,15 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 
 	prev, _, err2 := h.cache.GetEntity(e2.UID())
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	if prev != nil && !req.QueryBool("forceUpsert") {
-		return server.SendMessageResponse(req, fiber.StatusConflict, entityExists)
+		return h.error(req, fiber.StatusConflict, entityExists)
 	}
 
 	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 	return req.Status(fiber.StatusCreated).JSON(e2.ToOAS())
 }
@@ -133,15 +136,15 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 
 	prev, _, err2 := h.cache.GetEntity(e2.UID())
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
 	if prev == nil && !req.QueryBool("forceUpsert") {
-		return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+		return h.error(req, fiber.StatusNotFound, entityNotFound)
 	}
 
 	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 	return req.JSON(e2.ToOAS())
 }
@@ -165,18 +168,19 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 	prev, _, err2 := h.cache.GetEntity(uid)
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	if prev == nil {
 		if !req.QueryBool("ignoreMissing") {
-			return server.SendMessageResponse(req, fiber.StatusNotFound, entityNotFound)
+			return h.error(req, fiber.StatusNotFound, entityNotFound)
 		} else {
 			return req.JSON(models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
 		}
 	}
 
 	if prev, err2 = h.cache.RemoveEntity(uid, user); err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 	return req.JSON(prev.ToOAS())
 }
@@ -184,12 +188,12 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {
 	ns := req.Params("type")
 	if ns == "" || len(ns) > 500 {
-		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeError)
+		return "", "", false, h.error(req, fiber.StatusBadRequest, entityTypeError)
 	}
 
 	id := req.Params("id")
 	if id == "" || len(id) > 500 {
-		return "", "", false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityIDError)
+		return "", "", false, h.error(req, fiber.StatusBadRequest, entityIDError)
 	}
 
 	return ns, id, true, nil
@@ -198,19 +202,19 @@ func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error)
 func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity, bool, error) {
 	var a oas.Entity
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	if a.Type != ns {
 		if a.Type != "" {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityTypeMismatch)
+			return nil, false, h.error(req, fiber.StatusBadRequest, entityTypeMismatch)
 		}
 		a.Type = ns
 	}
 
 	if a.Id != id {
 		if a.Id != "" {
-			return nil, false, server.SendMessageResponse(req, fiber.StatusBadRequest, entityIDMismatch)
+			return nil, false, h.error(req, fiber.StatusBadRequest, entityIDMismatch)
 		}
 		a.Id = id
 	}
@@ -230,17 +234,22 @@ func (h *entitiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	return auth.Check(req, resp, err, h.logger)
 }
 
+func (h *entitiesHandler) error(req *fiber.Ctx, status int, err error) error {
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
+	return server.SendMessageResponse(req, status, err.Error())
+}
+
 type entitiesHandler struct {
 	logger     *slog.Logger
 	cache      *pip.PIP
 	authorizer authorization.Authorizer
 }
 
-const (
-	entityNotFound     = "entity not found"
-	entityExists       = "entity already exists"
-	entityTypeError    = "entity type must be filled and less or equal 500 characters"
-	entityIDError      = "entity ID must be filled and less or equal 500 characters"
-	entityTypeMismatch = "entity type mismatch"
-	entityIDMismatch   = "entity ID mismatch"
+var (
+	entityNotFound     = errors.New("entity not found")
+	entityExists       = errors.New("entity already exists")
+	entityTypeError    = errors.New("entity type must be filled and less or equal 500 characters")
+	entityIDError      = errors.New("entity ID must be filled and less or equal 500 characters")
+	entityTypeMismatch = errors.New("entity type mismatch")
+	entityIDMismatch   = errors.New("entity ID mismatch")
 )

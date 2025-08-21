@@ -1,12 +1,14 @@
 package pap
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // LoadFiles loads all policies from the local file store.
@@ -57,6 +59,14 @@ func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 
 	_, err2 = p.Create(pol, loadUser)
 	return err2
+}
+
+// LoadTags loads a list of standard tags into the database.
+func (p *PAP) LoadTags(tags []*policies.Tag) error {
+	if p.tagDB == nil {
+		return errors.New("pap: tagDB not initialized")
+	}
+	return p.tagDB.ReplaceAllTags(tags, loadUser)
 }
 
 const loadUser = "*LOADER*"

@@ -45,14 +45,22 @@ func (s *service) initHealth(svc *fiber.App) {
 }
 
 func (s *service) initLanguages(group fiber.Router) {
-	apis := handle.NewLanguagesHandler(s.logger, s.auth.Authorizer())
+	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// languages CRUD.
 	group.Get(handle.PathLanguages, apis.GetLanguages)
 }
 
 func (s *service) initTags(group fiber.Router) {
-	apis := handle.NewTagsHandler(s.logger, s.cfg.Tags(), s.auth.Authorizer())
+	if tags := s.cfg.Tags(); len(tags) > 0 {
+		if err := s.pap.LoadTags(tags); err != nil {
+			s.logger.Error("failed to load tags", "error", err.Error())
+		} else {
+			s.logger.Info("tags loaded successfully", "count", len(tags))
+		}
+	}
+
+	apis := handle.NewTagsHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// tags CRUD.
 	group.Get(handle.PathTags, apis.GetTags)

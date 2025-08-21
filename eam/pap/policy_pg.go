@@ -12,30 +12,30 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewPostgresDB instantiates a new PostgreSQL database connection handler.
+// NewPolicyDB instantiates a new PostgreSQL database connection for managing policies.
 //
 // The given context is used to signal a clean shutdown of the connection pool.
-func NewPostgresDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*PostgresDB, error) {
+func NewPolicyDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*PolicyDB, error) {
 	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
 	if err != nil {
 		return nil, err
 	}
-	return &PostgresDB{p: p, now: time.Now}, nil
+	return &PolicyDB{p: p, now: time.Now}, nil
 }
 
-// NewPostgresWithPool instantiates a new PostgreSQL database connection handler using the given connection pool.
-func NewPostgresWithPool(pool *postgresql.Postgres) *PostgresDB {
-	return &PostgresDB{p: pool, now: time.Now}
+// NewPolicyDBWithPool instantiates a new PostgreSQL database connection for managing policies using the given connection pool.
+func NewPolicyDBWithPool(pool *postgresql.Postgres) *PolicyDB {
+	return &PolicyDB{p: pool, now: time.Now}
 }
 
-// PostgresDB wraps a PostgreSQL connection pool with policy management functions.
-type PostgresDB struct {
+// PolicyDB wraps a PostgreSQL connection pool with policy management functions.
+type PolicyDB struct {
 	p   *postgresql.Postgres
 	now func() time.Time // for time-sensitive unit-tests.
 }
 
 // CreatePolicy creates a new policy into the database.
-func (db *PostgresDB) CreatePolicy(ctx context.Context, user string, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) CreatePolicy(ctx context.Context, user string, p *models.Policy) (*models.Policy, error) {
 	sql := `INSERT INTO policy
  (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
@@ -50,7 +50,7 @@ func (db *PostgresDB) CreatePolicy(ctx context.Context, user string, p *models.P
 }
 
 // ReadPolicy retrieves the identified policy from the database.
-func (db *PostgresDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, uint64, error) {
+func (db *PolicyDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, uint64, error) {
 	sql := `SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
  FROM policy
  WHERE id=$1`
@@ -76,7 +76,7 @@ func (db *PostgresDB) ReadPolicy(ctx context.Context, id string) (*models.Policy
 }
 
 // UpdatePolicy replaces an existing policy in the database.
-func (db *PostgresDB) UpdatePolicy(ctx context.Context, user string, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) UpdatePolicy(ctx context.Context, user string, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	sql := `UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
  WHERE id=$1 AND updated=$2`
@@ -94,7 +94,7 @@ func (db *PostgresDB) UpdatePolicy(ctx context.Context, user string, prev *model
 }
 
 // DeletePolicy removes an existing policy from the database.
-func (db *PostgresDB) DeletePolicy(ctx context.Context, _ string, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
+func (db *PolicyDB) DeletePolicy(ctx context.Context, _ string, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	sql := `DELETE policy
  WHERE id=$1 AND updated=$2`
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex)}
@@ -111,7 +111,7 @@ func (db *PostgresDB) DeletePolicy(ctx context.Context, _ string, prev *models.P
 // ListPolicies returns policies from the database, optionally limited to the given policy language.
 //
 // If *language* is empty, all policies in the database will be returned.
-func (db *PostgresDB) ListPolicies(ctx context.Context, language string) ([]*models.Policy, error) {
+func (db *PolicyDB) ListPolicies(ctx context.Context, language string) ([]*models.Policy, error) {
 	sql := `SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by FROM policy`
 
 	var params []any
