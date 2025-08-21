@@ -20,6 +20,10 @@ function NewAttributeComponent() {
         key: '',
         value: '',
         type: 'string',
+        audit: {
+            created: '',
+            createdBy: ''
+        },
         metadata: {
             title: '',
             description: '',

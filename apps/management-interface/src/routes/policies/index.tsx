@@ -33,7 +33,6 @@ export default function PoliciesComponent() {
         }
 
         deletePolicyMutation.mutate({
-            language: policy.language,
             id: policy.id,
         })
 
@@ -85,7 +84,7 @@ export default function PoliciesComponent() {
               </TableHead>
               <TableBody>
                   {data?.map((policy) => (
-                      <TableRow key={policy.id} href={"/policies/"+policy.language+"/"+policy.id} title={`Policy #${policy.id}`}>
+                      <TableRow key={policy.id} href={"/policies/"+policy.id} title={`Policy #${policy.id}`}>
                           <TableCell>{policy.id}</TableCell>
                           <TableCell className="text-zinc-500">{policy.language}</TableCell>
                           <TableCell>{policy.metadata?.url}</TableCell>
@@ -97,8 +96,8 @@ export default function PoliciesComponent() {
                                           <EllipsisHorizontalIcon />
                                       </DropdownButton>
                                       <DropdownMenu anchor="bottom end">
-                                          <DropdownItem href={`/policies/${policy.language}/${policy.id}`}>View</DropdownItem>
-                                          <DropdownItem href={`/policies/${policy.language}/${policy.id}/edit`}>Edit</DropdownItem>
+                                          <DropdownItem href={`/policies/${policy.id}`}>View</DropdownItem>
+                                          <DropdownItem href={`/policies/${policy.id}/edit`}>Edit</DropdownItem>
                                           <DropdownItem onClick={() => showDeleteModal(policy.id)}>Delete</DropdownItem>
                                       </DropdownMenu>
                                   </Dropdown>

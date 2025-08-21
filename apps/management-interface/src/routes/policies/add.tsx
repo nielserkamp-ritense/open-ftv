@@ -5,9 +5,11 @@ import {Select} from "@/components/select.tsx";
 import {Textarea} from "@/components/textarea.tsx";
 import {Heading} from "@/components/heading.tsx";
 import {Button} from "@/components/button.tsx";
-import {useState} from 'react';
+import {useState, useMemo} from 'react';
 import {useAddPolicy} from '@/services/policies';
 import {v7 as uuidv7} from 'uuid';
+import { TagsEditor } from "@/components/tags-editor.tsx";
+import { useTags } from '@/services/tags.ts';
 
 export const Route = createFileRoute('/policies/add')({
     component: AddPolicyComponent,
@@ -15,18 +17,29 @@ export const Route = createFileRoute('/policies/add')({
 
 function AddPolicyComponent() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        policy_name: string;
+        title: string;
+        language: string;
+        data: string;
+        rvvaId: string;
+        description: string;
+        tags: string[];
+    }>({
         policy_name: '',
         title: '',
         language: 'cedar',
         data: '',
         rvvaId: '',
         description: '',
-        tags: [''],
+        tags: [],
     });
     const [error, setError] = useState<string | null>(null);
 
     const addPolicyMutation = useAddPolicy();
+
+    const { data: allTagsData } = useTags();
+    const allTagNames = useMemo(() => (allTagsData ?? []).map((t) => t.name ?? '').filter(Boolean), [allTagsData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
@@ -48,12 +61,15 @@ function AddPolicyComponent() {
         const id = uuidv7()
         try {
             await addPolicyMutation.mutateAsync({
-                language: formData.language.toLowerCase(),
                 id: id,
                 policy: {
                     id: id,
                     language: formData.language.toLowerCase(),
                     data: formData.data,
+                    audit: {
+                        created: '',
+                        createdBy: ''
+                    },
                     metadata: {
                         rvvaId: formData.rvvaId,
                         description: formData.description,
@@ -123,10 +139,11 @@ function AddPolicyComponent() {
                         <Field>
                             <Label>Tags</Label>
                             <Description>Tags decide to which PDP the policies are deployed.</Description>
-                            <Input
-                                name="rvvaId"
-                                value={formData.rvvaId}
-                                onChange={handleChange}
+                            <TagsEditor
+                                tags={formData.tags ?? []}
+                                allTagNames={allTagNames}
+                                onChange={(newTags) => setFormData(prev => ({ ...prev, tags: newTags }))}
+                                className={"mt-3"}
                             />
                         </Field>
                         <Field>

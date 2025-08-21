@@ -221,37 +221,69 @@ export interface components {
     schemas: {
         /** @description The metadata associated with an object. */
         Metadata: {
-            /** @description The title of the object. E.g., a short description. */
-            title?: string;
-            /** @description Detailed description of the object. */
+            /**
+             * @description The title of the object. E.g., a short description.
+             * @example Worktimes schedule
+             */
+            title: string;
+            /**
+             * @description Detailed description of the object.
+             * @example Daily schedule with start and end of working period
+             */
             description?: string;
             /** @description List of tags the object is annotated with.
              *
              *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+             *
+             *     Verify with the policies.tags endpoint.
              *      */
             tags?: string[];
-            /** @description Timestamp the object was created (RFC3339 format). */
-            createDate?: string;
-            /** @description User that created the object. */
-            createUser?: string;
-            /** @description Timestamp the object was last updated (RFC3339 format). */
-            updateDate?: string;
-            /** @description User that last updated the object. */
-            updateUser?: string;
         };
-        /** @description Metadata about how and where the object is used. */
-        UsageData: {
-            /** @description Bundles the object is used by. */
-            bundles?: string[];
+        /** @description The audit details for an object. */
+        ObjectAudit: {
+            /**
+             * @description Timestamp the object was created (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created: string;
+            /**
+             * @description User that created the object.
+             * @example alice@wonderland.cc
+             */
+            createdBy: string;
+            /**
+             * @description Timestamp the object was last updated (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            updated?: string;
+            /**
+             * @description User that last updated the object.
+             * @example bob@wonderworld.cc
+             */
+            updatedBy?: string;
         };
         /** @description Metadata about how, when and by whom an object has been manipulated. */
         AuditEntry: {
-            /** @description Timestamp of the log entry in RFC3339 format. */
-            timestamp?: string;
-            /** @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"]. */
-            operation?: string;
-            /** @description Unique identifier of the user who operated on the object. */
-            user?: string;
+            /**
+             * @description Timestamp of the log entry in RFC3339 format.
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created?: string;
+            /**
+             * @description Operation performed on the object. Any of ["C", "U", "D"].
+             * @example C
+             */
+            operation: string;
+            /**
+             * @description Unique identifier of the user who operated on the object.
+             * @example alice@wonderland.cc
+             */
+            userId?: string;
+        };
+        /** @description Metadata about how and where the object is used. */
+        UsageData: {
+            /** @description Deployment bundles the object is part of. */
+            bundles?: string[];
         };
         Attributes: components["schemas"]["Attribute"][];
         /** @description The content of an attribute (key/value pair). */
@@ -266,7 +298,7 @@ export interface components {
              * @example 0123
              */
             value: unknown;
-            /** @description The optional type of a value. By default a value is stored as-is.
+            /** @description The optional type of a value. By default a value is stored as-is (e.g., JSON type).
              *
              *     The following codes for type are supported:
              *     "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
@@ -283,10 +315,11 @@ export interface components {
              *     If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
              *      */
             type?: string;
-            metadata?: components["schemas"]["Metadata"];
-            usageData?: components["schemas"]["UsageData"];
+            metadata: components["schemas"]["Metadata"];
+            audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the attribute. */
             auditLog?: components["schemas"]["AuditEntry"][];
+            usageData?: components["schemas"]["UsageData"];
         };
         Entities: components["schemas"]["Entity"][];
         /** @description The content of an entity.
@@ -306,17 +339,23 @@ export interface components {
             id: string;
             /** @description Optional attributes of the entity. */
             attributes?: components["schemas"]["Attribute"][];
-            metadata?: components["schemas"]["Metadata"];
-            usageData?: components["schemas"]["UsageData"];
+            metadata: components["schemas"]["Metadata"];
+            audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the entity. */
             auditLog?: components["schemas"]["AuditEntry"][];
+            usageData?: components["schemas"]["UsageData"];
         };
         Relations: components["schemas"]["Relation"][];
         /** @description The content of a relation.
          *
-         *     The combination of *subject type/id*, *relation* and *object type/id* defines the unique key of a relation.
+         *     The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
          *      */
         Relation: {
+            /**
+             * @description The unique identifier of the relation.
+             * @example <uuid>
+             */
+            id: string;
             /**
              * @description The type of subject of the relation.
              * @example user
@@ -344,10 +383,11 @@ export interface components {
             objectId: string;
             /** @description Optional attributes of the relation. */
             attributes?: components["schemas"]["Attribute"][];
-            metadata?: components["schemas"]["Metadata"];
-            usageData?: components["schemas"]["UsageData"];
+            metadata: components["schemas"]["Metadata"];
+            audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the relation. */
             auditLog?: components["schemas"]["AuditEntry"][];
+            usageData?: components["schemas"]["UsageData"];
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {

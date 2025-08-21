@@ -6,22 +6,26 @@ import {Textarea} from "@/components/textarea.tsx";
 import {Heading} from "@/components/heading.tsx";
 import {Button} from "@/components/button.tsx";
 import {useEffect, useMemo, useState} from 'react';
-import {PolicyResponse, usePolicy, useReplacePolicy} from '@/services/policies';
-import {useTags} from '@/services/tags';
+import {PolicyResponse, usePolicy, useReplacePolicy} from '@/services/policies.ts';
+import {useTags} from '@/services/tags.ts';
 import {ScaleLoader} from "react-spinners";
-import { TagsEditor } from "@/components/tags-editor";
+import { TagsEditor } from "@/components/tags-editor.tsx";
 
-export const Route = createFileRoute('/policies/$language/$policyId/edit')({
+export const Route = createFileRoute('/policies/$id/edit')({
     component: EditPolicyComponent,
 })
 
 function EditPolicyComponent() {
-    const {language, policyId} = Route.useParams()
-    const {status, data, error} = usePolicy(language, policyId)
+    const {id} = Route.useParams()
+    const {status, data, error} = usePolicy(id)
     const [formData, setFormData] = useState<PolicyResponse>({
         id: '',
         language: '',
         data: '',
+        audit: {
+            created: '',
+            createdBy: ''
+        },
         metadata: {
             title: '',
             description: '',
@@ -91,7 +95,6 @@ function EditPolicyComponent() {
 
         try {
             await replacePolicyMutation.mutateAsync({
-                language: formData.language.toLowerCase(),
                 id: formData.id,
                 policy: formData
             });
