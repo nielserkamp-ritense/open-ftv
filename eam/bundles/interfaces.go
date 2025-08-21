@@ -1,6 +1,20 @@
 package bundles
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+import (
+	"context"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+)
+
+// Persister represents the interface to manage deployments.
+type Persister interface {
+	Generate(ctx context.Context, description, user string) (*Deployment, error)
+	Advance() (*Deployment, error)
+	Fail(msg string) (*Deployment, error)
+	LastDeployment(ctx context.Context) (*Deployment, error)
+	ReadDeployment(ctx context.Context, version uint64) (*Deployment, error)
+	ListDeployments(ctx context.Context) ([]*Deployment, error)
+}
 
 // PolicyLister represents the interface for retrieving a list of policies.
 type PolicyLister interface {

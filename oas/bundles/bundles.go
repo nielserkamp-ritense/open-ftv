@@ -14,15 +14,21 @@ type BundleConfig struct {
 	// Data Indicates to bundle attributes, entities and relations with matching tag.
 	Data bool `json:"data,omitempty"`
 
+	// Description Optional description of this bundle deployment configuration.
+	Description string `json:"description,omitempty"`
+
 	// Id Unique identifier of this bundle deployment configuration.
-	Id string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// Policies Indicates to bundle policies with matching tag.
 	Policies bool `json:"policies,omitempty"`
 
 	// Tags Tags to match against. A single matching tag is sufficient.
-	Tags    []string `json:"tags,omitempty"`
+	Tags    []string `json:"tags"`
 	Targets []Target `json:"targets"`
+
+	// Title Title of this bundle deployment configuration.
+	Title string `json:"title"`
 
 	// Version Indicates to bundle the version number.
 	Version bool `json:"version,omitempty"`
@@ -45,20 +51,20 @@ type CompressTypes = []CompressType
 
 // Deployment The details of a bundle deployment.
 type Deployment struct {
-	// Created Date and time the deployment was started (UTC - RFC3339).
-	Created string `json:"created"`
+	// Audit The audit details for an object.
+	Audit ObjectAudit `json:"audit"`
 
-	// Description Description of the deployment.
-	Description string `json:"description"`
+	// Description Optional description of the deployment.
+	Description string `json:"description,omitempty"`
 
 	// Message Message for a failed deployment.
 	Message string `json:"message,omitempty"`
 
-	// Status Status of the last deployment.
+	// Status Status of the deployment.
 	Status int `json:"status"`
 
-	// Updated Date and time the deployment was last updated (UTC - RFC3339).
-	Updated string `json:"updated,omitempty"`
+	// Title Title of the deployment.
+	Title string `json:"title"`
 
 	// Version Version number of the last deployment.
 	Version int `json:"version"`
@@ -87,8 +93,26 @@ type ErrorMessage struct {
 
 // NewDeploymentBody Body content for a new deployment request.
 type NewDeploymentBody struct {
-	// Description Description of the new deployment.
+	// Description Optional description of the new deployment.
 	Description string `json:"description,omitempty"`
+
+	// Title Title of the new deployment.
+	Title string `json:"title"`
+}
+
+// ObjectAudit The audit details for an object.
+type ObjectAudit struct {
+	// Created Timestamp the object was created (RFC3339 format).
+	Created string `json:"created"`
+
+	// CreatedBy User that created the object.
+	CreatedBy string `json:"createdBy"`
+
+	// Updated Timestamp the object was last updated (RFC3339 format).
+	Updated string `json:"updated,omitempty"`
+
+	// UpdatedBy User that last updated the object.
+	UpdatedBy string `json:"updatedBy,omitempty"`
 }
 
 // Status The code and name of a deployment status.

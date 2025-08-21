@@ -122,7 +122,7 @@ func (r *runner) error(msg string, params ...any) {
 
 func (r *runner) prepareLog(msg string, params []any) (string, []any) {
 	return fmt.Sprintf("bundle-runner: %s", msg),
-		append([]any{"version", r.d.version, "description", r.d.description}, params...)
+		append([]any{"version", r.d.version, "title", r.d.title}, params...)
 }
 
 // The advance() function advances the status to the next stage.

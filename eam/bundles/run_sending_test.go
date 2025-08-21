@@ -127,10 +127,10 @@ func TestRunner_GatherTargets(t *testing.T) {
 			client := memory.New()
 			require.NotNil(t, client)
 
-			handler := NewPersistence(ctx, client, "")
+			handler := NewKeyValueDB(client, "")
 			require.NotNil(t, handler)
 
-			d, err := handler.Generate("haha")
+			d, err := handler.Generate(ctx, "haha", "")
 			require.NoError(t, err)
 			require.NotNil(t, d)
 
@@ -354,10 +354,10 @@ func TestRunner_SendBundles(t *testing.T) {
 			client := memory.New()
 			require.NotNil(t, client)
 
-			handler := NewPersistence(ctx, client, "")
+			handler := NewKeyValueDB(client, "")
 			require.NotNil(t, handler)
 
-			d, err := handler.Generate("haha")
+			d, err := handler.Generate(ctx, "haha", "")
 			require.NoError(t, err)
 			require.NotNil(t, d)
 
@@ -381,7 +381,7 @@ func TestRunner_SendBundles(t *testing.T) {
 			}
 			r.sending()
 
-			d, err = handler.LastDeployment()
+			d, err = handler.LastDeployment(ctx)
 			require.NoError(t, err)
 			require.NotNil(t, d)
 

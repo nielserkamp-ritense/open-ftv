@@ -27,15 +27,11 @@ func TestNewDeployer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
 			s := memory.New()
 			require.NotNil(t, s)
 
-			d := NewPersistence(ctx, s, tc.basePath)
+			d := NewKeyValueDB(s, tc.basePath)
 			require.NotNil(t, d)
-			assert.Equal(t, ctx, d.ctx)
 			assert.Equal(t, s, d.client)
 			assert.Equal(t, convert.ForceSuffix(tc.basePath, "/"), d.basePath)
 		})
@@ -54,16 +50,16 @@ func TestDeployer_Generate(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate("hello world")
+		d2, err2 := d.Generate(ctx, "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
 		assert.Equal(t, Creating, d2.Status())
 
-		d3, err3 := d.Generate("next one")
+		d3, err3 := d.Generate(ctx, "next one", "*SYSTEM*")
 		require.Error(t, err3)
 		require.Nil(t, d3)
 	})
@@ -81,10 +77,10 @@ func TestDeployer_Advance(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate("hello world")
+		d2, err2 := d.Generate(ctx, "hello world", "*SYSTEM*")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -131,13 +127,10 @@ func TestDeployer_Advance_Fail(t *testing.T) {
 	t.Run("advance fail", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
 		d2, err2 := d.Advance()
@@ -158,10 +151,10 @@ func TestDeployer_Fail(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate("hello world")
+		d2, err2 := d.Generate(ctx, "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -193,13 +186,10 @@ func TestDeployer_Fail_Fail(t *testing.T) {
 	t.Run("fail fail", func(t *testing.T) {
 		t.Parallel()
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
 		d2, err2 := d.Fail("oops")
@@ -220,16 +210,16 @@ func TestDeployer_LastDeployment(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate("hello world")
+		d2, err2 := d.Generate(ctx, "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
 		assert.Equal(t, Creating, d2.Status())
 
-		d3, err3 := d.LastDeployment()
+		d3, err3 := d.LastDeployment(ctx)
 		require.NoError(t, err3)
 		require.NotNil(t, d3)
 		assert.Equal(t, d2.Version(), d3.Version())
@@ -249,10 +239,10 @@ func TestDeployer_LastDeployment_Fail(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d3, err3 := d.LastDeployment()
+		d3, err3 := d.LastDeployment(ctx)
 		require.Error(t, err3)
 		require.Nil(t, d3)
 	})
@@ -270,16 +260,16 @@ func TestDeployer_ReadDeployment(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate("hello world")
+		d2, err2 := d.Generate(ctx, "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
 		assert.Equal(t, Creating, d2.Status())
 
-		d3, err3 := d.ReadDeployment(1)
+		d3, err3 := d.ReadDeployment(ctx, 1)
 		require.NoError(t, err3)
 		require.NotNil(t, d3)
 		assert.Equal(t, d2.Version(), d3.Version())
@@ -299,10 +289,10 @@ func TestDeployer_ReadDeployment_Fail(t *testing.T) {
 		s := memory.New()
 		require.NotNil(t, s)
 
-		d := NewPersistence(ctx, s, "")
+		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d3, err3 := d.ReadDeployment(1)
+		d3, err3 := d.ReadDeployment(ctx, 1)
 		require.Error(t, err3)
 		require.Nil(t, d3)
 	})
@@ -331,11 +321,11 @@ func TestDeployer_ListDeployments(t *testing.T) {
 			s := memory.New()
 			require.NotNil(t, s)
 
-			d := NewPersistence(ctx, s, "")
+			d := NewKeyValueDB(s, "")
 			require.NotNil(t, d)
 
 			for _ = range tc.count {
-				d2, err2 := d.Generate("hello world")
+				d2, err2 := d.Generate(ctx, "hello world", "user")
 				require.NoError(t, err2)
 				require.NotNil(t, d2)
 
@@ -350,7 +340,7 @@ func TestDeployer_ListDeployments(t *testing.T) {
 				}
 			}
 
-			list, err := d.ListDeployments()
+			list, err := d.ListDeployments(ctx)
 			require.NoError(t, err)
 			require.Equal(t, tc.count, len(list))
 		})

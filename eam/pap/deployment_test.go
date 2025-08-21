@@ -31,7 +31,7 @@ func TestPAP_NewDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("merry easter", m)
+		d, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -58,7 +58,7 @@ func TestPAP_LastDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("merry easter", m)
+		d, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -88,7 +88,7 @@ func TestPAP_RestartDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("happy christmas", m)
+		d, err := p.NewDeployment("happy christmas", m, "*SYSTEM*")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -124,7 +124,7 @@ func TestPAP_ReadDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("merry easter", m)
+		d, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -158,7 +158,7 @@ func TestPAP_ListDeployments(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("merry easter", m)
+		d, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 

@@ -27,7 +27,7 @@ func TestNewDeployment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr)
+			d := NewDeployment(tc.version, tc.descr, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 			assert.Equal(t, Creating, d.Status())
@@ -49,7 +49,7 @@ func TestNewDeployment(t *testing.T) {
 			assert.Equal(t, Failed, s2)
 			assert.Equal(t, "oopsie", d.msg)
 
-			d2 := NewDeployment(tc.version, tc.descr)
+			d2 := NewDeployment(tc.version, tc.descr, "")
 			require.NotNil(t, d2)
 
 			s3 := d2.Completed()
@@ -84,7 +84,7 @@ func TestDeployment_Failed(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr)
+			d := NewDeployment(tc.version, tc.descr, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 
@@ -122,7 +122,7 @@ func TestDeployment_Completed(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr)
+			d := NewDeployment(tc.version, tc.descr, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 
@@ -155,13 +155,13 @@ func TestDeployment_JSON(t *testing.T) {
 			name:    "v1",
 			version: 1,
 			descr:   "version 1",
-			want:    `{"created":"2025-07-22T12:13:14Z","description":"version 1","status":1,"updated":"2025-07-22T12:13:14Z","version":1}`,
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"version 1","status":1,"title":"","version":1}`,
 		},
 		{
 			name:    "v101",
 			version: 101,
 			descr:   "blah blah",
-			want:    `{"created":"2025-07-22T12:13:14Z","description":"blah blah","status":1,"updated":"2025-07-22T12:13:14Z","version":101}`,
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"blah blah","status":1,"title":"","version":101}`,
 		},
 	}
 
@@ -169,7 +169,7 @@ func TestDeployment_JSON(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr)
+			d := NewDeployment(tc.version, tc.descr, "")
 			require.NotNil(t, d)
 
 			d.created = t1

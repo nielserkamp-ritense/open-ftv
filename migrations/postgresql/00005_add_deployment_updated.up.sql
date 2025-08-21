@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE deployment ADD COLUMN updated TIMESTAMP;
+ALTER TABLE deployment ADD COLUMN updated_by VARCHAR(80);
+
+COMMIT;

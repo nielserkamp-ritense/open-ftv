@@ -20,6 +20,7 @@ const (
 	PathDeployments      = "/deployments"
 	PathDeployment       = "/deployment"
 	PathDeploymentID     = "/deployment/:key"
+	PathLastDeployment   = "/deployment/last"
 	PathBundle           = "/bundle"
 	PathAuthlog          = "/authlog"
 	PathResource         = "/resource/:resource"

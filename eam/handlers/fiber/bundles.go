@@ -1,6 +1,7 @@
 package fiber
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,12 +36,10 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
+	_, ok, err := h.authorize(req)
 	if !ok {
 		return err
 	}
-
-	_ = user
 
 	resp := make(oas.Statuses, 0, bundles.StatusCount)
 	for s := bundles.StatusMIN; s <= bundles.StatusMAX; s++ {
@@ -116,10 +115,16 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 		return err
 	}
 
-	var resp []*bundles.Deployment
-	if resp, err = h.pap.ListDeployments(); err != nil {
+	var list []*bundles.Deployment
+	if list, err = h.pap.ListDeployments(); err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
+
+	resp := make([]*oas.Deployment, 0, len(list))
+	for i := range list {
+		resp = append(resp, list[i].ToOAS())
+	}
+
 	return req.JSON(resp)
 }
 
@@ -142,7 +147,33 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	if resp, err = h.pap.ReadDeployment(uint64(version)); err != nil {
 		return h.error(req, fiber.StatusNotFound, err)
 	}
-	return req.JSON(resp)
+	return req.JSON(resp.ToOAS())
+}
+
+// GetLastDeployment is the endpoint for retrieving the last bundle deployment.
+func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
+	req.Set(HeaderVersion, BundlesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	last, err2 := h.pap.LastDeployment()
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err)
+	}
+
+	if last == nil || last.Version() <= 0 {
+		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
+	}
+
+	var resp *bundles.Deployment
+	if resp, err = h.pap.ReadDeployment(last.Version()); err != nil {
+		return h.error(req, fiber.StatusInternalServerError, err)
+	}
+	return req.JSON(resp.ToOAS())
 }
 
 // PostDeployment is the endpoint for starting a new bundle deployment.
@@ -155,18 +186,16 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 		return err
 	}
 
-	_ = user
-
 	var body oas.NewDeploymentBody
 	if err = req.BodyParser(&body); err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	var resp *bundles.Deployment
-	if resp, err = h.pap.NewDeployment(body.Description, h.manager); err != nil {
+	if resp, err = h.pap.NewDeployment(body.Description, h.manager, user); err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
-	return req.JSON(resp)
+	return req.JSON(resp.ToOAS())
 }
 
 func (h *BundlesHandler) authorize(req *fiber.Ctx) (string, bool, error) {

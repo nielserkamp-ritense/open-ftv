@@ -5,11 +5,11 @@ import (
 
 	"github.com/goccy/go-json"
 
-	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 )
 
 // NewDeployment instantiates a new bundle deployment.
-func NewDeployment(version uint64, description string) *Deployment {
+func NewDeployment(version uint64, description, user string) *Deployment {
 	now := time.Now().UTC()
 
 	return &Deployment{
@@ -17,18 +17,23 @@ func NewDeployment(version uint64, description string) *Deployment {
 		description: description,
 		status:      Creating,
 		created:     now,
+		createdBy:   user,
 		updated:     now,
+		updatedBy:   user,
 	}
 }
 
 // Deployment represents the details of a bundle deployment.
 type Deployment struct {
 	version     uint64
+	title       string
 	description string
 	status      Status
 	msg         string
 	created     time.Time
+	createdBy   string
 	updated     time.Time
+	updatedBy   string
 }
 
 // Version returns the version number of the deployment.
@@ -54,6 +59,8 @@ func (d *Deployment) Failed(msg string) Status {
 	if d.status < Failed {
 		d.status = Failed
 		d.msg = msg
+		d.updated = time.Now().UTC()
+		d.updatedBy = "*SYSTEM*"
 	}
 	return d.status
 }
@@ -62,39 +69,53 @@ func (d *Deployment) Failed(msg string) Status {
 func (d *Deployment) Completed() Status {
 	if d.status < Failed {
 		d.status = Completed
+		d.updated = time.Now().UTC()
+		d.updatedBy = "*SYSTEM*"
 	}
 	return d.status
 }
 
-// MarshalJSON implements the json.Marshaler interface.
-func (d *Deployment) MarshalJSON() ([]byte, error) {
-	d2 := bundles2.Deployment{
+// ToOAS returns the deployment as an OAS model.
+func (d *Deployment) ToOAS() *oas.Deployment {
+	return &oas.Deployment{
 		Version:     int(d.version),
+		Title:       d.title,
 		Description: d.description,
 		Status:      int(d.status),
 		Message:     d.msg,
-		Created:     d.created.Format(time.RFC3339),
-		Updated:     d.updated.Format(time.RFC3339),
+		Audit: oas.ObjectAudit{
+			Created:   d.created.Format(time.RFC3339),
+			CreatedBy: d.createdBy,
+			Updated:   d.updated.Format(time.RFC3339),
+			UpdatedBy: d.updatedBy,
+		},
 	}
-	return json.Marshal(d2)
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (d *Deployment) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.ToOAS())
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (d *Deployment) UnmarshalJSON(data []byte) (err error) {
-	var d2 bundles2.Deployment
+	var d2 oas.Deployment
 	if err = json.Unmarshal(data, &d2); err != nil {
 		return
 	}
 
 	d.version = uint64(d2.Version)
+	d.title = d2.Title
 	d.description = d2.Description
 	d.status = Status(d2.Status)
 	d.msg = d2.Message
+	d.createdBy = d2.Audit.CreatedBy
+	d.updatedBy = d2.Audit.UpdatedBy
 
-	if d.created, err = time.Parse(time.RFC3339, d2.Created); err != nil {
+	if d.created, err = time.Parse(time.RFC3339, d2.Audit.Created); err != nil {
 		return
 	}
 
-	d.updated, err = time.Parse(time.RFC3339, d2.Updated)
+	d.updated, err = time.Parse(time.RFC3339, d2.Audit.Updated)
 	return
 }
