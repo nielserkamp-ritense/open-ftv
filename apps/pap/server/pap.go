@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 func (s *service) newPAP() (*pap.PAP, error) {
@@ -13,11 +14,11 @@ func (s *service) newPAP() (*pap.PAP, error) {
 
 	switch {
 	case isPG:
-		db, err := pap.NewPostgresDB(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+		db, err := postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect postgres backend: %w", err)
 		}
-		opts = append(opts, pap.WithPostgresDB(db))
+		opts = append(opts, pap.WithPgPool(db))
 
 	case s.cfg.Persist.Type != "":
 		store, err := s.cfg.Persist.NewStore(s.ctx)
@@ -36,9 +37,12 @@ func (s *service) newPAP() (*pap.PAP, error) {
 		}
 	}
 
+	_ = s.cfg.FixTags()
+
 	p := pap.New(s.ctx, s.logger, opts...)
 	if p == nil {
 		return nil, fmt.Errorf("failed to create pap")
 	}
+
 	return p, nil
 }

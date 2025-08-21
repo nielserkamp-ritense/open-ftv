@@ -89,7 +89,7 @@ func TestNewPostgresDB(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			got, err := NewPostgresDB(ctx, tc.dsn, tc.maxLife, tc.maxConn)
+			got, err := NewPolicyDB(ctx, tc.dsn, tc.maxLife, tc.maxConn)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -130,7 +130,7 @@ func TestNewPostgresWithPool(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, pool)
 
-				got := NewPostgresWithPool(pool)
+				got := NewPolicyDBWithPool(pool)
 				require.NotNil(t, got)
 				assert.Equal(t, pool, got.p)
 			}
@@ -517,12 +517,12 @@ func TestPostgresDB_ListPolicies(t *testing.T) {
 	}
 }
 
-func newMockPG(t *testing.T, ctx context.Context, dsn string, maxLife time.Duration, maxConn int32, now time.Time) (pgxmock.PgxPoolIface, *PostgresDB) {
+func newMockPG(t *testing.T, ctx context.Context, dsn string, maxLife time.Duration, maxConn int32, now time.Time) (pgxmock.PgxPoolIface, *PolicyDB) {
 	mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherEqual))
 	require.NoError(t, err)
 	require.NotNil(t, mock)
 
-	got, err2 := NewPostgresDB(ctx, dsn, maxLife, maxConn)
+	got, err2 := NewPolicyDB(ctx, dsn, maxLife, maxConn)
 	require.NoError(t, err2)
 	require.NotNil(t, got)
 

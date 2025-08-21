@@ -13,7 +13,7 @@ func (s *service) newPAP() (*pap.PAP, error) {
 
 	switch {
 	case s.db != nil:
-		opts = append(opts, pap.WithPostgresDB(pap.NewPostgresWithPool(s.db)))
+		opts = append(opts, pap.WithPgPool(s.db))
 	case s.store != nil:
 		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.Persist.Base, pap.PathSeparator), "policies", pap.PathSeparator)
 		opts = append(opts, pap.WithKeyValueDB(s.store, base))
@@ -26,9 +26,12 @@ func (s *service) newPAP() (*pap.PAP, error) {
 		}
 	}
 
+	_ = s.cfg.FixTags()
+
 	p := pap.New(s.ctx, s.logger, opts...)
 	if p == nil {
 		return nil, fmt.Errorf("failed to create pap")
 	}
+
 	return p, nil
 }

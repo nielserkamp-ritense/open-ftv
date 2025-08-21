@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
@@ -49,20 +50,42 @@ func TestWithKeyValueDB(t *testing.T) {
 	})
 }
 
-func TestWithPostgresDB(t *testing.T) {
+func TestWithPgPool(t *testing.T) {
 	t.Parallel()
 
-	t.Run("with postgres DB", func(t *testing.T) {
+	t.Run("with postgres pool", func(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		db, err := NewPostgresDB(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
+		pool, err := postgresql.New(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
 		require.NoError(t, err)
 
-		p := New(nil, logger, WithPostgresDB(db))
+		p := New(nil, logger, WithPgPool(pool))
+		require.NotNil(t, p)
+
+		assert.Nil(t, p.kvStore)
+		assert.NotNil(t, p.languageDB)
+		assert.NotNil(t, p.policyDB)
+	})
+}
+
+func TestWithPolicyDB(t *testing.T) {
+	t.Parallel()
+
+	t.Run("with policy DB", func(t *testing.T) {
+		h := slog2.NewDummyHandler(slog.LevelInfo)
+		logger := slog.New(h)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		db, err := NewPolicyDB(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
+		require.NoError(t, err)
+
+		p := New(nil, logger, WithPolicyDB(db))
 		require.NotNil(t, p)
 
 		assert.Nil(t, p.kvStore)

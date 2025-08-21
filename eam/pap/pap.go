@@ -23,6 +23,8 @@ type PAP struct {
 	language      string
 	ctx           context.Context
 	logger        *slog.Logger
+	languageDB    LanguagePersister
+	tagDB         TagPersister
 	policyDB      PolicyPersister
 	policyWatcher *fsnotify.Watcher
 	policyTimer   *time.Timer
@@ -44,7 +46,7 @@ type PAP struct {
 // The optional context can be used to signal an orderly shutdown.
 //
 // By default, a PAP uses an in-memory key-value cache.
-// Use the WithKeyValueDB() or WithPostgresDB() option to connect a PAP to persistent storage.
+// Use the WithKeyValueDB() or WithPolicyDB() option to connect a PAP to persistent storage.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) *PAP {
 	if ctx == nil {
 		ctx = context.Background()

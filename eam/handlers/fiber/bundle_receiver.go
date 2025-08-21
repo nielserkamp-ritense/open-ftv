@@ -51,17 +51,17 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 	}
 
 	if err != nil {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	bundle := new(bundles.Bundle)
 	if err = json.NewDecoder(r).Decode(bundle); err != nil {
-		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	oldVersion, err2 := h.ctl.NewBundle(bundle)
 	if err2 != nil {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
+		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
 	resp := &oas.BundleActivated{PreviousVersion: int(oldVersion)}
@@ -78,4 +78,9 @@ func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (string, bool, error) 
 	// TODO: log authorization decision to auth-decision log.
 
 	return auth.Check(req, resp, err, h.logger)
+}
+
+func (h *BundleReceiverHandler) error(req *fiber.Ctx, status int, err error) error {
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
+	return server.SendMessageResponse(req, status, err.Error())
 }

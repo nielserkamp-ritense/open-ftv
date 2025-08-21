@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // Option represents the function signature for options when creating a new PAP.
@@ -36,8 +37,17 @@ func WithKeyValueDB(store store.Store, basePath string) Option {
 	}
 }
 
-// WithPostgresDB connects the PAP to a persistent PostgreSQL backend.
-func WithPostgresDB(db *PostgresDB) Option {
+// WithPgPool connects the PAP to a PostgreSQL connection pool.
+func WithPgPool(pool *postgresql.Postgres) Option {
+	return func(p *PAP) {
+		p.languageDB = NewLanguageDBWithPool(pool)
+		p.tagDB = NewTagDBWithPool(pool)
+		p.policyDB = NewPolicyDBWithPool(pool)
+	}
+}
+
+// WithPolicyDB connects the PAP to a PostgreSQL backend for managing policies.
+func WithPolicyDB(db *PolicyDB) Option {
 	return func(p *PAP) {
 		p.policyDB = db
 	}
