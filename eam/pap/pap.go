@@ -30,7 +30,7 @@ type PAP struct {
 	policyTimer   *time.Timer
 	policyUpdates map[string]struct{}
 	policyDeletes map[string]struct{}
-	bundleDB      *bundles.Persistence
+	bundleDB      bundles.Persister
 	kvStore       store.Store
 	migrateSource string
 	migrateDB     string

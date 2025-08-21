@@ -267,10 +267,10 @@ func TestRunner_DummyRun(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 
-		handler := NewPersistence(ctx, client, "")
+		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate("haha")
+		d, err := handler.Generate(ctx, "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -306,10 +306,10 @@ func TestRunner_RunOnFailed(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 
-		handler := NewPersistence(ctx, client, "")
+		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate("haha")
+		d, err := handler.Generate(ctx, "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -352,10 +352,10 @@ func TestRunner_RunOnCompleted(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 
-		handler := NewPersistence(ctx, client, "")
+		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate("haha")
+		d, err := handler.Generate(ctx, "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -398,10 +398,10 @@ func TestRunner_RunOnBadStatus(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 
-		handler := NewPersistence(ctx, client, "")
+		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate("haha")
+		d, err := handler.Generate(ctx, "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -444,7 +444,7 @@ func TestRunner_Run_BadVersion(t *testing.T) {
 		client := memory.New()
 		require.NotNil(t, client)
 
-		handler := NewPersistence(ctx, client, "")
+		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
 		h.Clear()

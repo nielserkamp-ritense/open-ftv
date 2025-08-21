@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE deployment ADD COLUMN message TEXT;
+
+COMMIT;

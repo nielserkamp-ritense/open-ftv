@@ -33,7 +33,7 @@ func WithKeyValueDB(store store.Store, basePath string) Option {
 
 		p.kvStore = store
 		p.policyDB = NewKeyValueDB(store, basePath)
-		p.bundleDB = bundles.NewPersistence(p.ctx, store, basePath)
+		p.bundleDB = bundles.NewKeyValueDB(store, basePath)
 	}
 }
 
@@ -43,6 +43,7 @@ func WithPgPool(pool *postgresql.Postgres) Option {
 		p.languageDB = NewLanguageDBWithPool(pool)
 		p.tagDB = NewTagDBWithPool(pool)
 		p.policyDB = NewPolicyDBWithPool(pool)
+		p.bundleDB = bundles.NewPostgresDBWithPool(pool)
 	}
 }
 

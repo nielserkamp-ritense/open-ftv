@@ -16,6 +16,21 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
+// Bundle represents a bundle of policies, attributes, entities and/or relations.
+//
+// It has a specific version number and a policy language to indicate the language of the included policies.
+type Bundle struct {
+	Version    uint64                           `json:"version"               yaml:"version"`
+	Language   string                           `json:"language"              yaml:"language"`
+	Policies   map[string]*policies.Policy      `json:"policies,omitempty"    yaml:"policies,omitempty"`
+	Attributes map[string]*attributes.Attribute `json:"attributes,omitempty"  yaml:"attributes,omitempty"`
+	Entities   map[string]*attributes.Entity    `json:"entities,omitempty"    yaml:"entities,omitempty"`
+	Relations  map[string]*attributes.Relation  `json:"relations,omitempty"   yaml:"relations,omitempty"`
+	// hidden fields.
+	tags []string
+	l    models.Language
+}
+
 // NewBundle instantiates a new bundle for policies and other data elements for pushing to one or more PDPs.
 //
 // A bundle is created with a specific version, policy language and one or more selection tags.
@@ -111,21 +126,6 @@ func newBundle() *Bundle {
 		Relations:  make(map[string]*attributes.Relation),
 		tags:       make([]string, 0),
 	}
-}
-
-// Bundle represents a bundle of policies, attributes, entities and/or relations.
-//
-// It has a specific version number and a policy language to indicate the language of the included policies.
-type Bundle struct {
-	Version    uint64                           `json:"version"              yaml:"version"`
-	Language   string                           `json:"language"             yaml:"language"`
-	Policies   map[string]*policies.Policy      `json:"policies,omitempty"   yaml:"policies,omitempty"`
-	Attributes map[string]*attributes.Attribute `json:"attributes,omitempty" yaml:"attributes,omitempty"`
-	Entities   map[string]*attributes.Entity    `json:"entities,omitempty"   yaml:"entities,omitempty"`
-	Relations  map[string]*attributes.Relation  `json:"relations,omitempty"  yaml:"relations,omitempty"`
-	// hidden fields.
-	tags []string
-	l    models.Language
 }
 
 // AddPolicy adds the given policy to the bundle if the language matches, and it contains one of the selection tags.

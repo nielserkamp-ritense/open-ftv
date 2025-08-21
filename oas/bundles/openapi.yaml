@@ -117,6 +117,27 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
+  /deployment/last:
+    get:
+      operationId: "get-last-deployment"
+      summary: Retrieve last deployment.
+      description: Endpoint to retrieve the details of the last deployment.
+      tags:
+        - deployment
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
   /deployment:
     post:
       operationId: "start-deployment"
@@ -164,6 +185,8 @@ components:
       name: key
       schema:
         type: integer
+        minimum: 1
+        maximum: 99999999
       required: true
       description: Unique version number of a deployment.
 
@@ -317,9 +340,42 @@ components:
       type: object
       description: Body content for a new deployment request.
       properties:
+        title:
+          type: string
+          description: Title of the new deployment.
+          minLength: 1
+          maxLength: 80
         description:
           type: string
-          description: Description of the new deployment.
+          description: Optional description of the new deployment.
+      required:
+        - title
+
+    ObjectAudit:
+      type: object
+      description: The audit details for an object.
+      properties:
+        created:
+          type: string
+          description: Timestamp the object was created (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        createdBy:
+          type: string
+          description: User that created the object.
+          maxLength: 80
+          example: "alice@wonderland.cc"
+        updated:
+          type: string
+          description: Timestamp the object was last updated (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        updatedBy:
+          type: string
+          description: User that last updated the object.
+          maxLength: 80
+          example: "bob@wonderworld.cc"
+      required:
+        - created
+        - createdBy
 
     Statuses:
       type: array
@@ -378,6 +434,12 @@ components:
         id:
           type: string
           description: Unique identifier of this bundle deployment configuration.
+        title:
+          type: string
+          description: Title of this bundle deployment configuration.
+        description:
+          type: string
+          description: Optional description of this bundle deployment configuration.
         version:
           type: boolean
           description: Indicates to bundle the version number.
@@ -397,7 +459,9 @@ components:
           items:
             $ref: "#/components/schemas/Target"
       required:
-        - tag
+        - id
+        - title
+        - tags
         - targets
 
     Target:
@@ -437,26 +501,26 @@ components:
         version:
           type: integer
           description: Version number of the last deployment.
+        title:
+          type: string
+          description: Title of the deployment.
+          maxLength: 80
         description:
           type: string
-          description: Description of the deployment.
+          description: Optional description of the deployment.
         status:
           type: integer
-          description: Status of the last deployment.
+          description: Status of the deployment.
         message:
           type: string
           description: Message for a failed deployment.
-        created:
-          type: string
-          description: Date and time the deployment was started (UTC - RFC3339).
-        updated:
-          type: string
-          description: Date and time the deployment was last updated (UTC - RFC3339).
+        audit:
+          $ref: "#/components/schemas/ObjectAudit"
       required:
         - version
-        - description
+        - title
         - status
-        - created
+        - audit
 
     BundleActivated:
       type: object

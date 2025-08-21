@@ -98,6 +98,7 @@ func (s *service) initBundles(group fiber.Router) {
 	group.Get(handle.PathCompressionTypes, apis.GetCompressTypes)
 	group.Get(handle.PathConfigs, apis.GetConfigs)
 	group.Get(handle.PathDeployments, apis.GetDeployments)
+	group.Get(handle.PathLastDeployment, apis.GetLastDeployment)
 	group.Get(handle.PathDeploymentID, apis.GetDeployment)
 	group.Post(handle.PathDeployment, apis.PostDeployment)
 }

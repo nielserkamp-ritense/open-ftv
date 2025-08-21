@@ -212,6 +212,7 @@ require (
 replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication => ./../../eam/authentication
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization => ./../../eam/authorization
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles => ./../../eam/bundles
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config => ./../../eam/config
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers => ./../../eam/handlers
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log => ./../../eam/log

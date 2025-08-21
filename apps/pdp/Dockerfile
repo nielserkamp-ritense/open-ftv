@@ -3,14 +3,14 @@ FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
 
 WORKDIR /build
 
-COPY ./apps/pap ./apps/pap
+COPY ./apps/pdp ./apps/pdp
 COPY ./oas ./oas
 COPY ./eam ./eam
 COPY ./migrations ./migrations
 COPY ./utilities ./utilities
 COPY ./utilities-no-ci ./utilities-no-ci
 
-RUN cd apps/pap \
+RUN cd apps/pdp \
   && go mod tidy \
   && go mod download \
   && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/pdp ./cmd/*.go
