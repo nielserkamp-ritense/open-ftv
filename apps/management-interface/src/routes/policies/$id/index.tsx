@@ -10,13 +10,13 @@ import {IconFileText, IconPlayerPlay, IconSettings, IconSourceCode} from "@table
 import { Badge } from "@/components/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 
-export const Route = createFileRoute('/policies/$language/$policyId/')({
+export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
 })
 
 function RouteComponent() {
-    const {language, policyId} = Route.useParams()
-    const {status, data, error} = usePolicy(language, policyId)
+    const {id} = Route.useParams()
+    const {status, data, error} = usePolicy(id)
 
     if (status == "pending") {
         return <>
@@ -52,7 +52,7 @@ function RouteComponent() {
                             <NavbarItem href="#" className={"text-xl"} current>
                                 <IconFileText />Details
                             </NavbarItem>
-                            <NavbarItem href={"/policies/" + language +"/" + policyId + "/edit/" }>
+                            <NavbarItem href={"/policies/" + id + "/edit/" }>
                                 <IconSourceCode /> Bewerken
                             </NavbarItem>
                             <NavbarItem href="#" disabled>
@@ -96,11 +96,11 @@ function RouteComponent() {
                             </div>
                         </DescriptionDetails>
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
-                        <DescriptionDetails>{data?.metadata?.createUser}</DescriptionDetails>
+                        <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
                         <DescriptionTerm>Laatst bijgewerkt</DescriptionTerm>
-                        <DescriptionDetails>{data?.metadata?.updateDate}</DescriptionDetails>
+                        <DescriptionDetails>{data?.audit?.updated}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt op</DescriptionTerm>
-                        <DescriptionDetails>{data?.metadata?.createDate}</DescriptionDetails>
+                        <DescriptionDetails>{data?.audit?.created}</DescriptionDetails>
                     </DescriptionList>
                 </Card>
                 <Card className="flex-1" header={

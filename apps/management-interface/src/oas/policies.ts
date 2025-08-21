@@ -64,14 +64,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/policy/{language}/{id}": {
+    "/policy/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description Language of a policy. */
-                language: components["parameters"]["PolicyLanguage"];
-                /** @description Unique identifier of a policy. */
+                /**
+                 * @description Unique identifier of a policy.
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
                 id: components["parameters"]["PolicyID"];
             };
             cookie?: never;
@@ -113,79 +114,126 @@ export interface components {
     schemas: {
         /** @description The metadata associated with a policy. */
         Metadata: {
-            /** @description The title of the policy. E.g., a short description. */
-            title?: string;
-            /** @description Detailed description of the policy. */
+            /**
+             * @description The title of the policy. E.g., a short description.
+             * @example BRP:Person:Subsidy
+             */
+            title: string;
+            /**
+             * @description Detailed description of the policy.
+             * @example BRP - access person details for a subsidy
+             */
             description?: string;
-            /** @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
+            /**
+             * @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
              *     Only required when the policy is linked directly with an item in the RvVA.
              *     The value is considered as one of the tags of the policy.
-             *      */
+             *
+             * @example <RvVA-identifier>
+             */
             rvvaId?: string;
             /** @description Link to the policy. Required when the policy is stored externally. */
             url?: string;
             /** @description List of tags the policy is annotated with.
              *
              *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
+             *
+             *     Verify with the tags endpoint.
              *      */
             tags?: string[];
-            /** @description Timestamp the policy was created (RFC3339 format). */
-            createDate?: string;
-            /** @description User that created the policy. */
-            createUser?: string;
-            /** @description Timestamp the policy was last updated (RFC3339 format). */
-            updateDate?: string;
-            /** @description User that last updated the policy. */
-            updateUser?: string;
+        };
+        /** @description The audit details of an object. */
+        ObjectAudit: {
+            /**
+             * @description Timestamp the object was created (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created: string;
+            /**
+             * @description User that created the object.
+             * @example alice@wonderland.cc
+             */
+            createdBy: string;
+            /**
+             * @description Timestamp the object was last updated (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            updated?: string;
+            /**
+             * @description User that last updated the object.
+             * @example bob@wonderworld.cc
+             */
+            updatedBy?: string;
+        };
+        /** @description Metadata about how, when and by whom an object has been manipulated. */
+        AuditEntry: {
+            /**
+             * @description Timestamp of the log entry in RFC3339 format.
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created?: string;
+            /**
+             * @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+             * @example C
+             */
+            operation: string;
+            /**
+             * @description Unique identifier of the user who operated on the object.
+             * @example alice@wonderland.cc
+             */
+            user: string;
         };
         /** @description Metadata about how and where the policy is used. */
         UsageData: {
             /** @description Bundles the policy is used by. */
             bundles?: string[];
         };
-        /** @description Metadata about how, when and by whom an object has been manipulated. */
-        AuditEntry: {
-            /** @description Timestamp of the log entry in RFC3339 format. */
-            timestamp?: string;
-            /** @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"]. */
-            operation?: string;
-            /** @description Unique identifier of the user who operated on the object. */
-            user?: string;
-        };
         Languages: components["schemas"]["Language"][];
         /** @description The details of a policy language. */
         Language: {
-            /** @description The unique identifier of the policy language. */
-            id?: string;
-            /** @description Name of the policy language in human-readable form. */
-            name?: string;
+            /**
+             * @description The unique identifier of the policy language.
+             * @example rego
+             */
+            id: string;
+            /**
+             * @description Name of the policy language in human-readable form.
+             * @example Open Policy Agent - REGO language
+             */
+            name: string;
+            audit: components["schemas"]["ObjectAudit"];
+            /** @description Audit log for the tag. */
+            auditLog?: components["schemas"]["AuditEntry"][];
         };
         Tags: components["schemas"]["Tag"][];
         /** @description The details of a tag. */
         Tag: {
-            /** @description The unique identifier of the tag. */
-            id?: string;
-            /** @description Name of the tag in human-readable form. */
-            name?: string;
+            /**
+             * @description The unique identifier of the tag.
+             * @example brp
+             */
+            id: string;
+            /**
+             * @description Name of the tag in human-readable form.
+             * @example Basis Registratie Personen
+             */
+            name: string;
             /** @description Detailed description of the tag. */
             description?: string;
-            /** @description Timestamp the tag was created (RFC3339 format). */
-            createDate?: string;
-            /** @description User that created the tag. */
-            createUser?: string;
-            /** @description Timestamp the tag was last updated (RFC3339 format). */
-            updateDate?: string;
-            /** @description User that last updated the tag. */
-            updateUser?: string;
+            audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the tag. */
             auditLog?: components["schemas"]["AuditEntry"][];
         };
         Policies: components["schemas"]["Policy"][];
         /** @description The content of a policy. */
         Policy: {
-            /** @description The unique identifier of the policy. */
+            /**
+             * @description The unique identifier of the policy.
+             * @example <uuid>
+             */
             id: string;
-            /** @description The language of the policy.
+            /**
+             * @description The language of the policy.
              *     The value is case-insensitive.
              *     The value is considered as one of the tags of the policy.
              *
@@ -194,14 +242,31 @@ export interface components {
              *     - "cedar".
              *     - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
              *     - "openfga"; alternative: "open-fga".
-             *      */
+             *
+             *     Verify with the languages endpoint.
+             *
+             * @example cedar
+             */
             language: string;
-            /** @description Content of the policy. Required when the policy is stored internally. */
+            /**
+             * @description Content of the policy. Required when the policy is stored internally.
+             * @example permit (
+             *       principal == doelbinding::"subsidies",
+             *       action == action::"POST",
+             *       resource is service
+             *     )
+             *     when {
+             *       principal has brpPersonen &&
+             *       resource.code == "BRP"
+             *     };
+             *
+             */
             data?: string;
-            metadata?: components["schemas"]["Metadata"];
-            usageData?: components["schemas"]["UsageData"];
+            metadata: components["schemas"]["Metadata"];
+            audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the policy. */
             auditLog?: components["schemas"]["AuditEntry"][];
+            usageData?: components["schemas"]["UsageData"];
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
@@ -227,7 +292,10 @@ export interface components {
         /** @description Languages found. */
         LanguagesResponse: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -238,7 +306,10 @@ export interface components {
         /** @description Tags found. */
         TagsResponse: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -249,7 +320,10 @@ export interface components {
         /** @description Policies found. */
         PoliciesResponse: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -260,7 +334,10 @@ export interface components {
         /** @description Policy found, created, replaced or removed. */
         PolicyResponse: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -271,7 +348,10 @@ export interface components {
         /** @description Bad request. */
         BadRequest: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -282,7 +362,10 @@ export interface components {
         /** @description Not authorized. */
         NotAuthorized: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -293,7 +376,10 @@ export interface components {
         /** @description Access denied. */
         AccessDenied: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -304,7 +390,10 @@ export interface components {
         /** @description Resource not found. */
         NotFound: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -315,7 +404,10 @@ export interface components {
         /** @description Resource already exists. */
         AlreadyExists: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -326,7 +418,10 @@ export interface components {
         /** @description Unexpected error. */
         UnexpectedError: {
             headers: {
-                /** @description Full version number of the API. */
+                /**
+                 * @description Full version number of the API.
+                 * @example 1.0.0
+                 */
                 "API-Version"?: string;
                 [name: string]: unknown;
             };
@@ -336,13 +431,20 @@ export interface components {
         };
     };
     parameters: {
-        /** @description Language of a policy. */
-        PolicyLanguage: string;
-        /** @description Unique identifier of a policy. */
+        /**
+         * @description Unique identifier of a policy.
+         * @example b4911124-e92a-482f-80b4-eb02383378ae
+         */
         PolicyID: string;
-        /** @description Force upsert during a put/post operation. */
+        /**
+         * @description Force upsert during a put/post operation.
+         * @example true
+         */
         ForceUpsert: boolean;
-        /** @description Ignore missing data during a delete operation. */
+        /**
+         * @description Ignore missing data during a delete operation.
+         * @example true
+         */
         IgnoreMissing: boolean;
     };
     requestBodies: never;
@@ -404,9 +506,10 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Language of a policy. */
-                language: components["parameters"]["PolicyLanguage"];
-                /** @description Unique identifier of a policy. */
+                /**
+                 * @description Unique identifier of a policy.
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
                 id: components["parameters"]["PolicyID"];
             };
             cookie?: never;
@@ -424,14 +527,18 @@ export interface operations {
     "update-policy": {
         parameters: {
             query?: {
-                /** @description Force upsert during a put/post operation. */
+                /**
+                 * @description Force upsert during a put/post operation.
+                 * @example true
+                 */
                 force?: components["parameters"]["ForceUpsert"];
             };
             header?: never;
             path: {
-                /** @description Language of a policy. */
-                language: components["parameters"]["PolicyLanguage"];
-                /** @description Unique identifier of a policy. */
+                /**
+                 * @description Unique identifier of a policy.
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
                 id: components["parameters"]["PolicyID"];
             };
             cookie?: never;
@@ -454,14 +561,18 @@ export interface operations {
     "create-policy": {
         parameters: {
             query?: {
-                /** @description Force upsert during a put/post operation. */
+                /**
+                 * @description Force upsert during a put/post operation.
+                 * @example true
+                 */
                 force?: components["parameters"]["ForceUpsert"];
             };
             header?: never;
             path: {
-                /** @description Language of a policy. */
-                language: components["parameters"]["PolicyLanguage"];
-                /** @description Unique identifier of a policy. */
+                /**
+                 * @description Unique identifier of a policy.
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
                 id: components["parameters"]["PolicyID"];
             };
             cookie?: never;
@@ -484,14 +595,18 @@ export interface operations {
     "delete-policy": {
         parameters: {
             query?: {
-                /** @description Ignore missing data during a delete operation. */
+                /**
+                 * @description Ignore missing data during a delete operation.
+                 * @example true
+                 */
                 force?: components["parameters"]["IgnoreMissing"];
             };
             header?: never;
             path: {
-                /** @description Language of a policy. */
-                language: components["parameters"]["PolicyLanguage"];
-                /** @description Unique identifier of a policy. */
+                /**
+                 * @description Unique identifier of a policy.
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
                 id: components["parameters"]["PolicyID"];
             };
             cookie?: never;

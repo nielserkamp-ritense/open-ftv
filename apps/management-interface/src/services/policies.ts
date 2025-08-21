@@ -12,7 +12,7 @@ const POLICIES_QUERY_KEYS = {
   lists: () => [...POLICIES_QUERY_KEYS.all, 'list'] as const,
   list: (filters: Record<string, unknown>) => [...POLICIES_QUERY_KEYS.lists(), filters] as const,
   details: () => [...POLICIES_QUERY_KEYS.all, 'detail'] as const,
-  detail: (language: string, id: string) => [...POLICIES_QUERY_KEYS.details(), language, id] as const,
+  detail: (id: string) => [...POLICIES_QUERY_KEYS.details(), id] as const,
 };
 
 
@@ -33,34 +33,31 @@ export const policiesService = {
 
   /**
    * Get a specific policy
-   * @param language - Language of the policy
    * @param id - Unique identifier of the policy
    * @returns Promise with the requested policy
    */
-  getPolicy: async (language: string, id: string): Promise<PolicyResponse> => {
+  getPolicy: async (id: string): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'GET',
-      url: `/v1/policy/${language}/${id}`,
+      url: `/v1/policy/${id}`,
     });
   },
 
   /**
    * Add a new policy
-   * @param language - Language of the policy
    * @param id - Unique identifier of the policy
    * @param policy - Policy data to add
    * @param force - Force upsert if policy already exists
    * @returns Promise with the added policy
    */
   addPolicy: async (
-    language: string,
     id: string,
     policy: Policy,
     force?: boolean
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'POST',
-      url: `/v1/policy/${language}/${id}`,
+      url: `/v1/policy/${id}`,
       params: force ? { force } : undefined,
       data: policy,
     });
@@ -68,21 +65,19 @@ export const policiesService = {
 
   /**
    * Replace an existing policy
-   * @param language - Language of the policy
    * @param id - Unique identifier of the policy
    * @param policy - New policy data
    * @param force - Force upsert if policy doesn't exist
    * @returns Promise with the updated policy
    */
   replacePolicy: async (
-    language: string,
     id: string,
     policy: Policy,
     force?: boolean
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'PUT',
-      url: `/v1/policy/${language}/${id}`,
+      url: `/v1/policy/${id}`,
       params: force ? { force } : undefined,
       data: policy,
     });
@@ -90,19 +85,17 @@ export const policiesService = {
 
   /**
    * Delete a policy
-   * @param language - Language of the policy
    * @param id - Unique identifier of the policy
    * @param force - Ignore missing data during delete
    * @returns Promise with the deleted policy
    */
   deletePolicy: async (
-    language: string,
     id: string,
     force?: boolean
   ): Promise<PolicyResponse> => {
     return request<PolicyResponse>({
       method: 'DELETE',
-      url: `/v1/policy/${language}/${id}`,
+      url: `/v1/policy/${id}`,
       params: force ? { force } : undefined,
     });
   },
@@ -121,11 +114,11 @@ export const usePolicies = () => {
 /**
  * Hook to fetch a specific policy
  */
-export const usePolicy = (language: string, id: string) => {
+export const usePolicy = (id: string) => {
   return useQuery({
-    queryKey: POLICIES_QUERY_KEYS.detail(language, id),
-    queryFn: () => policiesService.getPolicy(language, id),
-    enabled: !!language && !!id, // Only run the query if both parameters are provided
+    queryKey: POLICIES_QUERY_KEYS.detail(id),
+    queryFn: () => policiesService.getPolicy(id),
+    enabled: !!id, // Only run the query if both parameters are provided
   });
 };
 
@@ -136,12 +129,11 @@ export const useAddPolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ language, id, policy, force }: {
-      language: string;
+    mutationFn: ({ id, policy, force }: {
       id: string;
       policy: Policy;
       force?: boolean
-    }) => policiesService.addPolicy(language, id, policy, force),
+    }) => policiesService.addPolicy(id, policy, force),
     onSuccess: async () => {
       // Invalidate the policies list query to refetch the updated data
       await queryClient.invalidateQueries({ queryKey: POLICIES_QUERY_KEYS.lists() });
@@ -156,17 +148,16 @@ export const useReplacePolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ language, id, policy, force }: {
-      language: string;
+    mutationFn: ({ id, policy, force }: {
       id: string;
       policy: Policy;
       force?: boolean
-    }) => policiesService.replacePolicy(language, id, policy, force),
+    }) => policiesService.replacePolicy(id, policy, force),
     onSuccess: async (_data, variables) => {
       // Invalidate both the list and the specific policy query
       await queryClient.invalidateQueries({ queryKey: POLICIES_QUERY_KEYS.lists() });
       await queryClient.invalidateQueries({
-        queryKey: POLICIES_QUERY_KEYS.detail(variables.language, variables.id)
+        queryKey: POLICIES_QUERY_KEYS.detail(variables.id)
       });
     },
   });
@@ -179,16 +170,15 @@ export const useDeletePolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ language, id, force }: {
-      language: string;
+    mutationFn: ({ id, force }: {
       id: string;
       force?: boolean
-    }) => policiesService.deletePolicy(language, id, force),
+    }) => policiesService.deletePolicy(id, force),
     onSuccess: async (_data, variables) => {
       // Invalidate both the list and the specific policy query
       await queryClient.invalidateQueries({ queryKey: POLICIES_QUERY_KEYS.lists() });
       await queryClient.invalidateQueries({
-        queryKey: POLICIES_QUERY_KEYS.detail(variables.language, variables.id)
+        queryKey: POLICIES_QUERY_KEYS.detail(variables.id)
       });
     },
   });
