@@ -2,6 +2,7 @@ package models
 
 import (
 	"bytes"
+	"fmt"
 	"sync"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
@@ -105,18 +106,21 @@ func (t *Table) AddTransformations(in *Row, params map[string]any) *Row {
 		return in
 	}
 
+	l := len(in.Data) + len(t.def.Transforms)
 	out := &Row{
-		Data:        make(map[string]any, len(in.Data)+len(t.def.Transforms)),
+		Data:        make(map[string]any, l),
+		qualifiers:  make(map[string]string, l),
 		def:         in.def,
 		isQualified: in.isQualified,
 	}
 
 	for k, v := range in.Data {
 		out.Data[k] = v
+		out.qualifiers[k] = in.qualifiers[k]
 	}
 
 	for _, transform := range t.def.Transforms {
-		out.Data = transforming.Execute(out.Data, out.isQualified, transform, params)
+		out.Data, out.qualifiers = transforming.Execute(out.Data, out.qualifiers, out.isQualified, transform, params)
 	}
 	return out
 }
@@ -124,9 +128,18 @@ func (t *Table) AddTransformations(in *Row, params map[string]any) *Row {
 // DummyRecord returns an empty row according to the data table definition.
 func (t *Table) DummyRecord() *Row {
 	fields := t.def.Fields
-	out := &Row{Data: make(map[string]any, len(fields)), def: &t.def.Object}
+
+	l := len(fields)
+	out := &Row{
+		Data:       make(map[string]any, l),
+		qualifiers: make(map[string]string, l),
+		def:        &t.def.Object,
+	}
+
 	for i := range fields {
-		out.Data[fields[i].ID] = nil
+		f := fields[i]
+		out.Data[f.ID] = nil
+		out.qualifiers[f.ID] = fmt.Sprintf("%s.%s", t.def.ID, f.ID)
 	}
 	return out
 }

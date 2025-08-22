@@ -18,6 +18,8 @@ RUN cd apps/manager \
 # Stage 2 - run
 FROM digilabpublic.azurecr.io/alpine:3.22
 
+RUN apk add --no-cache curl
+
 COPY --from=golang_builder /build/manager /
 
 # Run the binary when starting the container

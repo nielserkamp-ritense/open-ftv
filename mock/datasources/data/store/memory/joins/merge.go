@@ -81,6 +81,6 @@ func (j *Join) mergeSibling(target, source *models.Row) *models.Row {
 }
 
 func (j *Join) mergeChildren(target *models.Row, source models.Rows) *models.Row {
-	child := &models.Row{Data: map[string]any{j.def.GetJoinID(): source}}
+	child := models.NewJoin(j.def.GetJoinID(), source)
 	return target.JoinSibling(child)
 }

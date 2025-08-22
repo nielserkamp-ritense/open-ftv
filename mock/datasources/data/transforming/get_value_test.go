@@ -252,7 +252,7 @@ func TestRunner_GetTransformationAndType(t *testing.T) {
 		{
 			name: "not found",
 			r: &runner{
-				rec:       r1,
+				data:      r1,
 				transform: tr1,
 			},
 			i: 1,
@@ -260,7 +260,7 @@ func TestRunner_GetTransformationAndType(t *testing.T) {
 		{
 			name: "bad initialization",
 			r: &runner{
-				rec:       r1,
+				data:      r1,
 				transform: tr2,
 			},
 			i: 1,
@@ -268,7 +268,7 @@ func TestRunner_GetTransformationAndType(t *testing.T) {
 		{
 			name: "found unqualified",
 			r: &runner{
-				rec:       r1,
+				data:      r1,
 				transform: tr5,
 			},
 			i:        1,
@@ -280,7 +280,7 @@ func TestRunner_GetTransformationAndType(t *testing.T) {
 			name: "found qualified",
 			r: &runner{
 				qualified: true,
-				rec:       r1,
+				data:      r1,
 				transform: tr6,
 			},
 			i:        1,
@@ -291,7 +291,7 @@ func TestRunner_GetTransformationAndType(t *testing.T) {
 		{
 			name: "not found; calculate",
 			r: &runner{
-				rec:       r1,
+				data:      r1,
 				transform: volwassen,
 			},
 			i:        1,

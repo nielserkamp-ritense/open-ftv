@@ -1,0 +1,9 @@
+---
+- id: openftv
+  name: Beleidsregels OpenFTV management interface
+- id: rvig
+  name: Beleidsregels voor communicatie met RvIG
+- id: rdw
+  name: Beleidsregels voor communicatie met RDW
+- id: laadpalen
+  name: Beleidsregels voor de laadpalen applicatie

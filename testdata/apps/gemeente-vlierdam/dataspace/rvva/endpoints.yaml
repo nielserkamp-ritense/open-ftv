@@ -1,0 +1,28 @@
+---
+- id: verwerkingsactiviteiten
+  path: /rvva
+  description: Gegevens van verwerkingsactiviteiten ophalen
+  type: GET
+  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: rvva
+  table: activiteit
+  joins:
+    - type: OptionalSibling
+      source: doelbinding
+      fields: ["code:doelbinding"]
+  fields:
+    - "*"
+
+- id: doelbindingen
+  path: /doelbinding
+  description: Gegevens van doelbindingen ophalen
+  type: GET
+  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: rvva
+  table: doelbinding
+  fields:
+    - "*"

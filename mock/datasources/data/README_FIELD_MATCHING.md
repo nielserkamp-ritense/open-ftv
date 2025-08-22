@@ -42,7 +42,7 @@ Examples:
 It also supports qualified fields (including the table identifier).
 E.g., ```persoon.*``` will match all fields from the ```persoon``` table.
 
-As a result of the above rules, a single asterisk would match every field.
+As a result of the above rules, a single asterisk will match every field.
 This is in fact the same when no field matching expression is found.
 E.g., the default is to return all fields.
 

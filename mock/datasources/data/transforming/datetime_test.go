@@ -62,7 +62,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "nil",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr1"}},
 					TransformationType: enums.TransformAge,
@@ -75,7 +75,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "invalid date",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformAge,
@@ -89,7 +89,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "future date",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr3"}},
 					TransformationType: enums.TransformAge,
@@ -103,7 +103,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "string - full date",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr4"}},
 					TransformationType: enums.TransformAge,
@@ -117,7 +117,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "string - no month",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr5"}},
 					TransformationType: enums.TransformAge,
@@ -131,7 +131,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "string - no day",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr6"}},
 					TransformationType: enums.TransformAge,
@@ -145,7 +145,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "integer - no month, no day",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr7"}},
 					TransformationType: enums.TransformAge,
@@ -159,7 +159,7 @@ func TestRunner_Age(t *testing.T) {
 		{
 			name: "date time",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr7"}},
 					TransformationType: enums.TransformAge,

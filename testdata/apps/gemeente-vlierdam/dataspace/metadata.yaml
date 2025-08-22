@@ -5,6 +5,8 @@ datasource:
   - rvva/schema.yaml
 endpoints:
   - laadpalen/endpoints.yaml
+  - iam/endpoints.yaml
+  - rvva/endpoints.yaml
 sourceData:
   vlierdam:
     aanvraag: laadpalen/aanvraag.csv

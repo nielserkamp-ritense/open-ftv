@@ -85,5 +85,8 @@ func (s *storage) GetTable(id string) (*models.Table, error) {
 		return nil, fmt.Errorf("invalid table id [%s]", id)
 	}
 
+	if t == nil {
+		return nil, fmt.Errorf("table id [%s] unknown", id)
+	}
 	return t, err
 }

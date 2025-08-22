@@ -23,7 +23,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "nil",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr1"}},
 					TransformationType: enums.TransformConvert,
@@ -34,7 +34,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "integer",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,
@@ -47,7 +47,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "unsigned integer",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,
@@ -60,7 +60,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "float",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,
@@ -73,7 +73,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "integer",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,
@@ -86,7 +86,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "date",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,
@@ -99,7 +99,7 @@ func TestRunner_Convert(t *testing.T) {
 		{
 			name: "string",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformConvert,

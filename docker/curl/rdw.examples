@@ -1,0 +1,8 @@
+# RDW Kentekens
+
+curl -i "http://localhost:9030/v1/voertuigen"
+
+curl -i "http://localhost:9030/v1/voertuigen?@filter=bsn%3D999990251%2Cdiplomatiek%3D0&@fields=bsn,kenteken,*klasse*"
+curl -i "http://localhost:9030/v1/voertuigen?@filter=bsn%3D999990263%2Cdiplomatiek%3D0&@fields=bsn,kenteken,*klasse*"
+curl -i "http://localhost:9030/v1/voertuigen?@filter=bsn%3D999990287%2Cdiplomatiek%3D0&@fields=bsn,kenteken,*klasse*"
+curl -i "http://localhost:9030/v1/voertuigen?@filter=bsn%3D999990329%2Cdiplomatiek%3D0&@fields=bsn,kenteken,*klasse*"
