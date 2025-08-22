@@ -8,10 +8,10 @@ import (
 // Execute executes the given transformation using the given table data.
 //
 // The result of this function is the given table data, extended with the result of the transformation.
-func Execute(rec map[string]any, qualified bool, transform *schema.Transformation, params map[string]any) map[string]any {
-	p := &runner{qualified: qualified, rec: rec, transform: transform, params: params}
+func Execute(data map[string]any, qualifiers map[string]string, qualified bool, transform *schema.Transformation, params map[string]any) (map[string]any, map[string]string) {
+	p := &runner{qualified: qualified, data: data, qualifiers: qualifiers, transform: transform, params: params}
 	p.addResult(p.run())
-	return p.rec
+	return p.data, p.qualifiers
 }
 
 func (r *runner) run() any {
@@ -31,16 +31,19 @@ func (r *runner) addResult(v any) {
 	// for the value nil, we must suppress the output!
 	if v != nil {
 		if r.qualified {
-			r.rec[r.transform.FQID()] = v
+			r.data[r.transform.FQID()] = v
+			r.qualifiers[r.transform.FQID()] = r.transform.FQID()
 		} else {
-			r.rec[r.transform.ID] = v
+			r.data[r.transform.ID] = v
+			r.qualifiers[r.transform.ID] = r.transform.FQID()
 		}
 	}
 }
 
 type runner struct {
-	qualified bool
-	rec       map[string]any
-	transform *schema.Transformation
-	params    map[string]any
+	qualified  bool
+	data       map[string]any
+	qualifiers map[string]string
+	transform  *schema.Transformation
+	params     map[string]any
 }

@@ -9,14 +9,14 @@ import (
 type Rows []*Row
 
 // MatchFields returns a deep copy of the table data with only those fields that pass the given field matcher.
-func (r Rows) MatchFields(fields matching.FieldMatcher) Rows {
-	if fields == nil {
+func (r Rows) MatchFields(matcher matching.FieldMatcher) Rows {
+	if matcher == nil {
 		return r
 	}
 
 	out := make(Rows, len(r))
 	for i, row := range r {
-		out[i] = row.MatchFields(fields)
+		out[i] = row.MatchFields(matcher)
 	}
 	return out
 }

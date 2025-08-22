@@ -1,0 +1,17 @@
+# Gemeente Vlierdam - laadpalen register
+
+curl -i "http://localhost:9010/v1/laadpalen"
+
+
+# Gemeente Vlierdam - IAM PIP
+
+curl -i "http://localhost:9010/v1/gebruiker"
+curl -i "http://localhost:9010/v1/gebruiker?id=1"
+curl -i "http://localhost:9010/v1/gebruiker?id=99"
+curl -i "http://localhost:9010/v1/gebruiker?id=2&@fields=id,afdeling"
+
+
+# Gemeente Vlierdam - Verwerkingsactiviteiten register - PIP
+
+curl -i "http://localhost:9010/v1/rvva"
+curl -i "http://localhost:9010/v1/doelbinding"

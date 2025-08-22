@@ -32,9 +32,9 @@ func (r *runner) getFieldValueAndType(i int) (any, enums.FieldType, bool) {
 
 	var v any
 	if r.qualified {
-		v = r.rec[f.FQID()]
+		v = r.data[f.FQID()]
 	} else {
-		v = r.rec[f.ID]
+		v = r.data[f.ID]
 	}
 	return v, f.Type, true
 }
@@ -52,11 +52,11 @@ func (r *runner) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
 
 	var v any
 	if r.qualified {
-		v = r.rec[transform.FQID()]
+		v = r.data[transform.FQID()]
 	}
 
 	if !r.qualified || v == nil {
-		v = r.rec[transform.ID]
+		v = r.data[transform.ID]
 	}
 
 	if v != nil {
@@ -64,7 +64,7 @@ func (r *runner) getTransformValueAndType(i int) (any, enums.FieldType, bool) {
 	}
 
 	// if the transformation hasn't been executed yet, we'll force it here.
-	p2 := &runner{rec: r.rec, qualified: r.qualified, transform: transform}
+	p2 := &runner{data: r.data, qualifiers: r.qualifiers, qualified: r.qualified, transform: transform}
 	return p2.run(), transform.ResultType, true
 }
 

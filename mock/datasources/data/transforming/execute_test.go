@@ -35,19 +35,19 @@ func TestRunner_AddResult(t *testing.T) {
 	}{
 		{
 			name: "nil",
-			r:    &runner{rec: map[string]any{}, transform: tr1},
+			r:    &runner{data: map[string]any{}, qualifiers: map[string]string{}, transform: tr1},
 			in:   nil,
 			id:   "tr1",
 		},
 		{
 			name: "string",
-			r:    &runner{rec: map[string]any{}, transform: tr2},
+			r:    &runner{data: map[string]any{}, qualifiers: map[string]string{}, transform: tr2},
 			in:   "hello world",
 			id:   "tr2",
 		},
 		{
 			name: "qualified integer",
-			r:    &runner{qualified: true, rec: map[string]any{}, transform: tr3},
+			r:    &runner{qualified: true, data: map[string]any{}, qualifiers: map[string]string{}, transform: tr3},
 			in:   123456,
 			id:   "t1.tr3",
 		},
@@ -58,7 +58,7 @@ func TestRunner_AddResult(t *testing.T) {
 			t.Parallel()
 
 			tc.r.addResult(tc.in)
-			got := tc.r.rec[tc.id]
+			got := tc.r.data[tc.id]
 			assert.Equal(t, tc.in, got)
 		})
 	}
@@ -104,32 +104,32 @@ func TestExecute(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		rec       map[string]any
+		data      map[string]any
 		qualified bool
 		t         *schema.Transformation
 		want      map[string]any
 	}{
 		{
 			name: "bad type",
-			rec:  map[string]any{},
+			data: map[string]any{},
 			t:    &schema.Transformation{},
 			want: map[string]any{},
 		},
 		{
 			name: "compare",
-			rec:  map[string]any{},
+			data: map[string]any{},
 			t:    tr1,
 			want: map[string]any{"tr1": "true"},
 		},
 		{
 			name: "convert",
-			rec:  map[string]any{"tr2": 12},
+			data: map[string]any{"tr2": 12},
 			t:    tr2,
 			want: map[string]any{"tr2": int64(1235)},
 		},
 		{
 			name:      "age",
-			rec:       map[string]any{"tr2": 12},
+			data:      map[string]any{"tr2": 12},
 			qualified: true,
 			t:         tr3,
 			want:      map[string]any{"tr2": 12, "t1.tr3": int64(23)},
@@ -140,7 +140,7 @@ func TestExecute(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := Execute(tc.rec, tc.qualified, tc.t, nil)
+			got, _ := Execute(tc.data, map[string]string{}, tc.qualified, tc.t, nil)
 			assert.EqualValues(t, tc.want, got)
 		})
 	}

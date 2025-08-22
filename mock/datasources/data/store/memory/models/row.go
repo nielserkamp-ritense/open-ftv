@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -17,9 +18,16 @@ import (
 
 // RowFromData returns a structured record from the given data using the given object definition.
 func RowFromData(def *schema.Object, data map[string]any) *Row {
-	r := &Row{Data: make(map[string]any, len(data)), def: def}
+	l := len(data)
+	r := &Row{
+		Data:       make(map[string]any, l),
+		qualifiers: make(map[string]string, l),
+		def:        def,
+	}
 
 	def.IterateFields(func(f *schema.Field) {
+		r.qualifiers[f.ID] = fmt.Sprintf("%s.%s", def.ID, f.ID)
+
 		if d, ok := data[f.ID]; ok {
 			if len(f.Fields) > 0 {
 				if m2, ok2 := d.(map[string]any); ok2 {
@@ -38,7 +46,12 @@ func RowFromData(def *schema.Object, data map[string]any) *Row {
 
 // RowFromCSV returns a structured record from the given CSV data using the given object definition.
 func RowFromCSV(def *schema.Object, header, data []string) *Row {
-	r := &Row{Data: make(map[string]any, len(data)), def: def}
+	l := len(data)
+	r := &Row{
+		Data:       make(map[string]any, l),
+		qualifiers: make(map[string]string, l),
+		def:        def,
+	}
 
 	keys := make(map[string]int, len(header))
 	for i := range header {
@@ -46,6 +59,8 @@ func RowFromCSV(def *schema.Object, header, data []string) *Row {
 	}
 
 	def.IterateFields(func(f *schema.Field) {
+		r.qualifiers[f.ID] = fmt.Sprintf("%s.%s", def.ID, f.ID)
+
 		if i, ok := keys[f.ID]; ok {
 			if len(f.Fields) > 0 {
 				// TODO: error or unmarshal from JSON?
@@ -60,10 +75,19 @@ func RowFromCSV(def *schema.Object, header, data []string) *Row {
 	return r
 }
 
+// NewJoin returns a row with a single field initialized for use as a joined column.
+func NewJoin(id string, source Rows) *Row {
+	return &Row{
+		Data:       map[string]any{id: source},
+		qualifiers: map[string]string{id: "@join." + id},
+	}
+}
+
 // Row contains the data of a single row from a data table.
 type Row struct {
 	Data map[string]any
 	// hidden fields
+	qualifiers  map[string]string
 	def         *schema.Object
 	isQualified bool
 }
@@ -156,38 +180,56 @@ func (r *Row) MatchFields(matcher matching.FieldMatcher) *Row {
 
 	out := &Row{
 		Data:        make(map[string]any),
+		qualifiers:  make(map[string]string),
 		def:         r.def,
 		isQualified: r.isQualified,
 	}
 
-	r.def.IterateFields(func(f *schema.Field) {
-		if out.isQualified {
-			if s := f.FQID(); matcher.Match(s) {
-				out.Data[s] = r.Data[s]
+	for k, v := range r.Data {
+		fqid := r.qualifiers[k]
+
+		add := func(v2 any) {
+			out.Data[k] = v2
+			out.qualifiers[k] = fqid
+		}
+
+		if strings.HasPrefix(fqid, "@join.") {
+			if r2, ok := v.(Rows); ok {
+				if r2 = r2.MatchFields(matcher); len(r2) > 0 && len(r2[0].Data) > 0 {
+					add(r2)
+				}
+			} else {
+				if matcher.Match(k) {
+					add(v)
+				}
 			}
 		} else {
-			if s := f.ID; matcher.Match(s) {
-				out.Data[s] = r.Data[s]
+			if matcher.Match(k) || matcher.Match(fqid) {
+				add(v)
 			}
 		}
-	})
+	}
 
 	return out
 }
 
 // JoinSibling returns a deep copy of the row extended with the data from the joined row.
 func (r *Row) JoinSibling(r2 *Row) *Row {
+	l := len(r.Data) + len(r2.Data)
 	out := &Row{
-		Data:        make(map[string]any, len(r.Data)+len(r2.Data)),
+		Data:        make(map[string]any, l),
+		qualifiers:  make(map[string]string, l),
 		def:         r.def,
 		isQualified: r.isQualified,
 	}
 
 	for k, v := range r.Data {
 		out.Data[k] = v
+		out.qualifiers[k] = r.qualifiers[k]
 	}
 	for k, v := range r2.Data {
 		out.Data[k] = v
+		out.qualifiers[k] = r2.qualifiers[k]
 	}
 	return out
 }
@@ -201,10 +243,13 @@ func (r *Row) JoinSiblingQualified(t1, t2 string, r2 *Row) *Row {
 	if r2.isQualified {
 		for k, v := range r2.Data {
 			out.Data[k] = v
+			out.qualifiers[k] = r2.qualifiers[k]
 		}
 	} else {
 		for k, v := range r2.Data {
-			out.Data[fmt.Sprintf("%s.%s", t2, k)] = v
+			fqid := fmt.Sprintf("%s.%s", t2, k)
+			out.Data[fqid] = v
+			out.qualifiers[fqid] = fqid
 		}
 	}
 
@@ -213,8 +258,10 @@ func (r *Row) JoinSiblingQualified(t1, t2 string, r2 *Row) *Row {
 
 // Qualified makes a deep copy of the record while adding the given table qualifier to the field identifiers (if needed).
 func (r *Row) Qualified(tableID string) *Row {
+	l := len(tableID)
 	out := &Row{
-		Data:        make(map[string]any, len(tableID)),
+		Data:        make(map[string]any, l),
+		qualifiers:  make(map[string]string, l),
 		def:         r.def,
 		isQualified: true,
 	}
@@ -222,10 +269,13 @@ func (r *Row) Qualified(tableID string) *Row {
 	if r.isQualified {
 		for k, v := range r.Data {
 			out.Data[k] = v
+			out.qualifiers[k] = r.qualifiers[k]
 		}
 	} else {
 		for k, v := range r.Data {
-			out.Data[fmt.Sprintf("%s.%s", tableID, k)] = v
+			fqid := fmt.Sprintf("%s.%s", tableID, k)
+			out.Data[fqid] = v
+			out.qualifiers[fqid] = fqid
 		}
 	}
 
@@ -243,8 +293,10 @@ func (r *Row) RemoveFields(fields []string) *Row {
 
 // RemoveFieldMap returns a deep copy of the row with the given fields removed from the data.
 func (r *Row) RemoveFieldMap(fields map[string]struct{}) *Row {
+	l := len(fields)
 	out := &Row{
-		Data:        make(map[string]any, len(fields)),
+		Data:        make(map[string]any, l),
+		qualifiers:  make(map[string]string, l),
 		def:         r.def,
 		isQualified: r.isQualified,
 	}
@@ -252,6 +304,7 @@ func (r *Row) RemoveFieldMap(fields map[string]struct{}) *Row {
 	for k, v := range r.Data {
 		if _, ok := fields[k]; !ok {
 			out.Data[k] = v
+			out.qualifiers[k] = r.qualifiers[k]
 		}
 	}
 	return out

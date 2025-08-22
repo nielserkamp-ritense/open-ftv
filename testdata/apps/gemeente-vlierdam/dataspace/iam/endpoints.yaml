@@ -1,0 +1,12 @@
+---
+- id: gebruikers
+  path: /gebruiker
+  description: Gegevens van medewerker ophalen
+  type: GET
+  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: iam
+  table: gebruiker
+  fields:
+    - "*"

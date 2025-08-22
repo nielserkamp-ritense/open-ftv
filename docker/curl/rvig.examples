@@ -1,0 +1,6 @@
+# BRP HaalCentraal
+
+curl -i -X POST -H "Content-Type: application/json" "http://localhost:9020/v1/haalcentraal/api/brp/personen?persoon.bsn=999990251&@fields=*" -d '{}'
+
+curl -i -X POST -H "Content-Type: application/json" "http://localhost:9020/v1/haalcentraal/api/brp/personen" \
+-d '{"@filter":"persoon.bsn=999990251","@fields":"bsn,voornamen,geslachtsnaam,adres.*"}'

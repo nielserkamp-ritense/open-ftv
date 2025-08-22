@@ -132,7 +132,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "both nil",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr1"}},
 					TransformationType: enums.TransformCompare,
@@ -144,7 +144,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "v1 nil",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr2"}},
 					TransformationType: enums.TransformCompare,
@@ -156,7 +156,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "v2 nil",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr3"}},
 					TransformationType: enums.TransformCompare,
@@ -169,7 +169,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "exists - true",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr4"}},
 					TransformationType: enums.TransformCompare,
@@ -183,7 +183,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "exists - false",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr5"}},
 					TransformationType: enums.TransformCompare,
@@ -196,7 +196,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "not exists - true",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr6"}},
 					TransformationType: enums.TransformCompare,
@@ -209,7 +209,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "not exists - false",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr7"}},
 					TransformationType: enums.TransformCompare,
@@ -223,7 +223,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "in list - true",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr8"}},
 					TransformationType: enums.TransformCompare,
@@ -238,7 +238,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "match regex - true",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr9"}},
 					TransformationType: enums.TransformCompare,
@@ -254,7 +254,7 @@ func TestRunner_Compare(t *testing.T) {
 		{
 			name: "lesserThan - true",
 			p: &runner{
-				rec: r1,
+				data: r1,
 				transform: &schema.Transformation{
 					Object:             schema.Object{Parent: schema.Parent{ID: "tr9"}},
 					TransformationType: enums.TransformCompare,
