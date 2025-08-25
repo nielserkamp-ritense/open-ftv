@@ -15,6 +15,7 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities
 	@go mod tidy
 
 fmt: tidy ${GO_FILES}  ## format all source code
