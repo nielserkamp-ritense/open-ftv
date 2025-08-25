@@ -15,6 +15,16 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/modelas
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/opa-embedded
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities
 	@go mod tidy
 
 fmt: tidy ${GO_FILES}  ## format all source code
