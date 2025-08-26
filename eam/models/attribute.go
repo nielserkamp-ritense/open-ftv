@@ -227,7 +227,7 @@ func (a *Attribute) newMarshallAttr() *marshalAttr {
 		Tags:        a.Tags(),
 	}
 
-	if a.original != a.value {
+	if !reflect.DeepEqual(a.original, a.value) {
 		m.Original = a.original
 	}
 

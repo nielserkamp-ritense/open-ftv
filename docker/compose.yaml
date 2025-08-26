@@ -1,106 +1,22 @@
 services:
-  vlierdam-pap:
-    build:
-      context: ../
-      dockerfile: ./apps/pap/Dockerfile
-    container_name: openftv-vlierdam-pap
-    ports:
-      - "9000:8443"
-    depends_on:
-      db:
-        condition: service_healthy
+  db:
+    image: postgres:15
+    container_name: openftv-postgres
     environment:
-      - PAP_PERSIST_TYPE=postgres
-      - PAP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv?sslmode=disable
-      - PAP_MIGRATE_AUTO=true
-      - PAP_MIGRATE_SOURCE=*embed*
-      - PAP_POLICIES_LANGUAGE=cedar
-      - PAP_POLICIES_STORE=/tmp/data/policies
-      - PAP_POLICIES_STORE_RECURSE=true
-      - PAP_PIP_STORE=/tmp/data/data
-      - PAP_PIP_STORE_RECURSE=true
-      - PAP_TAGS_PATH=/tmp/data/tags
-      - PAP_AUTHENTICATION_TYPE=none
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "5400:5432"
     volumes:
-      - ./../testdata/apps/gemeente-vlierdam/pap:/tmp/data
-    networks:
-      - openftv
+      - postgres-data:/var/lib/postgresql/data
+      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
-      interval: 5s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 4s
+      timeout: 10s
       retries: 5
-      start_period: 5s
-
-  vlierdam-pip:
-    build:
-      context: ../
-      dockerfile: ./apps/pip/Dockerfile
-    container_name: openftv-vlierdam-pip
-    ports:
-      - "9001:8443"
-    depends_on:
-      db:
-        condition: service_healthy
-      vlierdam-pap:
-        condition: service_healthy
-    environment:
-      - PIP_PERSIST_TYPE=postgres
-      - PIP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv?sslmode=disable
-      - PIP_POLICIES_LANGUAGE=cedar
-      - PIP_POLICIES_STORE=/tmp/data/policies
-      - PIP_POLICIES_STORE_RECURSE=true
-      - PIP_PIP_STORE=/tmp/data/data
-      - PIP_PIP_STORE_RECURSE=true
-      - PIP_AUTHENTICATION_TYPE=none
-    volumes:
-      - ./../testdata/apps/gemeente-vlierdam/pip:/tmp/data
-    networks:
-      - openftv
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-
-  vlierdam-pdp1:
-    build:
-      context: ../
-      dockerfile: ./apps/pdp/Dockerfile
-    container_name: openftv-vlierdam-pdp1
-    ports:
-      - "9002:8443"
-    environment:
-      - PDP_POLICIES_LANGUAGE=cedar
-    depends_on:
-      vlierdam-pap:
-        condition: service_healthy
-      vlierdam-pip:
-        condition: service_healthy
-    networks:
-      - openftv
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-
-  vlierdam-dataspace:
-    build:
-      context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
-    container_name: openftv-vlierdam
-    ports:
-      - "9010:8443"
-    environment:
-      - GEN_DS_DATA_PATH=/tmp/data
-    depends_on:
-      vlierdam-pdp1:
-        condition: service_healthy
-    volumes:
-      - ./../testdata/apps/gemeente-vlierdam/dataspace:/tmp/data
+      start_period: 2s
     networks:
       - openftv
 
@@ -132,11 +48,145 @@ services:
     networks:
       - openftv
 
-  frontend:
+  vlierdam-pap:
+    build:
+      context: ../
+      dockerfile: ./apps/pap/Dockerfile
+    container_name: openftv-vlierdam-pap
+    ports:
+      - "9000:8443"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PAP_PERSIST_TYPE=postgres
+      - PAP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv?sslmode=disable
+      - PAP_MIGRATE_AUTO=true
+      - PAP_MIGRATE_SOURCE=*embed*
+      - PAP_POLICIES_LANGUAGE=cedar
+      - PAP_POLICIES_STORE=/tmp/data/policies
+      - PAP_POLICIES_STORE_RECURSE=true
+      - PAP_PIP_STORE=/tmp/data/data
+      - PAP_PIP_STORE_RECURSE=true
+      - PAP_TAGS_PATH=/tmp/data/tags
+      - PAP_AUTHENTICATION_TYPE=none
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/pap:/tmp/data
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  vlierdam-pip:
+    build:
+      context: ../
+      dockerfile: ./apps/pip/Dockerfile
+    container_name: openftv-vlierdam-pip
+    ports:
+      - "9001:8443"
+    depends_on:
+      db:
+        condition: service_healthy
+      vlierdam-pap:
+        condition: service_healthy
+    environment:
+      - PIP_PERSIST_TYPE=postgres
+      - PIP_PERSIST_POSTGRES_URL=postgres://user:password@db:5432/openftv?sslmode=disable
+      - PIP_POLICIES_LANGUAGE=cedar
+      - PIP_POLICIES_STORE=/tmp/data/policies
+      - PIP_POLICIES_STORE_RECURSE=true
+      - PIP_PIP_STORE=/tmp/data/data
+      - PIP_PIP_STORE_RECURSE=true
+      - PIP_AUTHENTICATION_TYPE=none
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/pip:/tmp/data
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  vlierdam-pdp1:
+    build:
+      context: ../
+      dockerfile: ./apps/pdp/Dockerfile
+    container_name: openftv-vlierdam-pdp1
+    ports:
+      - "9002:8443"
+    environment:
+      - PDP_POLICIES_LANGUAGE=cedar
+      - PDP_POLICIES_STORE=/tmp/data/policies
+      - PDP_POLICIES_STORE_RECURSE=true
+      - PDP_PIP_STORE=/tmp/data/data
+      - PDP_PIP_STORE_RECURSE=true
+    depends_on:
+      vlierdam-pap:
+        condition: service_healthy
+      vlierdam-pip:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/pdp1:/tmp/data
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  vlierdam-dataspace:
+    build:
+      context: ../
+      dockerfile: ./mock/datasources/generic/Dockerfile
+    container_name: openftv-vlierdam-dataspace
+    ports:
+      - "9010:8443"
+    environment:
+      - GEN_DS_DATA_PATH=/tmp/data
+    depends_on:
+      vlierdam-pdp1:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/dataspace:/tmp/data
+    networks:
+      - openftv
+
+  vlierdam-outway:
+    build:
+      context: ../
+      dockerfile: ./external/gateways/kong/Dockerfile
+    container_name: openftv-vlierdam-outway
+    environment:
+      KONG_DATABASE: off
+      KONG_DECLARATIVE_CONFIG: "/tmp/conf/conf.yaml"
+      KONG_PLUGINSERVER_NAMES: "openftv"
+      KONG_PLUGINSERVER_OPENFTV_QUERY_CMD: "/usr/local/bin/openftv -dump"
+      KONG_PLUGINS: "openftv,bundled"
+    ports:
+      - "9011:8000/tcp"
+    depends_on:
+      vlierdam-pdp1:
+        condition: service_healthy
+      rvig:
+        condition: service_started
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/kong:/tmp/conf
+    networks:
+      - openftv
+
+  vlierdam-frontend:
     build:
       context: ../
       dockerfile: ./apps/management-interface/Dockerfile
-    container_name: openftv-management-ui
+    container_name: openftv-vlierdam-frontend
     ports:
       - "8080:80"
     depends_on:
@@ -144,27 +194,6 @@ services:
         condition: service_healthy
       vlierdam-pap:
         condition: service_healthy
-    networks:
-      - openftv
-
-  db:
-    image: postgres:15
-    container_name: openftv-postgres
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
-    ports:
-      - "5400:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 5s
     networks:
       - openftv
 

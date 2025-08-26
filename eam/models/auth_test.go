@@ -58,3 +58,61 @@ func TestRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestPARC(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   *PARC
+		want string
+	}{
+		{
+			name: "empty",
+			in:   &PARC{},
+			want: "{}",
+		},
+		{
+			name: "principal without attributes",
+			in:   &PARC{Principal: NewEntity("user", "alice", NewAttributeSet())},
+			want: `{"principal":{"type":"user","id":"alice","attributes":[]}}`,
+		},
+		{
+			name: "principal with attributes",
+			in: &PARC{
+				Principal: NewEntity("user", "alice",
+					NewAttributeSet(
+						NewAttribute("x", "y"),
+						NewAttribute("z", "w"),
+					)),
+			},
+			want: `{"principal":{"type":"user","id":"alice","attributes":[{"key":"x","value":"y"},{"key":"z","value":"w"}]}}`,
+		},
+		{
+			name: "action without attributes",
+			in:   &PARC{Action: NewEntity("method", "POST", NewAttributeSet())},
+			want: `{"action":{"type":"method","id":"POST","attributes":[]}}`,
+		},
+		{
+			name: "context",
+			in: &PARC{Context: NewAttributeSet(
+				NewAttribute("x", "y"),
+				NewAttribute("y", 123),
+				NewAttribute("z", true),
+				NewAttribute("z2", 1.345678),
+			)},
+			want: `{"context":[{"key":"x","value":"y"},{"key":"y","value":123},{"key":"z","value":true},{"key":"z2","value":1.345678}]}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := json.Marshal(tc.in)
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			assert.Equal(t, tc.want, string(got))
+		})
+	}
+}
