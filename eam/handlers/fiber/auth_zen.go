@@ -52,11 +52,13 @@ func (h *authZEN) Authorize(fc *fiber.Ctx) error {
 
 	req := p.verifyRequestAuthZEN()
 	if p.err != nil {
-		p.logger.Error("AuthZEN authorization handler failed", "error", p.err)
+		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
 
 	p.newAuthRequestAuthZEN(req)
+	p.logger.Debug("AuthZEN authorization request", "request", p.parc)
+
 	return p.authorizeAuthZEN()
 }
 
