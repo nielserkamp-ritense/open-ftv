@@ -1,6 +1,9 @@
 # Build stage
 FROM node:22.17.1-alpine AS builder
 
+ARG VITE_PAP_BASE_URL
+ARG VITE_PIP_BASE_URL
+
 WORKDIR /app
 
 # Copy package files
@@ -12,6 +15,10 @@ RUN npm ci
 
 # Copy source code
 COPY ./apps/management-interface/ .
+
+# Fix .env content
+RUN sed -i -r "s|%VITE_PAP_BASE_URL%|${VITE_PAP_BASE_URL}|g" .env
+RUN sed -i -r "s|%VITE_PIP_BASE_URL%|${VITE_PIP_BASE_URL}|g" .env
 
 # Build the application
 RUN npm run build

@@ -42,6 +42,9 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	}
 
 	s.pip = s.newPIP()
+	if s.pip == nil {
+		panic("failed to initialize PIP handler")
+	}
 
 	s.initHealth(svc)
 
@@ -52,6 +55,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initPolicies(v1)
 	s.initAttributes(v1)
 	s.initEntities(v1)
+	s.initRelations(v1)
 
 	if s.cfg.BundlePath != "" {
 		s.initBundles(v1)
@@ -89,33 +93,44 @@ func (s *service) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
-	group.Get(handle.PathPolicies, apis.GetPolicies)
-	group.Get(handle.PathPolicy, apis.GetPolicy)
-	group.Put(handle.PathPolicy, apis.PutPolicy)
-	group.Post(handle.PathPolicy, apis.PostPolicy)
-	group.Delete(handle.PathPolicy, apis.DeletePolicy)
+	group.Get(handle.PathPolicies, apis.GetPolicies).
+		Get(handle.PathPolicy, apis.GetPolicy).
+		Put(handle.PathPolicy, apis.PutPolicy).
+		Post(handle.PathPolicy, apis.PostPolicy).
+		Delete(handle.PathPolicy, apis.DeletePolicy)
 }
 
 func (s *service) initAttributes(group fiber.Router) {
 	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// attributes CRUD.
-	group.Get(handle.PathAttributes, apis.GetAttributes)
-	group.Get(handle.PathAttribute, apis.GetAttribute)
-	group.Put(handle.PathAttribute, apis.PutAttribute)
-	group.Post(handle.PathAttribute, apis.PostAttribute)
-	group.Delete(handle.PathAttribute, apis.DeleteAttribute)
+	group.Get(handle.PathAttributes, apis.GetAttributes).
+		Get(handle.PathAttribute, apis.GetAttribute).
+		Put(handle.PathAttribute, apis.PutAttribute).
+		Post(handle.PathAttribute, apis.PostAttribute).
+		Delete(handle.PathAttribute, apis.DeleteAttribute)
 }
 
 func (s *service) initEntities(group fiber.Router) {
 	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// entities CRUD.
-	group.Get(handle.PathEntities, apis.GetEntities)
-	group.Get(handle.PathEntity, apis.GetEntity)
-	group.Put(handle.PathEntity, apis.PutEntity)
-	group.Post(handle.PathEntity, apis.PostEntity)
-	group.Delete(handle.PathEntity, apis.DeleteEntity)
+	group.Get(handle.PathEntities, apis.GetEntities).
+		Get(handle.PathEntity, apis.GetEntity).
+		Put(handle.PathEntity, apis.PutEntity).
+		Post(handle.PathEntity, apis.PostEntity).
+		Delete(handle.PathEntity, apis.DeleteEntity)
+}
+
+func (s *service) initRelations(_ fiber.Router) {
+	// apis := handle.NewRelationsHandler(s.logger, s.pip, s.auth.Authorizer())
+	//
+	// // relations CRUD.
+	// group.Get(handle.PathRelations, apis.GetRelations).
+	//    Get(handle.PathRelation, apis.GetRelation).
+	//    Put(handle.PathRelation, apis.PutRelation).
+	//    Post(handle.PathRelation, apis.PostRelation).
+	//    Delete(handle.PathRelation, apis.DeleteRelation)
 }
 
 func (s *service) initBundles(group fiber.Router) {
@@ -138,11 +153,11 @@ func (s *service) initBundles(group fiber.Router) {
 	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(manager) })
 
 	// bundles CRUD.
-	group.Get(handle.PathStatuses, apis.GetStatuses)
-	group.Get(handle.PathCompressionTypes, apis.GetCompressTypes)
-	group.Get(handle.PathConfigs, apis.GetConfigs)
-	group.Get(handle.PathDeployments, apis.GetDeployments)
-	group.Get(handle.PathLastDeployment, apis.GetLastDeployment)
-	group.Get(handle.PathDeploymentID, apis.GetDeployment)
-	group.Post(handle.PathDeployment, apis.PostDeployment)
+	group.Get(handle.PathStatuses, apis.GetStatuses).
+		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
+		Get(handle.PathConfigs, apis.GetConfigs).
+		Get(handle.PathDeployments, apis.GetDeployments).
+		Get(handle.PathLastDeployment, apis.GetLastDeployment).
+		Get(handle.PathDeploymentID, apis.GetDeployment).
+		Post(handle.PathDeployment, apis.PostDeployment)
 }

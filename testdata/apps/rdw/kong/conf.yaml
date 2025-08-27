@@ -1,0 +1,65 @@
+_transform: false
+_format_version: '3.0'
+
+services:
+- id: 1dbe025c-912b-4361-87c0-af8cb76f21c1
+  name: RvIG-Dataspace
+  enabled: true
+  host: rvig-dataspace
+  port: 8443
+  protocol: http
+  retries: 5
+  connect_timeout: 60000
+  write_timeout: 60000
+  read_timeout: 60000
+
+routes:
+- id: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
+  service: 1dbe025c-912b-4361-87c0-af8cb76f21c1
+  name: RvIG-BRP-HaalCentraal-personen
+  regex_priority: 0
+  path_handling: v0
+  preserve_host: false
+  https_redirect_status_code: 426
+  strip_path: false
+  request_buffering: true
+  response_buffering: true
+  methods: ~
+  paths:
+    - /v1/haalcentraal/api/brp/personen
+  protocols:
+  - http
+  - https
+
+plugins:
+- id: 3b8652d2-f4f3-4341-8614-06ab14ba155e
+  route: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
+  name: openftv
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    pdp: "http://rvig-pdp1:8443/authzen/v1/evaluation"
+    timeout: 30000
+
+- id: 692cc3f7-a449-4e5c-a019-cf0b707604bd
+  route: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
+  name: cors
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    origins:
+      - http://localhost:8000
+      - http://localhost:8080
+      - http://localhost:8443
+    credentials: false
+    preflight_continue: false
+    methods:
+      - GET
+      - HEAD
+      - PUT
+      - PATCH
+      - POST

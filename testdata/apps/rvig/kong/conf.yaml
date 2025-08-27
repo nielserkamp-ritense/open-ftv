@@ -1,0 +1,65 @@
+_transform: false
+_format_version: '3.0'
+
+services:
+- id: c64a01c8-111f-469c-91a6-c85c9ff13dd1
+  name: RDW-Dataspace
+  enabled: true
+  host: rdw-dataspace
+  port: 8443
+  protocol: http
+  retries: 5
+  connect_timeout: 60000
+  write_timeout: 60000
+  read_timeout: 60000
+
+routes:
+- id: c819e9f5-f417-43bd-9489-871262704cfb
+  service: c64a01c8-111f-469c-91a6-c85c9ff13dd1
+  name: RDW-Voertuigen
+  regex_priority: 0
+  path_handling: v0
+  preserve_host: false
+  https_redirect_status_code: 426
+  strip_path: false
+  request_buffering: true
+  response_buffering: true
+  methods: ~
+  paths:
+    - /v1/voertuigen
+  protocols:
+    - http
+    - https
+
+plugins:
+- id: 3964cfd5-c60f-421e-8da6-1f3019befbb9
+  route: c819e9f5-f417-43bd-9489-871262704cfb
+  name: openftv
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    pdp: "http://rdw-pdp1:8443/authzen/v1/evaluation"
+    timeout: 30000
+
+- id: d4ca26b6-eb71-4ce5-b163-604553ccca6c
+  route: c819e9f5-f417-43bd-9489-871262704cfb
+  name: cors
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    origins:
+      - http://localhost:8000
+      - http://localhost:8080
+      - http://localhost:8443
+    credentials: false
+    preflight_continue: false
+    methods:
+      - GET
+      - HEAD
+      - PUT
+      - PATCH
+      - POST

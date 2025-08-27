@@ -1,0 +1,5 @@
+---
+- id: openftv
+  name: Beleidsregels OpenFTV management interface
+- id: gemeenten
+  name: Beleidsregels voor communicatie met gemeenten
