@@ -32,7 +32,7 @@ func NewAttributeStore(client store.Store, basePath string) AttributePersister {
 }
 
 // CreateAttribute implements the AttributePersister interface.
-func (s *attributeStore) CreateAttribute(ctx context.Context, _ string, a *models.Attribute) (*models.Attribute, error) {
+func (s *attributeStore) CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(a.Key())
 
 	s.mutex.Lock()
@@ -70,7 +70,7 @@ func (s *attributeStore) ReadAttribute(ctx context.Context, id string) (*models.
 }
 
 // UpdateAttribute implements the AttributePersister interface.
-func (s *attributeStore) UpdateAttribute(ctx context.Context, _ string, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
+func (s *attributeStore) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
@@ -84,7 +84,7 @@ func (s *attributeStore) UpdateAttribute(ctx context.Context, _ string, prev *mo
 }
 
 // DeleteAttribute implements the AttributePersister interface.
-func (s *attributeStore) DeleteAttribute(ctx context.Context, _ string, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
+func (s *attributeStore) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()

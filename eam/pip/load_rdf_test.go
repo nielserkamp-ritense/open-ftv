@@ -1,6 +1,7 @@
 package pip
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -55,6 +56,7 @@ func TestLoadRDF(t *testing.T) {
 			ep := NewEntityStore(s, "entity")
 
 			p := &PIP{
+				ctx:         context.Background(),
 				logger:      slog.New(h),
 				kvStore:     s,
 				attributeDB: ap,

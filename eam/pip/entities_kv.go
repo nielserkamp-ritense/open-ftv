@@ -35,7 +35,7 @@ func NewEntityStore(client store.Store, basePath string) EntityPersister {
 }
 
 // CreateEntity implements the EntityPersister interface.
-func (s *entityStore) CreateEntity(ctx context.Context, _ string, e *models.Entity) (*models.Entity, error) {
+func (s *entityStore) CreateEntity(ctx context.Context, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(e.UID())
 
 	s.mutex.Lock()
@@ -73,7 +73,7 @@ func (s *entityStore) ReadEntity(ctx context.Context, ns, id string) (*models.En
 }
 
 // UpdateEntity implements the EntityPersister interface.
-func (s *entityStore) UpdateEntity(ctx context.Context, _ string, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
+func (s *entityStore) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
@@ -87,7 +87,7 @@ func (s *entityStore) UpdateEntity(ctx context.Context, _ string, prev *models.E
 }
 
 // DeleteEntity implements the EntityPersister interface.
-func (s *entityStore) DeleteEntity(ctx context.Context, _ string, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
+func (s *entityStore) DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()

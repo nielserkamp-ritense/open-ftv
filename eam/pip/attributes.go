@@ -1,6 +1,8 @@
 package pip
 
 import (
+	"context"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -20,11 +22,11 @@ func (p *PIP) AddAttributeFromOAS(in *attributes.Attribute, user string) (*model
 func (p *PIP) addAttributeWithUser(in *models.Attribute, user string) (*models.Attribute, error) {
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, in.Key())
 	if err != nil || prev == nil {
-		if _, err = p.attributeDB.CreateAttribute(p.ctx, user, in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.CreateAttribute(context.WithValue(p.ctx, "user", user), in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeAdded, in.Key())
 		}
 	} else {
-		if _, err = p.attributeDB.UpdateAttribute(p.ctx, user, prev, ix, in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.UpdateAttribute(context.WithValue(p.ctx, "user", user), prev, ix, in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeReplaced, in.Key())
 		}
 	}
@@ -63,7 +65,7 @@ func (p *PIP) GetAttributeValue(key string) any {
 func (p *PIP) RemoveAttribute(key, user string) (*models.Attribute, error) {
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, key)
 	if err == nil {
-		if _, err = p.attributeDB.DeleteAttribute(p.ctx, user, prev, ix); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.DeleteAttribute(context.WithValue(p.ctx, "user", user), prev, ix); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeRemoved, key)
 		}
 	}

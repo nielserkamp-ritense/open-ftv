@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -187,6 +188,8 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
+			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+
 			exp := mock.ExpectExec(`INSERT INTO policy
  (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).
@@ -199,7 +202,7 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.CreatePolicy(ctx, u, p)
+			got, err := db.CreatePolicy(context.WithValue(ctx, "user", u), p)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -332,6 +335,8 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
+			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+
 			exp := mock.ExpectExec(`UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
  WHERE id=$1 AND updated=$2`).
@@ -348,7 +353,7 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.UpdatePolicy(ctx, u, p, timeToLastIndex(now), p)
+			got, err := db.UpdatePolicy(context.WithValue(ctx, "user", u), p, timeToLastIndex(now), p)
 			if tc.wantErr || tc.wantMismatch {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -411,6 +416,8 @@ func TestPostgresDB_DeletePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
+			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+
 			exp := mock.ExpectExec(`DELETE policy
  WHERE id=$1 AND updated=$2`).WithArgs(p.ID(), now)
 			if tc.wantErr {
@@ -425,7 +432,7 @@ func TestPostgresDB_DeletePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.DeletePolicy(ctx, u, p, timeToLastIndex(now))
+			got, err := db.DeletePolicy(context.WithValue(ctx, "user", u), p, timeToLastIndex(now))
 			if tc.wantErr || tc.wantMismatch {
 				require.Error(t, err)
 				require.Nil(t, got)
