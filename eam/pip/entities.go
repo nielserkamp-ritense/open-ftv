@@ -1,6 +1,10 @@
 package pip
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+import (
+	"context"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+)
 
 // AddEntity adds/replaces an entity in the PIP.
 func (p *PIP) AddEntity(entity *models.Entity) (*models.Entity, error) {
@@ -11,11 +15,11 @@ func (p *PIP) AddEntity(entity *models.Entity) (*models.Entity, error) {
 func (p *PIP) AddEntityWithUser(entity *models.Entity, user string) (*models.Entity, error) {
 	e2, ix, err := p.entityDB.ReadEntity(p.ctx, entity.Type(), entity.ID())
 	if err != nil || e2 == nil {
-		if e2, err = p.entityDB.CreateEntity(p.ctx, user, entity); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.CreateEntity(context.WithValue(p.ctx, "user", user), entity); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityAdded, entity.UID())
 		}
 	} else {
-		if e2, err = p.entityDB.UpdateEntity(p.ctx, user, e2, ix, entity); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.UpdateEntity(context.WithValue(p.ctx, "user", user), e2, ix, entity); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityReplaced, entity.UID())
 		}
 	}
@@ -33,7 +37,7 @@ func (p *PIP) RemoveEntity(uid string, user string) (*models.Entity, error) {
 	ns, id := models.SplitEntityUID(uid)
 	e2, ix, err := p.entityDB.ReadEntity(p.ctx, ns, id)
 	if err == nil {
-		if e2, err = p.entityDB.DeleteEntity(p.ctx, user, e2, ix); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.DeleteEntity(context.WithValue(p.ctx, "user", user), e2, ix); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityRemoved, uid)
 		}
 	}

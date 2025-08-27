@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication v0.0.0-20250716162429-b106327fedfb
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250716162429-b106327fedfb
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250826133604-9a89b1c9ed11
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250827120738-8cdad14a0db5
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers v0.0.0-20250715053539-0c59d719e91e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250812131710-e88def2f909e
@@ -21,7 +21,7 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250812131710-e88def2f909e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250812131710-e88def2f909e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250826133604-9a89b1c9ed11
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250827120738-8cdad14a0db5
 	gitlab.com/gjuyn/go-config v1.2.0
 )
 
@@ -167,7 +167,7 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping v0.0.0-20250812131710-e88def2f909e // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-20250812131710-e88def2f909e // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250826133604-9a89b1c9ed11 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250827120738-8cdad14a0db5 // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250812131710-e88def2f909e // indirect
 	go.etcd.io/etcd/api/v3 v3.6.4 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.4 // indirect

@@ -11,8 +11,8 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250826133604-9a89b1c9ed11
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250826133604-9a89b1c9ed11
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250827120738-8cdad14a0db5
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250827120738-8cdad14a0db5
 )
 
 require (

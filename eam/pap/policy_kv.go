@@ -40,7 +40,7 @@ type KeyValueDB struct {
 }
 
 // CreatePolicy adds a policy to the store.
-func (s *KeyValueDB) CreatePolicy(ctx context.Context, _ string, p *models.Policy) (*models.Policy, error) {
+func (s *KeyValueDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(p.ID())
 
 	s.mutex.Lock()
@@ -78,7 +78,7 @@ func (s *KeyValueDB) ReadPolicy(ctx context.Context, id string) (*models.Policy,
 }
 
 // UpdatePolicy replaces a policy in the store.
-func (s *KeyValueDB) UpdatePolicy(ctx context.Context, _ string, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+func (s *KeyValueDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(prev.ID())
 
 	s.mutex.Lock()
@@ -92,7 +92,7 @@ func (s *KeyValueDB) UpdatePolicy(ctx context.Context, _ string, prev *models.Po
 }
 
 // DeletePolicy removes a policy from the store.
-func (s *KeyValueDB) DeletePolicy(ctx context.Context, _ string, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
+func (s *KeyValueDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	key := s.makeKey(prev.ID())
 
 	s.mutex.Lock()

@@ -10,7 +10,9 @@ import (
 )
 
 // CreateEntity creates a new entity in the database.
-func (db *PostgresDB) CreateEntity(ctx context.Context, user string, e *models.Entity) (*models.Entity, error) {
+func (db *PostgresDB) CreateEntity(ctx context.Context, e *models.Entity) (*models.Entity, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `INSERT INTO entity
  (type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
@@ -51,7 +53,9 @@ func (db *PostgresDB) ReadEntity(ctx context.Context, ns, id string) (*models.En
 }
 
 // UpdateEntity replaces an existing entity in the database.
-func (db *PostgresDB) UpdateEntity(ctx context.Context, user string, prev *models.Entity, lastIndex uint64, p *models.Entity) (*models.Entity, error) {
+func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, p *models.Entity) (*models.Entity, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `UPDATE entity
  SET title=$4,description=$5,tags=$6,attributes=$7,parents=$8,updated=$9,updated_by=$10
  WHERE type=$1 AND id=$2 AND updated=$3`
@@ -70,7 +74,7 @@ func (db *PostgresDB) UpdateEntity(ctx context.Context, user string, prev *model
 }
 
 // DeleteEntity removes an existing entity from the database.
-func (db *PostgresDB) DeleteEntity(ctx context.Context, _ string, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
+func (db *PostgresDB) DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	sql := `DELETE entity
  WHERE type=$1 AND id=$2 AND updated=$3`
 	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex)}

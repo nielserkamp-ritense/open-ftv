@@ -4,11 +4,13 @@ package postgresql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
@@ -85,6 +87,11 @@ func (db *Postgres) Query(ctx context.Context, q string, params []any, f Process
 
 // Exec executes the given SQL statement with the given parameters.
 func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int64, err error) {
+	user := convert.AnyToString(ctx.Value("user"))
+	if user == "" {
+		user = "*SYSTEM*"
+	}
+
 	var tx pgx.Tx
 	if tx, err = db.pool.Begin(ctx); err != nil {
 		return
@@ -97,6 +104,11 @@ func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int
 			err = errors.Join(err, tx.Rollback(ctx))
 		}
 	}()
+
+	_, err = tx.Exec(ctx, fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", user))
+	if err != nil {
+		return
+	}
 
 	var result pgconn.CommandTag
 	if len(params) > 0 {

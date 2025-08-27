@@ -35,7 +35,9 @@ type PolicyDB struct {
 }
 
 // CreatePolicy creates a new policy into the database.
-func (db *PolicyDB) CreatePolicy(ctx context.Context, user string, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models.Policy, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `INSERT INTO policy
  (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
@@ -76,7 +78,9 @@ func (db *PolicyDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, 
 }
 
 // UpdatePolicy replaces an existing policy in the database.
-func (db *PolicyDB) UpdatePolicy(ctx context.Context, user string, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
  WHERE id=$1 AND updated=$2`
@@ -94,7 +98,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, user string, prev *models.
 }
 
 // DeletePolicy removes an existing policy from the database.
-func (db *PolicyDB) DeletePolicy(ctx context.Context, _ string, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
+func (db *PolicyDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	sql := `DELETE policy
  WHERE id=$1 AND updated=$2`
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex)}

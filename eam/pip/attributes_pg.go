@@ -10,7 +10,9 @@ import (
 )
 
 // CreateAttribute creates a new attribute in the database.
-func (db *PostgresDB) CreateAttribute(ctx context.Context, user string, a *models.Attribute) (*models.Attribute, error) {
+func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `INSERT INTO attribute
  (key,type,title,description,value,original,tags,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
@@ -51,7 +53,9 @@ func (db *PostgresDB) ReadAttribute(ctx context.Context, id string) (*models.Att
 }
 
 // UpdateAttribute replaces an existing attribute in the database.
-func (db *PostgresDB) UpdateAttribute(ctx context.Context, user string, prev *models.Attribute, lastIndex uint64, p *models.Attribute) (*models.Attribute, error) {
+func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, p *models.Attribute) (*models.Attribute, error) {
+	user := convert.AnyToString(ctx.Value("user"))
+
 	sql := `UPDATE attribute
  SET type=$3,title=$4,description=$5,value=$6,original=$7,tags=$8,updated=$9,updated_by=$10
  WHERE key=$1 AND updated=$2`
@@ -69,7 +73,7 @@ func (db *PostgresDB) UpdateAttribute(ctx context.Context, user string, prev *mo
 }
 
 // DeleteAttribute removes an existing attribute from the database.
-func (db *PostgresDB) DeleteAttribute(ctx context.Context, _ string, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
+func (db *PostgresDB) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	sql := `DELETE attribute
  WHERE key=$1 AND updated=$2`
 	params := []any{prev.Key(), timeFromLastIndex(lastIndex)}

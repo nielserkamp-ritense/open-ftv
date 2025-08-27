@@ -1,12 +1,16 @@
 package pap
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+import (
+	"context"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+)
 
 // Create adds a policy to cache/storage.
 //
 // An error is returned if the policy-id already exists.
 func (p *PAP) Create(in *models.Policy, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.CreatePolicy(p.ctx, user, in); err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.policyDB.CreatePolicy(context.WithValue(p.ctx, "user", user), in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyAdded, out.Key())
 	}
 	return
@@ -23,7 +27,7 @@ func (p *PAP) Read(id string) (out *models.Policy, lastIndex uint64, err error) 
 //
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.UpdatePolicy(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.policyDB.UpdatePolicy(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyReplaced, out.Key())
 	}
 	return
@@ -33,7 +37,7 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, u
 //
 // An error is returned if the policy key doesn't exist.
 func (p *PAP) Delete(prev *models.Policy, lastIndex uint64, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.DeletePolicy(p.ctx, user, prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
+	if out, err = p.policyDB.DeletePolicy(context.WithValue(p.ctx, "user", user), prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyRemoved, out.Key())
 	}
 	return

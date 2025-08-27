@@ -17,8 +17,8 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250826133604-9a89b1c9ed11
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250826133604-9a89b1c9ed11
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250827120738-8cdad14a0db5
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250827120738-8cdad14a0db5
 	gitlab.com/gjuyn/go-config v1.2.0
 )
 
@@ -67,7 +67,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250826133604-9a89b1c9ed11 // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250827120738-8cdad14a0db5 // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping v0.0.0-20250708120440-2327e161c67a // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-20250708120440-2327e161c67a // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000 // indirect
