@@ -3,10 +3,21 @@ _format_version: '3.0'
 
 services:
 - id: a28e5042-f33d-44a7-8673-6b082a930a7d
-  name: OpenFTV-RvIG
+  name: OpenFTV-RvIG-Inway
   enabled: true
-  host: rvig
-  port: 8443
+  host: rvig-inway
+  port: 8000
+  protocol: http
+  retries: 5
+  connect_timeout: 60000
+  write_timeout: 60000
+  read_timeout: 60000
+
+- id: 73d5bfc1-cb75-44ac-8e66-5c4e18f8de71
+  name: OpenFTV-RDW-inway
+  enabled: true
+  host: rdw-inway
+  port: 8000
   protocol: http
   retries: 5
   connect_timeout: 60000
@@ -16,7 +27,7 @@ services:
 routes:
 - id: 41dd269a-d7fc-4d5e-97bf-a0ab86724d35
   service: a28e5042-f33d-44a7-8673-6b082a930a7d
-  name: OpenFTV-BRP-HaalCentraal
+  name: OpenFTV-RvIG-BRP-personen
   regex_priority: 0
   path_handling: v0
   preserve_host: false
@@ -30,6 +41,23 @@ routes:
   protocols:
   - http
   - https
+
+- id: 975b7d92-3305-4f83-94b5-586824c1f2a3
+  service: 73d5bfc1-cb75-44ac-8e66-5c4e18f8de71
+  name: OpenFTV-RDW-voertuigen
+  regex_priority: 0
+  path_handling: v0
+  preserve_host: false
+  https_redirect_status_code: 426
+  strip_path: false
+  request_buffering: true
+  response_buffering: true
+  methods: ~
+  paths:
+    - /v1/voertuigen
+  protocols:
+    - http
+    - https
 
 plugins:
 - id: 6dabfa34-797f-4bd0-a827-991fca634ea8
