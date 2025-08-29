@@ -61,7 +61,6 @@ routes:
 
 plugins:
 - id: 6dabfa34-797f-4bd0-a827-991fca634ea8
-  route: 41dd269a-d7fc-4d5e-97bf-a0ab86724d35
   name: openftv
   enabled: true
   protocols:

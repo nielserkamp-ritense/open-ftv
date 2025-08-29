@@ -16,8 +16,8 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "FTV PDP 0.1"
-	envPrefix = "FTV_PDP_"
+	AppName   = "OpenFTV PDP 1.0"
+	envPrefix = "PDP_"
 	cfg1      = "/etc/pdp/config.yaml"
 	cfg2      = "./etc/pdp.yaml"
 	cfg3      = "./pdp.yaml"

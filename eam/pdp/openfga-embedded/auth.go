@@ -34,9 +34,12 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 
 	c.AuthMutex.RUnlock()
 
-	if err != nil {
+	switch {
+	case err != nil:
 		out.Message = err.Error()
-	} else {
+	case resp == nil:
+		out.Message = "authorization failed; empty response from engine"
+	default:
 		out.Allowed = resp.Allowed
 		out.Message = resp.Resolution
 	}
@@ -68,7 +71,9 @@ func (c *controller) buildCheckRequest(parc *models.PARC) (*openfgav1.CheckReque
 		Object:    basicEntity{Type: parc.Resource.Type(), ID: normalize(parc.Resource.ID())},
 	})
 
-	// TODO: add the context!
+	// TODO: add the context
+	// TODO: add any attributes, entities and/or relations from the PIP
+
 	return &openfgav1.CheckRequest{
 		StoreId:              dtl.storeID,
 		AuthorizationModelId: dtl.authModelID,

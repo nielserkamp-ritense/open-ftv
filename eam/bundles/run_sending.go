@@ -5,10 +5,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
+	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 )
@@ -159,9 +161,6 @@ func processQueue(ctx context.Context, jobs sendJobCH, results sendResultCH, wg 
 }
 
 func sendBundle(ctx context.Context, job *sendJob) (int, error) {
-	ctx2, cancel := context.WithTimeout(ctx, job.timeout)
-	defer cancel()
-
 	ct := CompressionTypeFromString(job.target.Compress)
 
 	// TODO: re-use compressed bundles when possible.
@@ -170,15 +169,26 @@ func sendBundle(ctx context.Context, job *sendJob) (int, error) {
 		return 0, err
 	}
 
+	ctx2, cancel := context.WithTimeout(ctx, job.timeout)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx2, "POST", job.target.URI, &b)
 	if err != nil {
 		return 0, err
 	}
 
-	req.Header.Set("Content-Encoding", ct.String())
+	req.Header.Set(fiber.HeaderContentType, fiber.MIMEOctetStream)
+	req.Header.Set(fiber.HeaderContentEncoding, ct.String())
 
 	if job.target.APIKey != "" {
 		req.Header.Set("Api-Key", job.target.APIKey)
+	}
+
+	for i := range job.target.Headers {
+		parts := strings.Split(job.target.Headers[i], ":")
+		if len(parts) == 2 {
+			req.Header.Set(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+		}
 	}
 
 	resp, err2 := job.client.Do(req)

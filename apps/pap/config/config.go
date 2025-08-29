@@ -13,7 +13,7 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "PAP 0.2"
+	AppName   = "OpenFTV PAP 1.0"
 	envPrefix = "PAP_"
 	cfg1      = "/etc/pap/default.conf"
 	cfg2      = "./etc/pap.yaml"

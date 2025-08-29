@@ -13,7 +13,7 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "Manager 0.1"
+	AppName   = "OpenFTV Manager 1.0"
 	envPrefix = "MANAGER_"
 	cfg1      = "/etc/manager/default.conf"
 	cfg2      = "./etc/manager.yaml"

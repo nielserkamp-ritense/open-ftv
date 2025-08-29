@@ -2,10 +2,10 @@ _transform: false
 _format_version: '3.0'
 
 services:
-- id: c64a01c8-111f-469c-91a6-c85c9ff13dd1
-  name: RDW-Dataspace
+- id: 1dbe025c-912b-4361-87c0-af8cb76f21c1
+  name: RvIG-Dataspace
   enabled: true
-  host: rdw-dataspace
+  host: rvig-dataspace
   port: 8443
   protocol: http
   retries: 5
@@ -14,9 +14,9 @@ services:
   read_timeout: 60000
 
 routes:
-- id: c819e9f5-f417-43bd-9489-871262704cfb
-  service: c64a01c8-111f-469c-91a6-c85c9ff13dd1
-  name: RDW-Voertuigen
+- id: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
+  service: 1dbe025c-912b-4361-87c0-af8cb76f21c1
+  name: RvIG-BRP-HaalCentraal-personen
   regex_priority: 0
   path_handling: v0
   preserve_host: false
@@ -26,25 +26,25 @@ routes:
   response_buffering: true
   methods: ~
   paths:
-    - /v1/voertuigen
+    - /v1/haalcentraal/api/brp/personen
   protocols:
-    - http
-    - https
+  - http
+  - https
 
 plugins:
-- id: 3964cfd5-c60f-421e-8da6-1f3019befbb9
-  route: c819e9f5-f417-43bd-9489-871262704cfb
+- id: 3b8652d2-f4f3-4341-8614-06ab14ba155e
+  route: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
   name: openftv
   enabled: true
   protocols:
     - http
     - https
   config:
-    pdp: "http://rdw-pdp1:8443/authzen/v1/evaluation"
+    pdp: "http://rvig-pdp1:8443/authzen/v1/evaluation"
     timeout: 30000
 
-- id: d4ca26b6-eb71-4ce5-b163-604553ccca6c
-  route: c819e9f5-f417-43bd-9489-871262704cfb
+- id: 692cc3f7-a449-4e5c-a019-cf0b707604bd
+  route: ef51c72d-9bcb-4438-ae4b-d3660e85fc75
   name: cors
   enabled: true
   protocols:

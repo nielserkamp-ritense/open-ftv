@@ -76,5 +76,7 @@ func (r *runner) processEntity(tp string, id string, attrs *models.AttributeSet,
 		attrs = models.NewAttributeSet()
 	}
 
-	r.manager.addEntity(models.NewEntity(tp, id, attrs, parents...))
+	if _, err := r.manager.addEntity(models.NewEntity(tp, id, attrs, parents...)); err != nil {
+		r.logger.Error("failed to add entity to cache", "type", tp, "id", id, "error", err)
+	}
 }

@@ -148,9 +148,6 @@ type Target struct {
 // DeploymentID defines model for DeploymentID.
 type DeploymentID = int
 
-// AccessDenied The response for an error (as defined by RFC9457).
-type AccessDenied = ErrorMessage
-
 // BadRequest The response for an error (as defined by RFC9457).
 type BadRequest = ErrorMessage
 
@@ -168,6 +165,9 @@ type DeploymentFound = Deployment
 
 // DeploymentsFound List of bundle deployments.
 type DeploymentsFound = Deployments
+
+// NotAuthenticated The response for an error (as defined by RFC9457).
+type NotAuthenticated = ErrorMessage
 
 // NotAuthorized The response for an error (as defined by RFC9457).
 type NotAuthorized = ErrorMessage

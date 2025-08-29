@@ -49,12 +49,12 @@ func Check(req *fiber.Ctx, resp *models.Response, err error, log *slog.Logger) (
 			req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
 		}
 
-		msg := "authentication failed"
+		msg := "authentication failed" // 401
 		log.Error(msg, "path", req.Path(), "err", err)
 		return user, false, server.SendMessageResponse(req, fiber.StatusUnauthorized, msg)
 
 	case err != nil || resp == nil || !resp.Allowed:
-		msg := "authorization failed"
+		msg := "authorization failed" // 403
 		log.Error(msg, "path", req.Path(), "authResponse", resp, "err", err)
 		return user, false, server.SendMessageResponse(req, fiber.StatusForbidden, msg)
 

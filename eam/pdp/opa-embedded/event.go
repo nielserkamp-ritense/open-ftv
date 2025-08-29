@@ -61,6 +61,6 @@ func (c *controller) Handle(event models.EventType, key string) {
 		}
 
 	default:
-		// TODO: attributes, entities, relations
+		// TODO: attributes, entities, relations?
 	}
 }

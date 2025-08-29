@@ -45,7 +45,10 @@ func (r *runner) decodeAttributeMap(base string, m map[string]any, obj *Attribut
 	key := codeOrValueString(obj.KeyField, obj.KeyValue, m)
 	value := codeOrValue(obj.ValueField, obj.ValueValue, m)
 	tp := codeOrValueString(obj.TypeField, obj.TypeValue, m)
-	r.processAttribute(base, r.addParents(key, obj.KeyParents), value, tp, add)
+
+	if obj.IsRequired || (key != "" && value != nil) {
+		r.processAttribute(base, r.addParents(key, obj.KeyParents), value, tp, add)
+	}
 }
 
 func (r *runner) addParents(key string, parents []string) string {
@@ -69,5 +72,7 @@ func (r *runner) processAttribute(base, key string, value any, tp string, add mo
 		}
 	}
 
-	_, _ = add(models.NewOriginalAttribute(key, v1, value, tp))
+	if _, err := add(models.NewOriginalAttribute(key, v1, value, tp)); err != nil {
+		r.logger.Warn("failed to add attribute to cache", "attribute.base", base, "key", key, "type", tp, "error", err)
+	}
 }

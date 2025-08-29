@@ -20,22 +20,23 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 		f, _, err := c.PAP.Read(id)
 		if err != nil || f == nil {
-			c.Logger.Error("failed to get policy", "controller", c.String(), "policy-id", id, "error", err)
+			c.Logger.Error("failed to get policy", "controller", c.String(), "id", id, "error", err)
 			return
 		}
 
 		d, _ := io.ReadAll(f.Content())
 
 		var policy cedar.Policy
-		if err = policy.UnmarshalCedar(d); err == nil {
-			c.pdpMutex.Lock()
-			c.pdp.Add(cedar.PolicyID(id), &policy)
-			c.pdpMutex.Unlock()
-
-			c.Logger.Info("policy added/replaced", "controller", c.String(), "policy-id", id)
-		} else {
-			c.Logger.Error("error decoding policy", "controller", c.String(), "policy-id", id, "error", err)
+		if err = policy.UnmarshalCedar(d); err != nil {
+			c.Logger.Error("error decoding policy", "controller", c.String(), "id", id, "error", err)
+			return
 		}
+
+		c.pdpMutex.Lock()
+		c.pdp.Add(cedar.PolicyID(id), &policy)
+		c.pdpMutex.Unlock()
+
+		c.Logger.Info("policy added/replaced", "controller", c.String(), "id", id)
 
 	case models.PolicyRemoved:
 		language, id := models.SplitPolicyKey(key)
@@ -49,7 +50,10 @@ func (c *controller) Handle(t models.EventType, key string) {
 
 		c.Logger.Info("policy removed", "controller", c.String(), "policy-id", id)
 
+	case models.EntityAdded, models.EntityReplaced, models.EntityRemoved:
+		// entities are passed in the authorization call directly from the PIP, so these events do **not** need to be handled.
+
 	default:
-		// TODO: attributes, entities, relations
+		// TODO: attributes and relations
 	}
 }
