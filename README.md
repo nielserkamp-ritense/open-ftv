@@ -6,19 +6,22 @@ for the project.
 
 Here you will find all code modules related to the project, test-data, utilities, scripts, etc.
 
-The main documentation for this project (in Dutch) is found here:
-https://vng-realisatie.github.io/ftv/
+The repo is set up as a mono-repo. This allows separate modules to be re-used in other projects.
+
+The main documentation for the FTV project (in Dutch) can be found at
+https://vng-realisatie.github.io/ftv/.
 
 ## Folder structure
 
-- `apps` contains the code for the subcomponents (e.g. `pap`, `pdp`, `pip` etc.)
-- `docker` contains docker and compose related scripts
-- `e2e` contains end-2-end scripts
-- `eam` contains shared EAM modules
-- `mock` contains mock services, including the generic mock data-service
-- `oas` contains the OpenAPI specifications for the project
-- `testdata` contains files with test data
-- `utilities*` contains shared utility modules
+- `apps` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.)
+- `docker` docker and compose related scripts
+- `e2e` end-2-end scripts
+- `eam` shared generic EAM modules
+- `migrations` database migration scripts
+- `mock` mock services, including the generic mock data-service
+- `oas` OpenAPI specifications for the project
+- `testdata` files with test data
+- `utilities*` shared generic utility modules
 
 ## Building and running
 
@@ -42,7 +45,7 @@ Install the following tools
 
 ### Building
 
-To build and test everything, this command from the project root directory:
+To build and test everything locally, run the following command from the project root directory:
 
 ```shell
 make all
@@ -50,11 +53,13 @@ make all
 
 ### Docker Compose
 
-A Docker Compose configuration is available in the `docker` directory to run a minimal version of OpenFTV.
-This setup includes:
-- several OpenFTV Managers (Authorization Management Point)
-- several OpenFTV PDPs (Policy Decision Points)
-- several OpenFTV Management Interfaces
+Docker Compose configurations are available in the `docker` directory to run local versions of OpenFTV.
+These setups include:
+- OpenFTV Manager (Authorization Management: PAP, PIP, tag management, bundle management, database migrations)
+- OpenFTV PDP
+- OpenFTV Management Interface
+- Kong gateway with OpenFTV AuthZEN plugin
+- generic mock data-service
 
 To start a full test-setup with multiple organizations and connecting gateways,
 run the following command from the project root directory:
@@ -91,7 +96,8 @@ Alternatively, you can use the following command to run a simple local setup for
 docker compose -f docker/compose-vlierdam.yaml up --build
 ```
 
-With this setup you only get the Vlierdam services (without the Kong outway).
+With this setup you get a simple test-setup with just the Vlierdam services, 
+without the Kong outway (as it's not needed).
 
 ### FAQ
 

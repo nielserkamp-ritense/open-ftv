@@ -1,0 +1,98 @@
+---
+description: "PIP-data manager voor gemeente Vlierdam"
+
+sources:
+  - name: "IAM"
+    description: "Identity Access Management service"
+    requests:
+      - name: "gebruikers"
+        description: "Lijst van gebruikers"
+        method: "GET"
+        uri: http://vlierdam-dataspace:8443/v1/gebruiker
+        parameters:
+          - name: "@fields"
+            description: Data-minimalization on returned fields.
+            in: query
+            value: "id,afdeling,laadpaal-opleiding"
+            type: "xsd:string"
+        timeout: "10s"
+        interval: "5m"
+        initialInterval: "1s"
+        contentType: "application/json"
+        mapping:
+          entities:
+            - base: ""
+              typeValue: "medewerker"
+              idField: "id"
+              attributes:
+                - base: ""
+                  map:
+                    - keyValue: "afdeling"
+                      typeValue: "xsd:string"
+                      valueField: "afdeling"
+                      required: true
+                    - keyValue: "laadpaal-opleiding"
+                      typeValue: "xsd:date"
+                      valueField: "laadpaal-opleiding"
+
+  - name: "RvVA"
+    description: "Register van VerwerkingsActiviteiten service"
+    requests:
+      - name: "activiteiten"
+        description: "Lijst van verwerkingsactiviteiten ophalen"
+        method: "GET"
+        uri: http://vlierdam-dataspace:8443/v1/rvva
+        parameters:
+          - name: "@fields"
+            description: Data-minimalization on returned fields.
+            in: query
+            value: "code,doelbinding,omschrijving"
+            type: "xsd:string"
+        timeout: "10s"
+        interval: "5m"
+        initialInterval: "1s"
+        contentType: "application/json"
+        mapping:
+          entities:
+            - base: ""
+              typeValue: "activiteit"
+              idField: "code"
+              attributes:
+                - base: ""
+                  map:
+                    - keyValue: "omschrijving"
+                      typeValue: "xsd:string"
+                      valueField: "omschrijving"
+                    - keyValue: "doelbinding"
+                      typeValue: "xsd:string"
+                      valueField: "doelbinding"
+                      required: true
+
+  - name: "Doelbinding"
+    description: "Register van doelbindingen"
+    requests:
+      - name: "doelbindingen"
+        description: "Lijst doelbindingen ophalen"
+        method: "GET"
+        uri: http://vlierdam-dataspace:8443/v1/doelbinding
+        parameters:
+          - name: "@fields"
+            description: Data-minimalization on returned fields.
+            in: query
+            value: "code,omschrijving"
+            type: "xsd:string"
+        timeout: "10s"
+        interval: "5m"
+        initialInterval: "1s"
+        contentType: "application/json"
+        mapping:
+          entities:
+            - base: ""
+              typeValue: "doelbinding"
+              idField: "code"
+              attributes:
+                - base: ""
+                  map:
+                    - keyValue: "omschrijving"
+                      typeValue: "xsd:string"
+                      valueField: "omschrijving"

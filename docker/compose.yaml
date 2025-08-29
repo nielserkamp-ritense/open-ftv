@@ -53,6 +53,9 @@ services:
       - MANAGER_PIP_STORE_RECURSE=true
       - MANAGER_TAGS_PATH=/tmp/data/tags
       - MANAGER_AUTHENTICATION_TYPE=none
+      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles
+      - MANAGER_BUNDLE_RECURSE=true
+      - MANAGER_BUNDLE_SEND_TIMEOUT=60s
     depends_on:
       vlierdam-db:
         condition: service_healthy
@@ -96,11 +99,13 @@ services:
     ports:
       - "9004:8443"
     environment:
+      - PDP_POLICIES_MANAGER=vlierdam-manager:8443
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies
       - PDP_POLICIES_STORE_RECURSE=true
       - PDP_PIP_STORE=/tmp/data/data
       - PDP_PIP_STORE_RECURSE=true
+      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/configs.yaml
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -185,6 +190,9 @@ services:
       - MANAGER_PIP_STORE_RECURSE=true
       - MANAGER_TAGS_PATH=/tmp/data/tags
       - MANAGER_AUTHENTICATION_TYPE=none
+      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles
+      - MANAGER_BUNDLE_RECURSE=true
+      - MANAGER_BUNDLE_SEND_TIMEOUT=60s
     depends_on:
       rvig-db:
         condition: service_healthy
@@ -228,11 +236,13 @@ services:
     ports:
       - "9024:8443"
     environment:
+      - PDP_POLICIES_MANAGER=rvig-manager:8443
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies
       - PDP_POLICIES_STORE_RECURSE=true
       - PDP_PIP_STORE=/tmp/data/data
       - PDP_PIP_STORE_RECURSE=true
+      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml
     depends_on:
       rvig-manager:
         condition: service_healthy
@@ -317,6 +327,9 @@ services:
       - MANAGER_PIP_STORE_RECURSE=true
       - MANAGER_TAGS_PATH=/tmp/data/tags
       - MANAGER_AUTHENTICATION_TYPE=none
+      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles
+      - MANAGER_BUNDLE_RECURSE=true
+      - MANAGER_BUNDLE_SEND_TIMEOUT=60s
     depends_on:
       rdw-db:
         condition: service_healthy
@@ -360,11 +373,13 @@ services:
     ports:
       - "9044:8443"
     environment:
+      - PDP_POLICIES_MANAGER=rdw-manager:8443
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies
       - PDP_POLICIES_STORE_RECURSE=true
       - PDP_PIP_STORE=/tmp/data/data
       - PDP_PIP_STORE_RECURSE=true
+      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml
     depends_on:
       rdw-manager:
         condition: service_healthy

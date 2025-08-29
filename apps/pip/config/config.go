@@ -13,7 +13,7 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "PIP 0.1"
+	AppName   = "OpenFTV PIP 1.0"
 	envPrefix = "PIP_"
 	cfg1      = "/etc/pip/default.conf"
 	cfg2      = "./etc/pip.yaml"

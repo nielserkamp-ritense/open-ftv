@@ -1,9 +1,9 @@
-# Gemeente Vlierdam - laadpalen register
+# laadpalen register
 
 curl -i "http://localhost:9010/v1/laadpalen"
 
 
-# Gemeente Vlierdam - IAM PIP
+# IAM PIP
 
 curl -i "http://localhost:9010/v1/gebruiker"
 curl -i "http://localhost:9010/v1/gebruiker?id=1"
@@ -11,7 +11,19 @@ curl -i "http://localhost:9010/v1/gebruiker?id=99"
 curl -i "http://localhost:9010/v1/gebruiker?id=2&@fields=id,afdeling"
 
 
-# Gemeente Vlierdam - Verwerkingsactiviteiten register - PIP
+# register verwerkingsactiviteiten - PIP
 
 curl -i "http://localhost:9010/v1/rvva"
 curl -i "http://localhost:9010/v1/doelbinding"
+
+
+# Kong gateway
+
+curl -i -X POST 'http://localhost:9002/v1/haalcentraal/api/brp/personen' \
+  -H 'Content-Type: application/json' \
+  -H 'rvva: 372ddc5d-d093-4272-b485-d7f158775909' \
+  -d '{"@filter":"persoon.bsn=999990287","@fields":"bsn,voornamen,geslachtsnaam,adres.*"}'
+
+curl -i 'http://localhost:9002/v1/voertuigen?bsn=999990287' \
+  -H 'Content-Type: application/json' \
+  -H 'rvva: 372ddc5d-d093-4272-b485-d7f158775909'

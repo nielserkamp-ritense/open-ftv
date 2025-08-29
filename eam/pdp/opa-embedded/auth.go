@@ -70,6 +70,8 @@ func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.Dec
 		"context":   models.MapFromAttributes(parc.Context),
 	}
 
+	// TODO: add attributes, entities and/or relations from PIP?
+
 	return sdk.DecisionOptions{
 		DecisionID: uid,
 		Now:        t,

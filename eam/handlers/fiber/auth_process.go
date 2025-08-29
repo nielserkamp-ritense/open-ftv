@@ -25,7 +25,17 @@ func (p *authProcess) log() {
 	var allowed bool
 	if p.resp != nil {
 		allowed = p.resp.Allowed
-		args = append(args, "allowed", allowed, "message", p.resp.Message, "policy", p.resp.PolicyKey)
+		args = append(args, "allowed", allowed)
+
+		if p.resp.Message != "" {
+			args = append(args, "message", p.resp.Message)
+		}
+		if p.resp.PolicyKey != "" {
+			args = append(args, "policy-key", p.resp.PolicyKey)
+		}
+		if p.resp.PolicyHash != "" {
+			args = append(args, "policy-hash", p.resp.PolicyHash)
+		}
 	}
 
 	var msg string

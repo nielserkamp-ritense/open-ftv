@@ -10,7 +10,7 @@ info:
     url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
 
 servers:
-  - url: https://localhost:8080/v1
+  - url: https://localhost:8443/v1
     description: Local server.
 
 tags:
@@ -37,9 +37,9 @@ paths:
         "200":
           $ref: "#/components/responses/StatusesFound"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -54,9 +54,9 @@ paths:
         "200":
           $ref: "#/components/responses/CompressTypesFound"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -71,9 +71,9 @@ paths:
         "200":
           $ref: "#/components/responses/ConfigFound"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -88,9 +88,9 @@ paths:
         "200":
           $ref: "#/components/responses/DeploymentsFound"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -109,9 +109,9 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "5XX":
@@ -130,9 +130,9 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "404":
           $ref: "#/components/responses/NotFound"
         "5XX":
@@ -155,26 +155,48 @@ paths:
         "201":
           $ref: "#/components/responses/DeployStarted"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
   /bundle:
+    get:
+      operationId: "get-bundle"
+      summary: Retrieve the latest deployment bundle.
+      description: Endpoint to retrieve the latest deployment bundle and replace the full set of policies and static data.
+      tags:
+        - bundle
+      responses:
+        "200":
+          $ref: "#/components/responses/BundleFound"
+        "401":
+          $ref: "#/components/responses/NotAuthenticated"
+        "403":
+          $ref: "#/components/responses/NotAuthorized"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
     post:
       operationId: "push-bundle"
       summary: Receive a new deployment bundle.
       description: Endpoint to receive a new deployment bundle and replace the full set of policies and static data.
       tags:
         - bundle
+      requestBody:
+        description: Deployment bundle.
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: byte
       responses:
         "201":
           $ref: "#/components/responses/BundleActivated"
         "401":
-          $ref: "#/components/responses/NotAuthorized"
+          $ref: "#/components/responses/NotAuthenticated"
         "403":
-          $ref: "#/components/responses/AccessDenied"
+          $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
@@ -275,6 +297,23 @@ components:
           schema:
             $ref: "#/components/schemas/BundleActivated"
 
+    BundleFound:
+      description: Deployment bundle found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+        Content-Encoding:
+          schema:
+            type: string
+          description: Compression type.
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: byte
+
     BadRequest:
       description: Bad request.
       headers:
@@ -287,8 +326,8 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorMessage"
 
-    NotAuthorized:
-      description: Not authorized.
+    NotAuthenticated:
+      description: Not authenticated (401 status code).
       headers:
         API-Version:
           schema:
@@ -299,8 +338,8 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorMessage"
 
-    AccessDenied:
-      description: Access denied.
+    NotAuthorized:
+      description: Not authorized (403 status code - access denied).
       headers:
         API-Version:
           schema:

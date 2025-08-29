@@ -55,5 +55,7 @@ func (c *controller) buildCerbosRequest(parc *models.PARC) (*cerbos.Principal, *
 	resource := cerbos.NewResource(parc.Resource.Type(), parc.Resource.ID()).WithAttributes(models.MapFromAttributes(parc.Resource.Attributes()))
 	action := parc.Action.ID()
 
+	// TODO: context???
+
 	return principal, resource, action
 }
