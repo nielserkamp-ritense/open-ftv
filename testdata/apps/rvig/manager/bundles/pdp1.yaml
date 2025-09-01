@@ -2,11 +2,11 @@
 id: "pdp1"
 title: "Outway deployment bundle (pdp1)"
 language: "cedar"
-tags: ["rvig", "rdw"]
+tags: ["inway"]
 policies: true
 data: true
 version: true
 targets:
-  - uri: "http://vlierdam-outway:8443"
+  - uri: "http://rdw-pdp1:8443"
     apikey: ""
     encoding: "bzip2"

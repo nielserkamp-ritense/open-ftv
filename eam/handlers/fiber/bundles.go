@@ -1,8 +1,10 @@
 package fiber
 
 import (
+	"bytes"
 	"errors"
 	"log/slog"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -94,7 +96,7 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 				Uri:         target.URI,
 				Tls:         target.CA != "" || target.Cert != "" || target.Key != "",
 				Apikey:      target.APIKey != "",
-				Compression: int(bundles.CompressionTypeFromString(target.Compress)),
+				Compression: int(bundles.CompressionTypeFromString(target.Encoding)),
 				Headers:     target.Headers,
 			})
 		}
@@ -160,8 +162,8 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 		return err
 	}
 
-	last, err2 := h.pap.LastDeployment()
-	if err2 != nil {
+	var last *bundles.Deployment
+	if last, err = h.pap.LastDeployment(); err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 
@@ -196,6 +198,51 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 	return req.JSON(resp.ToOAS())
+}
+
+// GetBundle is the endpoint for retrieving the last deployment bundle.
+func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
+	// TODO: log request/response to audit log.
+	req.Set(HeaderVersion, BundlesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	id := req.Params("id")
+	if id == "" {
+		return h.error(req, fiber.StatusBadRequest, errors.New("bundle id required"))
+	}
+
+	var last *bundles.Deployment
+	if last, err = h.pap.LastDeployment(); err != nil {
+		return h.error(req, fiber.StatusInternalServerError, err)
+	}
+
+	if last == nil || last.Version() <= 0 {
+		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
+	}
+
+	var b *bundles.Bundle
+	if b, err = h.manager.Get(last, id); err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
+	}
+
+	enc := req.AcceptsEncodings("gz", "gzip", "bzip", "bz2", "bzip2")
+	if enc == "" {
+		enc = "gz"
+	}
+	ct := bundles.CompressionTypeFromString(enc)
+
+	var buf bytes.Buffer
+	if err = b.Compress(ct, &buf); err != nil {
+		return h.error(req, fiber.StatusInternalServerError, err)
+	}
+
+	req.Set(fiber.HeaderContentEncoding, strings.ToLower(ct.String()))
+	req.Set(fiber.HeaderContentType, fiber.MIMEOctetStream)
+	return req.Send(buf.Bytes())
 }
 
 func (h *BundlesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
