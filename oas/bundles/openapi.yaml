@@ -161,13 +161,19 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
-  /bundle:
+  /bundle/{id}:
     get:
       operationId: "get-bundle"
       summary: Retrieve the latest deployment bundle.
-      description: Endpoint to retrieve the latest deployment bundle and replace the full set of policies and static data.
+      description: |
+        Endpoint to retrieve the latest deployment bundle and initialize the set of policies and static data.
+        
+        This endpoint should be called by PDPs during initialization
+        when they are **not** configured with local policies and data.
       tags:
         - bundle
+      parameters:
+        - $ref: "#/components/parameters/BundleID"
       responses:
         "200":
           $ref: "#/components/responses/BundleFound"
@@ -177,10 +183,16 @@ paths:
           $ref: "#/components/responses/NotAuthorized"
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
+
+  /bundle:
     post:
       operationId: "push-bundle"
       summary: Receive a new deployment bundle.
-      description: Endpoint to receive a new deployment bundle and replace the full set of policies and static data.
+      description: |
+        Endpoint to receive a new deployment bundle and replace the full set of policies and static data.
+        
+        This endpoint should be implemented by PDPs
+        when they are **not** configured with local policies and data.
       tags:
         - bundle
       requestBody:
@@ -211,6 +223,13 @@ components:
         maximum: 99999999
       required: true
       description: Unique version number of a deployment.
+    BundleID:
+      in: path
+      name: id
+      schema:
+        type: string
+      required: true
+      description: Unique deployment bundle identifier.
 
   responses:
     StatusesFound:

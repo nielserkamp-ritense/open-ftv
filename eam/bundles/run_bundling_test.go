@@ -80,8 +80,8 @@ func TestRunner_CreateBundles(t *testing.T) {
 					Language: "cedar",
 					Tags:     []string{"t4"},
 					Targets: []*Target{
-						{URI: "http://localhost:8085/v1/bundle", APIKey: "abcdef", Compress: "gzip"},
-						{URI: "http://localhost:8086/v1/bundle", APIKey: "abcdef", Compress: "gzip"},
+						{URI: "http://localhost:8085/v1/bundle", APIKey: "abcdef", Encoding: "gzip"},
+						{URI: "http://localhost:8086/v1/bundle", APIKey: "abcdef", Encoding: "gzip"},
 					},
 				},
 			}

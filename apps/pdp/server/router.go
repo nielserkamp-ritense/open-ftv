@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -40,5 +41,20 @@ func (s *service) initAuth(svc *fiber.App) {
 
 func (s *service) initBundles(v1 fiber.Router) {
 	handler := handle.NewBundleReceiverHandler(s.logger, s.auth.Controller(), s.auth.Authorizer())
-	v1.Post("/bundle", handler.PostBundle)
+	v1.Post(handle.PathBundle, handler.PostBundle)
+
+	if url := s.cfg.PDP.BundleManager; url != "" {
+		s.logger.Info("retrieving latest bundle from manager", "url", url)
+
+		resp, err := s.getLatestBundle(url)
+		if err != nil {
+			panic(fmt.Errorf("failed to get latest bundle from url %s: %w", url, err))
+		}
+		defer resp.Body.Close()
+
+		ct := resp.Header.Get(fiber.HeaderContentEncoding)
+		if _, err = handler.ProcessBundle(ct, resp.Body); err != nil {
+			panic(fmt.Errorf("failed to process latest bundle from url %s: %w", url, err))
+		}
+	}
 }

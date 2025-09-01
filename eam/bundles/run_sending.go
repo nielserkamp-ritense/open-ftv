@@ -161,7 +161,7 @@ func processQueue(ctx context.Context, jobs sendJobCH, results sendResultCH, wg 
 }
 
 func sendBundle(ctx context.Context, job *sendJob) (int, error) {
-	ct := CompressionTypeFromString(job.target.Compress)
+	ct := CompressionTypeFromString(job.target.Encoding)
 
 	// TODO: re-use compressed bundles when possible.
 	var b bytes.Buffer

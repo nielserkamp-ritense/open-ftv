@@ -145,6 +145,9 @@ type Target struct {
 	Uri string `json:"uri"`
 }
 
+// BundleID defines model for BundleID.
+type BundleID = string
+
 // DeploymentID defines model for DeploymentID.
 type DeploymentID = int
 

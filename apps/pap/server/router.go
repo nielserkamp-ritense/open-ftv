@@ -70,11 +70,11 @@ func (s *service) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
-	group.Get(handle.PathPolicies, apis.GetPolicies)
-	group.Get(handle.PathPolicy, apis.GetPolicy)
-	group.Put(handle.PathPolicy, apis.PutPolicy)
-	group.Post(handle.PathPolicy, apis.PostPolicy)
-	group.Delete(handle.PathPolicy, apis.DeletePolicy)
+	group.Get(handle.PathPolicies, apis.GetPolicies).
+		Get(handle.PathPolicy, apis.GetPolicy).
+		Put(handle.PathPolicy, apis.PutPolicy).
+		Post(handle.PathPolicy, apis.PostPolicy).
+		Delete(handle.PathPolicy, apis.DeletePolicy)
 }
 
 func (s *service) initBundles(group fiber.Router) {
@@ -94,11 +94,12 @@ func (s *service) initBundles(group fiber.Router) {
 	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(manager) })
 
 	// bundles CRUD.
-	group.Get(handle.PathStatuses, apis.GetStatuses)
-	group.Get(handle.PathCompressionTypes, apis.GetCompressTypes)
-	group.Get(handle.PathConfigs, apis.GetConfigs)
-	group.Get(handle.PathDeployments, apis.GetDeployments)
-	group.Get(handle.PathLastDeployment, apis.GetLastDeployment)
-	group.Get(handle.PathDeploymentID, apis.GetDeployment)
-	group.Post(handle.PathDeployment, apis.PostDeployment)
+	group.Get(handle.PathStatuses, apis.GetStatuses).
+		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
+		Get(handle.PathConfigs, apis.GetConfigs).
+		Get(handle.PathDeployments, apis.GetDeployments).
+		Get(handle.PathLastDeployment, apis.GetLastDeployment).
+		Get(handle.PathDeploymentID, apis.GetDeployment).
+		Post(handle.PathDeployment, apis.PostDeployment).
+		Get(handle.PathBundle, apis.GetBundle)
 }

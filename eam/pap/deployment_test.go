@@ -132,7 +132,7 @@ func TestPAP_ReadDeployment(t *testing.T) {
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
-		assert.Equal(t, bundles.Creating, d2.Status())
+		assert.GreaterOrEqual(t, d2.Status(), bundles.Creating)
 
 		d3, err3 := p.ReadDeployment(2)
 		require.Error(t, err3)

@@ -78,7 +78,10 @@ services:
     ports:
       - "9004:8443"
     environment:
-      - PDP_POLICIES_MANAGER=vlierdam-manager:8443
+      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:8443/v1/bundle/pdp1
+      - PDP_BUNDLE_ENCODING=bzip2
+      - PDP_BUNDLE_TIMEOUT=30s
+      - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies
       - PDP_POLICIES_STORE_RECURSE=true

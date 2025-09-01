@@ -40,32 +40,46 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 		return err
 	}
 
-	var r io.Reader
+	ct := req.Get(fiber.HeaderContentEncoding)
+	body := bytes.NewReader(req.BodyRaw())
 
-	ct := bundles.CompressionTypeFromString(req.Get(fiber.HeaderContentEncoding))
-	switch ct {
-	case bundles.CompressBZ2:
-		r, err = bzip2.NewReader(bytes.NewReader(req.BodyRaw()), &bzip2.ReaderConfig{})
-	default:
-		r, err = gzip.NewReader(bytes.NewReader(req.BodyRaw()))
-	}
-
-	if err != nil {
-		return h.error(req, fiber.StatusBadRequest, err)
-	}
-
-	bundle := new(bundles.Bundle)
-	if err = json.NewDecoder(r).Decode(bundle); err != nil {
-		return h.error(req, fiber.StatusBadRequest, err)
-	}
-
-	oldVersion, err2 := h.ctl.NewBundle(bundle)
+	oldVersion, err2 := h.ProcessBundle(ct, body)
 	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+		return h.error(req, fiber.StatusBadRequest, err2)
 	}
 
 	resp := &oas.BundleActivated{PreviousVersion: int(oldVersion)}
 	return req.JSON(resp)
+}
+
+// ProcessBundle processes a received bundle and replaces all policies/data.
+func (h *BundleReceiverHandler) ProcessBundle(ct string, body io.Reader) (old uint64, err error) {
+	var r io.Reader
+	switch bundles.CompressionTypeFromString(ct) {
+	case bundles.CompressBZ2:
+		r, err = bzip2.NewReader(body, &bzip2.ReaderConfig{})
+	default:
+		r, err = gzip.NewReader(body)
+	}
+
+	if err != nil {
+		h.logger.Error("failed to set up bundle decompression", "compression", ct, "err", err)
+		return
+	}
+
+	bundle := new(bundles.Bundle)
+	if err = json.NewDecoder(r).Decode(bundle); err != nil {
+		h.logger.Error("failed to decode new bundle", "err", err)
+		return
+	}
+
+	if old, err = h.ctl.NewBundle(bundle); err != nil {
+		h.logger.Error("failed to activate new bundle", "version", bundle.Version, "err", err)
+		return
+	}
+
+	h.logger.Info("new bundle activated", "version", bundle.Version)
+	return
 }
 
 func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (string, bool, error) {

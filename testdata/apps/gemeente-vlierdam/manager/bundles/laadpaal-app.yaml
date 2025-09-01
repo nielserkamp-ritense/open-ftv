@@ -9,4 +9,4 @@ version: true
 targets:
   - uri: "http://vlierdam-laadpalen:8443"
     apikey: ""
-    compress: "gzip"
+    encoding: "gzip"

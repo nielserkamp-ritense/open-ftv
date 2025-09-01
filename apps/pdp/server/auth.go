@@ -33,9 +33,17 @@ func (s *service) newAuth() AuthHandler {
 		return nil
 	}
 
-	authorizer, err2 := s.cfg.Authorization.NewAuthorizer(controller, nil)
-	if err2 != nil {
-		s.logger.Error("failed to initialize authorizer", "error", err2)
+	// authenticator, err2 := s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
+	// 	return controller.GetPIP().GetEntity(uid)
+	// })
+	// if err2 != nil {
+	// 	s.logger.Error("failed to initialize authenticator", "error", err2)
+	// 	return nil
+	// }
+
+	authorizer, err3 := s.cfg.Authorization.NewAuthorizer(controller, nil)
+	if err3 != nil {
+		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil
 	}
 
