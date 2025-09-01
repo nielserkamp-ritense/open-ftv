@@ -27,14 +27,16 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initHealth(svc)
 
 	// API v1.
-	v1 := svc.Group("/v1")
+	v1 := svc.Group(handle.PathV1)
 	s.initAttributes(v1)
 	s.initEntities(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
 	// liveness & readiness.
-	svc.Get("/healthz", handle.HealthZ)
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
+	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
+	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
 }
 
 func (s *service) initAttributes(group fiber.Router) {

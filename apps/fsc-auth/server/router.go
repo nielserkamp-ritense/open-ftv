@@ -17,7 +17,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initHealth(svc)
 
 	// API v1.
-	v1 := svc.Group("/v1")
+	v1 := svc.Group(handle.PathV1)
 
 	// auth log.
 	if s.cfg.OpenSearch.Index != "" {
@@ -38,17 +38,20 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 func (s *service) initHealth(svc *fiber.App) {
 	// liveness & readiness.
-	svc.Get("/healthz", handle.HealthZ)
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
+	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
+	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
 }
 
 func (s *service) initAuth(svc *fiber.App, v1 fiber.Router, auth AuthHandler) {
 	// FSC authorization.
+	// TODO: *DEPRECATED* remove in 2026
 	v1.Post("/auth", auth.AuthFSC)
 
 	// AuthZEN
-	authZen := svc.Group("/authzen")
-	authZenV1 := authZen.Group("/v1")
-	authZenV1.Post("/evaluation", auth.AuthZEN)
+	authZen := svc.Group(handle.PathAuthZEN)
+	authZenV1 := authZen.Group(handle.PathV1)
+	authZenV1.Post(handle.PathEvaluation, auth.AuthZEN)
 }
 
 func (s *service) initPolicies(v1 fiber.Router, auth AuthHandler) {
