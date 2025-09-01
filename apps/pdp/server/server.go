@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 
+	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -14,7 +15,11 @@ import (
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
 func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
-	s := &service{cfg: cfg, logger: logger}
+	s := &service{cfg: cfg, logger: logger, chk: handle.NewChecks()}
+
+	s.chk.SetHealth(true)
+	s.chk.SetAlive(true)
+	s.chk.SetReady(false) // wait for latest bundle first!
 
 	s.Service = fiber.New(
 		logger,
@@ -40,4 +45,5 @@ type service struct {
 	logger *slog.Logger
 	l      models.Language
 	auth   AuthHandler
+	chk    *handle.Checks
 }

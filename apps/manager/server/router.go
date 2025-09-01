@@ -49,7 +49,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initHealth(svc)
 
 	// API v1.
-	v1 := svc.Group("/v1")
+	v1 := svc.Group(handle.PathV1)
 	s.initLanguages(v1)
 	s.initTags(v1)
 	s.initPolicies(v1)
@@ -63,8 +63,10 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 }
 
 func (s *service) initHealth(svc *fiber.App) {
-	// liveness and readiness.
-	svc.Get("/healthz", handle.HealthZ)
+	// health, liveness and readiness.
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
+	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
+	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
 }
 
 func (s *service) initLanguages(group fiber.Router) {

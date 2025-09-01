@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/reader"
@@ -20,7 +21,12 @@ func NewService(cfg *config.Config, logger *slog.Logger) (server.Service, error)
 		return nil, err
 	}
 
-	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, db: db}
+	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, db: db, chk: handle.NewChecks()}
+
+	// we're good to go once the service is running.
+	s.chk.SetHealth(true)
+	s.chk.SetAlive(true)
+	s.chk.SetReady(true)
 
 	opts := []server.Option{
 		server.WithDefaults(),
@@ -49,4 +55,5 @@ type service struct {
 	cfg    *config.Config
 	logger *slog.Logger
 	db     store.Storage
+	chk    *handle.Checks
 }

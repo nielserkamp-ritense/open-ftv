@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -20,7 +19,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
-	v1 := svc.Group("/v1")
+	v1 := svc.Group(handle.PathV1)
 
 	s.initHealth(svc)
 	s.initAuth(svc)
@@ -29,14 +28,16 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 func (s *service) initHealth(svc *fiber.App) {
 	// liveness and readiness.
-	svc.Get("/healthz", handle.HealthZ)
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
+	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
+	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
 }
 
 func (s *service) initAuth(svc *fiber.App) {
 	// AuthZEN
-	authZen := svc.Group("/authzen")
-	authZenV1 := authZen.Group("/v1")
-	authZenV1.Post("/evaluation", s.auth.AuthZEN)
+	authZen := svc.Group(handle.PathAuthZEN)
+	authZenV1 := authZen.Group(handle.PathV1)
+	authZenV1.Post(handle.PathEvaluation, s.auth.AuthZEN)
 }
 
 func (s *service) initBundles(v1 fiber.Router) {
@@ -44,17 +45,30 @@ func (s *service) initBundles(v1 fiber.Router) {
 	v1.Post(handle.PathBundle, handler.PostBundle)
 
 	if url := s.cfg.PDP.BundleManager; url != "" {
-		s.logger.Info("retrieving latest bundle from manager", "url", url)
+		go s.bundleRetriever(url, handler)
+	}
+}
 
+func (s *service) bundleRetriever(url string, handler *handle.BundleReceiverHandler) {
+	s.logger.Info("retrieving latest bundle from manager", "url", url)
+
+	for {
 		resp, err := s.getLatestBundle(url)
 		if err != nil {
-			panic(fmt.Errorf("failed to get latest bundle from url %s: %w", url, err))
+			s.logger.Error("failed to get latest bundle", "url", url, "error", err)
+			continue
 		}
-		defer resp.Body.Close()
 
 		ct := resp.Header.Get(fiber.HeaderContentEncoding)
 		if _, err = handler.ProcessBundle(ct, resp.Body); err != nil {
-			panic(fmt.Errorf("failed to process latest bundle from url %s: %w", url, err))
+			resp.Body.Close()
+			s.logger.Error("failed to process latest bundle", "url", url, "error", err)
+			continue
 		}
+
+		resp.Body.Close()
+		break
 	}
+
+	s.chk.SetReady(true) // now we can handle requests!
 }

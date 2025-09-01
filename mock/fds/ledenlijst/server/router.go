@@ -9,8 +9,10 @@ import (
 )
 
 func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
-	svc.Get("/healthz", handle.HealthZ)
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
+	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
+	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
 
-	v1 := svc.Group("/v1")
+	v1 := svc.Group(handle.PathV1)
 	v1.Get("/ledenlijst", ledenlijst)
 }
