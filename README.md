@@ -29,7 +29,7 @@ https://vng-realisatie.github.io/ftv/.
 
 ```bash
 git clone git@gitlab.com:digilab.overheid.nl/ecosystem/ftv/open-ftv.git
-cd ftv-implementatie
+cd open-ftv
 ```
 
 ### Development setup
