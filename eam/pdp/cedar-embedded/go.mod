@@ -3,7 +3,7 @@ module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embed
 go 1.24.6
 
 require (
-	github.com/cedar-policy/cedar-go v1.2.5
+	github.com/cedar-policy/cedar-go v1.2.6
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250708120440-2327e161c67a
