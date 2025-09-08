@@ -24,6 +24,8 @@ cd demos/openfga
 cd -
 ```
 
+Please refresh your browser window if you already opened the playground.
+
 ## Cleanup
 
 To clean up your docker environment:

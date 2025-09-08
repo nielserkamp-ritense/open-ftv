@@ -64,7 +64,26 @@
       }
     },
     {
-      "type": "persoon",
+      "type": "postcode",
+      "relations": {
+        "bevat": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevat": {
+            "directly_related_user_types": [
+              {
+                "type": "gemeente"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "condities",
       "relations": {
         "inschrijving": {
           "this": {}
@@ -72,7 +91,7 @@
         "lid": {
           "this": {}
         },
-        "toegang-bsn": {
+        "toegang": {
           "union": {
             "child": [
               {
@@ -107,11 +126,85 @@
               }
             ]
           },
-          "toegang-bsn": {
+          "toegang": {
             "directly_related_user_types": []
           }
         }
       }
+    },
+    {
+      "type": "persoon",
+      "relations": {
+        "conditioneel": {
+          "this": {}
+        },
+        "kind": {
+          "this": {}
+        },
+        "ouder": {
+          "this": {}
+        },
+        "toegang-bsn": {
+          "computedUserset": {
+            "relation": "conditioneel"
+          }
+        },
+        "verblijfplaats": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "conditioneel": {
+            "directly_related_user_types": [
+              {
+                "type": "condities",
+                "condition": "niet_geblokt",
+                "relation": "toegang"
+              }
+            ]
+          },
+          "kind": {
+            "directly_related_user_types": [
+              {
+                "type": "persoon"
+              }
+            ]
+          },
+          "ouder": {
+            "directly_related_user_types": [
+              {
+                "type": "persoon"
+              }
+            ]
+          },
+          "toegang-bsn": {
+            "directly_related_user_types": []
+          },
+          "verblijfplaats": {
+            "directly_related_user_types": [
+              {
+                "type": "postcode",
+                "relation": "bevat"
+              }
+            ]
+          }
+        }
+      }
     }
-  ]
+  ],
+  "conditions": {
+    "niet_geblokt": {
+      "name": "niet_geblokt",
+      "expression": "!geheim && !vip",
+      "parameters": {
+        "geheim": {
+          "type_name": "TYPE_NAME_BOOL"
+        },
+        "vip": {
+          "type_name": "TYPE_NAME_BOOL"
+        }
+      }
+    }
+  }
 }
