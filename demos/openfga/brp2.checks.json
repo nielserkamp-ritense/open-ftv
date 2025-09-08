@@ -2,7 +2,8 @@
   "checks": [
     {"correlation_id":"01-true",  "tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": true},
     {"correlation_id":"02-false", "tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": false},
-    {"correlation_id":"03-true",  "tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": true},
+    {"correlation_id":"03-false", "tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
+    {"correlation_id":"04-false", "tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990287"}, "expectation": false},
     {"correlation_id":"05-false", "tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": false},
     {"correlation_id":"06-true",  "tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": true},
     {"correlation_id":"07-false", "tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
@@ -11,6 +12,6 @@
     {"correlation_id":"10-false", "tuple_key": {"user": "org:zilveren-kruis",     "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
     {"correlation_id":"11-true",  "tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": true},
     {"correlation_id":"12-false", "tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": false},
-    {"correlation_id":"13-true",  "tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": true}
+    {"correlation_id":"13-false", "tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false}
   ]
 }

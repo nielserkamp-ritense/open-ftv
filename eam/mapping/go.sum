@@ -11,8 +11,8 @@ github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25 h1:drltZW/t3SgIHpURgCi
 github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25/go.mod h1:AAL3UBTBShUaH3y68LyhlSjz6S6DoHoMSpAWvnCiTCs=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
-github.com/go-co-op/gocron/v2 v2.16.2 h1:r08P663ikXiulLT9XaabkLypL/W9MoCIbqgQoAutyX4=
-github.com/go-co-op/gocron/v2 v2.16.2/go.mod h1:4YTLGCCAH75A5RlQ6q+h+VacO7CgjkgP0EJ+BEOXRSI=
+github.com/go-co-op/gocron/v2 v2.16.5 h1:j228Jxk7bb9CF8LKR3gS+bK3rcjRUINjlVI+ZMp26Ss=
+github.com/go-co-op/gocron/v2 v2.16.5/go.mod h1:zAfC/GFQ668qHxOVl/D68Jh5Ce7sDqX6TJnSQyRkRBc=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/goccy/go-json v0.10.5 h1:Fq85nIqj+gXn/S5ahsiTlK3TmC85qgirsdTP/+DeaC4=
@@ -59,10 +59,10 @@ github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0t
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f h1:L2/fBPABieQnQzfV40k2Zw7IcvZbt0CN5TgwUl8zDCs=
 github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f/go.mod h1:MZ2GRTcqmve6EoSbErWgCR+Ash4p8Gc5esHe8MDErss=
-github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
-github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250901130006-ad656c8696fb h1:7S/dzCXJgGGFj/unz1JtxYxvLypdtHZIkbLWDhm5ffU=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250901130006-ad656c8696fb/go.mod h1:sfrAkOI99eIx2vaHHattM0NbnvIw4Qz2OnOWkNBRBuQ=
+github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
+github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250908115340-082aac31abe1 h1:hk8YOs4n0mKkO1Mv8ia/VFuZR+bqquqTLrdEWLq6khw=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250908115340-082aac31abe1/go.mod h1:sfrAkOI99eIx2vaHHattM0NbnvIw4Qz2OnOWkNBRBuQ=
 go.etcd.io/etcd/api/v3 v3.6.1 h1:yJ9WlDih9HT457QPuHt/TH/XtsdN2tubyxyQHSHPsEo=
 go.etcd.io/etcd/api/v3 v3.6.1/go.mod h1:lnfuqoGsXMlZdTJlact3IB56o3bWp1DIlXPIGKRArto=
 go.etcd.io/etcd/client/pkg/v3 v3.6.1 h1:CxDVv8ggphmamrXM4Of8aCC8QHzDM4tGcVr9p2BSoGk=

@@ -23,7 +23,3 @@ curl -s -X POST "$FGA_API_URL/stores/$FGA_STORE_ID/write" -H "content-type: appl
 
 curl -s -X PUT "$FGA_API_URL/stores/${FGA_STORE_ID}/assertions/$FGA_MODEL_ID" \
   -H "content-type: application/json" --data-binary "@brp1.assertions.json"
-
-curl -s -X POST "$FGA_API_URL/stores/${FGA_STORE_ID}/batch-check" \
-  -H "content-type: application/json" --data-binary "@brp1.checks.json" \
-  | jq --indent 4 --color-output

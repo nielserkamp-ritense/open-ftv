@@ -1,0 +1,17 @@
+{
+  "assertions": [
+    {"tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": true},
+    {"tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": false},
+    {"tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
+    {"tuple_key": {"user": "org:gemeente-vlierdam",  "relation": "toegang-bsn", "object": "persoon:999990287"}, "expectation": false},
+    {"tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": false},
+    {"tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": true},
+    {"tuple_key": {"user": "org:gemeente-rotterdam", "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
+    {"tuple_key": {"user": "org:zilveren-kruis",     "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": true},
+    {"tuple_key": {"user": "org:zilveren-kruis",     "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": false},
+    {"tuple_key": {"user": "org:zilveren-kruis",     "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false},
+    {"tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990251"}, "expectation": true},
+    {"tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990263"}, "expectation": false},
+    {"tuple_key": {"user": "org:dela",               "relation": "toegang-bsn", "object": "persoon:999990275"}, "expectation": false}
+  ]
+}
