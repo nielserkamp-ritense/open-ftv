@@ -1,0 +1,54 @@
+name: brp1
+description: 'Store ID: 01K4KZ888F1WM7B08DG9YP1F1D'
+model: |
+  model
+    schema 1.1
+
+  type org
+
+  type grp
+    relations
+      define lid: [org]
+
+  type gem
+    relations
+      define toegang: [org]
+
+  type pc
+    relations
+      define bevat: [gem]
+
+  type afnemer
+    relations
+      define toegang: [org]
+
+  type persoon
+    relations
+      define kind: [persoon]
+      define ouder: [persoon]
+      define inschrijving: [gem]
+      define verblijfplaats: [pc]
+      define lid: [afnemer]
+      define toegang: toegang from lid or toegang from inschrijving
+tuples:
+  - user: org:vlierdam
+    relation: lid
+    object: grp:gemeenten
+  - object: gem:6789
+    user: org:vlierdam
+    relation: toegang
+  - object: persoon:999990251
+    user: gem:6789
+    relation: inschrijving
+  - object: afnemer:123456
+    user: org:zilverenkruis
+    relation: toegang
+  - object: persoon:999990251
+    user: afnemer:123456
+    relation: lid
+  - object: grp:waterschappen
+    user: org:waterschapnoord
+    relation: lid
+tests:
+  - name: Tests
+    check: []

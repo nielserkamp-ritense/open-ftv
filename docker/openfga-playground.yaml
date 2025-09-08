@@ -45,7 +45,6 @@ services:
     networks:
       - openfga
     ports:
-      - "8180:8080"
-      - "8181:8081"
-      # Needed for the playground (Do not enable in prod!)
+      - "8080:8080"
+      - "8081:8081"
       - "3000:3000"

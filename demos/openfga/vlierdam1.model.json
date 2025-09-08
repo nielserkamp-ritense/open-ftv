@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "medewerker",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "functie",
+      "relations": {
+        "heeft": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "heeft": {
+            "directly_related_user_types": [
+              {
+                "type": "medewerker"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gateway",
+      "relations": {
+        "bevragen": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "api",
+      "relations": {
+        "bevragen": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "bevragen"
+                  },
+                  "tupleset": {
+                    "relation": "parent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "parent": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft"
+              }
+            ]
+          },
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "gateway"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

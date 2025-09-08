@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "medewerker",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "functie",
+      "relations": {
+        "heeft": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "heeft": {
+            "directly_related_user_types": [
+              {
+                "type": "medewerker"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "gateway",
+      "relations": {
+        "bevragen": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "api",
+      "relations": {
+        "bevragen": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "bevragen"
+                  },
+                  "tupleset": {
+                    "relation": "parent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "can_read": {
+          "intersection": {
+            "child": [
+              {
+                "computedUserset": {
+                  "relation": "bevragen"
+                }
+              },
+              {
+                "computedUserset": {
+                  "relation": "werktijd"
+                }
+              }
+            ]
+          }
+        },
+        "parent": {
+          "this": {}
+        },
+        "werktijd": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft"
+              }
+            ]
+          },
+          "can_read": {
+            "directly_related_user_types": []
+          },
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "gateway"
+              }
+            ]
+          },
+          "werktijd": {
+            "directly_related_user_types": [
+              {
+                "type": "medewerker",
+                "condition": "werktijd_check"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "conditions": {
+    "werktijd_check": {
+      "name": "werktijd_check",
+      "expression": "nu.getDayOfWeek() in [1,2,3,4,5] && nu.getHours() >= 9 && nu.getHours() < 17",
+      "parameters": {
+        "nu": {
+          "type_name": "TYPE_NAME_TIMESTAMP"
+        }
+      }
+    }
+  }
+}

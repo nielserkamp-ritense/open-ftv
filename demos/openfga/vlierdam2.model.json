@@ -1,0 +1,177 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "medewerker",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "functie",
+      "relations": {
+        "heeft": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "heeft": {
+            "directly_related_user_types": [
+              {
+                "type": "medewerker",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    },
+    {
+      "type": "opleiding",
+      "relations": {
+        "heeft": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "heeft": {
+            "directly_related_user_types": [
+              {
+                "type": "medewerker",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    },
+    {
+      "type": "gateway",
+      "relations": {
+        "bevragen": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    },
+    {
+      "type": "api",
+      "relations": {
+        "bevragen": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "parent"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "bevragen"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "opleiding": {
+          "this": {}
+        },
+        "parent": {
+          "this": {}
+        },
+        "toegang": {
+          "intersection": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "bevragen"
+                }
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "opleiding"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevragen": {
+            "directly_related_user_types": [
+              {
+                "type": "functie",
+                "relation": "heeft",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "opleiding": {
+            "directly_related_user_types": [
+              {
+                "type": "opleiding",
+                "relation": "heeft",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "gateway",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "toegang": {
+            "directly_related_user_types": [],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    }
+  ],
+  "conditions": {}
+}

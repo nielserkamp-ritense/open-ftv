@@ -58,6 +58,8 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 func (c *controller) buildCheckRequest(parc *models.PARC) (*openfgav1.CheckRequest, string) {
 	parc = c.Map(parc)
 
+	// temporary solution until we have better use-cases and better understand how to model requests
+	// and which request-attribute to use to pick the correct store.
 	storeID := parc.Principal.Type()
 
 	dtl, ok := c.stores[storeID]
@@ -72,7 +74,7 @@ func (c *controller) buildCheckRequest(parc *models.PARC) (*openfgav1.CheckReque
 	})
 
 	// TODO: add the context
-	// TODO: add any attributes, entities and/or relations from the PIP
+	// TODO: add any contextual attributes and/or entities from the PIP
 
 	return &openfgav1.CheckRequest{
 		StoreId:              dtl.storeID,

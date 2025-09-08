@@ -1,0 +1,21 @@
+{
+  "authorization_model_id":"$FGA_MODEL_ID",
+  "writes":{
+    "tuple_keys":[
+      {"user":"org:gemeente-vlierdam",  "relation":"lid",          "object":"groep:gemeenten"},
+      {"user":"org:gemeente-rotterdam", "relation":"lid",          "object":"groep:gemeenten"},
+      {"user":"org:zilveren-kruis",     "relation":"lid",          "object":"groep:afnemers"},
+      {"user":"org:waterschap-noord",   "relation":"lid",          "object":"groep:waterschappen"},
+      {"user":"org:gemeente-vlierdam",  "relation":"is",           "object":"gemeente:6789"},
+      {"user":"org:gemeente-rotterdam", "relation":"is",           "object":"gemeente:0010"},
+      {"user":"gemeente:6789",          "relation":"inschrijving", "object":"persoon:999990251"},
+      {"user":"gemeente:0010",          "relation":"inschrijving", "object":"persoon:999990263"},
+      {"user":"gemeente:6789",          "relation":"inschrijving", "object":"persoon:999990275"},
+      {"user":"org:zilveren-kruis",     "relation":"is",           "object":"afnemer:123456"},
+      {"user":"afnemer:123456",         "relation":"lid",          "object":"persoon:999990251"},
+      {"user":"org:dela",               "relation":"is",           "object":"afnemer:123567"},
+      {"user":"afnemer:123567",         "relation":"lid",          "object":"persoon:999990275"},
+      {"user":"afnemer:123567",         "relation":"lid",          "object":"persoon:999990251"}
+    ]
+  }
+}

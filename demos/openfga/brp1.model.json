@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "org",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "groep",
+      "relations": {
+        "lid": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "lid": {
+            "directly_related_user_types": [
+              {
+                "type": "org"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "afnemer",
+      "relations": {
+        "is": {
+          "this": {}
+        },
+        "toegang": {
+          "computedUserset": {
+            "relation": "is"
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "is": {
+            "directly_related_user_types": [
+              {
+                "type": "org"
+              }
+            ]
+          },
+          "toegang": {
+            "directly_related_user_types": []
+          }
+        }
+      }
+    },
+    {
+      "type": "gemeente",
+      "relations": {
+        "is": {
+          "this": {}
+        },
+        "toegang": {
+          "computedUserset": {
+            "relation": "is"
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "is": {
+            "directly_related_user_types": [
+              {
+                "type": "org"
+              }
+            ]
+          },
+          "toegang": {
+            "directly_related_user_types": []
+          }
+        }
+      }
+    },
+    {
+      "type": "postcode",
+      "relations": {
+        "bevat": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bevat": {
+            "directly_related_user_types": [
+              {
+                "type": "gemeente"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "persoon",
+      "relations": {
+        "inschrijving": {
+          "this": {}
+        },
+        "kind": {
+          "this": {}
+        },
+        "lid": {
+          "this": {}
+        },
+        "ouder": {
+          "this": {}
+        },
+        "toegang-bsn": {
+          "union": {
+            "child": [
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "toegang"
+                  },
+                  "tupleset": {
+                    "relation": "lid"
+                  }
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "toegang"
+                  },
+                  "tupleset": {
+                    "relation": "inschrijving"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "verblijfplaats": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "inschrijving": {
+            "directly_related_user_types": [
+              {
+                "type": "gemeente"
+              }
+            ]
+          },
+          "kind": {
+            "directly_related_user_types": [
+              {
+                "type": "persoon"
+              }
+            ]
+          },
+          "lid": {
+            "directly_related_user_types": [
+              {
+                "type": "afnemer"
+              }
+            ]
+          },
+          "ouder": {
+            "directly_related_user_types": [
+              {
+                "type": "persoon"
+              }
+            ]
+          },
+          "toegang-bsn": {
+            "directly_related_user_types": []
+          },
+          "verblijfplaats": {
+            "directly_related_user_types": [
+              {
+                "type": "postcode",
+                "relation": "bevat"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

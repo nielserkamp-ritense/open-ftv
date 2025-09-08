@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    {"tuple_key": {"user": "medewerker:123", "relation": "heeft",    "object": "functie:laadpaal-aanvragen"}, "expectation": true },
+    {"tuple_key": {"user": "medewerker:21",  "relation": "heeft",    "object": "functie:manager"},            "expectation": true },
+    {"tuple_key": {"user": "medewerker:21",  "relation": "heeft",    "object": "functie:laadpaal-aanvragen"}, "expectation": false},
+    {"tuple_key": {"user": "medewerker:123", "relation": "bevragen", "object": "api:brp-persoon-op-bsn"},     "expectation": true },
+    {"tuple_key": {"user": "medewerker:21",  "relation": "bevragen", "object": "api:brp-persoon-op-bsn"},     "expectation": true },
+    {"tuple_key": {"user": "medewerker:299", "relation": "bevragen", "object": "api:brp-persoon-op-bsn"},     "expectation": false}
+  ]
+}
