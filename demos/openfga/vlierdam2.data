@@ -1,0 +1,72 @@
+name: vlierdam1
+description: 'Store ID: 01K4A27QEYDJEQNQ3PKBP2RMAJ'
+model: |
+  model
+    schema 1.1
+
+  type medewerker
+
+  type functie
+    relations
+      define heeft: [medewerker]
+
+  type opleiding
+    relations
+      define heeft: [medewerker]
+
+  type gateway
+    relations
+      define bevragen: [functie#heeft]
+
+  type api
+    relations
+      define parent: [gateway]
+      define opleiding: [opleiding#heeft]
+      define bevragen: [functie#heeft] or bevragen from parent
+      define can_read: bevragen and opleiding
+tuples:
+  - user: medewerker:123
+    relation: heeft
+    object: functie:laadpaal-aanvragen
+    condition: null
+  - user: medewerker:21
+    relation: heeft
+    object: functie:manager
+    condition: null
+  - user: medewerker:299
+    relation: heeft
+    object: functie:balie-medewerker
+    condition: null
+  - user: functie:manager#heeft
+    relation: bevragen
+    object: gateway:outway
+    condition: null
+  - user: functie:laadpaal-aanvragen#heeft
+    relation: bevragen
+    object: api:brp-persoon-op-bsn
+    condition: null
+  - user: gateway:outway
+    relation: parent
+    object: api:brp-persoon-op-bsn
+    condition: null
+  - user: medewerker:123
+    relation: heeft
+    object: opleiding:laadpalen
+  - object: api:brp-persoon-op-bsn
+    user: opleiding:laadpalen#heeft
+    relation: opleiding
+tests:
+  - name: Tests
+    check:
+      - user: medewerker:123
+        object: functie:laadpaal-aanvragen
+        assertions:
+          heeft: true
+      - user: medewerker:123
+        object: opleiding:laadpalen
+        assertions:
+          heeft: true
+      - user: medewerker:123
+        object: api:brp-persoon-op-bsn
+        assertions:
+          can_read: true

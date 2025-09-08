@@ -1,0 +1,20 @@
+# CURL examples
+
+## Vlierdam
+
+### Verify user has specific authorization
+
+curl -X POST "$FGA_API_URL/stores/$FGA_STORE_ID/check" -H "content-type: application/json" \
+  -d '{"tuple_key":{"user":"medewerker:123","relation":"bevragen","object":"api:brp-persoon-op-bsn"}}'
+
+curl -X POST $FGA_API_URL/stores/$FGA_STORE_ID/check -H "content-type: application/json" \
+  -d '{"tuple_key":{"user":"medewerker:21","relation":"bevragen","object":"api:brp-persoon-op-bsn"}}'
+
+### Verify user has specific authorization using context tuple with condition
+
+curl -X POST $FGA_API_URL/stores/$FGA_STORE_ID/check -H "content-type: application/json" \
+  -d '{
+  "tuple_key":{"user":"medewerker:123","relation":"werktijd","object":"api:brp-persoon-op-bsn"},
+  "contextual_tuples":{"tuple_keys":[{"user":"medewerker:123","relation":"werktijd","object":"api:brp-persoon-op-bsn","condition":{"name":"werktijd_check","context":{}}}]},
+  "context":{"nu":"2025-09-03T12:05:50Z"}
+  }'

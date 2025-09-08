@@ -1,0 +1,15 @@
+{
+  "authorization_model_id":"$FGA_MODEL_ID",
+  "writes":{
+    "tuple_keys":[
+      {"user":"medewerker:123",                   "relation":"heeft",     "object":"functie:laadpaal-aanvragen", "_description":"medewerker #123 is aangesteld om laadpaal-aanvragen te behandelen"},
+      {"user":"medewerker:21",                    "relation":"heeft",     "object":"functie:manager",            "_description":"medewerker #21 is de manager van medewerker #123"},
+      {"user":"medewerker:299",                   "relation":"heeft",     "object":"functie:balie-medewerker",   "_description":"medewerker #299 heeft geen relatie tot laadpaal-aanvragen"},
+      {"user":"functie:manager#heeft",            "relation":"bevragen",  "object":"gateway:outway",             "_description":"een manager mag alles op de outward gateway"},
+      {"user":"functie:laadpaal-aanvragen#heeft", "relation":"bevragen",  "object":"api:brp-persoon-op-bsn",     "_description":"functie laadpalen aanvragen is nodig voor toegang tot BRP op basis van bsn"},
+      {"user":"gateway:outway",                   "relation":"parent",    "object":"api:brp-persoon-op-bsn",     "_description":"de outward gateway verwerkt het opvragen bij BRP op bsn"},
+      {"user":"medewerker:123",                   "relation":"heeft",     "object":"opleiding:laadpalen",        "_description":"medewerker #123 heeft de opleiding laadpalen minder dan een jaar geleden met goed gevolg doorlopen"},
+      {"user":"opleiding:laadpalen#heeft",        "relation":"opleiding", "object":"api:brp-persoon-op-bsn",     "_description":"opleiding laadpalen is nodig voor toegang tot BRP op basis van bsn"}
+    ]
+  }
+}

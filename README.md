@@ -13,14 +13,15 @@ https://vng-realisatie.github.io/ftv/.
 
 ## Folder structure
 
-- `apps` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.)
-- `docker` docker and compose related scripts
-- `e2e` end-2-end scripts
-- `eam` shared generic EAM modules
+- `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.)
+- `demos     ` demo & presentation materials 
+- `docker    ` docker and compose related scripts
+- `e2e       ` end-2-end scripts
+- `eam       ` shared generic EAM modules
 - `migrations` database migration scripts
-- `mock` mock services, including the generic mock data-service
-- `oas` OpenAPI specifications for the project
-- `testdata` files with test data
+- `mock      ` mock services, including the generic mock data-service
+- `oas       ` OpenAPI specifications for the project
+- `testdata  ` files with test data
 - `utilities*` shared generic utility modules
 
 ## Building and running
@@ -61,6 +62,8 @@ These setups include:
 - Kong gateway with OpenFTV AuthZEN plugin
 - generic mock data-service
 
+#### Extended test setup
+
 To start a full test-setup with multiple organizations and connecting gateways,
 run the following command from the project root directory:
 
@@ -90,16 +93,28 @@ The following services will be available:
   - mock dataspace: http://localhost:9050
   - Postgres: http://localhost:5440 (credentials in compose file)
 
-Alternatively, you can use the following command to run a simple local setup for just gemeente Vlierdam:
+#### Reduced test setup
+
+Alternatively, you can use the following command to run a simple local setup with just gemeente Vlierdam:
 
 ```shell
 docker compose -f docker/compose-vlierdam.yaml up --build
 ```
 
 With this setup you get a simple test-setup with just the Vlierdam services, 
-without the Kong outway (as it's not needed).
+without the Kong gateway as it is only needed for external connections.
 
-### FAQ
+#### OpenFGA demo
+
+Run:
+
+```shell
+docker compose -f docker/openfga-playground.yaml up --build
+```
+
+And point your browser to http://localhost:3000/playground.
+
+#### FAQ
 
 **I get the following error when starting the docker compose containers: database "openftv" does not exist**
 
