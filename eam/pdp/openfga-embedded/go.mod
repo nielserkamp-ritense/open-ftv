@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/openfga/api/proto v0.0.0-20250813220010-67bdd280fde7
 	github.com/openfga/language/pkg/go v0.2.0-beta.2.0.20250428093642-7aeebe78bbfe
-	github.com/openfga/openfga v1.9.4
+	github.com/openfga/openfga v1.9.5
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250812131710-e88def2f909e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap v0.0.0-20250812131710-e88def2f909e
