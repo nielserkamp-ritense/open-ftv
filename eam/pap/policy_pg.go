@@ -36,13 +36,13 @@ type PolicyDB struct {
 
 // CreatePolicy creates a new policy into the database.
 func (db *PolicyDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models.Policy, error) {
+	now := db.now().UTC()
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `INSERT INTO policy
  (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
-	now := db.now().UTC()
 	params := []any{p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user, now, user}
 
 	if _, err := db.p.Exec(ctx, sql, params); err != nil {
@@ -79,13 +79,13 @@ func (db *PolicyDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, 
 
 // UpdatePolicy replaces an existing policy in the database.
 func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+	now := db.now().UTC()
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
  WHERE id=$1 AND updated=$2`
 
-	now := db.now().UTC()
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
@@ -99,8 +99,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastI
 
 // DeletePolicy removes an existing policy from the database.
 func (db *PolicyDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
-	sql := `DELETE policy
- WHERE id=$1 AND updated=$2`
+	sql := `DELETE policy WHERE id=$1 AND updated=$2`
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex)}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
