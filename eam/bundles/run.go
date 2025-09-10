@@ -15,6 +15,7 @@ import (
 type StatusHandler interface {
 	Advance() (*Deployment, error)
 	Fail(msg string) (*Deployment, error)
+	CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error
 }
 
 // Run executes the required steps for a new deployment.

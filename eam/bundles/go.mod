@@ -7,12 +7,13 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
 	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/google/uuid v1.6.0
 	github.com/kvtools/etcdv3 v1.0.2
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250908115340-082aac31abe1
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250908115340-082aac31abe1
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250908141655-a053f2619bdb
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250908141655-a053f2619bdb
 	golang.org/x/net v0.42.0
 )
 
@@ -23,7 +24,6 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

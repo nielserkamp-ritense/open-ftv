@@ -5,8 +5,10 @@ func (r *runner) bundling() {
 
 	r.createBundles("bundle")
 
-	if r.advance("bundle") {
-		r.info("bundle stage statistics", "bundles", r.bundleCount, "initialized", r.bundledCount)
+	if r.createBundleAudit() {
+		if r.advance("bundle") {
+			r.info("bundle stage statistics", "bundles", r.bundleCount, "initialized", r.bundledCount)
+		}
 	}
 }
 
@@ -31,4 +33,18 @@ func (r *runner) createBundles(stage string) {
 
 		r.bundledCount++
 	}
+}
+
+func (r *runner) createBundleAudit() bool {
+	for k, b := range r.bundles {
+		cfg := r.m.bundles[k]
+		version := r.d.version
+
+		if err := r.handler.CreateBundleAudit(r.ctx, version, cfg, b); err != nil {
+			r.error("failed to create bundle audit", "version", version, "bundle", cfg.ID, "error", err)
+			return false
+		}
+	}
+
+	return true
 }

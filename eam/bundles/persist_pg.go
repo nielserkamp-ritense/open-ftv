@@ -6,6 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goccy/go-json"
+	"github.com/google/uuid"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -206,6 +209,60 @@ func (s *PostgresDB) createDeployment(ctx context.Context, d *Deployment) error 
 	params := []any{int(d.version), int(d.status), d.title, d.description, d.created, d.createdBy, d.updated, d.updatedBy}
 
 	_, err := s.db.Exec(ctx, sql, params)
+	return err
+}
+
+// CreateBundleAudit creates the audit trail for the bundle, linking it with the bundled policies, attributes, entities and/or relations.
+func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error {
+	uid := uuid.New()
+	b, _ := json.Marshal(cfg)
+	now := time.Now().UTC()
+
+	user := convert.AnyToString(ctx.Value("user"))
+	if user == "" {
+		user = "*SYSTEM*"
+	}
+
+	batch := make([]postgresql.Statement, len(bundle.Policies)+len(bundle.Attributes)+len(bundle.Entities)+len(bundle.Relations)+1)
+
+	batch = append(batch, postgresql.Statement{
+		SQL:  "INSERT INTO deployment_bundle (id,version,bundle_id,config,created,created_by) VALUES ($1,$2,$3,$4,$5,$6)",
+		Args: []any{uid, int(version), cfg.ID, string(b), now, user},
+	})
+
+	for i := range bundle.Policies {
+		p := bundle.Policies[i]
+		batch = append(batch, postgresql.Statement{
+			SQL:  "INSERT INTO (policy_deployment) (id,bundle_id) VALUES ($1,$2)",
+			Args: []any{p.Id, cfg.ID},
+		})
+	}
+
+	for i := range bundle.Attributes {
+		a := bundle.Attributes[i]
+		batch = append(batch, postgresql.Statement{
+			SQL:  "INSERT INTO (attribute_deployment) (key,bundle_id) VALUES ($1,$2)",
+			Args: []any{a.Key, cfg.ID},
+		})
+	}
+
+	for i := range bundle.Entities {
+		e := bundle.Entities[i]
+		batch = append(batch, postgresql.Statement{
+			SQL:  "INSERT INTO (entity_deployment) (type,id,bundle_id) VALUES ($1,$2,$3)",
+			Args: []any{e.Type, e.Id, cfg.ID},
+		})
+	}
+
+	for i := range bundle.Relations {
+		r := bundle.Relations[i]
+		batch = append(batch, postgresql.Statement{
+			SQL:  "INSERT INTO (relation_deployment) (id,bundle_id) VALUES ($1,$2)",
+			Args: []any{r.Id, cfg.ID},
+		})
+	}
+
+	_, err := s.db.ExecBatch(ctx, batch)
 	return err
 }
 

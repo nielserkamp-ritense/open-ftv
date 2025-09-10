@@ -199,6 +199,11 @@ func (s *KeyValueDB) ListDeployments(ctx context.Context) ([]*Deployment, error)
 	return out, nil
 }
 
+// CreateBundleAudit is not implemented for KV stores.
+func (s *KeyValueDB) CreateBundleAudit(context.Context, uint64, *Config, *Bundle) error {
+	return errors.New("not implemented")
+}
+
 func (s *KeyValueDB) getVersion(ctx context.Context) (uint64, error) {
 	key := s.makeKey("version", "last")
 	kv, err := s.client.Get(ctx, key, readOptions)
