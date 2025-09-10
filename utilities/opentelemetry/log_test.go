@@ -16,8 +16,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Parallel()
-
 	h := slog2.NewDummyHandler(slog.LevelDebug)
 	sl := slog.New(h)
 
@@ -42,8 +40,6 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			cfg := &LoggerConfig{
 				Service:      tc.service,
 				URL:          tc.url,
@@ -79,8 +75,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestLogger_StartSpan(t *testing.T) {
-	t.Parallel()
-
 	t.Run("start span", func(t *testing.T) {
 		q := quiet()
 		defer func() {

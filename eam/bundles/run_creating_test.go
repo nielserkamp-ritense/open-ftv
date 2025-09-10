@@ -132,6 +132,7 @@ func TestRunner_InitCountsAndSlices(t *testing.T) {
 				logger:        m.logger,
 				bundleTimeout: time.Second,
 				client:        m.client,
+				done:          make(chan struct{}),
 			}
 			r.initCountsAndSlices()
 

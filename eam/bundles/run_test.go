@@ -279,8 +279,12 @@ func TestRunner_DummyRun(t *testing.T) {
 		r := m.Run(d, handler).(*runner)
 		require.NotNil(t, r)
 
-		for r.d.status < Failed {
-			time.Sleep(10 * time.Millisecond)
+		clk := time.NewTimer(100 * time.Millisecond)
+		select {
+		case <-r.done:
+			break
+		case <-clk.C:
+			break
 		}
 
 		assert.Equal(t, Completed, r.d.status)
@@ -326,8 +330,17 @@ func TestRunner_RunOnFailed(t *testing.T) {
 			logger:        m.logger,
 			bundleTimeout: time.Second,
 			client:        m.client,
+			done:          make(chan struct{}),
 		}
 		r.run()
+
+		clk := time.NewTimer(10 * time.Millisecond)
+		select {
+		case <-r.done:
+			break
+		case <-clk.C:
+			break
+		}
 
 		assert.Equal(t, Failed, r.d.status)
 		assert.Zero(t, h.Count())
@@ -372,8 +385,17 @@ func TestRunner_RunOnCompleted(t *testing.T) {
 			logger:        m.logger,
 			bundleTimeout: time.Second,
 			client:        m.client,
+			done:          make(chan struct{}),
 		}
 		r.run()
+
+		clk := time.NewTimer(10 * time.Millisecond)
+		select {
+		case <-r.done:
+			break
+		case <-clk.C:
+			break
+		}
 
 		assert.Equal(t, Completed, r.d.status)
 		assert.Zero(t, h.Count())
@@ -418,8 +440,17 @@ func TestRunner_RunOnBadStatus(t *testing.T) {
 			logger:        m.logger,
 			bundleTimeout: time.Second,
 			client:        m.client,
+			done:          make(chan struct{}),
 		}
 		r.run()
+
+		clk := time.NewTimer(10 * time.Millisecond)
+		select {
+		case <-r.done:
+			break
+		case <-clk.C:
+			break
+		}
 
 		assert.Equal(t, Status(99), r.d.status)
 		assert.Equal(t, 1, h.Count())
@@ -458,8 +489,17 @@ func TestRunner_Run_BadVersion(t *testing.T) {
 			logger:        m.logger,
 			bundleTimeout: time.Second,
 			client:        m.client,
+			done:          make(chan struct{}),
 		}
 		r.run()
+
+		clk := time.NewTimer(10 * time.Millisecond)
+		select {
+		case <-r.done:
+			break
+		case <-clk.C:
+			break
+		}
 
 		assert.Equal(t, Creating, r.d.status)
 		assert.Equal(t, 3, h.Count())
