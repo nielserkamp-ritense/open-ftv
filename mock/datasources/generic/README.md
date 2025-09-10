@@ -36,7 +36,34 @@ In another shell:
 curl -X POST -H'Content-Type: application/json' -H 'Accept: application/json' http://localhost:8443/v1/haalcentraal/api/brp/personen
 ```
 
-## Docker images
+### Docker
+
+From the root-directory run:
+```shell
+docker build . -f ./mock/datasources/generic/Dockerfile -f mock-ds
+```
+
+For building an image with a preloaded dataspace configuration, run:
+```shell
+docker build . -f ./mock/datasources/generic/XYZ.Dockerfile -f mock-ds-XYZ
+```
+replacing both occurrences of ```XYZ``` with the name of the dataspace you want preloaded.
+
+Run the image like so with local data:
+```shell
+docker run -it --rm -p 8888:8443 mock-ds -e "GEN_DS_DATA_PATH=/opt/dataspace" -v <path-to-your-dataspace-config>:/opt/data
+```
+or with preloaded data:
+```shell
+docker run -it --rm -p 8888:8443 mock-ds-XYZ
+```
+
+Once the container is active, you should be able to query the service with curl:
+```shell
+curl -i "http://localhost:8888/v1/meta/tables"
+```
+
+## Prebuild Docker images
 
 The Gitlab CI/CD is set up to automatically create docker images in the
 [Gitlab container registry](https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/container_registry/8694219).
