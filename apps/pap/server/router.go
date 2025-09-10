@@ -65,7 +65,11 @@ func (s *service) initTags(group fiber.Router) {
 	apis := handle.NewTagsHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// tags CRUD.
-	group.Get(handle.PathTags, apis.GetTags)
+	group.Get(handle.PathTags, apis.GetTags).
+		Get(handle.PathTag, apis.GetTag).
+		Put(handle.PathTag, apis.PutTag).
+		Post(handle.PathTag, apis.PostTag).
+		Delete(handle.PathTag, apis.DeleteTag)
 }
 
 func (s *service) initPolicies(group fiber.Router) {

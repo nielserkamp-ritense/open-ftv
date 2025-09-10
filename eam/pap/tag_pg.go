@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -33,17 +33,17 @@ type TagDB struct {
 	now func() time.Time // for time-sensitive unit-tests.
 }
 
-// ListTags returns all policy languages from the database.
-func (db *TagDB) ListTags(ctx context.Context) (policies.Tags, error) {
+// ListTags returns all tags from the database.
+func (db *TagDB) ListTags(ctx context.Context) (oas.Tags, error) {
 	sql := `SELECT tag,title,description,created,created_by,updated,updated_by FROM tag`
 
-	list := make(policies.Tags, 0, 32)
+	list := make(oas.Tags, 0, 32)
 	var err error
 
 	err2 := db.p.Query(ctx, sql, nil, func(values []any) bool {
-		var p *policies.Tag
-		if p, err = tagFromValues(values); err == nil {
-			list = append(list, *p)
+		var t *oas.Tag
+		if t, err = tagFromValues(values); err == nil {
+			list = append(list, *t)
 		}
 		return err == nil
 	})
@@ -54,8 +54,78 @@ func (db *TagDB) ListTags(ctx context.Context) (policies.Tags, error) {
 	return list, nil
 }
 
+// CreateTag inserts the tag into the database.
+func (db *TagDB) CreateTag(ctx context.Context, t *oas.Tag) (*oas.Tag, error) {
+	now := time.Now().UTC()
+	user := convert.AnyToString(ctx.Value("user"))
+
+	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7)`
+	params := []any{t.Id, t.Name, t.Description, now, user, now, user}
+
+	_, err := db.p.Exec(ctx, sql, params)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Audit.Created = now.Format(time.RFC3339Nano)
+	t.Audit.CreatedBy = user
+	t.Audit.Updated = now.Format(time.RFC3339Nano)
+	t.Audit.UpdatedBy = user
+	return t, nil
+}
+
+// ReadTag returns the requested tag from the database.
+func (db *TagDB) ReadTag(ctx context.Context, tag string) (*oas.Tag, uint64, error) {
+	sql := `SELECT tag,title,description,created,created_by,updated,updated_by FROM tag WHERE tag=$1`
+
+	var t *oas.Tag
+	var err error
+
+	err2 := db.p.Query(ctx, sql, []any{tag}, func(values []any) bool {
+		t, err = tagFromValues(values)
+		return false // only one possible.
+	})
+
+	if err != nil || err2 != nil {
+		return nil, 0, errors.Join(err, err2)
+	}
+
+	updated, _ := time.Parse(time.RFC3339Nano, t.Audit.Updated)
+	return t, timeToLastIndex(updated), nil
+}
+
+// UpdateTag replaces the tag in the database.
+func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64, t *oas.Tag) (*oas.Tag, error) {
+	now := time.Now().UTC()
+	user := convert.AnyToString(ctx.Value("user"))
+
+	sql := `UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`
+	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user}
+
+	_, err := db.p.Exec(ctx, sql, params)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Audit.Updated = now.Format(time.RFC3339Nano)
+	t.Audit.UpdatedBy = user
+	return t, nil
+}
+
+// DeleteTag removes the tag from the database.
+func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error) {
+	sql := `DELETE tag WHERE tag=$1 AND updated = $2`
+	params := []any{prev.Id, timeFromLastIndex(lastIndex)}
+
+	_, err := db.p.Exec(ctx, sql, params)
+	if err != nil {
+		return nil, err
+	}
+	return prev, nil
+}
+
 // ReplaceAllTags replaces all tags in the database with the given list.
-func (db *TagDB) ReplaceAllTags(tags []*policies.Tag, user string) error {
+func (db *TagDB) ReplaceAllTags(tags []*oas.Tag, user string) error {
 	ctx := context.Background()
 
 	_ = tags
@@ -77,7 +147,7 @@ func (db *TagDB) ReplaceAllTags(tags []*policies.Tag, user string) error {
 	return nil
 }
 
-func tagFromValues(values []any) (*policies.Tag, error) {
+func tagFromValues(values []any) (*oas.Tag, error) {
 	if len(values) != 7 {
 		return nil, fmt.Errorf("invalid number of values")
 	}
@@ -90,11 +160,11 @@ func tagFromValues(values []any) (*policies.Tag, error) {
 		updated = d.Format(time.RFC3339Nano)
 	}
 
-	return &policies.Tag{
+	return &oas.Tag{
 		Id:          convert.AnyToString(values[0]),
 		Name:        convert.AnyToString(values[1]),
 		Description: convert.AnyToString(values[2]),
-		Audit: policies.ObjectAudit{
+		Audit: oas.ObjectAudit{
 			Created:   created,
 			CreatedBy: convert.AnyToString(values[4]),
 			Updated:   updated,

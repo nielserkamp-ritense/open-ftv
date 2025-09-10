@@ -4,22 +4,22 @@ import (
 	"context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // LanguagePersister represents the interface for managing policy languages in a PAP persistence store.
 type LanguagePersister interface {
-	ListLanguages(ctx context.Context) (policies.Languages, error)
+	ListLanguages(ctx context.Context) (oas.Languages, error)
 }
 
 // TagPersister represents the interface for managing tags in a PAP persistence store.
 type TagPersister interface {
-	ListTags(ctx context.Context) (policies.Tags, error)
-	ReplaceAllTags(tags []*policies.Tag, user string) error
-	// CreateTag(ctx context.Context, p *policies.Tag) (*policies.Tag, error)
-	// ReadTag(ctx context.Context, id string) (*policies.Tag, uint64, error)
-	// UpdateTag(ctx context.Context, prev *policies.Tag, lastIndex uint64, p *policies.Tag) (*policies.Tag, error)
-	// DeleteTag(ctx context.Context, prev *policies.Tag, lastIndex uint64) (*policies.Tag, error)
+	ListTags(ctx context.Context) (oas.Tags, error)
+	CreateTag(ctx context.Context, t *oas.Tag) (*oas.Tag, error)
+	ReadTag(ctx context.Context, id string) (*oas.Tag, uint64, error)
+	UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64, t *oas.Tag) (*oas.Tag, error)
+	DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error)
+	ReplaceAllTags(tags []*oas.Tag, user string) error
 }
 
 // PolicyPersister represents the interface for managing policies in a PAP persistence store.
