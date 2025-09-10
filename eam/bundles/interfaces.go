@@ -14,6 +14,7 @@ type Persister interface {
 	LastDeployment(ctx context.Context) (*Deployment, error)
 	ReadDeployment(ctx context.Context, version uint64) (*Deployment, error)
 	ListDeployments(ctx context.Context) ([]*Deployment, error)
+	CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error
 }
 
 // PolicyLister represents the interface for retrieving a list of policies.

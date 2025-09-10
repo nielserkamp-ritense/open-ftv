@@ -123,6 +123,51 @@ func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int
 	return
 }
 
+// ExecBatch executes the given set of SQL statements with the respective parameters.
+func (db *Postgres) ExecBatch(ctx context.Context, statements []Statement) (count int64, err error) {
+	user := convert.AnyToString(ctx.Value("user"))
+	if user == "" {
+		user = "*SYSTEM*"
+	}
+
+	var tx pgx.Tx
+	if tx, err = db.pool.Begin(ctx); err != nil {
+		return
+	}
+
+	defer func() {
+		if err == nil {
+			err = tx.Commit(ctx)
+		} else {
+			err = errors.Join(err, tx.Rollback(ctx))
+		}
+	}()
+
+	_, err = tx.Exec(ctx, fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", user))
+	if err != nil {
+		return
+	}
+
+	for i := range statements {
+		statement := statements[i]
+
+		var result pgconn.CommandTag
+		if len(statement.Args) > 0 {
+			result, err = tx.Exec(ctx, statement.SQL, statement.Args...)
+		} else {
+			result, err = tx.Exec(ctx, statement.SQL)
+		}
+
+		if err != nil {
+			return
+		}
+
+		count += result.RowsAffected()
+	}
+
+	return
+}
+
 func (db *Postgres) background(ctx context.Context) {
 	for {
 		select {
