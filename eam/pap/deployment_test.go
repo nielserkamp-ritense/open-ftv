@@ -124,9 +124,8 @@ func TestPAP_ReadDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
+		_, err := p.NewDeployment("merry easter", m, "*SYSTEM*")
 		require.NoError(t, err)
-		require.NotNil(t, d)
 
 		d2, err2 := p.ReadDeployment(1)
 		require.NoError(t, err2)

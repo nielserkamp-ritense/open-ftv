@@ -96,6 +96,7 @@ func TestRunner_GatherLists(t *testing.T) {
 				logger:        m.logger,
 				bundleTimeout: time.Second,
 				client:        m.client,
+				done:          make(chan struct{}),
 			}
 			r.gatherLists("gather")
 

@@ -47,6 +47,7 @@ func (m *Manager) Run(d *Deployment, handler StatusHandler) any {
 		logger:        m.logger,
 		bundleTimeout: m.bundleTimeout,
 		client:        m.client,
+		done:          make(chan struct{}),
 	}
 
 	go r.run() // asynchronous !
@@ -73,6 +74,7 @@ type runner struct {
 	attributes    []*models.Attribute
 	entities      []*models.Entity
 	relations     []*models.Relation
+	done          chan struct{}
 }
 
 // This function should be called in a separate go-routine.
@@ -98,6 +100,7 @@ func (r *runner) run() {
 		r.cancel()
 	default:
 		r.logger.Error("bundle-runner: invalid deployment status", "status", r.d.status.String())
+		r.cancel()
 	}
 }
 
@@ -144,13 +147,17 @@ func (r *runner) advance(stage string) bool {
 		}
 
 		r.cancel()
+
+		close(r.done)
 		return false
 	}
 
 	r.d = d
 	r.debug(fmt.Sprintf("%s stage completed successfully", stage))
 
-	if r.d.status != Completed {
+	if r.d.status == Completed {
+		close(r.done)
+	} else {
 		if r.m.stageDelay > 0 {
 			// force delay as configured.
 			time.Sleep(r.m.stageDelay)

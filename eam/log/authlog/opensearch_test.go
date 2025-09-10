@@ -13,8 +13,6 @@ import (
 )
 
 func TestNewOpenSearchAndLog(t *testing.T) {
-	t.Parallel()
-
 	t.Run("new OpenSearch with log", func(t *testing.T) {
 		newLogger = newMockOS
 		defer func() {
@@ -54,8 +52,6 @@ func TestNewOpenSearchAndLog(t *testing.T) {
 }
 
 func TestNewOpenSearch_Fail(t *testing.T) {
-	t.Parallel()
-
 	t.Run("new OpenSearch", func(t *testing.T) {
 		newLogger = opensearch.NewLogger
 		l, err := NewOpenSearch("index", "user", "pswd", "http://localhost:12345")

@@ -145,6 +145,7 @@ func TestRunner_GatherTargets(t *testing.T) {
 				logger:        m.logger,
 				bundleTimeout: m.bundleTimeout,
 				client:        m.client,
+				done:          make(chan struct{}),
 			}
 			r.gatherTargets("bundle")
 
@@ -378,6 +379,7 @@ func TestRunner_SendBundles(t *testing.T) {
 				logger:        m.logger,
 				bundleTimeout: m.bundleTimeout,
 				client:        m.client,
+				done:          make(chan struct{}),
 			}
 			r.sending()
 

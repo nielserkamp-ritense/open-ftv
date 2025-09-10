@@ -107,6 +107,7 @@ func TestRunner_CreateBundles(t *testing.T) {
 				logger:        m.logger,
 				bundleTimeout: time.Second,
 				client:        m.client,
+				done:          make(chan struct{}),
 			}
 			r.createBundles("bundles")
 
