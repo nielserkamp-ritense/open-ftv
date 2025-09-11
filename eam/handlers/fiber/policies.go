@@ -19,7 +19,7 @@ import (
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.6.0" // check against oas/policies/openapi.yaml!
+const PoliciesVersion = "1.6.1" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
@@ -221,44 +221,17 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, boo
 		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var errs []error
-	if p.Id != id {
-		if p.Id != "" {
-			errs = append(errs, h.error(req, fiber.StatusBadRequest, polKeyMismatch))
-		} else {
-			p.Id = id
-		}
+	chk := newFieldChecker().
+		checkIdentifiers(id, &p.Id, "policy id mismatch").
+		checkLanguage(p.Language).
+		checkTitle(p.Metadata.Title).
+		checkRvvaID(p.Metadata.RvvaId).
+		checkPolicyData(p.Metadata.Url, p.Data).
+		checkTags(p.Metadata.Tags)
+
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
 	}
-
-	switch {
-	case p.Language == "":
-		errs = append(errs, errors.New("language must be filled"))
-	case len(p.Language) > 40:
-		errs = append(errs, errors.New("language too long (max 40 characters)"))
-	}
-
-	switch {
-	case p.Metadata.Title == "":
-		errs = append(errs, errors.New("title must be filled"))
-	case len(p.Language) > 80:
-		errs = append(errs, errors.New("title too long (max 80 characters)"))
-	}
-
-	switch {
-	case p.Metadata.Url == "" && p.Data == "":
-		errs = append(errs, errors.New("either uri or data must be filled"))
-	case p.Metadata.Url != "" && p.Data != "":
-		errs = append(errs, errors.New("only one of uri and data can be filled"))
-	case len(p.Metadata.Url) > 400:
-		errs = append(errs, errors.New("uri too long (max 400 characters)"))
-	}
-
-	// TODO: other checks!
-
-	if len(errs) > 0 {
-		return nil, false, h.error(req, fiber.StatusBadRequest, errors.Join(errs...))
-	}
-
 	return &p, true, nil
 }
 
@@ -321,9 +294,8 @@ type policiesHandler struct {
 }
 
 var (
-	polNotFound    = errors.New("policy not found")
-	polExists      = errors.New("policy already exists")
-	polKeyError    = errors.New("policy id must be filled and less or equal 40 characters")
-	polKeyMismatch = errors.New("policy id mismatch")
-	polUrlContent  = errors.New("policy data or url required")
+	polNotFound   = errors.New("policy not found")
+	polExists     = errors.New("policy already exists")
+	polKeyError   = errors.New("policy id must be filled and less or equal 40 characters")
+	polUrlContent = errors.New("policy data or url required")
 )

@@ -187,12 +187,12 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {
 	ns := req.Params("type")
-	if ns == "" || len(ns) > 500 {
+	if ns == "" || len(ns) > 80 {
 		return "", "", false, h.error(req, fiber.StatusBadRequest, entityTypeError)
 	}
 
 	id := req.Params("id")
-	if id == "" || len(id) > 500 {
+	if id == "" || len(id) > 200 {
 		return "", "", false, h.error(req, fiber.StatusBadRequest, entityIDError)
 	}
 
@@ -200,26 +200,22 @@ func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error)
 }
 
 func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity, bool, error) {
-	var a oas.Entity
-	if err := req.BodyParser(&a); err != nil {
+	var e oas.Entity
+	if err := req.BodyParser(&e); err != nil {
 		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	if a.Type != ns {
-		if a.Type != "" {
-			return nil, false, h.error(req, fiber.StatusBadRequest, entityTypeMismatch)
-		}
-		a.Type = ns
-	}
+	chk := newFieldChecker().
+		checkIdentifiers(ns, &e.Type, "entity type mismatch").
+		checkIdentifiers(id, &e.Id, "entity id mismatch").
+		checkTitle(e.Metadata.Title).
+		checkTags(e.Metadata.Tags).
+		checkAttributes(e.Attributes)
 
-	if a.Id != id {
-		if a.Id != "" {
-			return nil, false, h.error(req, fiber.StatusBadRequest, entityIDMismatch)
-		}
-		a.Id = id
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
 	}
-
-	return &a, true, nil
+	return &e, true, nil
 }
 
 func (h *entitiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
@@ -246,10 +242,8 @@ type entitiesHandler struct {
 }
 
 var (
-	entityNotFound     = errors.New("entity not found")
-	entityExists       = errors.New("entity already exists")
-	entityTypeError    = errors.New("entity type must be filled and less or equal 500 characters")
-	entityIDError      = errors.New("entity ID must be filled and less or equal 500 characters")
-	entityTypeMismatch = errors.New("entity type mismatch")
-	entityIDMismatch   = errors.New("entity ID mismatch")
+	entityNotFound  = errors.New("entity not found")
+	entityExists    = errors.New("entity already exists")
+	entityTypeError = errors.New("entity type must be filled and less or equal 80 characters")
+	entityIDError   = errors.New("entity ID must be filled and less or equal 200 characters")
 )

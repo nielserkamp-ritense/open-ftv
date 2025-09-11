@@ -270,7 +270,7 @@ func TestRunner_DummyRun(t *testing.T) {
 		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate(ctx, "haha", "")
+		d, err := handler.Generate(ctx, "h1", "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -313,7 +313,7 @@ func TestRunner_RunOnFailed(t *testing.T) {
 		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate(ctx, "haha", "")
+		d, err := handler.Generate(ctx, "h2", "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -368,7 +368,7 @@ func TestRunner_RunOnCompleted(t *testing.T) {
 		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate(ctx, "haha", "")
+		d, err := handler.Generate(ctx, "h3", "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -423,7 +423,7 @@ func TestRunner_RunOnBadStatus(t *testing.T) {
 		handler := NewKeyValueDB(client, "")
 		require.NotNil(t, handler)
 
-		d, err := handler.Generate(ctx, "haha", "")
+		d, err := handler.Generate(ctx, "h4", "haha", "")
 		require.NoError(t, err)
 		require.NotNil(t, d)
 

@@ -117,7 +117,7 @@ func TestRunner_InitCountsAndSlices(t *testing.T) {
 			handler := NewKeyValueDB(client, "")
 			require.NotNil(t, handler)
 
-			d, err := handler.Generate(ctx, "haha", "")
+			d, err := handler.Generate(ctx, "h1", "haha", "")
 			require.NoError(t, err)
 			require.NotNil(t, d)
 

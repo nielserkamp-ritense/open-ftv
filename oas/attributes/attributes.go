@@ -147,7 +147,7 @@ type Relation struct {
 	// AuditLog Audit log for the relation.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
 
-	// Id The unique identifier of the relation.
+	// Id The unique identifier of the relation (UUID).
 	Id string `json:"id"`
 
 	// Metadata The metadata associated with an object.

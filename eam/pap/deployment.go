@@ -3,11 +3,11 @@ package pap
 import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 
 // NewDeployment creates a new deployment in the store.
-func (p *PAP) NewDeployment(description string, manager *bundles.Manager, user string) (*bundles.Deployment, error) {
+func (p *PAP) NewDeployment(title, description string, manager *bundles.Manager, user string) (*bundles.Deployment, error) {
 	p.deployMutex.Lock()
 	defer p.deployMutex.Unlock()
 
-	d, err := p.bundleDB.Generate(p.ctx, description, user)
+	d, err := p.bundleDB.Generate(p.ctx, title, description, user)
 	if err != nil {
 		return nil, err
 	}

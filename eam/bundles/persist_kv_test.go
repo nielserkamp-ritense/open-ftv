@@ -53,13 +53,13 @@ func TestDeployer_Generate(t *testing.T) {
 		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate(ctx, "hello world", "")
+		d2, err2 := d.Generate(ctx, "v1", "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
 		assert.Equal(t, Creating, d2.Status())
 
-		d3, err3 := d.Generate(ctx, "next one", "*SYSTEM*")
+		d3, err3 := d.Generate(ctx, "v2", "next one", "*SYSTEM*")
 		require.Error(t, err3)
 		require.Nil(t, d3)
 	})
@@ -80,7 +80,7 @@ func TestDeployer_Advance(t *testing.T) {
 		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate(ctx, "hello world", "*SYSTEM*")
+		d2, err2 := d.Generate(ctx, "yo", "hello world", "*SYSTEM*")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -154,7 +154,7 @@ func TestDeployer_Fail(t *testing.T) {
 		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate(ctx, "hello world", "")
+		d2, err2 := d.Generate(ctx, "yo", "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -213,7 +213,7 @@ func TestDeployer_LastDeployment(t *testing.T) {
 		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate(ctx, "hello world", "")
+		d2, err2 := d.Generate(ctx, "yo", "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -263,7 +263,7 @@ func TestDeployer_ReadDeployment(t *testing.T) {
 		d := NewKeyValueDB(s, "")
 		require.NotNil(t, d)
 
-		d2, err2 := d.Generate(ctx, "hello world", "")
+		d2, err2 := d.Generate(ctx, "yo", "hello world", "")
 		require.NoError(t, err2)
 		require.NotNil(t, d2)
 		assert.Equal(t, uint64(1), d2.Version())
@@ -325,7 +325,7 @@ func TestDeployer_ListDeployments(t *testing.T) {
 			require.NotNil(t, d)
 
 			for _ = range tc.count {
-				d2, err2 := d.Generate(ctx, "hello world", "user")
+				d2, err2 := d.Generate(ctx, "yo", "hello world", "user")
 				require.NoError(t, err2)
 				require.NotNil(t, d2)
 

@@ -211,10 +211,10 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 func TestAttributesHandler_PostAttribute(t *testing.T) {
 	t.Parallel()
 
-	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
+	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value", Metadata: attributes.Metadata{Title: "title"}}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00"}
+	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00", Metadata: attributes.Metadata{Title: "title2"}}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {
@@ -293,10 +293,10 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 func TestAttributesHandler_PutAttribute(t *testing.T) {
 	t.Parallel()
 
-	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value"}
+	data1 := attributes.Attribute{Key: "key", Type: "xsd:string", Value: "value", Metadata: attributes.Metadata{Title: "title"}}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00"}
+	data2 := attributes.Attribute{Key: "maandag", Type: "xsd:string", Value: "09:00-17:00", Metadata: attributes.Metadata{Title: "title2"}}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {

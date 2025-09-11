@@ -17,17 +17,18 @@ func TestNewDeployment(t *testing.T) {
 	testCases := []struct {
 		name    string
 		version uint64
-		descr   string
+		title   string
+		desc    string
 	}{
-		{name: "v1", version: 1, descr: "version 1"},
-		{name: "v101", version: 101, descr: "blah blah"},
+		{name: "v1", version: 1, title: "v1", desc: "version 1"},
+		{name: "v101", version: 101, title: "v101", desc: "blah blah"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr, "")
+			d := NewDeployment(tc.version, tc.title, tc.desc, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 			assert.Equal(t, Creating, d.Status())
@@ -49,7 +50,7 @@ func TestNewDeployment(t *testing.T) {
 			assert.Equal(t, Failed, s2)
 			assert.Equal(t, "oopsie", d.msg)
 
-			d2 := NewDeployment(tc.version, tc.descr, "")
+			d2 := NewDeployment(tc.version, tc.title, tc.desc, "")
 			require.NotNil(t, d2)
 
 			s3 := d2.Completed()
@@ -69,22 +70,23 @@ func TestDeployment_Failed(t *testing.T) {
 	testCases := []struct {
 		name    string
 		version uint64
-		descr   string
+		title   string
+		desc    string
 		status  Status
 		msg     string
 		wantErr bool
 	}{
-		{name: "v1", version: 1, descr: "version 1", status: Creating, msg: "oopsie1"},
-		{name: "v101", version: 101, descr: "blah blah", status: Gathering, msg: "oopsie2"},
-		{name: "v102", version: 102, descr: "blah blah", status: Failed, msg: "oopsie3", wantErr: true},
-		{name: "v103", version: 103, descr: "blah blah", status: Completed, msg: "oopsie4", wantErr: true},
+		{name: "v1", version: 1, title: "v1", desc: "version 1", status: Creating, msg: "oopsie1"},
+		{name: "v101", version: 101, title: "v101", desc: "blah blah", status: Gathering, msg: "oopsie2"},
+		{name: "v102", version: 102, title: "v102", desc: "blah blah", status: Failed, msg: "oopsie3", wantErr: true},
+		{name: "v103", version: 103, title: "v103", desc: "blah blah", status: Completed, msg: "oopsie4", wantErr: true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr, "")
+			d := NewDeployment(tc.version, tc.title, tc.desc, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 
@@ -108,21 +110,22 @@ func TestDeployment_Completed(t *testing.T) {
 	testCases := []struct {
 		name    string
 		version uint64
-		descr   string
+		title   string
+		desc    string
 		status  Status
 		wantErr bool
 	}{
-		{name: "v1", version: 1, descr: "version 1", status: Creating},
-		{name: "v101", version: 101, descr: "blah blah", status: Gathering},
-		{name: "v102", version: 102, descr: "blah blah", status: Failed, wantErr: true},
-		{name: "v103", version: 103, descr: "blah blah", status: Completed, wantErr: true},
+		{name: "v1", version: 1, title: "v1", desc: "version 1", status: Creating},
+		{name: "v101", version: 101, title: "v101", desc: "blah blah", status: Gathering},
+		{name: "v102", version: 102, title: "v102", desc: "blah blah", status: Failed, wantErr: true},
+		{name: "v103", version: 103, title: "v103", desc: "blah blah", status: Completed, wantErr: true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr, "")
+			d := NewDeployment(tc.version, tc.title, tc.desc, "")
 			require.NotNil(t, d)
 			assert.Equal(t, tc.version, d.Version())
 
@@ -148,20 +151,23 @@ func TestDeployment_JSON(t *testing.T) {
 	testCases := []struct {
 		name    string
 		version uint64
-		descr   string
+		title   string
+		desc    string
 		want    string
 	}{
 		{
 			name:    "v1",
 			version: 1,
-			descr:   "version 1",
-			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"version 1","status":1,"title":"","version":1}`,
+			title:   "v1",
+			desc:    "version 1",
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"version 1","status":1,"title":"v1","version":1}`,
 		},
 		{
 			name:    "v101",
 			version: 101,
-			descr:   "blah blah",
-			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"blah blah","status":1,"title":"","version":101}`,
+			title:   "v101",
+			desc:    "blah blah",
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"blah blah","status":1,"title":"v101","version":101}`,
 		},
 	}
 
@@ -169,7 +175,7 @@ func TestDeployment_JSON(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			d := NewDeployment(tc.version, tc.descr, "")
+			d := NewDeployment(tc.version, tc.title, tc.desc, "")
 			require.NotNil(t, d)
 
 			d.created = t1

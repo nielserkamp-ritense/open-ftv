@@ -130,7 +130,7 @@ func TestRunner_GatherTargets(t *testing.T) {
 			handler := NewKeyValueDB(client, "")
 			require.NotNil(t, handler)
 
-			d, err := handler.Generate(ctx, "haha", "")
+			d, err := handler.Generate(ctx, "h1", "haha", "")
 			require.NoError(t, err)
 			require.NotNil(t, d)
 
@@ -358,7 +358,7 @@ func TestRunner_SendBundles(t *testing.T) {
 			handler := NewKeyValueDB(client, "")
 			require.NotNil(t, handler)
 
-			d, err := handler.Generate(ctx, "haha", "")
+			d, err := handler.Generate(ctx, "h2", "haha", "")
 			require.NoError(t, err)
 			require.NotNil(t, d)
 

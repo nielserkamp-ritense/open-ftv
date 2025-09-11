@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Attributes, entities and relations management.
-  version: 1.6.0
+  version: 1.6.1
   description: |
     OpenAPI specification for maintaining attributes, entities and/or relations between entities.
   contact:
@@ -458,7 +458,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 500
+        maxLength: 200
       required: true
       description: Unique key of an attribute.
 
@@ -468,7 +468,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 100
+        maxLength: 80
       required: true
       description: Type of entity.
 
@@ -478,7 +478,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 500
+        maxLength: 200
       required: true
       description: ID of an entity.
 
@@ -488,7 +488,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 100
+        maxLength: 80
       required: true
       description: Type of subject of a relation.
 
@@ -498,7 +498,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 500
+        maxLength: 200
       required: true
       description: ID of the subject of a relation.
 
@@ -508,7 +508,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 100
+        maxLength: 80
       required: true
       description: Type of relation.
 
@@ -518,7 +518,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 100
+        maxLength: 80
       required: true
       description: Type of object of a relation.
 
@@ -528,7 +528,7 @@ components:
       schema:
         type: string
         minLength: 3
-        maxLength: 500
+        maxLength: 200
       required: true
       description: ID of the object of a relation.
 
@@ -700,6 +700,8 @@ components:
       properties:
         title:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The title of the object. E.g., a short description.
           example: "Worktimes schedule"
         description:
@@ -716,6 +718,7 @@ components:
             Verify with the policies.tags endpoint.
           items:
             type: string
+            maxLength: 40
             example: "FE"
       required:
         - title
@@ -726,18 +729,22 @@ components:
       properties:
         created:
           type: string
+          maxLength: 36
           description: Timestamp the object was created (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         createdBy:
           type: string
+          maxLength: 80
           description: User that created the object.
           example: "alice@wonderland.cc"
         updated:
           type: string
+          maxLength: 36
           description: Timestamp the object was last updated (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         updatedBy:
           type: string
+          maxLength: 80
           description: User that last updated the object.
           example: "bob@wonderworld.cc"
       required:
@@ -750,6 +757,7 @@ components:
       properties:
         created:
           type: string
+          maxLength: 36
           description: Timestamp of the log entry in RFC3339 format.
           example: "2025-08-15T07:53:41.493415Z"
         operation:
@@ -776,7 +784,8 @@ components:
           description: Deployment bundles the object is part of.
           items:
             type: string
-            example: "1"
+            maxLength: 36
+            example: "8005a155-9c77-4e3e-baea-98ff377cd286"
 
     Attributes:
       type: array
@@ -789,6 +798,8 @@ components:
       properties:
         key:
           type: string
+          minLength: 3
+          maxLength: 200
           description: The unique key of the attribute.
           example: "gemeentecode"
         value:
@@ -796,6 +807,7 @@ components:
           example: "0123"
         type:
           type: string
+          maxLength: 40
           description: |
             The optional type of a value. By default a value is stored as-is (e.g., JSON type).
             
@@ -843,10 +855,14 @@ components:
       properties:
         type:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The type of entity.
           example: "user"
         id:
           type: string
+          minLength: 3
+          maxLength: 200
           description: The identification of the entity.
           example: "alice"
         attributes:
@@ -885,26 +901,37 @@ components:
       properties:
         id:
           type: string
-          description: The unique identifier of the relation.
+          maxLength: 36
+          description: The unique identifier of the relation (UUID).
           example: "<uuid>"
         subjectType:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The type of subject of the relation.
           example: "user"
         subjectId:
           type: string
+          minLength: 3
+          maxLength: 200
           description: The identifier of the subject of the relation.
           example: "alice"
         relation:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The type of relation.
           example: "managerOf"
         objectType:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The type of object of the relation.
           example: "user"
         objectId:
           type: string
+          minLength: 3
+          maxLength: 200
           description: The identifier of the object of the relation.
           example: "bob"
         attributes:
