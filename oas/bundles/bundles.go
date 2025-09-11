@@ -17,7 +17,7 @@ type BundleConfig struct {
 	// Description Optional description of this bundle deployment configuration.
 	Description string `json:"description,omitempty"`
 
-	// Id Unique identifier of this bundle deployment configuration.
+	// Id Unique identifier of this bundle deployment configuration (UUID).
 	Id string `json:"id"`
 
 	// Policies Indicates to bundle policies with matching tag.

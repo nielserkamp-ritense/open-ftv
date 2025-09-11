@@ -9,11 +9,12 @@ import (
 )
 
 // NewDeployment instantiates a new bundle deployment.
-func NewDeployment(version uint64, description, user string) *Deployment {
+func NewDeployment(version uint64, title, description, user string) *Deployment {
 	now := time.Now().UTC()
 
 	return &Deployment{
 		version:     version,
+		title:       title,
 		description: description,
 		status:      Creating,
 		created:     now,

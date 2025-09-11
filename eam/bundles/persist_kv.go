@@ -29,7 +29,7 @@ type KeyValueDB struct {
 // Generate creates a new deployment in the store.
 //
 // If the last deployment is still active, this function will return an error.
-func (s *KeyValueDB) Generate(ctx context.Context, description, user string) (*Deployment, error) {
+func (s *KeyValueDB) Generate(ctx context.Context, title, description, user string) (*Deployment, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -51,7 +51,7 @@ func (s *KeyValueDB) Generate(ctx context.Context, description, user string) (*D
 	}
 
 	version++
-	deploy := NewDeployment(version, description, user)
+	deploy := NewDeployment(version, title, description, user)
 
 	if err = s.putVersion(ctx, version); err != nil {
 		return nil, err

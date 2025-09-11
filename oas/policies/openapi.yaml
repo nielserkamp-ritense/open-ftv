@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for maintaining policies.
-  version: 1.6.0
+  version: 1.6.1
   title: Policy management
   contact:
     name: G. Juijn
@@ -194,8 +194,9 @@ components:
       name: id
       schema:
         type: string
+        maxLength: 36
       required: true
-      description: Unique identifier of a policy.
+      description: Unique identifier of a policy (UUID).
       example: "b4911124-e92a-482f-80b4-eb02383378ae"
 
     ForceUpsert:
@@ -354,6 +355,8 @@ components:
       properties:
         title:
           type: string
+          minLength: 3
+          maxLength: 80
           description: The title of the policy. E.g., a short description.
           example: "BRP:Person:Subsidy"
         description:
@@ -362,6 +365,8 @@ components:
           example: "BRP - access person details for a subsidy"
         rvvaId:
           type: string
+          minLength: 3
+          maxLength: 80
           description: |
             The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
             Only required when the policy is linked directly with an item in the RvVA.
@@ -369,6 +374,8 @@ components:
           example: "<RvVA-identifier>"
         url:
           type: string
+          minLength: 10
+          maxLength: 400
           description: Link to the policy. Required when the policy is stored externally.
         tags:
           type: array
@@ -380,6 +387,7 @@ components:
             Verify with the tags endpoint.
           items:
             type: string
+            maxLength: 40
             example: "BRP"
       required:
         - title
@@ -390,18 +398,22 @@ components:
       properties:
         created:
           type: string
+          maxLength: 36
           description: Timestamp the object was created (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         createdBy:
           type: string
+          maxLength: 80
           description: User that created the object.
           example: "alice@wonderland.cc"
         updated:
           type: string
+          maxLength: 36
           description: Timestamp the object was last updated (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         updatedBy:
           type: string
+          maxLength: 80
           description: User that last updated the object.
           example: "bob@wonderworld.cc"
       required:
@@ -414,14 +426,17 @@ components:
       properties:
         created:
           type: string
+          maxLength: 36
           description: Timestamp of the log entry in RFC3339 format.
           example: "2025-08-15T07:53:41.493415Z"
         operation:
           type: string
-          description: Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+          maxLength: 1
+          description: Operation performed on the object. Any of ["C", "U", "D"].
           example: "C"
         user:
           type: string
+          maxLength: 80
           description: Unique identifier of the user who operated on the object.
           example: "alice@wonderland.cc"
       required:
@@ -438,7 +453,8 @@ components:
           description: Bundles the policy is used by.
           items:
             type: string
-            example: "1"
+            maxLength: 36
+            example: "51736e30-b797-4c72-8c8d-28f4a7ad02c4"
 
     Languages:
       type: array
@@ -451,17 +467,24 @@ components:
       properties:
         id:
           type: string
+          minLength: 3
+          maxLength: 40
           description: The unique identifier of the policy language.
           example: "rego"
         name:
           type: string
+          minLength: 3
+          maxLength: 80
           description: Name of the policy language in human-readable form.
           example: "Open Policy Agent - REGO language"
+        description:
+          type: string
+          description: Detailed description of the policy language.
         audit:
           $ref: "#/components/schemas/ObjectAudit"
         auditLog:
           type: array
-          description: Audit log for the tag.
+          description: Audit log for the policy language.
           items:
             $ref: "#/components/schemas/AuditEntry"
       required:
@@ -480,10 +503,14 @@ components:
       properties:
         id:
           type: string
+          minLength: 3
+          maxLength: 40
           description: The unique identifier of the tag.
           example: "brp"
         name:
           type: string
+          minLength: 3
+          maxLength: 80
           description: Name of the tag in human-readable form.
           example: "Basis Registratie Personen"
         description:
@@ -512,10 +539,13 @@ components:
       properties:
         id:
           type: string
-          description: The unique identifier of the policy.
-          example: "<uuid>"
+          maxLength: 36
+          description: The unique identifier of the policy (UUID).
+          example: "e8fce68e-beb6-494f-b6c1-9b0f8f6cac56"
         language:
           type: string
+          minLength: 3
+          maxLength: 40
           description: |
             The language of the policy.
             The value is case-insensitive.

@@ -17,7 +17,7 @@ import (
 )
 
 // BundlesVersion is the full semantic API version for the bundle endpoints.
-const BundlesVersion = "1.0.0" // check against oas/bundles/openapi.yaml!
+const BundlesVersion = "1.0.1" // check against oas/bundles/openapi.yaml!
 
 // BundlesHandler contains the details for handling requests about bundles and deployments.
 type BundlesHandler struct {
@@ -194,7 +194,7 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	}
 
 	var resp *bundles.Deployment
-	if resp, err = h.pap.NewDeployment(body.Description, h.manager, user); err != nil {
+	if resp, err = h.pap.NewDeployment(body.Title, body.Description, h.manager, user); err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 	return req.JSON(resp.ToOAS())

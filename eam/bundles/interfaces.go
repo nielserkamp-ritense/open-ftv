@@ -8,7 +8,7 @@ import (
 
 // Persister represents the interface to manage deployments.
 type Persister interface {
-	Generate(ctx context.Context, description, user string) (*Deployment, error)
+	Generate(ctx context.Context, title, description, user string) (*Deployment, error)
 	Advance() (*Deployment, error)
 	Fail(msg string) (*Deployment, error)
 	LastDeployment(ctx context.Context) (*Deployment, error)

@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for bundle management.
-  version: 1.0.0
+  version: 1.0.1
   title: Bundle management
   contact:
     name: G. Juijn
@@ -228,8 +228,9 @@ components:
       name: id
       schema:
         type: string
+        maxLength: 36
       required: true
-      description: Unique deployment bundle identifier.
+      description: Unique deployment bundle identifier (UUID).
 
   responses:
     StatusesFound:
@@ -400,9 +401,9 @@ components:
       properties:
         title:
           type: string
-          description: Title of the new deployment.
-          minLength: 1
+          minLength: 3
           maxLength: 80
+          description: Title of the new deployment.
         description:
           type: string
           description: Optional description of the new deployment.
@@ -415,21 +416,23 @@ components:
       properties:
         created:
           type: string
+          maxLength: 36
           description: Timestamp the object was created (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         createdBy:
           type: string
-          description: User that created the object.
           maxLength: 80
+          description: User that created the object.
           example: "alice@wonderland.cc"
         updated:
           type: string
+          maxLength: 36
           description: Timestamp the object was last updated (RFC3339 format).
           example: "2025-08-15T07:53:41.493415Z"
         updatedBy:
           type: string
-          description: User that last updated the object.
           maxLength: 80
+          description: User that last updated the object.
           example: "bob@wonderworld.cc"
       required:
         - created
@@ -491,9 +494,11 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier of this bundle deployment configuration.
+          maxLength: 36
+          description: Unique identifier of this bundle deployment configuration (UUID).
         title:
           type: string
+          maxLength: 80
           description: Title of this bundle deployment configuration.
         description:
           type: string
@@ -512,6 +517,7 @@ components:
           description: Tags to match against. A single matching tag is sufficient.
           items:
             type: string
+            maxLength: 40
         targets:
           type: array
           items:
@@ -561,8 +567,8 @@ components:
           description: Version number of the last deployment.
         title:
           type: string
-          description: Title of the deployment.
           maxLength: 80
+          description: Title of the deployment.
         description:
           type: string
           description: Optional description of the deployment.

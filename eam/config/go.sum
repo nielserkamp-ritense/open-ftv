@@ -297,8 +297,8 @@ github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZ
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250910102607-d2080e0aa6b2 h1:n52dJu8QVvmBc3MYgpkP7X8V3kjiNzA1q1AoOyja7gI=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250910102607-d2080e0aa6b2/go.mod h1:8FbZRZUj7YsNzQ9MAb2n6cs1EolPm0Ssj006ywfXf3I=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250910123042-a89f03668b85 h1:jie+c3Jx5lyvg+lR+dYs0D7/UTa8h8friECgPE6LWXY=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250910123042-a89f03668b85/go.mod h1:vzH2XG5+ClwdEgC6/ww/22lR0X8WyKHF9TfiPQmGlT8=
 gitlab.com/gjuyn/go-config v1.2.0 h1:8w8N5f1v1YWJ3Eowi891Ta6N03VpuV2/gI8dS0132+w=
 gitlab.com/gjuyn/go-config v1.2.0/go.mod h1:byVeRpUkfdrxNVmnWbvmHuGVxQbba9J4AG7IjHo7cvc=
 go.etcd.io/etcd/api/v3 v3.6.4 h1:7F6N7toCKcV72QmoUKa23yYLiiljMrT4xCeBL9BmXdo=

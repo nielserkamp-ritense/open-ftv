@@ -15,7 +15,7 @@ import (
 )
 
 // AttributesVersion is the full semantic API version for the attribute endpoints.
-const AttributesVersion = "1.6.0" // check against oas/attributes/openapi.yaml!
+const AttributesVersion = "1.6.1" // check against oas/attributes/openapi.yaml!
 
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
@@ -178,7 +178,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	key := req.Params("key")
-	if key == "" || len(key) > 500 {
+	if key == "" || len(key) > 200 {
 		return "", false, h.error(req, fiber.StatusBadRequest, attrKeyError)
 	}
 	return key, true, nil
@@ -190,13 +190,15 @@ func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*oas.Attribut
 		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	if a.Key != key {
-		if a.Key != "" {
-			return nil, false, h.error(req, fiber.StatusBadRequest, attrKeyMismatch)
-		}
-		a.Key = key
-	}
+	chk := newFieldChecker().
+		checkIdentifiers(key, &a.Key, "attribute key mismatch").
+		checkAttrType(a.Type).
+		checkTitle(a.Metadata.Title).
+		checkTags(a.Metadata.Tags)
 
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+	}
 	return &a, true, nil
 }
 
@@ -224,8 +226,7 @@ type attributesHandler struct {
 }
 
 var (
-	attrNotFound    = errors.New("attribute not found")
-	attrExists      = errors.New("attribute already exists")
-	attrKeyError    = errors.New("attribute key must be filled and less or equal 500 characters")
-	attrKeyMismatch = errors.New("attribute key mismatch")
+	attrNotFound = errors.New("attribute not found")
+	attrExists   = errors.New("attribute already exists")
+	attrKeyError = errors.New("attribute key must be filled and less or equal 500 characters")
 )

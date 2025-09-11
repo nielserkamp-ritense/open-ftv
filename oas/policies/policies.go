@@ -8,7 +8,7 @@ type AuditEntry struct {
 	// Created Timestamp of the log entry in RFC3339 format.
 	Created string `json:"created,omitempty"`
 
-	// Operation Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+	// Operation Operation performed on the object. Any of ["C", "U", "D"].
 	Operation string `json:"operation"`
 
 	// User Unique identifier of the user who operated on the object.
@@ -38,8 +38,11 @@ type Language struct {
 	// Audit The audit details of an object.
 	Audit ObjectAudit `json:"audit"`
 
-	// AuditLog Audit log for the tag.
+	// AuditLog Audit log for the policy language.
 	AuditLog []AuditEntry `json:"auditLog,omitempty"`
+
+	// Description Detailed description of the policy language.
+	Description string `json:"description,omitempty"`
 
 	// Id The unique identifier of the policy language.
 	Id string `json:"id"`
@@ -104,7 +107,7 @@ type Policy struct {
 	// Data Content of the policy. Required when the policy is stored internally.
 	Data string `json:"data,omitempty"`
 
-	// Id The unique identifier of the policy.
+	// Id The unique identifier of the policy (UUID).
 	Id string `json:"id"`
 
 	// Language The language of the policy.

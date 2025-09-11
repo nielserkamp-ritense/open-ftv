@@ -221,10 +221,10 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 func TestEntitiesHandler_PostEntity(t *testing.T) {
 	t.Parallel()
 
-	data1 := attributes.Entity{Type: "type", Id: "id"}
+	data1 := attributes.Entity{Type: "type", Id: "id", Metadata: attributes.Metadata{Title: "title"}}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Entity{Type: "app", Id: "app1"}
+	data2 := attributes.Entity{Type: "app", Id: "app1", Metadata: attributes.Metadata{Title: "title2"}}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {
@@ -307,10 +307,10 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 func TestEntitiesHandler_PutEntity(t *testing.T) {
 	t.Parallel()
 
-	data1 := attributes.Entity{Type: "type", Id: "id"}
+	data1 := attributes.Entity{Type: "type", Id: "id", Metadata: attributes.Metadata{Title: "title"}}
 	body1, _ := json.Marshal(data1)
 
-	data2 := attributes.Entity{Type: "app", Id: "app1"}
+	data2 := attributes.Entity{Type: "app", Id: "app1", Metadata: attributes.Metadata{Title: "title2"}}
 	body2, _ := json.Marshal(data2)
 
 	testCases := []struct {

@@ -203,28 +203,13 @@ func (h *TagsHandler) checkBody(req *fiber.Ctx, tag string) (*oas.Tag, bool, err
 		return nil, false, h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var errs []error
-	if t.Id != tag {
-		if t.Id != "" {
-			errs = append(errs, h.error(req, fiber.StatusBadRequest, tagKeyMismatch))
-		} else {
-			t.Id = tag
-		}
+	chk := newFieldChecker().
+		checkIdentifiers(tag, &t.Id, "tag mismatch").
+		checkTitle(t.Name)
+
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
 	}
-
-	switch {
-	case t.Name == "":
-		errs = append(errs, errors.New("title must be filled"))
-	case len(t.Name) > 80:
-		errs = append(errs, errors.New("title too long (max 80 characters)"))
-	}
-
-	// TODO: other checks!
-
-	if len(errs) > 0 {
-		return nil, false, h.error(req, fiber.StatusBadRequest, errors.Join(errs...))
-	}
-
 	return &t, true, nil
 }
 
@@ -236,8 +221,7 @@ type TagsHandler struct {
 }
 
 var (
-	tagNotFound    = errors.New("tag not found")
-	tagExists      = errors.New("tag already exists")
-	tagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
-	tagKeyMismatch = errors.New("tag mismatch")
+	tagNotFound = errors.New("tag not found")
+	tagExists   = errors.New("tag already exists")
+	tagKeyError = errors.New("tag must be filled and less or equal 40 characters")
 )
