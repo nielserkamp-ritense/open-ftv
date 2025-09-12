@@ -39,43 +39,6 @@ build_release_eam:
   tags:
     - ${ARCH}
 
-build_release_fsc:
-  stage: Release
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
-  parallel:
-    matrix:
-      - ARCH:
-          - amd64
-          - arm64
-        APP:
-          - fsc-auth
-  before_script:
-    - export SEMVER="${CI_COMMIT_TAG:1}"
-    - echo "container tag=${SEMVER}-${ARCH}"
-    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${SEMVER}-${ARCH}" > ci_build_image_tag.txt
-  script:
-    - /kaniko/executor
-      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
-      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
-      --context "."
-      --dockerfile "apps/${APP}/Dockerfile"
-      --single-snapshot
-      --cache="true"
-      --compressed-caching=false
-      --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/fsc-auth/${APP}:${SEMVER}-${ARCH}
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-  artifacts:
-    paths:
-      - ci_build_image_registry.txt
-      - ci_build_image_tag.txt
-  tags:
-    - ${ARCH}
-
 build_release_mock_ds:
   stage: Release
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
