@@ -80,7 +80,22 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	if pol == nil {
 		return h.error(req, fiber.StatusNotFound, polNotFound)
 	}
-	return req.JSON(pol.ToOAS(true))
+
+	out := pol.ToOAS(true)
+
+	if audit, err3 := h.cache.ReadAudit(id); err3 != nil {
+		h.logger.Warn("failed to read policy audit", "id", id, "err", err3)
+	} else {
+		out.AuditLog = audit
+	}
+
+	if usage, err3 := h.cache.ReadDeployments(id); err3 != nil {
+		h.logger.Warn("failed to read policy deployments", "id", id, "err", err3)
+	} else {
+		out.UsageData = usage
+	}
+
+	return req.JSON(out)
 }
 
 // PostPolicy implements the PoliciesHandler interface.

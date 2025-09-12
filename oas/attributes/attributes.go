@@ -34,8 +34,8 @@ type Attribute struct {
 	// If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
 	Type string `json:"type,omitempty"`
 
-	// UsageData Metadata about how and where the object is used.
-	UsageData UsageData `json:"usageData,omitempty"`
+	// UsageData Usage data for the policy.
+	UsageData []UsageData `json:"usageData,omitempty"`
 
 	// Value The value of the attribute.
 	Value interface{} `json:"value"`
@@ -81,8 +81,8 @@ type Entity struct {
 	// Type The type of entity.
 	Type string `json:"type"`
 
-	// UsageData Metadata about how and where the object is used.
-	UsageData UsageData `json:"usageData,omitempty"`
+	// UsageData Usage data for the policy.
+	UsageData []UsageData `json:"usageData,omitempty"`
 }
 
 // Error The response for an error (as defined by RFC9457).
@@ -168,17 +168,29 @@ type Relation struct {
 	// SubjectType The type of subject of the relation.
 	SubjectType string `json:"subjectType"`
 
-	// UsageData Metadata about how and where the object is used.
-	UsageData UsageData `json:"usageData,omitempty"`
+	// UsageData Usage data for the policy.
+	UsageData []UsageData `json:"usageData,omitempty"`
 }
 
 // Relations defines model for Relations.
 type Relations = []Relation
 
-// UsageData Metadata about how and where the object is used.
+// UsageData Metadata about when and where the object is used.
 type UsageData struct {
-	// Bundles Deployment bundles the object is part of.
-	Bundles []string `json:"bundles,omitempty"`
+	// Bundle Code of the bundle the object was included in.
+	Bundle string `json:"bundle,omitempty"`
+
+	// Created Timestamp the deployment was created (RFC3339 format).
+	Created string `json:"created,omitempty"`
+
+	// CreatedBy User that created the deployment.
+	CreatedBy string `json:"createdBy,omitempty"`
+
+	// Status Status of the deployment.
+	Status string `json:"status,omitempty"`
+
+	// Version Version number of the deployment.
+	Version int `json:"version,omitempty"`
 }
 
 // AttributeKey defines model for AttributeKey.

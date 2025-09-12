@@ -14,8 +14,8 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller v0.0.0-20250812131710-e88def2f909e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250812131710-e88def2f909e
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250812131710-e88def2f909e
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250910123042-a89f03668b85
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250910123042-a89f03668b85
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250911100019-6e8abe6a5c5b
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250812131710-e88def2f909e
 	go.uber.org/zap v1.27.0
 )
@@ -23,6 +23,7 @@ require (
 require (
 	cel.dev/expr v0.24.0 // indirect
 	github.com/Yiling-J/theine-go v0.6.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
@@ -41,6 +42,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
+	github.com/gofiber/fiber/v2 v2.52.9 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.18.3 // indirect
@@ -56,11 +58,15 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/kvtools/etcdv3 v1.0.2 // indirect
 	github.com/kvtools/valkeyrie v1.0.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/linkeddata/gojsonld v0.0.0-20170418210642-4f5db6791326 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/natefinch/wrap v0.2.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
@@ -71,6 +77,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rychipman/easylex v0.0.0-20160129204217-49ee7767142f // indirect
 	github.com/sagikazarmark/locafero v0.9.0 // indirect
@@ -81,8 +88,10 @@ require (
 	github.com/spf13/viper v1.20.1 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.63.0 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250812131710-e88def2f909e // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250911100019-6e8abe6a5c5b // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping v0.0.0-20250812131710-e88def2f909e // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-20250812131710-e88def2f909e // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000 // indirect
@@ -101,13 +110,13 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
-	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
+	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	gonum.org/v1/gonum v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250811230008-5f3141c8851a // indirect

@@ -777,15 +777,31 @@ components:
 
     UsageData:
       type: object
-      description: Metadata about how and where the object is used.
+      description: Metadata about when and where the object is used.
       properties:
-        bundles:
-          type: array
-          description: Deployment bundles the object is part of.
-          items:
-            type: string
-            maxLength: 36
-            example: "8005a155-9c77-4e3e-baea-98ff377cd286"
+        bundle:
+          type: string
+          description: Code of the bundle the object was included in.
+          example: "pdp1"
+        version:
+          type: integer
+          description: Version number of the deployment.
+          example: 1
+        created:
+          type: string
+          maxLength: 36
+          description: Timestamp the deployment was created (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        createdBy:
+          type: string
+          maxLength: 80
+          description: User that created the deployment.
+          example: "alice@wonderland.cc"
+        status:
+          type: string
+          maxLength: 20
+          description: Status of the deployment.
+          example: "completed"
 
     Attributes:
       type: array
@@ -834,7 +850,10 @@ components:
           items:
             $ref: "#/components/schemas/AuditEntry"
         usageData:
-          $ref: "#/components/schemas/UsageData"
+          type: array
+          description: Usage data for the policy.
+          items:
+            $ref: "#/components/schemas/UsageData"
       required:
         - key
         - value
@@ -880,7 +899,10 @@ components:
           items:
             $ref: "#/components/schemas/AuditEntry"
         usageData:
-          $ref: "#/components/schemas/UsageData"
+          type: array
+          description: Usage data for the policy.
+          items:
+            $ref: "#/components/schemas/UsageData"
       required:
         - type
         - id
@@ -949,7 +971,10 @@ components:
           items:
             $ref: "#/components/schemas/AuditEntry"
         usageData:
-          $ref: "#/components/schemas/UsageData"
+          type: array
+          description: Usage data for the policy.
+          items:
+            $ref: "#/components/schemas/UsageData"
       required:
         - id
         - subjectType

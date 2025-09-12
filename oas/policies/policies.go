@@ -126,8 +126,8 @@ type Policy struct {
 	// Metadata The metadata associated with a policy.
 	Metadata Metadata `json:"metadata"`
 
-	// UsageData Metadata about how and where the policy is used.
-	UsageData UsageData `json:"usageData,omitempty"`
+	// UsageData Usage data for the policy.
+	UsageData []UsageData `json:"usageData,omitempty"`
 }
 
 // Tag The details of a tag.
@@ -151,10 +151,22 @@ type Tag struct {
 // Tags defines model for Tags.
 type Tags = []Tag
 
-// UsageData Metadata about how and where the policy is used.
+// UsageData Metadata about when and where the object is used.
 type UsageData struct {
-	// Bundles Bundles the policy is used by.
-	Bundles []string `json:"bundles,omitempty"`
+	// Bundle Code of the bundle the object was included in.
+	Bundle string `json:"bundle,omitempty"`
+
+	// Created Timestamp the deployment was created (RFC3339 format).
+	Created string `json:"created,omitempty"`
+
+	// CreatedBy User that created the deployment.
+	CreatedBy string `json:"createdBy,omitempty"`
+
+	// Status Status of the deployment.
+	Status string `json:"status,omitempty"`
+
+	// Version Version number of the deployment.
+	Version int `json:"version,omitempty"`
 }
 
 // ForceUpsert defines model for ForceUpsert.

@@ -12,6 +12,7 @@ import (
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -75,6 +76,20 @@ func (s *KeyValueDB) ReadPolicy(ctx context.Context, id string) (*models.Policy,
 	}
 
 	return p, kv.LastIndex, nil
+}
+
+// ReadPolicyAudit retrieves the audit-log for the identified policy from the database.
+//
+// Not supported for key-value stores.
+func (s *KeyValueDB) ReadPolicyAudit(_ context.Context, _ string) ([]policies.AuditEntry, error) {
+	return nil, nil
+}
+
+// ReadPolicyDeployments retrieves the deployment-log for the identified policy from the database.
+//
+// Not supported for key-value stores.
+func (s *KeyValueDB) ReadPolicyDeployments(_ context.Context, _ string) ([]policies.UsageData, error) {
+	return nil, nil
 }
 
 // UpdatePolicy replaces a policy in the store.

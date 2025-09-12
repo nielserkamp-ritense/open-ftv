@@ -11,7 +11,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication v0.0.0-20250716162429-b106327fedfb
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250716162429-b106327fedfb
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250724071947-5396c4715c07
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250911100019-6e8abe6a5c5b
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap v0.0.0-20250708120440-2327e161c67a
@@ -21,8 +21,8 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250910123042-a89f03668b85
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250910123042-a89f03668b85
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250911100019-6e8abe6a5c5b
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250708120440-2327e161c67a
 )
 
@@ -122,7 +122,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
+	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
