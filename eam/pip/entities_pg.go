@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -50,6 +53,57 @@ func (db *PostgresDB) ReadEntity(ctx context.Context, ns, id string) (*models.En
 		return nil, 0, nil
 	}
 	return e, timeToLastIndex(e.Updated()), nil
+}
+
+// ReadEntityAudit retrieves the audit-log for the identified policy from the database.
+func (db *PostgresDB) ReadEntityAudit(ctx context.Context, ns, id string) ([]oas.AuditEntry, error) {
+	sql := `SELECT created,operation,user_id FROM entity_audit WHERE type=$1 AND id=$2 ORDER BY created DESC LIMIT 100`
+	params := []any{ns, id}
+	out := make([]oas.AuditEntry, 0)
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		out = append(out, oas.AuditEntry{
+			Created:   convert.AnyToDateTime(values[0]).Format(time.RFC3339),
+			Operation: convert.AnyToString(values[1]),
+			UserId:    convert.AnyToString(values[2]),
+		})
+		return true
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ReadEntityDeployments retrieves the deployment-log for the identified policy from the database.
+func (db *PostgresDB) ReadEntityDeployments(ctx context.Context, ns, id string) ([]oas.UsageData, error) {
+	sql := `SELECT b.bundle_id, d.version, d.created, d.created_by, d.status
+ FROM entity_deployment e
+ INNER JOIN deployment_bundle b ON b.id=e.bundle_id
+ INNER JOIN deployment d ON d.version=b.version
+ WHERE e.type=$1 AND a.id=$2
+ ORDER BY b.created DESC
+ LIMIT 100`
+
+	params := []any{ns, id}
+	out := make([]oas.UsageData, 0)
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		out = append(out, oas.UsageData{
+			Bundle:    convert.AnyToString(values[0]),
+			Version:   int(convert.AnyToInt64(values[1])),
+			Created:   convert.AnyToString(values[2]),
+			CreatedBy: convert.AnyToString(values[3]),
+			Status:    bundles.Status(convert.AnyToInt64(values[4])).Status(),
+		})
+		return true
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // UpdateEntity replaces an existing entity in the database.

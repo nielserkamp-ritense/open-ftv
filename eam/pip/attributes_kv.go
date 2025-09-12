@@ -12,6 +12,7 @@ import (
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -67,6 +68,20 @@ func (s *attributeStore) ReadAttribute(ctx context.Context, id string) (*models.
 	}
 
 	return a, kv.LastIndex, nil
+}
+
+// ReadAttributeAudit retrieves the audit-log for the identified policy from the database.
+//
+// Not implemented in key-value stores.
+func (db *attributeStore) ReadAttributeAudit(_ context.Context, _ string) ([]oas.AuditEntry, error) {
+	return nil, nil
+}
+
+// ReadAttributeDeployments retrieves the deployment-log for the identified policy from the database.
+//
+// Not implemented in key-value stores.
+func (db *attributeStore) ReadAttributeDeployments(_ context.Context, _ string) ([]oas.UsageData, error) {
+	return nil, nil
 }
 
 // UpdateAttribute implements the AttributePersister interface.

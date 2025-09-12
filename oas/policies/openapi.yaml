@@ -446,15 +446,31 @@ components:
 
     UsageData:
       type: object
-      description: Metadata about how and where the policy is used.
+      description: Metadata about when and where the object is used.
       properties:
-        bundles:
-          type: array
-          description: Bundles the policy is used by.
-          items:
-            type: string
-            maxLength: 36
-            example: "51736e30-b797-4c72-8c8d-28f4a7ad02c4"
+        bundle:
+          type: string
+          description: Code of the bundle the object was included in.
+          example: "pdp1"
+        version:
+          type: integer
+          description: Version number of the deployment.
+          example: 1
+        created:
+          type: string
+          maxLength: 36
+          description: Timestamp the deployment was created (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+        createdBy:
+          type: string
+          maxLength: 80
+          description: User that created the deployment.
+          example: "alice@wonderland.cc"
+        status:
+          type: string
+          maxLength: 20
+          description: Status of the deployment.
+          example: "completed"
 
     Languages:
       type: array
@@ -582,7 +598,10 @@ components:
           items:
             $ref: "#/components/schemas/AuditEntry"
         usageData:
-          $ref: "#/components/schemas/UsageData"
+          type: array
+          description: Usage data for the policy.
+          items:
+            $ref: "#/components/schemas/UsageData"
       required:
         - id
         - language

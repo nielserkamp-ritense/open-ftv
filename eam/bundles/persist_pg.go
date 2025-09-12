@@ -233,32 +233,32 @@ func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg 
 	for i := range bundle.Policies {
 		p := bundle.Policies[i]
 		batch = append(batch, postgresql.Statement{
-			SQL:  "INSERT INTO (policy_deployment) (id,bundle_id) VALUES ($1,$2)",
-			Args: []any{p.Id, cfg.ID},
+			SQL:  "INSERT INTO policy_deployment (id,bundle_id) VALUES ($1,$2)",
+			Args: []any{p.Id, uid},
 		})
 	}
 
 	for i := range bundle.Attributes {
 		a := bundle.Attributes[i]
 		batch = append(batch, postgresql.Statement{
-			SQL:  "INSERT INTO (attribute_deployment) (key,bundle_id) VALUES ($1,$2)",
-			Args: []any{a.Key, cfg.ID},
+			SQL:  "INSERT INTO attribute_deployment (key,bundle_id) VALUES ($1,$2)",
+			Args: []any{a.Key, uid},
 		})
 	}
 
 	for i := range bundle.Entities {
 		e := bundle.Entities[i]
 		batch = append(batch, postgresql.Statement{
-			SQL:  "INSERT INTO (entity_deployment) (type,id,bundle_id) VALUES ($1,$2,$3)",
-			Args: []any{e.Type, e.Id, cfg.ID},
+			SQL:  "INSERT INTO entity_deployment (type,id,bundle_id) VALUES ($1,$2,$3)",
+			Args: []any{e.Type, e.Id, uid},
 		})
 	}
 
 	for i := range bundle.Relations {
 		r := bundle.Relations[i]
 		batch = append(batch, postgresql.Statement{
-			SQL:  "INSERT INTO (relation_deployment) (id,bundle_id) VALUES ($1,$2)",
-			Args: []any{r.Id, cfg.ID},
+			SQL:  "INSERT INTO relation_deployment (id,bundle_id) VALUES ($1,$2)",
+			Args: []any{r.Id, uid},
 		})
 	}
 

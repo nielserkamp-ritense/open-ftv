@@ -15,6 +15,7 @@ import (
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -70,6 +71,20 @@ func (s *entityStore) ReadEntity(ctx context.Context, ns, id string) (*models.En
 	}
 
 	return e, kv.LastIndex, nil
+}
+
+// ReadEntityAudit retrieves the audit-log for the identified policy from the database.
+//
+// Not implemented in key-value stores.
+func (db *entityStore) ReadEntityAudit(_ context.Context, _, _ string) ([]oas.AuditEntry, error) {
+	return nil, nil
+}
+
+// ReadEntityDeployments retrieves the deployment-log for the identified policy from the database.
+//
+// Not implemented in key-value stores.
+func (db *entityStore) ReadEntityDeployments(_ context.Context, _, _ string) ([]oas.UsageData, error) {
+	return nil, nil
 }
 
 // UpdateEntity implements the EntityPersister interface.

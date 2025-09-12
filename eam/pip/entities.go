@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
 // AddEntity adds/replaces an entity in the PIP.
@@ -30,6 +31,18 @@ func (p *PIP) AddEntityWithUser(entity *models.Entity, user string) (*models.Ent
 func (p *PIP) GetEntity(uid string) (*models.Entity, uint64, error) {
 	ns, id := models.SplitEntityUID(uid)
 	return p.entityDB.ReadEntity(p.ctx, ns, id)
+}
+
+// GetEntityAudit retrieves the audit-log of an attribute from the PIP.
+func (p *PIP) GetEntityAudit(uid string) ([]oas.AuditEntry, error) {
+	ns, id := models.SplitEntityUID(uid)
+	return p.entityDB.ReadEntityAudit(p.ctx, ns, id)
+}
+
+// GetEntityDeployments retrieves the deployment-log of an attribute from the PIP.
+func (p *PIP) GetEntityDeployments(uid string) ([]oas.UsageData, error) {
+	ns, id := models.SplitEntityUID(uid)
+	return p.entityDB.ReadEntityDeployments(p.ctx, ns, id)
 }
 
 // RemoveEntity removes an entity from the PIP.

@@ -72,7 +72,22 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	if a == nil {
 		return h.error(req, fiber.StatusNotFound, attrNotFound)
 	}
-	return req.JSON(a.ToOAS())
+
+	out := a.ToOAS()
+
+	if audit, err3 := h.cache.GetAttributeAudit(key); err3 != nil {
+		h.logger.Warn("failed to read policy audit", "key", key, "err", err3)
+	} else {
+		out.AuditLog = audit
+	}
+
+	if usage, err3 := h.cache.GetAttributeDeployments(key); err3 != nil {
+		h.logger.Warn("failed to read policy deployments", "key", key, "err", err3)
+	} else {
+		out.UsageData = usage
+	}
+
+	return req.JSON(out)
 }
 
 // PostAttribute implements the AttributesHandler interface.

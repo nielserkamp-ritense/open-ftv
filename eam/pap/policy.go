@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // Create adds a policy to cache/storage.
@@ -21,6 +22,16 @@ func (p *PAP) Create(in *models.Policy, user string) (out *models.Policy, err er
 // An error is returned if the policy-id doesn't exist.
 func (p *PAP) Read(id string) (out *models.Policy, lastIndex uint64, err error) {
 	return p.policyDB.ReadPolicy(p.ctx, id)
+}
+
+// ReadAudit retrieves the audit-log for a policy from cache/storage.
+func (p *PAP) ReadAudit(id string) (out []oas.AuditEntry, err error) {
+	return p.policyDB.ReadPolicyAudit(p.ctx, id)
+}
+
+// ReadDeployments retrieves the deployment-log for a policy from cache/storage.
+func (p *PAP) ReadDeployments(id string) (out []oas.UsageData, err error) {
+	return p.policyDB.ReadPolicyDeployments(p.ctx, id)
 }
 
 // Update modifies a policy in cache/storage with a newer version.

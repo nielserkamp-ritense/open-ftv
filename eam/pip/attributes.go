@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
 // AddAttribute adds/replaces the given attribute in the PIP.
@@ -15,7 +15,7 @@ func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
 }
 
 // AddAttributeFromOAS adds/replaces an attribute in the PIP based on the given OAS model.
-func (p *PIP) AddAttributeFromOAS(in *attributes.Attribute, user string) (*models.Attribute, error) {
+func (p *PIP) AddAttributeFromOAS(in *oas.Attribute, user string) (*models.Attribute, error) {
 	return p.addAttributeWithUser(models.NewAttributeFromOAS(in), user)
 }
 
@@ -51,6 +51,16 @@ func (p *PIP) AddOriginalAttribute(key string, value, original any, tp string) (
 // GetAttribute retrieves an attribute from the PIP.
 func (p *PIP) GetAttribute(key string) (*models.Attribute, uint64, error) {
 	return p.attributeDB.ReadAttribute(p.ctx, key)
+}
+
+// GetAttributeAudit retrieves the audit-log of an attribute from the PIP.
+func (p *PIP) GetAttributeAudit(key string) ([]oas.AuditEntry, error) {
+	return p.attributeDB.ReadAttributeAudit(p.ctx, key)
+}
+
+// GetAttributeDeployments retrieves the deployment-log of an attribute from the PIP.
+func (p *PIP) GetAttributeDeployments(key string) ([]oas.UsageData, error) {
+	return p.attributeDB.ReadAttributeDeployments(p.ctx, key)
 }
 
 // GetAttributeValue retrieves the value of an attribute value from the PIP.

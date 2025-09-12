@@ -64,7 +64,9 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 		return err
 	}
 
-	e, _, err2 := h.cache.GetEntity(models.EntityUID(ns, id))
+	uid := models.EntityUID(ns, id)
+
+	e, _, err2 := h.cache.GetEntity(uid)
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
@@ -72,7 +74,22 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	if e == nil {
 		return h.error(req, fiber.StatusNotFound, entityNotFound)
 	}
-	return req.JSON(e.ToOAS())
+
+	out := e.ToOAS()
+
+	if audit, err3 := h.cache.GetAttributeAudit(uid); err3 != nil {
+		h.logger.Warn("failed to read policy audit", "type", ns, "id", id, "err", err3)
+	} else {
+		out.AuditLog = audit
+	}
+
+	if usage, err3 := h.cache.GetAttributeDeployments(uid); err3 != nil {
+		h.logger.Warn("failed to read policy deployments", "type", ns, "id", id, "err", err3)
+	} else {
+		out.UsageData = usage
+	}
+
+	return req.JSON(out)
 }
 
 // PostEntity implements the EntitiesHandler interface.
