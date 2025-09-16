@@ -1,5 +1,9 @@
 package fiber
 
+// **Deprecation warning**
+// The FSC auth-plugin is deprecated, as it is no longer in use.
+// THis code will be removed in a future version.
+
 import (
 	"encoding/base64"
 	"errors"
@@ -25,7 +29,7 @@ const AuthFSCVersion = "1.0.0"
 
 // FSCAuthorizer represents the interface for handling FSC authorization requests.
 type FSCAuthorizer interface {
-	Authorize(req *fiber.Ctx) error
+	Evaluation(req *fiber.Ctx) error
 }
 
 // NewAuthHandlerFSC instantiates a new FSC authorization handler.
@@ -33,16 +37,9 @@ func NewAuthHandlerFSC(logger *slog.Logger, authLogger authlog.Logger, controlle
 	return &authFSC{logger: logger, authLogger: authLogger, controller: controller}
 }
 
-// Authorize implements the FSCAuthorizer interface.
-func (h *authFSC) Authorize(fc *fiber.Ctx) error {
-	p := authProcess{
-		logger:     h.logger,
-		authLogger: h.authLogger,
-		controller: h.controller,
-		fc:         fc,
-		status:     fiber.StatusInternalServerError,
-		started:    time.Now(),
-	}
+// Evaluation implements the FSCAuthorizer interface.
+func (h *authFSC) Evaluation(fc *fiber.Ctx) error {
+	p := initAuthProcess(fc, h.logger, h.authLogger, h.controller)
 
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		defer p.log()

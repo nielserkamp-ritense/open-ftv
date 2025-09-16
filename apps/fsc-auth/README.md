@@ -1,5 +1,9 @@
 # OpenFTV - FSC Authorization Plugin
 
+**Deprecation warning**
+**The FSC auth-plugin is deprecated, as it is no longer in use.**
+**This module will be removed in a future version.**
+
 # Welcome
 This code module implements an authorization plugin for the OpenFSC Inway and Outway services.
 

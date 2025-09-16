@@ -63,7 +63,7 @@ func TestNew(t *testing.T) {
 
 			s := &service{ctx: context.Background(), cfg: tc.cfg, logger: logger, l: models.LanguageFromString(tc.cfg.PAP.Language)}
 
-			auth := s.newAuth()
+			auth := s.newAuth("")
 			if tc.wantFail {
 				require.Nil(t, auth)
 				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
@@ -73,7 +73,7 @@ func TestNew(t *testing.T) {
 				assert.NotNil(t, auth.Controller())
 
 				srv := fiber.New()
-				srv.Get("/zen", auth.AuthZEN)
+				srv.Get("/zen", auth.AuthZEN().Evaluation)
 
 				req := httptest.NewRequest("GET", "/zen", nil)
 				resp, err := srv.Test(req, 100)

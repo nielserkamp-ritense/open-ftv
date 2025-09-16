@@ -53,7 +53,7 @@ func TestController_Authorize(t *testing.T) {
 				Body:        []byte(""),
 			},
 			wantLog: 2,
-			want:    models.Response{Message: "store not found; invalid principal type 'invalid'"},
+			wantErr: true,
 		},
 		{
 			name:     "good request",

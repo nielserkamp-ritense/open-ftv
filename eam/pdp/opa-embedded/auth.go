@@ -16,9 +16,11 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Response, err error) {
+	logger := c.Logger.With("controller", c.String(), "request-uid", uid)
+
 	debug := c.Logger.Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.Logger.Debug("authorization request", "controller", c.String(), "request-uid", uid)
+		logger.Debug("authorization request")
 	}
 
 	opts := c.buildDecisionOptions(uid, parc)
@@ -34,12 +36,12 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 	c.AuthMutex.RUnlock()
 
 	if err != nil {
-		c.Logger.Error("authorization failed", "controller", c.String(), "request-uid", uid, "err", err, "pdp elapsed", duration.String())
+		logger.Error("authorization failed", "err", err, "pdp elapsed", duration.String())
 	} else {
 		if m, ok := decision.Result.(map[string]any); ok {
 			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 				if debug {
-					c.Logger.Debug("authorization granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+					logger.Debug("authorization granted", "pdp elapsed", duration.String())
 				}
 				resp = &models.Response{Allowed: true}
 				return
@@ -47,12 +49,68 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 		}
 
 		if debug {
-			c.Logger.Warn("authorization not granted", "controller", c.String(), "request-uid", uid, "pdp elapsed", duration.String())
+			logger.Warn("authorization not granted", "pdp elapsed", duration.String())
 		}
 	}
 
 	resp = &models.Response{Allowed: false, Message: "not authorized"}
 	return
+}
+
+// Batch implements the Controller interface.
+func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, error) {
+	logger := c.Logger.With("controller", c.String(), "request-uid", uid)
+
+	debug := c.Logger.Enabled(nil, slog.LevelDebug)
+	if debug {
+		logger.Debug("batch request", "semantics", req.Semantics.String())
+	}
+
+	out := make([]models.Response, 0, len(req.Items))
+
+	c.AuthMutex.RLock()
+
+	for i := range req.Items {
+		r1 := &req.Items[i]
+		opts := c.buildDecisionOptions(uid, r1)
+
+		started := time.Now()
+		decision, err := c.pdp.Decision(context.Background(), opts)
+		duration := time.Since(started)
+
+		if err != nil {
+			logger.Error("authorization failed", "item#", i+1, "err", err, "pdp elapsed", duration.String())
+		} else {
+			if m, ok := decision.Result.(map[string]any); ok {
+				if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
+					if debug {
+						c.Logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
+					}
+					out = append(out, models.Response{Allowed: true})
+
+					if req.Semantics == models.PermitOnFirstPermit {
+						break
+					} else {
+						continue
+					}
+				}
+			}
+		}
+
+		if debug {
+			logger.Warn("authorization not granted", "item#", i+1, "pdp elapsed", duration.String())
+		}
+
+		out = append(out, models.Response{Allowed: false, Message: "not authorized"})
+
+		if req.Semantics == models.DenyOnFirstDeny {
+			break
+		}
+	}
+
+	c.AuthMutex.RUnlock()
+
+	return out, nil
 }
 
 func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.DecisionOptions {
