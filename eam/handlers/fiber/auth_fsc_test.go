@@ -1,5 +1,9 @@
 package fiber
 
+// **Deprecation warning**
+// The FSC auth-plugin is deprecated, as it is no longer in use.
+// THis code will be removed in a future version.
+
 import (
 	"bytes"
 	"context"
@@ -49,7 +53,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.Authorize)
+		app.Post("/v1/auth", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -103,7 +107,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.Authorize)
+		app.Post("/v1/auth", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -155,7 +159,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.Authorize)
+		app.Post("/v1/auth", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -207,7 +211,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.Authorize)
+		app.Post("/v1/auth", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -259,7 +263,7 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/auth", auth.Authorize)
+		app.Post("/v1/auth", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 

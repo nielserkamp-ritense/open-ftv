@@ -14,12 +14,30 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
+func initAuthProcess(fc *fiber.Ctx, logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) *authProcess {
+	return &authProcess{
+		logger:     logger,
+		authLogger: authLogger,
+		controller: controller,
+		fc:         fc,
+		status:     fiber.StatusInternalServerError,
+		started:    time.Now(),
+	}
+}
+
 func (p *authProcess) log() {
 	args := make([]any, 0, 16)
 
-	if p.parc != nil {
-		args = append(args, "method", convert.AnyToString(p.parc.Action.Attributes().GetAttribute(models.AttrMethod)))
-		args = append(args, "request-uid", p.reqUID)
+	args = append(args, "request-uid", p.reqUID)
+
+	switch {
+	case p.batch != nil:
+		args = append(args, "#items", len(p.batch.Items))
+		args = append(args, "semantics", p.batch.Semantics.String())
+	case p.parc != nil:
+		args = append(args, "subject", p.parc.Principal.Type())
+		args = append(args, "action", p.parc.Action.Type())
+		args = append(args, "resource", p.parc.Resource.Type())
 	}
 
 	var allowed bool
@@ -43,6 +61,8 @@ func (p *authProcess) log() {
 	case p.err != nil:
 		msg = "authorization process failed"
 		args = append(args, "status", p.status, "error", p.err)
+	case p.resp == nil:
+		msg = "authorization processed"
 	case !allowed:
 		msg = "authorization denied"
 	default:
@@ -102,6 +122,7 @@ type authProcess struct {
 	fc         *fiber.Ctx
 	reqUID     string
 	parc       *models.PARC
+	batch      *models.Batch
 	resp       *models.Response
 	logger     *slog.Logger
 	authLogger authlog.Logger

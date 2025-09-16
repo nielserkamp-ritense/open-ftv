@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
@@ -22,11 +20,11 @@ import (
 // AuthHandler represents the interface for handling authorization requests.
 type AuthHandler interface {
 	Controller() pdp.Controller
-	AuthZEN(req *fiber.Ctx) error
-	Authorizer() authorization.Authorizer
+	AuthZEN() *handlers.AuthZENAuthorizer // AuthZEN API.
+	Authorizer() authorization.Authorizer // UI & bundle authorization.
 }
 
-func (s *service) newAuth() AuthHandler {
+func (s *service) newAuth(basePath string) AuthHandler {
 	controller, err := s.newController()
 	if controller == nil {
 		s.logger.Error("failed to initialize pdp controller", "error", err)
@@ -56,7 +54,13 @@ func (s *service) newAuth() AuthHandler {
 		}
 	}
 
-	zen := handlers.NewAuthHandlerZEN(s.logger, authLogger, controller)
+	var prefix string
+	if s.cfg.AuthZENMethod != "" || s.cfg.AuthZENDomain != "" {
+		prefix = fmt.Sprintf("%s:/%s%s", s.cfg.AuthZENMethod, s.cfg.AuthZENDomain, basePath)
+	}
+
+	zen := handlers.NewAuthHandlerZEN(s.logger, authLogger, controller, prefix).
+		WithEvaluations()
 
 	return &authHandler{
 		logger:     s.logger,
@@ -99,8 +103,8 @@ func (s *service) newController() (pdp.Controller, error) {
 // Controller returns the PDP controller.
 func (h *authHandler) Controller() pdp.Controller { return h.controller }
 
-// AuthZEN authorizes an AuthZEN authorization request.
-func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req) }
+// AuthZEN returns the AuthZEN API handler.
+func (h *authHandler) AuthZEN() *handlers.AuthZENAuthorizer { return h.zen }
 
 // Authorizer returns the authorizer.
 func (h *authHandler) Authorizer() authorization.Authorizer { return h.authorizer }
@@ -108,6 +112,6 @@ func (h *authHandler) Authorizer() authorization.Authorizer { return h.authorize
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
-	zen        handlers.AuthZENAuthorizer
+	zen        *handlers.AuthZENAuthorizer
 	authorizer authorization.Authorizer
 }

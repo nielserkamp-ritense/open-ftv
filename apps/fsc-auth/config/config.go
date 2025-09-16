@@ -53,6 +53,7 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 // Config represents the full set of configuration variables.
 type Config struct {
 	config2.ServerApp
+	config2.PDP
 	config2.PAP
 	config2.PIP
 	config2.Cerbos

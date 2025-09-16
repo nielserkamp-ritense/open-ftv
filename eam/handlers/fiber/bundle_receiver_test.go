@@ -130,6 +130,11 @@ type myBundleHandler struct {
 	controller.Base
 }
 
+func (h *myBundleHandler) Batch(uid string, req *models.Batch) ([]models.Response, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (h *myBundleHandler) Authorize(string, *models.PARC) (*models.Response, error) {
 	return nil, fmt.Errorf("not implemented")
 }

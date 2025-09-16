@@ -2,65 +2,17 @@ package fiber
 
 import (
 	"errors"
-	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
-
-// AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
-const AuthZENVersion = "1.0.0"
-
-// AuthZENAuthorizer represents the interface for handling AuthZEN authorization requests.
-type AuthZENAuthorizer interface {
-	Authorize(req *fiber.Ctx) error
-}
-
-// NewAuthHandlerZEN instantiates a new AuthZEN authorization handler.
-func NewAuthHandlerZEN(logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) AuthZENAuthorizer {
-	return &authZEN{logger: logger, authLogger: authLogger, controller: controller}
-}
-
-// Authorize implements the AuthZENAuthorizer interface.
-func (h *authZEN) Authorize(fc *fiber.Ctx) error {
-	p := &authProcess{
-		logger:     h.logger,
-		authLogger: h.authLogger,
-		controller: h.controller,
-		fc:         fc,
-		status:     fiber.StatusInternalServerError,
-		started:    time.Now(),
-	}
-
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		defer p.log()
-	}
-	if p.authLogger != nil {
-		defer p.authLog()
-	}
-
-	p.fc.Set(HeaderVersion, AuthZENVersion)
-
-	req := p.verifyRequestAuthZEN()
-	if p.err != nil {
-		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
-		return server.SendMessageResponse(fc, p.status, p.msg)
-	}
-
-	p.newAuthRequestAuthZEN(req)
-	p.logger.Debug("AuthZEN authorization request", "request", p.parc)
-
-	return p.authorizeAuthZEN()
-}
 
 func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 	p.status = fiber.StatusBadRequest
@@ -69,24 +21,13 @@ func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 		req.Header.SetContentType(fiber.MIMEApplicationJSON)
 	}
 
-	req := &oas.EvaluationRequest{}
+	req := new(oas.EvaluationRequest)
 	if p.err = p.fc.BodyParser(req); p.err != nil {
 		p.msg = "invalid input data"
 		return nil
 	}
 
-	if req.Subject.Type == "" || req.Subject.Id == "" {
-		p.msg, p.err = "invalid subject", errors.New("subject type&id must be filled")
-		return nil
-	}
-
-	if req.Action.Name == "" {
-		p.msg, p.err = "invalid action", errors.New("action name must be filled")
-		return nil
-	}
-
-	if req.Resource.Type == "" || req.Resource.Id == "" {
-		p.msg, p.err = "invalid resource", errors.New("resource type&id must be filled")
+	if !p.checkEvaluationObject(req) {
 		return nil
 	}
 
@@ -94,7 +35,26 @@ func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 	return req
 }
 
-func (p *authProcess) newAuthRequestAuthZEN(req *oas.EvaluationRequest) {
+func (p *authProcess) checkEvaluationObject(req *oas.EvaluationObject) bool {
+	if req.Subject.Type == "" || req.Subject.Id == "" {
+		p.msg, p.err = "invalid subject", errors.New("subject type&id must be filled")
+		return false
+	}
+
+	if req.Action.Name == "" {
+		p.msg, p.err = "invalid action", errors.New("action name must be filled")
+		return false
+	}
+
+	if req.Resource.Type == "" || req.Resource.Id == "" {
+		p.msg, p.err = "invalid resource", errors.New("resource type&id must be filled")
+		return false
+	}
+
+	return true
+}
+
+func (p *authProcess) createRequestAuthZEN(req *oas.EvaluationRequest) {
 	principal := models.NewEntity(req.Subject.Type, req.Subject.Id, models.NewAttributeSet(req.Subject.Properties))
 	action := models.NewEntity(models.EntityTypeName, req.Action.Name, models.NewAttributeSet(req.Action.Properties))
 	resource := models.NewEntity(req.Resource.Type, req.Resource.Id, models.NewAttributeSet(req.Resource.Properties))
@@ -113,13 +73,9 @@ func (p *authProcess) newAuthRequestAuthZEN(req *oas.EvaluationRequest) {
 	}
 }
 
-func (p *authProcess) authorizeAuthZEN() error {
-	if reqID := p.fc.Get("X-Request-ID"); reqID != "" {
-		p.fc.Set("X-Request-ID", reqID)
-	}
-
+func (p *authProcess) authorizeRequestAuthZEN() error {
 	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc); p.err != nil {
-		p.msg = "AuthZEN authorization process failed"
+		p.msg = "AuthZEN evaluation failed"
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
@@ -136,10 +92,4 @@ func (p *authProcess) authorizeAuthZEN() error {
 		Decision: allowed,
 		Context:  oas.ReasonObject{Id: "0", ReasonUser: oas.ReasonField{"en": msg}},
 	})
-}
-
-type authZEN struct {
-	logger     *slog.Logger
-	authLogger authlog.Logger
-	controller pdp.Controller
 }

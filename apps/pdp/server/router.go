@@ -14,7 +14,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
-	s.auth = s.newAuth()
+	s.auth = s.newAuth(handle.PathAuthZEN + handle.PathV1)
 	if s.auth == nil {
 		panic("failed to initialize authorization handler")
 	}
@@ -37,7 +37,16 @@ func (s *service) initAuth(svc *fiber.App) {
 	// AuthZEN
 	authZen := svc.Group(handle.PathAuthZEN)
 	authZenV1 := authZen.Group(handle.PathV1)
-	authZenV1.Post(handle.PathEvaluation, s.auth.AuthZEN)
+	authZenV1.Post(handle.PathEvaluation, s.auth.AuthZEN().Evaluation)
+	authZenV1.Post(handle.PathEvaluations, s.auth.AuthZEN().Evaluations)
+	// authZenV1.Post(handle.PathSearchSubject, s.auth.AuthZEN().SearchSubject)
+	// authZenV1.Post(handle.PathSearchAction, s.auth.AuthZEN().SearchAction)
+	// authZenV1.Post(handle.PathSearchResource, s.auth.AuthZEN().SearchResource)
+	authZenV1.Get(handle.PathMetadata, s.auth.AuthZEN().Metadata)
+
+	// Metadata also available on /.well-known/authzen-configuration.
+	wellKnown := svc.Group(handle.PathWellKnown)
+	wellKnown.Get(handle.PathAuthZenConfig, s.auth.AuthZEN().Metadata)
 }
 
 func (s *service) initBundles(v1 fiber.Router) {

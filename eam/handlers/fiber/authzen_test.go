@@ -45,11 +45,11 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -99,11 +99,11 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -153,11 +153,11 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -205,11 +205,11 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -257,11 +257,11 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 
@@ -311,11 +311,11 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerZEN(logger, nil, controller)
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
 		require.NotNil(t, auth)
 
 		app := fiber.New()
-		app.Post("/v1/authzen", auth.Authorize)
+		app.Post("/v1/authzen", auth.Evaluation)
 
 		buf := bytes.NewReader([]byte(in))
 

@@ -21,6 +21,7 @@ import (
 // Each PDP-wrapper must also embed the Base struct to support all generic functions.
 type Controller interface {
 	Authorize(uid string, req *models.PARC) (*models.Response, error) // must be implemented by the PDP wrapper.
+	Batch(uid string, req *models.Batch) ([]models.Response, error)   // must be implemented by the PDP wrapper.
 	GetContext() context.Context                                      // implemented by Base.
 	GetLogger() *slog.Logger                                          // implemented by Base.
 	GetPEP() *pep.PEP                                                 // implemented by Base.

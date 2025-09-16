@@ -50,7 +50,9 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandl
 	}
 
 	fsc := handlers.NewAuthHandlerFSC(logger, authLogger, controller)
-	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller)
+
+	prefix := fmt.Sprintf("http://localhost:%d%s%s", cfg.Port, handlers.PathAuthZEN, handlers.PathV1)
+	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller, prefix)
 
 	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
 }
@@ -94,14 +96,14 @@ func newController(ctx context.Context, cfg *config.Config, logger *slog.Logger)
 func (h *authHandler) Controller() pdp.Controller { return h.controller }
 
 // AuthFSC handles an FSC Authorization request.
-func (h *authHandler) AuthFSC(req *fiber.Ctx) error { return h.fsc.Authorize(req) }
+func (h *authHandler) AuthFSC(req *fiber.Ctx) error { return h.fsc.Evaluation(req) }
 
 // AuthZEN authorizes an AuthZEN authorization request.
-func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Authorize(req) }
+func (h *authHandler) AuthZEN(req *fiber.Ctx) error { return h.zen.Evaluation(req) }
 
 type authHandler struct {
 	logger     *slog.Logger
 	controller pdp.Controller
 	fsc        handlers.FSCAuthorizer
-	zen        handlers.AuthZENAuthorizer
+	zen        *handlers.AuthZENAuthorizer
 }

@@ -11,9 +11,11 @@ import (
 
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, error) {
-	debug := c.Logger.Enabled(nil, slog.LevelDebug)
+	logger := c.logger.With("request-uid", uid)
+
+	debug := c.logger.Enabled(nil, slog.LevelDebug)
 	if debug {
-		c.logger.Debug("authorization request", "request-uid", uid)
+		logger.Debug("authorization request")
 	}
 
 	principal, resource, action := c.buildCerbosRequest(req)
@@ -31,19 +33,76 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 		match := decision.GetResource(resource.ID())
 		if match.IsAllowed(action) {
 			if debug {
-				c.logger.Debug("authorization granted", "request-uid", uid, "pdp elapsed", duration.String())
+				logger.Debug("authorization granted", "pdp elapsed", duration.String())
 			}
 			return &models.Response{Allowed: true}, nil
 		}
 
-		c.logger.Debug("authorization not granted", "request-uid", uid, "pdp elapsed", duration.String(), "diagnostic", match)
+		if debug {
+			logger.Debug("authorization not granted", "pdp elapsed", duration.String(), "diagnostic", match)
+		}
+		return &models.Response{Allowed: false, Message: "not authorized"}, nil
 	}
 
-	if err != nil {
-		c.logger.Warn("authorization failed", "request-uid", uid, "pdp elapsed", duration.String(), "error", err)
-
-	}
+	logger.Warn("authorization failed", "pdp elapsed", duration.String(), "error", err)
 	return &models.Response{Allowed: false, Message: "not authorized"}, nil
+}
+
+// Batch implements the Controller interface.
+func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, error) {
+	logger := c.logger.With("request-uid", uid)
+
+	debug := c.logger.Enabled(nil, slog.LevelDebug)
+	if debug {
+		logger.Debug("batch request", "semantics", req.Semantics.String())
+	}
+
+	out := make([]models.Response, 0, len(req.Items))
+
+	c.AuthMutex.RLock()
+
+	for i := range req.Items {
+		r := &req.Items[i]
+
+		principal, resource, action := c.buildCerbosRequest(r)
+		batch := cerbos.NewResourceBatch().Add(resource, action)
+
+		started := time.Now()
+		decision, err := c.engine.CheckResources(c.Ctx, principal, batch)
+		duration := time.Since(started)
+
+		if err == nil {
+			match := decision.GetResource(resource.ID())
+			if match.IsAllowed(action) {
+				if debug {
+					logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
+				}
+				out = append(out, models.Response{Allowed: true})
+
+				if req.Semantics == models.PermitOnFirstPermit {
+					break
+				} else {
+					continue
+				}
+			}
+
+			if debug {
+				logger.Debug("authorization not granted", "item#", i+1, "pdp elapsed", duration.String(), "diagnostic", match)
+			}
+			out = append(out, models.Response{Allowed: false, Message: "not authorized"})
+		} else {
+			logger.Warn("authorization failed", "item#", i+1, "pdp elapsed", duration.String(), "error", err)
+			out = append(out, models.Response{Allowed: false, Message: "not authorized"})
+		}
+
+		if req.Semantics == models.DenyOnFirstDeny {
+			break
+		}
+	}
+
+	c.AuthMutex.RUnlock()
+
+	return out, nil
 }
 
 func (c *controller) buildCerbosRequest(parc *models.PARC) (*cerbos.Principal, *cerbos.Resource, string) {
