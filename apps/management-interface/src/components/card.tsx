@@ -12,7 +12,7 @@ export default function Card({
     disablePadding?: boolean
 }>) {
     return (
-        <div className={clsx(className, 'divide-y divide-gray-200 rounded-sm bg-white shadow-sm flex flex-col')}>
+        <div className={clsx(className, 'divide-y divide-gray-200 rounded-sm bg-white shadow-sm flex flex-col drop-shadow-black drop-shadow-md/16')}>
             {header && (
                 <div className={clsx(!disablePadding && "px-4 py-5 sm:px-6", "min-h-[73px]")}>
                     {header}

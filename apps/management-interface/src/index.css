@@ -3,7 +3,7 @@
 @theme {
     --font-sans: 'Fira Sans', sans-serif;
     --color-content-primary: var(--color-zinc-950);
-    --color-content-secondary: #FAFAFA;
+    --color-content-secondary: #717171;
     --color-content-tertiary: #FAFAFA;
     --color-content-inverse-primary: var(--color-zinc-950);
     --color-content-inverse-secondary: #FAFAFA;
