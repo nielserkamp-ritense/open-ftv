@@ -14,9 +14,25 @@ func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
 	return p.addAttributeWithUser(in, "")
 }
 
+// AddDynamicAttribute adds/replaces the given attribute in the PIP.
+//
+// Unlike AddAttribute, this function will also mark the attribute as dynamic with respect to the Authorization Decision Log.
+//
+// If the given attribute exists, it is updated, otherwise created.
+func (p *PIP) AddDynamicAttribute(in *models.Attribute) (*models.Attribute, error) {
+	p.dynamicData.addAttribute(in)
+	return p.addAttributeWithUser(in, "")
+}
+
 // AddAttributeFromOAS adds/replaces an attribute in the PIP based on the given OAS model.
+//
+// Unlike AddAttribute, this function will also mark the attribute as dynamic with respect to the Authorization Decision Log.
+//
+// If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddAttributeFromOAS(in *oas.Attribute, user string) (*models.Attribute, error) {
-	return p.addAttributeWithUser(models.NewAttributeFromOAS(in), user)
+	a := models.NewAttributeFromOAS(in)
+	p.dynamicData.addAttribute(a)
+	return p.addAttributeWithUser(a, user)
 }
 
 func (p *PIP) addAttributeWithUser(in *models.Attribute, user string) (*models.Attribute, error) {
@@ -73,6 +89,11 @@ func (p *PIP) GetAttributeValue(key string) any {
 
 // RemoveAttribute removes an attribute from the PIP.
 func (p *PIP) RemoveAttribute(key, user string) (*models.Attribute, error) {
+	p.dynamicData.attributes.RemoveAttribute(key) // also remove from dynamic data.
+	return p.removeAttribute(key, user)
+}
+
+func (p *PIP) removeAttribute(key, user string) (*models.Attribute, error) {
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, key)
 	if err == nil {
 		if _, err = p.attributeDB.DeleteAttribute(context.WithValue(p.ctx, "user", user), prev, ix); err == nil && p.eventSinks != nil {
@@ -93,7 +114,7 @@ func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user string) {
 	})
 
 	for i := range keys {
-		_, _ = p.RemoveAttribute(keys[i], user)
+		_, _ = p.removeAttribute(keys[i], user)
 	}
 
 	if list != nil {
@@ -102,6 +123,8 @@ func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user string) {
 			_, _ = p.addAttributeWithUser(a, user)
 		})
 	}
+
+	p.MergeAttributes(p.dynamicData.attributes)
 }
 
 // IterateAttributes calls the given closure for all attributes in the PIP.
@@ -117,7 +140,7 @@ func (p *PIP) IterateAttributes(f models.AttributeIterator) {
 func (p *PIP) MergeAttributes(in ...*models.AttributeSet) {
 	for _, set := range in {
 		set.IterateAttributes(func(attr *models.Attribute) {
-			_, _ = p.AddAttribute(attr)
+			_, _ = p.addAttributeWithUser(attr, "")
 		})
 	}
 }

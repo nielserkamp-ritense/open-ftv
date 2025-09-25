@@ -44,6 +44,6 @@ type service struct {
 	cfg    *config.Config
 	logger *slog.Logger
 	l      models.Language
-	auth   AuthHandler
+	auth   *authHandler
 	chk    *handle.Checks
 }

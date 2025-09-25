@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
 // NewBundle implements the Controller interface.
@@ -12,6 +13,10 @@ func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
 	// prevent authorization requests during the bundle processing.
 	b.AuthMutex.Lock()
 	defer b.AuthMutex.Unlock()
+
+	if b.ADL != nil {
+		pip.WithDynamicReporter(b.ADL.NewInformation)(nil)
+	}
 
 	if err := b.processPolicies(bundle); err != nil {
 		return 0, err
@@ -23,6 +28,12 @@ func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
 
 	oldVersion := b.BundleVersion
 	b.BundleVersion = bundle.Version
+
+	if b.ADL != nil {
+		pip.WithDynamicReporter(b.ADL.NewInformation)(b.PIP)
+		b.ADL.NewBundle(b.BundleVersion)
+	}
+
 	return oldVersion, nil
 }
 
@@ -56,7 +67,7 @@ func (b *Base) processEntities(bundle *bundles.Bundle) {
 			attr.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 		}
 
-		list.AddEntity(models.NewEntity(e.Type, e.Id, attr))
+		_, _ = list.AddEntity(models.NewEntity(e.Type, e.Id, attr))
 	}
 
 	b.PIP.ReplaceAllEntities(list, "*BUNDLE*")

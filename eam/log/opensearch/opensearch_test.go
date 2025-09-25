@@ -1,4 +1,4 @@
-package authlog
+package opensearch
 
 import (
 	"context"

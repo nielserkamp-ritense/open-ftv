@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
@@ -54,6 +55,13 @@ func WithPAP(p *pap.PAP) Option {
 func WithPIP(p *pip.PIP) Option {
 	return func(c *Base) {
 		c.PIP = p
+	}
+}
+
+// WithADL adds an Authorization Decision Log writer to the controller.
+func WithADL(a *adl.ADL) Option {
+	return func(c *Base) {
+		c.ADL = a
 	}
 }
 

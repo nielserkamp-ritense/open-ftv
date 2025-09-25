@@ -32,7 +32,6 @@ func NewBundleReceiverHandler(logger *slog.Logger, ctl pdp.Controller, authorize
 
 // PostBundle is the endpoint for receiving a new bundle.
 func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -88,9 +87,6 @@ func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (string, bool, error) 
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

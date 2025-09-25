@@ -2,31 +2,41 @@ package fiber
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
 
-func initAuthProcess(fc *fiber.Ctx, logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) *authProcess {
-	return &authProcess{
+func initAuthProcess(fc *fiber.Ctx, logger *slog.Logger, decisionLog *adl.ADL, controller pdp.Controller) (*authProcess, func()) {
+	a := &authProcess{
 		logger:     logger,
-		authLogger: authLogger,
+		adl:        decisionLog,
 		controller: controller,
 		fc:         fc,
 		status:     fiber.StatusInternalServerError,
 		started:    time.Now(),
 	}
+	return a, a.finish
+}
+
+func (p *authProcess) finish() {
+	if p.logger.Enabled(nil, slog.LevelInfo) {
+		p.log()
+	}
+	if p.adl != nil {
+		p.logDecision(p.fc.UserContext())
+	}
 }
 
 func (p *authProcess) log() {
-	args := make([]any, 0, 16)
+	args := make([]any, 0, 24)
 
 	args = append(args, "request-uid", p.reqUID)
 
@@ -73,61 +83,54 @@ func (p *authProcess) log() {
 	p.logger.Info(msg, args...)
 }
 
-func (p *authProcess) authLog() {
-	clientIP := convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrClientIP))
+func (p *authProcess) logDecision(ctx context.Context) {
+	var err error
 
-	rvvaID := convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrRvvaID))
-	if rvvaID == "" && p.parc.Principal != nil && p.parc.Principal.Type() == pep.PrincipalRVVA {
-		rvvaID = p.parc.Principal.ID()
-	}
-
-	t := convert.AnyToDateTime(p.parc.Context.GetAttributeValue(models.AttrTime))
-	if t.IsZero() {
-		t = time.Now().UTC()
-	}
-
-	rec := &authlog.AuthRecord{
-		ClientIP:        clientIP,
-		RequestTime:     &t,
-		RvvaID:          rvvaID,
-		Principal:       p.parc.Principal,
-		Action:          p.parc.Action,
-		Resource:        p.parc.Resource,
-		Decision:        p.resp.Allowed,
-		DecisionContext: models.NewAttributeSet(),
-		TraceParent:     convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrTraceParent)),
-		TraceState:      convert.AnyToString(p.parc.Context.GetAttributeValue(models.AttrTraceState)),
+	switch t := p.authReq.(type) {
+	case *oas.EvaluationRequest:
+		err = p.adl.Evaluation(ctx, p.started, t, p.authResp.(*oas.EvaluationResponse))
+	case *oas.EvaluationsRequest:
+		err = p.adl.Evaluations(ctx, p.started, t, p.authResp.(*oas.EvaluationsResponse))
+	case *oas.SearchRequest:
+		if p.search == searchSubject {
+			err = p.adl.SearchSubject(ctx, p.started, t, p.authResp.(*oas.SearchResponse))
+		} else {
+			err = p.adl.SearchResource(ctx, p.started, t, p.authResp.(*oas.SearchResponse))
+		}
+	case *oas.SearchActionRequest:
+		err = p.adl.SearchAction(ctx, p.started, t, p.authResp.(*oas.SearchActionResponse))
+	default:
+		err = fmt.Errorf("invalid request type: %T", t)
 	}
 
-	if p.resp.Message != "" {
-		rec.DecisionContext.AddAttributeKV("message", p.resp.Message)
-	}
-	if p.resp.PolicyKey != "" {
-		rec.DecisionContext.AddAttributeKV("policy", p.resp.PolicyKey)
-	}
-	if p.resp.PolicyHash != "" {
-		rec.DecisionContext.AddAttributeKV("policyHash", p.resp.PolicyHash)
-	}
-	if diag := p.resp.Attributes["diagnostic"]; diag != nil {
-		rec.DecisionContext.AddAttributeKV("diagnostic", diag)
-	}
-
-	if err := p.authLogger.Log(context.Background(), false, rec); err != nil {
-		p.logger.Error("failed to write authlog", "record", rec, "error", err)
+	if err != nil {
+		p.logger.Error("failed to write authorization decision log", "error", err)
 	}
 }
 
 type authProcess struct {
 	status     int
+	ctx        context.Context
 	fc         *fiber.Ctx
 	reqUID     string
 	parc       *models.PARC
 	batch      *models.Batch
+	search     searchType
 	resp       *models.Response
 	logger     *slog.Logger
-	authLogger authlog.Logger
+	adl        *adl.ADL
 	controller pdp.Controller
 	started    time.Time
 	err        error
 	msg        string
+	authReq    any
+	authResp   any
 }
+
+type searchType uint8
+
+const (
+	searchSubject searchType = iota + 1
+	searchAction
+	searchResource
+)

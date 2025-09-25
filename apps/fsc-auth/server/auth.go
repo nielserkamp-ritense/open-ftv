@@ -5,12 +5,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
@@ -40,19 +38,10 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) AuthHandl
 		return nil
 	}
 
-	var authLogger authlog.Logger
-	if cfg.OpenSearch.Index != "" {
-		authLogger, err = authlog.NewOpenSearch(cfg.OpenSearch.Index, cfg.OpenSearch.User, cfg.OpenSearch.Pswd, strings.Split(cfg.OpenSearch.Endpoints, ",")...)
-		if err != nil {
-			logger.Error("failed to initialize authlog", "index", cfg.OpenSearch.Index, "user", cfg.OpenSearch.User, "endpoints", cfg.OpenSearch.Endpoints, "error", err)
-			return nil
-		}
-	}
-
-	fsc := handlers.NewAuthHandlerFSC(logger, authLogger, controller)
+	fsc := handlers.NewAuthHandlerFSC(logger, controller)
 
 	prefix := fmt.Sprintf("http://localhost:%d%s%s", cfg.Port, handlers.PathAuthZEN, handlers.PathV1)
-	zen := handlers.NewAuthHandlerZEN(logger, authLogger, controller, prefix)
+	zen := handlers.NewAuthHandlerZEN(logger, nil, controller, prefix)
 
 	return &authHandler{logger: logger, controller: controller, fsc: fsc, zen: zen}
 }

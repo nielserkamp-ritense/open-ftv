@@ -7,6 +7,7 @@ import (
 
 	migrate2 "github.com/golang-migrate/migrate/v4"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/migrate"
 )
 
@@ -18,7 +19,7 @@ func (p *PAP) migration() (err error) {
 	source := p.migrateSource
 	switch {
 	case strings.EqualFold(source, "*embed*"):
-		err = migrate.PostgresEmbedded(p.migrateDB, p.migrateSteps, p.logger)
+		err = migrate.PostgresEmbedded(migrations.PostgreSQL, p.migrateDB, p.migrateSteps, p.logger)
 
 	default:
 		if !strings.HasPrefix(source, "file://") {

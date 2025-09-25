@@ -8,8 +8,31 @@ import (
 )
 
 // AddEntity adds/replaces an entity in the PIP.
+//
+// If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddEntity(entity *models.Entity) (*models.Entity, error) {
 	return p.AddEntityWithUser(entity, "")
+}
+
+// AddDynamicEntity adds/replaces an entity in the PIP.
+//
+// Unlike AddEntity, this function will also mark the entity as dynamic with respect to the Authorization Decision Log.
+//
+// If the given attribute exists, it is updated, otherwise created.
+func (p *PIP) AddDynamicEntity(entity *models.Entity) (*models.Entity, error) {
+	p.dynamicData.addEntity(entity)
+	return p.AddEntityWithUser(entity, "")
+}
+
+// AddEntityFromOAS adds/replaces an entity in the PIP based on the given OAS model.
+//
+// Unlike AddEntity, this function will also mark the entity as dynamic with respect to the Authorization Decision Log.
+//
+// If the given attribute exists, it is updated, otherwise created.
+func (p *PIP) AddEntityFromOAS(in *oas.Entity, user string) (*models.Entity, error) {
+	e := models.EntityFromOAS(in)
+	p.dynamicData.addEntity(e)
+	return p.AddEntityWithUser(e, user)
 }
 
 // AddEntityWithUser adds/replaces an entity in the PIP on behalf of the given user.
@@ -47,6 +70,11 @@ func (p *PIP) GetEntityDeployments(uid string) ([]oas.UsageData, error) {
 
 // RemoveEntity removes an entity from the PIP.
 func (p *PIP) RemoveEntity(uid string, user string) (*models.Entity, error) {
+	p.dynamicData.entities.RemoveEntity(uid)
+	return p.removeEntity(uid, user)
+}
+
+func (p *PIP) removeEntity(uid string, user string) (*models.Entity, error) {
 	ns, id := models.SplitEntityUID(uid)
 	e2, ix, err := p.entityDB.ReadEntity(p.ctx, ns, id)
 	if err == nil {
@@ -63,7 +91,7 @@ func (p *PIP) RemoveEntity(uid string, user string) (*models.Entity, error) {
 func (p *PIP) ReplaceAllEntities(list *models.EntitySet, user string) {
 	// remove all existing entities.
 	p.IterateEntities(func(a *models.Entity) {
-		_, _ = p.RemoveEntity(a.UID(), user)
+		_, _ = p.removeEntity(a.UID(), user)
 	})
 
 	// add all given entities.
@@ -72,6 +100,8 @@ func (p *PIP) ReplaceAllEntities(list *models.EntitySet, user string) {
 			_, _ = p.AddEntityWithUser(e, user)
 		})
 	}
+
+	p.MergeEntities(p.dynamicData.entities)
 }
 
 // IterateEntities calls the given closure for all entities in the PIP.

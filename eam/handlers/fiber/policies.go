@@ -37,7 +37,6 @@ func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authoriz
 
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -59,7 +58,6 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 
 // GetPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -100,7 +98,6 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -143,7 +140,6 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 
 // PutPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -186,7 +182,6 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -291,9 +286,6 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

@@ -2,12 +2,10 @@ package server
 
 import (
 	"context"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci/opensearch"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
@@ -18,11 +16,6 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	// API v1.
 	v1 := svc.Group(handle.PathV1)
-
-	// auth log.
-	if s.cfg.OpenSearch.Index != "" {
-		s.initAuthlog(v1)
-	}
 
 	// authorization.
 	auth := New(s.ctx, s.cfg, s.logger)
@@ -85,18 +78,4 @@ func (s *service) initEntities(v1 fiber.Router, auth AuthHandler) {
 	v1.Put(handle.PathEntity, entities.PutEntity)
 	v1.Post(handle.PathEntity, entities.PostEntity)
 	v1.Delete(handle.PathEntity, entities.DeleteEntity)
-}
-
-func (s *service) initAuthlog(v1 fiber.Router) {
-	searcher, err := opensearch.NewSearcher(s.cfg.OpenSearch.User, s.cfg.OpenSearch.Pswd, strings.Split(s.cfg.OpenSearch.Endpoints, ","))
-	if err != nil {
-		s.logger.Error("failed to initialize OpenSearch", "user", s.cfg.OpenSearch.User, "endpoints", s.cfg.OpenSearch.Endpoints, "error", err)
-		return
-	}
-
-	authlog := handle.NewAuthlogHandler(s.logger, s.cfg.OpenSearch.Index, searcher)
-
-	// authlog
-	auth := v1.Group(handle.PathAuthlog)
-	auth.Get(handle.PathResource, authlog.GetAuthlogResource)
 }

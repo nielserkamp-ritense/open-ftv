@@ -74,7 +74,11 @@ func (p *authProcess) createRequestAuthZEN(req *oas.EvaluationRequest) {
 }
 
 func (p *authProcess) authorizeRequestAuthZEN() error {
-	if p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc); p.err != nil {
+	p.controller.GetPIP().ReportDynamicData(func() {
+		p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc)
+	})
+
+	if p.err != nil {
 		p.msg = "AuthZEN evaluation failed"
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
@@ -88,8 +92,9 @@ func (p *authProcess) authorizeRequestAuthZEN() error {
 		}
 	}
 
-	return p.fc.JSON(&oas.EvaluationDecision{
+	p.authResp = &oas.EvaluationDecision{
 		Decision: allowed,
 		Context:  oas.ReasonObject{Id: "0", ReasonUser: oas.ReasonField{"en": msg}},
-	})
+	}
+	return p.fc.JSON(p.authResp)
 }

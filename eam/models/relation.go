@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"reflect"
 	"slices"
 )
 
@@ -110,6 +111,17 @@ func (r *Relation) Tags() []string {
 func (r *Relation) HasTag(tag string) bool {
 	_, ok := r.tags[tag]
 	return ok
+}
+
+// Equals returns true if this Relation equals the other Relation.
+func (r *Relation) Equals(other *Relation) bool {
+	return r.uid == other.uid &&
+		r.title == other.title &&
+		r.description == other.description &&
+		r.subject.Equals(other.subject) &&
+		r.predicate.Equals(other.predicate) &&
+		r.object.Equals(other.object) &&
+		reflect.DeepEqual(r.tags, other.tags)
 }
 
 // RelationToAttribute can be used to convert a relation into an attribute.

@@ -1,16 +1,19 @@
 package fiber
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
@@ -26,21 +29,17 @@ type AuthZENAuthorizer struct {
 	hasSearchResource bool
 	prefix            string
 	logger            *slog.Logger
-	authLogger        authlog.Logger
+	adl               *adl.ADL
 	controller        pdp.Controller
 }
 
 // NewAuthHandlerZEN instantiates a new AuthZEN authorization handler.
-func NewAuthHandlerZEN(logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller, prefix string) *AuthZENAuthorizer {
+func NewAuthHandlerZEN(logger *slog.Logger, decisionLog *adl.ADL, controller pdp.Controller, prefix string) *AuthZENAuthorizer {
 	return &AuthZENAuthorizer{
-		logger:            logger,
-		authLogger:        authLogger,
-		controller:        controller,
-		prefix:            strings.TrimRight(prefix, "/"),
-		hasEvaluations:    false,
-		hasSearchSubject:  false,
-		hasSearchAction:   false,
-		hasSearchResource: false,
+		logger:     logger,
+		adl:        decisionLog,
+		controller: controller,
+		prefix:     strings.TrimRight(prefix, "/"),
 	}
 }
 
@@ -70,65 +69,60 @@ func (h *AuthZENAuthorizer) WithSearchResource() *AuthZENAuthorizer {
 
 // Evaluation implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) Evaluation(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
-	p := initAuthProcess(fc, h.logger, h.authLogger, h.controller)
-
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		defer p.log()
-	}
-	if p.authLogger != nil {
-		defer p.authLog()
-	}
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
 
 	req := p.verifyRequestAuthZEN()
 	if p.err != nil {
 		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
+	p.authReq = req
 
 	p.createRequestAuthZEN(req)
-	p.logger.Debug("AuthZEN authorization request", "request", p.parc)
+	p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
 
 	return p.authorizeRequestAuthZEN()
 }
 
 // Evaluations implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
 	if !h.hasEvaluations {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
 
-	p := initAuthProcess(fc, h.logger, h.authLogger, h.controller)
-
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		defer p.log()
-	}
-	if p.authLogger != nil {
-		defer p.authLog()
-	}
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
 
 	batch := p.verifyBatchAuthZEN()
 	if p.err != nil {
 		p.logger.Error("AuthZEN batch authorization handler failed", "request", batch, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
+	p.authReq = batch
 
 	p.createBatchAuthZEN(batch)
-	p.logger.Debug("AuthZEN batch authorization request", "request", p.parc)
+	p.logger.Debug("AuthZEN evaluations request", "request", p.batch)
 
 	return p.authorizeBatchAuthZEN()
 }
 
 // SearchSubject implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
 	if !h.hasSearchSubject {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
+
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
+
+	p.search = searchSubject
 
 	// TODO: implement
 
@@ -137,11 +131,16 @@ func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
 
 // SearchAction implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
 	if !h.hasSearchAction {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
+
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
+
+	p.search = searchAction
 
 	// TODO: implement
 
@@ -150,11 +149,16 @@ func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
 
 // SearchResource implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
 	if !h.hasSearchResource {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
+
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
+
+	p.search = searchResource
 
 	// TODO: implement
 
@@ -163,7 +167,7 @@ func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
 
 // Metadata implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
-	prepareResponseHeaders(fc)
+	processHeaders(fc)
 
 	prefix := fixPrefix(fc, h.prefix)
 
@@ -187,6 +191,34 @@ func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
 
 	return fc.JSON(out)
 }
+
+func processHeaders(fc *fiber.Ctx) {
+	processTraceParent(fc)
+	prepareResponseHeaders(fc)
+}
+
+func processTraceParent(fc *fiber.Ctx) {
+	if s := strings.ToLower(fc.Get(models.HeaderTraceState)); traceParentRX.MatchString(s) {
+		list := traceParentRX.FindStringSubmatch(s)
+
+		if list[1] == "00" { // we only support version 00 for now.
+			if traceID := list[2]; traceID != invalidTraceID {
+				// ignoring the sampled flag.
+				spanID := list[3]
+
+				ctx := fc.UserContext()
+				ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
+				ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
+				fc.SetUserContext(ctx)
+			}
+		}
+	}
+}
+
+var (
+	traceParentRX  = regexp.MustCompile("^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$")
+	invalidTraceID = strings.Repeat("0", 32)
+)
 
 func prepareResponseHeaders(fc *fiber.Ctx) {
 	fc.Set(HeaderVersion, AuthZENVersion)

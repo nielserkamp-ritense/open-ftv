@@ -7,6 +7,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/goccy/go-json"
 	"github.com/open-policy-agent/opa/hooks"
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/open-policy-agent/opa/storage"
@@ -14,6 +15,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci/module"
 )
 
 // Version defines the version of this OPA/Rego PDP.
@@ -54,7 +56,22 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.PAP.LoadFiles()
 	}
 
-	c.Logger.Info("pdp controller initialized", "controller", c.String())
+	mod := "github.com/open-policy-agent/opa/sdk"
+	modVersion := module.GetModuleVersion(mod)
+
+	if c.ADL != nil {
+		c.ADL.NewEngine(map[string]any{
+			"controller":        c.Name,
+			"controllerVersion": c.Version,
+			"language":          models.CEDAR.String(),
+			"module":            mod,
+			"moduleVersion":     modVersion,
+			"regoVersion":       1,
+			"opaConfig":         cfgMap,
+		})
+	}
+
+	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
 	return c
 }
 
@@ -107,3 +124,9 @@ const cfg = `{
 		"console": true
 	}
 }`
+
+var cfgMap map[string]any
+
+func init() {
+	_ = json.Unmarshal([]byte(cfg), &cfgMap)
+}

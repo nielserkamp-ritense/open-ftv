@@ -70,10 +70,10 @@ func TestNew(t *testing.T) {
 			} else {
 				require.NotNil(t, auth)
 				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
-				assert.NotNil(t, auth.Controller())
+				assert.NotNil(t, auth.controller)
 
 				srv := fiber.New()
-				srv.Get("/zen", auth.AuthZEN().Evaluation)
+				srv.Get("/zen", auth.zen.Evaluation)
 
 				req := httptest.NewRequest("GET", "/zen", nil)
 				resp, err := srv.Test(req, 100)

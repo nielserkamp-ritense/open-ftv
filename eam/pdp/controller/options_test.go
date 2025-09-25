@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -33,6 +34,9 @@ func TestOptions(t *testing.T) {
 	ep := pep.New(nil, logger)
 	require.NotNil(t, ep)
 
+	al := adl.New(nil)
+	require.NotNil(t, al)
+
 	testCases := []struct {
 		name        string
 		options     []Option
@@ -44,6 +48,7 @@ func TestOptions(t *testing.T) {
 		wantPEP     *pep.PEP
 		wantPAP     *pap.PAP
 		wantPIP     *pip.PIP
+		wantADL     *adl.ADL
 		wantMapping []mapping.Mapper
 	}{
 		{
@@ -88,14 +93,28 @@ func TestOptions(t *testing.T) {
 			wantPAP: ap,
 		},
 		{
+			name:    "adl",
+			options: []Option{WithADL(al)},
+			wantCtx: context.Background(),
+			wantADL: al,
+		},
+		{
 			name:        "mappings",
 			options:     []Option{WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
 			wantCtx:     context.Background(),
 			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
 		},
 		{
-			name:        "all",
-			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep), WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
+			name: "all",
+			options: []Option{
+				WithPAP(ap),
+				WithLogger(logger),
+				WithPIP(ip),
+				WithNameVersion("x1", "v1"),
+				WithPEP(ep),
+				WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal),
+				WithADL(al),
+			},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
@@ -104,6 +123,7 @@ func TestOptions(t *testing.T) {
 			wantPEP:     ep,
 			wantPAP:     ap,
 			wantPIP:     ip,
+			wantADL:     al,
 			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
 		},
 	}
@@ -123,6 +143,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantPEP, got.GetPEP())
 			assert.Equal(t, tc.wantPIP, got.GetPIP())
 			assert.Equal(t, tc.wantPAP, got.GetPAP())
+			assert.Equal(t, tc.wantADL, got.GetADL())
 			assert.Equal(t, len(tc.wantMapping), len(got.mappers))
 		})
 	}

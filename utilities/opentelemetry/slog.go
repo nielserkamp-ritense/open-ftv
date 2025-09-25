@@ -15,7 +15,7 @@ import (
 // ExportSpans implements the SpanSyncer interface.
 func (sl *slogLogger) ExportSpans(_ context.Context, spans []sdktrace.ReadOnlySpan) error {
 	for _, s := range spans {
-		sl.logger.Info("ldv", "event", logEntry{
+		sl.logger.Info(sl.msg, "service", sl.service, "event", logEntry{
 			Name:                 s.Name(),
 			SpanContext:          s.SpanContext(),
 			Parent:               s.Parent(),
@@ -45,6 +45,7 @@ func (sl *slogLogger) Shutdown(_ context.Context) error {
 type slogLogger struct {
 	logger  *slog.Logger
 	service string
+	msg     string
 }
 
 type logEntry struct {

@@ -33,7 +33,6 @@ func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authoriz
 
 // GetAttributes implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -51,7 +50,6 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 
 // GetAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -92,7 +90,6 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 
 // PostAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -115,7 +112,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if a2 != nil && !req.QueryBool("forceUpsert") {
+	if a2 != nil && !req.QueryBool(ParamForceUpsert) {
 		return h.error(req, fiber.StatusConflict, attrExists)
 	}
 
@@ -127,7 +124,6 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 
 // PutAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -151,7 +147,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if a2 == nil && !req.QueryBool("forceUpsert") {
+	if a2 == nil && !req.QueryBool(ParamForceUpsert) {
 		return h.error(req, fiber.StatusNotFound, attrNotFound)
 	}
 
@@ -163,7 +159,6 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, AttributesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -181,7 +176,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if a2 == nil && !req.QueryBool("ignoreMissing") {
+	if a2 == nil && !req.QueryBool(ParamIgnoreMissing) {
 		return h.error(req, fiber.StatusNotFound, attrNotFound)
 	}
 
@@ -223,9 +218,6 @@ func (h *attributesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

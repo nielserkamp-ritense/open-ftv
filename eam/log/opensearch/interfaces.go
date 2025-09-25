@@ -1,5 +1,5 @@
 // Package authlog contains functionality for logging authorization decisions.
-package authlog
+package opensearch
 
 import "context"
 

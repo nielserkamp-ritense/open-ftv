@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
@@ -27,6 +28,7 @@ type Controller interface {
 	GetPEP() *pep.PEP                                                 // implemented by Base.
 	GetPAP() *pap.PAP                                                 // implemented by Base.
 	GetPIP() *pip.PIP                                                 // implemented by Base.
+	GetADL() *adl.ADL                                                 // implemented by Base.
 	PARCFromRequest(req *models.Request) *models.PARC                 // implemented by Base (requires the PEP).
 	NewBundle(bundle *bundles.Bundle) (uint64, error)                 // implemented by Base.
 }
@@ -40,6 +42,7 @@ type Base struct {
 	PEP           *pep.PEP
 	PAP           *pap.PAP
 	PIP           *pip.PIP
+	ADL           *adl.ADL
 	AuthMutex     *sync.RWMutex
 	BundleVersion uint64
 	// hidden fields
@@ -53,6 +56,10 @@ func NewBase(options ...Option) Base {
 
 	for i := range options {
 		options[i](&b)
+	}
+
+	if b.PIP != nil && b.ADL != nil {
+		pip.WithDynamicReporter(b.ADL.NewInformation)(b.PIP)
 	}
 
 	b.fullName = b.Name
@@ -91,6 +98,11 @@ func (b *Base) GetPAP() *pap.PAP {
 // GetPIP returns the PIP of the controller.
 func (b *Base) GetPIP() *pip.PIP {
 	return b.PIP
+}
+
+// GetADL returns the ADL of the controller.
+func (b *Base) GetADL() *adl.ADL {
+	return b.ADL
 }
 
 // Map performs the configured mappings on the given PARC.

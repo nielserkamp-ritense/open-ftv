@@ -20,7 +20,6 @@ func NewTagsHandler(logger *slog.Logger, pap *pap.PAP, authorizer authorization.
 
 // GetTags retrieves all tags from the PAP.
 func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -38,7 +37,6 @@ func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 
 // GetTag retrieves a specific tag from the PAP.
 func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -64,7 +62,6 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 
 // PostTag inserts a new tag into the PAP.
 func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -102,7 +99,6 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 
 // PutTag replaces a tag in the PAP.
 func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -140,7 +136,6 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 
 // DeleteTag removes a tag from the PAP.
 func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -177,9 +172,6 @@ func (h *TagsHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 
