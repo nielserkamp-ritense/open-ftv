@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { PIP_BASE_URL } from '@/config/env';
 
 // Create a PAP-specific API configuration
 const papApiConfig: AxiosRequestConfig = {
-  baseURL: (import.meta.env.VITE_PIP_BASE_URL as string),
+  baseURL: PIP_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

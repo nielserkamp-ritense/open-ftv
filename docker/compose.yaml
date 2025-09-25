@@ -127,12 +127,12 @@ services:
     build:
       context: ../
       dockerfile: ./apps/management-interface/Dockerfile
-      args:
-        VITE_PAP_BASE_URL: "http://localhost:9000"
-        VITE_PIP_BASE_URL: "http://localhost:9000"
     container_name: openftv-vlierdam-frontend
     ports:
       - "8080:80"
+    environment:
+      VITE_PAP_BASE_URL: "http://localhost:9000"
+      VITE_PIP_BASE_URL: "http://localhost:9000"
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -267,10 +267,10 @@ services:
     build:
       context: ../
       dockerfile: ./apps/management-interface/Dockerfile
-      args:
-        VITE_PAP_BASE_URL: "http://localhost:9020"
-        VITE_PIP_BASE_URL: "http://localhost:9020"
     container_name: openftv-rvig-frontend
+    environment:
+      VITE_PAP_BASE_URL: "http://localhost:9020"
+      VITE_PIP_BASE_URL: "http://localhost:9020"
     ports:
       - "8082:80"
     depends_on:
@@ -407,10 +407,10 @@ services:
     build:
       context: ../
       dockerfile: ./apps/management-interface/Dockerfile
-      args:
+    container_name: openftv-rdw-frontend
+    environment:
         VITE_PAP_BASE_URL: "http://localhost:9040"
         VITE_PIP_BASE_URL: "http://localhost:9040"
-    container_name: openftv-rdw-frontend
     ports:
       - "8084:80"
     depends_on:

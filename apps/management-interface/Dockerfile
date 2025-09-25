@@ -1,9 +1,6 @@
 # Build stage
 FROM node:22.17.1-alpine AS builder
 
-ARG VITE_PAP_BASE_URL
-ARG VITE_PIP_BASE_URL
-
 WORKDIR /app
 
 # Copy package files
@@ -16,24 +13,24 @@ RUN npm ci
 # Copy source code
 COPY ./apps/management-interface/ .
 
-# Fix .env content
-RUN sed -i -r "s|%VITE_PAP_BASE_URL%|${VITE_PAP_BASE_URL}|g" .env
-RUN sed -i -r "s|%VITE_PIP_BASE_URL%|${VITE_PIP_BASE_URL}|g" .env
-
 # Build the application
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
+# Install envsubst for runtime variable injection
+RUN apk add --no-cache gettext
+
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration if you have custom config
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy entrypoint script
+COPY ./apps/management-interface/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Run entrypoint that injects runtime env and starts nginx
+ENTRYPOINT ["/docker-entrypoint.sh"]
