@@ -1,8 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { PAP_BASE_URL } from '@/config/env';
 
 // Create a base API configuration
 const apiConfig: AxiosRequestConfig = {
-    baseURL: (import.meta.env.VITE_PAP_BASE_URL as string) || '/api',
+    baseURL: PAP_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },

@@ -71,3 +71,42 @@ The application integrates with backend services using:
 1. **OpenAPI Generated Types**: Automatically generated TypeScript types from OpenAPI specifications
 2. **Service Functions**: Dedicated functions for data fetching and API interactions
 3. **Type-Safe API Clients**: Ensuring type safety between frontend and backend
+
+## Runtime configuration in Docker (VITE_* at container start)
+
+This app now supports setting API base URLs at runtime (container start) instead of build time.
+
+Why: Vite normally inlines `import.meta.env.*` at build time. To keep images generic and configurable per environment, we inject a small `runtime-env.js` file when the container starts and read from it in the app.
+
+What changed:
+- The app loads `/runtime-env.js` before the main bundle.
+- `/runtime-env.js` is generated from `/runtime-env.template.js` by the container entrypoint using `envsubst`.
+- Code reads `window.__ENV__` values at runtime, with fallback to `import.meta.env` for dev.
+
+Supported variables:
+- `VITE_PAP_BASE_URL` (defaults to `http://localhost:8080` if not provided)
+- `VITE_PIP_BASE_URL` (defaults to `http://localhost:8080` if not provided)
+
+Build the image:
+```bash
+# From apps/management-interface
+docker build -t management-interface-app:latest .
+```
+
+Run with runtime environment variables:
+```bash
+# Example values
+export VITE_PAP_BASE_URL="https://pap.example.com"
+export VITE_PIP_BASE_URL="https://pip.example.com"
+
+# Run container and inject env vars
+docker run -p 8080:80 \
+  -e VITE_PAP_BASE_URL \
+  -e VITE_PIP_BASE_URL \
+  management-interface-app:latest
+```
+
+Notes:
+- Values passed via `docker run -e` take precedence at runtime.
+- For local development via `npm run dev`, you can still use a `.env.local` with `VITE_*` variables; the app falls back to `import.meta.env` in dev.
+- The file `public/runtime-env.js` is a harmless default for dev and is overwritten inside the container by the entrypoint.
