@@ -75,6 +75,13 @@ func WithFileStore(fileStore string, recurse bool) Option {
 	}
 }
 
+// WithDynamicReporter connects the PAP with an event handler for dynamic data changes.
+func WithDynamicReporter(reporter ReportDynamicData) Option {
+	return func(p *PIP) {
+		p.dynamicData.dynReporter = reporter
+	}
+}
+
 func validPath(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil

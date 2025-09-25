@@ -33,7 +33,6 @@ func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorizat
 
 // GetEntities implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -51,7 +50,6 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 
 // GetEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -94,7 +92,6 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 
 // PostEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -108,30 +105,28 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	}
 
 	var e1 *oas.Entity
-	if e1, ok, err = h.checkBody(req, ns, id); !ok {
+	if e1, ok, err = h.checkBody(req, ns, id); !ok || e1 == nil {
 		return err
 	}
 
-	e2 := models.EntityFromOAS(e1)
-
-	prev, _, err2 := h.cache.GetEntity(e2.UID())
+	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if prev != nil && !req.QueryBool("forceUpsert") {
+	if prev != nil && !req.QueryBool(ParamForceUpsert) {
 		return h.error(req, fiber.StatusConflict, entityExists)
 	}
 
-	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
+	if err3 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
 	return req.Status(fiber.StatusCreated).JSON(e2.ToOAS())
 }
 
 // PutEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -145,30 +140,28 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	}
 
 	var e1 *oas.Entity
-	if e1, ok, err = h.checkBody(req, ns, id); !ok {
+	if e1, ok, err = h.checkBody(req, ns, id); !ok || e1 == nil {
 		return err
 	}
 
-	e2 := models.EntityFromOAS(e1)
-
-	prev, _, err2 := h.cache.GetEntity(e2.UID())
+	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if prev == nil && !req.QueryBool("forceUpsert") {
+	if prev == nil && !req.QueryBool(ParamForceUpsert) {
 		return h.error(req, fiber.StatusNotFound, entityNotFound)
 	}
 
-	if e2, err2 = h.cache.AddEntityWithUser(e2, user); err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
+	if err3 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
 	return req.JSON(e2.ToOAS())
 }
 
 // DeleteEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, EntitiesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -189,7 +182,7 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	}
 
 	if prev == nil {
-		if !req.QueryBool("ignoreMissing") {
+		if !req.QueryBool(ParamIgnoreMissing) {
 			return h.error(req, fiber.StatusNotFound, entityNotFound)
 		} else {
 			return req.JSON(models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
@@ -241,9 +234,6 @@ func (h *entitiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

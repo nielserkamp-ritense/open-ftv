@@ -13,8 +13,9 @@ require (
 	github.com/stretchr/testify v1.10.0
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250724071947-5396c4715c07
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250911100019-6e8abe6a5c5b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250919091127-ffe845295c1b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250919091127-ffe845295c1b
 )
 
 require (
@@ -47,7 +48,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000 // indirect
 	go.etcd.io/etcd/api/v3 v3.6.3 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.3 // indirect
 	go.etcd.io/etcd/client/v3 v3.6.3 // indirect

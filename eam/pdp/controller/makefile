@@ -15,6 +15,7 @@ dep-up: ## upgrade all dependencies
 	@go mod tidy
 
 dep: ## upgrade local dependencies
+	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping
 	@go get -u gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models

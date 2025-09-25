@@ -111,13 +111,16 @@ func (p *authProcess) createBatchAuthZEN(req *oas.EvaluationsRequest) {
 func (p *authProcess) authorizeBatchAuthZEN() error {
 	var results []models.Response
 
-	results, p.err = p.controller.Batch(p.reqUID, p.batch)
+	p.controller.GetPIP().ReportDynamicData(func() {
+		results, p.err = p.controller.Batch(p.reqUID, p.batch)
+	})
+
 	if p.err != nil {
 		p.msg = "AuthZEN evaluations failed"
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
-	out := oas.EvaluationsResponse{Evaluations: make([]oas.EvaluationDecision, 0, len(results))}
+	out := &oas.EvaluationsResponse{Evaluations: make([]oas.EvaluationDecision, 0, len(results))}
 
 	for i := range results {
 		resp := &results[i]
@@ -137,5 +140,6 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 		})
 	}
 
-	return p.fc.JSON(&out)
+	p.authResp = out
+	return p.fc.JSON(p.authResp)
 }

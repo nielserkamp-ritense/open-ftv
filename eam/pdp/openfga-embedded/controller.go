@@ -36,6 +36,16 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	mod := "github.com/openfga/openfga"
 	modVersion := module.GetModuleVersion(mod)
 
+	if c.ADL != nil {
+		c.ADL.NewEngine(map[string]any{
+			"controller":        c.Name,
+			"controllerVersion": c.Version,
+			"language":          models.CEDAR.String(),
+			"module":            mod,
+			"moduleVersion":     modVersion,
+		})
+	}
+
 	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
 	return c
 }

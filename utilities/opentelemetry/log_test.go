@@ -2,7 +2,6 @@ package opentelemetry
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"os"
 	"testing"
@@ -22,33 +21,22 @@ func TestNew(t *testing.T) {
 	testCases := []struct {
 		name    string
 		service string
-		url     string
-		pretty  bool
-		logger  *slog.Logger
-		timeout time.Duration
+		opts    []Option
 		wantErr bool
 	}{
 		{name: "empty", wantErr: true},
-		{name: "empty url", service: "fsc-authz"},
-		{name: "stdout", service: "fsc-authz", url: "stdout", pretty: true},
-		{name: "stderr", service: "fsc-authz", url: "stderr"},
-		{name: "valid slog", service: "fsc-authz", url: "slog", logger: sl},
-		{name: "invalid slog", service: "fsc-authz", url: "slog", wantErr: true},
-		{name: "valid url", service: "fsc-authz", url: "localhost:12345", timeout: time.Second},
-		{name: "invalid url", service: "fsc-authz", url: "\x00", wantErr: true},
+		{name: "no exporter", service: "fsc-authz", wantErr: true},
+		{name: "bad file", service: "fsc-authz", opts: []Option{WithFile(nil, true)}, wantErr: true},
+		{name: "bad slog", service: "fsc-authz", opts: []Option{WithSLog(nil, "yoyo")}, wantErr: true},
+		{name: "stdout", service: "fsc-authz", opts: []Option{WithFile(os.Stdout, true)}},
+		{name: "stderr", service: "fsc-authz", opts: []Option{WithFile(os.Stderr, false)}},
+		{name: "valid slog", service: "fsc-authz", opts: []Option{WithSLog(sl, "hello world")}},
+		{name: "valid url", service: "fsc-authz", opts: []Option{WithOT("localhost:12345", true), WithBatchTimeout(time.Second)}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := &LoggerConfig{
-				Service:      tc.service,
-				URL:          tc.url,
-				PrettyPrint:  tc.pretty,
-				Logger:       tc.logger,
-				BatchTimeout: tc.timeout,
-			}
-
-			l, err := New(cfg)
+			l, err := New(nil, tc.service, tc.opts...)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, l)
@@ -56,12 +44,8 @@ func TestNew(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, l)
 
-				l2, ok := l.(*logger)
-				require.True(t, ok)
-				require.NotNil(t, l2)
-
-				assert.NotNil(t, l2.tp)
-				assert.NotNil(t, l2.tracer)
+				assert.NotNil(t, l.tp)
+				assert.NotNil(t, l.tracer)
 
 				err = l.Shutdown(context.Background())
 				require.NoError(t, err)
@@ -76,15 +60,10 @@ func TestNew(t *testing.T) {
 
 func TestLogger_StartSpan(t *testing.T) {
 	t.Run("start span", func(t *testing.T) {
-		q := quiet()
-		defer func() {
-			q()
-		}()
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		sl := slog.New(h)
 
-		l, err := New(&LoggerConfig{
-			Service:      "fsc-authz",
-			BatchTimeout: 10 * time.Millisecond,
-		})
+		l, err := New(nil, "fsc-authz", WithSLog(sl, "log"))
 		require.NoError(t, err)
 		require.NotNil(t, l)
 
@@ -99,23 +78,5 @@ func TestLogger_StartSpan(t *testing.T) {
 
 		err = l.Shutdown(ctx)
 		require.NoError(t, err)
-
-		err = l.Shutdown(ctx)
-		require.NoError(t, err)
 	})
-}
-
-func quiet() func() {
-	null, _ := os.Open(os.DevNull)
-	s1 := os.Stdout
-	s2 := os.Stderr
-	os.Stdout = null
-	os.Stderr = null
-	log.SetOutput(null)
-	return func() {
-		defer null.Close()
-		os.Stdout = s1
-		os.Stderr = s2
-		log.SetOutput(os.Stderr)
-	}
 }

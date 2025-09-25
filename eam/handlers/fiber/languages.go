@@ -18,7 +18,6 @@ func NewLanguagesHandler(logger *slog.Logger, pap *pap.PAP, authorizer authoriza
 
 // GetLanguages retrieves the list of supported policy languages.
 func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, PoliciesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -40,9 +39,6 @@ func (h *LanguagesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/fsc-auth/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci/opensearch"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -146,49 +144,3 @@ func TestErrorHandler(t *testing.T) {
 		assert.GreaterOrEqual(t, h.Count(), 7)
 	})
 }
-
-func TestOpenSearchFail1(t *testing.T) {
-	t.Parallel()
-
-	t.Run("open search fail (1)", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         20002,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
-			},
-			PAP: config2.PAP{
-				Language: "cedar",
-			},
-			OpenSearch: config2.OpenSearch{
-				Endpoints: "http://localhost:9876",
-				Index:     "xyz",
-				User:      "mickey",
-				Pswd:      "mouse",
-			},
-		}
-
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
-
-		_ = NewService(cfg, logger)
-		require.True(t, false) // should never trigger
-	})
-}
-
-type dummyIndex struct{}
-
-func (i *dummyIndex) CreateIndex(context.Context, string, int, int) error          { return nil }
-func (i *dummyIndex) DeleteIndexes(context.Context, ...string) error               { return nil }
-func (i *dummyIndex) Log(context.Context, bool, opensearch.LogRecord) error        { return nil }
-func (i *dummyIndex) LogBulk(context.Context, bool, ...opensearch.LogRecord) error { return nil }

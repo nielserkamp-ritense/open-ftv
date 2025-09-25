@@ -2,10 +2,10 @@ package models
 
 // List of standard attribute keys.
 const (
-	AttrAction          = "action"
 	AttrAPIKey          = "api_key"
-	AttrBasicUser       = "basic_user"
+	AttrAction          = "action"
 	AttrBasicPswd       = "basic_pswd"
+	AttrBasicUser       = "basic_user"
 	AttrBody            = "body"
 	AttrClaims          = "claims"
 	AttrClientIP        = "ip_address"
@@ -16,9 +16,9 @@ const (
 	AttrDoelbinding     = "doelbinding"
 	AttrFSC             = "fsc"
 	AttrGrondslag       = "grondslag"
+	AttrHTTP            = "http"
 	AttrHeaders         = "headers"
 	AttrHost            = "host"
-	AttrHTTP            = "http"
 	AttrJWT             = "jwt"
 	AttrMethod          = "method"
 	AttrPath            = "path"
@@ -29,8 +29,10 @@ const (
 	AttrResource        = "resource"
 	AttrRvvaID          = "rvva_id"
 	AttrScheme          = "scheme"
+	AttrSpanID          = "span_id"
 	AttrTaak            = "taak"
 	AttrTime            = "time"
+	AttrTraceID         = "trace_id"
 	AttrTraceParent     = "traceparent" // https://www.w3.org/TR/trace-context/
 	AttrTraceState      = "tracestate"  // https://www.w3.org/TR/trace-context/
 	AttrValid           = "valid"

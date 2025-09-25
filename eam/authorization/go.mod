@@ -15,7 +15,7 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250911100019-6e8abe6a5c5b
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20250919091127-ffe845295c1b
 )
 
 require (
@@ -24,6 +24,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytecodealliance/wasmtime-go/v3 v3.0.2 // indirect
 	github.com/cedar-policy/cedar-go v1.2.6 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/containerd/v2 v2.1.3 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
@@ -89,20 +90,25 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250911100019-6e8abe6a5c5b // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log v0.0.0-00010101000000-000000000000 // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping v0.0.0-20250708120440-2327e161c67a // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype v0.0.0-20250708120440-2327e161c67a // indirect
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000 // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b // indirect
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250708120440-2327e161c67a // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250919091127-ffe845295c1b // indirect
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250919091127-ffe845295c1b // indirect
 	go.etcd.io/etcd/api/v3 v3.6.3 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.3 // indirect
 	go.etcd.io/etcd/client/v3 v3.6.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0 // indirect
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.7.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
@@ -130,6 +136,7 @@ require (
 
 replace (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication => ../authentication
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log => ../log
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping => ../mapping
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype => ../mimetype
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models => ../models

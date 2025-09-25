@@ -65,6 +65,7 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 		sanitized := *cfg
 		sanitized.OpenSearch = *sanitized.OpenSearch.Sanitized()
 		sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
+		sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
 		logger.Info("configuration loaded successfully", "config", sanitized)
 	}
 
@@ -81,4 +82,6 @@ type Config struct {
 	config2.OpenSearch
 	config2.Authentication
 	config2.Authorization
+	config2.DecisionLog
+	config2.Migration
 }

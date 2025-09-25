@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"log/slog"
 
@@ -11,8 +12,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/lib/pq"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations"
 )
 
 // Postgres migrates a PostgreSQL database up or down by the given number of steps.
@@ -35,10 +34,10 @@ func Postgres(src, database string, steps int, logger *slog.Logger) error {
 //
 // The function uses the migration scripts embedded in the binary,
 // and *database* as the URL for the database connection.
-func PostgresEmbedded(database string, steps int, logger *slog.Logger) error {
+func PostgresEmbedded(fs embed.FS, database string, steps int, logger *slog.Logger) error {
 	src := "postgresql"
 
-	d, err := iofs.New(migrations.PostgreSQL, src)
+	d, err := iofs.New(fs, src)
 	if err != nil {
 		return err
 	}

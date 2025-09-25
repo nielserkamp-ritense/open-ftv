@@ -37,20 +37,20 @@ func (s *service) initAuth(svc *fiber.App) {
 	// AuthZEN
 	authZen := svc.Group(handle.PathAuthZEN)
 	authZenV1 := authZen.Group(handle.PathV1)
-	authZenV1.Post(handle.PathEvaluation, s.auth.AuthZEN().Evaluation)
-	authZenV1.Post(handle.PathEvaluations, s.auth.AuthZEN().Evaluations)
-	// authZenV1.Post(handle.PathSearchSubject, s.auth.AuthZEN().SearchSubject)
-	// authZenV1.Post(handle.PathSearchAction, s.auth.AuthZEN().SearchAction)
-	// authZenV1.Post(handle.PathSearchResource, s.auth.AuthZEN().SearchResource)
-	authZenV1.Get(handle.PathMetadata, s.auth.AuthZEN().Metadata)
+	authZenV1.Post(handle.PathEvaluation, s.auth.zen.Evaluation)
+	authZenV1.Post(handle.PathEvaluations, s.auth.zen.Evaluations)
+	// authZenV1.Post(handle.PathSearchSubject, s.auth.zen.SearchSubject)
+	// authZenV1.Post(handle.PathSearchAction, s.auth.zen.SearchAction)
+	// authZenV1.Post(handle.PathSearchResource, s.auth.zen.SearchResource)
+	authZenV1.Get(handle.PathMetadata, s.auth.zen.Metadata)
 
 	// Metadata also available on /.well-known/authzen-configuration.
 	wellKnown := svc.Group(handle.PathWellKnown)
-	wellKnown.Get(handle.PathAuthZenConfig, s.auth.AuthZEN().Metadata)
+	wellKnown.Get(handle.PathAuthZenConfig, s.auth.zen.Metadata)
 }
 
 func (s *service) initBundles(v1 fiber.Router) {
-	handler := handle.NewBundleReceiverHandler(s.logger, s.auth.Controller(), s.auth.Authorizer())
+	handler := handle.NewBundleReceiverHandler(s.logger, s.auth.controller, s.auth.authorizer)
 	v1.Post(handle.PathBundle, handler.PostBundle)
 
 	if url := s.cfg.PDP.BundleManager; url != "" {

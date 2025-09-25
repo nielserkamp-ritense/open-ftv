@@ -35,7 +35,6 @@ func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manag
 
 // GetStatuses is the endpoint for retrieving the list of bundle status codes.
 func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -52,7 +51,6 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 
 // GetCompressTypes is the endpoint for retrieving the list of compression types.
 func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -69,7 +67,6 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 
 // GetConfigs is the endpoint for retrieving the bundle configurations.
 func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -109,7 +106,6 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 
 // GetDeployments is the endpoint for retrieving the list of all bundle deployments.
 func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -132,7 +128,6 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 
 // GetDeployment is the endpoint for retrieving a specific bundle deployment.
 func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -154,7 +149,6 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 
 // GetLastDeployment is the endpoint for retrieving the last bundle deployment.
 func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -180,7 +174,6 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 
 // PostDeployment is the endpoint for starting a new bundle deployment.
 func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	user, ok, err := h.authorize(req)
@@ -202,7 +195,6 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 
 // GetBundle is the endpoint for retrieving the last deployment bundle.
 func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
-	// TODO: log request/response to audit log.
 	req.Set(HeaderVersion, BundlesVersion)
 
 	_, ok, err := h.authorize(req)
@@ -251,9 +243,6 @@ func (h *BundlesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-
-	// TODO: log authorization decision to auth-decision log.
-
 	return auth.Check(req, resp, err, h.logger)
 }
 

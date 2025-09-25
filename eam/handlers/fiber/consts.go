@@ -45,3 +45,9 @@ const (
 	HeaderVersion   = "API-Version"
 	HeaderRequestID = "X-Request-ID"
 )
+
+// List of parameter codes.
+const (
+	ParamForceUpsert   = "forceUpsert"
+	ParamIgnoreMissing = "ignoreMissing"
+)

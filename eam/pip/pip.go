@@ -15,6 +15,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
+// ReportDynamicData is the function signature for reporting changes in runtime PIP data.
+type ReportDynamicData func(data map[string]any)
+
 // PIP represents the interface for caching and retrieving attribute-, entity- and/or relation-data.
 type PIP struct {
 	recurse          bool
@@ -38,6 +41,7 @@ type PIP struct {
 	eventSinks       []models.EventSink
 	eventMutex       sync.RWMutex
 	bundleMutex      sync.RWMutex
+	dynamicData      dynamicData
 }
 
 // New instantiates a new Policy Information Point.
@@ -56,6 +60,11 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 		attributeDeletes: make([]string, 0),
 		entityUpdates:    make([]string, 0),
 		entityDeletes:    make([]string, 0),
+		dynamicData: dynamicData{
+			attributes: models.NewAttributeSet(),
+			entities:   models.NewEntitySet(),
+			relations:  models.NewRelationSet(nil),
+		},
 	}
 
 	for i := range options {
@@ -134,6 +143,11 @@ func (p *PIP) AddEventSink(events models.EventSink) {
 	p.eventMutex.Lock()
 	p.eventSinks = append(p.eventSinks, events)
 	p.eventMutex.Unlock()
+}
+
+// ReportDynamicData reports the set of dynamically added/modified attributes, entities and relations.
+func (p *PIP) ReportDynamicData(f func()) {
+	p.dynamicData.report(f)
 }
 
 func (p *PIP) sendEvent(eventType models.EventType, key string) {

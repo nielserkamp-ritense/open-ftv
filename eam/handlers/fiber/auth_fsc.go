@@ -16,7 +16,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -33,20 +32,14 @@ type FSCAuthorizer interface {
 }
 
 // NewAuthHandlerFSC instantiates a new FSC authorization handler.
-func NewAuthHandlerFSC(logger *slog.Logger, authLogger authlog.Logger, controller pdp.Controller) FSCAuthorizer {
-	return &authFSC{logger: logger, authLogger: authLogger, controller: controller}
+func NewAuthHandlerFSC(logger *slog.Logger, controller pdp.Controller) FSCAuthorizer {
+	return &authFSC{logger: logger, controller: controller}
 }
 
 // Evaluation implements the FSCAuthorizer interface.
 func (h *authFSC) Evaluation(fc *fiber.Ctx) error {
-	p := initAuthProcess(fc, h.logger, h.authLogger, h.controller)
-
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		defer p.log()
-	}
-	if p.authLogger != nil {
-		defer p.authLog()
-	}
+	p, finish := initAuthProcess(fc, h.logger, nil, h.controller)
+	defer finish()
 
 	p.fc.Set(HeaderVersion, AuthFSCVersion)
 
@@ -150,6 +143,5 @@ func (p *authProcess) authorizeFSC() error {
 
 type authFSC struct {
 	logger     *slog.Logger
-	authLogger authlog.Logger
 	controller pdp.Controller
 }

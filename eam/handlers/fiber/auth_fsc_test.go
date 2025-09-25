@@ -49,7 +49,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerFSC(logger, nil, controller)
+		auth := NewAuthHandlerFSC(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -103,7 +103,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 		controller := opa_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerFSC(logger, nil, controller)
+		auth := NewAuthHandlerFSC(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -155,7 +155,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerFSC(logger, nil, controller)
+		auth := NewAuthHandlerFSC(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -207,7 +207,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerFSC(logger, nil, controller)
+		auth := NewAuthHandlerFSC(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()
@@ -259,7 +259,7 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
 		require.NotNil(t, controller)
 
-		auth := NewAuthHandlerFSC(logger, nil, controller)
+		auth := NewAuthHandlerFSC(logger, controller)
 		require.NotNil(t, auth)
 
 		app := fiber.New()

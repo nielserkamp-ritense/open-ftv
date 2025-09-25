@@ -83,8 +83,8 @@ github.com/valyala/fasthttp v1.63.0 h1:DisIL8OjB7ul2d7cBaMRcKTQDYnrGy56R4FCiuDP0
 github.com/valyala/fasthttp v1.63.0/go.mod h1:REc4IeW+cAEyLrRPa5A81MIjvz0QE1laoTX2EaPHKJM=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250911100019-6e8abe6a5c5b h1:jVgJ9+MtfxLUPVTNzv5JgSv7EGvoXufsvfMRRKryN7A=
 gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles v0.0.0-20250911100019-6e8abe6a5c5b/go.mod h1:VCFXoD02pR7PqeQxkDCuwJSq53iUYdEZ0v2xEQp4NFE=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b h1:KE0YeJkkcx8rh9n365gdMs+DcWwK8Ma1p9B+Xc7Hyz4=
-gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250911100019-6e8abe6a5c5b/go.mod h1:sfrAkOI99eIx2vaHHattM0NbnvIw4Qz2OnOWkNBRBuQ=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250919091127-ffe845295c1b h1:TNg99H/ZZrM0MGZXW2p1bYoJsm26qgm5cQpgmIWwtYk=
+gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20250919091127-ffe845295c1b/go.mod h1:sfrAkOI99eIx2vaHHattM0NbnvIw4Qz2OnOWkNBRBuQ=
 go.etcd.io/etcd/api/v3 v3.6.3 h1:4Lftl1e6VzBsj5HPhLu8GGybjeT5qg9mug70RxTHmQQ=
 go.etcd.io/etcd/api/v3 v3.6.3/go.mod h1:eFhhvfR8Px1P6SEuLT600v+vrhdDTdcfMzmnxVXXSbk=
 go.etcd.io/etcd/client/pkg/v3 v3.6.3 h1:1yE8p3PFZ+CWaVyTZk+6ngSyMK8TaG2589W3KGm22ao=

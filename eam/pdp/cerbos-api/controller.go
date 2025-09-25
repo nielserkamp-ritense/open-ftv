@@ -39,6 +39,17 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 		c.PAP.LoadFiles()
 	}
 
+	if c.ADL != nil {
+		c.ADL.NewEngine(map[string]any{
+			"controller":        c.Name,
+			"controllerVersion": c.Version,
+			"language":          models.CERBOS.String(),
+			"clientAddress":     c.cfg.Addr1,
+			"adminAddress":      c.cfg.Addr2,
+			"serverInfo":        c.info,
+		})
+	}
+
 	if c.engine != nil {
 		if c.admin != nil {
 			c.logger.Info("pdp controller initialized (with admin endpoint)")

@@ -14,7 +14,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/pashagolub/pgxmock/v4 v4.8.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/migrations v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0

@@ -1,66 +1,76 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"strings"
+
+	migrate2 "github.com/golang-migrate/migrate/v4"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/authlog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions/migrations"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/migrate"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 )
 
-// AuthHandler represents the interface for handling authorization requests.
-type AuthHandler interface {
-	Controller() pdp.Controller
-	AuthZEN() *handlers.AuthZENAuthorizer // AuthZEN API.
-	Authorizer() authorization.Authorizer // UI & bundle authorization.
+// authHandler implements the interface for handling authorization requests.
+type authHandler struct {
+	logger     *slog.Logger                // application logger.
+	controller pdp.Controller              // generic PDP controller.
+	zen        *handlers.AuthZENAuthorizer // AuthZEN API.
+	authorizer authorization.Authorizer    // UI & bundle authorization.
 }
 
-func (s *service) newAuth(basePath string) AuthHandler {
-	controller, err := s.newController()
-	if controller == nil {
-		s.logger.Error("failed to initialize pdp controller", "error", err)
-		return nil
-	}
+func (s *service) newAuth(basePath string) *authHandler {
+	var err error
 
-	// authenticator, err2 := s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
-	// 	return controller.GetPIP().GetEntity(uid)
-	// })
-	// if err2 != nil {
-	// 	s.logger.Error("failed to initialize authenticator", "error", err2)
-	// 	return nil
-	// }
-
-	authorizer, err3 := s.cfg.Authorization.NewAuthorizer(controller, nil)
-	if err3 != nil {
-		s.logger.Error("failed to initialize authorizer", "error", err3)
-		return nil
-	}
-
-	var authLogger authlog.Logger
-	if s.cfg.OpenSearch.Index != "" {
-		authLogger, err = authlog.NewOpenSearch(s.cfg.OpenSearch.Index, s.cfg.OpenSearch.User, s.cfg.OpenSearch.Pswd, strings.Split(s.cfg.OpenSearch.Endpoints, ",")...)
-		if err != nil {
-			s.logger.Error("failed to initialize authlog", "index", s.cfg.OpenSearch.Index, "user", s.cfg.OpenSearch.User, "endpoints", s.cfg.OpenSearch.Endpoints, "error", err)
+	var decisionLog *adl.ADL
+	if lt := s.cfg.DecisionLog.Type; lt != "" {
+		if decisionLog, err = s.newADL(lt); err != nil || decisionLog == nil {
+			s.logger.Error("failed to initialize authorization decision log", "error", err)
 			return nil
 		}
 	}
 
-	var prefix string
-	if s.cfg.AuthZENMethod != "" || s.cfg.AuthZENDomain != "" {
-		prefix = fmt.Sprintf("%s:/%s%s", s.cfg.AuthZENMethod, s.cfg.AuthZENDomain, basePath)
+	var controller pdp.Controller
+	if controller, err = s.newController(decisionLog); err != nil || controller == nil {
+		s.logger.Error("failed to initialize pdp controller", "error", err)
+		return nil
 	}
 
-	zen := handlers.NewAuthHandlerZEN(s.logger, authLogger, controller, prefix).
-		WithEvaluations()
+	// var authenticator authentication.Authenticator
+	// if authenticator, err = s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
+	// 	return controller.GetPIP().GetEntity(uid)
+	// }); err != nil {
+	// 	s.logger.Error("failed to initialize authenticator", "error", err)
+	// 	return nil
+	// }
+
+	var authorizer authorization.Authorizer
+	if authorizer, err = s.cfg.Authorization.NewAuthorizer(controller, nil); err != nil {
+		s.logger.Error("failed to initialize authorizer", "error", err)
+		return nil
+	}
+
+	var prefix string
+	if s.cfg.AuthZENMethod != "" || s.cfg.AuthZENDomain != "" {
+		prefix = fmt.Sprintf("%s://%s%s", s.cfg.AuthZENMethod, s.cfg.AuthZENDomain, basePath)
+	}
+
+	zen := handlers.NewAuthHandlerZEN(s.logger, decisionLog, controller, prefix).WithEvaluations()
 
 	return &authHandler{
 		logger:     s.logger,
@@ -70,7 +80,7 @@ func (s *service) newAuth(basePath string) AuthHandler {
 	}
 }
 
-func (s *service) newController() (pdp.Controller, error) {
+func (s *service) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	ep := pep.New(s.ctx, s.logger)
 
 	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
@@ -83,7 +93,14 @@ func (s *service) newController() (pdp.Controller, error) {
 		return nil, err2
 	}
 
-	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap)}
+	options := []pdp.Option{
+		pdp.WithContext(s.ctx),
+		pdp.WithLogger(s.logger),
+		pdp.WithPEP(ep),
+		pdp.WithPIP(ip),
+		pdp.WithPAP(ap),
+		pdp.WithADL(decisionLog),
+	}
 
 	switch s.l {
 	case models.CEDAR:
@@ -100,18 +117,80 @@ func (s *service) newController() (pdp.Controller, error) {
 	}
 }
 
-// Controller returns the PDP controller.
-func (h *authHandler) Controller() pdp.Controller { return h.controller }
+func (s *service) newADL(lt string) (*adl.ADL, error) {
+	cfg := s.cfg.DecisionLog
+	svc := cfg.Service
+	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(cfg.Timeout)}
 
-// AuthZEN returns the AuthZEN API handler.
-func (h *authHandler) AuthZEN() *handlers.AuthZENAuthorizer { return h.zen }
+	var pg bool
+	switch strings.ToLower(lt) {
+	case "pg", "postgres", "postgresql":
+		pg = true
+	case "ot", "otel", "opentelemetry":
+		opts = append(opts, opentelemetry.WithOT(cfg.OtelURL, cfg.OtelInsecure))
+	case "slog":
+		opts = append(opts, opentelemetry.WithSLog(s.logger, cfg.SlogMsg))
+	case "stdout":
+		opts = append(opts, opentelemetry.WithFile(os.Stdout, cfg.Pretty))
+	case "stderr":
+		opts = append(opts, opentelemetry.WithFile(os.Stderr, cfg.Pretty))
+	default:
+		return nil, fmt.Errorf("unsupported decision log type '%s'", cfg.Type)
+	}
 
-// Authorizer returns the authorizer.
-func (h *authHandler) Authorizer() authorization.Authorizer { return h.authorizer }
+	var logger *decisions.Logger
+	var err error
 
-type authHandler struct {
-	logger     *slog.Logger
-	controller pdp.Controller
-	zen        *handlers.AuthZENAuthorizer
-	authorizer authorization.Authorizer
+	if pg {
+		if err = s.checkMigrations(); err == nil {
+			logger, err = decisions.NewWithPostgreSQL(s.ctx, svc, cfg.PgURL, nil, cfg.PgMaxLife, cfg.PgMaxConn, opts...)
+		}
+	} else {
+		logger, err = decisions.New(s.ctx, svc, opts...)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc)
+	return adl.New(logger), nil
+}
+
+func (s *service) checkMigrations() error {
+	cfg := s.cfg.Migration
+	if cfg.Source == "" || (cfg.Steps == 0 && !cfg.Auto) {
+		return nil
+	}
+	return s.migrateADL(cfg.Source, cfg.Steps, cfg.Auto)
+}
+
+func (s *service) migrateADL(source string, steps int, auto bool) (err error) {
+	if auto {
+		steps = 0
+	}
+
+	switch {
+	case strings.EqualFold(source, "*embed*"):
+		err = migrate.PostgresEmbedded(migrations.PgDecisionLog, s.cfg.DecisionLog.PgURL, steps, s.logger)
+
+	default:
+		if !strings.HasPrefix(source, "file://") {
+			source, _ = filepath.Abs(source)
+			source = "file://" + source
+		}
+		err = migrate.Postgres(source, s.cfg.DecisionLog.PgURL, steps, s.logger)
+	}
+
+	if err != nil && !errors.Is(err, migrate2.ErrNoChange) {
+		s.logger.Error("pdp database migration failed", "auto", auto, "steps", steps, "err", err)
+		return
+	}
+
+	if err == nil {
+		s.logger.Info("pdp database migration completed successfully")
+	} else {
+		s.logger.Info("pdp database migration completed; no changes")
+		err = nil
+	}
+	return
 }
