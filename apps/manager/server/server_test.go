@@ -46,7 +46,7 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -91,7 +91,7 @@ func TestServe_FailPDP(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		_ = NewService(cfg, logger)
+		_ = NewExternal(cfg, logger)
 
 		require.True(t, false) // should never trigger
 	})
@@ -120,7 +120,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -173,7 +173,7 @@ func TestOpenSearchFail1(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s := NewExternal(cfg, logger)
 		require.NotNil(t, s)
 
 		assert.GreaterOrEqual(t, h.Count(), 4)

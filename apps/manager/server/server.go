@@ -17,8 +17,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewService initializes the HTTP service (implemented with fiber & fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
+// NewExternal initializes the HTTP service (implemented with fiber & fasthttp).
+func NewExternal(cfg *config.Config, logger *slog.Logger) server.Service {
 	s := &service{cfg: cfg, logger: logger, chk: handle.NewChecks()}
 
 	// we're good to go once the service is running.
@@ -26,20 +26,25 @@ func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
 	s.chk.SetAlive(true)
 	s.chk.SetReady(true)
 
-	s.Service = fiber.New(
-		logger,
-		s.initRoutes,
+	opts := []server.Option{
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
 		server.WithAppName(config.AppName),
-		server.WithTLS(cfg.CA, cfg.Cert, cfg.Key),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
 		server.WithRecovery(),
 		server.WithSecurity(),
 		server.WithCORS(cfg.CorsOrigins, cfg.CorsHeaders),
-	)
+	}
 
+	if cfg.Cert != "" && cfg.Key != "" {
+		opts = append(opts, server.WithTLS(cfg.CA, cfg.Cert, cfg.Key))
+	}
+	if cfg.CA != "" {
+		opts = append(opts, server.WithMutualTLS())
+	}
+
+	s.Service = fiber.New(logger, s.initRoutes, opts...)
 	return s
 }
 

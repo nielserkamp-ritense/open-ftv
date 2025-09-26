@@ -1,80 +1,141 @@
 package fiber
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"log/slog"
-	"net/url"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
-	fiber2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authlog"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci/opensearch"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-// AuthlogHandler represents the interface for handling requests for the authorisation log.
-type AuthlogHandler interface {
-	GetAuthlogResource(req *fiber.Ctx) error // summary for a resource.
+// ADLHandler represents the interface for handling search requests on an Authorisation Decision Log.
+type ADLHandler interface {
+	Search(req *fiber.Ctx) error // summary for a resource.
 }
 
-// NewAuthlogHandler instantiates an authorisation log handler.
-func NewAuthlogHandler(logger *slog.Logger, index string, os opensearch.Searcher) AuthlogHandler {
-	return &authlogHandler{logger: logger, index: index, os: os}
+// NewADLHandler instantiates an authorisation log handler.
+func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorization.Authorizer) ADLHandler {
+	return &adlHandler{logger: logger, search: s, authorizer: authorizer}
 }
 
-// GetAuthlogResource implements the AuthlogHandler interface.
-func (h *authlogHandler) GetAuthlogResource(req *fiber.Ctx) error {
-	var resp authlog.AuthlogResourceResponse
+// Search implements the ADLHandler interface.
+func (h *adlHandler) Search(fc *fiber.Ctx) error {
+	fc.Set(HeaderVersion, AttributesVersion)
 
-	resource := req.Params("resource")
-	unescaped, err := url.QueryUnescape(resource)
-	if err != nil {
-		return fiber2.SendMessageResponse(req, fiber.StatusBadRequest, "invalid resource id")
+	_, ok, err := h.authorize(fc)
+	if !ok {
+		return err
 	}
 
-	q := fmt.Sprintf(`{"size":0,"query":{"term":{"resource.id.keyword":{"value":"%s"}}},"aggs":{"principal.id":{"terms":{"field":"principal.id.keyword","size":999999}}}}`, unescaped)
-	m, err2 := h.os.SearchBySQL(context.Background(), h.index, q, 0)
-
-	if err2 != nil {
-		h.logger.Error("failed to query index", "index", h.index, "q", q, "err", err2)
-		return fiber2.SendMessageResponse(req, fiber.StatusInternalServerError, "failed to query authlog")
+	var requestTypes []decisions.AuthRequestType
+	if requestTypes, err = h.getRequestTypes(fc); err != nil {
+		return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 	}
 
-	if m2, ok := m.Aggregations["principal.id"].(map[string]any); ok {
-		if list, ok2 := m2["buckets"].([]any); ok2 {
-			for i := range list {
-				if m3, ok3 := list[i].(map[string]any); ok3 {
-					rvvaID := convert.AnyToString(m3["key"])
-					count := int(convert.AnyToInt64(m3["doc_count"]))
+	var bundles []int64
+	if bundles, err = h.getBundles(fc); err != nil {
+		return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
+	}
 
-					resp.Total += count
-
-					resp.Rvva = append(resp.Rvva, struct {
-						Count  int    `json:"count,omitempty"`
-						RvvaId string `json:"rvvaId,omitempty"`
-					}{
-						Count:  count,
-						RvvaId: rvvaID,
-					})
-				}
-			}
+	var recent time.Duration
+	if s := convert.AnyToString(fc.Query("recent")); s != "" {
+		if recent, err = time.ParseDuration(s); err != nil {
+			return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 		}
 	}
 
-	if len(resp.Rvva) == 0 {
-		return fiber2.SendMessageResponse(req, fiber.StatusNotFound, authlogResourceNotFound)
+	c := &search.Criteria{
+		ID:           int64(fc.QueryInt("id")),
+		From:         convert.AnyToDateTime(fc.Query("start")),
+		To:           convert.AnyToDateTime(fc.Query("end")),
+		Recent:       recent,
+		RequestTypes: requestTypes,
+		Bundles:      bundles,
+		TraceId:      fc.Query("traceId"),
+		SpanId:       fc.Query("spanId"),
+		SubjectType:  fc.Query("subjectType"),
+		SubjectId:    fc.Query("subjectId"),
+		ActionName:   fc.Query("actionName"),
+		ResourceType: fc.Query("resourceType"),
+		ResourceId:   fc.Query("resourceId"),
+		Limit:        fc.QueryInt("limit"),
 	}
-	return req.JSON(resp)
+
+	var resp authlog.AuthlogEntries
+	if resp, err = h.search.Search(fc.UserContext(), c); err != nil {
+		if errors.As(err, &pErr) {
+			return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
+		}
+		return server.SendMessageResponse(fc, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return fc.JSON(resp)
 }
 
-type authlogHandler struct {
-	logger *slog.Logger
-	index  string
-	os     opensearch.Searcher
+var pErr = &search.ParameterError{}
+
+func (h *adlHandler) getRequestTypes(fc *fiber.Ctx) ([]decisions.AuthRequestType, error) {
+	s := fc.Query("types")
+	if s == "" {
+		return nil, nil
+	}
+
+	list := strings.Split(s, ",")
+	out := make([]decisions.AuthRequestType, len(list))
+
+	var rt decisions.AuthRequestType
+	for i := range list {
+		if rt.UnmarshalJSON([]byte(`"`+list[i]+`"`)) != nil {
+			return nil, fmt.Errorf("invalid request type: %s", list[i])
+		}
+		out[i] = rt
+	}
+
+	return out, nil
 }
 
-const (
-	authlogResourceNotFound = "authlog resource not found"
-)
+func (h *adlHandler) getBundles(fc *fiber.Ctx) ([]int64, error) {
+	s := fc.Query("policies")
+	if s == "" {
+		return nil, nil
+	}
+
+	list := strings.Split(s, ",")
+	out := make([]int64, len(list))
+
+	for i := range list {
+		if v, err := strconv.ParseInt(list[i], 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid policy bundle: %s", list[i])
+		} else {
+			out[i] = v
+		}
+	}
+
+	return out, nil
+}
+
+func (h *adlHandler) authorize(req *fiber.Ctx) (string, bool, error) {
+	if h.authorizer == nil {
+		return auth.SystemUser, true, nil
+	}
+
+	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
+	return auth.Check(req, resp, err, h.logger)
+}
+
+type adlHandler struct {
+	logger     *slog.Logger
+	search     search.Searcher
+	authorizer authorization.Authorizer
+}

@@ -5,6 +5,11 @@ cd authzen
 oapi-codegen -config config.yaml openapi.yaml
 cd ..
 
+##### Liveness & readiness #####
+cd liveness
+oapi-codegen -config config.yaml openapi.yaml
+cd ..
+
 ##### Policies #####
 cd policies
 oapi-codegen -config config.yaml openapi.yaml

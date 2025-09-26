@@ -1,10 +1,10 @@
 openapi: 3.0.0
 
 info:
-  title: Authorisation log queries.
-  version: 1.1.0
+  title: Authorization Decision Log queries.
+  version: 1.0.0
   description: |
-    OpenAPI specification for retrieving data and statistics from the authorisation log.
+    OpenAPI specification for searche and retrieve entries from the Authorization Decision Log.
   contact:
     name: G. Juijn
     url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
@@ -14,31 +14,39 @@ servers:
     description: Local server.
 
 tags:
-  - name: authlog
-    description: Queries on the authorisation log.
+  - name: adl
+    description: Queries on the Authorization Decision Log.
 
 paths:
-  /authlog/resource/{resource}:
+  /adl/entries:
     get:
-      operationId: "get-authlog-resource"
-      summary: Retrieve authorisation log summary by resource.
-      description: Endpoint to retrieve the authorisation log summary for a specific resource.
+      operationId: "get-adl-entries"
+      summary: Query Authorization Decision Log.
+      description: |
+        Endpoint to search for and retrieve Authorization Decision Log entries.
+
+        Resulting entries are sorted in descending order of creation.
+
       tags:
-        - authlog
+        - adl
       parameters:
-        - $ref: "#/components/parameters/ResourceKey"
+        - $ref: "#/components/parameters/DecisionId"
+        - $ref: "#/components/parameters/StartTimestamp"
+        - $ref: "#/components/parameters/EndTimestamp"
+        - $ref: "#/components/parameters/RecentPeriod"
+        - $ref: "#/components/parameters/RequestTypes"
+        - $ref: "#/components/parameters/Policies"
+        - $ref: "#/components/parameters/TraceId"
+        - $ref: "#/components/parameters/SpanId"
+        - $ref: "#/components/parameters/SubjectType"
+        - $ref: "#/components/parameters/SubjectId"
+        - $ref: "#/components/parameters/ActionName"
+        - $ref: "#/components/parameters/ResourceType"
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Log found.
-          headers:
-            API-Version:
-              schema:
-                type: string
-              description: Full version number of the API.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthlogResourceResponse"
+          $ref: "#/components/responses/AuthlogResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -52,18 +60,191 @@ paths:
 
 components:
   parameters:
-    ResourceKey:
-      in: path
-      name: resource
+    DecisionId:
+      in: query
+      name: id
+      schema:
+        type: integer
+        format: int64
+      description: |
+        Select exact decision log identifier.
+        
+        This is mutually exclusive with all other parameters.
+
+    RecentPeriod:
+      in: query
+      name: recent
       schema:
         type: string
-        minLength: 8
-        maxLength: 500
-      required: true
-      description: Unique id of a resource.
+      description: |
+        Select a period upto and including the current timestamp.
+        
+        This parameter is mutually exclusive with the start timestamp.
+        
+        The string should be formatted as a to Golang duration.
+        E.g.:
+        - "1m"       = 1 minute.
+        - "12s"      = 12 seconds.
+        - "3h"       = 3 hours.
+        - "1h10m15s" = 1 hour, 10 minutes and 15 seconds.
 
+    StartTimestamp:
+      in: query
+      name: start
+      schema:
+        type: string
+        maxLength: 36
+      description: |
+        Filter entries with a created timestamp greater of equal this (RFC3339).
+        
+        This parameter is mutually exclusive with the recent period.
+
+    EndTimestamp:
+      in: query
+      name: end
+      schema:
+        type: string
+        maxLength: 36
+      description: |
+        Filter entries with a created timestamp lesser of equal this (RFC3339).
+        
+        Default is the current timestamp.
+
+    RequestTypes:
+      in: query
+      name: types
+      schema:
+        type: array
+        items:
+          type: string
+          maxLength: 20
+      description: |
+        Filter entries matching one of the AuthZEN request types.
+
+        Valid values are:
+        - evaluation
+        - evaluations
+        - search_subject
+        - search_action
+        - search_resource
+
+        Duplicate values are not allowed.
+
+    Policies:
+      in: query
+      name: policies
+      schema:
+        type: array
+        items:
+          type: string
+          maxLength: 100
+      description: |
+        Filter entries matching one of the policy bundle identifiers.
+        
+        Maximum 10 bundle identifiers can be supplied.
+        Duplicate values are not allowed.
+
+    TraceId:
+      in: query
+      name: traceId
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 32
+      description: |
+        Filter entries with a matching W3C trace identifier.
+
+        Must be exactly 32 characters in hexadecimal.
+
+    SpanId:
+      in: query
+      name: spanId
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 16
+      description: |
+        Filter entries with a matching W3C span identifier.
+
+        Must be exactly 16 characters in hexadecimal.
+
+    SubjectType:
+      in: query
+      name: subjectType
+      schema:
+        type: string
+        maxLength: 100
+      description: Filter entries with a matching subject type.
+
+    SubjectId:
+      in: query
+      name: subjectId
+      schema:
+        type: string
+        maxLength: 100
+      description: |
+        Filter entries with a matching subject identifier.
+
+        Use of this parameter may considerably impact performance.
+
+    ActionName:
+      in: query
+      name: actionName
+      schema:
+        type: string
+        maxLength: 100
+      description: |
+        Filter entries with a matching action name.
+
+        Use of this parameter may considerably impact performance.
+
+    ResourceType:
+      in: query
+      name: resourceType
+      schema:
+        type: string
+        maxLength: 100
+      description: |
+        Filter entries with a matching resource type.
+
+        Use of this parameter may considerably impact performance.
+
+    ResourceId:
+      in: query
+      name: resourceId
+      schema:
+        type: string
+        maxLength: 100
+      description: |
+        Filter entries with a matching resource identifier.
+
+        Use of this parameter may considerably impact performance.
+
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        maximum: 1000
+      description: |
+        Limit the result to this many entries.
+        
+        The default limit is 100 entries.
+        All entries are sorted in descending order of creation.
 
   responses:
+    AuthlogResponse:
+      description: Log entries found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AuthlogEntries"
+
     BadRequest:
       description: Bad request.
       headers:
@@ -74,7 +255,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/ErrorObject"
 
     NotAuthorized:
       description: Not authorized.
@@ -86,7 +267,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/ErrorObject"
 
     AccessDenied:
       description: Access denied.
@@ -98,7 +279,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/ErrorObject"
 
     NotFound:
       description: Resource not found.
@@ -110,7 +291,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/ErrorObject"
           examples:
             GET_ATTRIBUTE_404_NOTFOUND:
               summary: Unsuccessful retrieval of unknown attribute.
@@ -127,28 +308,61 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorResponse"
+            $ref: "#/components/schemas/ErrorObject"
 
   schemas:
-    AuthlogResourceResponse:
-      type: object
-      description: The response for retrieving an authorisation log resource summary.
-      properties:
-        total:
-          type: integer
-          description: Total count.
-        rvva:
-          type: array
-          items:
-            properties:
-              rvvaId:
-                type: string
-              count:
-                type: integer
+    AuthlogEntries:
+      type: array
+      description: A set of Authorization Decision Log entries.
+      items:
+        $ref: "#/components/schemas/AuthlogEntry"
 
-    ErrorResponse:
+    AuthlogEntry:
       type: object
-      description: The response for an error (as defined by RFC9457).
+      description: An Authorization Decision Log entry.
+      properties: 
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier.
+        created:
+          type: string
+          maxLength: 32
+          description: Timestamp the entry was created.
+        requestType:
+          type: string
+          maxLength: 20
+          description: Type of AuthZEN request.
+        policies:
+          type: string
+          maxLength: 100
+          description: Unique identifier of the policy bundle used during the authorization process.
+        request:
+          type: object
+          description: AuthZEN request.
+        response:
+          type: object
+          description: AuthZEN response.
+        information:
+          type: object
+          description: Information (attributes) used during the authorization process.
+        engine:
+          type: object
+          description: Details of the PDP engine.
+        traceId:
+          type: string
+          minLength: 32
+          maxLength: 32
+          description: W3C trace identifier from the authorization request.
+        spanId:
+          type: string
+          minLength: 16
+          maxLength: 16
+          description: W3C span identifier from the authorization request.
+
+    ErrorObject:
+      type: object
+      description: The body for an error response (as defined by RFC9457).
       properties:
         type:
           type: string

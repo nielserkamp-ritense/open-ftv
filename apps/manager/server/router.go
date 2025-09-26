@@ -9,6 +9,8 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
+	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -23,12 +25,16 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
-	isPG := strings.EqualFold(s.cfg.Persist.Type, "postgres")
+	var isPG bool
+	switch strings.ToLower(s.cfg.Persist.Type) {
+	case "pg", "postgres", "postgresql":
+		isPG = true
+	}
 
 	var err error
 	switch {
 	case isPG:
-		s.db, err = postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+		s.db, err = postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.Persist.PgMaxConn)
 	case s.cfg.Persist.Type != "":
 		s.store, err = s.cfg.Persist.NewStore(ctx)
 	}
@@ -56,6 +62,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initAttributes(v1)
 	s.initEntities(v1)
 	s.initRelations(v1)
+	s.initADL(v1)
 
 	if s.cfg.BundlePath != "" {
 		s.initBundles(v1)
@@ -137,6 +144,30 @@ func (s *service) initRelations(_ fiber.Router) {
 	//    Put(handle.PathRelation, apis.PutRelation).
 	//    Post(handle.PathRelation, apis.PostRelation).
 	//    Delete(handle.PathRelation, apis.DeleteRelation)
+}
+
+func (s *service) initADL(group fiber.Router) {
+	cfg := s.cfg.DecisionLog
+
+	var searcher search.Searcher
+	var err error
+
+	switch strings.ToLower(cfg.Type) {
+	case "pg", "postgres", "postgresql":
+		searcher, err = searchPG.New(s.ctx, cfg.PgURL, nil, cfg.PgMaxLife, cfg.PgMaxConn)
+	default:
+		return
+	}
+
+	if err != nil {
+		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err.Error())
+	}
+
+	adl := handle.NewADLHandler(s.logger, searcher, s.auth.Authorizer())
+	s.logger.Info("adl initialized", "type", cfg.Type)
+
+	grp2 := group.Group(handle.PathADL)
+	grp2.Get(handle.PathEntries, adl.Search)
 }
 
 func (s *service) initBundles(group fiber.Router) {
