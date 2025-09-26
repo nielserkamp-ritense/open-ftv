@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cfg, logger := config.New()
-	srv := server.NewService(cfg, logger)
+	srv := server.NewExternal(cfg, logger)
 	if !cfg.Migration.ExitAfter {
 		srv.Serve()
 	}

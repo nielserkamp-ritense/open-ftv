@@ -2,11 +2,11 @@ package fiber
 
 // List of API paths.
 const (
+	PathADL              = "/adl"
 	PathAttribute        = "/attribute/:key"
 	PathAttributes       = "/attributes"
 	PathAuthZEN          = "/authzen"
 	PathAuthZenConfig    = "/authzen-configuration"
-	PathAuthlog          = "/authlog"
 	PathBundle           = "/bundle"
 	PathBundleID         = "/bundle/:id"
 	PathCompressionTypes = "/compression-types"
@@ -16,6 +16,7 @@ const (
 	PathDeployments      = "/deployments"
 	PathEntities         = "/entities"
 	PathEntity           = "/entity/:type/:id"
+	PathEntries          = "/entries"
 	PathEvaluation       = "/evaluation"
 	PathEvaluations      = "/evaluations"
 	PathHealthZ          = "/healthz"

@@ -1,0 +1,171 @@
+openapi: 3.0.0
+
+info:
+  title: Liveness and readiness endpoints.
+  version: 1.0.0
+  description: |
+    OpenAPI specification for liveness and readiness probes.
+  contact:
+    name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server.
+
+tags:
+  - name: open_ftv
+    description: OpenFTV
+  - name: liveness
+    description: Liveness probe.
+  - name: readiness
+    description: Readiness probe.
+
+paths:
+  /healthz:
+    get:
+      operationId: "get-health"
+      summary: Health endpoint.
+      description: |
+        Retrieve status from the health endpoint.
+        
+        *Deprecated*: use livez instead!
+      tags:
+        - open_ftv
+        - liveness
+      responses:
+        "200":
+          $ref: "#/components/responses/OkResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /livez:
+    get:
+      operationId: "get-live"
+      summary: Liveness endpoint.
+      description: Retrieve status from the liveness endpoint.
+      tags:
+        - open_ftv
+        - liveness
+      responses:
+        "200":
+          $ref: "#/components/responses/OkResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /readyz:
+    get:
+      operationId: "get-ready"
+      summary: Readiness endpoint.
+      description: Retrieve status from the readiness endpoint.
+      tags:
+        - open_ftv
+        - readiness
+      responses:
+        "200":
+          $ref: "#/components/responses/OkResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+components:
+  responses:
+    OkResponse:
+      description: OK.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    BadRequest:
+      description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFound:
+      description: Resource not found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ServiceUnavailable:
+      description: Service unavailable.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      description: The response for an error (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

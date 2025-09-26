@@ -61,4 +61,5 @@ type Config struct {
 	config2.Authorization
 	config2.Bundle
 	config2.Migration
+	config2.DecisionLog
 }
