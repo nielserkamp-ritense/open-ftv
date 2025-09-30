@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import './index.css'
 
 // Import the generated route tree
@@ -16,6 +17,9 @@ declare module '@tanstack/react-router' {
     router: typeof router
   }
 }
+
+// Register all Community features
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 const queryClient = new QueryClient({
   defaultOptions: {
