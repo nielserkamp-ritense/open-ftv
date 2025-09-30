@@ -6,7 +6,7 @@
     --color-content-secondary: #717171;
     --color-content-tertiary: #FAFAFA;
     --color-content-inverse-primary: var(--color-zinc-950);
-    --color-content-inverse-secondary: #FAFAFA;
+    --color-content-inverse-secondary: #A1A1AA;
     --color-content-inverse-tertiary: #FAFAFA;
     --color-background-primary: var(--color-zinc-200);
     --color-background-secondary: #FAFAFA;
@@ -25,6 +25,7 @@
     --color-border-inverse-tertiary: var(--color-zinc-950);
     --color-border-hover-overlay: rgba(0, 0, 0, 0.2);
     --color-border-inverse-hover-overlay: rgba(255, 255, 255, 0.1);
+    --color-carrotnl-button-primary-action-background-color: #154273;
     --color-cool-grey: #0F172A;
     --color-rhc-lintblauw-500: #154273;
     --radius-sm: 2px;
