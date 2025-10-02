@@ -42,10 +42,11 @@
     --spacing-rhc-space-500: 40px;
     --color-heading-primary: #F7E8E8;
     --color-rhc-color-cool-grey-900: #0F172A;
-    --text-rhc-sidenav-link-font-size: 20px;
+    --text-rhc-sidenav-link-font-size: 18px;
     --font-weight-rhc-sidenav-link-font-weight: 400;
-    --color-rhc-sidenav-link-color: #01689B;
+    --color-rhc-sidenav-link-color: #0F172A;
     --color-rhc-sidenav-current-background-color: #D9EBF7;
+    --color-rhc-sidenav-link-current-color: #42145F;
 }
 
 /* Fira Sans Font Family */

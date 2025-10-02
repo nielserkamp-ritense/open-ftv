@@ -8,7 +8,6 @@ import { menuItems } from "@/config/menu";
 
 
 const RootComponent = () => {
-  const linkClass = 'text-rhc-sidenav-link-color'
   const labelClass = 'text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight'
 
   const renderItem = (item: (typeof menuItems)[number]) => {
@@ -17,7 +16,7 @@ const RootComponent = () => {
       <SidebarItem
         key={`${item.section}-${item.label}`}
         href={item.href}
-        className={linkClass}
+        className={'text-rhc-sidenav-link-color '}
         disabled={item.disabled}
       >
         <Icon />
