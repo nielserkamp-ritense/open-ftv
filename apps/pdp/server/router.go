@@ -55,6 +55,8 @@ func (s *service) initBundles(v1 fiber.Router) {
 
 	if url := s.cfg.PDP.BundleManager; url != "" {
 		go s.bundleRetriever(url, handler)
+	} else {
+		s.chk.SetReady(true) // NOTE: please make sure you set up with local storage!
 	}
 }
 

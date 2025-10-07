@@ -2,18 +2,27 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 func (s *service) getLatestBundle(url string) (*http.Response, error) {
 	b := &bundleGetter{url: url, ctx: s.ctx, cfg: s.cfg}
+
+	if err := b.prepareTransport(); err != nil {
+		return nil, err
+	}
+
 	b.prepareClient()
 	b.prepareRequest()
 
@@ -58,15 +67,44 @@ type bundleGetter struct {
 	err       error
 }
 
-func (b *bundleGetter) prepareClient() {
-	b.transport = http.DefaultTransport.(*http.Transport).Clone()
+func (b *bundleGetter) prepareTransport() error {
+	// b.transport = http.DefaultTransport.(*http.Transport).Clone()
+
+	cfg := &tls.Config{}
+
+	if b.cfg.BundleCA != "" {
+		caCert, err := os.ReadFile(b.cfg.BundleCA)
+		if err != nil {
+			return err
+		}
+
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM(caCert) {
+			return fmt.Errorf("invalid CA certificate")
+		}
+
+		cfg.RootCAs = certPool
+	}
+
+	if b.cfg.BundleCert != "" && b.cfg.BundleKey != "" {
+		cert, err := tls.LoadX509KeyPair(b.cfg.BundleCert, b.cfg.BundleKey)
+		if err != nil {
+			return err
+		}
+
+		cfg.Certificates = []tls.Certificate{cert}
+	}
+
+	b.transport = &http.Transport{TLSClientConfig: cfg}
 	b.transport.DisableCompression = true
 
+	return nil
+}
+
+func (b *bundleGetter) prepareClient() {
 	b.client = &http.Client{
-		Transport:     b.transport,
-		CheckRedirect: http.DefaultClient.CheckRedirect,
-		Jar:           http.DefaultClient.Jar,
-		Timeout:       b.cfg.BundleTimeout,
+		Transport: b.transport,
+		Timeout:   b.cfg.BundleTimeout,
 	}
 }
 
@@ -87,7 +125,7 @@ func (b *bundleGetter) prepareRequest() {
 	}
 
 	if b.cfg.BundleAPIKey != "" {
-		b.req.Header.Add("ApiKey", b.cfg.BundleAPIKey)
+		b.req.Header.Add(models.HeaderAPIKey, b.cfg.BundleAPIKey)
 	}
 
 	if b.cfg.BundleEncoding != "" {
@@ -97,10 +135,10 @@ func (b *bundleGetter) prepareRequest() {
 }
 
 func (b *bundleGetter) doRequest() {
-	ctx, cancel := context.WithTimeout(b.ctx, b.cfg.BundleTimeout)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(b.ctx, b.cfg.BundleTimeout)
+	// defer cancel()
 
-	b.resp, b.err = b.client.Do(b.req.WithContext(ctx))
+	b.resp, b.err = b.client.Do(b.req)
 	if b.err != nil {
 		return
 	}
