@@ -7,11 +7,17 @@ import (
 )
 
 func (s *service) run() {
+	t := "http service"
+	if s.MutualTLS || (s.TLSCert != "" && s.TLSKey != "") {
+		t = "https service"
+	}
+	s.logger.Info(fmt.Sprintf("%s starting", t), "host", s.Host, "port", s.Port)
+
 	go func() {
 		// there's no notification from fiber when the HTTP server has started, so we fake it.
 		// 10 milliseconds should be ample time.
 		time.AfterFunc(10*time.Millisecond, func() {
-			s.logger.Info("http service started", "host", s.Host, "port", s.Port)
+			s.logger.Info(fmt.Sprintf("%s started", t))
 		})
 
 		address := fmt.Sprintf("%s:%d", s.Host, s.Port)
@@ -28,7 +34,7 @@ func (s *service) run() {
 		}
 
 		if err != nil {
-			s.logger.Error("failed to start service", "error", err)
+			s.logger.Error(fmt.Sprintf("failed to start %s", t), "error", err)
 			s.shutdown.Store(true)       // indicate server is stopped or never started.
 			s.intChan <- syscall.SIGQUIT // send a signal to end the Run function.
 		}
@@ -43,7 +49,7 @@ func (s *service) run() {
 	}
 
 	go func() {
-		s.logger.Info("http service stopping")
+		s.logger.Info(fmt.Sprintf("%s stopping", t))
 		s.cancel()
 		_ = s.svc.Shutdown()
 		s.shutdown.Store(true)       // indicate shutdown was successful.
@@ -54,8 +60,8 @@ func (s *service) run() {
 	<-s.intChan
 
 	if s.shutdown.Load() {
-		s.logger.Info("http service stopped successfully")
+		s.logger.Info(fmt.Sprintf("%s stopped successfully", t))
 	} else {
-		s.logger.Info("http service aborted")
+		s.logger.Info(fmt.Sprintf("%s aborted", t))
 	}
 }

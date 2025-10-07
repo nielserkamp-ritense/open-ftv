@@ -15,7 +15,7 @@ func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
 	defer b.AuthMutex.Unlock()
 
 	if b.ADL != nil {
-		pip.WithDynamicReporter(b.ADL.NewInformation)(nil)
+		pip.WithDynamicReporter(b.ADL.NewInformation)(b.PIP)
 	}
 
 	if err := b.processPolicies(bundle); err != nil {
