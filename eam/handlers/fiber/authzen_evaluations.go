@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/gofiber/fiber/v2/utils"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -16,12 +16,32 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
-func (p *authProcess) verifyBatchAuthZEN() *oas.EvaluationsRequest {
-	p.status = fiber.StatusBadRequest
+// Evaluations implements the AuthZENAuthorizer interface.
+func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
+	processHeaders(fc)
 
-	if req := p.fc.Request(); len(req.Header.ContentType()) == 0 {
-		req.Header.SetContentType(fiber.MIMEApplicationJSON)
+	if !h.hasEvaluations {
+		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
+
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
+
+	batch := p.verifyBatchAuthZEN()
+	if p.err != nil {
+		p.logger.Error("AuthZEN batch authorization handler failed", "request", batch, "error", p.err)
+		return server.SendMessageResponse(fc, p.status, p.msg)
+	}
+	p.authReq = batch
+
+	p.createBatchAuthZEN(batch)
+	p.logger.Debug("AuthZEN evaluations request", "request", p.batch)
+
+	return p.authorizeBatchAuthZEN()
+}
+
+func (p *authProcess) verifyBatchAuthZEN() *oas.EvaluationsRequest {
+	p.initVerification()
 
 	req := new(oas.EvaluationsRequest)
 	if p.err = p.fc.BodyParser(req); p.err != nil {
@@ -84,7 +104,6 @@ func (p *authProcess) createBatchAuthZEN(req *oas.EvaluationsRequest) {
 		p.batch.Semantics = models.EvaluateAll
 	}
 
-	p.reqUID = uuid.New().String()
 	now := time.Now().UTC()
 
 	for i := range req.Evaluations {

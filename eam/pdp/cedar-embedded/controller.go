@@ -25,6 +25,8 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		entities: make(cedar.EntityMap),
 	}
 
+	c.Self = c
+
 	if c.PIP != nil {
 		// c.PIP.AddEventSink(c)
 		c.PIP.IterateEntities(func(entity *models.Entity) {

@@ -30,6 +30,7 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 	options = append(options, pdp.WithNameVersion(models.CERBOS.String(), Version))
 
 	c := &controller{Base: pdp.NewBase(options...), cfg: cfg, policyIDs: make(map[string]string)}
+	c.Self = c
 	c.logger = c.Logger.With("controller", c.String(), "clientAddress", c.cfg.Addr1, "adminAddress", c.cfg.Addr2, "ca", c.cfg.CA)
 
 	c.initClients()

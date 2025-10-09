@@ -23,7 +23,10 @@ const Version = "1.0.0"
 // NewController instantiates a new OpenFGA controller.
 func NewController(options ...pdp.Option) pdp.Controller {
 	options = append(options, pdp.WithNameVersion(models.OPENFGA.String(), Version))
+
 	c := &controller{Base: pdp.NewBase(options...), stores: make(map[string]*details)}
+	c.Self = c
+
 	if c.newServer(); c.engine == nil {
 		return nil
 	}

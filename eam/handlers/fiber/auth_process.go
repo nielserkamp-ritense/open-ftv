@@ -125,6 +125,8 @@ type authProcess struct {
 	msg        string
 	authReq    any
 	authResp   any
+	offset     int
+	limit      int
 }
 
 type searchType uint8
@@ -134,3 +136,17 @@ const (
 	searchAction
 	searchResource
 )
+
+// String implements the Stringer interface.
+func (s searchType) String() string {
+	switch s {
+	case searchSubject:
+		return "subject"
+	case searchAction:
+		return "action"
+	case searchResource:
+		return "resource"
+	default:
+		return "???"
+	}
+}

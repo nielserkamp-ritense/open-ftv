@@ -4,7 +4,7 @@ info:
   description: |
     OpenAPI specification for AuthZEN spec.
     See: https://openid.net/specs/authorization-api-1_0-03.html
-  version: 1.3.0
+  version: 1.4.0
   title: AuthZEN
   contact:
     name: G. Juijn
@@ -523,6 +523,47 @@ components:
       required:
         - evaluations
 
+    PageRequest:
+      type: object
+      description: Pagination options.
+      properties:
+        token:
+          type: string
+          description: Token used for pagination.
+          example: "a3M9NDU2O3N6PTI="
+        limit:
+          type: integer
+          description: Maximum number of results to return.
+          example: 2
+        properties:
+          type: object
+          description: Implementation-specific pagination request attributes.
+
+    PageResponse:
+      type: object
+      description: |
+        Pagination options.
+        
+        !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+        However the AuthZEN standard uses *kebab_case* for some properties.
+        So these properties will be flagged when using the NL API Design Rules.
+      properties:
+        next_token:
+          type: string
+          description: Token used for pagination.
+          example: "a3M9NDU2O3N6PTI="
+        count:
+          type: integer
+          description: Number of results returned.
+          example: 2
+        total:
+          type: integer
+          description: Total number of results available.
+          example: 3
+        properties:
+          type: object
+          description: Implementation-specific pagination response attributes.
+
     SearchObject:
       type: object
       description: Search object model.
@@ -537,13 +578,7 @@ components:
           description: Optional context of the request.
           type: object
         page:
-          type: object
-          description: Pagination options.
-          properties:
-            next_token:
-              type: string
-              description: Token used for pagination.
-              example: "al1se3hr495u8"
+          $ref: "#/components/schemas/PageRequest"
       required:
         - subject
         - action
@@ -572,13 +607,7 @@ components:
           items:
             $ref: "#/components/schemas/SearchResult"
         page:
-          type: object
-          description: Pagination options.
-          properties:
-            next_token:
-              type: string
-              description: Token used for pagination.
-              example: "al1se3hr495u8"
+          $ref: "#/components/schemas/PageResponse"
       required:
         - results
 
@@ -594,13 +623,7 @@ components:
           description: Optional context of the request.
           type: object
         page:
-          type: object
-          description: Pagination options.
-          properties:
-            next_token:
-              type: string
-              description: Token used for pagination.
-              example: "al1se3hr495u8"
+          $ref: "#/components/schemas/PageRequest"
       required:
         - subject
         - resource
@@ -624,13 +647,7 @@ components:
           items:
             $ref: "#/components/schemas/SearchActionResult"
         page:
-          type: object
-          description: Pagination options.
-          properties:
-            next_token:
-              type: string
-              description: Token used for pagination.
-              example: "al1se3hr495u8"
+          $ref: "#/components/schemas/PageResponse"
       required:
         - results
 
@@ -640,8 +657,8 @@ components:
         Metadata model.
         
         !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-        However AuthZEN named the metadata response properties in *kebab_case*.
-        So the properties in this model will be flagged when using the NL API Design Rules.
+        However the AuthZEN standard uses *kebab_case* for some properties.
+        So these properties will be flagged when using the NL API Design Rules.
       properties:
         policy_decision_point:
           type: string
@@ -667,6 +684,11 @@ components:
           type: string
           description: URL to AuthZEN action search endpoint.
           example: "https://pdp.organisatie.nl/authzen/v1/search/action"
+        capabilities:
+          type: array
+          description: list of registered IANA URNs referencing PDP specific capabilities.
+          items:
+            type: string
         signed_metadata:
           type: string
           description: JWT containing metadata parameters about the endpoints as claims.

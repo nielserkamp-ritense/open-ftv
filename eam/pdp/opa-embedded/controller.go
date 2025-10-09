@@ -27,6 +27,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	options = append(options, pdp.WithNameVersion(models.REGO.String(), Version))
 	c := &controller{Base: pdp.NewBase(options...), mem: inmem.New()}
+	c.Self = c
 
 	var err error
 	c.pdp, err = sdk.New(context.Background(), sdk.Options{

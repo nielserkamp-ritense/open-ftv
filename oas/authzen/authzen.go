@@ -110,14 +110,17 @@ type EvaluationsObject struct {
 // MetadataObject Metadata model.
 //
 // !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-// However AuthZEN named the metadata response properties in *kebab_case*.
-// So the properties in this model will be flagged when using the NL API Design Rules.
+// However the AuthZEN standard uses *kebab_case* for some properties.
+// So these properties will be flagged when using the NL API Design Rules.
 type MetadataObject struct {
 	// AccessEvaluationEndpoint URL to AuthZEN compatible evaluation endpoint.
 	AccessEvaluationEndpoint string `json:"access_evaluation_endpoint"`
 
 	// AccessEvaluationsEndpoint URL to AuthZEN compatible evaluations endpoint.
 	AccessEvaluationsEndpoint string `json:"access_evaluations_endpoint,omitempty"`
+
+	// Capabilities list of registered IANA URNs referencing PDP specific capabilities.
+	Capabilities []string `json:"capabilities,omitempty"`
 
 	// PolicyDecisionPoint Base URL of the PDP. Must match with the base URL used to retrieve the metadata.
 	PolicyDecisionPoint string `json:"policy_decision_point"`
@@ -133,6 +136,37 @@ type MetadataObject struct {
 
 	// SignedMetadata JWT containing metadata parameters about the endpoints as claims.
 	SignedMetadata string `json:"signed_metadata,omitempty"`
+}
+
+// PageRequest Pagination options.
+type PageRequest struct {
+	// Limit Maximum number of results to return.
+	Limit int `json:"limit,omitempty"`
+
+	// Properties Implementation-specific pagination request attributes.
+	Properties map[string]interface{} `json:"properties,omitempty"`
+
+	// Token Token used for pagination.
+	Token string `json:"token,omitempty"`
+}
+
+// PageResponse Pagination options.
+//
+// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+// However the AuthZEN standard uses *kebab_case* for some properties.
+// So these properties will be flagged when using the NL API Design Rules.
+type PageResponse struct {
+	// Count Number of results returned.
+	Count int `json:"count,omitempty"`
+
+	// NextToken Token used for pagination.
+	NextToken string `json:"next_token,omitempty"`
+
+	// Properties Implementation-specific pagination response attributes.
+	Properties map[string]interface{} `json:"properties,omitempty"`
+
+	// Total Total number of results available.
+	Total int `json:"total,omitempty"`
 }
 
 // ReasonField Map of one or more reasons, with a language-identifier as the key.
@@ -156,10 +190,7 @@ type SearchActionObject struct {
 	Context map[string]interface{} `json:"context,omitempty"`
 
 	// Page Pagination options.
-	Page struct {
-		// NextToken Token used for pagination.
-		NextToken string `json:"next_token,omitempty"`
-	} `json:"page,omitempty"`
+	Page PageRequest `json:"page,omitempty"`
 
 	// Resource The entity associated with an authorization request.
 	// This can be the subject (e.g. principal) or the resource.
@@ -179,10 +210,11 @@ type SearchActionResult struct {
 // SearchActionResults Search action results model.
 type SearchActionResults struct {
 	// Page Pagination options.
-	Page struct {
-		// NextToken Token used for pagination.
-		NextToken string `json:"next_token,omitempty"`
-	} `json:"page,omitempty"`
+	//
+	// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+	// However the AuthZEN standard uses *kebab_case* for some properties.
+	// So these properties will be flagged when using the NL API Design Rules.
+	Page PageResponse `json:"page,omitempty"`
 
 	// Results List of action search results.
 	Results []SearchActionResult `json:"results"`
@@ -197,10 +229,7 @@ type SearchObject struct {
 	Context map[string]interface{} `json:"context,omitempty"`
 
 	// Page Pagination options.
-	Page struct {
-		// NextToken Token used for pagination.
-		NextToken string `json:"next_token,omitempty"`
-	} `json:"page,omitempty"`
+	Page PageRequest `json:"page,omitempty"`
 
 	// Resource The entity associated with an authorization request.
 	// This can be the subject (e.g. principal) or the resource.
@@ -223,10 +252,11 @@ type SearchResult struct {
 // SearchResults Search results model.
 type SearchResults struct {
 	// Page Pagination options.
-	Page struct {
-		// NextToken Token used for pagination.
-		NextToken string `json:"next_token,omitempty"`
-	} `json:"page,omitempty"`
+	//
+	// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+	// However the AuthZEN standard uses *kebab_case* for some properties.
+	// So these properties will be flagged when using the NL API Design Rules.
+	Page PageResponse `json:"page,omitempty"`
 
 	// Results List of search results.
 	Results []SearchResult `json:"results"`
@@ -247,8 +277,8 @@ type EvaluationsResponse = EvaluationsDecision
 // MetadataResponse Metadata model.
 //
 // !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-// However AuthZEN named the metadata response properties in *kebab_case*.
-// So the properties in this model will be flagged when using the NL API Design Rules.
+// However the AuthZEN standard uses *kebab_case* for some properties.
+// So these properties will be flagged when using the NL API Design Rules.
 type MetadataResponse = MetadataObject
 
 // NotAuthorized Error response model (as defined by RFC9457).

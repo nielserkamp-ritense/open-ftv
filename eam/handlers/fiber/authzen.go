@@ -9,17 +9,15 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/utils"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
-	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
 
 // AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
-const AuthZENVersion = "1.0.0"
+const AuthZENVersion = "1.4.0"
 
 // AuthZENAuthorizer represents the interface for handling AuthZEN authorization requests.
 type AuthZENAuthorizer struct {
@@ -51,7 +49,7 @@ func (h *AuthZENAuthorizer) WithEvaluations() *AuthZENAuthorizer {
 
 // WithSearchSubject can be used to turn on support for the AuthZEN Subject Search API.
 func (h *AuthZENAuthorizer) WithSearchSubject() *AuthZENAuthorizer {
-	h.hasSearchAction = true
+	h.hasSearchSubject = true
 	return h
 }
 
@@ -67,112 +65,15 @@ func (h *AuthZENAuthorizer) WithSearchResource() *AuthZENAuthorizer {
 	return h
 }
 
-// Evaluation implements the AuthZENAuthorizer interface.
-func (h *AuthZENAuthorizer) Evaluation(fc *fiber.Ctx) error {
-	processHeaders(fc)
-
-	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
-	defer finish()
-
-	req := p.verifyRequestAuthZEN()
-	if p.err != nil {
-		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
-		return server.SendMessageResponse(fc, p.status, p.msg)
-	}
-	p.authReq = req
-
-	p.createRequestAuthZEN(req)
-	p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
-
-	return p.authorizeRequestAuthZEN()
-}
-
-// Evaluations implements the AuthZENAuthorizer interface.
-func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
-	processHeaders(fc)
-
-	if !h.hasEvaluations {
-		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-	}
-
-	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
-	defer finish()
-
-	batch := p.verifyBatchAuthZEN()
-	if p.err != nil {
-		p.logger.Error("AuthZEN batch authorization handler failed", "request", batch, "error", p.err)
-		return server.SendMessageResponse(fc, p.status, p.msg)
-	}
-	p.authReq = batch
-
-	p.createBatchAuthZEN(batch)
-	p.logger.Debug("AuthZEN evaluations request", "request", p.batch)
-
-	return p.authorizeBatchAuthZEN()
-}
-
-// SearchSubject implements the AuthZENAuthorizer interface.
-func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
-	processHeaders(fc)
-
-	if !h.hasSearchSubject {
-		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-	}
-
-	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
-	defer finish()
-
-	p.search = searchSubject
-
-	// TODO: implement
-
-	return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-}
-
-// SearchAction implements the AuthZENAuthorizer interface.
-func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
-	processHeaders(fc)
-
-	if !h.hasSearchAction {
-		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-	}
-
-	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
-	defer finish()
-
-	p.search = searchAction
-
-	// TODO: implement
-
-	return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-}
-
-// SearchResource implements the AuthZENAuthorizer interface.
-func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
-	processHeaders(fc)
-
-	if !h.hasSearchResource {
-		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-	}
-
-	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
-	defer finish()
-
-	p.search = searchResource
-
-	// TODO: implement
-
-	return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
-}
-
 // Metadata implements the AuthZENAuthorizer interface.
 func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
 	processHeaders(fc)
 
 	prefix := fixPrefix(fc, h.prefix)
+	domain := fixDomain(prefix)
 
 	out := oas.MetadataResponse{
-		PolicyDecisionPoint:      fixDomain(prefix),
+		PolicyDecisionPoint:      domain,
 		AccessEvaluationEndpoint: prefix + PathEvaluation,
 	}
 
@@ -183,10 +84,10 @@ func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
 		out.SearchSubjectEndpoint = prefix + PathSearchSubject
 	}
 	if h.hasSearchAction {
-		out.SearchSubjectEndpoint = prefix + PathSearchAction
+		out.SearchActionEndpoint = prefix + PathSearchAction
 	}
 	if h.hasSearchResource {
-		out.SearchSubjectEndpoint = prefix + PathSearchResource
+		out.SearchResourceEndpoint = prefix + PathSearchResource
 	}
 
 	return fc.JSON(out)

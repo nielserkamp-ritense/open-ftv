@@ -70,7 +70,11 @@ func (s *service) newAuth(basePath string) *authHandler {
 		prefix = fmt.Sprintf("%s://%s%s", s.cfg.AuthZENMethod, s.cfg.AuthZENDomain, basePath)
 	}
 
-	zen := handlers.NewAuthHandlerZEN(s.logger, decisionLog, controller, prefix).WithEvaluations()
+	zen := handlers.NewAuthHandlerZEN(s.logger, decisionLog, controller, prefix).
+		WithEvaluations().
+		WithSearchSubject().
+		WithSearchAction().
+		WithSearchResource()
 
 	return &authHandler{
 		logger:     s.logger,
