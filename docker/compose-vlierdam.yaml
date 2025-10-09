@@ -42,18 +42,18 @@ services:
     ports:
       - "9000:8443"
     environment:
-      - MANAGER_PERSIST_TYPE=postgres
+      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
       - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
-      - MANAGER_MIGRATE_AUTO=true
+      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
       - MANAGER_MIGRATE_SOURCE=*embed*
-      - MANAGER_POLICIES_LANGUAGE=cedar
-      - MANAGER_POLICIES_STORE=/tmp/data/policies
+      - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
+      - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
-      - MANAGER_PIP_STORE=/tmp/data/data
+      - MANAGER_PIP_STORE=/tmp/data/data          # local (design-time) data used by local policies.
       - MANAGER_PIP_STORE_RECURSE=true
-      - MANAGER_TAGS_PATH=/tmp/data/tags
-      - MANAGER_AUTHENTICATION_TYPE=none
-      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles
+      - MANAGER_TAGS_PATH=/tmp/data/tags          # tags for the managed policies and data.
+      - MANAGER_AUTHENTICATION_TYPE=none          # local authentication type.
+      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
     depends_on:
@@ -78,16 +78,12 @@ services:
     ports:
       - "9004:8443"
     environment:
-      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:8443/v1/bundle/pdp1
+      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:8443/v1/bundle/pdp1  # bundle retrieval.
       - PDP_BUNDLE_ENCODING=bzip2
       - PDP_BUNDLE_TIMEOUT=30s
       - PDP_BUNDLE_RETRIES=5
-      - PDP_POLICIES_LANGUAGE=cedar
-      - PDP_POLICIES_STORE=/tmp/data/policies
-      - PDP_POLICIES_STORE_RECURSE=true
-      - PDP_PIP_STORE=/tmp/data/data
-      - PDP_PIP_STORE_RECURSE=true
-      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml
+      - PDP_POLICIES_LANGUAGE=cedar                                     # policy language.
+      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml          # runtime data retrieval.
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -96,7 +92,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8443/livez"]
       interval: 4s
       timeout: 10s
       retries: 5
