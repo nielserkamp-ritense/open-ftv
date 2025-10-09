@@ -39,9 +39,9 @@ func (s *service) initAuth(svc *fiber.App) {
 	authZenV1 := authZen.Group(handle.PathV1)
 	authZenV1.Post(handle.PathEvaluation, s.auth.zen.Evaluation)
 	authZenV1.Post(handle.PathEvaluations, s.auth.zen.Evaluations)
-	// authZenV1.Post(handle.PathSearchSubject, s.auth.zen.SearchSubject)
-	// authZenV1.Post(handle.PathSearchAction, s.auth.zen.SearchAction)
-	// authZenV1.Post(handle.PathSearchResource, s.auth.zen.SearchResource)
+	authZenV1.Post(handle.PathSearchSubject, s.auth.zen.SearchSubject)
+	authZenV1.Post(handle.PathSearchAction, s.auth.zen.SearchAction)
+	authZenV1.Post(handle.PathSearchResource, s.auth.zen.SearchResource)
 	authZenV1.Get(handle.PathMetadata, s.auth.zen.Metadata)
 
 	// Metadata also available on /.well-known/authzen-configuration.

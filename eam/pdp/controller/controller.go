@@ -1,4 +1,4 @@
-// Package pdp contains the base logic for a component acting as a Policy Decision Point.
+// Package controller contains the base logic for a component acting as a Policy Decision Point.
 package controller
 
 import (
@@ -15,22 +15,27 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
+type Evaluator interface {
+	Authorize(uid string, req *models.PARC) (*models.Response, error) // must be implemented by the PDP wrapper (/evaluation).
+	Batch(uid string, req *models.Batch) ([]models.Response, error)   // must be implemented by the PDP wrapper (/evaluations).
+}
+
 // Controller represents the interface for an EAM controller component,
 // which embeds a PDP-wrapper for authorization requests, along with a PAP, a PIP and an optional PEP.
 //
-// Each PDP-wrapper, in the language-specific submodules, must implement Controller.Authorize().
+// Each PDP-wrapper, in the language-specific submodules, must implement the Controller.Evaluator interface.
 // Each PDP-wrapper must also embed the Base struct to support all generic functions.
 type Controller interface {
-	Authorize(uid string, req *models.PARC) (*models.Response, error) // must be implemented by the PDP wrapper.
-	Batch(uid string, req *models.Batch) ([]models.Response, error)   // must be implemented by the PDP wrapper.
-	GetContext() context.Context                                      // implemented by Base.
-	GetLogger() *slog.Logger                                          // implemented by Base.
-	GetPEP() *pep.PEP                                                 // implemented by Base.
-	GetPAP() *pap.PAP                                                 // implemented by Base.
-	GetPIP() *pip.PIP                                                 // implemented by Base.
-	GetADL() *adl.ADL                                                 // implemented by Base.
-	PARCFromRequest(req *models.Request) *models.PARC                 // implemented by Base (requires the PEP).
-	NewBundle(bundle *bundles.Bundle) (uint64, error)                 // implemented by Base.
+	Evaluator
+	Search(uid string, req *models.PARC) ([]string, error) // implemented by Base.
+	GetContext() context.Context                           // implemented by Base.
+	GetLogger() *slog.Logger                               // implemented by Base.
+	GetPEP() *pep.PEP                                      // implemented by Base.
+	GetPAP() *pap.PAP                                      // implemented by Base.
+	GetPIP() *pip.PIP                                      // implemented by Base.
+	GetADL() *adl.ADL                                      // implemented by Base.
+	PARCFromRequest(req *models.Request) *models.PARC      // implemented by Base (requires the PEP).
+	NewBundle(bundle *bundles.Bundle) (uint64, error)      // implemented by Base.
 }
 
 // Base contains the common attributes of a controller.
@@ -45,6 +50,7 @@ type Base struct {
 	ADL           *adl.ADL
 	AuthMutex     *sync.RWMutex
 	BundleVersion uint64
+	Self          Evaluator
 	// hidden fields
 	fullName string
 	mappers  []mapping.Mapper

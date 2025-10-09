@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -14,12 +13,28 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
-func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
-	p.status = fiber.StatusBadRequest
+// Evaluation implements the AuthZENAuthorizer interface.
+func (h *AuthZENAuthorizer) Evaluation(fc *fiber.Ctx) error {
+	processHeaders(fc)
 
-	if req := p.fc.Request(); len(req.Header.ContentType()) == 0 {
-		req.Header.SetContentType(fiber.MIMEApplicationJSON)
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
+	defer finish()
+
+	req := p.verifyRequestAuthZEN()
+	if p.err != nil {
+		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
+		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
+	p.authReq = req
+
+	p.createRequestAuthZEN(req)
+	p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
+
+	return p.authorizeRequestAuthZEN()
+}
+
+func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
+	p.initVerification()
 
 	req := new(oas.EvaluationRequest)
 	if p.err = p.fc.BodyParser(req); p.err != nil {
@@ -64,13 +79,7 @@ func (p *authProcess) createRequestAuthZEN(req *oas.EvaluationRequest) {
 		ctx.AddAttributeKVWithType(models.AttrTime, time.Now().UTC(), xsd.PrefixDateTime)
 	}
 
-	p.reqUID = uuid.New().String()
-	p.parc = &models.PARC{
-		Principal: principal,
-		Action:    action,
-		Resource:  resource,
-		Context:   ctx,
-	}
+	p.parc = &models.PARC{Principal: principal, Action: action, Resource: resource, Context: ctx}
 }
 
 func (p *authProcess) authorizeRequestAuthZEN() error {
