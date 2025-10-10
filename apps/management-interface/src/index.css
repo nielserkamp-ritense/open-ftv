@@ -36,6 +36,7 @@
     --radius-2xl: 16px;
     --radius-3xl: 24px;
     --radius-full: 1000px;
+    --color-carrotnl-alert-icon-error-color: #D52B1E;
 
     /* Custom RHC stijlen */
     --spacing-rhc-space-300: 24px;
@@ -43,6 +44,8 @@
     --color-heading-primary: #F7E8E8;
     --color-rhc-color-cool-grey-900: #0F172A;
     --text-rhc-sidenav-link-font-size: 18px;
+    --color-rhc-color-feedback-info-default: #007BC7;
+    --color-rhc-color-feedback-error-subdued: #F9DFDD;
     --font-weight-rhc-sidenav-link-font-weight: 400;
     --color-rhc-sidenav-link-color: #0F172A;
     --color-rhc-sidenav-current-background-color: #D9EBF7;
@@ -88,5 +91,9 @@
     font-weight: 400;
     font-style: italic;
     font-display: swap;
+}
+
+.decision-denied {
+    background-color: var(--color-rhc-color-feedback-error-subdued);
 }
 

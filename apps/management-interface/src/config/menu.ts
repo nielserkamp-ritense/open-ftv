@@ -27,7 +27,7 @@ export const menuItems: MenuItem[] = [
   { href: '#', label: 'Test cases', icon: IconChecklist, disabled: true, section: 'top' },
   { href: '/attributen', label: 'Bronnen', icon: IconDatabase, section: 'top' },
   { href: '/regelingen', label: 'Regelingen', icon: IconSectionSign, disabled: true, section: 'top' },
-  { href: '#', label: 'Logboek', icon: IconLogs, disabled: true, section: 'top' },
+  { href: '/logboek', label: 'Logboek', icon: IconLogs, disabled: false, section: 'top' },
   { href: '#', label: 'Systeem', icon: IconSettings, disabled: true, section: 'top' },
   { href: '#', label: 'Ondersteuning', icon: IconHelpCircleFilled, section: 'bottom' },
   { href: '#', label: 'Nieuws', icon: IconNews, section: 'bottom' },

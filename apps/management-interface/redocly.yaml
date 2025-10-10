@@ -7,3 +7,7 @@ apis:
     root: ../../oas/attributes/openapi.yaml
     x-openapi-ts:
           output: ./src/oas/attributes.ts
+  authlog@v1:
+    root: ../../oas/authlog/openapi.yaml
+    x-openapi-ts:
+      output: ./src/oas/authlog.ts
