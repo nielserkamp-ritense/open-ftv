@@ -280,10 +280,33 @@ export interface components {
              */
             userId?: string;
         };
-        /** @description Metadata about how and where the object is used. */
+        /** @description Metadata about when and where the object is used. */
         UsageData: {
-            /** @description Deployment bundles the object is part of. */
-            bundles?: string[];
+            /**
+             * @description Code of the bundle the object was included in.
+             * @example pdp1
+             */
+            bundle?: string;
+            /**
+             * @description Version number of the deployment.
+             * @example 1
+             */
+            version?: number;
+            /**
+             * @description Timestamp the deployment was created (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created?: string;
+            /**
+             * @description User that created the deployment.
+             * @example alice@wonderland.cc
+             */
+            createdBy?: string;
+            /**
+             * @description Status of the deployment.
+             * @example completed
+             */
+            status?: string;
         };
         Attributes: components["schemas"]["Attribute"][];
         /** @description The content of an attribute (key/value pair). */
@@ -319,7 +342,8 @@ export interface components {
             audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the attribute. */
             auditLog?: components["schemas"]["AuditEntry"][];
-            usageData?: components["schemas"]["UsageData"];
+            /** @description Usage data for the policy. */
+            usageData?: components["schemas"]["UsageData"][];
         };
         Entities: components["schemas"]["Entity"][];
         /** @description The content of an entity.
@@ -343,7 +367,8 @@ export interface components {
             audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the entity. */
             auditLog?: components["schemas"]["AuditEntry"][];
-            usageData?: components["schemas"]["UsageData"];
+            /** @description Usage data for the policy. */
+            usageData?: components["schemas"]["UsageData"][];
         };
         Relations: components["schemas"]["Relation"][];
         /** @description The content of a relation.
@@ -352,7 +377,7 @@ export interface components {
          *      */
         Relation: {
             /**
-             * @description The unique identifier of the relation.
+             * @description The unique identifier of the relation (UUID).
              * @example <uuid>
              */
             id: string;
@@ -387,7 +412,8 @@ export interface components {
             audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the relation. */
             auditLog?: components["schemas"]["AuditEntry"][];
-            usageData?: components["schemas"]["UsageData"];
+            /** @description Usage data for the policy. */
+            usageData?: components["schemas"]["UsageData"][];
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {

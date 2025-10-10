@@ -70,7 +70,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description Unique identifier of a policy.
+                 * @description Unique identifier of a policy (UUID).
                  * @example b4911124-e92a-482f-80b4-eb02383378ae
                  */
                 id: components["parameters"]["PolicyID"];
@@ -173,7 +173,7 @@ export interface components {
              */
             created?: string;
             /**
-             * @description Operation performed on the object. Any of ["CREATE", "UPDATE", "DELETE"].
+             * @description Operation performed on the object. Any of ["C", "U", "D"].
              * @example C
              */
             operation: string;
@@ -183,10 +183,33 @@ export interface components {
              */
             user: string;
         };
-        /** @description Metadata about how and where the policy is used. */
+        /** @description Metadata about when and where the object is used. */
         UsageData: {
-            /** @description Bundles the policy is used by. */
-            bundles?: string[];
+            /**
+             * @description Code of the bundle the object was included in.
+             * @example pdp1
+             */
+            bundle?: string;
+            /**
+             * @description Version number of the deployment.
+             * @example 1
+             */
+            version?: number;
+            /**
+             * @description Timestamp the deployment was created (RFC3339 format).
+             * @example 2025-08-15T07:53:41.493415Z
+             */
+            created?: string;
+            /**
+             * @description User that created the deployment.
+             * @example alice@wonderland.cc
+             */
+            createdBy?: string;
+            /**
+             * @description Status of the deployment.
+             * @example completed
+             */
+            status?: string;
         };
         Languages: components["schemas"]["Language"][];
         /** @description The details of a policy language. */
@@ -201,8 +224,10 @@ export interface components {
              * @example Open Policy Agent - REGO language
              */
             name: string;
+            /** @description Detailed description of the policy language. */
+            description?: string;
             audit: components["schemas"]["ObjectAudit"];
-            /** @description Audit log for the tag. */
+            /** @description Audit log for the policy language. */
             auditLog?: components["schemas"]["AuditEntry"][];
         };
         Tags: components["schemas"]["Tag"][];
@@ -228,8 +253,8 @@ export interface components {
         /** @description The content of a policy. */
         Policy: {
             /**
-             * @description The unique identifier of the policy.
-             * @example <uuid>
+             * @description The unique identifier of the policy (UUID).
+             * @example e8fce68e-beb6-494f-b6c1-9b0f8f6cac56
              */
             id: string;
             /**
@@ -266,7 +291,8 @@ export interface components {
             audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the policy. */
             auditLog?: components["schemas"]["AuditEntry"][];
-            usageData?: components["schemas"]["UsageData"];
+            /** @description Usage data for the policy. */
+            usageData?: components["schemas"]["UsageData"][];
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
@@ -432,7 +458,7 @@ export interface components {
     };
     parameters: {
         /**
-         * @description Unique identifier of a policy.
+         * @description Unique identifier of a policy (UUID).
          * @example b4911124-e92a-482f-80b4-eb02383378ae
          */
         PolicyID: string;
@@ -507,7 +533,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description Unique identifier of a policy.
+                 * @description Unique identifier of a policy (UUID).
                  * @example b4911124-e92a-482f-80b4-eb02383378ae
                  */
                 id: components["parameters"]["PolicyID"];
@@ -536,7 +562,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description Unique identifier of a policy.
+                 * @description Unique identifier of a policy (UUID).
                  * @example b4911124-e92a-482f-80b4-eb02383378ae
                  */
                 id: components["parameters"]["PolicyID"];
@@ -570,7 +596,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description Unique identifier of a policy.
+                 * @description Unique identifier of a policy (UUID).
                  * @example b4911124-e92a-482f-80b4-eb02383378ae
                  */
                 id: components["parameters"]["PolicyID"];
@@ -604,7 +630,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description Unique identifier of a policy.
+                 * @description Unique identifier of a policy (UUID).
                  * @example b4911124-e92a-482f-80b4-eb02383378ae
                  */
                 id: components["parameters"]["PolicyID"];

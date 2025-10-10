@@ -64,7 +64,7 @@ function RouteComponent() {
                                 const key = attribute.key;
                                 const type = attribute.type ?? '-';
                                 const source = attribute.metadata?.tags ?? '-';
-                                const usageCount = attribute.usageData?.bundles?.length ?? 0;
+                                const usageCount = attribute.usageData?.reduce((sum, x) => sum + (x.bundle?.length ?? 0), 0);
                                 const lastSync = attribute.audit?.updated ?? attribute.audit?.created ?? '-';
                                 return (
                                     <TableRow className={"h-20"} key={key} title={`Attribute ${key}`}>
