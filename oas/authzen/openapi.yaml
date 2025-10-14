@@ -564,16 +564,36 @@ components:
           type: object
           description: Implementation-specific pagination response attributes.
 
+    SearchEntity:
+      type: object
+      description: |
+        An entity (subject or resource) associated with a search request.
+        This means the id can be empty.
+      properties:
+        type:
+          type: string
+          description: The type of the search entity.
+          example: "user"
+        id:
+          type: string
+          description: The unique ID of the search entity.
+          example: "alice"
+        properties:
+          type: object
+          description: Optional attributes for the search entity.
+      required:
+        - type
+
     SearchObject:
       type: object
       description: Search object model.
       properties:
         subject:
-          $ref: "#/components/schemas/Entity"
+          $ref: "#/components/schemas/SearchEntity"
         action:
           $ref: "#/components/schemas/Action"
         resource:
-          $ref: "#/components/schemas/Entity"
+          $ref: "#/components/schemas/SearchEntity"
         context:
           description: Optional context of the request.
           type: object

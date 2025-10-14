@@ -220,6 +220,19 @@ type SearchActionResults struct {
 	Results []SearchActionResult `json:"results"`
 }
 
+// SearchEntity An entity (subject or resource) associated with a search request.
+// This means the id can be empty.
+type SearchEntity struct {
+	// Id The unique ID of the search entity.
+	Id string `json:"id,omitempty"`
+
+	// Properties Optional attributes for the search entity.
+	Properties map[string]interface{} `json:"properties,omitempty"`
+
+	// Type The type of the search entity.
+	Type string `json:"type"`
+}
+
 // SearchObject Search object model.
 type SearchObject struct {
 	// Action The action associated with an authorization request.
@@ -231,13 +244,13 @@ type SearchObject struct {
 	// Page Pagination options.
 	Page PageRequest `json:"page,omitempty"`
 
-	// Resource The entity associated with an authorization request.
-	// This can be the subject (e.g. principal) or the resource.
-	Resource Entity `json:"resource"`
+	// Resource An entity (subject or resource) associated with a search request.
+	// This means the id can be empty.
+	Resource SearchEntity `json:"resource"`
 
-	// Subject The entity associated with an authorization request.
-	// This can be the subject (e.g. principal) or the resource.
-	Subject Entity `json:"subject"`
+	// Subject An entity (subject or resource) associated with a search request.
+	// This means the id can be empty.
+	Subject SearchEntity `json:"subject"`
 }
 
 // SearchResult Search result model.

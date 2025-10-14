@@ -61,7 +61,7 @@ func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
 	}
 	p.authReq = req
 
-	p.createSearchAuthZEN(&req.Subject, &req.Resource, &oas.Action{}, req.Context)
+	p.createSearchAuthZEN(oas.EntityToSearch(&req.Subject), oas.EntityToSearch(&req.Resource), &oas.Action{}, req.Context)
 	p.logger.Debug("AuthZEN action search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -158,7 +158,7 @@ func (p *authProcess) verifyActionSearchAuthZEN() *oas.SearchActionRequest {
 	return req
 }
 
-func (p *authProcess) createSearchAuthZEN(subject, resource *oas.Entity, action *oas.Action, ctx map[string]any) {
+func (p *authProcess) createSearchAuthZEN(subject, resource *oas.SearchEntity, action *oas.Action, ctx map[string]any) {
 	p.parc = &models.PARC{
 		Principal: models.NewEntity(subject.Type, subject.Id, models.NewAttributeSet(subject.Properties)),
 		Action:    models.NewEntity(models.EntityTypeName, action.Name, models.NewAttributeSet(action.Properties)),
