@@ -177,17 +177,17 @@ func criteriaMatch(criteria *search.Criteria, values []any) bool {
 }
 
 func evaluationMatch(criteria *search.Criteria, request *authzen.EvaluationRequest) bool {
-	return sarMatch(criteria, request.Subject, request.Resource, request.Action)
+	return sarMatch(criteria, &request.Subject, &request.Resource, &request.Action)
 }
 
 func evaluationsMatch(criteria *search.Criteria, request *authzen.EvaluationsRequest) bool {
-	if sarMatch(criteria, request.Subject, request.Resource, request.Action) {
+	if sarMatch(criteria, &request.Subject, &request.Resource, &request.Action) {
 		return true
 	}
 
 	for i := range request.Evaluations {
 		e := &request.Evaluations[i]
-		if sarMatch(criteria, e.Subject, e.Resource, e.Action) {
+		if sarMatch(criteria, &e.Subject, &e.Resource, &e.Action) {
 			return true
 		}
 	}
@@ -196,14 +196,14 @@ func evaluationsMatch(criteria *search.Criteria, request *authzen.EvaluationsReq
 }
 
 func searchMatch(criteria *search.Criteria, request *authzen.SearchRequest) bool {
-	return sarMatch(criteria, request.Subject, request.Resource, request.Action)
+	return sarMatch(criteria, authzen.EntityFromSearch(&request.Subject), authzen.EntityFromSearch(&request.Resource), &request.Action)
 }
 
 func searchActionMatch(criteria *search.Criteria, request *authzen.SearchActionRequest) bool {
-	return sarMatch(criteria, request.Subject, request.Resource, authzen.Action{})
+	return sarMatch(criteria, &request.Subject, &request.Resource, &authzen.Action{})
 }
 
-func sarMatch(criteria *search.Criteria, subject, resource authzen.Entity, action authzen.Action) bool {
+func sarMatch(criteria *search.Criteria, subject, resource *authzen.Entity, action *authzen.Action) bool {
 	return (criteria.SubjectType == "" || subject.Type == criteria.SubjectType) &&
 		(criteria.SubjectId == "" || subject.Id == criteria.SubjectId) &&
 		(criteria.ActionName == "" || action.Name == criteria.ActionName) &&

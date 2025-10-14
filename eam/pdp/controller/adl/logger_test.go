@@ -195,9 +195,9 @@ func TestADL_SearchSubject(t *testing.T) {
 				WithInformation(map[string]any{"x": "hello world", "y": true, "z": 18}),
 			},
 			req: oas.SearchRequest{
-				Subject:  oas.Entity{Type: "gebruiker", Id: "0012"},
+				Subject:  oas.SearchEntity{Type: "gebruiker", Id: "0012"},
 				Action:   oas.Action{Name: "GET"},
-				Resource: oas.Entity{Type: "document", Id: "news.pdf"},
+				Resource: oas.SearchEntity{Type: "document", Id: "news.pdf"},
 			},
 			resp:    oas.SearchResponse{Results: []oas.SearchResult{{Type: "user", Id: "12"}}},
 			traceID: "12345678123456781234567812345678",
