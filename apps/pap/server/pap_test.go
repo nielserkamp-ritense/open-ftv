@@ -97,7 +97,7 @@ func TestNewPAP(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelWarn)
 			logger := slog.New(h)
 
-			s := &service{
+			s := &Services{
 				ctx: ctx,
 				cfg: &config.Config{
 					PAP: config2.PAP{

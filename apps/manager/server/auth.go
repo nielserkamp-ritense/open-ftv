@@ -23,7 +23,7 @@ type AuthHandler interface {
 	Authorizer() authorization.Authorizer
 }
 
-func (s *service) newAuth() AuthHandler {
+func (s *Services) newAuth() AuthHandler {
 	controller, p1, err := s.newController()
 	if controller == nil {
 		s.logger.Error("failed to initialize EAM controller", "error", err)
@@ -50,7 +50,7 @@ func (s *service) newAuth() AuthHandler {
 	}
 }
 
-func (s *service) newController() (pdp.Controller, *pip.PIP, error) {
+func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 	ep := pep.New(s.ctx, s.logger)
 
 	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)

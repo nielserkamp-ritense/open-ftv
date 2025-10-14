@@ -7,7 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
 
-func (s *service) newPIP() (*pip.PIP, error) {
+func (s *Services) newPIP() (*pip.PIP, error) {
 	opts := make([]pip.Option, 0)
 	isPG := strings.EqualFold(s.cfg.Persist.Type, "postgres")
 

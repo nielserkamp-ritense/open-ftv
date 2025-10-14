@@ -9,8 +9,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
+// initMainRoutes sets up the routing table for HTTP requests.
+func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
@@ -19,21 +19,10 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize authorization handler")
 	}
 
-	v1 := svc.Group(handle.PathV1)
-
-	s.initHealth(svc)
 	s.initAuth(svc)
-	s.initBundles(v1)
 }
 
-func (s *service) initHealth(svc *fiber.App) {
-	// liveness and readiness.
-	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
-	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
-	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
-}
-
-func (s *service) initAuth(svc *fiber.App) {
+func (s *Services) initAuth(svc *fiber.App) {
 	// AuthZEN
 	authZen := svc.Group(handle.PathAuthZEN)
 	authZenV1 := authZen.Group(handle.PathV1)
@@ -49,8 +38,11 @@ func (s *service) initAuth(svc *fiber.App) {
 	wellKnown.Get(handle.PathAuthZenConfig, s.auth.zen.Metadata)
 }
 
-func (s *service) initBundles(v1 fiber.Router) {
+// initBundleRoutes sets up the routing table for bundles requests.
+func (s *Services) initBundlesRoutes(_ context.Context, svc *fiber.App) {
 	handler := handle.NewBundleReceiverHandler(s.logger, s.auth.controller, s.auth.authorizer)
+
+	v1 := svc.Group(handle.PathV1)
 	v1.Post(handle.PathBundle, handler.PostBundle)
 
 	if url := s.cfg.PDP.BundleManager; url != "" {
@@ -60,7 +52,7 @@ func (s *service) initBundles(v1 fiber.Router) {
 	}
 }
 
-func (s *service) bundleRetriever(url string, handler *handle.BundleReceiverHandler) {
+func (s *Services) bundleRetriever(url string, handler *handle.BundleReceiverHandler) {
 	s.logger.Info("retrieving latest bundle from manager", "url", url)
 
 	for {
@@ -82,4 +74,12 @@ func (s *service) bundleRetriever(url string, handler *handle.BundleReceiverHand
 	}
 
 	s.chk.SetReady(true) // now we can handle requests!
+}
+
+// initHealthRoutes sets up the routing table for health requests.
+func (s *Services) initHealthRoutes(_ context.Context, svc *fiber.App) {
+	// liveness and readiness.
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ).
+		Get(handle.PathLiveZ, s.chk.HealthZ).
+		Get(handle.PathReadyZ, s.chk.HealthZ)
 }

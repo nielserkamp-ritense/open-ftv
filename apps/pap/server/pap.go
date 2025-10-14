@@ -8,7 +8,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-func (s *service) newPAP() (*pap.PAP, error) {
+func (s *Services) newPAP() (*pap.PAP, error) {
 	opts := []pap.Option{pap.WithLanguage(s.l.Language())}
 	isPG := strings.EqualFold(s.cfg.Persist.Type, "postgres")
 

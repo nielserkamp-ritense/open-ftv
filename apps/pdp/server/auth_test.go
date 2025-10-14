@@ -61,7 +61,7 @@ func TestNew(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			s := &service{ctx: context.Background(), cfg: tc.cfg, logger: logger, l: models.LanguageFromString(tc.cfg.PAP.Language)}
+			s := &Services{ctx: context.Background(), cfg: tc.cfg, logger: logger, l: models.LanguageFromString(tc.cfg.PAP.Language)}
 
 			auth := s.newAuth("")
 			if tc.wantFail {

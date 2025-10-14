@@ -2,8 +2,6 @@
 package config
 
 import (
-	"context"
-	"fmt"
 	"log/slog"
 	"os"
 
@@ -11,12 +9,11 @@ import (
 	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
-	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "OpenFTV PDP 1.0"
+	AppName   = "OpenFTV PDP 2.0"
 	envPrefix = "PDP_"
 	cfg1      = "/etc/pdp/config.yaml"
 	cfg2      = "./etc/pdp.yaml"
@@ -27,11 +24,6 @@ const (
 func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	fail := func(msg string, err error) {
-		logger.Error(msg, "error", err)
-		panic(fmt.Errorf("%s: %w", msg, err).Error())
-	}
 
 	// put fixed and custom configuration options in appropriate order.
 	opts = append(
@@ -46,35 +38,34 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 		config.NoHelpOnError(),
 	)
 
-	// perform initial loading to prefetch logger variables, ignoring the error.
-	_ = config.LoadConfig(cfg, opts...)
+	logger = config2.Load(cfg, opts...)
 
-	// initialize the logger.
-	if l, err := util.Init(cfg.Log.Output, cfg.Log.Format, cfg.Log.Level, cfg.Log.Source); err != nil {
-		fail("failed to initialize logger", err)
-	} else {
-		logger = l
+	if cfg.InternalHost == "" {
+		cfg.InternalHost = cfg.Host
 	}
-
-	// perform second loading for error checking!
-	if err := config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
-		fail("failed to load configuration", err)
-	}
-
-	if logger.Enabled(context.TODO(), slog.LevelInfo) {
-		sanitized := *cfg
-		sanitized.OpenSearch = *sanitized.OpenSearch.Sanitized()
-		sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
-		sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
-		logger.Info("configuration loaded successfully", "config", sanitized)
+	if cfg.HealthHost == "" {
+		cfg.HealthHost = cfg.Host
 	}
 
 	return cfg, logger
 }
 
+// LogSanitized implements the config.Printer interface.
+func (c *Config) LogSanitized(logger *slog.Logger) {
+	logger.Info(AppName)
+
+	sanitized := *c
+	sanitized.OpenSearch = *sanitized.OpenSearch.Sanitized()
+	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
+	sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
+	logger.Info("configuration loaded successfully", "config", sanitized)
+}
+
 // Config represents our configuration variables.
 type Config struct {
 	config2.ServerApp
+	config2.InternalServer
+	config2.HealthServer
 	config2.PDP
 	config2.PIP
 	config2.PAP
