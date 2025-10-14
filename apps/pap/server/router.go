@@ -11,8 +11,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
+// initMainRoutes sets up the routing table for HTTP requests.
+func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
@@ -26,34 +26,21 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize PAP handler")
 	}
 
-	s.initHealth(svc)
-
-	// API v1.
 	v1 := svc.Group(handle.PathV1)
 	s.initLanguages(v1)
 	s.initTags(v1)
 	s.initPolicies(v1)
-
-	if s.cfg.BundlePath != "" {
-		s.initBundles(v1)
-	}
+	s.initDeployments(v1)
 }
 
-func (s *service) initHealth(svc *fiber.App) {
-	// liveness and readiness.
-	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
-	svc.Get(handle.PathLiveZ, s.chk.HealthZ)
-	svc.Get(handle.PathReadyZ, s.chk.HealthZ)
-}
-
-func (s *service) initLanguages(group fiber.Router) {
+func (s *Services) initLanguages(group fiber.Router) {
 	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// languages CRUD.
 	group.Get(handle.PathLanguages, apis.GetLanguages)
 }
 
-func (s *service) initTags(group fiber.Router) {
+func (s *Services) initTags(group fiber.Router) {
 	if tags := s.cfg.Tags(); len(tags) > 0 {
 		if err := s.pap.LoadTags(tags); err != nil {
 			s.logger.Error("failed to load tags", "error", err.Error())
@@ -72,7 +59,7 @@ func (s *service) initTags(group fiber.Router) {
 		Delete(handle.PathTag, apis.DeleteTag)
 }
 
-func (s *service) initPolicies(group fiber.Router) {
+func (s *Services) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
@@ -83,8 +70,8 @@ func (s *service) initPolicies(group fiber.Router) {
 		Delete(handle.PathPolicy, apis.DeletePolicy)
 }
 
-func (s *service) initBundles(group fiber.Router) {
-	manager := bundles.NewManager(
+func (s *Services) initDeployments(group fiber.Router) {
+	s.bundleManager = bundles.NewManager(
 		s.ctx,
 		s.logger,
 		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
@@ -94,18 +81,34 @@ func (s *service) initBundles(group fiber.Router) {
 		bundles.BundleTimeout(s.cfg.BundleTimeout),
 	)
 
-	apis := handle.NewBundlesHandler(s.logger, s.pap, manager, s.auth.Authorizer())
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
 
 	// restart the last interrupted bundle deployment run if needed.
-	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(manager) })
+	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(s.bundleManager) })
 
-	// bundles CRUD.
+	// deployments CRUD.
 	group.Get(handle.PathStatuses, apis.GetStatuses).
 		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
 		Get(handle.PathConfigs, apis.GetConfigs).
 		Get(handle.PathDeployments, apis.GetDeployments).
 		Get(handle.PathLastDeployment, apis.GetLastDeployment).
 		Get(handle.PathDeploymentID, apis.GetDeployment).
-		Post(handle.PathDeployment, apis.PostDeployment).
-		Get(handle.PathBundle, apis.GetBundle)
+		Post(handle.PathDeployment, apis.PostDeployment)
+}
+
+// initBundleRoutes sets up the routing table for bundle retrieval requests.
+func (s *Services) initBundleRoutes(_ context.Context, svc *fiber.App) {
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
+
+	// bundle retrieval for PDPs.
+	v1 := svc.Group(handle.PathV1)
+	v1.Get(handle.PathBundle, apis.GetBundle)
+}
+
+// initHealthRoutes sets up the routing table for health requests.
+func (s *Services) initHealthRoutes(_ context.Context, svc *fiber.App) {
+	// liveness and readiness.
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ).
+		Get(handle.PathLiveZ, s.chk.HealthZ).
+		Get(handle.PathReadyZ, s.chk.HealthZ)
 }

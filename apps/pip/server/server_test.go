@@ -46,7 +46,7 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s := NewServices(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -91,7 +91,7 @@ func TestServe_FailPDP(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		_ = NewService(cfg, logger)
+		_ = NewServices(cfg, logger)
 
 		require.True(t, false) // should never trigger
 	})
@@ -120,7 +120,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 		}
 
-		s := NewService(cfg, logger)
+		s := NewServices(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)

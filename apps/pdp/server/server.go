@@ -4,6 +4,7 @@ package server
 import (
 	"context"
 	"log/slog"
+	"sync"
 
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -14,36 +15,103 @@ import (
 )
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
-func NewService(cfg *config.Config, logger *slog.Logger) server.Service {
-	s := &service{cfg: cfg, logger: logger, chk: handle.NewChecks()}
+func NewService(cfg *config.Config, logger *slog.Logger) *Services {
+	s := &Services{cfg: cfg, logger: logger, chk: handle.NewChecks()}
 
 	s.chk.SetHealth(true)
 	s.chk.SetAlive(true)
 	s.chk.SetReady(false) // wait for latest bundle first!
 
-	s.Service = fiber.New(
-		logger,
-		s.initRoutes,
+	// main service
+	opts := []server.Option{
 		server.WithDefaults(),
-		server.WithHostPort(cfg.Server.Host, cfg.Server.Port),
+		server.WithHostPort(cfg.Host, cfg.Port),
 		server.WithAppName(config.AppName),
-		server.WithTLS(cfg.Server.CA, cfg.Server.Cert, cfg.Server.Key),
-		server.WithTimeouts(cfg.Server.ReadTimeout, cfg.Server.WriteTimeout, cfg.Server.IdleTimeout),
-		server.WithMaxBody(cfg.Server.MaxBody),
+		server.WithSvcName("main"),
+		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
+		server.WithMaxBody(cfg.MaxBody),
 		server.WithRecovery(),
 		server.WithSecurity(),
 		server.WithCORS(cfg.CorsOrigins, cfg.CorsHeaders),
+	}
+
+	if cfg.Cert != "" && cfg.Key != "" {
+		opts = append(opts, server.WithTLS(cfg.CA, cfg.Cert, cfg.Key))
+	}
+	if cfg.CA != "" {
+		opts = append(opts, server.WithMutualTLS())
+	}
+
+	s.main = fiber.New(logger, s.initMainRoutes, opts...)
+
+	// internal service (bundles)
+	opts = []server.Option{
+		server.WithDefaults(),
+		server.WithHostPort(cfg.InternalHost, cfg.InternalPort),
+		server.WithAppName(config.AppName),
+		server.WithSvcName("internal"),
+		server.WithTimeouts(cfg.InternalRead, cfg.InternalWrite, cfg.InternalIdle),
+		server.WithMaxBody(cfg.InternalMaxBody),
+		server.WithRecovery(),
+		server.WithSecurity(),
+		server.WithCORS(cfg.InternalOrigins, cfg.InternalHeaders),
+	}
+
+	if cfg.Cert != "" && cfg.Key != "" {
+		opts = append(opts, server.WithTLS(cfg.InternalCA, cfg.InternalCert, cfg.InternalKey))
+	}
+	if cfg.CA != "" {
+		opts = append(opts, server.WithMutualTLS())
+	}
+
+	s.bundles = fiber.New(logger, s.initBundlesRoutes, opts...)
+
+	// health service
+	s.health = fiber.New(
+		logger,
+		s.initHealthRoutes,
+		server.WithDefaults(),
+		server.WithHostPort(cfg.HealthHost, cfg.HealthPort),
+		server.WithAppName(config.AppName),
+		server.WithSvcName("health"),
+		server.WithTimeouts(cfg.HealthRead, cfg.HealthWrite, cfg.HealthIdle),
+		server.WithMaxBody(cfg.HealthMaxBody),
+		server.WithRecovery(),
+		server.WithSecurity(),
+		server.WithCORS(cfg.HealthOrigins, cfg.HealthHeaders),
 	)
 
 	return s
 }
 
-type service struct {
-	server.Service
-	ctx    context.Context
-	cfg    *config.Config
-	logger *slog.Logger
-	l      models.Language
-	auth   *authHandler
-	chk    *handle.Checks
+// Serve activates the HTTP(S) services.
+func (s *Services) Serve() {
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	go s.bundles.ServeWithWG(&wg)
+	go s.main.ServeWithWG(&wg)
+	go s.health.ServeWithWG(&wg)
+
+	wg.Wait()
+}
+
+// Shutdown shuts down the HTTP(S) services.
+func (s *Services) Shutdown() {
+	s.health.Shutdown()
+	s.main.Shutdown()
+	s.bundles.Shutdown()
+}
+
+// Services contains the details of the HTTP(S) services.
+type Services struct {
+	ctx     context.Context
+	logger  *slog.Logger
+	cfg     *config.Config
+	l       models.Language
+	main    server.Service
+	bundles server.Service
+	health  server.Service
+	auth    *authHandler
+	chk     *handle.Checks
 }

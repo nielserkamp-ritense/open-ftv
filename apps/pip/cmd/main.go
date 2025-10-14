@@ -8,5 +8,5 @@ import (
 
 func main() {
 	cfg, logger := config.New()
-	server.NewService(cfg, logger).Serve()
+	server.NewServices(cfg, logger).Serve()
 }

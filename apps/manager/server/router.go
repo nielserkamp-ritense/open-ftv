@@ -16,13 +16,13 @@ import (
 )
 
 // initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
+func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
 	s.auth = s.newAuth()
 	if s.auth == nil {
-		panic("failed to initialize authorization handler")
+		panic("failed to initialize authorization manager")
 	}
 
 	var isPG bool
@@ -44,15 +44,13 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	// initialize the PAP before the PIP, so database migrations happen before all else.
 	if s.pap, err = s.newPAP(); err != nil {
-		panic("failed to initialize PAP handler")
+		panic("failed to initialize PAP")
 	}
 
 	s.pip = s.newPIP()
 	if s.pip == nil {
-		panic("failed to initialize PIP handler")
+		panic("failed to initialize PIP")
 	}
-
-	s.initHealth(svc)
 
 	// API v1.
 	v1 := svc.Group(handle.PathV1)
@@ -62,28 +60,18 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initAttributes(v1)
 	s.initEntities(v1)
 	s.initRelations(v1)
+	s.initDeployments(v1)
 	s.initADL(v1)
-
-	if s.cfg.BundlePath != "" {
-		s.initBundles(v1)
-	}
 }
 
-func (s *service) initHealth(svc *fiber.App) {
-	// health, liveness and readiness.
-	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
-	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
-	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
-}
-
-func (s *service) initLanguages(group fiber.Router) {
+func (s *Services) initLanguages(group fiber.Router) {
 	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// languages CRUD.
 	group.Get(handle.PathLanguages, apis.GetLanguages)
 }
 
-func (s *service) initTags(group fiber.Router) {
+func (s *Services) initTags(group fiber.Router) {
 	if tags := s.cfg.Tags(); len(tags) > 0 {
 		if err := s.pap.LoadTags(tags); err != nil {
 			s.logger.Error("failed to load tags", "error", err.Error())
@@ -102,7 +90,7 @@ func (s *service) initTags(group fiber.Router) {
 		Delete(handle.PathTag, apis.DeleteTag)
 }
 
-func (s *service) initPolicies(group fiber.Router) {
+func (s *Services) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
 	// policies CRUD.
@@ -113,7 +101,7 @@ func (s *service) initPolicies(group fiber.Router) {
 		Delete(handle.PathPolicy, apis.DeletePolicy)
 }
 
-func (s *service) initAttributes(group fiber.Router) {
+func (s *Services) initAttributes(group fiber.Router) {
 	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// attributes CRUD.
@@ -124,7 +112,7 @@ func (s *service) initAttributes(group fiber.Router) {
 		Delete(handle.PathAttribute, apis.DeleteAttribute)
 }
 
-func (s *service) initEntities(group fiber.Router) {
+func (s *Services) initEntities(group fiber.Router) {
 	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// entities CRUD.
@@ -135,7 +123,7 @@ func (s *service) initEntities(group fiber.Router) {
 		Delete(handle.PathEntity, apis.DeleteEntity)
 }
 
-func (s *service) initRelations(_ fiber.Router) {
+func (s *Services) initRelations(_ fiber.Router) {
 	// apis := handle.NewRelationsHandler(s.logger, s.pip, s.auth.Authorizer())
 	//
 	// // relations CRUD.
@@ -146,7 +134,36 @@ func (s *service) initRelations(_ fiber.Router) {
 	//    Delete(handle.PathRelation, apis.DeleteRelation)
 }
 
-func (s *service) initADL(group fiber.Router) {
+func (s *Services) initDeployments(group fiber.Router) {
+	s.bundleManager = bundles.NewManager(
+		s.ctx,
+		s.logger,
+		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
+		bundles.WithPolicyLister(s.pap),
+		bundles.WithAttributeLister(s.pip),
+		bundles.WithEntityLister(s.pip),
+		// bundles.WithRelationLister(s.pip),
+		bundles.MaxWorkers(s.cfg.Workers),
+		bundles.WithStageDelay(s.cfg.StageDelay),
+		bundles.BundleTimeout(s.cfg.BundleTimeout),
+	)
+
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
+
+	// restart the last interrupted bundle deployment run if needed.
+	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(s.bundleManager) })
+
+	// deployments CRUD.
+	group.Get(handle.PathStatuses, apis.GetStatuses).
+		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
+		Get(handle.PathConfigs, apis.GetConfigs).
+		Get(handle.PathDeployments, apis.GetDeployments).
+		Get(handle.PathLastDeployment, apis.GetLastDeployment).
+		Get(handle.PathDeploymentID, apis.GetDeployment).
+		Post(handle.PathDeployment, apis.PostDeployment)
+}
+
+func (s *Services) initADL(group fiber.Router) {
 	cfg := s.cfg.DecisionLog
 
 	var searcher search.Searcher
@@ -170,32 +187,19 @@ func (s *service) initADL(group fiber.Router) {
 	grp2.Get(handle.PathEntries, adl.Search)
 }
 
-func (s *service) initBundles(group fiber.Router) {
-	manager := bundles.NewManager(
-		s.ctx,
-		s.logger,
-		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
-		bundles.WithPolicyLister(s.pap),
-		bundles.WithAttributeLister(s.pip),
-		bundles.WithEntityLister(s.pip),
-		// bundles.WithRelationLister(s.pip),
-		bundles.MaxWorkers(s.cfg.Workers),
-		bundles.WithStageDelay(s.cfg.StageDelay),
-		bundles.BundleTimeout(s.cfg.BundleTimeout),
-	)
+// initBundleRoutes sets up the routing table for bundle retrieval requests.
+func (s *Services) initBundleRoutes(_ context.Context, svc *fiber.App) {
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
 
-	apis := handle.NewBundlesHandler(s.logger, s.pap, manager, s.auth.Authorizer())
+	// bundle retrieval for PDPs.
+	v1 := svc.Group(handle.PathV1)
+	v1.Get(handle.PathBundleID, apis.GetBundle)
+}
 
-	// restart the last interrupted bundle deployment run if needed.
-	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(manager) })
-
-	// bundles CRUD.
-	group.Get(handle.PathStatuses, apis.GetStatuses).
-		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
-		Get(handle.PathConfigs, apis.GetConfigs).
-		Get(handle.PathDeployments, apis.GetDeployments).
-		Get(handle.PathLastDeployment, apis.GetLastDeployment).
-		Get(handle.PathDeploymentID, apis.GetDeployment).
-		Post(handle.PathDeployment, apis.PostDeployment).
-		Get(handle.PathBundleID, apis.GetBundle)
+// initHealthRoutes sets up the routing table for health requests.
+func (s *Services) initHealthRoutes(_ context.Context, svc *fiber.App) {
+	// liveness and readiness.
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ).
+		Get(handle.PathLiveZ, s.chk.HealthZ).
+		Get(handle.PathReadyZ, s.chk.HealthZ)
 }

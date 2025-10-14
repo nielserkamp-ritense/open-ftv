@@ -17,19 +17,19 @@ import (
 
 // Persist contains the configuration variables for various storage back-ends.
 type Persist struct {
-	Type            string        `yaml:"persist.type,omitempty" env:"PERSIST_TYPE" flag:"persist-type" desc:"Persistence backend type (etcd, consul, postgres)"`
-	Addresses       string        `yaml:"persist.addresses,omitempty" env:"PERSIST_ADDRESSES" flag:"persist-addresses" desc:"Persistence backend addresses"`
-	Base            string        `yaml:"persist.prefix,omitempty" env:"PERSIST_PREFIX" flag:"persist-prefix" desc:"Persistence backend key prefix"`
-	Timeout         time.Duration `yaml:"persist.timeout,omitempty" env:"PERSIST_TIMEOUT" flag:"persist-timeout" desc:"Persistence backend connection timeout"`
-	EtcdSync        time.Duration `yaml:"persist.etcd.sync,omitempty" env:"PERSIST_ETCD_SYNC" flag:"persist-etcd-sync" desc:"ETCD persistence backend sync period"`
-	EtcdUser        string        `yaml:"persist.etcd.user,omitempty" env:"PERSIST_ETCD_USER" flag:"persist-etcd-user" desc:"ETCD persistence backend user"`
-	EtcdPswd        string        `yaml:"persist.etcd.password,omitempty" env:"PERSIST_ETCD_PASSWORD" flag:"persist-etcd-password" desc:"ETCD persistence backend password"`
-	ConsulToken     string        `yaml:"persist.consul.token,omitempty" env:"PERSIST_CONSUL_TOKEN" flag:"persist-consul-token" desc:"Consul persistence backend token"`
-	ConsulNamespace string        `yaml:"persist.consul.namespace,omitempty" env:"PERSIST_CONSUL_NAMESPACE" flag:"persist-consul-namespace" desc:"Consul persistence backend namespace"`
-	PgURL           string        `yaml:"persist.postgres.url,omitempty" env:"PERSIST_POSTGRES_URL" flag:"persist-postgres-url" desc:"Postgres persistence server url"`
-	PgTable         string        `yaml:"persist.postgres.table,omitempty" env:"PERSIST_POSTGRES_TABLE" flag:"persist-postgres-table" desc:"Postgres persistence database table"`
-	PgMaxLife       time.Duration `yaml:"persist.postgres.connection.ttl,omitempty" env:"PERSIST_POSTGRES_CONN_TTL" flag:"persist-postgres-conn-ttl" default:"5m" desc:"Postgres persistence inactive connections time-to-live"`
-	PgMaxConn       int32         `yaml:"persist.postgres.connection.max,omitempty" env:"PERSIST_POSTGRES_CONN_MAX" flag:"persist-postgres-conn-max" default:"100" desc:"Postgres persistence maximum connections"`
+	Type            string        `json:"persistType,omitempty"      yaml:"persist.type,omitempty"                    env:"PERSIST_TYPE"              flag:"persist-type"              desc:"Persistence backend type (etcd, consul, postgres)"`
+	Addresses       string        `json:"persistAddress,omitempty"   yaml:"persist.addresses,omitempty"               env:"PERSIST_ADDRESSES"         flag:"persist-addresses"         desc:"Persistence backend addresses"`
+	Base            string        `json:"persistBase,omitempty"      yaml:"persist.prefix,omitempty"                  env:"PERSIST_PREFIX"            flag:"persist-prefix"            desc:"Persistence backend key prefix"`
+	Timeout         time.Duration `json:"persistTimeout,omitempty"   yaml:"persist.timeout,omitempty"                 env:"PERSIST_TIMEOUT"           flag:"persist-timeout"           desc:"Persistence backend connection timeout"`
+	EtcdSync        time.Duration `json:"persistEtcdSync,omitempty"  yaml:"persist.etcd.sync,omitempty"               env:"PERSIST_ETCD_SYNC"         flag:"persist-etcd-sync"         desc:"ETCD persistence backend sync period"`
+	EtcdUser        string        `json:"-"                          yaml:"persist.etcd.user,omitempty"               env:"PERSIST_ETCD_USER"         flag:"persist-etcd-user"         desc:"ETCD persistence backend user"`
+	EtcdPswd        string        `json:"-"                          yaml:"persist.etcd.password,omitempty"           env:"PERSIST_ETCD_PASSWORD"     flag:"persist-etcd-password"     desc:"ETCD persistence backend password"`
+	ConsulToken     string        `json:"-"                          yaml:"persist.consul.token,omitempty"            env:"PERSIST_CONSUL_TOKEN"      flag:"persist-consul-token"      desc:"Consul persistence backend token"`
+	ConsulNamespace string        `json:"persistConsulNS,omitempty"  yaml:"persist.consul.namespace,omitempty"        env:"PERSIST_CONSUL_NAMESPACE"  flag:"persist-consul-namespace"  desc:"Consul persistence backend namespace"`
+	PgURL           string        `json:"-"                          yaml:"persist.postgres.url,omitempty"            env:"PERSIST_POSTGRES_URL"      flag:"persist-postgres-url"      desc:"Postgres persistence server url"`
+	PgTable         string        `json:"persistPgTable,omitempty"   yaml:"persist.postgres.table,omitempty"          env:"PERSIST_POSTGRES_TABLE"    flag:"persist-postgres-table"    desc:"Postgres persistence database table"`
+	PgMaxLife       time.Duration `json:"persistPgMaxLife,omitempty" yaml:"persist.postgres.connection.ttl,omitempty" env:"PERSIST_POSTGRES_CONN_TTL" flag:"persist-postgres-conn-ttl" desc:"Postgres persistence inactive connections time-to-live" default:"5m"`
+	PgMaxConn       int32         `json:"persistPgMaxConn,omitempty" yaml:"persist.postgres.connection.max,omitempty" env:"PERSIST_POSTGRES_CONN_MAX" flag:"persist-postgres-conn-max" desc:"Postgres persistence maximum connections"               default:"100"`
 }
 
 // Sanitized returns the configuration variables where all sensitive data has been scrubbed.

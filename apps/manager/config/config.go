@@ -13,7 +13,7 @@ import (
 
 const (
 	// AppName defines the name and version of this application.
-	AppName   = "OpenFTV Manager 1.0"
+	AppName   = "OpenFTV Manager 2.0"
 	envPrefix = "MANAGER_"
 	cfg1      = "/etc/manager/default.conf"
 	cfg2      = "./etc/manager.yaml"
@@ -39,11 +39,21 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	)
 
 	logger = config2.Load(cfg, opts...)
+
+	if cfg.InternalHost == "" {
+		cfg.InternalHost = cfg.Host
+	}
+	if cfg.HealthHost == "" {
+		cfg.HealthHost = cfg.Host
+	}
+
 	return cfg, logger
 }
 
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
+	logger.Info(AppName)
+
 	sanitized := *c
 	sanitized.Persist = *sanitized.Persist.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
@@ -53,6 +63,8 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 // Config represents the full set of configuration variables.
 type Config struct {
 	config2.ServerApp
+	config2.InternalServer
+	config2.HealthServer
 	config2.PAP
 	config2.PIP
 	config2.Persist

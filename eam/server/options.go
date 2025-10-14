@@ -21,6 +21,13 @@ func WithAppName(appName string) Option {
 	}
 }
 
+// WithSvcName sets a name for the service.
+func WithSvcName(svcName string) Option {
+	return func(c *Config) {
+		c.SvcName = svcName
+	}
+}
+
 // WithHostPort sets the host and port for the service to listen on.
 func WithHostPort(host string, port uint16) Option {
 	return func(c *Config) {

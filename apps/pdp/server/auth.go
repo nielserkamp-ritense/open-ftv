@@ -34,7 +34,7 @@ type authHandler struct {
 	authorizer authorization.Authorizer    // UI & bundle authorization.
 }
 
-func (s *service) newAuth(basePath string) *authHandler {
+func (s *Services) newAuth(basePath string) *authHandler {
 	var err error
 
 	var decisionLog *adl.ADL
@@ -84,7 +84,7 @@ func (s *service) newAuth(basePath string) *authHandler {
 	}
 }
 
-func (s *service) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
+func (s *Services) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	ep := pep.New(s.ctx, s.logger)
 
 	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
@@ -121,7 +121,7 @@ func (s *service) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	}
 }
 
-func (s *service) newADL(lt string) (*adl.ADL, error) {
+func (s *Services) newADL(lt string) (*adl.ADL, error) {
 	cfg := s.cfg.DecisionLog
 	svc := cfg.Service
 	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(cfg.Timeout)}
@@ -160,7 +160,7 @@ func (s *service) newADL(lt string) (*adl.ADL, error) {
 	return adl.New(logger), nil
 }
 
-func (s *service) checkMigrations() error {
+func (s *Services) checkMigrations() error {
 	cfg := s.cfg.Migration
 	if cfg.Source == "" || (cfg.Steps == 0 && !cfg.Auto) {
 		return nil
@@ -168,7 +168,7 @@ func (s *service) checkMigrations() error {
 	return s.migrateADL(cfg.Source, cfg.Steps, cfg.Auto)
 }
 
-func (s *service) migrateADL(source string, steps int, auto bool) (err error) {
+func (s *Services) migrateADL(source string, steps int, auto bool) (err error) {
 	if auto {
 		steps = 0
 	}

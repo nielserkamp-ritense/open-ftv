@@ -10,7 +10,7 @@ import (
 
 // Authorization contains the configuration variables for API endpoints to authorize access for users and/or external processes.
 type Authorization struct {
-	Authenticate bool `yaml:"authorization.authenticate,omitempty" env:"AUTHORIZATION_AUTHENTICATE" flag:"authorization-authenticate" desc:"Indicates the authorization process must first authenticate the user an/or process"`
+	Authenticate bool `json:"forceAuthentication" yaml:"authorization.authenticate,omitempty" env:"AUTHORIZATION_AUTHENTICATE" flag:"authorization-authenticate" desc:"Indicates the authorization process must first authenticate the user an/or process"`
 }
 
 // NewAuthorizer instantiates a new authorizer using the given configuration.

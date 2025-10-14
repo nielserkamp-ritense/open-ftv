@@ -9,8 +9,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// initRoutes sets up the routing table for HTTP requests.
-func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
+// initMainRoutes sets up the routing table for main requests.
+func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
@@ -24,39 +24,38 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 		panic("failed to initialize PIP handler: " + err.Error())
 	}
 
-	s.initHealth(svc)
-
 	// API v1.
 	v1 := svc.Group(handle.PathV1)
 	s.initAttributes(v1)
 	s.initEntities(v1)
 }
 
-func (s *service) initHealth(svc *fiber.App) {
-	// liveness & readiness.
-	svc.Get(handle.PathHealthZ, s.chk.HealthZ)
-	svc.Get(handle.PathLiveZ, s.chk.LiveZ)
-	svc.Get(handle.PathReadyZ, s.chk.ReadyZ)
-}
-
-func (s *service) initAttributes(group fiber.Router) {
+func (s *Services) initAttributes(group fiber.Router) {
 	attributes := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// attributes CRUD.
-	group.Get(handle.PathAttributes, attributes.GetAttributes)
-	group.Get(handle.PathAttribute, attributes.GetAttribute)
-	group.Put(handle.PathAttribute, attributes.PutAttribute)
-	group.Post(handle.PathAttribute, attributes.PostAttribute)
-	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+	group.Get(handle.PathAttributes, attributes.GetAttributes).
+		Get(handle.PathAttribute, attributes.GetAttribute).
+		Put(handle.PathAttribute, attributes.PutAttribute).
+		Post(handle.PathAttribute, attributes.PostAttribute).
+		Delete(handle.PathAttribute, attributes.DeleteAttribute)
 }
 
-func (s *service) initEntities(group fiber.Router) {
+func (s *Services) initEntities(group fiber.Router) {
 	entities := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
 	// entities CRUD.
-	group.Get(handle.PathEntities, entities.GetEntities)
-	group.Get(handle.PathEntity, entities.GetEntity)
-	group.Put(handle.PathEntity, entities.PutEntity)
-	group.Post(handle.PathEntity, entities.PostEntity)
-	group.Delete(handle.PathEntity, entities.DeleteEntity)
+	group.Get(handle.PathEntities, entities.GetEntities).
+		Get(handle.PathEntity, entities.GetEntity).
+		Put(handle.PathEntity, entities.PutEntity).
+		Post(handle.PathEntity, entities.PostEntity).
+		Delete(handle.PathEntity, entities.DeleteEntity)
+}
+
+// initHealthRoutes sets up the routing table for health requests.
+func (s *Services) initHealthRoutes(_ context.Context, svc *fiber.App) {
+	// liveness & readiness.
+	svc.Get(handle.PathHealthZ, s.chk.HealthZ).
+		Get(handle.PathLiveZ, s.chk.LiveZ).
+		Get(handle.PathReadyZ, s.chk.ReadyZ)
 }

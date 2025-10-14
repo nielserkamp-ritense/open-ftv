@@ -18,7 +18,7 @@ import (
 // Router is the function signature for setting up the service endpoints and custom middleware.
 type Router func(ctx context.Context, svc *fiber.App)
 
-// New initializes an HTTP service (implemented with fiber and fasthttp).
+// New initializes an HTTP(S) service (implemented with fiber and fasthttp).
 func New(logger *slog.Logger, initRoutes Router, opts ...server.Option) server.Service {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -67,13 +67,20 @@ func (s *service) Logger() *slog.Logger {
 	return s.logger
 }
 
-// Serve runs the HTTP service.
+// Serve runs the HTTP(S) service.
 func (s *service) Serve() {
 	s.run()
 	s.cancel()
 }
 
-// Shutdown stops the HTTP service.
+// ServeWithWG runs the HTTP(S) service, and marks the WaitGroup done when finished.
+func (s *service) ServeWithWG(wg *sync.WaitGroup) {
+	defer wg.Done()
+	s.run()
+	s.cancel()
+}
+
+// Shutdown stops the HTTP(S) service.
 func (s *service) Shutdown() {
 	s.mutex.Lock()
 	s.intChan <- syscall.SIGQUIT

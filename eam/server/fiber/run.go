@@ -11,6 +11,10 @@ func (s *service) run() {
 	if s.MutualTLS || (s.TLSCert != "" && s.TLSKey != "") {
 		t = "https service"
 	}
+	if s.SvcName != "" {
+		t = fmt.Sprintf("%s (%s)", t, s.SvcName)
+	}
+
 	s.logger.Info(fmt.Sprintf("%s starting", t), "host", s.Host, "port", s.Port)
 
 	go func() {

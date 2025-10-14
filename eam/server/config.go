@@ -8,6 +8,7 @@ type Config struct {
 	Port          uint16        // server port to listen on.
 	MaxBody       int           // maximum size of request bodies.
 	AppName       string        // application name.
+	SvcName       string        // service name.
 	Host          string        // host address to listen on.
 	CA            string        // path to Certificate Authority file.
 	TLSCert       string        // path to TLS certificate file.

@@ -16,7 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-func (s *service) getLatestBundle(url string) (*http.Response, error) {
+func (s *Services) getLatestBundle(url string) (*http.Response, error) {
 	b := &bundleGetter{url: url, ctx: s.ctx, cfg: s.cfg}
 
 	if err := b.prepareTransport(); err != nil {

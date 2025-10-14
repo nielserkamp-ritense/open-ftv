@@ -8,7 +8,7 @@ import (
 )
 
 // NewPAP instantiates a vanilla PAP with an optional persistent storage backend.
-func (s *service) newPAP() (*pap.PAP, error) {
+func (s *Services) newPAP() (*pap.PAP, error) {
 	opts := []pap.Option{pap.WithLanguage(s.l.Language())}
 
 	switch {
