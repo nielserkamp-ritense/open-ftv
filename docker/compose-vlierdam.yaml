@@ -41,6 +41,8 @@ services:
     container_name: openftv-vlierdam-manager
     ports:
       - "9000:8443"
+      - "9100:9443"
+      - "8100:8080"
     environment:
       - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
       - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
@@ -56,12 +58,9 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-      - MANAGER_ADL_TYPE=postgresql
+      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_SERVICE_NAME=vlierdam
       - MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
-      - PDP_ADL_TYPE=postgresql
-      - PDP_ADL_SERVICE_NAME=vlierdam
-      - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
     depends_on:
       vlierdam-db:
         condition: service_healthy
@@ -70,7 +69,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -83,6 +82,8 @@ services:
     container_name: openftv-vlierdam-pdp1
     ports:
       - "9004:8443"
+      - "9104:9443"
+      - "8104:8080"
     environment:
       - PDP_BUNDLE_MANAGER=http://vlierdam-manager:8443/v1/bundle/pdp1  # bundle retrieval.
       - PDP_BUNDLE_ENCODING=bzip2
@@ -90,10 +91,10 @@ services:
       - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=cedar                                     # policy language.
       - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml          # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql
+      - PDP_ADL_TYPE=postgresql                                         # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true
+      - PDP_MIGRATE_AUTO=true                                           # ADL migrations.
       - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       vlierdam-manager:
@@ -103,7 +104,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8443/livez"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/livez"]
       interval: 4s
       timeout: 10s
       retries: 5
