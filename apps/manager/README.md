@@ -1,6 +1,7 @@
 # OpenFTV - Manager (PAP + PIP)
 
 # Welcome
+
 This code module implements a Policy Information Point (PIP) and Policy Administration Point (PAP) in a single service.
 
 It supports the following interfaces:
@@ -8,10 +9,9 @@ It supports the following interfaces:
 - API endpoints to manage attributes, entities and relations; intended for user interfaces.
 - API endpoints to push attributes; intended for external PIP systems, such as HR, IAM, etc.
 - functionality to pull attributes from external PIPs.
-- API endpoint to retrieve a batch of policies; intended for PDPs (**TODO**).
-- functionality to push a batch of policies to a PDP (**TODO**).
-- functionality to push a policy or batch of policies to a git repository (**TODO**).
-- functionality to push a batch of attributes, entities and/or relations to a PDP (**TODO**).
+- API endpoint to retrieve a bundle with policies, design-time attributes, entities and/or relations; intended for PDPs.
+- functionality to push a bundle with policies, design-time attributes, entities and/or relations to a PDP.
+- functionality to push a bundle with policies, design-time attributes, entities and/or relations to a git repository (**TODO**).
 
 ## Building and running
 
@@ -45,18 +45,46 @@ The service searches for one or more configuration files with **YAML** encoding 
 The following is an example of a configuration file containing all possible options:
 ```yaml
 ---
-svc:   # options for the API endpoint server.
-  host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8443).
+svc:   # options for the main API endpoints.
+  host: "<address>"             # Address the service should listen on (default "0.0.0.0"; all host addresses).
+  port: <port>                  # Port the service should listen on (default 8443).
   tls:
-    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
+    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support and mTLS (no default).
     cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
     key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
   timeout:
-    read: "<duration>"          # the read timeout for API requests (default "30s").
-    write: "<duration>"         # the read timeout for API requests (default "30s").
-    idle: "<duration>"          # the read timeout for API requests (default "300s").
-  maxBody: <size>               # maximum allowed size of a request body (default 65536).
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+internal:   # options for the internal API endpoints (bundle retrieval with PDP).
+  host: "<address>"             # Address the service should listen on (default 'main' address').
+  port: <port>                  # Port the service should listen on (default 9443).
+  tls:
+    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support and mTLS (no default).
+    cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
+    key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+health:   # options for the liveness & readiness API endpoints.
+  host: "<address>"             # Address the service should listen on (default 'main' address).
+  port: <port>                  # Port the service should listen on (default 8080).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -72,11 +100,11 @@ persist:   # this is where the Manager stores policies, attributes, entities and
   addresses: "<addresses>"      # One or more addresses of persistence services (no default).
   base: "<prefix>"              # Prefix to use for policy keys in the persistence backend (no default).
   timeout: "<duration>"         # Connection timeout for the persistence backend (no default).
-  etcd:
+  etcd:                         # ** DEPRECATED **
     sync: "<duration>"          # Synchronization period for an ETCD backend (no default).
     user: "<user>"              # User-id to authenticate with an ETCD backend (no default).
     password: "<password>"      # Password to authenticate with an ETCD backend (no default).
-  consul:
+  consul:                       # ** DEPRECATED **
     token: "<token>"            # Token to authenticate with a Consul backend (no default).
     namespace: "<namespace>"    # Namespace to use with a Consul backend (no default).
   postgres:
@@ -86,19 +114,25 @@ persist:   # this is where the Manager stores policies, attributes, entities and
       ttl: "<duration>"         # Timeout for closing inactive Postgres connections (default "5m").
       max: <number>             # Maximum number of connections to the Postgres backend (default 100).
 
+migrate:    # options for migrating a persistence database.
+  source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+  auto: true|false              # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+  steps: <number>               # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+  exitAfter: true|false         # A `true` value shuts down the app after the migration.
+
 authentication:   # options used during the authentication stage of a user interface request.
   type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
 
 authorization:   # options used during the authorization stage of a user interface request.
   authenticate: true|false      # Flag to force authentication of the user before performing authorization (default false).
 
-policies:   # policies used for authorizing user interface requests.
-  language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
-  store:
+policies:   # policies for authorizing user interface requests.
+  language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS", "OPENFGA" (default "CEDAR").
+  store: 
     path: "<folder>"            # Location on disk where static policy files can be found (no default).
     recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
-pip:   # attributes used for authorizing user interface requests.
+pip:   # attributes for authorizing user interface requests.
   store:
     path: "<folder>"            # Location on disk where static attribute files can be found (no default).
     recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
@@ -112,6 +146,13 @@ cerbos:   # options for connecting with a cerbos PDP (sidecar) for authorizing a
     address: "<address>"        # Address of the Cerbos admin API.
     user: "<user>"              # User-id to authenticate with the Cerbos admin API.
     password: "<user>"          # User-id to authenticate with the Cerbos admin API.
+
+bundles:   # options for bundle management (see below).
+  path: "<folder>"              # Location on disk where bundle configurations can be found.
+  recurse: true|false           # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+  sendTimeout: "<duration>"     # The read timeout for sending bundles to a PDP (default "1m").
+  workers: <number>             # Maximum number of worker threads for sending bundles (default #cpu).
+  stageDelay: "<duration>"      # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Environment variables
@@ -120,18 +161,41 @@ The following is an exhaustive list of all possible environment variables the se
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
-MANAGER_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
-MANAGER_PORT=<port>                             # port the service should listen on (default 8443).
+# options for the main API endpoints.
+MANAGER_HOST=<address>                          # Address the service should listen on (default "0.0.0.0"; all host addresses).
+MANAGER_PORT=<port>                             # Port the service should listen on (default 8443).
 MANAGER_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 MANAGER_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 MANAGER_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
-MANAGER_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
-MANAGER_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
-MANAGER_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
-MANAGER_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
-MANAGER_CORS_ORIGING=<origins>                  # CORS origins (default "*").
+MANAGER_READ_TIMEOUT=<duration>                 # The read timeout for API requests (default "30s").
+MANAGER_WRITE_TIMEOUT=<duration>                # The read timeout for API requests (default "30s").
+MANAGER_IDLE_TIMEOUT=<duration>                 # The read timeout for API requests (default "300s").
+MANAGER_MAX_BODY_SIZE=<size>                    # Maximum allowed size of a request body (default 65536).
+MANAGER_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 MANAGER_CORS_HEADERS=<headers>                  # CORS headers (default "*").
+
+# options for the internal API endpoints (bundle retrieval with PDP).
+MANAGER_INTERNAL_HOST=<address>                 # Address the service should listen on (default 'main' address).
+MANAGER_INTERNAL_PORT=<port>                    # Port the service should listen on (default 9443).
+MANAGER_INTERNAL_CA=<certificate-file>          # CA certificate to use with the service; turns on https support (no default).
+MANAGER_INTERNAL_CERT=<certificate-file>        # TLS certificate to use with the service; turns on https support (no default).
+MANAGER_INTERNAL_KEY=<key-file>                 # TLS private key to use with the service; turns on https support (no default).
+MANAGER_INTERNAL_READ=<duration>                # The read timeout for API requests (default "30s").
+MANAGER_INTERNAL_WRITE=<duration>               # The read timeout for API requests (default "30s").
+MANAGER_INTERNAL_IDLE=<duration>                # The read timeout for API requests (default "300s").
+MANAGER_INTERNAL_MAX_BODY=<size>                # Maximum allowed size of a request body (default 65536).
+MANAGER_INTERNAL_ORIGINS=<origins>              # CORS origins (default "*").
+MANAGER_INTERNAL_HEADERS=<headers>              # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+MANAGER_HEALTH_HOST=<address>                   # Address the service should listen on (default 'main' address).
+MANAGER_HEALTH_PORT=<port>                      # Port the service should listen on (default 8080).
+MANAGER_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
+MANAGER_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
+MANAGER_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
+MANAGER_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
+MANAGER_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
+MANAGER_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 MANAGER_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -144,15 +208,21 @@ MANAGER_PERSIST_TYPE=<type>                     # Type of persistence backend; s
 MANAGER_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
 MANAGER_PERSIST_PREFIX=<prefix>                 # Prefix to use for policy keys in the persistence backend (no default).
 MANAGER_PERSIST_TIMEOUT=<duration>              # Connection timeout for the persistence backend (no default).
-MANAGER_PERSIST_ETCD_SYNC=<duration>            # Synchronization period for an ETCD backend (no default).
-MANAGER_PERSIST_ETCD_USER=<user>                # User-id to authenticate with an ETCD backend (no default).
-MANAGER_PERSIST_ETCD_PASSWORD=<password>        # Password to authenticate with an ETCD backend (no default).
-MANAGER_PERSIST_CONSUL_TOKEN=<token>            # Token to authenticate with a Consul backend (no default).
-MANAGER_PERSIST_CONSUL_NAMESPACE=<namespace>    # Namespace to use with a Consul backend (no default).
+MANAGER_PERSIST_ETCD_SYNC=<duration>            # ** DEPRECATED ** Synchronization period for an ETCD backend (no default).
+MANAGER_PERSIST_ETCD_USER=<user>                # ** DEPRECATED ** User-id to authenticate with an ETCD backend (no default).
+MANAGER_PERSIST_ETCD_PASSWORD=<password>        # ** DEPRECATED ** Password to authenticate with an ETCD backend (no default).
+MANAGER_PERSIST_CONSUL_TOKEN=<token>            # ** DEPRECATED ** Token to authenticate with a Consul backend (no default).
+MANAGER_PERSIST_CONSUL_NAMESPACE=<namespace>    # ** DEPRECATED ** Namespace to use with a Consul backend (no default).
 MANAGER_PERSIST_POSTGRES_URL=<url>              # URL to connect and authenticate to a Postgres backend (no default).
 MANAGER_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Postgres backend (no default).
 MANAGER_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 MANAGER_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
+
+# options for migration of a persistence database.
+MANAGER_MIGRATE_SOURCE="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+MANAGER_MIGRATE_AUTO=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+MANAGER_MIGRATE_STEPS=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+MANAGER_MIGRATE_AND_EXIT=true|false             # A `true` value shuts down the app after the migration.
 
 # options used during the authentication stage of a user interface request.
 MANAGER_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -160,14 +230,14 @@ MANAGER_AUTHENTICATION_TYPE=<type>              # Type of authentication to perf
 # options used during the authorization stage of a user interface request.
 MANAGER_AUTHORIZATION_AUTHENTICATE=true|false   # Flag to force authentication of the user before performing authorization (default false).
 
-# policies used for authorizing user interface requests.
+# policies for authorizing user interface requests.
 MANAGER_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
 MANAGER_POLICIES_STORE=<folder>                 # Location on disk where static policy files can be found (no default).
 MANAGER_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
-# attributes used for authorizing user interface requests.
-MANAGER_MANAGER_STORE=<folder>                  # Location on disk where static attribute files can be found (no default).
-MANAGER_MANAGER_STORE_RECURSE=true|false        # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
+# attributes for authorizing user interface requests.
+MANAGER_PIP_STORE=<folder>                      # Location on disk where static attribute files can be found (no default).
+MANAGER_PIP_STORE_RECURSE=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
 MANAGER_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
@@ -176,6 +246,13 @@ MANAGER_CERBOS_ADMIN=<address>                  # Address of the Cerbos admin AP
 MANAGER_CERBOS_USER=<user>                      # User-id to authenticate with the Cerbos admin API.
 MANAGER_CERBOS_PSWD=<user>                      # User-id to authenticate with the Cerbos admin API.
 MANAGER_CERBOS_CA=<file>                        # CA certificate to use with the Cerbos APIs.
+
+# options for bundle management (see below).
+MANAGER_BUNDLE_CONFIGS=<folder>                 # Location on disk where bundle configurations can be found.
+MANAGER_BUNDLE_RECURSE=true|false               # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+MANAGER_BUNDLE_SEND_TIMEOUT=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
+MANAGER_BUNDLE_WORKERS=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
+MANAGER_BUNDLE_STAGE_DELAY=<duration>           # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Command-line flags
@@ -184,8 +261,8 @@ The following is an exhaustive list of all possible command-line flags the servi
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
---address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+# options for the main API endpoints.
+--host=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -196,6 +273,29 @@ These match the corresponding options in a configuration file.
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
+
+# options for the internal API endpoints (bundle retrieval with PDP).
+--internal-host=<address>                 # address the service should listen on (default 'main' address).
+--internal-port=<port>                    # port the service should listen on (default 8443).
+--internal-ca=<certificate-file>          # CA certificate to use with the service; turns on https support (no default).
+--internal-cert=<certificate-file>        # TLS certificate to use with the service; turns on https support (no default).
+--internal-key=<key-file>                 # TLS private key to use with the service; turns on https support (no default).
+--internal-read=<duration>                # the read timeout for API requests (default "30s").
+--internal-write=<duration>               # the read timeout for API requests (default "30s").
+--internal-idle=<duration>                # the read timeout for API requests (default "300s").
+--internal-max-body=<size>                # maximum allowed size of a request body (default 65536).
+--internal-origins=<origins>              # CORS origins (default "*").
+--internal-headers=<headers>              # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+--health-host=<address>                   # address the service should listen on (default 'main' address).
+--health-port=<port>                      # port the service should listen on (default 8443).
+--health-read=<duration>                  # the read timeout for API requests (default "30s").
+--health-write=<duration>                 # the read timeout for API requests (default "30s").
+--health-idle=<duration>                  # the read timeout for API requests (default "300s").
+--health-max-body=<size>                  # maximum allowed size of a request body (default 65536).
+--health-origins=<origins>                # CORS origins (default "*").
+--health-headers=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -208,15 +308,21 @@ These match the corresponding options in a configuration file.
 --persist-addresses=<addresses>           # One or more addresses of persistence services (no default).
 --persist-timeout=<prefix>                # Prefix to use for policy keys in the persistence backend (no default).
 --persist-timeout=<duration>              # Connection timeout for the persistence backend (no default).
---persist-etcd-sync=<duration>            # Synchronization period for an ETCD backend (no default).
---persist-etcd-user=<user>                # User-id to authenticate with an ETCD backend (no default).
---persist-etcd-password=<password>        # Password to authenticate with an ETCD backend (no default).
---persist-consul-token=<token>            # Token to authenticate with a Consul backend (no default).
---persist-consul-namespace=<namespace>    # Namespace to use with a Consul backend (no default).
+--persist-etcd-sync=<duration>            # ** DEPRECATED ** Synchronization period for an ETCD backend (no default).
+--persist-etcd-user=<user>                # ** DEPRECATED ** User-id to authenticate with an ETCD backend (no default).
+--persist-etcd-password=<password>        # ** DEPRECATED ** Password to authenticate with an ETCD backend (no default).
+--persist-consul-token=<token>            # ** DEPRECATED ** Token to authenticate with a Consul backend (no default).
+--persist-consul-namespace=<namespace>    # ** DEPRECATED ** Namespace to use with a Consul backend (no default).
 --persist-postgres-url=<url>              # URL to connect and authenticate to a Postgres backend (no default).
 --persist-postgres-table=<name>           # Name of the table to use with a Postgres backend (no default).
 --persist-postgres-conn-ttl=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 --persist-postgres-conn-max=<number>      # Maximum number of connections to the Postgres backend (default 100).
+
+# options for migration of a persistence database.
+--migrate-source="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+--migrate-auto=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+--migrate-steps=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+--migrate-and-exit=true|false             # A `true` value shuts down the app after the migration.
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -224,12 +330,12 @@ These match the corresponding options in a configuration file.
 # options used during the authorization stage of a user interface request.
 --authorization-authenticate=true|false   # Flag to force authentication of the user before performing authorization (default false).
 
-# policies used for authorizing user interface requests.
+# policies for authorizing user interface requests.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
 --policies-store=<folder>                 # Location on disk where static policy files can be found (no default).
 --policies-store-recurse=true|false       # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
 
-# attributes used for authorizing user interface requests.
+# attributes for authorizing user interface requests.
 --pip-store=<folder>                      # Location on disk where static attribute files can be found (no default).
 --pip-store-recurse=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
 --pip-pull-configs=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
@@ -240,6 +346,13 @@ These match the corresponding options in a configuration file.
 --cerbos-user=<user>                      # User-id to authenticate with the Cerbos admin API.
 --cerbos-pswd=<user>                      # User-id to authenticate with the Cerbos admin API.
 --cerbos-ca=<file>                        # CA certificate to use with the Cerbos APIs.
+
+# options for bundle management (see below).
+--bundle-configs=<folder>                 # Location on disk where bundle configurations can be found.
+--bundle-recurse=true|false               # Flag to indicate the given folder and subfolders must be search recursively for bundle files (default false).
+--bundle-send-timeout=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
+--bundle-workers=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
+--bundle-stage-delay=<duration>           # Forced delay between bundle deployment stages (default "0s").
 ```
 
 ### Authentication & authorization
@@ -413,18 +526,21 @@ However, for brevity, we will only include the YAML layout above, as a JSON or T
 
 ### About persistence
 
-Attributes, entities and relations are persisted in a key-value store.
-This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Attributes, entities and relations are persisted in an SQL database or key-value store.
+
+Key-value store support is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Note that key-value support is deprecated. Please use the SQL database option.
 
 The following storage backends are currently supported:
-- ```PostgreSQL```: using a custom-built Valkeyrie interface.
-- ```etcd```: using the standard Valkeyrie implementation.
-- ```Consul```: using the standard Valkeyrie implementation.
+- ```PostgreSQL```: using the pgpool & pgx libraries. ** RECOMMENDED **
+- ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
+- ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
 - ```in-memory```: using a custom-built Valkeyrie interface (non-persistent, for caching or testing only).
 
 If no persistence backend is configured, the ```in-memory``` backend will be used.
 This means that when the service is restarted, all created and/or updated policies will be gone.
-For proper persistence, please configure the use of ```PostgreSQL```, ```etcd``` or ```Consul```.
+
+For proper persistence, please configure the use of ```PostgreSQL```.
 
 Example of a PostgreSQL configuration:
 ```yaml
@@ -451,15 +567,18 @@ the Manager service allows you to perform database migrations, either automatica
 The target database must have a valid URL in the persistence configuration.
 ALl other parameters are defined in the migration configuration.
 
-The *source* defines where the migration scripts are located.
+The ```source``` defines where the migration scripts are located.
 THis should be a disk folder or an embedded file system.
 
-The *auto* and *steps* parameter indicate how to perform the migration.
-- *auto* takes precedence, and indicates the migration must be performed to the highest possible level.
-- *steps* can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
+The ```auto``` and ```steps``` parameter indicate how to perform the migration.
+- ```auto``` takes precedence; the value ```true``` indicates the migration must be performed to the highest possible level.
+- ```steps``` can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
   A negative number indicates the number of levels to migrate downwards.
 
-If *auto* == false && *steps* == 0, no migration takes place.
+If ```auto == false && steps == 0```, no migration takes place.
+
+The ```exitAfter``` parameter can be set to ```true``` (default is ```false```) to make the app shut down after the migration.
+This can be useful if you want to use an initialization container for just the migrations.
 
 ### Bundle management
 
@@ -477,11 +596,11 @@ Check the following files and folders for implementation details:
 #### Deployment stages
 
 The deployment of bundles involves the following stages:
-- *Creating*: determine the next version number.
-- *Gathering*: gathering all policies, attributes, entities and/or relations needed.
-- *Merging*: merge the gathered elements into a git repository (e.g., change and history management).
-- *Bundling*: assembling bundles.
-- *Sending*: preparing bundles (compression) and sending to configured PDPs.
+- ```Creating```: determine the next version number.
+- ```Gathering```: gathering all policies, attributes, entities and/or relations needed.
+- ```Merging```: merge the gathered elements into a git repository (e.g., change and history management).
+- ```Bundling```: assembling bundles.
+- ```Sending```: preparing bundles (compression) and sending to configured PDPs.
 
 Once all processing is complete, the status of the bundle is marked as *Completed*.
 If, at any stage, an unrecoverable error occurs, the bundle is marked as *Failed* with an appropriate error message.

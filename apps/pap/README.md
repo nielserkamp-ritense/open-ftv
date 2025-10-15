@@ -7,9 +7,9 @@ It supports the following interfaces:
 - API endpoints to manage policies; intended for user interfaces.
 - API endpoints to push attributes; intended for external PIP systems, such as HR, IAM, etc.
 - functionality to pull attributes from external PIPs.
-- API endpoint to retrieve a batch of policies; intended for PDPs (**TODO**).
-- functionality to push a batch of policies to a PDP (**TODO**).
-- functionality to push a policy or batch of policies to a git repository (**TODO**).
+- API endpoint to retrieve a bundle with policies; intended for PDPs.
+- functionality to push a bundle with policies to a PDP.
+- functionality to push a bundle with policies to a git repository (**TODO**).
 
 The functionality for handling of external attributes is intended for the authentication and authorization of the PAP itself.
 Policies for this are configured along the service as read-only elements.
@@ -47,13 +47,41 @@ The service searches for one or more configuration files with **YAML** encoding 
 The following is an example of a configuration file containing all possible options:
 ```yaml
 ---
-svc:   # options for the API endpoint server.
+svc:   # options for the main API endpoints.
   host: "<address>"             # Address the service should listen on (default "0.0.0.0"; all host addresses).
   port: <port>                  # Port the service should listen on (default 8443).
   tls:
-    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
+    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support and mTLS (no default).
     cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
     key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+internal:   # options for the internal API endpoints (bundle retrieval with PDP).
+  host: "<address>"             # Address the service should listen on (default 'main' address').
+  port: <port>                  # Port the service should listen on (default 9443).
+  tls:
+    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support and mTLS (no default).
+    cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
+    key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+health:   # options for the liveness & readiness API endpoints.
+  host: "<address>"             # Address the service should listen on (default 'main' address).
+  port: <port>                  # Port the service should listen on (default 8080).
   timeout:
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
@@ -88,10 +116,11 @@ persist:   # this is where the PAP stores policies; see the section "About persi
       ttl: "<duration>"         # Timeout for closing inactive Postgres connections (default "5m").
       max: <number>             # Maximum number of connections to the Postgres backend (default 100).
 
-migrate:   # options for database migrations.
-  source: "<folder>"            # Location where migration files are stored.
-  steps: <number>               # Number of migration steps to perform; positive numbers are up, negative numbers down.
-  auto: true|false              # If true, the process migrates to the highest level (steps is ignored).
+migrate:    # options for migrating a persistence database.
+  source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+  auto: true|false              # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+  steps: <number>               # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+  exitAfter: true|false         # A `true` value shuts down the app after the migration.
 
 authentication:   # options used during the authentication stage of a user interface request.
   type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
@@ -136,8 +165,8 @@ The following is an exhaustive list of all possible environment variables the se
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
-PAP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+# options for the main API endpoints.
+PAP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PAP_PORT=<port>                             # port the service should listen on (default 8443).
 PAP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PAP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -148,6 +177,29 @@ PAP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests 
 PAP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 PAP_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 PAP_CORS_HEADERS=<headers>                  # CORS headers (default "*").
+
+# options for the internal API endpoints (bundle retrieval with PDP).
+PAP_INTERNAL_HOST=<address>                 # Address the service should listen on (default 'main' address).
+PAP_INTERNAL_PORT=<port>                    # Port the service should listen on (default 9443).
+PAP_INTERNAL_CA=<certificate-file>          # CA certificate to use with the service; turns on https support (no default).
+PAP_INTERNAL_CERT=<certificate-file>        # TLS certificate to use with the service; turns on https support (no default).
+PAP_INTERNAL_KEY=<key-file>                 # TLS private key to use with the service; turns on https support (no default).
+PAP_INTERNAL_READ=<duration>                # The read timeout for API requests (default "30s").
+PAP_INTERNAL_WRITE=<duration>               # The read timeout for API requests (default "30s").
+PAP_INTERNAL_IDLE=<duration>                # The read timeout for API requests (default "300s").
+PAP_INTERNAL_MAX_BODY=<size>                # Maximum allowed size of a request body (default 65536).
+PAP_INTERNAL_ORIGINS=<origins>              # CORS origins (default "*").
+PAP_INTERNAL_HEADERS=<headers>              # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+PAP_HEALTH_HOST=<address>                   # Address the service should listen on (default 'main' address).
+PAP_HEALTH_PORT=<port>                      # Port the service should listen on (default 8080).
+PAP_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
+PAP_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
+PAP_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
+PAP_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
+PAP_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
+PAP_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 PAP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -170,10 +222,11 @@ PAP_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Po
 PAP_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 PAP_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
 
-# options for database migrations.
-PAP_MIGRATE_SOURCE=<folder>                 # Location where migration files are stored.
-PAP_MIGRATE_STEPS=<number>                  # Number of migration steps to perform; positive numbers are up, negative numbers down.
-PAP_MIGRATE_AUTO=true|false                 # If true, the process migrates to the highest level (steps is ignored).
+# options for migration of a persistence database.
+PAP_MIGRATE_SOURCE="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+PAP_MIGRATE_AUTO=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+PAP_MIGRATE_STEPS=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+PAP_MIGRATE_AND_EXIT=true|false             # A `true` value shuts down the app after the migration.
 
 # options used during the authentication stage of a user interface request.
 PAP_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -213,8 +266,8 @@ The following is an exhaustive list of all possible command-line flags the servi
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
---address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+# options for the main API endpoints.
+--host=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -225,6 +278,29 @@ These match the corresponding options in a configuration file.
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
+
+# options for the internal API endpoints (bundle retrieval with PDP).
+--internal-host=<address>                 # address the service should listen on (default 'main' address).
+--internal-port=<port>                    # port the service should listen on (default 8443).
+--internal-ca=<certificate-file>          # CA certificate to use with the service; turns on https support (no default).
+--internal-cert=<certificate-file>        # TLS certificate to use with the service; turns on https support (no default).
+--internal-key=<key-file>                 # TLS private key to use with the service; turns on https support (no default).
+--internal-read=<duration>                # the read timeout for API requests (default "30s").
+--internal-write=<duration>               # the read timeout for API requests (default "30s").
+--internal-idle=<duration>                # the read timeout for API requests (default "300s").
+--internal-max-body=<size>                # maximum allowed size of a request body (default 65536).
+--internal-origins=<origins>              # CORS origins (default "*").
+--internal-headers=<headers>              # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+--health-host=<address>                   # address the service should listen on (default 'main' address).
+--health-port=<port>                      # port the service should listen on (default 8443).
+--health-read=<duration>                  # the read timeout for API requests (default "30s").
+--health-write=<duration>                 # the read timeout for API requests (default "30s").
+--health-idle=<duration>                  # the read timeout for API requests (default "300s").
+--health-max-body=<size>                  # maximum allowed size of a request body (default 65536).
+--health-origins=<origins>                # CORS origins (default "*").
+--health-headers=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -247,10 +323,11 @@ These match the corresponding options in a configuration file.
 --persist-postgres-conn-ttl=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
 --persist-postgres-conn-max=<number>      # Maximum number of connections to the Postgres backend (default 100).
 
-# options for database migrations.
---migrate-source=<folder>                 # Location where migration files are stored.
---migrate-steps=<number>                  # Number of migration steps to perform; positive numbers are up, negative numbers down.
---migrate-auto=true|false                 # If true, the process migrates to the highest level (steps is ignored).
+# options for migration of a persistence database.
+--migrate-source="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+--migrate-auto=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+--migrate-steps=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+--migrate-and-exit=true|false             # A `true` value shuts down the app after the migration.
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -454,18 +531,21 @@ However, for brevity, we will only include the YAML layout above, as a JSON or T
 
 ### About persistence
 
-Policies and their metadata are persisted in a key-value store.
-This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Policies and their metadata are persisted in an SQL database or key-value store.
+
+Key-value store support is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Note that key-value support is deprecated. Please use the SQL database option.
 
 The following storage backends are currently supported:
-- ```PostgreSQL```: using a custom-built Valkeyrie interface.
-- ```etcd```: using the standard Valkeyrie implementation.
-- ```Consul```: using the standard Valkeyrie implementation.
+- ```PostgreSQL```: using a custom-built Valkeyrie interface. ** RECOMMENDED **
+- ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
+- ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
 - ```in-memory```: using a custom-built Valkeyrie interface (non-persistent, for caching or testing only).
 
 If no persistence backend is configured, the ```in-memory``` backend will be used.
 This means that when the service is restarted, all created and/or updated policies will be gone.
-For proper persistence, please configure the use of ```PostgreSQL```, ```etcd``` or ```Consul```.
+
+For proper persistence, please configure the use of ```PostgreSQL```.
 
 Example of a Postgres configuration:
 ```yaml
@@ -492,15 +572,18 @@ the PAP allows you to perform database migrations, either automatically or manua
 The target database must have a valid URL in the persistence configuration.
 ALl other parameters are defined in the migration configuration.
 
-The *source* defines where the migration scripts are located.
+The ```source``` defines where the migration scripts are located.
 THis should be a disk folder or an embedded file system.
 
-The *auto* and *steps* parameter indicate how to perform the migration.
-- *auto* takes precedence, and indicates the migration must be performed to the highest possible level.
-- *steps* can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
+The ```auto``` and ```steps``` parameter indicate how to perform the migration.
+- ```auto``` takes precedence; the value ```true``` indicates the migration must be performed to the highest possible level.
+- ```steps``` can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
   A negative number indicates the number of levels to migrate downwards.
 
-If *auto* == false && *steps* == 0, no migration takes place. 
+If ```auto == false && steps == 0```, no migration takes place.
+
+The ```exitAfter``` parameter can be set to ```true``` (default is ```false```) to make the app shut down after the migration.
+This can be useful if you want to use an initialization container for just the migrations.
 
 ### Bundle management
 

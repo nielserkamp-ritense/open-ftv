@@ -13,16 +13,19 @@ https://vng-realisatie.github.io/ftv/.
 
 ## Folder structure
 
-- `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.)
-- `demos     ` demo & presentation materials 
-- `docker    ` docker and compose related scripts
-- `e2e       ` end-2-end scripts
-- `eam       ` shared generic EAM modules
-- `migrations` database migration scripts
-- `mock      ` mock services, including the generic mock data-service
-- `oas       ` OpenAPI specifications for the project
-- `testdata  ` files with test data
-- `utilities*` shared generic utility modules
+- `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.).
+- `demos     ` demo & presentation materials.
+- `docker    ` docker and compose related scripts.
+- `e2e       ` end-2-end scripts.
+- `eam       ` shared generic EAM modules.
+- `external  ` OpenFTV plugins for external software products. 
+- `migrations` database migration scripts.
+- `mock      ` mock services, including the generic mock data-service.
+- `oas       ` OpenAPI specifications for the project.
+- `resources ` various resources; e.g., project icon.
+- `scripts   ` various internal scripts.
+- `testdata  ` files with test data.
+- `utilities*` shared generic utility modules.
 
 ## Building and running
 

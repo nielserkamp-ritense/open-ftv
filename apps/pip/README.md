@@ -41,7 +41,7 @@ The service searches for one or more configuration files with **YAML** encoding 
 The following is an example of a configuration file containing all possible options:
 ```yaml
 ---
-svc:   # options for the API endpoint server.
+svc:   # options for the main API endpoints.
   host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
   port: <port>                  # port the service should listen on (default 8443).
   tls:
@@ -53,6 +53,18 @@ svc:   # options for the API endpoint server.
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
   maxBody: <size>               # maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+health:   # options for the liveness & readiness API endpoints.
+  host: "<address>"             # Address the service should listen on (default 'main' address).
+  port: <port>                  # Port the service should listen on (default 8080).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -116,7 +128,7 @@ The following is an exhaustive list of all possible environment variables the se
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
+# options for the main API endpoints.
 PIP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
 PIP_PORT=<port>                             # port the service should listen on (default 8443).
 PIP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
@@ -128,6 +140,16 @@ PIP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests 
 PIP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 PIP_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 PIP_CORS_HEADERS=<headers>                  # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+PIP_HEALTH_HOST=<address>                   # Address the service should listen on (default 'main' address).
+PIP_HEALTH_PORT=<port>                      # Port the service should listen on (default 8080).
+PIP_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
+PIP_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
+PIP_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
+PIP_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
+PIP_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
+PIP_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 PIP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -180,7 +202,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
+# options for the main API endpoints.
 --address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
@@ -192,6 +214,16 @@ These match the corresponding options in a configuration file.
 --max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+--health-host=<address>                   # address the service should listen on (default 'main' address).
+--health-port=<port>                      # port the service should listen on (default 8443).
+--health-read=<duration>                  # the read timeout for API requests (default "30s").
+--health-write=<duration>                 # the read timeout for API requests (default "30s").
+--health-idle=<duration>                  # the read timeout for API requests (default "300s").
+--health-max-body=<size>                  # maximum allowed size of a request body (default 65536).
+--health-origins=<origins>                # CORS origins (default "*").
+--health-headers=<headers>                # CORS headers (default "*").
 
 # options for the application-log.
 --log-output=<destination>                # File or standard stream for writing the log (default "stdout").
@@ -389,23 +421,26 @@ However, for brevity, we will only include the YAML layout above, as a JSON or T
 
 ### About persistence
 
-Attributes, entities and relations are persisted in a key-value store.
-This is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Attributes, entities and relations are persisted in an SQL database or key-value store.
+
+Key-value store support is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
+Note that key-value support is deprecated. Please use the SQL database option.
 
 The following storage backends are currently supported:
-- ```Postgres```: using a custom-built Valkeyrie interface.
-- ```etcd```: using the standard Valkeyrie implementation.
-- ```Consul```: using the standard Valkeyrie implementation.
+- ```PostgreSQL```: using a custom-built Valkeyrie interface. ** RECOMMENDED **
+- ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
+- ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
 - ```in-memory```: using a custom-built Valkeyrie interface (non-persistent for testing only).
 
 If no persistence backend is configured, the ```in-memory``` backend will be used.
 This means that when the service is restarted, all created and/or updated policies will be gone.
-For proper persistence, please configure the use of ```Postgres```, ```etcd``` or ```Consul```.
+
+For proper persistence, please configure the use of ```PostgreSQL```.
 
 Example of a Postgres configuration:
 ```yaml
 persist:
-  type: "postgres"
+  type: "PostgreSQL"
   postgres:
     url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
     table: "data"
@@ -414,18 +449,10 @@ persist:
       max: 20
 ```
 
-Note that the service expects the database and the table to exist.
-Use the following CREATE statements in your initialization scripts:
-```SQL
-CREATE DATABASE open_ftv;
+Note that the *type* parameter is case-insensitive.
 
-CREATE TABLE data
-(
-    key   VARCHAR(200) PRIMARY KEY NOT NULL,
-    index BIGINT NOT NULL,
-    value JSONB NOT NULL
-);
-```
+For SQL databases (such as PostgreSQL) you previously had to make sure the database and table existed using initialization scripts.
+In the new version (2025/08/14), you can use the built-in database migrations (use a separate PAP or Manager service for this).
 
 ## Application log
 
