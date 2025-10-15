@@ -13,15 +13,15 @@ The service can be configured to support the following policy languages:
 
 It supports the following interfaces:
 - AuthZEN evaluation API.
-- deprecated OpenFSC Authorization plugin API.
+- AuthZEN evaluations API.
+- AuthZEN search APIs.
+- AuthZEN metadata API.
+- ** Deprecated ** OpenFSC Authorization plugin API.
 - API endpoint to push policies; intended for external PAP systems.
 - API endpoint to push attributes; intended for external PIP systems, such as HR, IAM, etc.
-- locally stored policies and attributes (read-only).
+- locally stored policies and attributes (read-only; for testing or static PDPs).
 - functionality to pull attributes from external PIPs.
 - functionality to pull policies from external PAPs.
-- **TODO**: AuthZEN evaluations API.
-- **TODO**: AuthZEN search API.
-- **TODO**: AuthZEN discovery API.
 
 ## Building and running
 
@@ -53,7 +53,7 @@ The service searches for one or more configuration files with **YAML** encoding 
 The following is an example of a configuration file containing all possible options:
 ```yaml
 ---
-svc:   # options for the API endpoint server.
+svc:   # options for the main API endpoints (AuthZEN, push endpoints).
   host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
   port: <port>                  # port the service should listen on (default 8443).
   tls:
@@ -69,11 +69,61 @@ svc:   # options for the API endpoint server.
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
 
+internal:   # options for the internal API endpoints (bundle push with Manager).
+  host: "<address>"             # Address the service should listen on (default 'main' address').
+  port: <port>                  # Port the service should listen on (default 9443).
+  tls:
+    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support and mTLS (no default).
+    cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
+    key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
+health:   # options for the liveness & readiness API endpoints.
+  host: "<address>"             # Address the service should listen on (default 'main' address).
+  port: <port>                  # Port the service should listen on (default 8080).
+  timeout:
+    read: "<duration>"          # The read timeout for API requests (default "30s").
+    write: "<duration>"         # The read timeout for API requests (default "30s").
+    idle: "<duration>"          # The read timeout for API requests (default "300s").
+  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
+  cors:
+    origins: "<origins>"        # CORS origins (default "*").
+    headers: "<headers>"        # CORS headers (default "*").
+
 log:   # options for the application-log.
   output: "<destination>"       # File or standard stream for writing the log (default "stdout").
   format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
+  decisions:   # options for the Authorization Decision Log (ADL).
+    type: "<type>"              # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
+    service: "<service>"        # ADL service name.
+    timeout: "<duration>"       # ADL batch timeout (default 5s).
+    postgresql:
+      url: "<url>"              # URL of a Postgres backend to store the ADL (no default).
+      connection:
+        ttl: "<duration>"       # Timeout for closing inactive Postgres connections (default "5m").
+        max: <number>           # Maximum number of connections to the Postgres backend (default 100).
+    otel:
+      url: "<url>"              # URL of an OpenTelemetry collector for ADL. 
+      insecure: true|false      # allow insecure OpenTelemetry connection.
+    file:
+      prettyPrint: true|false   # Flag to force "pretty printing" on stdout/stderr types.
+    slog:
+      message: "<msg>"          # ADL log message for slog type.
+
+migrate:    # options for migrating an ADL database.
+  source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
+  auto: true|false              # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+  steps: <number>               # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+  exitAfter: true|false         # A `true` value shuts down the app after the migration.
 
 policies:   # policies used for authorizing user interface requests.
   language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
@@ -103,8 +153,8 @@ The following is an exhaustive list of all possible environment variables the se
 These match the corresponding options in a configuration file.
 
 ```text
-# options for the API endpoint server.
-PDP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+# options for the main API endpoints.
+PDP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PDP_PORT=<port>                             # port the service should listen on (default 8443).
 PDP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PDP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -116,11 +166,46 @@ PDP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request 
 PDP_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 PDP_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
+# options for the internal API endpoints (bundle push with Manager).
+PDP_INTERNAL_HOST=<address>                 # Address the service should listen on (default 'main' address).
+PDP_INTERNAL_PORT=<port>                    # Port the service should listen on (default 9443).
+PDP_INTERNAL_CA=<certificate-file>          # CA certificate to use with the service; turns on https support (no default).
+PDP_INTERNAL_CERT=<certificate-file>        # TLS certificate to use with the service; turns on https support (no default).
+PDP_INTERNAL_KEY=<key-file>                 # TLS private key to use with the service; turns on https support (no default).
+PDP_INTERNAL_READ=<duration>                # The read timeout for API requests (default "30s").
+PDP_INTERNAL_WRITE=<duration>               # The read timeout for API requests (default "30s").
+PDP_INTERNAL_IDLE=<duration>                # The read timeout for API requests (default "300s").
+PDP_INTERNAL_MAX_BODY=<size>                # Maximum allowed size of a request body (default 65536).
+PDP_INTERNAL_ORIGINS=<origins>              # CORS origins (default "*").
+PDP_INTERNAL_HEADERS=<headers>              # CORS headers (default "*").
+
+# options for the liveness & readiness API endpoints.
+PDP_HEALTH_HOST=<address>                   # Address the service should listen on (default 'main' address).
+PDP_HEALTH_PORT=<port>                      # Port the service should listen on (default 8080).
+PDP_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
+PDP_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
+PDP_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
+PDP_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
+PDP_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
+PDP_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
+
 # options for the application-log.
 PDP_LOG_OUTPUT=<destination>                # File or standard stream for writing the log (default "stdout").
 PDP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
 PDP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 PDP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
+
+# options for the Authorization Decision Log (ADL).
+PDP_ADL_TYPE=<type>                         # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
+PDP_ADL_SERVICE=<service>                   # ADL service name.
+PDP_ADL_TIMEOUT=<duration>                  # ADL batch timeout (default 5s).
+PDP_ADL_PG_URL=<url>                        # URL of a Postgres backend to store the ADL (no default).
+PDP_ADL_PG_MAX_LIFE=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
+PDP_ADL_PG_MAX_CONN=<number>                # Maximum number of connections to the Postgres backend (default 100).
+PDP_ADL_OTEL_URL=<url>                      # URL of an OpenTelemetry collector for ADL. 
+PDP_ADL_OTEL_INSECURE=true|false            # allow insecure OpenTelemetry connection.
+PDP_ADL_PRETTY_PRINT=true|false             # Flag to force "pretty printing" on stdout/stderr types.
+PDP_ADL_SLOG_MESSAGE=<msg>                  # ADL log message for slog type.
 
 # policies used for authorizing user interface requests.
 PDP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
@@ -164,6 +249,18 @@ These match the corresponding options in a configuration file.
 --log-format=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
+
+# options for the Authorization Decision Log (ADL).
+--adl-type=<type>                         # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
+--adl-service=<service>                   # ADL service name.
+--adl-timeout=<duration>                  # ADL batch timeout (default 5s).
+--adl-pg-url=<url>                        # URL of a Postgres backend to store the ADL (no default).
+--adl-pg-max-life=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
+--adl-pg-max-conn=<number>                # Maximum number of connections to the Postgres backend (default 100).
+--adl-otel-url=<url>                      # URL of an OpenTelemetry collector for ADL. 
+--adl-otel-insecure=true|false            # allow insecure OpenTelemetry connection.
+--adl-pretty-print=true|false             # Flag to force "pretty printing" on stdout/stderr types.
+--adl-slog-message=<msg>                  # ADL log message for slog type.
 
 # policies used for authorizing user interface requests.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
