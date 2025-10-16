@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -s https://apis.developer.overheid.nl/static/adr/ruleset.yaml > .spectral.yml
+curl -s https://static.developer.overheid.nl/adr/ruleset.yaml > .spectral.yml
 
 spectral lint -r .spectral.yml liveness/openapi.yaml
 spectral lint -r .spectral.yml attributes/openapi.yaml
