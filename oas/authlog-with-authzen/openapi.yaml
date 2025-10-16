@@ -340,9 +340,19 @@ components:
         request:
           type: object
           description: AuthZEN request.
+          anyOf:
+            - $ref: "#/components/schemas/EvaluationObject"
+            - $ref: "#/components/schemas/EvaluationsObject"
+            - $ref: "#/components/schemas/SearchObject"
+            - $ref: "#/components/schemas/SearchActionObject"
         response:
           type: object
           description: AuthZEN response.
+          anyOf:
+            - $ref: "#/components/schemas/EvaluationDecision"
+            - $ref: "#/components/schemas/EvaluationsDecision"
+            - $ref: "#/components/schemas/SearchResults"
+            - $ref: "#/components/schemas/SearchActionResults"
         information:
           type: object
           description: Information (attributes) used during the authorization process.
@@ -359,6 +369,284 @@ components:
           minLength: 16
           maxLength: 16
           description: W3C span identifier from the authorization request.
+
+    Entity:
+      type: object
+      description: |
+        The entity associated with an authorization request.
+        This can be the subject (e.g. principal) or the resource.
+      properties:
+        type:
+          type: string
+          description: The type of the entity.
+          example: "user"
+        id:
+          type: string
+          description: The unique ID of the entity.
+          example: "alice"
+        properties:
+          type: object
+          description: Optional attributes for the entity.
+      required:
+        - type
+        - id
+
+    Action:
+      type: object
+      description: The action associated with an authorization request.
+      properties:
+        name:
+          type: string
+          description: The name of the action.
+          example: "can_read"
+        properties:
+          type: object
+          description: Optional attributes for the action.
+      required:
+        - type
+
+    ReasonField:
+      type: object
+      description: Map of one or more reasons, with a language-identifier as the key.
+
+    ReasonObject:
+      type: object
+      description: Specifies a particular reason.
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the reason.
+        reasonAdmin:
+          $ref: "#/components/schemas/ReasonField"
+        reasonUser:
+          $ref: "#/components/schemas/ReasonField"
+      required:
+        - id
+
+    EvaluationObject:
+      type: object
+      description: Evaluation object model.
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        action:
+          $ref: "#/components/schemas/Action"
+        resource:
+          $ref: "#/components/schemas/Entity"
+        context:
+          description: Optional context of the request.
+          type: object
+      required:
+        - subject
+        - action
+        - resource
+
+    EvaluationDecision:
+      type: object
+      description: Evaluation decision model.
+      properties:
+        decision:
+          type: boolean
+          description: true if the request is authorized.
+        context:
+          $ref: "#/components/schemas/ReasonObject"
+      required:
+        - decision
+
+    EvaluationsObject:
+      type: object
+      description: Evaluations object model.
+      properties:
+        evaluations:
+          type: array
+          description: list of evaluation requests to test.
+          items:
+            $ref: "#/components/schemas/EvaluationObject"
+        subject:
+          $ref: "#/components/schemas/Entity"
+        action:
+          $ref: "#/components/schemas/Action"
+        resource:
+          $ref: "#/components/schemas/Entity"
+        context:
+          description: Optional default context of the request.
+          type: object
+        options:
+          type: object
+          description: Options for the evaluations request.
+          properties:
+            evaluation_semantics:
+              type: string
+              description: |
+                By default, every request in the evaluations array is executed and a response returned in the same array order.
+                This is the most common use-case for boxcarring multiple evaluation requests in a single payload.
+                
+                To select the desired evaluations semantic, use exactly one of the following values:
+                  - execute_all = default.
+                  - deny_on_first_deny = halt processing after first deny.
+                  - permit_on_first_permit = halt processing after first allow.
+      required:
+        - evaluations
+
+    EvaluationsDecision:
+      type: object
+      description: Evaluations decision model.
+      properties:
+        evaluations:
+          type: array
+          description: List of evaluation decisions.
+          items:
+            $ref: "#/components/schemas/EvaluationDecision"
+      required:
+        - evaluations
+
+    PageRequest:
+      type: object
+      description: Pagination options.
+      properties:
+        token:
+          type: string
+          description: Token used for pagination.
+          example: "a3M9NDU2O3N6PTI="
+        limit:
+          type: integer
+          description: Maximum number of results to return.
+          example: 2
+        properties:
+          type: object
+          description: Implementation-specific pagination request attributes.
+
+    PageResponse:
+      type: object
+      description: |
+        Pagination options.
+        
+        !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
+        However the AuthZEN standard uses *kebab_case* for some properties.
+        So these properties will be flagged when using the NL API Design Rules.
+      properties:
+        next_token:
+          type: string
+          description: Token used for pagination.
+          example: "a3M9NDU2O3N6PTI="
+        count:
+          type: integer
+          description: Number of results returned.
+          example: 2
+        total:
+          type: integer
+          description: Total number of results available.
+          example: 3
+        properties:
+          type: object
+          description: Implementation-specific pagination response attributes.
+
+    SearchEntity:
+      type: object
+      description: |
+        An entity (subject or resource) associated with a search request.
+        This means the id can be empty.
+      properties:
+        type:
+          type: string
+          description: The type of the search entity.
+          example: "user"
+        id:
+          type: string
+          description: The unique ID of the search entity.
+          example: "alice"
+        properties:
+          type: object
+          description: Optional attributes for the search entity.
+      required:
+        - type
+
+    SearchObject:
+      type: object
+      description: Search object model.
+      properties:
+        subject:
+          $ref: "#/components/schemas/SearchEntity"
+        action:
+          $ref: "#/components/schemas/Action"
+        resource:
+          $ref: "#/components/schemas/SearchEntity"
+        context:
+          description: Optional context of the request.
+          type: object
+        page:
+          $ref: "#/components/schemas/PageRequest"
+      required:
+        - subject
+        - action
+        - resource
+
+    SearchResult:
+      type: object
+      description: Search result model.
+      properties:
+        type:
+          type: string
+          description: The type of the entity.
+          example: "user"
+        id:
+          type: string
+          description: The unique ID of the entity.
+          example: "alice"
+
+    SearchResults:
+      type: object
+      description: Search results model.
+      properties:
+        results:
+          type: array
+          description: List of search results.
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        page:
+          $ref: "#/components/schemas/PageResponse"
+      required:
+        - results
+
+    SearchActionObject:
+      type: object
+      description: Search action object model.
+      properties:
+        subject:
+          $ref: "#/components/schemas/Entity"
+        resource:
+          $ref: "#/components/schemas/Entity"
+        context:
+          description: Optional context of the request.
+          type: object
+        page:
+          $ref: "#/components/schemas/PageRequest"
+      required:
+        - subject
+        - resource
+
+    SearchActionResult:
+      type: object
+      description: Search action result model.
+      properties:
+        name:
+          type: string
+          description: The name of the action.
+          example: "can_read"
+
+    SearchActionResults:
+      type: object
+      description: Search action results model.
+      properties:
+        results:
+          type: array
+          description: List of action search results.
+          items:
+            $ref: "#/components/schemas/SearchActionResult"
+        page:
+          $ref: "#/components/schemas/PageResponse"
+      required:
+        - results
 
     ErrorObject:
       type: object
