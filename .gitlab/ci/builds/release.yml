@@ -36,6 +36,7 @@ build_release_eam:
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
+  resource_group: build_release_eam
   tags:
     - ${ARCH}
 
@@ -76,5 +77,6 @@ build_release_mock_ds:
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
+  resource_group: build_release_mock_ds
   tags:
     - ${ARCH}
