@@ -56,6 +56,7 @@ build_review_eam:
       optional: true
     - job: next-version
       optional: false
+  resource_group: build_review_eam
   tags:
     - ${ARCH}
 
@@ -113,5 +114,6 @@ build_review_mock_ds:
       optional: true
     - job: next-version
       optional: false
+  resource_group: build_review_mock_ds
   tags:
     - ${ARCH}

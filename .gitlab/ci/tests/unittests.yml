@@ -59,6 +59,7 @@ unit-tests:
     paths:
       - cover.html
   needs: []
+  resource_group: unit-tests
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
