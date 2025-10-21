@@ -1,7 +1,7 @@
 manifest-release-eam:
   stage: Manifest
   image:
-    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/mplatform/manifest-tool:alpine-v2.1.14
+    name: mplatform/manifest-tool:alpine
     entrypoint: [""]
   parallel:
     matrix:
@@ -26,7 +26,7 @@ manifest-release-eam:
 manifest-release-mock-ds:
   stage: Manifest
   image:
-    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/mplatform/manifest-tool:alpine-v2.1.14
+    name: mplatform/manifest-tool:alpine
     entrypoint: [""]
   parallel:
     matrix:
