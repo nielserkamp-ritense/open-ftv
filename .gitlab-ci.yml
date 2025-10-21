@@ -9,6 +9,7 @@ stages:
   - UnitTests
   - Build
   - Release
+  - Manifest
   - deploy
 #  - Redeploy
 #  - Security
