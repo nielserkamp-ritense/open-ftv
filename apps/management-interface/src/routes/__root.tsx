@@ -1,10 +1,11 @@
-import {Navbar} from '@/components/navbar'
-import {Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarSection, SidebarSpacer,} from '@/components/sidebar'
-import {SidebarLayout} from '@/components/sidebar-layout'
+import {Navbar} from '@/components/ui/navbar.tsx'
+import {Sidebar, SidebarBody, SidebarItem, SidebarLabel, SidebarSection, SidebarSpacer,} from '@/components/ui/sidebar.tsx'
+import {SidebarLayout} from '@/components/ui/sidebar-layout.tsx'
 import {createRootRoute, Outlet} from '@tanstack/react-router'
 import {TanStackRouterDevtools} from '@tanstack/react-router-devtools'
-import {Header} from "@/components/header.tsx";
+import {Header} from "@/components/ui/header.tsx";
 import { menuItems } from "@/config/menu";
+import { Suspense } from 'react';
 
 
 const RootComponent = () => {
@@ -48,7 +49,9 @@ const RootComponent = () => {
               </Sidebar>
             }
         >
-          <Outlet/>
+          <Suspense fallback={<div className="p-4 text-sm text-content-secondary">Loading…</div>}>
+            <Outlet/>
+          </Suspense>
           <TanStackRouterDevtools/>
         </SidebarLayout>
       </div>

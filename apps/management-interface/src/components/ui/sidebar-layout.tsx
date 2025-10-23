@@ -2,7 +2,7 @@
 
 import * as Headless from '@headlessui/react'
 import React, { useState } from 'react'
-import { NavbarItem } from './navbar'
+import { NavbarItem } from './navbar.tsx'
 
 function OpenMenuIcon() {
   return (
@@ -44,23 +44,26 @@ function MobileSidebar({ open, close, children }: React.PropsWithChildren<{ open
   )
 }
 
-export function StackedLayout({
+export function SidebarLayout({
   navbar,
   sidebar,
   children,
 }: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
-  let [showSidebar, setShowSidebar] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false)
 
   return (
-    <div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+    <div className="relative isolate flex min-h-svh w-full max-lg:flex-col dark:bg-zinc-900 dark:lg:bg-zinc-950">
+      {/* Sidebar on desktop */}
+      <div className="inset-y-0 left-0 w-64 max-lg:hidden">{sidebar}</div>
+
       {/* Sidebar on mobile */}
       <MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
         {sidebar}
       </MobileSidebar>
 
-      {/* Navbar */}
-      <header className="flex items-center px-4">
-        <div className="py-2.5 lg:hidden">
+      {/* Navbar on mobile */}
+      <header className="flex items-center px-4 lg:hidden">
+        <div className="py-2.5">
           <NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
             <OpenMenuIcon />
           </NavbarItem>
@@ -69,9 +72,9 @@ export function StackedLayout({
       </header>
 
       {/* Content */}
-      <main className="flex flex-1 flex-col pb-2 lg:px-2">
-        <div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:ring-1 lg:shadow-xs lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
-          <div className="mx-auto max-w-6xl">{children}</div>
+      <main className="flex flex-1 flex-col pb-2 lg:min-w-0">
+        <div className="grow p-4 bg-background-secondary">
+          <div className="w-full">{children}</div>
         </div>
       </main>
     </div>

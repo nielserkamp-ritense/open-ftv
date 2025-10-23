@@ -1,9 +1,9 @@
 import {useId, useMemo, useState} from 'react'
-import {Input} from '@/components/input'
-import {Button} from '@/components/button'
-import {Badge} from '@/components/badge'
+import {Input} from '@/components/ui/input.tsx'
+import {Button} from '@/components/ui/button.tsx'
+import {Badge} from '@/components/ui/badge.tsx'
 import {IconSquareRoundedX} from '@tabler/icons-react'
-import {badgeColorKeyFromString} from '@/utilities/color'
+import {badgeColorKeyFromString} from '@/utilities/color.ts'
 
 export interface TagsEditorProps {
     tags: string[]

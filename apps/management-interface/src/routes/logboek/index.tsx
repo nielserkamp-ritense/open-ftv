@@ -1,12 +1,13 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {Button} from "@/components/button.tsx";
-import Card from "@/components/card.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import Card from "@/components/ui/card.tsx";
 import {IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
 import {AuthlogEntry, useAuthlogEntries} from "@/services/authlog.ts";
 import type {ColDef, RowClassRules, RowClassParams} from "ag-grid-community";
-import CondensedGrid from "@/components/condensed-grid.tsx";
+import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
+import { DateTime } from "luxon";
 
 export const Route = createFileRoute('/logboek/')({
     component: RouteComponent,
@@ -19,12 +20,15 @@ const BeslissingRenderer = (params: CustomCellRendererProps) => {
             className={"mx-auto mt-1.5"}></IconCircleArrowUpFilled></div>
     } else {
         return <IconCircleRectangleFilled
-            color={"var(--color-carrotnl-alert-icon-error-color)"} className={"mx-auto mt-1.5"}></IconCircleRectangleFilled>
+            color={"var(--color-carrotnl-alert-icon-error-color)"}
+            className={"mx-auto mt-1.5"}></IconCircleRectangleFilled>
     }
 };
 
 function RouteComponent() {
-    const {data} = useAuthlogEntries();
+    const defaultStart = useMemo(() => DateTime.now().minus({days: 1}).toISO(), []);
+    const {data} = useAuthlogEntries({start: defaultStart});
+
     const colDefs: ColDef<AuthlogEntry>[] = [
         {
             headerName: "Trace ID",
@@ -41,7 +45,9 @@ function RouteComponent() {
         {
             headerName: "Subject",
             // The OpenAPI types define `request` as Record<string, never>, so we need a safe cast here
-            valueGetter: (params) => (params.data?.request as unknown as { subject?: { id?: string } } | undefined)?.subject?.id,
+            valueGetter: (params) => (params.data?.request as unknown as {
+                subject?: { id?: string }
+            } | undefined)?.subject?.id,
             resizable: false
         },
         {

@@ -1,15 +1,19 @@
-import {Heading} from '@/components/heading'
+import {Heading} from '@/components/ui/heading.tsx'
 import {PolicyResponse, useDeletePolicy, usePolicies} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
 import {createFileRoute, useNavigate} from "@tanstack/react-router";
-import {Button} from "@/components/button.tsx";
+import {Button} from "@/components/ui/button.tsx";
 import {useState} from "react";
-import {Alert, AlertActions, AlertDescription, AlertTitle} from "@/components/alert.tsx";
-import Card from "@/components/card.tsx";
+import {Alert, AlertActions, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
+import Card from "@/components/ui/card.tsx";
 import type {ColDef, RowClickedEvent} from "ag-grid-community";
-import {IconBoltFilled, IconPlus} from "@tabler/icons-react";
-import {Badge} from "@/components/badge";
-import Grid from "@/components/grid.tsx";
+import {
+    IconBoltFilled, IconLayoutSidebar,
+    IconPlus,
+} from "@tabler/icons-react";
+import {Badge} from "@/components/ui/badge.tsx";
+import Grid from "@/components/ui/grid.tsx";
+import BundelsPanel from "@/components/bundels-panel.tsx";
 
 function formatDateTime(value?: string) {
     if (!value) return '-';
@@ -40,6 +44,7 @@ export default function PoliciesComponent() {
     const deletePolicyMutation = useDeletePolicy();
     const [isOpen, setIsOpen] = useState(false)
     const [selectedId] = useState<string | null>(null)
+    const [isBundelsPanelOpen, setIsBundelsPanelOpen] = useState(false)
 
     function handleRowClicked(e: RowClickedEvent<PolicyResponse>) {
         const data = e.data;
@@ -121,23 +126,50 @@ export default function PoliciesComponent() {
                     <Button color={"red"} onClick={deletePolicy}>Delete</Button>
                 </AlertActions>
             </Alert>
-            <Card className="min-w-3xl flex-1 h-[836px] py-3" disablePadding={true}>
-                <div className={"px-10 gap-8"}>
-                    <div className={"pt-6 text-right"}>
-                        <Button color={"primary"} href={"/policies/add"}>
-                            <div className={"flex align-middle justify-center my-auto"}>
-                                <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
+            <Card className="min-w-3xl flex-1 h-[836px] py-3 flex" disablePadding={true}>
+                <div className="flex gap-4">
+                    <div className={"pt-6 pb-8 px-10 gap-8 flex-1"}>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Regels</span>
                             </div>
-                            <span>Aanmaken</span>
-                        </Button>
+                            <div>{!isBundelsPanelOpen && (
+                                    <button
+                                    onClick={() => setIsBundelsPanelOpen(!isBundelsPanelOpen)}
+                                    className="flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
+                                >
+                                    <span className={"text-carrotnl-button-subtle-color text-[14px] font-semibold"}>Toon bundels</span>
+                                    <IconLayoutSidebar
+                                        size={16}
+                                        className={`transition-transform ${isBundelsPanelOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+                            )}
+
+                            </div>
+                        </div>
+                        <div className={"pt-6 text-right"}>
+                            <Button color={"primary"} href={"/policies/add"}>
+                                <div className={"flex align-middle justify-center my-auto"}>
+                                    <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
+                                </div>
+                                <span>Aanmaken</span>
+                            </Button>
+                        </div>
+                        <div className={"w-full h-[600px] mt-2"}>
+                            <Grid
+                                onRowClicked={handleRowClicked}
+                                rowData={data}
+                                columnDefs={colDefs}
+                            />
+                        </div>
                     </div>
-                    <div className={"w-full h-[600px] mt-2"}>
-                        <Grid
-                            onRowClicked={handleRowClicked}
-                            rowData={data}
-                            columnDefs={colDefs}
+                    {isBundelsPanelOpen && (
+                        <BundelsPanel
+                            isOpen={isBundelsPanelOpen}
+                            onClose={() => setIsBundelsPanelOpen(false)}
                         />
-                    </div>
+                    )}
                 </div>
             </Card>
         </>

@@ -11,3 +11,7 @@ apis:
     root: ../../oas/authlog/openapi.yaml
     x-openapi-ts:
       output: ./src/oas/authlog.ts
+  bundles@v1:
+    root: ../../oas/bundles/openapi.yaml
+    x-openapi-ts:
+      output: ./src/oas/bundles.ts

@@ -1,12 +1,12 @@
 import {createFileRoute} from '@tanstack/react-router'
-import Card from "@/components/card.tsx";
-import {Heading} from "@/components/heading.tsx";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/table.tsx";
-import { Badge } from '@/components/badge';
-import { Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious } from '@/components/pagination';
+import Card from "@/components/ui/card.tsx";
+import {Heading} from "@/components/ui/heading.tsx";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
+import { Badge } from '@/components/ui/badge.tsx';
+import { Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious } from '@/components/ui/pagination.tsx';
 import { useAttributes } from '@/services/attributes';
 import { ScaleLoader } from 'react-spinners';
-import { Button } from '@/components/button.tsx';
+import { Button } from '@/components/ui/button.tsx';
 
 export const Route = createFileRoute('/attributen/')({
     component: RouteComponent,
