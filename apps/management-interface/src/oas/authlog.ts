@@ -49,7 +49,7 @@ export interface components {
             /** @description AuthZEN request. */
             request?: Record<string, never>;
             /** @description AuthZEN response. */
-            response?: Record<string, string>;
+            response?: Record<string, never>;
             /** @description Information (attributes) used during the authorization process. */
             information?: Record<string, never>;
             /** @description Details of the PDP engine. */

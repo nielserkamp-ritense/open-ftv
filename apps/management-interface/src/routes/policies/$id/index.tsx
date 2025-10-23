@@ -1,13 +1,13 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {FTVHeading, Heading} from "@/components/heading.tsx";
-import Card from "@/components/card.tsx";
+import {FTVHeading, Heading} from "@/components/ui/heading.tsx";
+import Card from "@/components/ui/card.tsx";
 import {usePolicy} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
-import {Textarea} from "@/components/textarea.tsx";
-import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/description-list.tsx";
-import {Navbar, NavbarItem, NavbarSection} from "@/components/navbar.tsx";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
+import {Navbar, NavbarItem, NavbarSection} from "@/components/ui/navbar.tsx";
 import {IconFileText, IconPlayerPlay, IconSettings, IconSourceCode} from "@tabler/icons-react";
-import { Badge } from "@/components/badge.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 
 export const Route = createFileRoute('/policies/$id/')({

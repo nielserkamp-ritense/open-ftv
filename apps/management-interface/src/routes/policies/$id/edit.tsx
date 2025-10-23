@@ -1,15 +1,15 @@
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
-import {Description, Field, FieldGroup, Fieldset, Label} from "@/components/fieldset.tsx";
-import {Input} from "@/components/input.tsx";
-import {Select} from "@/components/select.tsx";
-import {Textarea} from "@/components/textarea.tsx";
-import {Heading} from "@/components/heading.tsx";
-import {Button} from "@/components/button.tsx";
+import {Description, Field, FieldGroup, Fieldset, Label} from "@/components/ui/fieldset.tsx";
+import {Input} from "@/components/ui/input.tsx";
+import {Select} from "@/components/ui/select.tsx";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {Heading} from "@/components/ui/heading.tsx";
+import {Button} from "@/components/ui/button.tsx";
 import {useEffect, useMemo, useState} from 'react';
 import {PolicyResponse, usePolicy, useReplacePolicy} from '@/services/policies.ts';
 import {useTags} from '@/services/tags.ts';
 import {ScaleLoader} from "react-spinners";
-import { TagsEditor } from "@/components/tags-editor.tsx";
+import { TagsEditor } from "@/components/ui/tags-editor.tsx";
 
 export const Route = createFileRoute('/policies/$id/edit')({
     component: EditPolicyComponent,

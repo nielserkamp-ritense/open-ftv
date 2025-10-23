@@ -1,14 +1,14 @@
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
-import {Description, Field, FieldGroup, Fieldset, Label} from "@/components/fieldset.tsx";
-import {Input} from "@/components/input.tsx";
-import {Select} from "@/components/select.tsx";
-import {Textarea} from "@/components/textarea.tsx";
-import {Heading} from "@/components/heading.tsx";
-import {Button} from "@/components/button.tsx";
+import {Description, Field, FieldGroup, Fieldset, Label} from "@/components/ui/fieldset.tsx";
+import {Input} from "@/components/ui/input.tsx";
+import {Select} from "@/components/ui/select.tsx";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {Heading} from "@/components/ui/heading.tsx";
+import {Button} from "@/components/ui/button.tsx";
 import {useState, useMemo} from 'react';
 import {useAddPolicy} from '@/services/policies';
 import {v7 as uuidv7} from 'uuid';
-import { TagsEditor } from "@/components/tags-editor.tsx";
+import { TagsEditor } from "@/components/ui/tags-editor.tsx";
 import { useTags } from '@/services/tags.ts';
 
 export const Route = createFileRoute('/policies/add')({
