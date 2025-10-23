@@ -12,6 +12,7 @@ import (
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/ast"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -20,6 +21,9 @@ import (
 
 // Version defines the version of this OPA/Rego PDP.
 const Version = "1.0.0"
+
+// RegoVersion defines the version of Rego policy language support.
+const RegoVersion = ast.RegoV1
 
 // NewController instantiates a new OPA/Rego controller.
 func NewController(options ...pdp.Option) pdp.Controller {
@@ -31,7 +35,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	var err error
 	c.pdp, err = sdk.New(context.Background(), sdk.Options{
-		RegoVersion:   1,
+		RegoVersion:   RegoVersion,
 		ID:            "opa-controller",
 		Config:        bytes.NewReader([]byte(cfg)),
 		ConsoleLogger: &wrappedLogger{logger: c.Logger},
@@ -64,15 +68,15 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.ADL.NewEngine(map[string]any{
 			"controller":        c.Name,
 			"controllerVersion": c.Version,
-			"language":          models.CEDAR.String(),
+			"language":          models.REGO.String(),
 			"module":            mod,
 			"moduleVersion":     modVersion,
-			"regoVersion":       1,
+			"regoVersion":       RegoVersion,
 			"opaConfig":         cfgMap,
 		})
 	}
 
-	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion)
+	c.Logger.Info("pdp controller initialized", "controller", c.String(), "module", mod, "module-version", modVersion, "rego", RegoVersion)
 	return c
 }
 

@@ -135,7 +135,7 @@ func TestController_Handle(t *testing.T) {
 			mem := inmem.New()
 
 			engine, err := sdk.New(context.Background(), sdk.Options{
-				RegoVersion:   1,
+				RegoVersion:   RegoVersion,
 				ID:            "opa-controller",
 				Config:        bytes.NewReader([]byte(cfg)),
 				ConsoleLogger: &wrappedLogger{logger: logger},
