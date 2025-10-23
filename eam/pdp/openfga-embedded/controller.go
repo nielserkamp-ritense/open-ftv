@@ -43,7 +43,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.ADL.NewEngine(map[string]any{
 			"controller":        c.Name,
 			"controllerVersion": c.Version,
-			"language":          models.CEDAR.String(),
+			"language":          models.OPENFGA.String(),
 			"module":            mod,
 			"moduleVersion":     modVersion,
 		})
