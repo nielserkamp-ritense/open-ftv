@@ -16,10 +16,13 @@ manifest-release-eam:
     - echo "container tag=${SEMVER}"
   script:
     - manifest-tool
+      --username=${DOCKERHUB_USERNAME}
+      --password=${DOCKERHUB_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
       --template ${CI_REGISTRY_IMAGE}/eam/${IMAGE}:${SEMVER}-ARCH
       --target ${CI_REGISTRY_IMAGE}/eam/${IMAGE}:${SEMVER}
+      --tags latest
   rules:
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
 
@@ -40,9 +43,12 @@ manifest-release-mock-ds:
     - echo "container tag=${SEMVER}"
   script:
     - manifest-tool
+      --username=${DOCKERHUB_USERNAME}
+      --password=${DOCKERHUB_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
       --template ${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}:${SEMVER}-ARCH
       --target ${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}:${SEMVER}
+      --tags latest
   rules:
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
