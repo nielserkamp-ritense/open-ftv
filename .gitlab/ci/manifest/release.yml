@@ -16,8 +16,8 @@ manifest-release-eam:
     - echo "container tag=${SEMVER}"
   script:
     - manifest-tool
-      --username=${DOCKERHUB_USERNAME}
-      --password=${DOCKERHUB_PASSWORD}
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
       --template ${CI_REGISTRY_IMAGE}/eam/${IMAGE}:${SEMVER}-ARCH
@@ -43,8 +43,8 @@ manifest-release-mock-ds:
     - echo "container tag=${SEMVER}"
   script:
     - manifest-tool
-      --username=${DOCKERHUB_USERNAME}
-      --password=${DOCKERHUB_PASSWORD}
+      --username=${CI_REGISTRY_USER}
+      --password=${CI_REGISTRY_PASSWORD}
       push from-args
       --platforms linux/amd64,linux/arm64
       --template ${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}:${SEMVER}-ARCH
