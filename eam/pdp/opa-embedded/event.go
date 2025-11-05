@@ -60,7 +60,15 @@ func (c *controller) Handle(event models.EventType, key string) {
 			}
 		}
 
+	case models.AttributeAdded, models.AttributeReplaced, models.AttributeRemoved,
+		models.AttributesAdded, models.AttributesReplaced, models.AttributesRemoved:
+		c.loadAttributes()
+
+	case models.EntityAdded, models.EntityReplaced, models.EntityRemoved,
+		models.EntitiesAdded, models.EntitiesReplaced, models.EntitiesRemoved:
+		c.loadEntities()
+
 	default:
-		// TODO: attributes, entities, relations?
+		// TODO: relations?
 	}
 }

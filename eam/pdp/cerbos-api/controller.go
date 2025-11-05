@@ -40,6 +40,10 @@ func NewController(cfg Config, options ...pdp.Option) pdp.Controller {
 		c.PAP.LoadFiles()
 	}
 
+	if c.PIP != nil {
+		c.PIP.AddEventSink(c)
+	}
+
 	if c.ADL != nil {
 		c.ADL.NewEngine(map[string]any{
 			"controller":        c.Name,

@@ -61,6 +61,10 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.PAP.LoadFiles()
 	}
 
+	if c.PIP != nil {
+		c.PIP.AddEventSink(c)
+	}
+
 	mod := "github.com/open-policy-agent/opa/sdk"
 	modVersion := module.GetModuleVersion(mod)
 

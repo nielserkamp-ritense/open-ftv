@@ -36,6 +36,10 @@ func NewController(options ...pdp.Option) pdp.Controller {
 		c.PAP.LoadFiles()
 	}
 
+	if c.PIP != nil {
+		c.PIP.AddEventSink(c)
+	}
+
 	mod := "github.com/openfga/openfga"
 	modVersion := module.GetModuleVersion(mod)
 
