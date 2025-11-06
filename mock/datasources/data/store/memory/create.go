@@ -13,6 +13,5 @@ func (s *storage) CreateRecord(tableID string, record *models.Row) error {
 		return fmt.Errorf("createRecord: %w", err)
 	}
 
-	table.CreateRow(record)
-	return nil
+	return table.CreateRow(record)
 }

@@ -37,6 +37,7 @@ type Endpoint struct {
 	Datasource  string           // the datasource the endpoint will access.
 	Table       string           // the primary table within the datasource the endpoint will access.
 	Joins       []*Join          // optional joins tables the endpoint will access.
+	Keys        []string         // optional list of keys used for Create, Update, Patch, Delete.
 	Fields      []string         // the fields within the tables the endpoint will access.
 	Filter      map[string]any   // optional fixed filter for the endpoint.
 	// hidden fields
@@ -49,7 +50,7 @@ type Endpoint struct {
 
 // UID returns a unique identifier for the endpoint based on the major version and the path.
 func (e *Endpoint) UID() string {
-	return fmt.Sprintf("/v%d/%s", e.Version, strings.Trim(e.Path, "/"))
+	return fmt.Sprintf("%s:/v%d/%s", e.CalledAs.String(), e.Version, strings.Trim(e.Path, "/"))
 }
 
 // GetDatasource returns the datasource for this endpoint.
@@ -86,6 +87,7 @@ func (e *Endpoint) MarshalJSON() ([]byte, error) {
 		Datasource:  e.Datasource,
 		Table:       e.Table,
 		Joins:       e.Joins,
+		Keys:        e.Keys,
 		Fields:      e.Fields,
 		Filter:      e.Filter,
 	}
@@ -108,8 +110,13 @@ func (e *Endpoint) UnmarshalJSON(b []byte) error {
 	e.Datasource = e2.Datasource
 	e.Table = e2.Table
 	e.Joins = e2.Joins
+	e.Keys = e2.Keys
 	e.Fields = e2.Fields
 	e.Filter = e2.Filter
+
+	if e.CalledAs == 0 {
+		e.CalledAs = e2.Type
+	}
 
 	return nil
 }
@@ -126,6 +133,7 @@ func (e *Endpoint) MarshalYAML() ([]byte, error) {
 		Datasource:  e.Datasource,
 		Table:       e.Table,
 		Joins:       e.Joins,
+		Keys:        e.Keys,
 		Fields:      e.Fields,
 		Filter:      e.Filter,
 	}
@@ -148,8 +156,13 @@ func (e *Endpoint) UnmarshalYAML(b []byte) error {
 	e.Datasource = e2.Datasource
 	e.Table = e2.Table
 	e.Joins = e2.Joins
+	e.Keys = e2.Keys
 	e.Fields = e2.Fields
 	e.Filter = e2.Filter
+
+	if e.CalledAs == 0 {
+		e.CalledAs = e2.Type
+	}
 
 	return nil
 }
@@ -164,6 +177,7 @@ type encodeEndpoint struct {
 	Datasource  string           `json:"datasource,omitempty" yaml:"datasource,omitempty"`
 	Table       string           `json:"table,omitempty" yaml:"table,omitempty"`
 	Joins       []*Join          `json:"joins,omitempty" yaml:"joins,omitempty"`
+	Keys        []string         `json:"keys,omitempty" yaml:"keys,omitempty"`
 	Fields      []string         `json:"fields,omitempty" yaml:"fields,omitempty"`
 	Filter      map[string]any   `json:"filter,omitempty" yaml:"filter,omitempty"`
 }
