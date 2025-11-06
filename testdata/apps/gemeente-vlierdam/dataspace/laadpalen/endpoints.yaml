@@ -3,7 +3,6 @@
   path: /aanvragen
   description: Complete laadpaal-aanvraag gegevens ophalen
   type: GET
-  calledAs: GET
   version: 1
   fullVersion: 1.0.0
   datasource: vlierdam
@@ -14,11 +13,102 @@
       fields: ["status"]
   fields:
     - "*"
+
+- id: aanvraag-maken
+  path: /aanvraag/:id
+  keys:
+    - id
+  description: Nieuwe laadpaal-aanvraag creëren
+  type: POST
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  fields:
+    - "*"
+
+- id: aanvraag-wijzigen
+  path: /aanvraag/:id
+  keys:
+    - id
+  description: Bestaande laadpaal-aanvraag wijzigen
+  type: PUT
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  fields:
+    - "*"
+
+- id: aanvraag-gedeeltelijk-wijzigen
+  path: /aanvraag/:id
+  keys:
+    - id
+  description: Bestaande laadpaal-aanvraag gedeeltelijk wijzigen
+  type: PATCH
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  fields:
+    - "*"
+
+- id: aanvraag-verwijderen
+  path: /aanvraag/:id
+  keys:
+    - id
+  description: Bestaande laadpaal-aanvraag verwijderen
+  type: DELETE
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  fields:
+    - "*"
+
 - id: laadpalen
   path: /laadpalen
   description: Complete laadpaal gegevens ophalen
   type: GET
-  calledAs: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: laadpaal
+  fields:
+    - "*"
+
+- id: laadpaal-maken
+  path: /laadpaal/:id
+  keys:
+    - id
+  description: Nieuwe laadpaal creëren
+  type: POST
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: laadpaal
+  fields:
+    - "*"
+
+- id: laadpaal-wijzigen
+  path: /laadpaal/:id
+  keys:
+    - id
+  description: Bestaande laadpaal wijzigen
+  type: PUT
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: laadpaal
+  fields:
+    - "*"
+
+- id: laadpaal-verwijderen
+  path: /laadpaal/:id
+  keys:
+    - id
+  description: Bestaande laadpaal verwijderen
+  type: DELETE
   version: 1
   fullVersion: 1.0.0
   datasource: vlierdam

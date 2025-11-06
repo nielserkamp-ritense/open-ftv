@@ -86,7 +86,7 @@ func TestStorage_AddEndpoint(t *testing.T) {
 		s1 := &storage{endpoints: make(map[string]*schema.Endpoint)}
 		s1.AddEndpoint(e1)
 
-		got := s1.endpoints["/v1/path"]
+		got := s1.endpoints["GET:/v1/path"]
 		assert.Equal(t, e1, got)
 
 		var count int

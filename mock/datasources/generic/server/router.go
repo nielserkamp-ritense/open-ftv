@@ -71,6 +71,8 @@ func (s *service) initRoutes(_ context.Context, svc *fiber.App) {
 			version.Post(def.Path, h.Handle)
 		case enums.PutMethod:
 			version.Put(def.Path, h.Handle)
+		case enums.PatchMethod:
+			version.Patch(def.Path, h.Handle)
 		case enums.DeleteMethod:
 			version.Delete(def.Path, h.Handle)
 		}

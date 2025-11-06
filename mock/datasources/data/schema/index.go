@@ -14,6 +14,7 @@ import (
 // Index represents an index on a datasource table.
 type Index struct {
 	Parent
+	Unique      bool
 	Description string
 	Fields      []string
 	Orders      []enums.OrderType
@@ -53,6 +54,7 @@ func (i *Index) Equal(other []string) bool {
 func (i *Index) MarshalJSON() ([]byte, error) {
 	d2 := encodeIndex{
 		ID:          i.ID,
+		Unique:      i.Unique,
 		Description: i.Description,
 		Fields:      i.Fields,
 		Orders:      i.Orders,
@@ -68,6 +70,7 @@ func (i *Index) UnmarshalJSON(b []byte) error {
 	}
 
 	i.ID = d2.ID
+	i.Unique = d2.Unique
 	i.Description = d2.Description
 	i.Fields = d2.Fields
 	i.Orders = d2.Orders
@@ -79,6 +82,7 @@ func (i *Index) UnmarshalJSON(b []byte) error {
 func (i *Index) MarshalYAML() ([]byte, error) {
 	d2 := encodeIndex{
 		ID:          i.ID,
+		Unique:      i.Unique,
 		Description: i.Description,
 		Fields:      i.Fields,
 		Orders:      i.Orders,
@@ -94,6 +98,7 @@ func (i *Index) UnmarshalYAML(b []byte) error {
 	}
 
 	i.ID = d2.ID
+	i.Unique = d2.Unique
 	i.Description = d2.Description
 	i.Fields = d2.Fields
 	i.Orders = d2.Orders
@@ -103,6 +108,7 @@ func (i *Index) UnmarshalYAML(b []byte) error {
 
 type encodeIndex struct {
 	ID          string            `json:"id" yaml:"id"`
+	Unique      bool              `json:"unique,omitempty" yaml:"unique,omitempty"`
 	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
 	Fields      []string          `json:"fields,omitempty" yaml:"fields"`
 	Orders      []enums.OrderType `json:"orders,omitempty" yaml:"orders,omitempty"`

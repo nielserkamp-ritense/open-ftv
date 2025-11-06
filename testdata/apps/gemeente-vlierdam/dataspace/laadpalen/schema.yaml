@@ -8,6 +8,7 @@ tables:
       - id: "id"
         description: "Unieke identificatie van de aanvraag"
         type: "integer"
+        autoIncrement: true
         minValue: 1
         maxValue: 9999999999
       - id: "postcode"
@@ -73,6 +74,7 @@ tables:
       - id: "id"
         description: "Unieke identificatie"
         type: "integer"
+        autoIncrement: true
         minValue: 1
         maxValue: 9999999999
       - id: "postcode"

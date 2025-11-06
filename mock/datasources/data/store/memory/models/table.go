@@ -22,20 +22,24 @@ type Table struct {
 }
 
 // TableFromData returns a set of structured records from the given data using the given object definition.
+//
+// Errors are ignored, so prepare your input data well.
 func TableFromData(def *schema.Table, data []map[string]any) *Table {
 	t := newTable(def, len(data))
 	for i := range data {
-		t.createRow(RowFromData(&def.Object, data[i]))
+		_ = t.createRow(RowFromData(&def.Object, data[i]))
 	}
 	return t
 }
 
 // TableFromCSV returns a set of structured records from the given CSV data using the given object definition.
+//
+// Errors are ignored, so prepare your input file well.
 func TableFromCSV(def *schema.Table, csv [][]string) *Table {
 	t := newTable(def, len(csv)-1)
 	if len(csv) > 1 {
 		for i := range csv[1:] {
-			t.createRow(RowFromCSV(&def.Object, csv[0], csv[i+1]))
+			_ = t.createRow(RowFromCSV(&def.Object, csv[0], csv[i+1]))
 		}
 	}
 	return t
@@ -145,34 +149,102 @@ func (t *Table) DummyRecord() *Row {
 }
 
 // CreateRow adds a new record to the data table.
-func (t *Table) CreateRow(r *Row) {
+func (t *Table) CreateRow(r *Row) error {
 	t.mutex.Lock()
-	t.createRow(r)
-	t.mutex.Unlock()
+	defer t.mutex.Unlock()
+	return t.createRow(r)
 }
 
-func (t *Table) createRow(r *Row) {
-	t.Data = append(t.Data, r)
+func (t *Table) createRow(r *Row) error {
 	def := t.def
 
+	var pk string
+
+	ixKeys := make([]string, len(def.SecondaryIndexes))
+	fkKeys := make([]string, len(def.ForeignKeys))
+
 	if def.PrimaryKey != nil {
-		key := r.KeyValueForIndex(def.PrimaryKey)
-		t.PK[key] = r
+		pk = r.KeyValueForIndex(def.PrimaryKey)
+		if _, ok := t.PK[pk]; ok {
+			return fmt.Errorf("duplicate primary key: %s", pk)
+		}
 	}
 
-	for _, ix := range def.SecondaryIndexes {
+	for i, ix := range def.SecondaryIndexes {
 		key := r.KeyValueForIndex(ix)
+		ixKeys[i] = key
+		if ix.Unique {
+			index := t.Indexes[ix.ID]
+			if _, ok := index[key]; ok {
+				return fmt.Errorf("duplicate secondary index: %s with primary key: %s", key, pk)
+			}
+		}
+	}
+
+	for i, fk := range def.ForeignKeys {
+		fkKeys[i] = r.KeyValueForFK(fk, false)
+
+		// TODO: check foreign key exists
+	}
+
+	t.Data = append(t.Data, r)
+
+	if def.PrimaryKey != nil {
+		t.PK[pk] = r
+	}
+
+	for i, ix := range def.SecondaryIndexes {
+		key := ixKeys[i]
 		index := t.Indexes[ix.ID]
 		index[key] = append(index[key], r)
 		t.Indexes[ix.ID] = index
 	}
 
-	for _, fk := range def.ForeignKeys {
-		key := r.KeyValueForFK(fk, false)
+	for i, fk := range def.ForeignKeys {
+		key := fkKeys[i]
 		foreign := t.ForeignKeys[fk.ID]
 		foreign[key] = append(foreign[key], r)
 		t.ForeignKeys[fk.ID] = foreign
 	}
+
+	return nil
+}
+
+// DeleteRow removes a record from the data table.
+func (t *Table) DeleteRow(pk []any) error {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	return t.deleteRow(pk)
+}
+
+func (t *Table) deleteRow(pk []any) error {
+	def := t.def
+	if def.PrimaryKey == nil {
+		return fmt.Errorf("missing primary key")
+	}
+
+	var old *Row
+
+	key := KeyFromData(pk, t.Definition().PrimaryKey)
+
+	var ok bool
+	if old, ok = t.PK[key]; !ok {
+		return fmt.Errorf("primary key %v not found", pk)
+	}
+
+	delete(t.PK, key)
+
+	for i, rec := range t.Data {
+		if rec == old {
+			t.Data = append(t.Data[:i], t.Data[i+1:]...)
+			break
+		}
+	}
+
+	// TODO: remove record from secondary indexes
+	// TODO: remove record from foreign keys
+
+	return nil
 }
 
 // KeyFromData returns a concatenated key from the given values for the given index.

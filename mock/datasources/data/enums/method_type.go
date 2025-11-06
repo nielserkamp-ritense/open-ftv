@@ -8,6 +8,7 @@ const (
 	GetMethod MethodType = iota + 1
 	PostMethod
 	PutMethod
+	PatchMethod
 	DeleteMethod
 )
 
@@ -20,6 +21,8 @@ func (t MethodType) String() string {
 		return "POST"
 	case PutMethod:
 		return "PUT"
+	case PatchMethod:
+		return "PATCH"
 	case DeleteMethod:
 		return "DELETE"
 	default:
@@ -36,6 +39,8 @@ func (t MethodType) MarshalJSON() ([]byte, error) {
 		return []byte(`"POST"`), nil
 	case PutMethod:
 		return []byte(`"PUT"`), nil
+	case PatchMethod:
+		return []byte(`"PATCH"`), nil
 	case DeleteMethod:
 		return []byte(`"DELETE"`), nil
 	default:
@@ -52,6 +57,8 @@ func (t MethodType) MarshalYAML() ([]byte, error) {
 		return []byte("POST"), nil
 	case PutMethod:
 		return []byte("PUT"), nil
+	case PatchMethod:
+		return []byte("PATCH"), nil
 	case DeleteMethod:
 		return []byte("DELETE"), nil
 	default:
@@ -80,6 +87,8 @@ func MethodTypeFromString(s string) MethodType {
 		return PostMethod
 	case "PUT":
 		return PutMethod
+	case "PATCH":
+		return PatchMethod
 	case "DELETE":
 		return DeleteMethod
 	default:

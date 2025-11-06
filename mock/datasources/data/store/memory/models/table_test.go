@@ -191,7 +191,8 @@ func TestTable_CreateRow(t *testing.T) {
 		t1 := newTable(table1, 0)
 		require.NotNil(t, t1)
 
-		t1.CreateRow(&Row{Data: map[string]any{"f1": "123", "f2": "hello world", "f3": true}})
+		err := t1.CreateRow(&Row{Data: map[string]any{"f1": "123", "f2": "hello world", "f3": true}})
+		require.NoError(t, err)
 		require.Len(t, t1.Data, 1)
 	})
 }
