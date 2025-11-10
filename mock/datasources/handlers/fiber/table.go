@@ -49,7 +49,7 @@ func (h *tableHandler) GetTables(req *fiber.Ctx) error {
 	if len(list) == 0 {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching tables found")
 	}
-	return buildContent(req, list)
+	return buildContent(req, list, nil)
 }
 
 // GetTable implements the TablesHandler interface.
@@ -72,7 +72,7 @@ func (h *tableHandler) GetTable(req *fiber.Ctx) error {
 	}
 
 	if r := t.AsRow(); r.MatchPrimary(reqCtx.Filter) {
-		return buildContent(req, r.MatchFields(reqCtx.Matcher))
+		return buildContent(req, r.MatchFields(reqCtx.Matcher), nil)
 	}
 	return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching table found")
 }

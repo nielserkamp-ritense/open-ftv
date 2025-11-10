@@ -15,6 +15,7 @@ sources:
             in: query
             value: "id,afdeling,laadpaal-opleiding"
             type: "xsd:string"
+        modifiedSince: true
         timeout: "10s"
         interval: "5m"
         initialInterval: "1s"
@@ -48,6 +49,7 @@ sources:
             in: query
             value: "code,doelbinding,omschrijving"
             type: "xsd:string"
+        modifiedSince: true
         timeout: "10s"
         interval: "5m"
         initialInterval: "1s"
@@ -81,6 +83,7 @@ sources:
             in: query
             value: "code,omschrijving"
             type: "xsd:string"
+        modifiedSince: true
         timeout: "10s"
         interval: "5m"
         initialInterval: "1s"

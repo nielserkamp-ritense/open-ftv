@@ -2,7 +2,9 @@ package fiber
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -11,7 +13,16 @@ import (
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 )
 
-func buildContent(req *fiber.Ctx, data any) error {
+func buildContent(req *fiber.Ctx, data any, modified *time.Time) error {
+	if modified != nil {
+		since := req.Get("If-Modified-Since")
+		if t, err := time.Parse(http.TimeFormat, since); err == nil {
+			if !modified.Truncate(time.Second).After(t) {
+				return server.SendBasicResponse(req, fiber.StatusNotModified)
+			}
+		}
+	}
+
 	ct := fiber.MIMEApplicationJSON
 
 	list := req.GetReqHeaders()[fiber.HeaderAccept]
@@ -39,6 +50,11 @@ func buildContent(req *fiber.Ctx, data any) error {
 
 	req.Set(fiber.HeaderContentType, ct)
 	req.Set(fiber.HeaderContentLength, fmt.Sprintf("%d", len(b)))
+
+	if modified != nil {
+		req.Set(fiber.HeaderLastModified, modified.Format(http.TimeFormat))
+	}
+
 	return req.Send(b)
 }
 

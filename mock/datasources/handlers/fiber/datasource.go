@@ -48,7 +48,7 @@ func (h *datasourceHandler) GetDatasources(req *fiber.Ctx) error {
 	if len(list) == 0 {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching datasources found")
 	}
-	return buildContent(req, list)
+	return buildContent(req, list, nil)
 }
 
 // GetDatasource implements the DatasourcesHandler interface.
@@ -71,7 +71,7 @@ func (h *datasourceHandler) GetDatasource(req *fiber.Ctx) error {
 	}
 
 	if r := d.AsRow(); r.MatchPrimary(reqCtx.Filter) {
-		return buildContent(req, r.MatchFields(reqCtx.Matcher))
+		return buildContent(req, r.MatchFields(reqCtx.Matcher), nil)
 	}
 	return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching datasource found")
 }

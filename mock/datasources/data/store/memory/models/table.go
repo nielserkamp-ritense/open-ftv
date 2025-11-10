@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"sync"
+	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/transforming"
@@ -17,8 +18,9 @@ type Table struct {
 	Indexes     map[string]map[string]Rows
 	ForeignKeys map[string]map[string]Rows
 	// hidden fields
-	def   *schema.Table
-	mutex sync.RWMutex
+	def           *schema.Table
+	mutex         sync.RWMutex
+	modifiedSince time.Time
 }
 
 // TableFromData returns a set of structured records from the given data using the given object definition.
@@ -50,8 +52,18 @@ func (t *Table) Definition() *schema.Table {
 	return t.def
 }
 
+// ModifiedSince returns the timestamp the table was last modified.
+func (t *Table) ModifiedSince() time.Time {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+	return t.modifiedSince
+}
+
 // AsRow converts the table definition into an exportable row.
 func (t *Table) AsRow() *Row {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
 	def := &schema.Object{Fields: []*schema.Field{
 		&fieldDefFQDN,
 		&fieldDefID,
@@ -106,6 +118,9 @@ func (t *Table) AsRow() *Row {
 //
 // If there are no transformations defined for the table, the input table data is returned as-is.
 func (t *Table) AddTransformations(in *Row, params map[string]any) *Row {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
 	if len(t.def.Transforms) == 0 {
 		return in
 	}
@@ -131,6 +146,9 @@ func (t *Table) AddTransformations(in *Row, params map[string]any) *Row {
 
 // DummyRecord returns an empty row according to the data table definition.
 func (t *Table) DummyRecord() *Row {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
 	fields := t.def.Fields
 
 	l := len(fields)
@@ -207,6 +225,8 @@ func (t *Table) createRow(r *Row) error {
 		t.ForeignKeys[fk.ID] = foreign
 	}
 
+	t.modifiedSince = time.Now().UTC()
+
 	return nil
 }
 
@@ -244,6 +264,8 @@ func (t *Table) deleteRow(pk []any) error {
 	// TODO: remove record from secondary indexes
 	// TODO: remove record from foreign keys
 
+	t.modifiedSince = time.Now().UTC()
+
 	return nil
 }
 
@@ -273,8 +295,9 @@ func newTable(def *schema.Table, cap int) *Table {
 	}
 
 	t := &Table{
-		def:  def,
-		Data: make(Rows, 0, cap),
+		def:           def,
+		modifiedSince: time.Now().UTC(),
+		Data:          make(Rows, 0, cap),
 	}
 
 	if def.PrimaryKey != nil {

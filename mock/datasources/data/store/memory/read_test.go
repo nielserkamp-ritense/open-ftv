@@ -76,13 +76,15 @@ func TestStorage_SelectPK(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err2 := tc.s.SelectPK(tc.table, tc.pk, tc.matcher)
+			got, modified, err2 := tc.s.SelectPK(tc.table, tc.pk, tc.matcher)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, got)
+				require.Nil(t, modified)
 			} else {
 				require.NoError(t, err2)
 				require.NotNil(t, got)
+				require.NotNil(t, modified)
 				assert.EqualValues(t, tc.want.Data, got.Data)
 			}
 		})
@@ -169,13 +171,15 @@ func TestStorage_SelectIX(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err2 := tc.s.SelectIX(tc.table, tc.index, tc.keys, tc.matcher)
+			got, modified, err2 := tc.s.SelectIX(tc.table, tc.index, tc.keys, tc.matcher)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, got)
+				require.Nil(t, modified)
 			} else {
 				require.NoError(t, err2)
 				require.NotNil(t, got)
+				require.NotNil(t, modified)
 				require.Equal(t, len(tc.want), len(got))
 
 				for i := range tc.want {
@@ -288,13 +292,15 @@ func TestStorage_Search(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err9 := tc.s.Search(tc.table, tc.ctx)
+			got, modified, err9 := tc.s.Search(tc.table, tc.ctx)
 			if tc.wantErr {
 				require.Error(t, err9)
 				require.Nil(t, got)
+				require.Nil(t, modified)
 			} else {
 				require.NoError(t, err9)
 				require.NotNil(t, got)
+				require.NotNil(t, modified)
 				require.Equal(t, len(tc.want), len(got))
 
 				for i := range tc.want {
@@ -452,13 +458,15 @@ func TestStorage_GetEndpoint(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err9 := tc.s.GetEndpoint(tc.e, tc.ctx)
+			got, modified, err9 := tc.s.GetEndpoint(tc.e, tc.ctx)
 			if tc.wantErr {
 				require.Error(t, err9)
 				require.Nil(t, got)
+				require.Nil(t, modified)
 			} else {
 				require.NoError(t, err9)
 				require.NotNil(t, got)
+				require.NotNil(t, modified)
 				require.Equal(t, len(tc.want), len(got))
 
 				for i := range tc.want {

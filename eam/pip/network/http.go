@@ -83,6 +83,8 @@ func (r *runner) processResponse() {
 
 	case http.StatusNotModified:
 		// nothing changed, so we're all good.
+		// currently we are using the "If-Not-Modified" header for this,
+		// but a future patch could implement "ETag" support.
 		r.msg = msgOK
 
 	default:

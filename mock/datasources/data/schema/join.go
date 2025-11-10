@@ -35,14 +35,14 @@ import (
 //
 // Joins are optional subjoins, which will be executed against the source table of this join.
 type Join struct {
-	Type              enums.JoinType `json:"type" yaml:"type"`
+	Type              enums.JoinType `json:"type"                        yaml:"type"`
 	IncludeJoinFields bool           `json:"includeJoinFields,omitempty" yaml:"includeJoinFields,omitempty"`
-	QualifiedFields   bool           `json:"qualifiedFields,omitempty" yaml:"qualifiedFields,omitempty"`
-	Target            string         `json:"target,omitempty" yaml:"target,omitempty"`
-	Source            string         `json:"source" yaml:"source"`
-	Fields            []string       `json:"fields,omitempty" yaml:"fields,omitempty"`
-	JoinID            string         `json:"joinID,omitempty" yaml:"joinID,omitempty"`
-	Joins             []*Join        `json:"joins,omitempty" yaml:"joins,omitempty"`
+	QualifiedFields   bool           `json:"qualifiedFields,omitempty"   yaml:"qualifiedFields,omitempty"`
+	Target            string         `json:"target,omitempty"            yaml:"target,omitempty"`
+	Source            string         `json:"source"                      yaml:"source"`
+	Fields            []string       `json:"fields,omitempty"            yaml:"fields,omitempty"`
+	JoinID            string         `json:"joinID,omitempty"            yaml:"joinID,omitempty"`
+	Joins             []*Join        `json:"joins,omitempty"             yaml:"joins,omitempty"`
 	// hidden fields
 	mutex  sync.Mutex
 	target *Table

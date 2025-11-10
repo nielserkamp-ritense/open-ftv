@@ -53,28 +53,30 @@ import (
 //
 // Mapping defines how to map the retrieved data to attributes, entities and/or relations.
 type Request struct {
-	Name            string            `json:"name" yaml:"name" toml:"name"`
-	Description     string            `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
-	Method          string            `json:"method,omitempty" yaml:"method,omitempty" toml:"method,omitempty"`
-	URI             string            `json:"uri" yaml:"uri" toml:"uri"`
-	Headers         map[string]string `json:"headers,omitempty" yaml:"headers,omitempty" toml:"headers,omitempty"`
-	ContentType     string            `json:"contentType,omitempty" yaml:"contentType,omitempty" toml:"contentType,omitempty"`
-	Timeout         time.Duration     `json:"timeout,omitempty" yaml:"timeout,omitempty" toml:"timeout,omitempty"`
-	CAFile          string            `json:"tlsCA,omitempty" yaml:"tlsCA,omitempty" toml:"tlsCA,omitempty"`
-	CertFile        string            `json:"tlsCert,omitempty" yaml:"tlsCert,omitempty" toml:"tlsCert,omitempty"`
-	KeyFile         string            `json:"tlsKey,omitempty" yaml:"tlsKey,omitempty" toml:"tlsKey,omitempty"`
-	Insecure        bool              `json:"insecure,omitempty" yaml:"insecure,omitempty" toml:"insecure,omitempty"`
-	Parameters      []*Parameter      `json:"parameters,omitempty" yaml:"parameters,omitempty" toml:"parameters,omitempty"`
-	Interval        time.Duration     `json:"interval,omitempty" yaml:"interval,omitempty" toml:"interval,omitempty"`
+	Name            string            `json:"name"                      yaml:"name"                      toml:"name"`
+	Description     string            `json:"description,omitempty"     yaml:"description,omitempty"     toml:"description,omitempty"`
+	Method          string            `json:"method,omitempty"          yaml:"method,omitempty"          toml:"method,omitempty"`
+	URI             string            `json:"uri"                       yaml:"uri"                       toml:"uri"`
+	ModifiedSince   bool              `json:"modifiedSince,omitempty"   yaml:"modifiedSince,omitempty"   toml:"modifiedSince,omitempty"`
+	Headers         map[string]string `json:"headers,omitempty"         yaml:"headers,omitempty"         toml:"headers,omitempty"`
+	ContentType     string            `json:"contentType,omitempty"     yaml:"contentType,omitempty"     toml:"contentType,omitempty"`
+	Timeout         time.Duration     `json:"timeout,omitempty"         yaml:"timeout,omitempty"         toml:"timeout,omitempty"`
+	CAFile          string            `json:"tlsCA,omitempty"           yaml:"tlsCA,omitempty"           toml:"tlsCA,omitempty"`
+	CertFile        string            `json:"tlsCert,omitempty"         yaml:"tlsCert,omitempty"         toml:"tlsCert,omitempty"`
+	KeyFile         string            `json:"tlsKey,omitempty"          yaml:"tlsKey,omitempty"          toml:"tlsKey,omitempty"`
+	Insecure        bool              `json:"insecure,omitempty"        yaml:"insecure,omitempty"        toml:"insecure,omitempty"`
+	Parameters      []*Parameter      `json:"parameters,omitempty"      yaml:"parameters,omitempty"      toml:"parameters,omitempty"`
+	Interval        time.Duration     `json:"interval,omitempty"        yaml:"interval,omitempty"        toml:"interval,omitempty"`
 	InitialInterval time.Duration     `json:"initialInterval,omitempty" yaml:"initialInterval,omitempty" toml:"initialInterval,omitempty"`
-	Schedule        string            `json:"schedule,omitempty" yaml:"schedule,omitempty" toml:"schedule,omitempty"`
-	Mapping         *ResponseMapping  `json:"mapping,omitempty" yaml:"mapping,omitempty" toml:"mapping,omitempty"`
+	Schedule        string            `json:"schedule,omitempty"        yaml:"schedule,omitempty"        toml:"schedule,omitempty"`
+	Mapping         *ResponseMapping  `json:"mapping,omitempty"         yaml:"mapping,omitempty"         toml:"mapping,omitempty"`
 	// hidden fields.
-	uri     string               // Fully encoded uri.
-	query   string               // Fully encoded query.
-	body    io.Reader            // Fully encoded body.
-	bodyLen int                  // Length of fully encoded body.
-	tls     *transport.TLSConfig // TLS configuration.
+	uri      string               // Fully encoded uri.
+	query    string               // Fully encoded query.
+	body     io.Reader            // Fully encoded body.
+	bodyLen  int                  // Length of fully encoded body.
+	tls      *transport.TLSConfig // TLS configuration.
+	lastCall time.Time            // timestamp of last active call.
 }
 
 // HTTPRequest returns an HTTP request for retrieving the external data.
@@ -96,6 +98,12 @@ func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttributeValue)
 		httpReq.Header.Set("Content-Type", r.ContentType)
 		httpReq.Header.Set("Content-Length", strconv.Itoa(bodyLen))
 	}
+
+	if r.ModifiedSince && !r.lastCall.IsZero() {
+		httpReq.Header.Set("If-Modified-Since", r.lastCall.Format(http.TimeFormat))
+	}
+
+	r.lastCall = time.Now().UTC()
 
 	return httpReq, nil
 }

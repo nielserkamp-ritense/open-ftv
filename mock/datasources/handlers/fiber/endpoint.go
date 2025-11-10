@@ -56,12 +56,12 @@ func (h *endpointHandler) handleGet(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	list, err2 := h.s.GetEndpoint(h.def, reqCtx)
+	list, modified, err2 := h.s.GetEndpoint(h.def, reqCtx)
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err2.Error())
 	}
 
-	return buildContent(req, list)
+	return buildContent(req, list, modified)
 }
 
 func (h *endpointHandler) handlePost(req *fiber.Ctx) error {
@@ -75,7 +75,7 @@ func (h *endpointHandler) handlePost(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	if _, err = h.s.SelectPK(h.def.Table, pk, nil); err == nil {
+	if _, _, err = h.s.SelectPK(h.def.Table, pk, nil); err == nil {
 		return server.SendMessageResponse(req, fiber.StatusConflict, "primary key already exists")
 	}
 
@@ -98,7 +98,7 @@ func (h *endpointHandler) handlePut(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	if _, err = h.s.SelectPK(h.def.Table, pk, nil); err != nil {
+	if _, _, err = h.s.SelectPK(h.def.Table, pk, nil); err != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
 
@@ -121,7 +121,7 @@ func (h *endpointHandler) handlePatch(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
 	}
 
-	old, err2 := h.s.SelectPK(h.def.Table, pk, nil)
+	old, _, err2 := h.s.SelectPK(h.def.Table, pk, nil)
 	if err2 != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err2.Error())
 	}
@@ -179,7 +179,7 @@ func (h *endpointHandler) patchRecord(old *models.Row, body map[string]any) (*mo
 func (h *endpointHandler) handleDelete(req *fiber.Ctx) error {
 	pk := pkValues(req, h.def.Keys)
 
-	_, err := h.s.SelectPK(h.def.Table, pk, nil)
+	_, _, err := h.s.SelectPK(h.def.Table, pk, nil)
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
 	}
