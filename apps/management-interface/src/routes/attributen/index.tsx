@@ -1,19 +1,84 @@
-import {createFileRoute} from '@tanstack/react-router'
+import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import Card from "@/components/ui/card.tsx";
 import {Heading} from "@/components/ui/heading.tsx";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import { Badge } from '@/components/ui/badge.tsx';
-import { Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious } from '@/components/ui/pagination.tsx';
-import { useAttributes } from '@/services/attributes';
+import { useAttributes, type Attribute } from '@/services/attributes';
 import { ScaleLoader } from 'react-spinners';
 import { Button } from '@/components/ui/button.tsx';
+import {IconPlus} from "@tabler/icons-react";
+import Grid from "@/components/ui/grid.tsx";
+import type {ColDef, RowClickedEvent} from "ag-grid-community";
+import {useState} from "react";
 
 export const Route = createFileRoute('/attributen/')({
     component: RouteComponent,
 })
 
+// Component to render Badge for type
+const TypeBadgeComponent = (props: { value: string }) => {
+    const type = props.value;
+    return type && type !== '-' ? <Badge color="cyan">{type}</Badge> : <span>-</span>;
+};
+
 function RouteComponent() {
+    const navigate = useNavigate({from: '/attributen'})
     const { status, data, error } = useAttributes();
+
+    function handleRowClicked(e: RowClickedEvent<Attribute>) {
+        const rowData = e.data;
+
+        if (!rowData) {
+            console.error('No data found for row clicked');
+            return;
+        }
+
+        navigate({to: '/attributen/$key', params: {key: rowData.key}})
+            .catch(e => console.error('Navigation error:', e));
+    }
+
+    // Column Definitions for AG Grid
+    const [colDefs] = useState<ColDef<Attribute>[]>([
+        {
+            field: "key",
+            headerName: "Attribuut",
+            filter: true,
+        },
+        {
+            field: "type",
+            headerName: "Type",
+            cellRenderer: TypeBadgeComponent,
+            width: 150,
+        },
+        {
+            headerName: "Bron",
+            valueGetter: (params) => {
+                const tags = params.data?.metadata?.tags;
+                return Array.isArray(tags) ? tags.join(', ') : tags || '-';
+            },
+        },
+        {
+            headerName: "Status",
+            valueGetter: () => "-",
+        },
+        {
+            headerName: "Gebruik",
+            valueGetter: (params) => {
+                const usageCount = params.data?.usageData?.reduce((sum, x) => sum + (x.bundle?.length ?? 0), 0) ?? 0;
+                return usageCount > 0 ? `${usageCount} Beleidsregel(s)` : '-';
+            },
+        },
+        {
+            headerName: "Laatste Sync",
+            valueGetter: (params) => {
+                return params.data?.audit?.updated ?? params.data?.audit?.created ?? '-';
+            },
+        },
+        {
+            headerName: "Acties",
+            valueGetter: () => "-",
+            width: 100,
+        },
+    ]);
 
     if (status === 'pending') {
         return (
@@ -35,62 +100,31 @@ function RouteComponent() {
         return <span>Error: {error.message}</span>;
     }
 
-    const attributes = data ?? [];
-
     return (<>
-        <div className="flex items-center justify-between">
-            <h1 className="text-rhc-color-cool-grey-900 font-bold text-[32px] leading-10">Attributen en bronnen</h1>
-            <Button href="/attributen/toevoegen" color={"blue"}>Nieuw attribuut</Button>
+        <div className="flex items-center justify-between my-4">
+            <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Attributen</h1>
+            <Button href="/attributen/toevoegen" color={"primary"}>
+                <div className={"flex align-middle justify-center my-auto"}>
+                    <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
+                </div>
+                <span>Aanmaken</span>
+            </Button>
         </div>
-        <div className="flex flex-col 2xl:flex-row py-3 gap-6">
-            <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true} header={
-                <Heading className={"px-4 mt-4"}>Attributen menu</Heading>
-            }>
-                <div className="flex h-full flex-col">
-                    <Table>
-                        <TableHead className="bg-background-secondary h-12">
-                            <TableRow className={""}>
-                                <TableHeader><span className={"pl-5"}>Attribuut</span></TableHeader>
-                                <TableHeader>Type</TableHeader>
-                                <TableHeader>Bron</TableHeader>
-                                <TableHeader>Status</TableHeader>
-                                <TableHeader>Gebruik</TableHeader>
-                                <TableHeader>Laatste Sync</TableHeader>
-                                <TableHeader>Acties</TableHeader>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {attributes.map((attribute) => {
-                                const key = attribute.key;
-                                const type = attribute.type ?? '-';
-                                const source = attribute.metadata?.tags ?? '-';
-                                const usageCount = attribute.usageData?.reduce((sum, x) => sum + (x.bundle?.length ?? 0), 0);
-                                const lastSync = attribute.audit?.updated ?? attribute.audit?.created ?? '-';
-                                return (
-                                    <TableRow className={"h-20"} key={key} title={`Attribute ${key}`}>
-                                        <TableCell><span className={"pl-5"}>{key}</span></TableCell>
-                                        <TableCell>{type !== '-' ? <Badge color="cyan">{type}</Badge> : '-'}</TableCell>
-                                        <TableCell>{source}</TableCell>
-                                        <TableCell>-</TableCell>
-                                        <TableCell>{usageCount} Beleidsregel(s)</TableCell>
-                                        <TableCell>{lastSync}</TableCell>
-                                        <TableCell>-</TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                    <div className="mt-auto pt-4 pb-4 flex justify-center">
-                        <Pagination>
-                            <PaginationPrevious href={null} />
-                            <PaginationList>
-                                <PaginationPage href="/attributen" current>1</PaginationPage>
-                            </PaginationList>
-                            <PaginationNext href={null} />
-                        </Pagination>
+        <Card className="min-w-3xl flex-1 h-[836px] py-3" disablePadding={true}>
+            <div className="pt-6 pb-8 px-10 gap-8 flex-1">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Attributen</span>
                     </div>
                 </div>
-            </Card>
-        </div>
+                <div className={"w-full h-[700px] mt-6"}>
+                    <Grid
+                        onRowClicked={handleRowClicked}
+                        rowData={data}
+                        columnDefs={colDefs}
+                    />
+                </div>
+            </div>
+        </Card>
     </>)
 }
