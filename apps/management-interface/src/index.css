@@ -28,7 +28,6 @@
     --color-border-inverse-tertiary: var(--color-zinc-950);
     --color-border-hover-overlay: rgba(0, 0, 0, 0.2);
     --color-border-inverse-hover-overlay: rgba(255, 255, 255, 0.1);
-    --color-carrotnl-button-primary-action-background-color: #154273;
     --color-cool-grey: #0F172A;
     --color-rhc-lintblauw-500: #154273;
     --radius-sm: 2px;
@@ -39,8 +38,13 @@
     --radius-2xl: 16px;
     --radius-3xl: 24px;
     --radius-full: 1000px;
+
+    /* Carrot NL stijlen*/
     --color-carrotnl-alert-icon-error-color: #D52B1E;
     --color-carrotnl-button-subtle-color: #154273;
+    --color-carrotnl-button-primary-action-background-color: #154273;
+    --color-carrotnl-button-secondary-action-color: rgba(21, 66, 115, 1);
+    --color-carrotnl-button-secondary-action-hover-background-color: rgba(220, 227, 234, 1);
     --text-carrotnl-fontsize-heading-level4: 18px;
 
     /* Custom RHC stijlen */
@@ -48,6 +52,7 @@
     --spacing-rhc-space-500: 40px;
     --color-heading-primary: #F7E8E8;
     --color-rhc-color-cool-grey-900: #0F172A;
+    --color-rhc-primary-500: rgba(21, 66, 115, 1);
     --text-rhc-sidenav-link-font-size: 18px;
     --color-rhc-color-feedback-info-default: #007BC7;
     --color-rhc-color-feedback-error-subdued: #F9DFDD;
