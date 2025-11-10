@@ -44,7 +44,7 @@ func (h *dataHandler) GetRecords(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
 	}
 
-	list, err3 := h.s.Search(key, reqCtx)
+	list, modified, err3 := h.s.Search(key, reqCtx)
 	if err3 != nil {
 		return server.SendMessageResponse(req, fiber.StatusInternalServerError, err3.Error())
 	}
@@ -52,7 +52,7 @@ func (h *dataHandler) GetRecords(req *fiber.Ctx) error {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no matching records found")
 	}
 
-	return buildContent(req, list)
+	return buildContent(req, list, modified)
 }
 
 // GetRecord implements the TableDataHandler interface.

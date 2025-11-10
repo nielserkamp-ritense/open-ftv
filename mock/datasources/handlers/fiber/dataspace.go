@@ -37,7 +37,7 @@ func (h *dataspaceHandler) GetDataspace(req *fiber.Ctx) error {
 	if d == nil {
 		return server.SendMessageResponse(req, fiber.StatusNotFound, "no dataspace found")
 	}
-	return buildContent(req, d.AsRow().MatchFields(reqCtx.Matcher))
+	return buildContent(req, d.AsRow().MatchFields(reqCtx.Matcher), nil)
 }
 
 // PutDataspace implements the DataspacesHandler interface.

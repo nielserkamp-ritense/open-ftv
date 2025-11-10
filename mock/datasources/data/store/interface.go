@@ -1,6 +1,8 @@
 package store
 
 import (
+	"time"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/context"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/matching"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
@@ -51,8 +53,8 @@ type Maintainer interface {
 
 // Reader represents the interface for searching and retrieving records from data tables.
 type Reader interface {
-	SelectPK(tableID string, pk []any, matcher matching.FieldMatcher) (*models.Row, error)
-	SelectIX(tableID string, id string, keys []any, matcher matching.FieldMatcher) (models.Rows, error)
-	Search(tableID string, ctx *context.RequestContext) (models.Rows, error)
-	GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (models.Rows, error)
+	SelectPK(tableID string, pk []any, matcher matching.FieldMatcher) (*models.Row, *time.Time, error)
+	SelectIX(tableID string, id string, keys []any, matcher matching.FieldMatcher) (models.Rows, *time.Time, error)
+	Search(tableID string, ctx *context.RequestContext) (models.Rows, *time.Time, error)
+	GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (models.Rows, *time.Time, error)
 }
