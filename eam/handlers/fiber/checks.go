@@ -54,8 +54,8 @@ func (f *fieldChecker) checkLanguage(language string) *fieldChecker {
 
 func (f *fieldChecker) checkTitle(title string) *fieldChecker {
 	switch {
-	case title == "":
-		f.add("title must be filled")
+	// case title == "":
+	// 	f.add("title must be filled")
 	case len(title) > 80:
 		f.add("title too long (max 80 characters)")
 	}

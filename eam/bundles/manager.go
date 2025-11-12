@@ -69,6 +69,10 @@ type Manager struct {
 }
 
 func (m *Manager) load() {
+	if m.path == "" {
+		return
+	}
+
 	if err := filepath.WalkDir(m.path, m.processEntry); err != nil {
 		m.logger.Error("bundle-manager: error loading bundle configurations", "path", m.path, "err", err)
 	}
