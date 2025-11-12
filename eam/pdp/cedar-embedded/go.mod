@@ -11,8 +11,8 @@ require (
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep v0.0.0-20250708120440-2327e161c67a
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip v0.0.0-20250708120440-2327e161c67a
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20251021144354-50b53b974796
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20251021144354-50b53b974796
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas v0.0.0-20251111144233-7659c183d727
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20251111144233-7659c183d727
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci v0.0.0-20250708120440-2327e161c67a
 )
 
@@ -80,7 +80,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
-	golang.org/x/exp v0.0.0-20251017212417-90e834f514db // indirect
+	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
 	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect

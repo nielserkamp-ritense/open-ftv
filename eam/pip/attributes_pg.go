@@ -1,7 +1,9 @@
 package pip
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"time"
@@ -15,15 +17,19 @@ import (
 // CreateAttribute creates a new attribute in the database.
 func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error) {
 	user := convert.AnyToString(ctx.Value("user"))
+	v, o, err := encodeValues(a)
+	if err != nil {
+		return nil, err
+	}
 
 	sql := `INSERT INTO attribute
  (key,type,title,description,value,original,tags,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
 
 	now := db.now().UTC()
-	params := []any{a.Key(), a.Type(), a.Title(), a.Description(), a.Value(), a.Original(), a.Tags(), now, user, now, user}
+	params := []any{a.Key(), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user, now, user}
 
-	if _, err := db.p.Exec(ctx, sql, params); err != nil {
+	if _, err = db.p.Exec(ctx, sql, params); err != nil {
 		return nil, err
 	}
 	return a.WithAudit(now, user, now, user), nil
@@ -32,8 +38,7 @@ func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) 
 // ReadAttribute retrieves the identified attribute from the database.
 func (db *PostgresDB) ReadAttribute(ctx context.Context, id string) (*models.Attribute, uint64, error) {
 	sql := `SELECT key,type,title,description,value,original,tags,created,created_by,updated,updated_by
- FROM attribute
- WHERE key=$1`
+ FROM attribute WHERE key=$1`
 
 	params := []any{id}
 
@@ -107,29 +112,34 @@ func (db *PostgresDB) ReadAttributeDeployments(ctx context.Context, key string) 
 }
 
 // UpdateAttribute replaces an existing attribute in the database.
-func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, p *models.Attribute) (*models.Attribute, error) {
+func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	user := convert.AnyToString(ctx.Value("user"))
+
+	v, o, err := encodeValues(a)
+	if err != nil {
+		return nil, err
+	}
 
 	sql := `UPDATE attribute
  SET type=$3,title=$4,description=$5,value=$6,original=$7,tags=$8,updated=$9,updated_by=$10
  WHERE key=$1 AND updated=$2`
 
 	now := db.now().UTC()
-	params := []any{prev.Key(), timeFromLastIndex(lastIndex), p.Type(), p.Title(), p.Description(), p.Value(), p.Original(), p.Tags(), now, user}
+	params := []any{prev.Key(), timeFromLastIndex(lastIndex), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
-		if err != nil {
-			return nil, err
+	if count, err2 := db.p.Exec(ctx, sql, params); err2 != nil || count != 1 {
+		if err2 != nil {
+			return nil, err2
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
-	return attributeFromValues([]any{p.Key(), p.Type(), p.Title(), p.Description(), p.Value(), p.Original(), p.Tags(), p.Created(), p.CreatedBy(), now, user})
+
+	return a.WithAudit(a.Created(), a.CreatedBy(), now, user), nil
 }
 
 // DeleteAttribute removes an existing attribute from the database.
 func (db *PostgresDB) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
-	sql := `DELETE attribute
- WHERE key=$1 AND updated=$2`
+	sql := `DELETE attribute WHERE key=$1 AND updated=$2`
 	params := []any{prev.Key(), timeFromLastIndex(lastIndex)}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
@@ -162,15 +172,38 @@ func (db *PostgresDB) ListAttributes(ctx context.Context) ([]*models.Attribute, 
 	return list, nil
 }
 
+func encodeValues(a *models.Attribute) ([]byte, []byte, error) {
+	buf := &bytes.Buffer{}
+	enc := gob.NewEncoder(buf)
+
+	q := a.Value()
+	if err := enc.Encode(&q); err != nil {
+		return nil, nil, fmt.Errorf("unable to encode value [%T]: %w", q, err)
+	}
+	v := buf.Bytes()
+
+	buf = &bytes.Buffer{}
+	enc = gob.NewEncoder(buf)
+
+	q = a.Original()
+	if err := enc.Encode(&q); err != nil {
+		return nil, nil, fmt.Errorf("unable to encode original value [%T]: %w", q, err)
+	}
+
+	return v, buf.Bytes(), nil
+}
+
 func attributeFromValues(values []any) (*models.Attribute, error) {
 	if len(values) != 11 {
 		return nil, fmt.Errorf("invalid number of values")
 	}
 
+	v, o := decodeValues(values[4], values[5])
+
 	a := models.NewOriginalAttribute(
 		convert.AnyToString(values[0]), // key
-		values[4],                      // value
-		values[5],                      // original
+		v,                              // value
+		o,                              // original
 		convert.AnyToString(values[1]), // type
 	)
 
@@ -184,4 +217,38 @@ func attributeFromValues(values []any) (*models.Attribute, error) {
 			convert.AnyToDateTime(values[9]).UTC(), // updated
 			convert.AnyToString(values[10]),        // updatedBy
 		), nil
+}
+
+func decodeValues(in1, in2 any) (any, any) {
+	var b1, b2 []byte
+	var ok1, ok2 bool
+
+	var v, o any
+
+	if b1, ok1 = in1.([]byte); !ok1 {
+		v = in1
+	}
+	if b2, ok2 = in2.([]byte); !ok2 {
+		o = in2
+	}
+
+	buf := &bytes.Buffer{}
+	dec := gob.NewDecoder(buf)
+
+	if ok1 {
+		buf.Write(b1)
+		if err := dec.Decode(&v); err != nil {
+			v = nil
+		}
+	}
+
+	if ok2 {
+		buf.Reset()
+		buf.Write(b2)
+		if err := dec.Decode(&o); err != nil {
+			o = nil
+		}
+	}
+
+	return v, o
 }

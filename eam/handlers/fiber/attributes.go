@@ -139,11 +139,13 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 
 	var a *oas.Attribute
 	if a, ok, err = h.checkBody(req, key); !ok || err != nil {
+		h.logger.Error("failed to read body", "error", err)
 		return err
 	}
 
 	a2, _, err2 := h.cache.GetAttribute(a.Key)
 	if err2 != nil {
+		h.logger.Error("failed to get attribute", "error", err2)
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
@@ -152,6 +154,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	}
 
 	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
+		h.logger.Error("failed to save attribute", "error", err2)
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 	return req.JSON(a2.ToOAS())
