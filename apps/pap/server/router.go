@@ -75,7 +75,7 @@ func (s *Services) initDeployments(group fiber.Router) {
 		s.ctx,
 		s.logger,
 		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
-		bundles.WithPolicyLister(s.pap),
+		bundles.WithPolicyHandler(s.pap),
 		bundles.MaxWorkers(s.cfg.Workers),
 		bundles.WithStageDelay(s.cfg.StageDelay),
 		bundles.BundleTimeout(s.cfg.BundleTimeout),

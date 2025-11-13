@@ -22,9 +22,19 @@ type PolicyLister interface {
 	Iterate(f models.PolicyIterator)
 }
 
+// PolicyCreator represents the interface to store a new policy.
+type PolicyCreator interface {
+	Create(in *models.Policy, user string) (out *models.Policy, err error)
+}
+
 // AttributeLister represents the interface for retrieving a list of attributes.
 type AttributeLister interface {
 	IterateAttributes(f models.AttributeIterator)
+}
+
+// AttributeCreator represents the interface to store a new attribute.
+type AttributeCreator interface {
+	AddAttribute(in *models.Attribute) (*models.Attribute, error)
 }
 
 // EntityLister represents the interface for retrieving a list of entities.
@@ -32,7 +42,33 @@ type EntityLister interface {
 	IterateEntities(f models.EntityIterator)
 }
 
+// EntityCreator represents the interface to store a new entity.
+type EntityCreator interface {
+	AddEntity(entity *models.Entity) (*models.Entity, error)
+}
+
 // RelationLister represents the interface for retrieving a list of relations.
 type RelationLister interface {
 	IterateRelations(f models.RelationIterator)
+}
+
+// RelationCreator represents the interface to store a new relation.
+type RelationCreator interface {
+	AddRelation(rel *models.Relation) (*models.Relation, error)
+}
+
+// PolicyHandler represents the interface to work with policies (PAP).
+type PolicyHandler interface {
+	PolicyLister
+	PolicyCreator
+}
+
+// DataHandler represents the interface to work with attributes, entities and relations (PIP).
+type DataHandler interface {
+	AttributeLister
+	AttributeCreator
+	EntityLister
+	EntityCreator
+	RelationLister
+	RelationCreator
 }

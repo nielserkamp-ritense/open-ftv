@@ -57,7 +57,7 @@ func TestBundlesHandler_GetStatuses(t *testing.T) {
 
 		manager := bundles.NewManager(ctx, logger,
 			bundles.WithConfig("../../../testdata/unittest/bundles/test2", true),
-			bundles.WithPolicyLister(p1),
+			bundles.WithPolicyHandler(p1),
 		)
 		require.NotNil(t, manager)
 
@@ -106,7 +106,7 @@ func TestBundlesHandler_GetCompressTypes(t *testing.T) {
 
 		manager := bundles.NewManager(ctx, logger,
 			bundles.WithConfig("../../../testdata/unittest/bundles/test2", true),
-			bundles.WithPolicyLister(p1),
+			bundles.WithPolicyHandler(p1),
 		)
 		require.NotNil(t, manager)
 
@@ -155,7 +155,7 @@ func TestBundlesHandler_GetConfigs(t *testing.T) {
 
 		manager := bundles.NewManager(ctx, logger,
 			bundles.WithConfig("../../../testdata/unittest/bundles/test2", true),
-			bundles.WithPolicyLister(p1),
+			bundles.WithPolicyHandler(p1),
 		)
 		require.NotNil(t, manager)
 
@@ -204,7 +204,7 @@ func TestBundlesHandler_PostDeployment(t *testing.T) {
 
 		manager := bundles.NewManager(ctx, logger,
 			bundles.WithConfig("../../../testdata/unittest/bundles", false),
-			bundles.WithPolicyLister(p1),
+			bundles.WithPolicyHandler(p1),
 		)
 		require.NotNil(t, manager)
 
@@ -269,7 +269,7 @@ func TestBundlesHandler_GetDeployment(t *testing.T) {
 
 			manager := bundles.NewManager(ctx, logger,
 				bundles.WithConfig("../../../testdata/unittest/bundles", false),
-				bundles.WithPolicyLister(p1),
+				bundles.WithPolicyHandler(p1),
 			)
 			require.NotNil(t, manager)
 

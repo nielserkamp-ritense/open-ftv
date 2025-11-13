@@ -7,6 +7,6 @@ policies: true
 data: true
 version: true
 targets:
-  - uri: "http://rdw-manager:8443"
+  - uri: "http://rdw-manager:9443"
     apikey: ""
     encoding: "bzip2"

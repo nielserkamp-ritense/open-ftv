@@ -13,31 +13,17 @@ func WithConfig(path string, recurse bool) Option {
 	}
 }
 
-// WithPolicyLister adds the function to list all policies for possible inclusion in bundles.
-func WithPolicyLister(lister PolicyLister) Option {
+// WithPolicyHandler adds the interface to work with policies.
+func WithPolicyHandler(lister PolicyHandler) Option {
 	return func(m *Manager) {
 		m.policies = lister
 	}
 }
 
-// WithAttributeLister adds the function to list all attributes for possible inclusion in bundles.
-func WithAttributeLister(iterator AttributeLister) Option {
+// WithDataHandler adds the interface to work with attributes, entities and relations.
+func WithDataHandler(iterator DataHandler) Option {
 	return func(m *Manager) {
-		m.attributes = iterator
-	}
-}
-
-// WithEntityLister adds the function to list all entities for possible inclusion in bundles.
-func WithEntityLister(iterator EntityLister) Option {
-	return func(m *Manager) {
-		m.entities = iterator
-	}
-}
-
-// WithRelationLister adds the function to list all relations for possible inclusion in bundles.
-func WithRelationLister(iterator RelationLister) Option {
-	return func(m *Manager) {
-		m.relations = iterator
+		m.data = iterator
 	}
 }
 
@@ -59,5 +45,12 @@ func WithStageDelay(delay time.Duration) Option {
 func BundleTimeout(timeout time.Duration) Option {
 	return func(m *Manager) {
 		m.bundleTimeout = timeout
+	}
+}
+
+// BootstrapDeployment sets the flag to create an initial bootstrap deployment.
+func BootstrapDeployment() Option {
+	return func(m *Manager) {
+		m.bootstrap = true
 	}
 }

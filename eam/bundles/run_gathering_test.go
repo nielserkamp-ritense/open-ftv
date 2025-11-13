@@ -19,24 +19,22 @@ func TestRunner_GatherLists(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		policies       PolicyLister
-		attributes     AttributeLister
-		entities       EntityLister
-		relations      RelationLister
+		policies       PolicyHandler
+		data           DataHandler
 		wantPolicies   int
 		wantAttributes int
 		wantEntities   int
 		wantRelations  int
 	}{
 		{name: "none"},
-		{name: "0 policies", policies: &myPolicyLister{}},
-		{name: "3 policies", policies: &myPolicyLister{count: 3}, wantPolicies: 3},
-		{name: "0 attributes", attributes: &myAttributeLister{}},
-		{name: "2 attributes", attributes: &myAttributeLister{count: 2}, wantAttributes: 2},
-		{name: "0 entities", entities: &myEntityLister{}},
-		{name: "5 entities", entities: &myEntityLister{count: 5}, wantEntities: 5},
-		{name: "0 relations", relations: &myRelationLister{}},
-		{name: "7 relations", relations: &myRelationLister{count: 7}, wantRelations: 7},
+		{name: "0 policies", policies: &myPolicyHandler{}},
+		{name: "3 policies", policies: &myPolicyHandler{count: 3}, wantPolicies: 3},
+		{name: "0 attributes", data: &myDataHandler{}},
+		{name: "2 attributes", data: &myDataHandler{count1: 2}, wantAttributes: 2},
+		{name: "0 entities", data: &myDataHandler{}},
+		{name: "5 entities", data: &myDataHandler{count2: 5}, wantEntities: 5},
+		{name: "0 relations", data: &myDataHandler{}},
+		{name: "7 relations", data: &myDataHandler{count3: 7}, wantRelations: 7},
 	}
 
 	for _, tc := range testCases {
@@ -53,10 +51,8 @@ func TestRunner_GatherLists(t *testing.T) {
 				ctx,
 				logger,
 				WithStageDelay(time.Millisecond),
-				WithPolicyLister(tc.policies),
-				WithAttributeLister(tc.attributes),
-				WithEntityLister(tc.entities),
-				WithRelationLister(tc.relations),
+				WithPolicyHandler(tc.policies),
+				WithDataHandler(tc.data),
 			)
 			require.NotNil(t, m)
 
@@ -113,42 +109,42 @@ func TestRunner_GatherLists(t *testing.T) {
 	}
 }
 
-type myPolicyLister struct {
+type myPolicyHandler struct {
 	count int
 }
 
-func (l *myPolicyLister) Iterate(f models.PolicyIterator) {
+func (l *myPolicyHandler) Iterate(f models.PolicyIterator) {
 	for range l.count {
 		f(&models.Policy{})
 	}
 }
 
-type myAttributeLister struct {
-	count int
+func (l *myPolicyHandler) Create(*models.Policy, string) (*models.Policy, error) { return nil, nil }
+
+type myDataHandler struct {
+	count1 int
+	count2 int
+	count3 int
 }
 
-func (l *myAttributeLister) IterateAttributes(f models.AttributeIterator) {
-	for range l.count {
+func (l *myDataHandler) IterateAttributes(f models.AttributeIterator) {
+	for range l.count1 {
 		f(&models.Attribute{})
 	}
 }
 
-type myEntityLister struct {
-	count int
-}
-
-func (l *myEntityLister) IterateEntities(f models.EntityIterator) {
-	for range l.count {
+func (l *myDataHandler) IterateEntities(f models.EntityIterator) {
+	for range l.count2 {
 		f(&models.Entity{})
 	}
 }
 
-type myRelationLister struct {
-	count int
-}
-
-func (l *myRelationLister) IterateRelations(f models.RelationIterator) {
-	for range l.count {
+func (l *myDataHandler) IterateRelations(f models.RelationIterator) {
+	for range l.count3 {
 		f(&models.Relation{})
 	}
 }
+
+func (l *myDataHandler) AddAttribute(*models.Attribute) (*models.Attribute, error) { return nil, nil }
+func (l *myDataHandler) AddEntity(*models.Entity) (*models.Entity, error)          { return nil, nil }
+func (l *myDataHandler) AddRelation(*models.Relation) (*models.Relation, error)    { return nil, nil }

@@ -135,23 +135,43 @@ func (s *Services) initRelations(_ fiber.Router) {
 }
 
 func (s *Services) initDeployments(group fiber.Router) {
-	s.bundleManager = bundles.NewManager(
-		s.ctx,
-		s.logger,
+	opts := []bundles.Option{
 		bundles.WithConfig(s.cfg.BundlePath, s.cfg.BundleRecurse),
-		bundles.WithPolicyLister(s.pap),
-		bundles.WithAttributeLister(s.pip),
-		bundles.WithEntityLister(s.pip),
-		// bundles.WithRelationLister(s.pip),
+		bundles.WithPolicyHandler(s.pap),
+		bundles.WithDataHandler(s.pip),
 		bundles.MaxWorkers(s.cfg.Workers),
 		bundles.WithStageDelay(s.cfg.StageDelay),
 		bundles.BundleTimeout(s.cfg.BundleTimeout),
-	)
+	}
+
+	last, _ := s.pap.LastDeployment()
+	if last == nil {
+		opts = append(opts, bundles.BootstrapDeployment())
+	}
+
+	s.bundleManager = bundles.NewManager(s.ctx, s.logger, opts...)
 
 	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
 
 	// restart the last interrupted bundle deployment run if needed.
-	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(s.bundleManager) })
+	if last == nil {
+		time.AfterFunc(15*time.Second, func() {
+			s.logger.Info("Initializing initial bootstrap deployment")
+
+			if _, err := s.pap.NewDeployment(
+				"Bootstrap",
+				"Initial bootstrapped deployment with dummy policies",
+				s.bundleManager,
+				"*SYSTEM*",
+			); err != nil {
+				s.logger.Error("failed to initialize bootstrap deployment", "error", err.Error())
+			}
+		})
+	} else {
+		time.AfterFunc(15*time.Second, func() {
+			s.pap.RestartDeployment(s.bundleManager)
+		})
+	}
 
 	// deployments CRUD.
 	group.Get(handle.PathStatuses, apis.GetStatuses).
