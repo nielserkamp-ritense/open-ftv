@@ -35,6 +35,11 @@ func NewManager(ctx context.Context, logger *slog.Logger, opts ...Option) *Manag
 	m.client = &http.Client{Timeout: m.bundleTimeout}
 
 	m.load()
+
+	if m.bootstrap && len(m.bundles) > 0 {
+		go m.bootstrapDeployment()
+	}
+
 	return m
 }
 
@@ -60,10 +65,9 @@ type Manager struct {
 	workers       int
 	stageDelay    time.Duration
 	bundleTimeout time.Duration
-	policies      PolicyLister
-	attributes    AttributeLister
-	entities      EntityLister
-	relations     RelationLister
+	bootstrap     bool
+	policies      PolicyHandler
+	data          DataHandler
 	bundles       map[string]*Config
 	client        *http.Client
 }

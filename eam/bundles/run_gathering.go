@@ -39,31 +39,31 @@ func (r *runner) gatherPolicies(stage string) {
 }
 
 func (r *runner) gatherAttributes() {
-	if r.m.attributes == nil {
+	if r.m.data == nil {
 		return
 	}
 
-	r.m.attributes.IterateAttributes(func(attr *models.Attribute) {
+	r.m.data.IterateAttributes(func(attr *models.Attribute) {
 		r.attributes = append(r.attributes, attr)
 	})
 }
 
 func (r *runner) gatherEntities() {
-	if r.m.entities == nil {
+	if r.m.data == nil {
 		return
 	}
 
-	r.m.entities.IterateEntities(func(e *models.Entity) {
+	r.m.data.IterateEntities(func(e *models.Entity) {
 		r.entities = append(r.entities, e)
 	})
 }
 
 func (r *runner) gatherRelations() {
-	if r.m.relations == nil {
+	if r.m.data == nil {
 		return
 	}
 
-	r.m.relations.IterateRelations(func(rel *models.Relation) {
+	r.m.data.IterateRelations(func(rel *models.Relation) {
 		r.relations = append(r.relations, rel)
 	})
 }

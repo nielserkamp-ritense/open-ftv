@@ -22,22 +22,18 @@ func (m *Manager) Get(last *Deployment, id string) (*Bundle, error) {
 	}
 
 	if cfg.Data {
-		if m.attributes != nil {
-			m.attributes.IterateAttributes(func(attr *models.Attribute) {
+		if m.data != nil {
+			m.data.IterateAttributes(func(attr *models.Attribute) {
 				out.AddAttribute(attr)
 			})
-		}
 
-		if m.entities != nil {
-			m.entities.IterateEntities(func(e *models.Entity) {
+			m.data.IterateEntities(func(e *models.Entity) {
 				out.AddEntity(e)
 			})
-		}
 
-		if m.relations != nil {
-			m.relations.IterateRelations(func(rel *models.Relation) {
-				out.AddRelation(rel)
-			})
+			// m.data.IterateRelations(func(rel *models.Relation) {
+			// 	out.AddRelation(rel)
+			// })
 		}
 	}
 

@@ -107,16 +107,10 @@ func TestRunner_GatherTargets(t *testing.T) {
 
 			opts := []Option{WithStageDelay(time.Minute), MaxWorkers(2)}
 			if tc.policies != nil {
-				opts = append(opts, WithPolicyLister(&myLists{policies: tc.policies}))
+				opts = append(opts, WithPolicyHandler(&myLists{policies: tc.policies}))
 			}
-			if tc.attributes != nil {
-				opts = append(opts, WithAttributeLister(&myLists{attributes: tc.attributes}))
-			}
-			if tc.entities != nil {
-				opts = append(opts, WithEntityLister(&myLists{entities: tc.entities}))
-			}
-			if tc.relations != nil {
-				opts = append(opts, WithRelationLister(&myLists{relations: tc.relations}))
+			if tc.attributes != nil || tc.entities != nil || tc.relations != nil {
+				opts = append(opts, WithDataHandler(&myLists{attributes: tc.attributes, entities: tc.entities, relations: tc.relations}))
 			}
 
 			m := NewManager(ctx, logger, opts...)
@@ -335,16 +329,10 @@ func TestRunner_SendBundles(t *testing.T) {
 
 			opts := []Option{BundleTimeout(time.Minute), MaxWorkers(tc.workers)}
 			if tc.policies != nil {
-				opts = append(opts, WithPolicyLister(&myLists{policies: tc.policies}))
+				opts = append(opts, WithPolicyHandler(&myLists{policies: tc.policies}))
 			}
-			if tc.attributes != nil {
-				opts = append(opts, WithAttributeLister(&myLists{attributes: tc.attributes}))
-			}
-			if tc.entities != nil {
-				opts = append(opts, WithEntityLister(&myLists{entities: tc.entities}))
-			}
-			if tc.relations != nil {
-				opts = append(opts, WithRelationLister(&myLists{relations: tc.relations}))
+			if tc.attributes != nil || tc.entities != nil || tc.relations != nil {
+				opts = append(opts, WithDataHandler(&myLists{attributes: tc.attributes, entities: tc.entities, relations: tc.relations}))
 			}
 
 			m := NewManager(ctx, logger, opts...)

@@ -56,16 +56,10 @@ func TestRunner_CreateBundles(t *testing.T) {
 
 			opts := []Option{WithStageDelay(time.Millisecond)}
 			if tc.policies != nil {
-				opts = append(opts, WithPolicyLister(&myLists{policies: tc.policies}))
+				opts = append(opts, WithPolicyHandler(&myLists{policies: tc.policies}))
 			}
-			if tc.attributes != nil {
-				opts = append(opts, WithAttributeLister(&myLists{attributes: tc.attributes}))
-			}
-			if tc.entities != nil {
-				opts = append(opts, WithEntityLister(&myLists{entities: tc.entities}))
-			}
-			if tc.relations != nil {
-				opts = append(opts, WithRelationLister(&myLists{relations: tc.relations}))
+			if tc.attributes != nil || tc.entities != nil || tc.relations != nil {
+				opts = append(opts, WithDataHandler(&myLists{attributes: tc.attributes, entities: tc.entities, relations: tc.relations}))
 			}
 
 			m := NewManager(ctx, logger, opts...)
@@ -157,6 +151,11 @@ func (l *myLists) IterateRelations(f models.RelationIterator) {
 		f(l.relations[i])
 	}
 }
+
+func (l *myLists) Create(*models.Policy, string) (*models.Policy, error)     { return nil, nil }
+func (l *myLists) AddAttribute(*models.Attribute) (*models.Attribute, error) { return nil, nil }
+func (l *myLists) AddEntity(*models.Entity) (*models.Entity, error)          { return nil, nil }
+func (l *myLists) AddRelation(*models.Relation) (*models.Relation, error)    { return nil, nil }
 
 var (
 	myP1, _ = models.NewPolicyFromData("1", "cedar", "", "", bytes.NewBufferString("allow();"))

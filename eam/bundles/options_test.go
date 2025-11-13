@@ -18,17 +18,15 @@ func TestOptions(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name           string
-		opts           []Option
-		wantPath       string
-		wantRecurse    bool
-		wantPolicies   bool
-		wantAttributes bool
-		wantEntities   bool
-		wantRelations  bool
-		wantWorkers    int
-		wantDelay      time.Duration
-		wantTimeout    time.Duration
+		name         string
+		opts         []Option
+		wantPath     string
+		wantRecurse  bool
+		wantPolicies bool
+		wantData     bool
+		wantWorkers  int
+		wantDelay    time.Duration
+		wantTimeout  time.Duration
 	}{
 		{
 			name:        "config",
@@ -40,31 +38,17 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:         "policies",
-			opts:         []Option{WithPolicyLister(&dummyLister{})},
+			opts:         []Option{WithPolicyHandler(&dummyLister{})},
 			wantPolicies: true,
 			wantWorkers:  runtime.NumCPU(),
 			wantTimeout:  time.Minute,
 		},
 		{
-			name:           "attributes",
-			opts:           []Option{WithAttributeLister(&dummyLister{})},
-			wantAttributes: true,
-			wantWorkers:    runtime.NumCPU(),
-			wantTimeout:    time.Minute,
-		},
-		{
-			name:         "entities",
-			opts:         []Option{WithEntityLister(&dummyLister{})},
-			wantEntities: true,
-			wantWorkers:  runtime.NumCPU(),
-			wantTimeout:  time.Minute,
-		},
-		{
-			name:          "relations",
-			opts:          []Option{WithRelationLister(&dummyLister{})},
-			wantRelations: true,
-			wantWorkers:   runtime.NumCPU(),
-			wantTimeout:   time.Minute,
+			name:        "attributes",
+			opts:        []Option{WithDataHandler(&dummyLister{})},
+			wantData:    true,
+			wantWorkers: runtime.NumCPU(),
+			wantTimeout: time.Minute,
 		},
 		{
 			name:        "workers",
@@ -103,9 +87,7 @@ func TestOptions(t *testing.T) {
 			assert.Equal(t, tc.wantPath, got.path)
 			assert.Equal(t, tc.wantRecurse, got.recurse)
 			assert.Equal(t, tc.wantPolicies, got.policies != nil)
-			assert.Equal(t, tc.wantAttributes, got.attributes != nil)
-			assert.Equal(t, tc.wantEntities, got.entities != nil)
-			assert.Equal(t, tc.wantRelations, got.relations != nil)
+			assert.Equal(t, tc.wantData, got.data != nil)
 			assert.Equal(t, tc.wantWorkers, got.workers)
 			assert.Equal(t, tc.wantDelay, got.stageDelay)
 			assert.Equal(t, tc.wantTimeout, got.bundleTimeout)
@@ -115,7 +97,11 @@ func TestOptions(t *testing.T) {
 
 type dummyLister struct{}
 
-func (l *dummyLister) Iterate(models.PolicyIterator)                     {}
-func (l *dummyLister) IterateAttributes(models.AttributeIterator)        {}
-func (l *dummyLister) IterateEntities(iterator models.EntityIterator)    {}
-func (l *dummyLister) IterateRelations(iterator models.RelationIterator) {}
+func (l *dummyLister) Iterate(models.PolicyIterator)                             {}
+func (l *dummyLister) Create(*models.Policy, string) (*models.Policy, error)     { return nil, nil }
+func (l *dummyLister) IterateAttributes(models.AttributeIterator)                {}
+func (l *dummyLister) AddAttribute(*models.Attribute) (*models.Attribute, error) { return nil, nil }
+func (l *dummyLister) IterateEntities(iterator models.EntityIterator)            {}
+func (l *dummyLister) AddEntity(*models.Entity) (*models.Entity, error)          { return nil, nil }
+func (l *dummyLister) IterateRelations(iterator models.RelationIterator)         {}
+func (l *dummyLister) AddRelation(*models.Relation) (*models.Relation, error)    { return nil, nil }

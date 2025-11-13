@@ -85,7 +85,7 @@ services:
       - "9104:9443"
       - "8104:8080"
     environment:
-      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:8443/v1/bundle/pdp1  # bundle retrieval.
+      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:9443/v1/bundle/pdp1  # bundle retrieval.
       - PDP_BUNDLE_ENCODING=bzip2
       - PDP_BUNDLE_TIMEOUT=30s
       - PDP_BUNDLE_RETRIES=5

@@ -63,7 +63,7 @@ func LanguageFromString(in string) Language {
 	return languages[strings.ToLower(in)]
 }
 
-var languages = make(map[string]Language, langLast+8)
+var languages = make(map[string]Language, langLast+10)
 
 func init() {
 	for i := langFirst; i <= langLast; i++ {
