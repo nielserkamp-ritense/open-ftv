@@ -19,15 +19,16 @@ import (
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.7.0" // check against oas/policies/openapi.yaml!
+const PoliciesVersion = "1.7.1" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
-	GetPolicies(req *fiber.Ctx) error  // retrieve all policies.
-	GetPolicy(req *fiber.Ctx) error    // retrieve a single policy.
-	PostPolicy(req *fiber.Ctx) error   // create a new policy.
-	PutPolicy(req *fiber.Ctx) error    // update an existing policy.
-	DeletePolicy(req *fiber.Ctx) error // remove an existing policy.
+	GetPolicies(req *fiber.Ctx) error       // retrieve all policies.
+	GetPolicy(req *fiber.Ctx) error         // retrieve a single policy.
+	PostPolicy(req *fiber.Ctx) error        // create a new policy.
+	PutPolicy(req *fiber.Ctx) error         // update an existing policy.
+	PatchPolicyStatus(req *fiber.Ctx) error // update the status of an existing policy.
+	DeletePolicy(req *fiber.Ctx) error      // remove an existing policy.
 }
 
 // NewPoliciesHandler instantiates a policy handler.
@@ -180,6 +181,37 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	return req.JSON(p2.ToOAS(true))
 }
 
+// PatchPolicyStatus implements the PoliciesHandler interface.
+func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	var p *oas.PolicyStatus
+	if p, ok, err = h.checkBodyStatus(req, id); !ok {
+		return err
+	}
+
+	prev, lastIndex, err2 := h.cache.Read(p.Id)
+	if err2 != nil {
+		return h.error(req, fiber.StatusNotFound, err2)
+	}
+
+	p2, err3 := h.cache.UpdateStatus(prev, lastIndex, models.StatusFromString(p.Status), user)
+	if err3 != nil {
+		return h.error(req, fiber.StatusBadRequest, err3)
+	}
+	return req.JSON(p2.ToOAS(true))
+}
+
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
@@ -234,10 +266,27 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, boo
 	chk := newFieldChecker().
 		checkIdentifiers(id, &p.Id, "policy id mismatch").
 		checkLanguage(p.Language).
+		checkStatus(p.Status).
 		checkTitle(p.Metadata.Title).
 		checkRvvaID(p.Metadata.RvvaId).
 		checkPolicyData(p.Metadata.Url, p.Data).
 		checkTags(p.Metadata.Tags)
+
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+	}
+	return &p, true, nil
+}
+
+func (h *policiesHandler) checkBodyStatus(req *fiber.Ctx, id string) (*oas.PolicyStatus, bool, error) {
+	var p oas.PolicyStatus
+	if err := req.BodyParser(&p); err != nil {
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+	}
+
+	chk := newFieldChecker().
+		checkIdentifiers(id, &p.Id, "policy id mismatch").
+		checkStatus(p.Status)
 
 	if chk.checkFailed() {
 		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())

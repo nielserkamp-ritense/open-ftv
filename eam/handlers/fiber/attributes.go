@@ -15,7 +15,7 @@ import (
 )
 
 // AttributesVersion is the full semantic API version for the attribute endpoints.
-const AttributesVersion = "1.7.0" // check against oas/attributes/openapi.yaml!
+const AttributesVersion = "1.7.1" // check against oas/attributes/openapi.yaml!
 
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
@@ -23,6 +23,7 @@ type AttributesHandler interface {
 	GetAttribute(req *fiber.Ctx) error
 	PostAttribute(req *fiber.Ctx) error
 	PutAttribute(req *fiber.Ctx) error
+	PatchAttributeStatus(req *fiber.Ctx) error
 	DeleteAttribute(req *fiber.Ctx) error
 }
 
@@ -160,6 +161,40 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	return req.JSON(a2.ToOAS())
 }
 
+// PatchAttributeStatus implements the AttributesHandler interface.
+func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var key string
+	key, ok, err = h.checkKey(req)
+	if !ok {
+		return err
+	}
+
+	var a *oas.AttributeStatus
+	if a, ok, err = h.checkBodyStatus(req, key); !ok || err != nil {
+		h.logger.Error("failed to read body", "error", err)
+		return err
+	}
+
+	a2, _, err2 := h.cache.GetAttribute(a.Key)
+	if err2 != nil {
+		h.logger.Error("failed to get attribute", "error", err2)
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if a2, err2 = h.cache.UpdateAttributeStatus(a.Key, models.StatusFromString(a.Status), user); err2 != nil {
+		h.logger.Error("failed to save attribute status", "error", err2)
+		return h.error(req, fiber.StatusBadRequest, err2)
+	}
+	return req.JSON(a2.ToOAS())
+}
+
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
@@ -205,9 +240,26 @@ func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*oas.Attribut
 
 	chk := newFieldChecker().
 		checkIdentifiers(key, &a.Key, "attribute key mismatch").
+		checkStatus(a.Status).
 		checkAttrType(a.Type).
 		checkTitle(a.Metadata.Title).
 		checkTags(a.Metadata.Tags)
+
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+	}
+	return &a, true, nil
+}
+
+func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.AttributeStatus, bool, error) {
+	var a oas.AttributeStatus
+	if err := req.BodyParser(&a); err != nil {
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+	}
+
+	chk := newFieldChecker().
+		checkIdentifiers(key, &a.Key, "attribute key mismatch").
+		checkStatus(a.Status)
 
 	if chk.checkFailed() {
 		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())

@@ -52,6 +52,7 @@ func NewEntity(ns, id string, attrs *AttributeSet, parents ...string) *Entity {
 	}
 
 	return &Entity{
+		status:  StatusConcept,
 		uid:     EntityUID(ns, id),
 		ns:      ns,
 		id:      id,

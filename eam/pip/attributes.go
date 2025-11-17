@@ -2,6 +2,7 @@ package pip
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
@@ -85,6 +86,22 @@ func (p *PIP) GetAttributeValue(key string) any {
 		return a.Value()
 	}
 	return nil
+}
+
+// UpdateAttributeStatus updates the status of an attribute in cache/storage.
+//
+// An error is returned if the attribute key doesn't exist or the status update is not allowed.
+func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user string) (*models.Attribute, error) {
+	prev, _, err := p.attributeDB.ReadAttribute(p.ctx, key)
+	if err != nil || prev == nil {
+		return nil, fmt.Errorf("attribute not found")
+	}
+
+	if (prev.Status() == models.StatusConcept && status == models.StatusAccepted) ||
+		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
+		return p.AddAttribute(prev.WithStatus(status))
+	}
+	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
 }
 
 // RemoveAttribute removes an attribute from the PIP.

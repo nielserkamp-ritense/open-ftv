@@ -42,12 +42,20 @@ func NewAttributeWithType(key string, value any, tp string) *Attribute {
 
 // NewOriginalAttribute instantiates a new Attribute with a specific type and original value.
 func NewOriginalAttribute(key string, value, original any, tp string) *Attribute {
-	return &Attribute{key: key, value: valueFromOAS(value, tp), original: original, tp: tp, tags: make(map[string]struct{})}
+	return &Attribute{
+		status:   StatusConcept,
+		key:      key,
+		value:    valueFromOAS(value, tp),
+		original: original,
+		tp:       tp,
+		tags:     make(map[string]struct{}),
+	}
 }
 
 // NewAttributeFromOAS instantiates a new Attribute from the given OAS model.
 func NewAttributeFromOAS(in *attributes.Attribute) *Attribute {
 	a := &Attribute{
+		status:      StatusConcept,
 		key:         in.Key,
 		title:       in.Metadata.Title,
 		description: in.Metadata.Description,

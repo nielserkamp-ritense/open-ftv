@@ -133,6 +133,15 @@ type Policy struct {
 	UsageData []UsageData `json:"usageData,omitempty"`
 }
 
+// PolicyStatus The status of a policy.
+type PolicyStatus struct {
+	// Id The unique identifier of the policy (UUID).
+	Id string `json:"id"`
+
+	// Status The current status of the policy ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+}
+
 // Tag The details of a tag.
 type Tag struct {
 	// Audit The audit details of an object.
@@ -234,3 +243,6 @@ type CreatePolicyJSONRequestBody = Policy
 
 // UpdatePolicyJSONRequestBody defines body for UpdatePolicy for application/json ContentType.
 type UpdatePolicyJSONRequestBody = Policy
+
+// StatusPolicyJSONRequestBody defines body for StatusPolicy for application/json ContentType.
+type StatusPolicyJSONRequestBody = PolicyStatus

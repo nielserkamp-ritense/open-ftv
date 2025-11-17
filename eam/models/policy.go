@@ -51,6 +51,8 @@ func NewPolicyFromOAS(p *policies.Policy, content io.Reader) (*Policy, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	p.Status = "Concept"
 	return newPolicy(p, "", d), nil
 }
 
@@ -76,6 +78,8 @@ func NewPolicyFromStore(language, path string, content io.Reader) (*Policy, erro
 			}
 		}
 	}
+
+	p.Status = "Concept"
 
 	if p.Language == "" {
 		p.Language = language
