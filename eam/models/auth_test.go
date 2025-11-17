@@ -75,7 +75,7 @@ func TestPARC(t *testing.T) {
 		{
 			name: "principal without attributes",
 			in:   &PARC{Principal: NewEntity("user", "alice", NewAttributeSet())},
-			want: `{"principal":{"type":"user","id":"alice","attributes":[]}}`,
+			want: `{"principal":{"type":"user","id":"alice","status":"???","attributes":[]}}`,
 		},
 		{
 			name: "principal with attributes",
@@ -86,12 +86,12 @@ func TestPARC(t *testing.T) {
 						NewAttribute("z", "w"),
 					)),
 			},
-			want: `{"principal":{"type":"user","id":"alice","attributes":[{"key":"x","value":"y"},{"key":"z","value":"w"}]}}`,
+			want: `{"principal":{"type":"user","id":"alice","status":"???","attributes":[{"key":"x","value":"y","status":"???"},{"key":"z","value":"w","status":"???"}]}}`,
 		},
 		{
 			name: "action without attributes",
 			in:   &PARC{Action: NewEntity("method", "POST", NewAttributeSet())},
-			want: `{"action":{"type":"method","id":"POST","attributes":[]}}`,
+			want: `{"action":{"type":"method","id":"POST","status":"???","attributes":[]}}`,
 		},
 		{
 			name: "context",
@@ -101,7 +101,7 @@ func TestPARC(t *testing.T) {
 				NewAttribute("z", true),
 				NewAttribute("z2", 1.345678),
 			)},
-			want: `{"context":[{"key":"x","value":"y"},{"key":"y","value":123},{"key":"z","value":true},{"key":"z2","value":1.345678}]}`,
+			want: `{"context":[{"key":"x","value":"y","status":"???"},{"key":"y","value":123,"status":"???"},{"key":"z","value":true,"status":"???"},{"key":"z2","value":1.345678,"status":"???"}]}`,
 		},
 	}
 

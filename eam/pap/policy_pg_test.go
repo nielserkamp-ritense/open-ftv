@@ -152,16 +152,16 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 	p2, e2 := models.NewPolicyFromData("p2", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, e2)
 
-	p1.WithTitle("title1")
-	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2")
+	p1.WithTitle("title1").WithStatus(models.StatusConcept)
+	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithStatus(models.StatusAccepted)
 
 	wp1, we1 := models.NewPolicyFromData("p1", "cedar", "rvva1", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we1)
 	wp2, we2 := models.NewPolicyFromData("p2", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we2)
 
-	wp1.WithTitle("title1").WithAudit(now, u1, now, u1)
-	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2)
+	wp1.WithTitle("title1").WithAudit(now, u1, now, u1).WithStatus(models.StatusConcept)
+	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2).WithStatus(models.StatusAccepted)
 
 	testCases := []struct {
 		name    string
@@ -191,9 +191,9 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`INSERT INTO policy
- (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
- VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).
-				WithArgs(p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, u, now, u)
+ (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
+ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).
+				WithArgs(p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, u, now, u)
 			if tc.wantErr {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
@@ -227,8 +227,8 @@ func TestPostgresDB_ReadPolicy(t *testing.T) {
 	wp2, we2 := models.NewPolicyFromData("ec3cc76b-38d4-4819-88ff-5ac900640bca", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we2)
 
-	wp1.WithAudit(now, u1, now, u1)
-	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2)
+	wp1.WithAudit(now, u1, now, u1).WithStatus(models.StatusConcept)
+	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2).WithStatus(models.StatusConcept)
 
 	testCases := []struct {
 		name     string
@@ -257,7 +257,7 @@ func TestPostgresDB_ReadPolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
-			exp := mock.ExpectQuery(`SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
+			exp := mock.ExpectQuery(`SELECT status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
  FROM policy
  WHERE id=$1`).WithArgs(id)
 			if tc.wantErr {
@@ -265,8 +265,8 @@ func TestPostgresDB_ReadPolicy(t *testing.T) {
 				mock.ExpectRollback()
 			} else {
 				exp.WillReturnRows(
-					pgxmock.NewRows([]string{"language", "id", "title", "description", "rvva_id", "uri", "tags", "content", "created", "created_by", "updated", "updated_by"}).
-						AddRow(w.Language(), w.ID(), w.Title(), w.Description(), w.RvvaID(), w.URI(), w.Tags(), w.ContentString(), w.Created(), w.CreatedBy(), w.Updated(), w.UpdatedBy()))
+					pgxmock.NewRows([]string{"status", "language", "id", "title", "description", "rvva_id", "uri", "tags", "content", "created", "created_by", "updated", "updated_by"}).
+						AddRow(w.StatusName(), w.Language(), w.ID(), w.Title(), w.Description(), w.RvvaID(), w.URI(), w.Tags(), w.ContentString(), w.Created(), w.CreatedBy(), w.Updated(), w.UpdatedBy()))
 				mock.ExpectCommit()
 			}
 
@@ -297,16 +297,16 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 	p2, e2 := models.NewPolicyFromData("p2", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, e2)
 
-	p1.WithAudit(now, u2, now, u2)
-	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u1)
+	p1.WithAudit(now, u2, now, u2).WithStatus(models.StatusConcept)
+	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u1).WithStatus(models.StatusDeployed)
 
 	wp1, we1 := models.NewPolicyFromData("p1", "cedar", "rvva1", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we1)
 	wp2, we2 := models.NewPolicyFromData("p2", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we2)
 
-	wp1.WithAudit(now, u2, now, u1)
-	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u2)
+	wp1.WithAudit(now, u2, now, u1).WithStatus(models.StatusConcept)
+	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u2).WithStatus(models.StatusDeployed)
 
 	testCases := []struct {
 		name         string
@@ -338,9 +338,9 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`UPDATE policy
- SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
+ SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`).
-				WithArgs(p.ID(), now, p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, u)
+				WithArgs(p.ID(), now, p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, u)
 			if tc.wantErr {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
@@ -457,8 +457,8 @@ func TestPostgresDB_ListPolicies(t *testing.T) {
 	wp2, we2 := models.NewPolicyFromData("p2", "opa", "rvva2", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we2)
 
-	wp1.WithAudit(now, u1, now, u1)
-	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2)
+	wp1.WithAudit(now, u1, now, u1).WithStatus(models.StatusConcept)
+	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u2, now, u2).WithStatus(models.StatusDeployed)
 
 	testCases := []struct {
 		name     string
@@ -487,7 +487,7 @@ func TestPostgresDB_ListPolicies(t *testing.T) {
 			mock.ExpectBegin()
 
 			var exp *pgxmock.ExpectedQuery
-			sql := `SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by FROM policy`
+			sql := `SELECT status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by FROM policy`
 			if tc.language != "" {
 				sql += ` WHERE language=$1`
 				exp = mock.ExpectQuery(sql).WithArgs(l)
@@ -499,10 +499,10 @@ func TestPostgresDB_ListPolicies(t *testing.T) {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
 			} else {
-				rows := pgxmock.NewRows([]string{"language", "id", "title", "description", "rvva_id", "uri", "tags", "content", "created", "created_by", "updated", "updated_by"})
+				rows := pgxmock.NewRows([]string{"status", "language", "id", "title", "description", "rvva_id", "uri", "tags", "content", "created", "created_by", "updated", "updated_by"})
 				for i := range tc.want {
 					w := tc.want[i]
-					rows.AddRow(w.Language(), w.ID(), w.Title(), w.Description(), w.RvvaID(), w.URI(), w.Tags(), w.ContentString(), w.Created(), w.CreatedBy(), w.Updated(), w.UpdatedBy())
+					rows.AddRow(w.StatusName(), w.Language(), w.ID(), w.Title(), w.Description(), w.RvvaID(), w.URI(), w.Tags(), w.ContentString(), w.Created(), w.CreatedBy(), w.Updated(), w.UpdatedBy())
 				}
 				exp.WillReturnRows(rows)
 				mock.ExpectCommit()

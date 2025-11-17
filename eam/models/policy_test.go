@@ -424,13 +424,14 @@ func TestPolicy_ToOAS(t *testing.T) {
 			name: "empty",
 			in:   &Policy{},
 			data: false,
-			want: &policies.Policy{Metadata: policies.Metadata{Tags: []string{}}},
+			want: &policies.Policy{Status: "???", Metadata: policies.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "some data, with uri",
 			in:   &Policy{language: "rego", id: "p1", title: "titel", uri: "http://localhost:8080/"},
 			data: true,
 			want: &policies.Policy{
+				Status:   "???",
 				Language: "rego",
 				Id:       "p1",
 				Metadata: policies.Metadata{
@@ -453,6 +454,7 @@ func TestPolicy_ToOAS(t *testing.T) {
 			},
 			data: true,
 			want: &policies.Policy{
+				Status:   "???",
 				Language: "rego",
 				Id:       "p1",
 				Metadata: policies.Metadata{
@@ -542,20 +544,20 @@ func TestPolicy_JSON(t *testing.T) {
 			name: "only id",
 			p:    &policies.Policy{Id: "x1"},
 			data: "policy-1",
-			want: `{"language":"","id":"x1","content":"cG9saWN5LTE="}`,
+			want: `{"language":"","id":"x1","status":"concept","content":"cG9saWN5LTE="}`,
 		},
 		{
 			name: "some meta",
 			p:    &policies.Policy{Id: "x2"},
 			data: "policy-2",
-			want: `{"language":"","id":"x2","content":"cG9saWN5LTI="}`,
+			want: `{"language":"","id":"x2","status":"concept","content":"cG9saWN5LTI="}`,
 		},
 		{
 			name: "tags",
 			p:    &policies.Policy{Id: "x1"},
 			tags: []string{"x", "y", "z"},
 			data: "policy-1",
-			want: `{"language":"","id":"x1","tags":["x","y","z"],"content":"cG9saWN5LTE="}`,
+			want: `{"language":"","id":"x1","status":"concept","tags":["x","y","z"],"content":"cG9saWN5LTE="}`,
 		},
 		{
 			name: "all meta",
@@ -571,7 +573,7 @@ func TestPolicy_JSON(t *testing.T) {
 				},
 			},
 			data: "policy-3",
-			want: `{"language":"opa","id":"x3","title":"titel","description":"omschrijving","tags":["x","y","z"],"rvvaID":"e3","uri":"https://some.site/policies/x3","content":"cG9saWN5LTM="}`,
+			want: `{"language":"opa","id":"x3","status":"concept","title":"titel","description":"omschrijving","tags":["x","y","z"],"rvvaID":"e3","uri":"https://some.site/policies/x3","content":"cG9saWN5LTM="}`,
 		},
 	}
 
@@ -623,20 +625,20 @@ func TestPolicy_YAML(t *testing.T) {
 			name: "only id",
 			p:    &policies.Policy{Id: "x1"},
 			data: "policy-1",
-			want: "language: \"\"\nid: x1\ncontent: cG9saWN5LTE=\n",
+			want: "language: \"\"\nid: x1\nstatus: concept\ncontent: cG9saWN5LTE=\n",
 		},
 		{
 			name: "some meta",
 			p:    &policies.Policy{Id: "x2"},
 			data: "policy-2",
-			want: "language: \"\"\nid: x2\ncontent: cG9saWN5LTI=\n",
+			want: "language: \"\"\nid: x2\nstatus: concept\ncontent: cG9saWN5LTI=\n",
 		},
 		{
 			name: "tags",
 			p:    &policies.Policy{Id: "x1"},
 			tags: []string{"x", "y", "z"},
 			data: "policy-1",
-			want: "language: \"\"\nid: x1\ntags:\n- x\n- \"y\"\n- z\ncontent: cG9saWN5LTE=\n",
+			want: "language: \"\"\nid: x1\nstatus: concept\ntags:\n- x\n- \"y\"\n- z\ncontent: cG9saWN5LTE=\n",
 		},
 		{
 			name: "all meta",
@@ -652,7 +654,7 @@ func TestPolicy_YAML(t *testing.T) {
 				},
 			},
 			data: "policy-3",
-			want: "language: opa\nid: x3\ntitle: titel\ndescription: omschrijving\ntags:\n- x\n- \"y\"\n- z\nrvvaID: e3\nuri: https://some.site/policies/x3\ncontent: cG9saWN5LTM=\n",
+			want: "language: opa\nid: x3\nstatus: concept\ntitle: titel\ndescription: omschrijving\ntags:\n- x\n- \"y\"\n- z\nrvvaID: e3\nuri: https://some.site/policies/x3\ncontent: cG9saWN5LTM=\n",
 		},
 	}
 

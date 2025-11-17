@@ -52,10 +52,10 @@ func TestNewAttributeWithType(t *testing.T) {
 		wantValue any
 		wantJSON  string
 	}{
-		{name: "nil", key: "nil", wantJSON: `{"key":"nil","value":null}`},
-		{name: "string", key: "s1", value: "v1", t: "string", wantValue: "v1", wantJSON: `{"key":"s1","value":"v1","type":"string"}`},
-		{name: "int", key: "i1", value: 123, original: "123", t: "xsd:long", wantValue: int64(123), wantJSON: `{"key":"i1","value":123,"original":"123","type":"xsd:long"}`},
-		{name: "bool", key: "b1", value: true, t: "xsd:boolean", wantValue: true, wantJSON: `{"key":"b1","value":true,"type":"xsd:boolean"}`},
+		{name: "nil", key: "nil", wantJSON: `{"key":"nil","value":null,"status":"???"}`},
+		{name: "string", key: "s1", value: "v1", t: "string", wantValue: "v1", wantJSON: `{"key":"s1","value":"v1","status":"???","type":"string"}`},
+		{name: "int", key: "i1", value: 123, original: "123", t: "xsd:long", wantValue: int64(123), wantJSON: `{"key":"i1","value":123,"status":"???","original":"123","type":"xsd:long"}`},
+		{name: "bool", key: "b1", value: true, t: "xsd:boolean", wantValue: true, wantJSON: `{"key":"b1","value":true,"status":"???","type":"xsd:boolean"}`},
 	}
 
 	for _, tc := range testCases {
@@ -91,10 +91,10 @@ func TestNewOriginalAttribute(t *testing.T) {
 		wantValue any
 		wantYAML  string
 	}{
-		{name: "nil", key: "nil", wantYAML: "key: nil\nvalue: null\n"},
-		{name: "string", key: "s1", value: "v1", t: "string", wantValue: "v1", wantYAML: "key: s1\nvalue: v1\ntype: string\n"},
-		{name: "int", key: "i1", value: 123, original: "123", t: "xsd:long", wantValue: int64(123), wantYAML: "key: i1\nvalue: 123\noriginal: \"123\"\ntype: xsd:long\n"},
-		{name: "bool", key: "b1", value: true, original: "1", t: "xsd:boolean", wantValue: true, wantYAML: "key: b1\nvalue: true\noriginal: \"1\"\ntype: xsd:boolean\n"},
+		{name: "nil", key: "nil", wantYAML: "key: nil\nvalue: null\nstatus: ???\n"},
+		{name: "string", key: "s1", value: "v1", t: "string", wantValue: "v1", wantYAML: "key: s1\nvalue: v1\nstatus: ???\ntype: string\n"},
+		{name: "int", key: "i1", value: 123, original: "123", t: "xsd:long", wantValue: int64(123), wantYAML: "key: i1\nvalue: 123\nstatus: ???\noriginal: \"123\"\ntype: xsd:long\n"},
+		{name: "bool", key: "b1", value: true, original: "1", t: "xsd:boolean", wantValue: true, wantYAML: "key: b1\nvalue: true\nstatus: ???\noriginal: \"1\"\ntype: xsd:boolean\n"},
 	}
 
 	for _, tc := range testCases {
@@ -468,12 +468,12 @@ func TestAttribute_ToOAS(t *testing.T) {
 		{
 			name: "empty",
 			in:   &Attribute{},
-			want: &attributes.Attribute{Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "simple",
 			in:   NewAttribute("a1", "hello jupiter"),
-			want: &attributes.Attribute{Key: "a1", Value: "hello jupiter", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "a1", Value: "hello jupiter", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "full",
@@ -481,9 +481,10 @@ func TestAttribute_ToOAS(t *testing.T) {
 				WithTitle("attribute a2").
 				WithDescription("this is attribute a2").WithTags("x", "y", "z"),
 			want: &attributes.Attribute{
-				Key:   "a2",
-				Value: -12.34,
-				Type:  "xsd:double",
+				Key:    "a2",
+				Value:  -12.34,
+				Status: "???",
+				Type:   "xsd:double",
 				Metadata: attributes.Metadata{
 					Title:       "attribute a2",
 					Description: "this is attribute a2",
@@ -494,107 +495,107 @@ func TestAttribute_ToOAS(t *testing.T) {
 		{
 			name: "string",
 			in:   NewAttribute("key", "value"),
-			want: &attributes.Attribute{Key: "key", Value: "value", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "value", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "int64",
 			in:   NewAttribute("key", int64(9876543)),
-			want: &attributes.Attribute{Key: "key", Value: int64(9876543), Type: "long", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: int64(9876543), Status: "???", Type: "long", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "double",
 			in:   NewAttribute("key", 123.5678),
-			want: &attributes.Attribute{Key: "key", Value: 123.5678, Type: "double", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: 123.5678, Status: "???", Type: "double", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "bool",
 			in:   NewAttribute("key", true),
-			want: &attributes.Attribute{Key: "key", Value: true, Type: "bool", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: true, Status: "???", Type: "bool", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "slice",
 			in:   NewAttribute("key", []any{5, 6, 7, 8}),
-			want: &attributes.Attribute{Key: "key", Value: []any{5, 6, 7, 8}, Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: []any{5, 6, 7, 8}, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "map",
 			in:   NewAttribute("key", map[string]any{"hello": "world", "int": 123}),
-			want: &attributes.Attribute{Key: "key", Value: map[string]any{"hello": "world", "int": 123}, Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: map[string]any{"hello": "world", "int": 123}, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "time.Time",
 			in:   NewAttribute("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC)),
-			want: &attributes.Attribute{Key: "key", Value: "2024-05-29T12:00:00Z", Type: "datetime", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "2024-05-29T12:00:00Z", Status: "???", Type: "datetime", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "time.Duration",
 			in:   NewAttribute("key", time.Duration(123456780000)),
-			want: &attributes.Attribute{Key: "key", Value: "2m3.45678s", Type: "duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "2m3.45678s", Status: "???", Type: "duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "unsupported",
 			in:   NewAttribute("key", []float32{1, 2, 3}),
-			want: &attributes.Attribute{Key: "key", Value: "[1 2 3]", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "[1 2 3]", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with string type",
 			in:   NewAttributeWithType("key", "true", "string"),
-			want: &attributes.Attribute{Key: "key", Value: "true", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "true", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:boolean type",
 			in:   NewAttributeWithType("key", true, "xsd:boolean"),
-			want: &attributes.Attribute{Key: "key", Value: true, Type: "xsd:boolean", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: true, Status: "???", Type: "xsd:boolean", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:gYear type",
 			in:   NewAttributeWithType("key", 2025, "xsd:gYear"),
-			want: &attributes.Attribute{Key: "key", Value: int64(2025), Type: "xsd:gYear", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: int64(2025), Status: "???", Type: "xsd:gYear", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with date type",
 			in:   NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "date"),
-			want: &attributes.Attribute{Key: "key", Value: "2024-05-29", Type: "date", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "2024-05-29", Status: "???", Type: "date", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:time type",
 			in:   NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "xsd:time"),
-			want: &attributes.Attribute{Key: "key", Value: "12:00:00", Type: "xsd:time", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "12:00:00", Status: "???", Type: "xsd:time", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:dateTime type",
 			in:   NewAttributeWithType("key", time.Date(2024, 5, 29, 12, 0, 0, 0, time.UTC), "xsd:dateTime"),
-			want: &attributes.Attribute{Key: "key", Value: "2024-05-29T12:00:00Z", Type: "xsd:dateTime", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "2024-05-29T12:00:00Z", Status: "???", Type: "xsd:dateTime", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:duration type (1)",
 			in:   NewAttributeWithType("key", 260*time.Second, "xsd:duration"),
-			want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Status: "???", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:duration type (2)",
 			in:   NewAttributeWithType("key", 300*time.Millisecond, "xsd:duration"),
-			want: &attributes.Attribute{Key: "key", Value: "PT0.3S", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "PT0.3S", Status: "???", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with xsd:duration type (3)",
 			in:   NewAttributeWithType("key", time.Duration(1200), "xsd:duration"),
-			want: &attributes.Attribute{Key: "key", Value: "PT0.0000012S", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "PT0.0000012S", Status: "???", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with duration type",
 			in:   NewAttributeWithType("key", time.Duration(123456780000), "duration"),
-			want: &attributes.Attribute{Key: "key", Value: "2m3.45678s", Type: "duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "2m3.45678s", Status: "???", Type: "duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with original xsd:boolean",
 			in:   NewOriginalAttribute("key", true, "1", "xsd:boolean"),
-			want: &attributes.Attribute{Key: "key", Value: true, Type: "xsd:boolean", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: true, Status: "???", Type: "xsd:boolean", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 		{
 			name: "with original xsd:duration",
 			in:   NewOriginalAttribute("key", 260*time.Second, "PT4M20S", "xsd:duration"),
-			want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
+			want: &attributes.Attribute{Key: "key", Value: "PT4M20S", Status: "???", Type: "xsd:duration", Metadata: attributes.Metadata{Tags: []string{}}},
 		},
 	}
 

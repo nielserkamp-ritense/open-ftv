@@ -401,16 +401,16 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 	p2, e2 := models.NewPolicyFromData("p1", "cedar", "rvva2", "", bytes.NewBufferString("allow=false;"))
 	require.NoError(t, e2)
 
-	p1.WithAudit(now, u2, now, u2)
-	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u1)
+	p1.WithAudit(now, u2, now, u2).WithStatus(models.StatusDeployed)
+	p2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u1).WithStatus(models.StatusAccepted)
 
 	wp1, we1 := models.NewPolicyFromData("p1", "cedar", "rvva1", "", bytes.NewBufferString("allow=true;"))
 	require.NoError(t, we1)
 	wp2, we2 := models.NewPolicyFromData("p1", "cedar", "rvva2", "", bytes.NewBufferString("allow=false;"))
 	require.NoError(t, we2)
 
-	wp1.WithAudit(now, u1, now, u1)
-	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u2)
+	wp1.WithAudit(now, u1, now, u1).WithStatus(models.StatusDeployed)
+	wp2.WithTags("x", "y", "z").WithTitle("title2").WithDescription("description2").WithAudit(now, u1, now, u2).WithStatus(models.StatusAccepted)
 
 	t.Run("with postgres DB", func(t *testing.T) {
 		t.Parallel()
@@ -433,29 +433,29 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u1)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 		mock.ExpectExec(`INSERT INTO policy
- (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
- VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).
-			WithArgs(p1.Language(), p1.ID(), p1.Title(), p1.Description(), p1.RvvaID(), p1.URI(), p1.Tags(), p1.ContentString(), now, u1, now, u1).
+ (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
+ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).
+			WithArgs(p1.StatusName(), p1.Language(), p1.ID(), p1.Title(), p1.Description(), p1.RvvaID(), p1.URI(), p1.Tags(), p1.ContentString(), now, u1, now, u1).
 			WillReturnResult(pgxmock.NewResult("CREATE", 1))
 		mock.ExpectCommit()
 
 		// read
 		mock.ExpectBegin()
-		mock.ExpectQuery(`SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
+		mock.ExpectQuery(`SELECT status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
  FROM policy
  WHERE id=$1`).WithArgs("p1").
 			WillReturnRows(
-				pgxmock.NewRows([]string{"language", "id", "title", "description", "rvvaID", "uri", "tags", "content", "created", "createdBy", "updated", "updatedBy"}).
-					AddRow(p1.Language(), p1.ID(), p1.Title(), p1.Description(), p1.RvvaID(), p1.URI(), p1.Tags(), p1.ContentString(), now, u1, now, u1))
+				pgxmock.NewRows([]string{"status", "language", "id", "title", "description", "rvvaID", "uri", "tags", "content", "created", "createdBy", "updated", "updatedBy"}).
+					AddRow(p1.StatusName(), p1.Language(), p1.ID(), p1.Title(), p1.Description(), p1.RvvaID(), p1.URI(), p1.Tags(), p1.ContentString(), now, u1, now, u1))
 		mock.ExpectCommit()
 
 		// update
 		mock.ExpectBegin()
 		mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u2)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 		mock.ExpectExec(`UPDATE policy
- SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
+ SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`).
-			WithArgs(p2.ID(), now, p2.Language(), p2.Title(), p2.Description(), p2.RvvaID(), p2.URI(), p2.Tags(), p2.ContentString(), now, u2).
+			WithArgs(p2.ID(), now, p2.Language(), p2.Title(), p2.Description(), p2.RvvaID(), p2.URI(), p2.Tags(), p2.ContentString(), p2.StatusName(), now, u2).
 			WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 		mock.ExpectCommit()
 

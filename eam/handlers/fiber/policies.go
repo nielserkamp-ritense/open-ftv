@@ -19,7 +19,7 @@ import (
 )
 
 // PoliciesVersion is the full semantic API version for the policy endpoints.
-const PoliciesVersion = "1.6.1" // check against oas/policies/openapi.yaml!
+const PoliciesVersion = "1.7.0" // check against oas/policies/openapi.yaml!
 
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {

@@ -10,6 +10,7 @@ import (
 //
 // Relation is an immutable object and is by design safe for use by concurrent go-routines.
 type Relation struct {
+	status      Status
 	uid         string
 	subject     *Entity
 	predicate   *Entity
@@ -40,6 +41,12 @@ func NewRelation(subject, predicate, object *Entity) *Relation {
 	}
 }
 
+// WithStatus sets the status of the Relation.
+func (r *Relation) WithStatus(status Status) *Relation {
+	r.status = status
+	return r
+}
+
 // WithTitle adds an optional title to the Relation.
 func (r *Relation) WithTitle(title string) *Relation {
 	r.title = title
@@ -65,6 +72,16 @@ func getUID(r *Entity) string {
 		return "?"
 	}
 	return r.UID()
+}
+
+// Status returns the current status of the Relation.
+func (r *Relation) Status() Status {
+	return r.status
+}
+
+// StatusName returns the current status of the Relation as a string.
+func (r *Relation) StatusName() string {
+	return r.status.String()
 }
 
 // UID returns the unique identifier of the Relation.
@@ -115,7 +132,8 @@ func (r *Relation) HasTag(tag string) bool {
 
 // Equals returns true if this Relation equals the other Relation.
 func (r *Relation) Equals(other *Relation) bool {
-	return r.uid == other.uid &&
+	return r.status == other.status &&
+		r.uid == other.uid &&
 		r.title == other.title &&
 		r.description == other.description &&
 		r.subject.Equals(other.subject) &&

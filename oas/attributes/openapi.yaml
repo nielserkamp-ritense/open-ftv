@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Attributes, entities and relations management.
-  version: 1.6.1
+  version: 1.7.0
   description: |
     OpenAPI specification for maintaining attributes, entities and/or relations between entities.
   contact:
@@ -821,6 +821,11 @@ components:
         value:
           description: The value of the attribute.
           example: "0123"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the attribute ('concept', 'accepted', 'deployed').
+          example: "concept"
         type:
           type: string
           maxLength: 40
@@ -857,6 +862,7 @@ components:
       required:
         - key
         - value
+        - status
         - metadata
         - audit
 
@@ -884,6 +890,11 @@ components:
           maxLength: 200
           description: The identification of the entity.
           example: "alice"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the entity ('concept', 'accepted', 'deployed').
+          example: "concept"
         attributes:
           type: array
           description: Optional attributes of the entity.
@@ -906,6 +917,7 @@ components:
       required:
         - type
         - id
+        - status
         - metadata
         - audit
 
@@ -926,6 +938,11 @@ components:
           maxLength: 36
           description: The unique identifier of the relation (UUID).
           example: "<uuid>"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the relation ('concept', 'accepted', 'deployed').
+          example: "concept"
         subjectType:
           type: string
           minLength: 3
@@ -977,6 +994,7 @@ components:
             $ref: "#/components/schemas/UsageData"
       required:
         - id
+        - status
         - subjectType
         - subjectId
         - relation

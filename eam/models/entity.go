@@ -32,6 +32,7 @@ func SplitEntityUID(in string) (string, string) {
 //
 // Entity is an immutable object and is by design safe for use in concurrent go-routines.
 type Entity struct {
+	status      Status              // the current status of the entity.
 	uid         string              // unique identifier (ns::id).
 	ns          string              // name-space.
 	id          string              // unique identifier within the name-space.
@@ -58,6 +59,14 @@ func NewEntity(ns, id string, attrs *AttributeSet, parents ...string) *Entity {
 		parents: parents,
 		tags:    make(map[string]struct{}),
 	}
+}
+
+// WithStatus sets the status of the Entity.
+func (e *Entity) WithStatus(status Status) *Entity {
+	e.mutex.Lock()
+	e.status = status
+	e.mutex.Unlock()
+	return e
 }
 
 // WithTitle adds an optional title to the Entity.
@@ -95,6 +104,20 @@ func (e *Entity) WithAudit(created time.Time, createdBy string, updated time.Tim
 	e.Audit.updatedBy = updatedBy
 	e.mutex.Unlock()
 	return e
+}
+
+// Status returns the current status of the Entity.
+func (e *Entity) Status() Status {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+	return e.status
+}
+
+// StatusName returns the current status of the Entity as a string.
+func (e *Entity) StatusName() string {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+	return e.status.String()
 }
 
 // UID returns the unique identifier (Type() + ID()) for the Entity.
@@ -173,6 +196,7 @@ func (e *Entity) MarshalJSON() ([]byte, error) {
 	defer e.mutex.RUnlock()
 
 	return json.Marshal(marshalEntity{
+		Status:      e.status.String(),
 		Type:        e.ns,
 		ID:          e.id,
 		Title:       e.title,
@@ -189,6 +213,7 @@ func (e *Entity) MarshalYAML() ([]byte, error) {
 	defer e.mutex.RUnlock()
 
 	return yaml.Marshal(marshalEntity{
+		Status:      e.status.String(),
 		Type:        e.ns,
 		ID:          e.id,
 		Title:       e.title,
@@ -222,6 +247,7 @@ func mapFromEntity(e *Entity) map[string]any {
 // EntityFromOAS instantiates a new Entity from the given OAS model.
 func EntityFromOAS(in *attributes.Entity) *Entity {
 	a := &Entity{
+		status:      StatusFromString(in.Status),
 		uid:         EntityUID(in.Type, in.Id),
 		ns:          in.Type,
 		id:          in.Id,
@@ -244,6 +270,7 @@ func (e *Entity) ToOAS() *attributes.Entity {
 	defer e.mutex.RUnlock()
 
 	return &attributes.Entity{
+		Status:     e.status.String(),
 		Type:       e.ns,
 		Id:         e.id,
 		Attributes: e.attrs.ToOAS(),
@@ -269,7 +296,8 @@ func (e *Entity) ToBundle() *attributes.Entity {
 
 // Equals returns true if this Entity matches exactly with the other entity.
 func (e *Entity) Equals(other *Entity) bool {
-	return e.uid == other.uid &&
+	return e.status == other.status &&
+		e.uid == other.uid &&
 		e.ns == other.ns &&
 		e.id == other.id &&
 		e.title == other.title &&
@@ -280,8 +308,9 @@ func (e *Entity) Equals(other *Entity) bool {
 }
 
 type marshalEntity struct {
-	Type        string        `json:"type,omitempty"        yaml:"type,omitempty"`
-	ID          string        `json:"id,omitempty"          yaml:"id,omitempty"`
+	Type        string        `json:"type"                  yaml:"type"`
+	ID          string        `json:"id"                    yaml:"id"`
+	Status      string        `json:"status,omitempty"      yaml:"status,omitempty"`
 	Title       string        `json:"title,omitempty"       yaml:"title,omitempty"`
 	Description string        `json:"description,omitempty" yaml:"description,omitempty"`
 	Attributes  *AttributeSet `json:"attributes,omitempty"  yaml:"attributes,omitempty"`

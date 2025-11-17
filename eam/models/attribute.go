@@ -18,6 +18,7 @@ import (
 //
 // An Attribute is safe for use in concurrent go-routines.
 type Attribute struct {
+	status      Status
 	key         string
 	title       string
 	description string
@@ -63,6 +64,14 @@ func NewAttributeFromOAS(in *attributes.Attribute) *Attribute {
 	return a
 }
 
+// WithStatus sets the status of the Attribute.
+func (a *Attribute) WithStatus(status Status) *Attribute {
+	a.mutex.Lock()
+	a.status = status
+	a.mutex.Unlock()
+	return a
+}
+
 // WithTitle adds an optional title to the Attribute.
 func (a *Attribute) WithTitle(title string) *Attribute {
 	a.mutex.Lock()
@@ -98,6 +107,20 @@ func (a *Attribute) WithAudit(created time.Time, createdBy string, updated time.
 	a.Audit.updatedBy = updatedBy
 	a.mutex.Unlock()
 	return a
+}
+
+// Status returns the current status of the Attribute.
+func (a *Attribute) Status() Status {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+	return a.status
+}
+
+// StatusName returns the current status of the Attribute as a string.
+func (a *Attribute) StatusName() string {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+	return a.status.String()
 }
 
 // Key returns the key of the Attribute.
@@ -178,9 +201,10 @@ func (a *Attribute) ToOAS() *attributes.Attribute {
 	value, tp := valueToOAS(a.value, a.tp)
 
 	return &attributes.Attribute{
-		Key:   a.key,
-		Value: value,
-		Type:  tp,
+		Status: a.status.String(),
+		Key:    a.key,
+		Value:  value,
+		Type:   tp,
 		Metadata: attributes.Metadata{
 			Title:       a.title,
 			Description: a.description,
@@ -205,7 +229,8 @@ func (a *Attribute) ToBundle() *attributes.Attribute {
 
 // Equals returns true if this Attribute equals the other Attribute.
 func (a *Attribute) Equals(other *Attribute) bool {
-	return a.key == other.key &&
+	return a.status == other.status &&
+		a.key == other.key &&
 		a.title == other.title &&
 		a.description == other.description &&
 		a.tp == other.tp &&
@@ -219,6 +244,7 @@ func (a *Attribute) newMarshallAttr() *marshalAttr {
 	defer a.mutex.RUnlock()
 
 	m := &marshalAttr{
+		Status:      a.status.String(),
 		Key:         a.key,
 		Title:       a.title,
 		Description: a.description,
@@ -236,9 +262,10 @@ func (a *Attribute) newMarshallAttr() *marshalAttr {
 
 type marshalAttr struct {
 	Key         string   `json:"key"                   yaml:"key"`
+	Value       any      `json:"value"                 yaml:"value"`
+	Status      string   `json:"status,omitempty"      yaml:"status,omitempty"`
 	Title       string   `json:"title,omitempty"       yaml:"title,omitempty"`
 	Description string   `json:"description,omitempty" yaml:"description,omitempty"`
-	Value       any      `json:"value"                 yaml:"value"`
 	Original    any      `json:"original,omitempty"    yaml:"original,omitempty"`
 	Type        string   `json:"type,omitempty"        yaml:"type,omitempty"`
 	Tags        []string `json:"tags,omitempty"        yaml:"tags,omitempty"`

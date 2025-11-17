@@ -15,7 +15,7 @@ import (
 )
 
 // AttributesVersion is the full semantic API version for the attribute endpoints.
-const AttributesVersion = "1.6.1" // check against oas/attributes/openapi.yaml!
+const AttributesVersion = "1.7.0" // check against oas/attributes/openapi.yaml!
 
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
