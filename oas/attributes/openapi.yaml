@@ -2,7 +2,7 @@ openapi: 3.0.0
 
 info:
   title: Attributes, entities and relations management.
-  version: 1.7.0
+  version: 1.7.1
   description: |
     OpenAPI specification for maintaining attributes, entities and/or relations between entities.
   contact:
@@ -164,6 +164,38 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /attribute/{key}/status:
+    parameters:
+      - $ref: "#/components/parameters/AttributeKey"
+
+    patch:
+      operationId: "status-attribute"
+      summary: Modify attribute status.
+      description: |
+        Modify the status of an existing attribute.
+      tags:
+        - open_ftv
+        - attribute
+      requestBody:
+        description: New status of the attribute.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttributeStatus"
+      responses:
+        "200":
+          $ref: "#/components/responses/AttributeResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
   /entities:
     get:
       operationId: "get-entities"
@@ -305,6 +337,38 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /entity/{type}/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+
+    patch:
+      operationId: "status-entity"
+      summary: Modify entity status.
+      description: |
+        Modify the status of an existing entity.
+      tags:
+        - open_ftv
+        - entity
+      requestBody:
+        description: New status of the entity.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityStatus"
+      responses:
+        "200":
+          $ref: "#/components/responses/EntityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
 
   /relations:
     get:
@@ -328,13 +392,9 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
-  /relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}:
+  /relation/{id}:
     parameters:
-      - $ref: "#/components/parameters/SubjectType"
-      - $ref: "#/components/parameters/SubjectID"
-      - $ref: "#/components/parameters/RelationType"
-      - $ref: "#/components/parameters/ObjectType"
-      - $ref: "#/components/parameters/ObjectID"
+      - $ref: "#/components/parameters/RelationID"
 
     get:
       operationId: "get-relation"
@@ -450,6 +510,38 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /relation/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/RelationID"
+
+    patch:
+      operationId: "status-relation"
+      summary: Modify relation status.
+      description: |
+        Modify the status of an existing relation.
+      tags:
+        - open_ftv
+        - relation
+      requestBody:
+        description: New status of the relation.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RelationStatus"
+      responses:
+        "200":
+          $ref: "#/components/responses/RelationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+
 components:
   parameters:
     AttributeKey:
@@ -482,55 +574,14 @@ components:
       required: true
       description: ID of an entity.
 
-    SubjectType:
+    RelationID:
       in: path
-      name: subjectType
+      name: id
       schema:
         type: string
-        minLength: 3
-        maxLength: 80
+        maxLength: 36
       required: true
-      description: Type of subject of a relation.
-
-    SubjectID:
-      in: path
-      name: subjectID
-      schema:
-        type: string
-        minLength: 3
-        maxLength: 200
-      required: true
-      description: ID of the subject of a relation.
-
-    RelationType:
-      in: path
-      name: relation
-      schema:
-        type: string
-        minLength: 3
-        maxLength: 80
-      required: true
-      description: Type of relation.
-
-    ObjectType:
-      in: path
-      name: objectType
-      schema:
-        type: string
-        minLength: 3
-        maxLength: 80
-      required: true
-      description: Type of object of a relation.
-
-    ObjectID:
-      in: path
-      name: objectID
-      schema:
-        type: string
-        minLength: 3
-        maxLength: 200
-      required: true
-      description: ID of the object of a relation.
+      description: Unique identifier of a relation (UUID).
 
     ForceUpsert:
       in: query
@@ -866,6 +917,25 @@ components:
         - metadata
         - audit
 
+    AttributeStatus:
+      type: object
+      description: The status of an attribute (key/value pair).
+      properties:
+        key:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The unique key of the attribute.
+          example: "gemeentecode"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the attribute ('concept', 'accepted', 'deployed').
+          example: "concept"
+      required:
+        - key
+        - status
+
     Entities:
       type: array
       items:
@@ -921,6 +991,32 @@ components:
         - metadata
         - audit
 
+    EntityStatus:
+      type: object
+      description: The status of an entity.
+      properties:
+        type:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: The type of entity.
+          example: "user"
+        id:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The identification of the entity.
+          example: "alice"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the entity ('concept', 'accepted', 'deployed').
+          example: "concept"
+      required:
+        - type
+        - id
+        - status
+
     Relations:
       type: array
       items:
@@ -937,7 +1033,7 @@ components:
           type: string
           maxLength: 36
           description: The unique identifier of the relation (UUID).
-          example: "<uuid>"
+          example: "f1e40dfa-7e2a-4767-81a7-65f790d3bbcd"
         status:
           type: string
           maxLength: 40
@@ -1002,6 +1098,24 @@ components:
         - objectId
         - metadata
         - audit
+
+    RelationStatus:
+      type: object
+      description: The status of a relation.
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          description: The unique identifier of the relation (UUID).
+          example: "f1e40dfa-7e2a-4767-81a7-65f790d3bbcd"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the relation ('concept', 'accepted', 'deployed').
+          example: "concept"
+      required:
+        - id
+        - status
 
     Error:
       type: object

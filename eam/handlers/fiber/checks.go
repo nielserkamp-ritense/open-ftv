@@ -3,7 +3,9 @@ package fiber
 import (
 	"errors"
 	"fmt"
+	"strings"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
@@ -38,6 +40,17 @@ func (f *fieldChecker) checkIdentifiers(id1 string, id2 *string, msg string) *fi
 		} else {
 			*id2 = id1
 		}
+	}
+	return f
+}
+
+func (f *fieldChecker) checkStatus(status string) *fieldChecker {
+	switch {
+	case status == "": // ignore
+	case len(status) > 40:
+		f.add("status too long (max 40 characters)")
+	case !strings.EqualFold(models.StatusFromString(status).String(), status):
+		f.add("invalid status code")
 	}
 	return f
 }

@@ -2,6 +2,7 @@ package pip
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
@@ -66,6 +67,23 @@ func (p *PIP) GetEntityAudit(uid string) ([]oas.AuditEntry, error) {
 func (p *PIP) GetEntityDeployments(uid string) ([]oas.UsageData, error) {
 	ns, id := models.SplitEntityUID(uid)
 	return p.entityDB.ReadEntityDeployments(p.ctx, ns, id)
+}
+
+// UpdateEntityStatus updates the status of an attribute in cache/storage.
+//
+// An error is returned if the attribute key doesn't exist or the status update is not allowed.
+func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user string) (*models.Entity, error) {
+	ns, id := models.SplitEntityUID(uid)
+	prev, _, err := p.entityDB.ReadEntity(p.ctx, ns, id)
+	if err != nil || prev == nil {
+		return nil, fmt.Errorf("entity not found")
+	}
+
+	if (prev.Status() == models.StatusConcept && status == models.StatusAccepted) ||
+		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
+		return p.AddEntity(prev.WithStatus(status))
+	}
+	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
 }
 
 // RemoveEntity removes an entity from the PIP.

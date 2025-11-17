@@ -79,6 +79,8 @@ func (b *bootstrapper) createFakePolicy(params fakeParams) {
 		return
 	}
 
+	policy.WithStatus(models.StatusDeployed)
+
 	if _, err := b.policies.Create(policy, "*BOOTSTRAP*"); err != nil {
 		b.logger.Warn("failed to create bootstrap policy", "language", params.language.String(), "tag", params.tag)
 	} else {

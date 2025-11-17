@@ -44,6 +44,15 @@ type Attribute struct {
 	Value interface{} `json:"value"`
 }
 
+// AttributeStatus The status of an attribute (key/value pair).
+type AttributeStatus struct {
+	// Key The unique key of the attribute.
+	Key string `json:"key"`
+
+	// Status The current status of the attribute ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+}
+
 // Attributes defines model for Attributes.
 type Attributes = []Attribute
 
@@ -89,6 +98,18 @@ type Entity struct {
 
 	// UsageData Usage data for the policy.
 	UsageData []UsageData `json:"usageData,omitempty"`
+}
+
+// EntityStatus The status of an entity.
+type EntityStatus struct {
+	// Id The identification of the entity.
+	Id string `json:"id"`
+
+	// Status The current status of the entity ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+
+	// Type The type of entity.
+	Type string `json:"type"`
 }
 
 // Error The response for an error (as defined by RFC9457).
@@ -181,6 +202,15 @@ type Relation struct {
 	UsageData []UsageData `json:"usageData,omitempty"`
 }
 
+// RelationStatus The status of a relation.
+type RelationStatus struct {
+	// Id The unique identifier of the relation (UUID).
+	Id string `json:"id"`
+
+	// Status The current status of the relation ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+}
+
 // Relations defines model for Relations.
 type Relations = []Relation
 
@@ -217,20 +247,8 @@ type ForceUpsert = bool
 // IgnoreMissing defines model for IgnoreMissing.
 type IgnoreMissing = bool
 
-// ObjectID defines model for ObjectID.
-type ObjectID = string
-
-// ObjectType defines model for ObjectType.
-type ObjectType = string
-
-// RelationType defines model for RelationType.
-type RelationType = string
-
-// SubjectID defines model for SubjectID.
-type SubjectID = string
-
-// SubjectType defines model for SubjectType.
-type SubjectType = string
+// RelationID defines model for RelationID.
+type RelationID = string
 
 // AccessDenied The response for an error (as defined by RFC9457).
 type AccessDenied = Error
@@ -332,14 +350,23 @@ type AddAttributeJSONRequestBody = Attribute
 // ReplaceAttributeJSONRequestBody defines body for ReplaceAttribute for application/json ContentType.
 type ReplaceAttributeJSONRequestBody = Attribute
 
+// StatusAttributeJSONRequestBody defines body for StatusAttribute for application/json ContentType.
+type StatusAttributeJSONRequestBody = AttributeStatus
+
 // AddEntityJSONRequestBody defines body for AddEntity for application/json ContentType.
 type AddEntityJSONRequestBody = Entity
 
 // RemoveEntityJSONRequestBody defines body for RemoveEntity for application/json ContentType.
 type RemoveEntityJSONRequestBody = Entity
 
+// StatusEntityJSONRequestBody defines body for StatusEntity for application/json ContentType.
+type StatusEntityJSONRequestBody = EntityStatus
+
 // AddRelationJSONRequestBody defines body for AddRelation for application/json ContentType.
 type AddRelationJSONRequestBody = Relation
 
 // ReplaceRelationJSONRequestBody defines body for ReplaceRelation for application/json ContentType.
 type ReplaceRelationJSONRequestBody = Relation
+
+// StatusRelationJSONRequestBody defines body for StatusRelation for application/json ContentType.
+type StatusRelationJSONRequestBody = RelationStatus

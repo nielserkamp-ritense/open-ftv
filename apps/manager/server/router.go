@@ -98,6 +98,7 @@ func (s *Services) initPolicies(group fiber.Router) {
 		Get(handle.PathPolicy, apis.GetPolicy).
 		Put(handle.PathPolicy, apis.PutPolicy).
 		Post(handle.PathPolicy, apis.PostPolicy).
+		Patch(handle.PathPolicyStatus, apis.PatchPolicyStatus).
 		Delete(handle.PathPolicy, apis.DeletePolicy)
 }
 
@@ -109,6 +110,7 @@ func (s *Services) initAttributes(group fiber.Router) {
 		Get(handle.PathAttribute, apis.GetAttribute).
 		Put(handle.PathAttribute, apis.PutAttribute).
 		Post(handle.PathAttribute, apis.PostAttribute).
+		Patch(handle.PathAttributeStatus, apis.PatchAttributeStatus).
 		Delete(handle.PathAttribute, apis.DeleteAttribute)
 }
 
@@ -120,6 +122,7 @@ func (s *Services) initEntities(group fiber.Router) {
 		Get(handle.PathEntity, apis.GetEntity).
 		Put(handle.PathEntity, apis.PutEntity).
 		Post(handle.PathEntity, apis.PostEntity).
+		Patch(handle.PathEntityStatus, apis.PatchEntityStatus).
 		Delete(handle.PathEntity, apis.DeleteEntity)
 }
 

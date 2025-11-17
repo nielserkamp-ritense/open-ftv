@@ -382,7 +382,7 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 		{
 			name: "single",
 			attr: []*Attribute{NewAttribute("hello", "world")},
-			want: `[{"key":"hello","value":"world","status":"???"}]`,
+			want: `[{"key":"hello","value":"world","status":"concept"}]`,
 		},
 		{
 			name: "few",
@@ -391,7 +391,7 @@ func TestAttributes_MarshalJSON(t *testing.T) {
 				NewAttribute("hello", "world"),
 				NewAttribute("double", 123.456),
 			},
-			want: `[{"key":"double","value":123.456,"status":"???"},{"key":"hello","value":"world","status":"???"},{"key":"int","value":999,"status":"???"}]`,
+			want: `[{"key":"double","value":123.456,"status":"concept"},{"key":"hello","value":"world","status":"concept"},{"key":"int","value":999,"status":"concept"}]`,
 		},
 	}
 
@@ -526,7 +526,7 @@ func TestAttributeSet_ToOAS(t *testing.T) {
 		{
 			name: "single",
 			in:   NewAttributeSet(NewAttribute("hello", "world")),
-			want: []attributes.Attribute{{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}}},
+			want: []attributes.Attribute{{Key: "hello", Value: "world", Status: "concept", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}}},
 		},
 		{
 			name: "few",
@@ -537,10 +537,10 @@ func TestAttributeSet_ToOAS(t *testing.T) {
 				NewAttribute("float", 1.345),
 			),
 			want: []attributes.Attribute{
-				{Key: "bool", Value: true, Status: "???", Type: "bool", Metadata: attributes.Metadata{Tags: []string{}}},
-				{Key: "float", Value: 1.345, Status: "???", Type: "double", Metadata: attributes.Metadata{Tags: []string{}}},
-				{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
-				{Key: "int", Value: 123456, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "bool", Value: true, Status: "concept", Type: "bool", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "float", Value: 1.345, Status: "concept", Type: "double", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "hello", Value: "world", Status: "concept", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+				{Key: "int", Value: 123456, Status: "concept", Metadata: attributes.Metadata{Tags: []string{}}},
 			},
 		},
 	}

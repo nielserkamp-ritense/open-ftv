@@ -33,6 +33,7 @@ func NewRelationFromUID(subject, predicate, object string, entities *EntitySet) 
 // NewRelation instantiates a new relation.
 func NewRelation(subject, predicate, object *Entity) *Relation {
 	return &Relation{
+		status:    StatusConcept,
 		uid:       fmt.Sprintf("%s|%s|%s", getUID(subject), getUID(predicate), getUID(object)),
 		subject:   subject,
 		predicate: predicate,

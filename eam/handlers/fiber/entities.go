@@ -23,6 +23,7 @@ type EntitiesHandler interface {
 	GetEntity(req *fiber.Ctx) error
 	PostEntity(req *fiber.Ctx) error
 	PutEntity(req *fiber.Ctx) error
+	PatchEntityStatus(req *fiber.Ctx) error
 	DeleteEntity(req *fiber.Ctx) error
 }
 
@@ -160,6 +161,40 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	return req.JSON(e2.ToOAS())
 }
 
+// PatchEntityStatus implements the EntitiesHandler interface.
+func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var ns, id string
+	ns, id, ok, err = h.checkUID(req)
+	if !ok {
+		return err
+	}
+
+	var e1 *oas.EntityStatus
+	if e1, ok, err = h.checkBodyStatus(req, ns, id); !ok || err != nil {
+		h.logger.Error("failed to read body", "error", err)
+		return err
+	}
+
+	e2, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
+	if err2 != nil {
+		h.logger.Error("failed to get attribute", "error", err2)
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if e2, err2 = h.cache.UpdateEntityStatus(models.EntityUID(e1.Type, e1.Id), models.StatusFromString(e1.Status), user); err2 != nil {
+		h.logger.Error("failed to save entity status", "error", err2)
+		return h.error(req, fiber.StatusBadRequest, err2)
+	}
+	return req.JSON(e2.ToOAS())
+}
+
 // DeleteEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
@@ -218,9 +253,27 @@ func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity,
 	chk := newFieldChecker().
 		checkIdentifiers(ns, &e.Type, "entity type mismatch").
 		checkIdentifiers(id, &e.Id, "entity id mismatch").
+		checkStatus(e.Status).
 		checkTitle(e.Metadata.Title).
 		checkTags(e.Metadata.Tags).
 		checkAttributes(e.Attributes)
+
+	if chk.checkFailed() {
+		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+	}
+	return &e, true, nil
+}
+
+func (h *entitiesHandler) checkBodyStatus(req *fiber.Ctx, ns, id string) (*oas.EntityStatus, bool, error) {
+	var e oas.EntityStatus
+	if err := req.BodyParser(&e); err != nil {
+		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+	}
+
+	chk := newFieldChecker().
+		checkIdentifiers(ns, &e.Type, "entity type mismatch").
+		checkIdentifiers(id, &e.Id, "entity id mismatch").
+		checkStatus(e.Status)
 
 	if chk.checkFailed() {
 		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
