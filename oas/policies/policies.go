@@ -126,6 +126,9 @@ type Policy struct {
 	// Metadata The metadata associated with a policy.
 	Metadata Metadata `json:"metadata"`
 
+	// Status The current status of the policy ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+
 	// UsageData Usage data for the policy.
 	UsageData []UsageData `json:"usageData,omitempty"`
 }

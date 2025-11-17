@@ -23,11 +23,11 @@ func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) 
 	}
 
 	sql := `INSERT INTO attribute
- (key,type,title,description,value,original,tags,created,created_by,updated,updated_by)
- VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
+ (status,key,type,title,description,value,original,tags,created,created_by,updated,updated_by)
+ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
 	now := db.now().UTC()
-	params := []any{a.Key(), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user, now, user}
+	params := []any{a.StatusName(), a.Key(), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user, now, user}
 
 	if _, err = db.p.Exec(ctx, sql, params); err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) 
 
 // ReadAttribute retrieves the identified attribute from the database.
 func (db *PostgresDB) ReadAttribute(ctx context.Context, id string) (*models.Attribute, uint64, error) {
-	sql := `SELECT key,type,title,description,value,original,tags,created,created_by,updated,updated_by
+	sql := `SELECT status,key,type,title,description,value,original,tags,created,created_by,updated,updated_by
  FROM attribute WHERE key=$1`
 
 	params := []any{id}
@@ -121,11 +121,11 @@ func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribut
 	}
 
 	sql := `UPDATE attribute
- SET type=$3,title=$4,description=$5,value=$6,original=$7,tags=$8,updated=$9,updated_by=$10
+ SET type=$3,title=$4,description=$5,value=$6,original=$7,tags=$8,status=$9,updated=$10,updated_by=$11
  WHERE key=$1 AND updated=$2`
 
 	now := db.now().UTC()
-	params := []any{prev.Key(), timeFromLastIndex(lastIndex), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user}
+	params := []any{prev.Key(), timeFromLastIndex(lastIndex), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), a.StatusName(), now, user}
 
 	if count, err2 := db.p.Exec(ctx, sql, params); err2 != nil || count != 1 {
 		if err2 != nil {
@@ -153,7 +153,7 @@ func (db *PostgresDB) DeleteAttribute(ctx context.Context, prev *models.Attribut
 
 // ListAttributes returns attributes from the database.
 func (db *PostgresDB) ListAttributes(ctx context.Context) ([]*models.Attribute, error) {
-	sql := `SELECT key,type,title,description,value,original,tags,created,created_by,updated,updated_by FROM attribute`
+	sql := `SELECT status,key,type,title,description,value,original,tags,created,created_by,updated,updated_by FROM attribute`
 
 	list := make([]*models.Attribute, 0, 32)
 	var err error
@@ -194,28 +194,29 @@ func encodeValues(a *models.Attribute) ([]byte, []byte, error) {
 }
 
 func attributeFromValues(values []any) (*models.Attribute, error) {
-	if len(values) != 11 {
+	if len(values) != 12 {
 		return nil, fmt.Errorf("invalid number of values")
 	}
 
-	v, o := decodeValues(values[4], values[5])
+	v, o := decodeValues(values[5], values[6])
 
 	a := models.NewOriginalAttribute(
-		convert.AnyToString(values[0]), // key
+		convert.AnyToString(values[1]), // key
 		v,                              // value
 		o,                              // original
-		convert.AnyToString(values[1]), // type
+		convert.AnyToString(values[2]), // type
 	)
 
 	return a.
-		WithTitle(convert.AnyToString(values[2])).       // title
-		WithDescription(convert.AnyToString(values[3])). // description
-		WithTags(convert.AnyToStrings(values[6])...).    // tags
+		WithStatus(models.StatusFromString(convert.AnyToString(values[0]))). // status
+		WithTitle(convert.AnyToString(values[3])).                           // title
+		WithDescription(convert.AnyToString(values[4])).                     // description
+		WithTags(convert.AnyToStrings(values[7])...).                        // tags
 		WithAudit(
-			convert.AnyToDateTime(values[7]).UTC(), // created
-			convert.AnyToString(values[8]),         // createdBy
-			convert.AnyToDateTime(values[9]).UTC(), // updated
-			convert.AnyToString(values[10]),        // updatedBy
+			convert.AnyToDateTime(values[8]).UTC(),  // created
+			convert.AnyToString(values[9]),          // createdBy
+			convert.AnyToDateTime(values[10]).UTC(), // updated
+			convert.AnyToString(values[11]),         // updatedBy
 		), nil
 }
 

@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for maintaining policies.
-  version: 1.6.1
+  version: 1.7.0
   title: Policy management
   contact:
     name: G. Juijn
@@ -575,6 +575,11 @@ components:
             
             Verify with the languages endpoint.
           example: "cedar"
+        status:
+          type: string
+          maxLength: 40
+          description: The current status of the policy ('concept', 'accepted', 'deployed').
+          example: "concept"
         data:
           type: string
           description: Content of the policy. Required when the policy is stored internally.
@@ -605,6 +610,7 @@ components:
       required:
         - id
         - language
+        - status
         - metadata
         - audit
 

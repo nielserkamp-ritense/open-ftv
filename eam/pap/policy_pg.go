@@ -42,10 +42,10 @@ func (db *PolicyDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `INSERT INTO policy
- (language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
- VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
+ (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
+ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
 
-	params := []any{p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user, now, user}
+	params := []any{p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user, now, user}
 
 	if _, err := db.p.Exec(ctx, sql, params); err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (db *PolicyDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models
 
 // ReadPolicy retrieves the identified policy from the database.
 func (db *PolicyDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, uint64, error) {
-	sql := `SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
+	sql := `SELECT status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by
  FROM policy
  WHERE id=$1`
 
@@ -136,10 +136,10 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastI
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `UPDATE policy
- SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,updated=$10,updated_by=$11
+ SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`
 
-	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user}
+	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, user}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
 		if err != nil {
@@ -147,7 +147,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastI
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
-	return policyFromValues([]any{p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.Created(), p.CreatedBy(), now, user})
+	return p.WithAudit(p.Created(), p.CreatedBy(), now, user), nil
 }
 
 // DeletePolicy removes an existing policy from the database.
@@ -168,7 +168,7 @@ func (db *PolicyDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastI
 //
 // If *language* is empty, all policies in the database will be returned.
 func (db *PolicyDB) ListPolicies(ctx context.Context, language string) ([]*models.Policy, error) {
-	sql := `SELECT language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by FROM policy`
+	sql := `SELECT status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by FROM policy`
 
 	var params []any
 	if language != "" {
@@ -194,30 +194,31 @@ func (db *PolicyDB) ListPolicies(ctx context.Context, language string) ([]*model
 }
 
 func policyFromValues(values []any) (*models.Policy, error) {
-	if len(values) != 12 {
+	if len(values) != 13 {
 		return nil, fmt.Errorf("invalid number of values")
 	}
 
 	p, err := models.NewPolicyFromData(
-		postgresql.AnyToUUID(values[1]),                       // id
-		convert.AnyToString(values[0]),                        // language
-		convert.AnyToString(values[4]),                        // rvvaID
-		convert.AnyToString(values[5]),                        // uri
-		bytes.NewBufferString(convert.AnyToString(values[7])), // content
+		postgresql.AnyToUUID(values[2]),                       // id
+		convert.AnyToString(values[1]),                        // language
+		convert.AnyToString(values[5]),                        // rvvaID
+		convert.AnyToString(values[6]),                        // uri
+		bytes.NewBufferString(convert.AnyToString(values[8])), // content
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return p.
-		WithTitle(convert.AnyToString(values[2])).       // title
-		WithDescription(convert.AnyToString(values[3])). // description
-		WithTags(convert.AnyToStrings(values[6])...).    // tags
+		WithStatus(models.StatusFromString(convert.AnyToString(values[0]))). // Status
+		WithTitle(convert.AnyToString(values[3])).                           // title
+		WithDescription(convert.AnyToString(values[4])).                     // description
+		WithTags(convert.AnyToStrings(values[7])...).                        // tags
 		WithAudit(
-			convert.AnyToDateTime(values[8]).UTC(),  // created
-			convert.AnyToString(values[9]),          // createdBy
-			convert.AnyToDateTime(values[10]).UTC(), // updated
-			convert.AnyToString(values[11]),         // updatedBy
+			convert.AnyToDateTime(values[9]).UTC(),  // created
+			convert.AnyToString(values[10]),         // createdBy
+			convert.AnyToDateTime(values[11]).UTC(), // updated
+			convert.AnyToString(values[12]),         // updatedBy
 		), nil
 }
 

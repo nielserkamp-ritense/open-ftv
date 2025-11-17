@@ -31,6 +31,7 @@ type PolicyIterator func(p *Policy)
 //
 // The WithXYZ functions *should* only be used during initialization of the Policy.
 type Policy struct {
+	status      Status
 	language    string
 	id          string
 	title       string
@@ -94,6 +95,7 @@ func NewPolicyFromData(id, language, rvvaID, uri string, content io.Reader) (*Po
 	}
 
 	return &Policy{
+		status:   StatusConcept,
 		id:       id,
 		language: strings.ToLower(language),
 		rvvaID:   rvvaID,
@@ -110,6 +112,7 @@ func newPolicy(p *policies.Policy, path string, d []byte) *Policy {
 	}
 
 	return &Policy{
+		status:      StatusFromString(p.Status),
 		id:          p.Id,
 		title:       p.Metadata.Title,
 		description: p.Metadata.Description,
@@ -133,6 +136,14 @@ func testContent(content io.Reader) ([]byte, error) {
 		return nil, errors.New("content is nil")
 	}
 	return io.ReadAll(content)
+}
+
+// WithStatus sets the status of the Policy.
+func (p *Policy) WithStatus(status Status) *Policy {
+	p.mutex.Lock()
+	p.status = status
+	p.mutex.Unlock()
+	return p
 }
 
 // WithTitle adds an optional title to the Policy.
@@ -170,6 +181,20 @@ func (p *Policy) WithAudit(created time.Time, createdBy string, updated time.Tim
 	p.Audit.updatedBy = updatedBy
 	p.mutex.Unlock()
 	return p
+}
+
+// Status returns the current status of the Policy.
+func (p *Policy) Status() Status {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.status
+}
+
+// StatusName returns the current status of the Policy as a string.
+func (p *Policy) StatusName() string {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.status.String()
 }
 
 // Key returns the unique key of the Policy.
@@ -280,6 +305,7 @@ func (p *Policy) ToOAS(withData bool) *policies.Policy {
 	defer p.mutex.RUnlock()
 
 	out := &policies.Policy{
+		Status:   p.status.String(),
 		Id:       p.id,
 		Language: p.language,
 		Metadata: policies.Metadata{
@@ -344,6 +370,7 @@ func (p *Policy) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	p.status = StatusFromString(p2.Status)
 	p.language = strings.ToLower(p2.Language)
 	p.id = p2.ID
 	p.title = p2.Title
@@ -397,6 +424,7 @@ func (p *Policy) marshal() *marshalPolicy {
 	slices.Sort(tags)
 
 	m := &marshalPolicy{
+		Status:      p.status.String(),
 		Language:    p.language,
 		ID:          p.id,
 		Title:       p.title,
@@ -422,7 +450,8 @@ func (p *Policy) marshal() *marshalPolicy {
 
 // Equals returns true if this Policy equals the other Policy.
 func (p *Policy) Equals(other *Policy) bool {
-	return p.language == other.language &&
+	return p.status == other.status &&
+		p.language == other.language &&
 		p.title == other.title &&
 		p.description == other.description &&
 		p.rvvaID == other.rvvaID &&
@@ -439,6 +468,7 @@ func (p *Policy) Equals(other *Policy) bool {
 type marshalPolicy struct {
 	Language    string   `json:"language"              yaml:"language"`
 	ID          string   `json:"id"                    yaml:"id"`
+	Status      string   `json:"status,omitempty"      yaml:"status,omitempty"`
 	Title       string   `json:"title,omitempty"       yaml:"title,omitempty"`
 	Description string   `json:"description,omitempty" yaml:"description,omitempty"`
 	Tags        []string `json:"tags,omitempty"        yaml:"tags,omitempty"`

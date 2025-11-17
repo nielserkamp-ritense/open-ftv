@@ -26,14 +26,14 @@ func TestNewEntity(t *testing.T) {
 		{
 			name:     "empty",
 			wantUID:  "::",
-			wantJSON: `{"attributes":[]}`,
+			wantJSON: `{"type":"","id":"","status":"???","attributes":[]}`,
 		},
 		{
 			name:     "no attributes, no parents",
 			ns:       "entity",
 			id:       "x1",
 			wantUID:  "entity::x1",
-			wantJSON: `{"type":"entity","id":"x1","attributes":[]}`,
+			wantJSON: `{"type":"entity","id":"x1","status":"???","attributes":[]}`,
 		},
 		{
 			name:     "just attributes",
@@ -41,7 +41,7 @@ func TestNewEntity(t *testing.T) {
 			id:       "x2",
 			attr:     NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 			wantUID:  "entity::x2",
-			wantJSON: `{"type":"entity","id":"x2","attributes":[{"key":"hello","value":"world"},{"key":"int","value":123}]}`,
+			wantJSON: `{"type":"entity","id":"x2","status":"???","attributes":[{"key":"hello","value":"world","status":"???"},{"key":"int","value":123,"status":"???"}]}`,
 		},
 		{
 			name:     "just parents",
@@ -49,7 +49,7 @@ func TestNewEntity(t *testing.T) {
 			id:       "x3",
 			parents:  []string{"entity::x1", "entity::x2"},
 			wantUID:  "entity::x3",
-			wantJSON: `{"type":"entity","id":"x3","attributes":[],"parents":["entity::x1","entity::x2"]}`,
+			wantJSON: `{"type":"entity","id":"x3","status":"???","attributes":[],"parents":["entity::x1","entity::x2"]}`,
 		},
 		{
 			name:     "all",
@@ -58,7 +58,7 @@ func TestNewEntity(t *testing.T) {
 			attr:     NewAttributeSet(NewAttribute("hello", "world"), NewAttribute("int", 123)),
 			parents:  []string{"entity::x3", "entity::x2"},
 			wantUID:  "entity::x4",
-			wantJSON: `{"type":"entity","id":"x4","attributes":[{"key":"hello","value":"world"},{"key":"int","value":123}],"parents":["entity::x3","entity::x2"]}`,
+			wantJSON: `{"type":"entity","id":"x4","status":"???","attributes":[{"key":"hello","value":"world","status":"???"},{"key":"int","value":123,"status":"???"}],"parents":["entity::x3","entity::x2"]}`,
 		},
 	}
 
@@ -303,12 +303,12 @@ func TestEntity_MarshallYAML(t *testing.T) {
 		{
 			name: "empty",
 			in:   &Entity{},
-			want: "{}\n",
+			want: "type: \"\"\nid: \"\"\nstatus: ???\n",
 		},
 		{
 			name: "simple",
 			in:   NewEntity("user", "bob", nil),
-			want: "type: user\nid: bob\nattributes: {}\n",
+			want: "type: user\nid: bob\nstatus: ???\nattributes: {}\n",
 		},
 		{
 			name: "full",
@@ -319,7 +319,7 @@ func TestEntity_MarshallYAML(t *testing.T) {
 			).WithTitle("user bob").
 				WithDescription("entity for user bob").
 				WithTags("x", "y"),
-			want: "type: user\nid: bob\ntitle: user bob\ndescription: entity for user bob\nattributes: {}\ntags:\n- x\n- \"y\"\n",
+			want: "type: user\nid: bob\nstatus: ???\ntitle: user bob\ndescription: entity for user bob\nattributes: {}\ntags:\n- x\n- \"y\"\n",
 		},
 	}
 
@@ -345,12 +345,12 @@ func TestEntityFromOAS(t *testing.T) {
 		{
 			name: "empty",
 			in:   &attributes.Entity{},
-			want: NewEntity("", "", nil),
+			want: NewEntity("", "", nil).WithStatus(StatusConcept),
 		},
 		{
 			name: "simple",
 			in:   &attributes.Entity{Type: "user", Id: "bob", Attributes: []attributes.Attribute{{Key: "hello", Value: "world"}}},
-			want: NewEntity("user", "bob", NewAttributeSet(NewAttribute("hello", "world"))),
+			want: NewEntity("user", "bob", NewAttributeSet(NewAttribute("hello", "world"))).WithStatus(StatusConcept),
 		},
 		{
 			name: "full",
@@ -376,7 +376,10 @@ func TestEntityFromOAS(t *testing.T) {
 					NewAttributeWithType("int", 123, "integer"),
 					NewAttributeWithType("float", 3.14, "xsd:float"),
 				),
-			).WithTitle("user bob").WithDescription("this is the details for bob").WithTags("x", "y"),
+			).
+				WithStatus(StatusConcept).
+				WithTitle("user bob").
+				WithDescription("this is the details for bob").WithTags("x", "y"),
 		},
 	}
 
@@ -402,7 +405,11 @@ func TestEntity_ToOAS(t *testing.T) {
 		{
 			name: "empty",
 			in:   NewEntity("", "", nil),
-			want: &attributes.Entity{Attributes: []attributes.Attribute{}, Metadata: attributes.Metadata{Tags: make([]string, 0)}},
+			want: &attributes.Entity{
+				Status:     "???",
+				Attributes: []attributes.Attribute{},
+				Metadata:   attributes.Metadata{Tags: make([]string, 0)},
+			},
 		},
 		{
 			name: "simple",
@@ -415,11 +422,12 @@ func TestEntity_ToOAS(t *testing.T) {
 				),
 			),
 			want: &attributes.Entity{
-				Type: "user",
-				Id:   "bob",
+				Status: "???",
+				Type:   "user",
+				Id:     "bob",
 				Attributes: []attributes.Attribute{
-					{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
-					{Key: "int", Value: 123, Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "int", Value: 123, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 				},
 				Metadata: attributes.Metadata{Tags: make([]string, 0)},
 			},
@@ -435,11 +443,12 @@ func TestEntity_ToOAS(t *testing.T) {
 				),
 			).WithTitle("user bob").WithDescription("this is the details for bob").WithTags("x", "y"),
 			want: &attributes.Entity{
-				Type: "user",
-				Id:   "bob",
+				Status: "???",
+				Type:   "user",
+				Id:     "bob",
 				Attributes: []attributes.Attribute{
-					{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
-					{Key: "int", Value: 123, Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "int", Value: 123, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 				},
 				Metadata: attributes.Metadata{
 					Title:       "user bob",
@@ -485,11 +494,12 @@ func TestEntity_ToBundle(t *testing.T) {
 				),
 			),
 			want: &attributes.Entity{
-				Type: "user",
-				Id:   "bob",
+				Status: "",
+				Type:   "user",
+				Id:     "bob",
 				Attributes: []attributes.Attribute{
-					{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
-					{Key: "int", Value: 123, Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "int", Value: 123, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 				},
 			},
 		},
@@ -504,11 +514,12 @@ func TestEntity_ToBundle(t *testing.T) {
 				),
 			).WithTitle("user bob").WithDescription("this is the details for bob").WithTags("x", "y"),
 			want: &attributes.Entity{
-				Type: "user",
-				Id:   "bob",
+				Status: "",
+				Type:   "user",
+				Id:     "bob",
 				Attributes: []attributes.Attribute{
-					{Key: "hello", Value: "world", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
-					{Key: "int", Value: 123, Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "hello", Value: "world", Status: "???", Type: "string", Metadata: attributes.Metadata{Tags: []string{}}},
+					{Key: "int", Value: 123, Status: "???", Metadata: attributes.Metadata{Tags: []string{}}},
 				},
 			},
 		},

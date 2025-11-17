@@ -17,11 +17,11 @@ func (db *PostgresDB) CreateEntity(ctx context.Context, e *models.Entity) (*mode
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `INSERT INTO entity
- (type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by)
- VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
+ (status,type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by)
+ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
 	now := db.now().UTC()
-	params := []any{e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user, now, user}
+	params := []any{e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user, now, user}
 
 	if _, err := db.p.Exec(ctx, sql, params); err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (db *PostgresDB) CreateEntity(ctx context.Context, e *models.Entity) (*mode
 
 // ReadEntity retrieves the identified entity from the database.
 func (db *PostgresDB) ReadEntity(ctx context.Context, ns, id string) (*models.Entity, uint64, error) {
-	sql := `SELECT type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by
+	sql := `SELECT status,type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by
  FROM entity
  WHERE type=$1 AND id=$2`
 
@@ -107,16 +107,16 @@ func (db *PostgresDB) ReadEntityDeployments(ctx context.Context, ns, id string) 
 }
 
 // UpdateEntity replaces an existing entity in the database.
-func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, p *models.Entity) (*models.Entity, error) {
+func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `UPDATE entity
- SET title=$4,description=$5,tags=$6,attributes=$7,parents=$8,updated=$9,updated_by=$10
+ SET title=$4,description=$5,tags=$6,attributes=$7,parents=$8,status=$9,updated=$10,updated_by=$11
  WHERE type=$1 AND id=$2 AND updated=$3`
 
-	attr := gobEncodeAttributes(p.Attributes())
+	attr := gobEncodeAttributes(e.Attributes())
 	now := db.now().UTC()
-	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), p.Title(), p.Description(), p.Tags(), attr, p.Parents(), now, user}
+	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), e.Title(), e.Description(), e.Tags(), attr, e.Parents(), e.StatusName(), now, user}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
 		if err != nil {
@@ -124,7 +124,8 @@ func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, las
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
-	return entityFromValues([]any{p.Type(), p.ID(), p.Title(), p.Description(), p.Tags(), attr, p.Parents(), p.Created(), p.CreatedBy(), now, user})
+
+	return e.WithAudit(e.Created(), e.CreatedBy(), now, user), nil
 }
 
 // DeleteEntity removes an existing entity from the database.
@@ -144,7 +145,7 @@ func (db *PostgresDB) DeleteEntity(ctx context.Context, prev *models.Entity, las
 
 // ListEntities returns entities from the database.
 func (db *PostgresDB) ListEntities(ctx context.Context) ([]*models.Entity, error) {
-	sql := `SELECT type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by FROM entity`
+	sql := `SELECT status,type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by FROM entity`
 
 	list := make([]*models.Entity, 0, 32)
 	var err error
@@ -164,30 +165,31 @@ func (db *PostgresDB) ListEntities(ctx context.Context) ([]*models.Entity, error
 }
 
 func entityFromValues(values []any) (*models.Entity, error) {
-	if len(values) != 11 {
+	if len(values) != 12 {
 		return nil, fmt.Errorf("invalid number of values")
 	}
 
-	attrs, err := gobDecodeAttributes(values[5].([]byte))
+	attrs, err := gobDecodeAttributes(values[6].([]byte))
 	if err != nil {
 		return nil, err
 	}
 
-	a := models.NewEntity(
-		convert.AnyToString(values[0]),     // type
-		convert.AnyToString(values[1]),     // id
+	e := models.NewEntity(
+		convert.AnyToString(values[1]),     // type
+		convert.AnyToString(values[2]),     // id
 		attrs,                              // attributes
-		convert.AnyToStrings(values[6])..., // parents
+		convert.AnyToStrings(values[7])..., // parents
 	)
 
-	return a.
-		WithTitle(convert.AnyToString(values[2])).       // title
-		WithDescription(convert.AnyToString(values[3])). // description
-		WithTags(convert.AnyToStrings(values[4])...).    // tags
+	return e.
+		WithStatus(models.StatusFromString(convert.AnyToString(values[0]))). // status
+		WithTitle(convert.AnyToString(values[3])).                           // title
+		WithDescription(convert.AnyToString(values[4])).                     // description
+		WithTags(convert.AnyToStrings(values[5])...).                        // tags
 		WithAudit(
-			convert.AnyToDateTime(values[7]).UTC(), // created
-			convert.AnyToString(values[8]),         // createdBy
-			convert.AnyToDateTime(values[9]).UTC(), // updated
-			convert.AnyToString(values[10]),        // updatedBy
+			convert.AnyToDateTime(values[8]).UTC(),  // created
+			convert.AnyToString(values[9]),          // createdBy
+			convert.AnyToDateTime(values[10]).UTC(), // updated
+			convert.AnyToString(values[11]),         // updatedBy
 		), nil
 }

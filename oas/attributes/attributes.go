@@ -17,6 +17,9 @@ type Attribute struct {
 	// Metadata The metadata associated with an object.
 	Metadata Metadata `json:"metadata"`
 
+	// Status The current status of the attribute ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
+
 	// Type The optional type of a value. By default a value is stored as-is (e.g., JSON type).
 	//
 	// The following codes for type are supported:
@@ -77,6 +80,9 @@ type Entity struct {
 
 	// Metadata The metadata associated with an object.
 	Metadata Metadata `json:"metadata"`
+
+	// Status The current status of the entity ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
 
 	// Type The type of entity.
 	Type string `json:"type"`
@@ -161,6 +167,9 @@ type Relation struct {
 
 	// Relation The type of relation.
 	Relation string `json:"relation"`
+
+	// Status The current status of the relation ('concept', 'accepted', 'deployed').
+	Status string `json:"status"`
 
 	// SubjectId The identifier of the subject of the relation.
 	SubjectId string `json:"subjectId"`
