@@ -42,7 +42,7 @@ function RouteComponent() {
 
     return <>
         <div className="flex items-center justify-between">
-            <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Beleid</h1>
+            <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Beleidsregel</h1>
         </div>
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
             <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true} header={
@@ -56,9 +56,9 @@ function RouteComponent() {
                                 <IconSourceCode /> Bewerken
                             </NavbarItem>
                             <NavbarItem href="#" disabled>
-                                <IconPlayerPlay /> Test cases
+                                <IconPlayerPlay /> Tests
                             </NavbarItem>
-                            <NavbarItem href="#" disabled>
+                            <NavbarItem href="#" disabled={true}>
                                 <IconSettings /> Instellingen
                             </NavbarItem>
                         </NavbarSection>
@@ -75,15 +75,15 @@ function RouteComponent() {
                     <DescriptionList>
                         <DescriptionTerm>Titel</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.title}</DescriptionDetails>
-                        <DescriptionTerm>Beschrijving</DescriptionTerm>
+                        <DescriptionTerm>Omschrijving</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.description}</DescriptionDetails>
-                        <DescriptionTerm>Taal</DescriptionTerm>
+                        <DescriptionTerm>Regeltaal</DescriptionTerm>
                         <DescriptionDetails>{data?.language?.charAt(0).toUpperCase() + data?.language?.slice(1).toLowerCase()}</DescriptionDetails>
-                        <DescriptionTerm>rvvaID</DescriptionTerm>
+                        <DescriptionTerm>Register van verwerking ID</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.rvvaId}</DescriptionDetails>
                         <DescriptionTerm>URL</DescriptionTerm>
                         <DescriptionDetails>{data?.metadata?.url}</DescriptionDetails>
-                        <DescriptionTerm>Tags</DescriptionTerm>
+                        <DescriptionTerm>Beslispunten</DescriptionTerm>
                         <DescriptionDetails>
                             <div className="flex flex-wrap gap-2">
                                 {tags.length > 0 ? (
@@ -97,10 +97,10 @@ function RouteComponent() {
                         </DescriptionDetails>
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
-                        <DescriptionTerm>Laatst bijgewerkt</DescriptionTerm>
-                        <DescriptionDetails>{data?.audit?.updated}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt op</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.created}</DescriptionDetails>
+                        <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
+                        <DescriptionDetails>{data?.audit?.updated}</DescriptionDetails>
                     </DescriptionList>
                 </Card>
                 <Card className="flex-1" header={

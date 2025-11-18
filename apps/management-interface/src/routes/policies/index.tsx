@@ -15,18 +15,6 @@ import {Badge} from "@/components/ui/badge.tsx";
 import Grid from "@/components/ui/grid.tsx";
 import BundelsPanel from "@/components/bundels-panel.tsx";
 
-function formatDateTime(value?: string) {
-    if (!value) return '-';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return value;
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${dd}-${mm}-${yyyy}, ${hh}:${min}`;
-}
-
 export const Route = createFileRoute('/policies/')({
     component: PoliciesComponent,
 })
@@ -34,7 +22,7 @@ export const Route = createFileRoute('/policies/')({
 const SimpleComponent = () => (
     <Badge color="ftvgreen" className={"text-[12px] leading-none px-1.5 py-0.5"}>
         <IconBoltFilled className="w-4 h-4 shrink-0 align-middle" />
-        <span className="leading-none">v 2.1</span>
+        <span className="leading-none">18-11-2025</span>
     </Badge>
 );
 
@@ -61,19 +49,11 @@ export default function PoliciesComponent() {
     // Column Definitions: Defines & controls grid columns.
     const [colDefs] = useState<ColDef<PolicyResponse>[]>([
         {field: "metadata.title", headerName: "Titel", filter: true,},
-        {headerName: "Doelbinding", valueGetter: () => "Laadpalen", cellStyle: {color: 'var(--color-content-secondary)'}},
-        {headerName: "Actief", valueGetter: () => "v 2.14", cellRenderer: SimpleComponent, width: 100},
-        {headerName: "Concept- en ingeplande versie", valueGetter: () => ""},
+        {headerName: "Regeling", valueGetter: () => "Laadpalen", cellStyle: {color: 'var(--color-content-secondary)'}},
+        {headerName: "Gepubliceerd", valueGetter: () => "18-11-2025", cellRenderer: SimpleComponent, width: 100},
+        {headerName: "Concept", valueGetter: () => ""},
         {
-            field: "audit.updated",
-            headerName: "Laatst bewerkt", valueFormatter: (p) => {
-                const value = p.value as string | undefined;
-                return formatDateTime(value);
-            },
-            cellStyle: {color: 'var(--color-content-secondary)'}
-        },
-        {
-            headerName: "Beslispunt",
+            headerName: "Beslispunten",
             valueGetter: () => "Zaaksysteem",
             cellStyle: {color: 'var(--color-content-secondary)'}
         },
@@ -97,10 +77,10 @@ export default function PoliciesComponent() {
     if (isLoading) {
         return (
             <>
-                <Heading>Policies</Heading>
+                <Heading>Beleidsregels</Heading>
                 <div className="mx-auto mt-4 flex w-[200px] items-center justify-center gap-y-2 flex-col">
                     <ScaleLoader height={16}/>
-                    <div>Loading data...</div>
+                    <div>Laden...</div>
                 </div>
             </>
         )
@@ -131,7 +111,7 @@ export default function PoliciesComponent() {
                     <div className={"pt-6 pb-8 px-10 gap-8 flex-1"}>
                         <div className="flex justify-between items-center">
                             <div>
-                                <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Regels</span>
+                                <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Beleidsregels</span>
                             </div>
                             <div>{!isBundelsPanelOpen && (
                                     <button

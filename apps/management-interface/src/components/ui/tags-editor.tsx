@@ -21,8 +21,8 @@ export function TagsEditor({
                                tags,
                                onChange,
                                allTagNames = [],
-                               placeholder = 'Type or select a tag',
-                               addButtonLabel = 'Add',
+                               placeholder = 'Selecteer een beslispunt',
+                               addButtonLabel = 'Toevoegen',
                                className,
                            }: TagsEditorProps) {
     const [newTag, setNewTag] = useState('')
@@ -84,7 +84,7 @@ export function TagsEditor({
                                 <span className={"text-lg"}>{tag}</span>
                                 <button
                                     type="button"
-                                    aria-label={`Remove tag ${tag}`}
+                                    aria-label={`Beslisplunt verwijderen ${tag}`}
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         handleRemoveTag(tag)
@@ -96,7 +96,7 @@ export function TagsEditor({
                             </Badge>
                         ))
                     ) : (
-                        <span className="text-sm text-zinc-500">Geen tags</span>
+                        <span className="text-sm text-zinc-500">Geen beslispunten</span>
                     )}
                 </div>
             </div>

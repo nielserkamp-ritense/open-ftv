@@ -36,7 +36,7 @@ export default function Grid(props: GridProps) {
 
   const defaultRowSelection: RowSelectionOptions = {
     mode: "singleRow",
-    checkboxes: true,
+    checkboxes: false,
     enableClickSelection: true,
   };
   const defaultDef = {
