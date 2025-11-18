@@ -11,25 +11,25 @@ import (
 func newCedarPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.CEDAR.String(), "", "", bytes.NewBufferString(cedarDummy))
-	return p.WithTags(tag).WithTitle("bootstrap policy").WithDescription("bootstrap policy to allow all requests (OpenFTV)")
+	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newRegoPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.REGO.String(), "", "", bytes.NewBufferString(regoDummy))
-	return p.WithTags(tag).WithTitle("bootstrap policy").WithDescription("bootstrap policy to allow all requests (OpenFTV)")
+	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newCerbosPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.CERBOS.String(), "", "", bytes.NewBufferString(cerbosDummy))
-	return p.WithTags(tag).WithTitle("bootstrap policy").WithDescription("bootstrap policy to allow all requests (OpenFTV)")
+	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newOpenFGAPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.OPENFGA.String(), "", "", bytes.NewBufferString(openfgaDummy))
-	return p.WithTags(tag).WithTitle("bootstrap policy").WithDescription("bootstrap policy to allow all requests (OpenFTV)")
+	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newOpenFGARelations(tags []string) []*models.Relation {
@@ -50,7 +50,7 @@ func newOpenFGARelations(tags []string) []*models.Relation {
 	return out
 }
 
-const cedarDummy = `@comment("bootstrap policy to allow all requests (OpenFTV)")
+const cedarDummy = `@comment("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 permit (
     principal,
     action,
@@ -60,13 +60,13 @@ permit (
 
 const regoDummy = `package authz
 
-# bootstrap policy to allow all requests (OpenFTV)
+# initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)
 
 default allow := true
 `
 
 const cerbosDummy = `---
-# bootstrap policy to allow all requests (OpenFTV)
+# initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
   resource: "*"
