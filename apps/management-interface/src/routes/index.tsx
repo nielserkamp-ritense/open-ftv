@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Square3Stack3DIcon, Cog8ToothIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline'
+import { Cog8ToothIcon } from '@heroicons/react/24/outline'
+import {IconDatabase, IconFileText} from "@tabler/icons-react";
 
 const menuItems = 5
 
@@ -15,12 +16,12 @@ function RouteComponent() {
           className="relative flex items-center space-x-3 rounded-sm border border-gray-300 bg-white px-6 py-5 shadow-md focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
         >
           <div className="shrink-0">
-            <Square3Stack3DIcon className="size-16 rounded-full" />
+            <IconFileText className="size-16 rounded-full" />
           </div>
           <div className="min-w-0 flex-1">
             <Link to="/policies" className="focus:outline-hidden">
               <span aria-hidden="true" className="absolute inset-0" />
-              <p className="text-sm font-medium text-gray-900">Policies</p>
+              <p className="text-sm font-medium text-gray-900">Beleidsregels</p>
             </Link>
           </div>
         </div>
@@ -29,12 +30,12 @@ function RouteComponent() {
           className="relative flex items-center space-x-3 rounded-sm border border-gray-300 bg-white px-6 py-5 shadow-md focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
         >
           <div className="shrink-0">
-            <AdjustmentsHorizontalIcon className="size-16 rounded-full" />
+            <IconDatabase className="size-16 rounded-full" />
           </div>
           <div className="min-w-0 flex-1">
             <Link to="/attributen" className="focus:outline-hidden">
               <span aria-hidden="true" className="absolute inset-0" />
-              <p className="text-sm font-medium text-gray-900">Attributes</p>
+              <p className="text-sm font-medium text-gray-900">Context</p>
             </Link>
           </div>
         </div>
@@ -48,7 +49,7 @@ function RouteComponent() {
           <div className="min-w-0 flex-1">
             <a href="#" className="focus:outline-hidden">
               <span aria-hidden="true" className="absolute inset-0" />
-              <p className="text-sm font-medium text-gray-900">Settings</p>
+              <p className="text-sm font-medium text-gray-900">Instellingen</p>
             </a>
           </div>
         </div>

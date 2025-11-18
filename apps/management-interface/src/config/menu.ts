@@ -24,11 +24,12 @@ export interface MenuItem {
 export const menuItems: MenuItem[] = [
   { href: '/', label: 'Overzicht', icon: IconLayoutDashboard, section: 'top' },
   { href: '/policies', label: 'Beleidsregels', icon: IconFileText, section: 'top' },
-  { href: '#', label: 'Test cases', icon: IconChecklist, disabled: true, section: 'top' },
-  { href: '/attributen', label: 'Bronnen', icon: IconDatabase, section: 'top' },
+  { href: '#', label: 'Tests', icon: IconChecklist, disabled: true, section: 'top' },
+  { href: '/attributen', label: 'Context', icon: IconDatabase, section: 'top' },
   { href: '/regelingen', label: 'Regelingen', icon: IconSectionSign, disabled: true, section: 'top' },
+  { href: '#', label: 'Publicaties', icon: IconFileText, section: 'top',  disabled: true },
   { href: '/logboek', label: 'Logboek', icon: IconLogs, disabled: false, section: 'top' },
-  { href: '#', label: 'Systeem', icon: IconSettings, disabled: true, section: 'top' },
-  { href: '#', label: 'Ondersteuning', icon: IconHelpCircleFilled, section: 'bottom' },
-  { href: '#', label: 'Nieuws', icon: IconNews, section: 'bottom' },
+  { href: '#', label: 'Instellingen', icon: IconSettings, disabled: true, section: 'top' },
+  { href: '#', label: 'Ondersteuning', icon: IconHelpCircleFilled, section: 'bottom', disabled: true },
+  { href: '#', label: 'Nieuws', icon: IconNews, section: 'bottom', disabled: true},
 ]

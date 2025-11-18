@@ -49,7 +49,7 @@ function EditPolicyComponent() {
     if (status == "pending") {
         return <>
             <div className="flex items-center justify-between">
-                <Heading className="lg:text-3xl ">Policy</Heading>
+                <Heading className="lg:text-3xl ">Beleidsregel</Heading>
             </div>
             <div className="flex flex-col 2xl:flex-row py-3 gap-6">
                 <div className="mx-auto mt-4 flex w-[200px] items-center justify-center gap-y-2 flex-col">
@@ -102,14 +102,14 @@ function EditPolicyComponent() {
             // Redirect to policies list on success
             await navigate({to: '/policies'});
         } catch (err) {
-            setErrorMessage(err instanceof Error ? err.message : 'Failed to add policy');
+            setErrorMessage(err instanceof Error ? err.message : 'Aanmaken nieuwe policy mislukt');
         }
     };
 
     return (
         <>
             <form onSubmit={(e) => { void handleSubmit(e); }}>
-                <Heading>Edit policy</Heading>
+                <Heading>Beleidsregel bewerken</Heading>
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                         {errorMessage}
@@ -118,7 +118,7 @@ function EditPolicyComponent() {
                 <Fieldset>
                     <FieldGroup>
                         <Field>
-                            <Label>Title</Label>
+                            <Label>Titel</Label>
                             <Input
                                 name="title"
                                 value={formData?.metadata?.title ?? ''}
@@ -126,7 +126,7 @@ function EditPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Policy description</Label>
+                            <Label>Omschrijving</Label>
                             <Input
                                 name="description"
                                 value={formData?.metadata?.description ?? ''}
@@ -135,7 +135,7 @@ function EditPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Language</Label>
+                            <Label>Regeltaal</Label>
                             <Select
                                 name="language"
                                 value={formData?.language}
@@ -146,10 +146,10 @@ function EditPolicyComponent() {
                                 <option value="cerbos">Cerbos</option>
                                 <option value="openfga">OpenFGA</option>
                             </Select>
-                            <Description>The language of the policy that is added.</Description>
+                            <Description>De regeltaal van de beleidsregel.</Description>
                         </Field>
                         <Field>
-                            <Label>rvva ID</Label>
+                            <Label>Register van verwerkingsactiviteiten ID</Label>
                             <Input
                                 name="rvvaId"
                                 value={formData?.metadata?.rvvaId ?? ''}
@@ -157,7 +157,7 @@ function EditPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Tags</Label>
+                            <Label>Beslispunten</Label>
                             <TagsEditor
                                 tags={formData?.metadata?.tags ?? []}
                                 allTagNames={allTagNames}
@@ -174,7 +174,7 @@ function EditPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Policy code</Label>
+                            <Label>Broncode</Label>
                             <Textarea
                                 name="data"
                                 rows={10}
@@ -186,13 +186,13 @@ function EditPolicyComponent() {
                     </FieldGroup>
                     <FieldGroup>
                         <Fieldset className={"flex justify-between"}>
-                            <Button type="button" href="/policies/" color={"zinc"}>Discard</Button>
+                            <Button type="button" href="/policies/" color={"zinc"}>Annuleren</Button>
                             <Button
                                 type="submit"
                                 color={"emerald"}
                                 disabled={replacePolicyMutation.isPending}
                             >
-                                {replacePolicyMutation.isPending ? 'Saving...' : 'Save'}
+                                {replacePolicyMutation.isPending ? 'Bezig met opslaan...;' : 'Opslaan'}
                             </Button>
                         </Fieldset>
                     </FieldGroup>

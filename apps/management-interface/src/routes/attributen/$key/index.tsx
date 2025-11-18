@@ -90,7 +90,8 @@ function RouteComponent() {
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
             <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true}>
                 <div className="flex flex-col h-full px-4 py-5 sm:p-6">
-                    <FTVHeading level={2}>{data?.key}</FTVHeading>
+                    <FTVHeading level={2}>{data?.metadata.title}</FTVHeading>
+                    <span>Waarde</span>
                     <Textarea
                         name="data"
                         value={displayValue}
@@ -104,33 +105,38 @@ function RouteComponent() {
             <div className="w-1/3 min-w-3xl 2xl:min-w-lg flex flex-col gap-6">
                 <Card className="flex-1">
                     <DescriptionList>
-                        <DescriptionTerm>Key</DescriptionTerm>
-                        <DescriptionDetails>{data?.key}</DescriptionDetails>
-                        <DescriptionTerm>Type</DescriptionTerm>
+                      <DescriptionTerm>ID</DescriptionTerm>
+                      <DescriptionDetails>{data?.key}</DescriptionDetails>
+                        <DescriptionTerm>Omschrijving</DescriptionTerm>
+                        <DescriptionDetails>{data?.metadata.title}</DescriptionDetails>
+                        <DescriptionTerm>Datatype</DescriptionTerm>
                         <DescriptionDetails>{data?.type}</DescriptionDetails>
-                        <DescriptionTerm>Tags</DescriptionTerm>
-                        <DescriptionDetails>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.length > 0 ? (
-                                    tags.map((tag) => (
-                                        <Badge key={tag} color={badgeColorKeyFromString(tag)}>{tag}</Badge>
-                                    ))
-                                ) : (
-                                    <span>Geen tags</span>
-                                )}
-                            </div>
-                        </DescriptionDetails>
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.createdBy || "Onbekend"}</DescriptionDetails>
-                        <DescriptionTerm>Laatst bijgewerkt</DescriptionTerm>
-                        <DescriptionDetails>{data?.audit?.updated ?? "Onbekend"}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt op</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.created  || "Onbekend"}</DescriptionDetails>
+                        <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
+                        <DescriptionDetails>{data?.audit?.updated ?? "Onbekend"}</DescriptionDetails>
                     </DescriptionList>
                 </Card>
                 <Card className="flex-1" header={
                     <Heading>Gebruik</Heading>
                 }>
+                  <DescriptionList>
+                    <DescriptionTerm>Beslispunten</DescriptionTerm>
+                    <DescriptionDetails>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.length > 0 ? (
+                          tags.map((tag) => (
+                            <Badge key={tag} color={badgeColorKeyFromString(tag)}>{tag}</Badge>
+                          ))
+                        ) : (
+                          <span>Geen beslispunten</span>
+                        )}
+                      </div>
+                    </DescriptionDetails>
+
+                  </DescriptionList>
                 </Card>
             </div>
         </div>

@@ -40,7 +40,12 @@ function RouteComponent() {
     const [colDefs] = useState<ColDef<Attribute>[]>([
         {
             field: "key",
-            headerName: "Attribuut",
+            headerName: "ID",
+            filter: true,
+        },
+        {
+            field: "metadata.title",
+            headerName: "Omschrijving",
             filter: true,
         },
         {
@@ -50,33 +55,19 @@ function RouteComponent() {
             width: 150,
         },
         {
-            headerName: "Bron",
-            valueGetter: (params) => {
-                const tags = params.data?.metadata?.tags;
-                return Array.isArray(tags) ? tags.join(', ') : tags || '-';
-            },
+            headerName: "Gepubliceerd",
+            valueGetter: () => "-",
         },
         {
-            headerName: "Status",
-            valueGetter: () => "-",
+          headerName: "Concept",
+          valueGetter: () => "18-11-2025 13:26",
         },
         {
             headerName: "Gebruik",
             valueGetter: (params) => {
                 const usageCount = params.data?.usageData?.reduce((sum, x) => sum + (x.bundle?.length ?? 0), 0) ?? 0;
-                return usageCount > 0 ? `${usageCount} Beleidsregel(s)` : '-';
+                return usageCount > 0 ? `${usageCount} Beleidsregel(s)` : '0';
             },
-        },
-        {
-            headerName: "Laatste Sync",
-            valueGetter: (params) => {
-                return params.data?.audit?.updated ?? params.data?.audit?.created ?? '-';
-            },
-        },
-        {
-            headerName: "Acties",
-            valueGetter: () => "-",
-            width: 100,
         },
     ]);
 
@@ -84,7 +75,7 @@ function RouteComponent() {
         return (
             <>
                 <div className="flex items-center justify-between">
-                    <Heading className="lg:text-3xl ">Attributen</Heading>
+                    <Heading className="lg:text-3xl ">Context</Heading>
                 </div>
                 <div className="flex flex-col 2xl:flex-row py-3 gap-6">
                     <div className="mx-auto mt-4 flex w-[200px] items-center justify-center gap-y-2 flex-col">
@@ -102,7 +93,7 @@ function RouteComponent() {
 
     return (<>
         <div className="flex items-center justify-between my-4">
-            <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Attributen</h1>
+            <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Context</h1>
             <Button href="/attributen/toevoegen" color={"primary"}>
                 <div className={"flex align-middle justify-center my-auto"}>
                     <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
@@ -114,7 +105,7 @@ function RouteComponent() {
             <div className="pt-6 pb-8 px-10 gap-8 flex-1">
                 <div className="flex justify-between items-center">
                     <div>
-                        <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Attributen</span>
+                        <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Statische context</span>
                     </div>
                 </div>
                 <div className={"w-full h-[700px] mt-6"}>
