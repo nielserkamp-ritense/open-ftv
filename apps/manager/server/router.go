@@ -156,8 +156,8 @@ func (s *Services) initDeployments(group fiber.Router) {
 
 	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
 
-	// restart the last interrupted bundle deployment run if needed.
 	if last == nil {
+		// create the first deployment, so any PDP can find this bundle at startup.
 		time.AfterFunc(15*time.Second, func() {
 			s.logger.Info("Initializing initial bootstrap deployment")
 
@@ -171,6 +171,7 @@ func (s *Services) initDeployments(group fiber.Router) {
 			}
 		})
 	} else {
+		// restart the last interrupted bundle deployment run if needed.
 		time.AfterFunc(15*time.Second, func() {
 			s.pap.RestartDeployment(s.bundleManager)
 		})
