@@ -238,6 +238,18 @@ func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg 
 		})
 	}
 
+	batch = append(batch, postgresql.Statement{
+		SQL: "INSERT INTO policy_version (version,id,language,title,rvva_id,uri,tags,description,content)" +
+			" SELECT $2,id,language,title,rvva_id,uri,tags,description,content FROM policy" +
+			" WHERE status = $1",
+		Args: []any{"accepted", int(version)},
+	})
+
+	batch = append(batch, postgresql.Statement{
+		SQL:  "UPDATE policy SET status=$2,updated=$3,updated_by=$4 WHERE status=$1",
+		Args: []any{"accepted", "deployed", now, user},
+	})
+
 	for i := range bundle.Attributes {
 		a := bundle.Attributes[i]
 		batch = append(batch, postgresql.Statement{
@@ -246,6 +258,18 @@ func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg 
 		})
 	}
 
+	batch = append(batch, postgresql.Statement{
+		SQL: "INSERT INTO attribute_version (version,key,type,title,value,original,tags,description)" +
+			" SELECT $2,key,type,title,value,original,tags,description FROM attribute" +
+			" WHERE status = $1",
+		Args: []any{"accepted", int(version)},
+	})
+
+	batch = append(batch, postgresql.Statement{
+		SQL:  "UPDATE attribute SET status=$2,updated=$3,updated_by=$4 WHERE status=$1",
+		Args: []any{"accepted", "deployed", now, user},
+	})
+
 	for i := range bundle.Entities {
 		e := bundle.Entities[i]
 		batch = append(batch, postgresql.Statement{
@@ -253,6 +277,18 @@ func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg 
 			Args: []any{e.Type, e.Id, uid},
 		})
 	}
+
+	batch = append(batch, postgresql.Statement{
+		SQL: "INSERT INTO entity_version (version,type,id,title,tags,parents,description)" +
+			" SELECT $2,type,id,title,tags,parents,description FROM entity" +
+			" WHERE status = $1",
+		Args: []any{"accepted", int(version)},
+	})
+
+	batch = append(batch, postgresql.Statement{
+		SQL:  "UPDATE entity SET status=$2,updated=$3,updated_by=$4 WHERE status=$1",
+		Args: []any{"accepted", "deployed", now, user},
+	})
 
 	for i := range bundle.Relations {
 		r := bundle.Relations[i]
