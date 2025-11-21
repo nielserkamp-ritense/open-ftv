@@ -1,0 +1,8 @@
+---
+datasource:
+  - schema.yaml
+endpoints:
+  - endpoints.yaml
+sourceData:
+  vlierdam:
+    aanvraag: aanvraag.csv

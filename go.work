@@ -28,6 +28,7 @@ use (
 	eam/pep
 	eam/pip
 	eam/server
+	external/gateways/envoy/plugins/openftv
 	external/gateways/kong/plugins/openftv
 	mock/datasources/data
 	mock/datasources/generic
