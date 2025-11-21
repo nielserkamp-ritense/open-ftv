@@ -1,0 +1,47 @@
+services:
+  envoy:
+    build:
+      context: ../
+      dockerfile: ./external/gateways/envoy/Dockerfile
+    container_name: envoy-test-svc
+    ports:
+      - "9000:9000"
+    environment:
+      - PORT=9000
+      - ENVOY_AUTHZEN_PDP_ADDRESS=http://envoy-pdp:8443/authzen/v1/evaluation
+    depends_on:
+      envoy-pdp:
+        condition: service_healthy
+
+  envoy-pdp:
+    build:
+      context: ../
+      dockerfile: ./apps/pdp/Dockerfile
+    container_name: envoy-test-pdp
+    ports:
+      - "9001:8443"
+      - "9002:9443"
+      - "9003:8080"
+    environment:
+      - PDP_POLICIES_LANGUAGE=rego
+      - PDP_POLICIES_STORE=/tmp/data/policies
+    volumes:
+      - ./../testdata/apps/envoy-test/pdp:/tmp/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/livez"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  envoy-ds:
+    build:
+      context: ../
+      dockerfile: ./mock/datasources/generic/Dockerfile
+    container_name: envoy-test-dataspace
+    ports:
+      - "9010:8443"
+    environment:
+      - GEN_DS_DATA_PATH=/tmp/data
+    volumes:
+      - ./../testdata/apps/envoy-test/dataspace:/tmp/data

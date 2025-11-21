@@ -1,0 +1,11 @@
+---
+- id: aanvragen
+  path: /aanvragen
+  description: Alle laadpaal-aanvragen
+  type: GET
+  version: 1
+  fullVersion: 1.0.0
+  datasource: vlierdam
+  table: aanvraag
+  fields:
+    - "*"

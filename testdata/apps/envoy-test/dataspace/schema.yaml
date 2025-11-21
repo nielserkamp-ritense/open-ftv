@@ -1,0 +1,44 @@
+---
+id: "vlierdam"
+description: "Gemeente Vlierdam"
+tables:
+  - id: "aanvraag"
+    description: "Aanvraag laadpaal vergunning"
+    fields:
+      - id: "id"
+        description: "Unieke identificatie van de aanvraag"
+        type: "integer"
+        autoIncrement: true
+        minValue: 1
+        maxValue: 9999999999
+      - id: "postcode"
+        description: "Postcode waarvoor laadpaal wordt aangevraagd"
+        type: "string"
+        isPII: true
+        minLen: 6
+        maxLen: 6
+        minValue: "1000AA"
+        maxValue: "9999ZZ"
+      - id: "huisnummer"
+        description: "Huisnummer waarvoor laadpaal wordt aangevraagd"
+        type: "integer"
+        isPII: true
+        minValue: 1
+        maxValue: 99999
+      - id: "naam"
+        description: "Naam van de aanvrager"
+        type: "string"
+        isPII: true
+        minLen: 2
+        maxLen: 100
+    primaryKey:
+      id: "pk"
+      description: "Primary key: id"
+      fields: ["id"]
+    secondaryIndexes:
+      - id: "ix2"
+        description: "Index 2: adres"
+        fields: ["postcode", "huisnummer"]
+      - id: "ix3"
+        description: "Index 3: naam"
+        fields: ["naam"]
