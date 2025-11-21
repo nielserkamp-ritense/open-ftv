@@ -8,12 +8,11 @@ import {Alert, AlertActions, AlertDescription, AlertTitle} from "@/components/ui
 import Card from "@/components/ui/card.tsx";
 import type {ColDef, RowClickedEvent} from "ag-grid-community";
 import {
-    IconBoltFilled, IconLayoutSidebar,
+    IconBoltFilled,
     IconPlus,
 } from "@tabler/icons-react";
 import {Badge} from "@/components/ui/badge.tsx";
 import Grid from "@/components/ui/grid.tsx";
-import BundelsPanel from "@/components/bundels-panel.tsx";
 
 export const Route = createFileRoute('/policies/')({
     component: PoliciesComponent,
@@ -32,7 +31,6 @@ export default function PoliciesComponent() {
     const deletePolicyMutation = useDeletePolicy();
     const [isOpen, setIsOpen] = useState(false)
     const [selectedId] = useState<string | null>(null)
-    const [isBundelsPanelOpen, setIsBundelsPanelOpen] = useState(false)
 
     function handleRowClicked(e: RowClickedEvent<PolicyResponse>) {
         const data = e.data;
@@ -107,49 +105,27 @@ export default function PoliciesComponent() {
                 </AlertActions>
             </Alert>
             <Card className="min-w-3xl flex-1 h-[836px] py-3 flex" disablePadding={true}>
-                <div className="flex gap-4">
-                    <div className={"pt-6 pb-8 px-10 gap-8 flex-1"}>
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Beleidsregels</span>
-                            </div>
-                            <div>{!isBundelsPanelOpen && (
-                                    <button
-                                    onClick={() => setIsBundelsPanelOpen(!isBundelsPanelOpen)}
-                                    className="flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
-                                >
-                                    <span className={"text-carrotnl-button-subtle-color text-[14px] font-semibold"}>Toon bundels</span>
-                                    <IconLayoutSidebar
-                                        size={16}
-                                        className={`transition-transform ${isBundelsPanelOpen ? 'rotate-180' : ''}`}
-                                    />
-                                </button>
-                            )}
-
-                            </div>
-                        </div>
-                        <div className={"pt-6 text-right"}>
-                            <Button color={"primary"} href={"/policies/add"}>
-                                <div className={"flex align-middle justify-center my-auto"}>
-                                    <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
-                                </div>
-                                <span>Aanmaken</span>
-                            </Button>
-                        </div>
-                        <div className={"w-full h-[600px] mt-2"}>
-                            <Grid
-                                onRowClicked={handleRowClicked}
-                                rowData={data}
-                                columnDefs={colDefs}
-                            />
+                <div className={"pt-6 pb-8 px-10 gap-8 flex-1"}>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Beleidsregels</span>
                         </div>
                     </div>
-                    {isBundelsPanelOpen && (
-                        <BundelsPanel
-                            isOpen={isBundelsPanelOpen}
-                            onClose={() => setIsBundelsPanelOpen(false)}
+                    <div className={"pt-6 text-right"}>
+                        <Button color={"primary"} href={"/policies/add"}>
+                            <div className={"flex align-middle justify-center my-auto"}>
+                                <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
+                            </div>
+                            <span>Aanmaken</span>
+                        </Button>
+                    </div>
+                    <div className={"w-full h-[600px] mt-2"}>
+                        <Grid
+                            onRowClicked={handleRowClicked}
+                            rowData={data}
+                            columnDefs={colDefs}
                         />
-                    )}
+                    </div>
                 </div>
             </Card>
         </>
