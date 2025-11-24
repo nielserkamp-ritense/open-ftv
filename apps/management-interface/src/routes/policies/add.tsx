@@ -89,7 +89,7 @@ function AddPolicyComponent() {
     return (
         <>
             <form onSubmit={e => { void handleSubmit(e); }}>
-                <Heading>Add policy</Heading>
+                <Heading>Toevoegen beleidsregel</Heading>
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                         {error}
@@ -98,7 +98,7 @@ function AddPolicyComponent() {
                 <Fieldset>
                     <FieldGroup>
                         <Field>
-                            <Label>Title</Label>
+                            <Label>Titel</Label>
                             <Input
                                 name="title"
                                 value={formData.title}
@@ -106,7 +106,7 @@ function AddPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Policy description</Label>
+                            <Label>Omschrijving</Label>
                             <Input
                                 name="description"
                                 value={formData.description}
@@ -115,7 +115,7 @@ function AddPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Language</Label>
+                            <Label>Regeltaal</Label>
                             <Select
                                 name="language"
                                 value={formData.language}
@@ -126,10 +126,10 @@ function AddPolicyComponent() {
                                 <option value="cerbos">Cerbos</option>
                                 <option value="openfga">OpenFGA</option>
                             </Select>
-                            <Description>The language of the policy that is added.</Description>
+                            <Description>De regeltaal van de beleidsregel.</Description>
                         </Field>
                         <Field>
-                            <Label>rvva ID</Label>
+                            <Label>Register van verwerkingsactiviteiten ID</Label>
                             <Input
                                 name="rvvaId"
                                 value={formData.rvvaId}
@@ -137,8 +137,8 @@ function AddPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Tags</Label>
-                            <Description>Tags decide to which PDP the policies are deployed.</Description>
+                            <Label>Beslispunten</Label>
+                            <Description>Beslispunten waar de beleidsregel gepubliceerd wordt.</Description>
                             <TagsEditor
                                 tags={formData.tags ?? []}
                                 allTagNames={allTagNames}
@@ -147,7 +147,7 @@ function AddPolicyComponent() {
                             />
                         </Field>
                         <Field>
-                            <Label>Policy code</Label>
+                            <Label>Broncode</Label>
                             <Textarea
                                 name="data"
                                 rows={10}
@@ -159,13 +159,13 @@ function AddPolicyComponent() {
                     </FieldGroup>
                     <FieldGroup>
                         <Fieldset className={"flex justify-between"}>
-                            <Button type="button" href="/policies/" color={"zinc"}>Discard</Button>
+                            <Button type="button" href="/policies/" color={"zinc"}>Annuleren</Button>
                             <Button
                                 type="submit"
                                 color={"emerald"}
                                 disabled={addPolicyMutation.isPending}
                             >
-                                {addPolicyMutation.isPending ? 'Adding...' : 'Add policy'}
+                                {addPolicyMutation.isPending ? 'Toevoegen...' : 'Beleidsregel toevoegen'}
                             </Button>
                         </Fieldset>
                     </FieldGroup>
