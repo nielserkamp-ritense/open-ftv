@@ -211,7 +211,7 @@ func (p *authProcess) processSearch(list []string, page *oas.PageResponse) error
 	case searchSubject:
 		results := make([]oas.SearchResult, len(list))
 		for i := range list {
-			results[i] = oas.SearchResult{Id: p.parc.Principal.Type(), Type: list[i]}
+			results[i] = oas.SearchResult{Type: p.parc.Principal.Type(), Id: list[i]}
 		}
 		p.authResp = &oas.SearchResponse{Results: results, Page: *page}
 
@@ -225,7 +225,7 @@ func (p *authProcess) processSearch(list []string, page *oas.PageResponse) error
 	case searchResource:
 		results := make([]oas.SearchResult, len(list))
 		for i := range list {
-			results[i] = oas.SearchResult{Id: p.parc.Resource.Type(), Type: list[i]}
+			results[i] = oas.SearchResult{Type: p.parc.Resource.Type(), Id: list[i]}
 		}
 		p.authResp = &oas.SearchResponse{Results: results, Page: *page}
 	}

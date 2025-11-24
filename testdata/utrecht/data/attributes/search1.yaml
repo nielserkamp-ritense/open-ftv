@@ -1,0 +1,8 @@
+- key: "actions.test"
+  value: "asdasd,asdasd"
+- key: "actions.test2"
+  value: "asd,asd"
+- key: "subjects.test"
+  value: "asdasd,asdasd"
+- key: "subjects.test2"
+  value: "asd,asd"
