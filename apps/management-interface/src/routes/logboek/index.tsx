@@ -1,13 +1,13 @@
-import {createFileRoute} from '@tanstack/react-router'
+import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import {Button} from "@/components/ui/button.tsx";
 import Card from "@/components/ui/card.tsx";
 import {IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
 import {AuthlogEntry, useAuthlogEntries} from "@/services/authlog.ts";
-import type {ColDef, RowClassRules, RowClassParams} from "ag-grid-community";
+import type {ColDef, RowClassRules, RowClassParams, RowClickedEvent} from "ag-grid-community";
 import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
-import { DateTime } from "luxon";
+import {DateTime} from "luxon";
 
 export const Route = createFileRoute('/logboek/')({
     component: RouteComponent,
@@ -26,8 +26,20 @@ const BeslissingRenderer = (params: CustomCellRendererProps) => {
 };
 
 function RouteComponent() {
-    const defaultStart = useMemo(() => DateTime.now().minus({days: 1}).toISO(), []);
-    const {data} = useAuthlogEntries({start: defaultStart});
+    const navigate = useNavigate();
+  const defaultStart = useMemo(() => DateTime.now().minus({days: 2}).toISO({ includeOffset: true }), []);
+  const {data} = useAuthlogEntries({start: defaultStart});
+
+    const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => {
+        if (event.data?.id) {
+          navigate({
+                to: '/logboek/$id',
+                params: {id: String(event.data.id)},
+                // @ts-expect-error - The type state is not defined in the type definition
+                state: {entry: event.data}
+            }).catch(e => console.error('Navigation error:', e));
+        }
+    };
 
     const colDefs: ColDef<AuthlogEntry>[] = [
         {
@@ -81,14 +93,6 @@ function RouteComponent() {
             valueGetter: params => params.data?.response?.reason,
             resizable: false,
             cellStyle: {color: 'var(--color-content-secondary)'}
-        },
-        {
-            headerName: "",
-            valueGetter: () => "...",
-            sortable: false,
-            resizable: false,
-            type: "rightAligned",
-            minWidth: 50
         }
     ]
 
@@ -118,6 +122,8 @@ function RouteComponent() {
                             rowData={data}
                             columnDefs={colDefs}
                             rowClassRules={rowClassRules}
+                            onRowClicked={handleRowClick}
+                            rowSelection={undefined}
                         />
                     </div>
                 </div>

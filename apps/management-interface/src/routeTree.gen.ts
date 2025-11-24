@@ -17,6 +17,7 @@ import { Route as AttributenIndexRouteImport } from './routes/attributen/index'
 import { Route as PoliciesAddRouteImport } from './routes/policies/add'
 import { Route as AttributenToevoegenRouteImport } from './routes/attributen/toevoegen'
 import { Route as PoliciesIdIndexRouteImport } from './routes/policies/$id/index'
+import { Route as LogboekIdIndexRouteImport } from './routes/logboek/$id/index'
 import { Route as AttributenKeyIndexRouteImport } from './routes/attributen/$key/index'
 import { Route as PoliciesIdEditRouteImport } from './routes/policies/$id/edit'
 
@@ -60,6 +61,11 @@ const PoliciesIdIndexRoute = PoliciesIdIndexRouteImport.update({
   path: '/policies/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LogboekIdIndexRoute = LogboekIdIndexRouteImport.update({
+  id: '/logboek/$id/',
+  path: '/logboek/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AttributenKeyIndexRoute = AttributenKeyIndexRouteImport.update({
   id: '/attributen/$key/',
   path: '/attributen/$key/',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/publicaties': typeof PublicatiesIndexRoute
   '/policies/$id/edit': typeof PoliciesIdEditRoute
   '/attributen/$key': typeof AttributenKeyIndexRoute
+  '/logboek/$id': typeof LogboekIdIndexRoute
   '/policies/$id': typeof PoliciesIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/publicaties': typeof PublicatiesIndexRoute
   '/policies/$id/edit': typeof PoliciesIdEditRoute
   '/attributen/$key': typeof AttributenKeyIndexRoute
+  '/logboek/$id': typeof LogboekIdIndexRoute
   '/policies/$id': typeof PoliciesIdIndexRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/publicaties/': typeof PublicatiesIndexRoute
   '/policies/$id/edit': typeof PoliciesIdEditRoute
   '/attributen/$key/': typeof AttributenKeyIndexRoute
+  '/logboek/$id/': typeof LogboekIdIndexRoute
   '/policies/$id/': typeof PoliciesIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/publicaties'
     | '/policies/$id/edit'
     | '/attributen/$key'
+    | '/logboek/$id'
     | '/policies/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/publicaties'
     | '/policies/$id/edit'
     | '/attributen/$key'
+    | '/logboek/$id'
     | '/policies/$id'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/publicaties/'
     | '/policies/$id/edit'
     | '/attributen/$key/'
+    | '/logboek/$id/'
     | '/policies/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   PublicatiesIndexRoute: typeof PublicatiesIndexRoute
   PoliciesIdEditRoute: typeof PoliciesIdEditRoute
   AttributenKeyIndexRoute: typeof AttributenKeyIndexRoute
+  LogboekIdIndexRoute: typeof LogboekIdIndexRoute
   PoliciesIdIndexRoute: typeof PoliciesIdIndexRoute
 }
 
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/logboek/$id/': {
+      id: '/logboek/$id/'
+      path: '/logboek/$id'
+      fullPath: '/logboek/$id'
+      preLoaderRoute: typeof LogboekIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/attributen/$key/': {
       id: '/attributen/$key/'
       path: '/attributen/$key'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicatiesIndexRoute: PublicatiesIndexRoute,
   PoliciesIdEditRoute: PoliciesIdEditRoute,
   AttributenKeyIndexRoute: AttributenKeyIndexRoute,
+  LogboekIdIndexRoute: LogboekIdIndexRoute,
   PoliciesIdIndexRoute: PoliciesIdIndexRoute,
 }
 export const routeTree = rootRouteImport
