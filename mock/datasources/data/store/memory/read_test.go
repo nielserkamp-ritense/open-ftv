@@ -340,11 +340,11 @@ func TestStorage_GetEndpoint(t *testing.T) {
 	e3 := &schema.Endpoint{
 		Version:     1,
 		Type:        enums.GetMethod,
-		CalledAs:    enums.GetMethod,
+		CalledAs:    enums.PostMethod,
 		Path:        "/path",
 		FullVersion: "1.0.0",
 		Datasource:  "brp",
-		Table:       "dummy",
+		Table:       "persoon",
 	}
 
 	e4 := &schema.Endpoint{
@@ -412,7 +412,8 @@ func TestStorage_GetEndpoint(t *testing.T) {
 			s:       s1,
 			e:       e3,
 			ctx:     ctx0,
-			wantErr: true,
+			wantErr: false,
+			want:    nil,
 		},
 		{
 			name: "found all",
@@ -465,8 +466,6 @@ func TestStorage_GetEndpoint(t *testing.T) {
 				require.Nil(t, modified)
 			} else {
 				require.NoError(t, err9)
-				require.NotNil(t, got)
-				require.NotNil(t, modified)
 				require.Equal(t, len(tc.want), len(got))
 
 				for i := range tc.want {

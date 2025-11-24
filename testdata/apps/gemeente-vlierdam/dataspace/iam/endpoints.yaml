@@ -3,7 +3,7 @@
   path: /gebruiker
   description: Gegevens van medewerker ophalen
   type: GET
-  calledAs: GET
+  calledAs: POST
   version: 1
   fullVersion: 1.0.0
   datasource: iam

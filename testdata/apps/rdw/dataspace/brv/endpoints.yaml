@@ -2,7 +2,7 @@
 - id: voertuigen
   version: 1
   type: GET
-  calledAs: GET
+  calledAs: POST
   path: /voertuigen
   fullVersion: 1.0.0
   datasource: brv

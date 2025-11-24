@@ -70,6 +70,7 @@
   path: /laadpalen
   description: Complete laadpaal gegevens ophalen
   type: GET
+  calledAs: POST
   version: 1
   fullVersion: 1.0.0
   datasource: vlierdam
