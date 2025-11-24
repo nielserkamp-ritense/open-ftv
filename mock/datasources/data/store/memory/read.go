@@ -115,7 +115,7 @@ func (s *storage) GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (
 	}
 
 	if out == nil || len(out) == 0 {
-		return nil, nil, fmt.Errorf("endpoint: no matching records found for {%v}", ctx.Filter)
+		return models.Rows{}, nil, nil
 	}
 
 	// horizontal data-minimalization.
