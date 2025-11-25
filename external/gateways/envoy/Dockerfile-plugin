@@ -1,0 +1,21 @@
+FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
+
+WORKDIR /build
+
+COPY ./external/gateways/envoy/plugins/openftv ./external/gateways/envoy/plugins/openftv
+COPY ./oas ./oas
+COPY ./eam ./eam
+COPY ./utilities ./utilities
+COPY ./utilities-no-ci ./utilities-no-ci
+
+RUN  cd external/gateways/envoy/plugins/openftv \
+  && go mod tidy \
+  && go mod download \
+  && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/openftv ./cmd/*.go
+
+# Stage 2 - run
+FROM alpine:latest
+
+COPY --from=golang_builder /build/openftv /usr/local/bin
+
+ENTRYPOINT ["/usr/local/bin/openftv"]
