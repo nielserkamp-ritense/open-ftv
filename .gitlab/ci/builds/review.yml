@@ -117,3 +117,59 @@ build_review_mock_ds:
   resource_group: build_review_mock_ds
   tags:
     - ${ARCH}
+
+build_review_gw_plugin:
+  stage: Build
+  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
+  parallel:
+    matrix:
+      - ARCH:
+          - amd64
+        APP:
+          - envoy
+  before_script:
+    - export SEMANTIC_RELEASE_NEXT_VERSION=$(cat ci_semantic_release_next_version.txt)
+    - export COMPONENT_VERSION="${SEMANTIC_RELEASE_NEXT_VERSION}-review-${CI_COMMIT_SHORT_SHA}"
+    - echo "component version=${COMPONENT_VERSION}"
+    - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
+    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
+    - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+  script:
+    - /kaniko/executor
+      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+      --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
+      --context "."
+      --dockerfile "external/gateways/${APP}/Dockerfile-plugin"
+      --single-snapshot
+      --cache="true"
+      --compressed-caching=false
+      --cache-ttl="168h"
+      --destination ${CI_REGISTRY_IMAGE}/gw-plugin/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: $CI_DEFAULT_BRANCH
+        paths:
+          - eam/**/*
+          - external/gateways/**/*
+          - \.gitlab/ci/version/version.yml
+          - \.gitlab/ci/builds/review.yml
+          - \.golang-ci.yml
+          - semver.sh
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - ci_build_image_registry.txt
+      - ci_build_image_tag.txt
+  needs:
+    - job: unit-tests
+      optional: true
+    - job: next-version
+      optional: true
+  resource_group: build_review_gw_plugin
+  tags:
+    - ${ARCH}
