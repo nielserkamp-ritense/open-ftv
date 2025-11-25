@@ -5,10 +5,9 @@ import {usePolicy} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
-import {Navbar, NavbarItem, NavbarSection} from "@/components/ui/navbar.tsx";
-import {IconFileText, IconPlayerPlay, IconSettings, IconSourceCode} from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
+import { Button } from "@/components/ui/button.tsx";
 
 export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
@@ -44,29 +43,14 @@ function RouteComponent() {
         <div className="flex items-center justify-between">
             <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Beleidsregel</h1>
         </div>
+        <div className="flex items-center justify-end gap-2 py-2">
+            <Button color={"primary"} href={"/policies/" + id + "/edit/"}>Bewerken</Button>
+        </div>
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
-            <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true} header={
-                <>
-                    <Navbar className={"px-4 pt-5 sm:px-6"}>
-                        <NavbarSection>
-                            <NavbarItem href="#" className={"text-xl"} current>
-                                <IconFileText />Details
-                            </NavbarItem>
-                            <NavbarItem href={"/policies/" + id + "/edit/" }>
-                                <IconSourceCode /> Bewerken
-                            </NavbarItem>
-                            <NavbarItem href="#" disabled>
-                                <IconPlayerPlay /> Tests
-                            </NavbarItem>
-                            <NavbarItem href="#" disabled={true}>
-                                <IconSettings /> Instellingen
-                            </NavbarItem>
-                        </NavbarSection>
-                    </Navbar>
-                </>
-            }>
+            <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true}>
                 <div className="flex flex-col h-full px-4 py-5 sm:p-6">
                     <FTVHeading level={2}>{data?.metadata?.title}</FTVHeading>
+                    <p className={"text-rhc-color-cool-grey-900 py-2"}>De broncode van de beleidsregel.</p>
                     <Textarea name="data" value={data?.data} readOnly={true} disabled={true} className="flex-1 bg-content-tertiary mt-3"/>
                 </div>
             </Card>
