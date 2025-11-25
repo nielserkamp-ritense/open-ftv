@@ -45,13 +45,15 @@ function RouteComponent() {
         {
             headerName: "Trace ID",
             field: "traceId",
-            resizable: false,
+            resizable: true,
             cellStyle: {color: 'var(--color-content-secondary)'},
+            filter: true,
         },
         {
             headerName: "Tijdstempel",
             field: "created",
             resizable: false,
+            filter: 'agDateColumnFilter',
             cellStyle: {color: 'var(--color-content-secondary)'}
         },
         {
@@ -60,25 +62,16 @@ function RouteComponent() {
             valueGetter: (params) => (params.data?.request as unknown as {
                 subject?: { id?: string }
             } | undefined)?.subject?.id,
-            resizable: false
+            resizable: true
         },
         {
             headerName: "Beslispunt",
-            valueGetter: () => "PDP 1 Vlierdam",
-            resizable: false
-        },
-        {
-            headerName: "Bundel",
-            resizable: false
-        },
-        {
-            headerName: "Regeling",
-            resizable: false,
-            cellStyle: {color: 'var(--color-content-secondary)'}
+            valueGetter: () => "",
+            resizable: true
         },
         {
             headerName: "Actie",
-            resizable: false,
+            resizable: true,
             cellStyle: {color: 'var(--color-content-secondary)'}
         },
         {
@@ -86,7 +79,7 @@ function RouteComponent() {
             valueGetter: (params) => params.data?.response?.decision,
             cellRenderer: BeslissingRenderer,
             type: '',
-            resizable: false
+            resizable: true
         },
         {
             headerName: "Reden",

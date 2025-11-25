@@ -29,7 +29,7 @@ function RouteComponent() {
 
     return <>
         <div className="flex items-center justify-between">
-            <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Detail overzicht logboek regel</h1>
+            <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Overzicht logboek regel {entry.id}</h1>
         </div>
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
             <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true}>
