@@ -14,6 +14,8 @@ import (
 const (
 	// AppName defines the name and version of this application.
 	AppName   = "OpenFTV PDP 2.0"
+	GitHash   = "unknown"
+	GitTag    = "unknown"
 	envPrefix = "PDP_"
 	cfg1      = "/etc/pdp/config.yaml"
 	cfg2      = "./etc/pdp.yaml"
@@ -59,6 +61,7 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
 	logger.Info("configuration loaded successfully", "config", sanitized)
+	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
 // Config represents our configuration variables.

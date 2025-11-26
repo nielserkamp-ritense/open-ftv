@@ -14,6 +14,8 @@ import (
 const (
 	// AppName defines the name and version of this application.
 	AppName   = "OpenFTV Manager 2.0"
+	GitHash   = "unknown"
+	GitTag    = "unknown"
 	envPrefix = "MANAGER_"
 	cfg1      = "/etc/manager/default.conf"
 	cfg2      = "./etc/manager.yaml"
@@ -58,6 +60,7 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized.Persist = *sanitized.Persist.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	logger.Info("configuration loaded successfully", "config", sanitized)
+	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
 // Config represents the full set of configuration variables.
