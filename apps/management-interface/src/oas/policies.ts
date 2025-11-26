@@ -86,26 +86,49 @@ export interface paths {
          * Replace policy.
          * @description If the unique identifier of the policy does not exist, a 404 status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         put: operations["update-policy"];
         /**
          * Add policy.
          * @description If the unique identifier of the policy already exists, a 409 status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         post: operations["create-policy"];
         /**
          * Remove policy.
          * @description If the unique identifier of the policy does not exist, a 404 status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         delete: operations["delete-policy"];
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/policy/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Unique identifier of a policy (UUID).
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
+                id: components["parameters"]["PolicyID"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Modify policy status.
+         * @description Modify the status of an existing policy.
+         */
+        patch: operations["status-policy"];
         trace?: never;
     };
 }
@@ -128,18 +151,18 @@ export interface components {
              * @description The unique identifier of the Register van Verwerkings-Activiteiten (RvVA).
              *     Only required when the policy is linked directly with an item in the RvVA.
              *     The value is considered as one of the tags of the policy.
-             *
              * @example <RvVA-identifier>
              */
             rvvaId?: string;
             /** @description Link to the policy. Required when the policy is stored externally. */
             url?: string;
-            /** @description List of tags the policy is annotated with.
+            /**
+             * @description List of tags the policy is annotated with.
              *
              *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
              *
              *     Verify with the tags endpoint.
-             *      */
+             */
             tags?: string[];
         };
         /** @description The audit details of an object. */
@@ -269,10 +292,14 @@ export interface components {
              *     - "openfga"; alternative: "open-fga".
              *
              *     Verify with the languages endpoint.
-             *
              * @example cedar
              */
             language: string;
+            /**
+             * @description The current status of the policy ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
             /**
              * @description Content of the policy. Required when the policy is stored internally.
              * @example permit (
@@ -284,7 +311,6 @@ export interface components {
              *       principal has brpPersonen &&
              *       resource.code == "BRP"
              *     };
-             *
              */
             data?: string;
             metadata: components["schemas"]["Metadata"];
@@ -293,6 +319,19 @@ export interface components {
             auditLog?: components["schemas"]["AuditEntry"][];
             /** @description Usage data for the policy. */
             usageData?: components["schemas"]["UsageData"][];
+        };
+        /** @description The status of a policy. */
+        PolicyStatus: {
+            /**
+             * @description The unique identifier of the policy (UUID).
+             * @example e8fce68e-beb6-494f-b6c1-9b0f8f6cac56
+             */
+            id: string;
+            /**
+             * @description The current status of the policy ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
@@ -645,6 +684,34 @@ export interface operations {
             403: components["responses"]["AccessDenied"];
             404: components["responses"]["NotFound"];
             "5XX": components["responses"]["UnexpectedError"];
+        };
+    };
+    "status-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Unique identifier of a policy (UUID).
+                 * @example b4911124-e92a-482f-80b4-eb02383378ae
+                 */
+                id: components["parameters"]["PolicyID"];
+            };
+            cookie?: never;
+        };
+        /** @description New status of the policy. */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PolicyStatus"];
+            };
+        };
+        responses: {
+            200: components["responses"]["PolicyResponse"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["UnexpectedError"];
         };
     };
 }

@@ -45,7 +45,6 @@ export interface paths {
          *
          *     If the unique key of the attribute does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         put: operations["replace-attribute"];
         /**
@@ -54,7 +53,6 @@ export interface paths {
          *
          *     If the unique key of the attribute already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         post: operations["add-attribute"];
         /**
@@ -63,12 +61,34 @@ export interface paths {
          *
          *     If the unique key of the attribute does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         delete: operations["remove-attribute"];
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/attribute/{key}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique key of an attribute. */
+                key: components["parameters"]["AttributeKey"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Modify attribute status.
+         * @description Modify the status of an existing attribute.
+         */
+        patch: operations["status-attribute"];
         trace?: never;
     };
     "/entities": {
@@ -114,7 +134,6 @@ export interface paths {
          *
          *     If the unique type+id of the entity does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         put: operations["remove-entity"];
         /**
@@ -123,7 +142,6 @@ export interface paths {
          *
          *     If the unique type+id of the entity already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         post: operations["add-entity"];
         /**
@@ -132,12 +150,36 @@ export interface paths {
          *
          *     If the unique type+id of the entity does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         delete: operations["delete-entity"];
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/entity/{type}/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Type of entity. */
+                type: components["parameters"]["EntityType"];
+                /** @description ID of an entity. */
+                id: components["parameters"]["EntityID"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Modify entity status.
+         * @description Modify the status of an existing entity.
+         */
+        patch: operations["status-entity"];
         trace?: never;
     };
     "/relations": {
@@ -160,21 +202,13 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/relation/{subjectType}/{subjectID}/{relation}/{objectType}/{objectID}": {
+    "/relation/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description Type of subject of a relation. */
-                subjectType: components["parameters"]["SubjectType"];
-                /** @description ID of the subject of a relation. */
-                subjectID: components["parameters"]["SubjectID"];
-                /** @description Type of relation. */
-                relation: components["parameters"]["RelationType"];
-                /** @description Type of object of a relation. */
-                objectType: components["parameters"]["ObjectType"];
-                /** @description ID of the object of a relation. */
-                objectID: components["parameters"]["ObjectID"];
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
             };
             cookie?: never;
         };
@@ -189,7 +223,6 @@ export interface paths {
          *
          *     If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         put: operations["replace-relation"];
         /**
@@ -198,7 +231,6 @@ export interface paths {
          *
          *     If the unique subject+relation+object of the relation already exists, a 409 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         post: operations["add-relation"];
         /**
@@ -207,12 +239,34 @@ export interface paths {
          *
          *     If the unique subject+relation+object of the relation does not exist, a 404 response status code will be returned.
          *     You can override this behavior by passing the 'force' parameter in the query.
-         *
          */
         delete: operations["remove-relation"];
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/relation/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Modify relation status.
+         * @description Modify the status of an existing relation.
+         */
+        patch: operations["status-relation"];
         trace?: never;
     };
 }
@@ -231,12 +285,13 @@ export interface components {
              * @example Daily schedule with start and end of working period
              */
             description?: string;
-            /** @description List of tags the object is annotated with.
+            /**
+             * @description List of tags the object is annotated with.
              *
              *     This is used to determine which PDP (or set of PDPs) objects can be pushed to.
              *
              *     Verify with the policies.tags endpoint.
-             *      */
+             */
             tags?: string[];
         };
         /** @description The audit details for an object. */
@@ -321,7 +376,13 @@ export interface components {
              * @example 0123
              */
             value: unknown;
-            /** @description The optional type of a value. By default a value is stored as-is (e.g., JSON type).
+            /**
+             * @description The current status of the attribute ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
+            /**
+             * @description The optional type of a value. By default a value is stored as-is (e.g., JSON type).
              *
              *     The following codes for type are supported:
              *     "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
@@ -336,7 +397,7 @@ export interface components {
              *
              *     A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
              *     If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
-             *      */
+             */
             type?: string;
             metadata: components["schemas"]["Metadata"];
             audit: components["schemas"]["ObjectAudit"];
@@ -345,11 +406,25 @@ export interface components {
             /** @description Usage data for the policy. */
             usageData?: components["schemas"]["UsageData"][];
         };
+        /** @description The status of an attribute (key/value pair). */
+        AttributeStatus: {
+            /**
+             * @description The unique key of the attribute.
+             * @example gemeentecode
+             */
+            key: string;
+            /**
+             * @description The current status of the attribute ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
+        };
         Entities: components["schemas"]["Entity"][];
-        /** @description The content of an entity.
+        /**
+         * @description The content of an entity.
          *
          *     The combination of *type* and *id* defines the unique key of an entity.
-         *      */
+         */
         Entity: {
             /**
              * @description The type of entity.
@@ -361,6 +436,11 @@ export interface components {
              * @example alice
              */
             id: string;
+            /**
+             * @description The current status of the entity ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
             /** @description Optional attributes of the entity. */
             attributes?: components["schemas"]["Attribute"][];
             metadata: components["schemas"]["Metadata"];
@@ -370,17 +450,41 @@ export interface components {
             /** @description Usage data for the policy. */
             usageData?: components["schemas"]["UsageData"][];
         };
+        /** @description The status of an entity. */
+        EntityStatus: {
+            /**
+             * @description The type of entity.
+             * @example user
+             */
+            type: string;
+            /**
+             * @description The identification of the entity.
+             * @example alice
+             */
+            id: string;
+            /**
+             * @description The current status of the entity ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
+        };
         Relations: components["schemas"]["Relation"][];
-        /** @description The content of a relation.
+        /**
+         * @description The content of a relation.
          *
          *     The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
-         *      */
+         */
         Relation: {
             /**
              * @description The unique identifier of the relation (UUID).
-             * @example <uuid>
+             * @example f1e40dfa-7e2a-4767-81a7-65f790d3bbcd
              */
             id: string;
+            /**
+             * @description The current status of the relation ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
             /**
              * @description The type of subject of the relation.
              * @example user
@@ -414,6 +518,19 @@ export interface components {
             auditLog?: components["schemas"]["AuditEntry"][];
             /** @description Usage data for the policy. */
             usageData?: components["schemas"]["UsageData"][];
+        };
+        /** @description The status of a relation. */
+        RelationStatus: {
+            /**
+             * @description The unique identifier of the relation (UUID).
+             * @example f1e40dfa-7e2a-4767-81a7-65f790d3bbcd
+             */
+            id: string;
+            /**
+             * @description The current status of the relation ('concept', 'accepted', 'deployed').
+             * @example concept
+             */
+            status: string;
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
@@ -576,16 +693,8 @@ export interface components {
         EntityType: string;
         /** @description ID of an entity. */
         EntityID: string;
-        /** @description Type of subject of a relation. */
-        SubjectType: string;
-        /** @description ID of the subject of a relation. */
-        SubjectID: string;
-        /** @description Type of relation. */
-        RelationType: string;
-        /** @description Type of object of a relation. */
-        ObjectType: string;
-        /** @description ID of the object of a relation. */
-        ObjectID: string;
+        /** @description Unique identifier of a relation (UUID). */
+        RelationID: string;
         /** @description Force upsert during a put/post operation. */
         ForceUpsert: boolean;
         /** @description Ignore missing data during a delete operation. */
@@ -704,6 +813,31 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: components["responses"]["AttributeResponse"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["UnexpectedError"];
+        };
+    };
+    "status-attribute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique key of an attribute. */
+                key: components["parameters"]["AttributeKey"];
+            };
+            cookie?: never;
+        };
+        /** @description New status of the attribute. */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AttributeStatus"];
+            };
+        };
         responses: {
             200: components["responses"]["AttributeResponse"];
             400: components["responses"]["BadRequest"];
@@ -837,6 +971,33 @@ export interface operations {
             500: components["responses"]["UnexpectedError"];
         };
     };
+    "status-entity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Type of entity. */
+                type: components["parameters"]["EntityType"];
+                /** @description ID of an entity. */
+                id: components["parameters"]["EntityID"];
+            };
+            cookie?: never;
+        };
+        /** @description New status of the entity. */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EntityStatus"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EntityResponse"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["UnexpectedError"];
+        };
+    };
     "get-relations": {
         parameters: {
             query?: never;
@@ -859,16 +1020,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Type of subject of a relation. */
-                subjectType: components["parameters"]["SubjectType"];
-                /** @description ID of the subject of a relation. */
-                subjectID: components["parameters"]["SubjectID"];
-                /** @description Type of relation. */
-                relation: components["parameters"]["RelationType"];
-                /** @description Type of object of a relation. */
-                objectType: components["parameters"]["ObjectType"];
-                /** @description ID of the object of a relation. */
-                objectID: components["parameters"]["ObjectID"];
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
             };
             cookie?: never;
         };
@@ -890,16 +1043,8 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Type of subject of a relation. */
-                subjectType: components["parameters"]["SubjectType"];
-                /** @description ID of the subject of a relation. */
-                subjectID: components["parameters"]["SubjectID"];
-                /** @description Type of relation. */
-                relation: components["parameters"]["RelationType"];
-                /** @description Type of object of a relation. */
-                objectType: components["parameters"]["ObjectType"];
-                /** @description ID of the object of a relation. */
-                objectID: components["parameters"]["ObjectID"];
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
             };
             cookie?: never;
         };
@@ -926,16 +1071,8 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Type of subject of a relation. */
-                subjectType: components["parameters"]["SubjectType"];
-                /** @description ID of the subject of a relation. */
-                subjectID: components["parameters"]["SubjectID"];
-                /** @description Type of relation. */
-                relation: components["parameters"]["RelationType"];
-                /** @description Type of object of a relation. */
-                objectType: components["parameters"]["ObjectType"];
-                /** @description ID of the object of a relation. */
-                objectID: components["parameters"]["ObjectID"];
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
             };
             cookie?: never;
         };
@@ -962,20 +1099,37 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Type of subject of a relation. */
-                subjectType: components["parameters"]["SubjectType"];
-                /** @description ID of the subject of a relation. */
-                subjectID: components["parameters"]["SubjectID"];
-                /** @description Type of relation. */
-                relation: components["parameters"]["RelationType"];
-                /** @description Type of object of a relation. */
-                objectType: components["parameters"]["ObjectType"];
-                /** @description ID of the object of a relation. */
-                objectID: components["parameters"]["ObjectID"];
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
             };
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: components["responses"]["RelationResponse"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["NotAuthorized"];
+            403: components["responses"]["AccessDenied"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["UnexpectedError"];
+        };
+    };
+    "status-relation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique identifier of a relation (UUID). */
+                id: components["parameters"]["RelationID"];
+            };
+            cookie?: never;
+        };
+        /** @description New status of the relation. */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RelationStatus"];
+            };
+        };
         responses: {
             200: components["responses"]["RelationResponse"];
             400: components["responses"]["BadRequest"];

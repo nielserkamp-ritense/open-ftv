@@ -16,7 +16,6 @@ export interface paths {
          * @description Endpoint to search for and retrieve Authorization Decision Log entries.
          *
          *     Resulting entries are sorted in descending order of creation.
-         *
          */
         get: operations["get-adl-entries"];
         put?: never;
@@ -148,12 +147,14 @@ export interface components {
         };
     };
     parameters: {
-        /** @description Select exact decision log identifier.
+        /**
+         * @description Select exact decision log identifier.
          *
          *     This is mutually exclusive with all other parameters.
-         *      */
+         */
         DecisionId: number;
-        /** @description Select a period upto and including the current timestamp.
+        /**
+         * @description Select a period upto and including the current timestamp.
          *
          *     This parameter is mutually exclusive with the start timestamp.
          *
@@ -163,19 +164,22 @@ export interface components {
          *     - "12s"      = 12 seconds.
          *     - "3h"       = 3 hours.
          *     - "1h10m15s" = 1 hour, 10 minutes and 15 seconds.
-         *      */
+         */
         RecentPeriod: string;
-        /** @description Filter entries with a created timestamp greater of equal this (RFC3339).
+        /**
+         * @description Filter entries with a created timestamp greater of equal this (RFC3339).
          *
          *     This parameter is mutually exclusive with the recent period.
-         *      */
+         */
         StartTimestamp: string;
-        /** @description Filter entries with a created timestamp lesser of equal this (RFC3339).
+        /**
+         * @description Filter entries with a created timestamp lesser of equal this (RFC3339).
          *
          *     Default is the current timestamp.
-         *      */
+         */
         EndTimestamp: string;
-        /** @description Filter entries matching one of the AuthZEN request types.
+        /**
+         * @description Filter entries matching one of the AuthZEN request types.
          *
          *     Valid values are:
          *     - evaluation
@@ -185,51 +189,59 @@ export interface components {
          *     - search_resource
          *
          *     Duplicate values are not allowed.
-         *      */
+         */
         RequestTypes: string[];
-        /** @description Filter entries matching one of the policy bundle identifiers.
+        /**
+         * @description Filter entries matching one of the policy bundle identifiers.
          *
          *     Maximum 10 bundle identifiers can be supplied.
          *     Duplicate values are not allowed.
-         *      */
+         */
         Policies: string[];
-        /** @description Filter entries with a matching W3C trace identifier.
+        /**
+         * @description Filter entries with a matching W3C trace identifier.
          *
          *     Must be exactly 32 characters in hexadecimal.
-         *      */
+         */
         TraceId: string;
-        /** @description Filter entries with a matching W3C span identifier.
+        /**
+         * @description Filter entries with a matching W3C span identifier.
          *
          *     Must be exactly 16 characters in hexadecimal.
-         *      */
+         */
         SpanId: string;
         /** @description Filter entries with a matching subject type. */
         SubjectType: string;
-        /** @description Filter entries with a matching subject identifier.
+        /**
+         * @description Filter entries with a matching subject identifier.
          *
          *     Use of this parameter may considerably impact performance.
-         *      */
+         */
         SubjectId: string;
-        /** @description Filter entries with a matching action name.
+        /**
+         * @description Filter entries with a matching action name.
          *
          *     Use of this parameter may considerably impact performance.
-         *      */
+         */
         ActionName: string;
-        /** @description Filter entries with a matching resource type.
+        /**
+         * @description Filter entries with a matching resource type.
          *
          *     Use of this parameter may considerably impact performance.
-         *      */
+         */
         ResourceType: string;
-        /** @description Filter entries with a matching resource identifier.
+        /**
+         * @description Filter entries with a matching resource identifier.
          *
          *     Use of this parameter may considerably impact performance.
-         *      */
+         */
         ResourceId: string;
-        /** @description Limit the result to this many entries.
+        /**
+         * @description Limit the result to this many entries.
          *
          *     The default limit is 100 entries.
          *     All entries are sorted in descending order of creation.
-         *      */
+         */
         Limit: number;
     };
     requestBodies: never;
@@ -241,22 +253,26 @@ export interface operations {
     "get-adl-entries": {
         parameters: {
             query?: {
-                /** @description Select exact decision log identifier.
+                /**
+                 * @description Select exact decision log identifier.
                  *
                  *     This is mutually exclusive with all other parameters.
-                 *      */
+                 */
                 id?: components["parameters"]["DecisionId"];
-                /** @description Filter entries with a created timestamp greater of equal this (RFC3339).
+                /**
+                 * @description Filter entries with a created timestamp greater of equal this (RFC3339).
                  *
                  *     This parameter is mutually exclusive with the recent period.
-                 *      */
+                 */
                 start?: components["parameters"]["StartTimestamp"];
-                /** @description Filter entries with a created timestamp lesser of equal this (RFC3339).
+                /**
+                 * @description Filter entries with a created timestamp lesser of equal this (RFC3339).
                  *
                  *     Default is the current timestamp.
-                 *      */
+                 */
                 end?: components["parameters"]["EndTimestamp"];
-                /** @description Select a period upto and including the current timestamp.
+                /**
+                 * @description Select a period upto and including the current timestamp.
                  *
                  *     This parameter is mutually exclusive with the start timestamp.
                  *
@@ -266,9 +282,10 @@ export interface operations {
                  *     - "12s"      = 12 seconds.
                  *     - "3h"       = 3 hours.
                  *     - "1h10m15s" = 1 hour, 10 minutes and 15 seconds.
-                 *      */
+                 */
                 recent?: components["parameters"]["RecentPeriod"];
-                /** @description Filter entries matching one of the AuthZEN request types.
+                /**
+                 * @description Filter entries matching one of the AuthZEN request types.
                  *
                  *     Valid values are:
                  *     - evaluation
@@ -278,51 +295,59 @@ export interface operations {
                  *     - search_resource
                  *
                  *     Duplicate values are not allowed.
-                 *      */
+                 */
                 types?: components["parameters"]["RequestTypes"];
-                /** @description Filter entries matching one of the policy bundle identifiers.
+                /**
+                 * @description Filter entries matching one of the policy bundle identifiers.
                  *
                  *     Maximum 10 bundle identifiers can be supplied.
                  *     Duplicate values are not allowed.
-                 *      */
+                 */
                 policies?: components["parameters"]["Policies"];
-                /** @description Filter entries with a matching W3C trace identifier.
+                /**
+                 * @description Filter entries with a matching W3C trace identifier.
                  *
                  *     Must be exactly 32 characters in hexadecimal.
-                 *      */
+                 */
                 traceId?: components["parameters"]["TraceId"];
-                /** @description Filter entries with a matching W3C span identifier.
+                /**
+                 * @description Filter entries with a matching W3C span identifier.
                  *
                  *     Must be exactly 16 characters in hexadecimal.
-                 *      */
+                 */
                 spanId?: components["parameters"]["SpanId"];
                 /** @description Filter entries with a matching subject type. */
                 subjectType?: components["parameters"]["SubjectType"];
-                /** @description Filter entries with a matching subject identifier.
+                /**
+                 * @description Filter entries with a matching subject identifier.
                  *
                  *     Use of this parameter may considerably impact performance.
-                 *      */
+                 */
                 subjectId?: components["parameters"]["SubjectId"];
-                /** @description Filter entries with a matching action name.
+                /**
+                 * @description Filter entries with a matching action name.
                  *
                  *     Use of this parameter may considerably impact performance.
-                 *      */
+                 */
                 actionName?: components["parameters"]["ActionName"];
-                /** @description Filter entries with a matching resource type.
+                /**
+                 * @description Filter entries with a matching resource type.
                  *
                  *     Use of this parameter may considerably impact performance.
-                 *      */
+                 */
                 resourceType?: components["parameters"]["ResourceType"];
-                /** @description Filter entries with a matching resource identifier.
+                /**
+                 * @description Filter entries with a matching resource identifier.
                  *
                  *     Use of this parameter may considerably impact performance.
-                 *      */
+                 */
                 resourceId?: components["parameters"]["ResourceId"];
-                /** @description Limit the result to this many entries.
+                /**
+                 * @description Limit the result to this many entries.
                  *
                  *     The default limit is 100 entries.
                  *     All entries are sorted in descending order of creation.
-                 *      */
+                 */
                 limit?: components["parameters"]["Limit"];
             };
             header?: never;

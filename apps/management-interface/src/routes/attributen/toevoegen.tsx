@@ -18,6 +18,7 @@ function NewAttributeComponent() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [formData, setFormData] = useState<Attribute>({
         key: '',
+        status: 'concept',
         value: '',
         type: 'string',
         audit: {

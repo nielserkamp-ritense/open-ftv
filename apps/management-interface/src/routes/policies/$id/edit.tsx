@@ -22,6 +22,7 @@ function EditPolicyComponent() {
         id: '',
         language: '',
         data: '',
+        status: '',
         audit: {
             created: '',
             createdBy: ''
