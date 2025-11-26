@@ -13,6 +13,7 @@ import {
 } from "@tabler/icons-react";
 import {Badge} from "@/components/ui/badge.tsx";
 import Grid from "@/components/ui/grid.tsx";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/policies/')({
     component: PoliciesComponent,
@@ -89,6 +90,10 @@ export default function PoliciesComponent() {
 
     return (
         <>
+            <Breadcrumb items={[
+                { label: 'Home', href: '/' },
+                { label: 'Beleidsregels' }
+            ]} />
             <div className="flex items-center justify-between my-4">
                 <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Beleidsregels</h1>
             </div>

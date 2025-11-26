@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 import { Button, SecondaryButton } from "@/components/ui/button.tsx";
 import { useState } from "react";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/attributen/$key/')({
     component: RouteComponent,
@@ -72,6 +73,11 @@ function RouteComponent() {
     const displayValue = isEditing ? editedValue : (data?.value as string ?? "")
 
     return <>
+        <Breadcrumb items={[
+          { label: 'Home', href: '/' },
+          { label: 'Context', href: '/attributen' },
+          { label: data?.metadata?.title || 'Details' }
+        ]}/>
         <div className="flex items-center justify-between">
             <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Attribuut</h1>
             {isEditing ? (

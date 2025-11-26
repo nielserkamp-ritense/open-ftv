@@ -9,6 +9,7 @@ import {IconPlus} from "@tabler/icons-react";
 import Grid from "@/components/ui/grid.tsx";
 import type {ColDef, RowClickedEvent} from "ag-grid-community";
 import {useState} from "react";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/attributen/')({
     component: RouteComponent,
@@ -92,6 +93,7 @@ function RouteComponent() {
     }
 
     return (<>
+        <Breadcrumb />
         <div className="flex items-center justify-between my-4">
             <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Context</h1>
             <Button href="/attributen/toevoegen" color={"primary"}>

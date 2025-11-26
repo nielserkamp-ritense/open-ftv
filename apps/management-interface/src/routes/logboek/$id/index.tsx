@@ -4,6 +4,7 @@ import Card from "@/components/ui/card.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
 import {AuthlogEntry} from "@/services/authlog.ts";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/logboek/$id/')({
     component: RouteComponent,
@@ -28,6 +29,11 @@ function RouteComponent() {
     const engineJson = entry.engine ? JSON.stringify(entry.engine, null, 2) : ''
 
     return <>
+        <Breadcrumb items={[
+          { label: 'Home', href: '/' },
+          { label: 'Logboek', href: '/logboek' },
+          { label: 'Details', href: `/logboek/${entry.id}` }
+        ]}/>
         <div className="flex items-center justify-between">
             <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Overzicht logboek regel {entry.id}</h1>
         </div>

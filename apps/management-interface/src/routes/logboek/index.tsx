@@ -8,6 +8,7 @@ import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
 import {DateTime} from "luxon";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/logboek/')({
     component: RouteComponent,
@@ -97,6 +98,7 @@ function RouteComponent() {
 
     return (
         <>
+            <Breadcrumb />
             <div className="flex items-center justify-between my-4">
                 <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Logboek toegangsbeslissingen</h1>
             </div>
