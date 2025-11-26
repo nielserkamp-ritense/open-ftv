@@ -22,12 +22,14 @@ next-version:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - apps/**/*
+          - eam/**/*
+          - external/**/*
+          - migrations/**/*
+          - mock/datasources/**/*
+          - oas/**/*
           - utilities/**/*
           - utilities-no-ci/**/*
-          - oas/**/*
-          - eam/**/*
-          - mock/datasources/**/*
-          - apps/**/*
           - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
           - \.golang-ci.yml
