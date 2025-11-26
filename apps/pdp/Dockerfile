@@ -13,7 +13,7 @@ COPY ./utilities-no-ci ./utilities-no-ci
 RUN cd apps/pdp \
   && go mod tidy \
   && go mod download \
-  && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/pdp ./cmd/*.go
+  && CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/pdp/config/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/pdp/config/config.GitHash=${GIT_COMMIT_HASH}' " -o /build/pdp ./cmd/*.go
 
 # Stage 2 - run
 FROM digilabpublic.azurecr.io/alpine:3.22

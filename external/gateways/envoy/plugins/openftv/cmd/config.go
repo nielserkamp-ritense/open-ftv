@@ -38,5 +38,7 @@ func newConfig() (*cfg, *slog.Logger) {
 		panic("service halted")
 	}
 
+	logger.Info("configuration loaded", "config", c)
+
 	return c, logger
 }

@@ -13,7 +13,7 @@ COPY ./utilities-no-ci ./utilities-no-ci
 RUN cd apps/manager \
   && go mod tidy \
   && go mod download \
-  && CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/manager ./cmd/*.go
+  && CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/manager/config/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/manager/config/config.GitHash=${GIT_COMMIT_HASH}' " -o /build/manager ./cmd/*.go
 
 # Stage 2 - run
 FROM digilabpublic.azurecr.io/alpine:3.22

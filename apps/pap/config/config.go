@@ -14,6 +14,8 @@ import (
 const (
 	// AppName defines the name and version of this application.
 	AppName   = "OpenFTV PAP 2.0"
+	GitHash   = "unknown"
+	GitTag    = "unknown"
 	envPrefix = "PAP_"
 	cfg1      = "/etc/pap/default.conf"
 	cfg2      = "./etc/pap.yaml"
@@ -59,6 +61,7 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized.Persist = *sanitized.Persist.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	logger.Info("configuration loaded successfully", "config", sanitized)
+	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
 // Config represents the full set of configuration variables.
