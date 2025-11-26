@@ -46,6 +46,8 @@
     --color-carrotnl-button-secondary-action-color: rgba(21, 66, 115, 1);
     --color-carrotnl-button-secondary-action-hover-background-color: rgba(220, 227, 234, 1);
     --text-carrotnl-fontsize-heading-level4: 18px;
+    --text-carrotnl-breadcrumb-fontsize: 14px;
+    --color-carrotnl-breadcrumb-link-color: #01689B;
 
     /* Custom RHC stijlen */
     --spacing-rhc-space-300: 24px;

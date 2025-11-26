@@ -6,6 +6,7 @@ import {createFileRoute} from "@tanstack/react-router";
 import Card from "@/components/ui/card.tsx";
 import type {ColDef} from "ag-grid-community";
 import {ScaleLoader} from "react-spinners";
+import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/publicaties/')({
     component: PublicatiesComponent,
@@ -82,6 +83,7 @@ export default function PublicatiesComponent() {
 
     return (
         <>
+            <Breadcrumb />
             <div className="flex items-center justify-between my-4">
                 <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Publicaties</h1>
             </div>

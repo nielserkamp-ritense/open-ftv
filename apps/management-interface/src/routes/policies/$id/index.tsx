@@ -8,6 +8,7 @@ import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components
 import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Breadcrumb } from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
@@ -40,6 +41,11 @@ function RouteComponent() {
     const tags: string[] = data?.metadata?.tags ?? []
 
     return <>
+        <Breadcrumb items={[
+            { label: 'Home', href: '/' },
+            { label: 'Beleidsregels', href: '/policies' },
+            { label: data?.metadata?.title || 'Details' }
+        ]} />
         <div className="flex items-center justify-between">
             <h1 className="text-rhc-color-cool-grey-900 font-normal text-[32px] leading-10">Beleidsregel</h1>
         </div>
