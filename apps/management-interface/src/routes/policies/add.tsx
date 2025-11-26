@@ -64,6 +64,7 @@ function AddPolicyComponent() {
                 id: id,
                 policy: {
                     id: id,
+                    status: "concept",
                     language: formData.language.toLowerCase(),
                     data: formData.data,
                     audit: {

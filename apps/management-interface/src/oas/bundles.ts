@@ -157,7 +157,6 @@ export interface paths {
          *
          *     This endpoint should be called by PDPs during initialization
          *     when they are **not** configured with local policies and data.
-         *
          */
         get: operations["get-bundle"];
         put?: never;
@@ -183,7 +182,6 @@ export interface paths {
          *
          *     This endpoint should be implemented by PDPs
          *     when they are **not** configured with local policies and data.
-         *
          */
         post: operations["push-bundle"];
         delete?: never;
