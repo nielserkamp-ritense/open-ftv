@@ -15,7 +15,7 @@ export const Route = createFileRoute('/logboek/')({
 })
 
 const BeslissingRenderer = (params: CustomCellRendererProps) => {
-    if (params.value === 'permit') {
+    if (params.value) {
         return <div className={"flex items-center justify-center"}><IconCircleArrowUpFilled
             color={"var(--color-rhc-color-feedback-info-default)"}
             className={"mx-auto mt-1.5"}></IconCircleArrowUpFilled></div>
