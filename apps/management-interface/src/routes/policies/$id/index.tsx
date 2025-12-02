@@ -3,12 +3,12 @@ import {FTVHeading, Heading} from "@/components/ui/heading.tsx";
 import Card from "@/components/ui/card.tsx";
 import {usePolicy} from "@/services/policies.ts";
 import {ScaleLoader} from "react-spinners";
-import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Breadcrumb } from "@/components/ui/breadcrumb.tsx";
+import { MonacoEditor } from "@/components/ui/monaco-editor.tsx";
 
 export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
@@ -57,7 +57,15 @@ function RouteComponent() {
                 <div className="flex flex-col h-full px-4 py-5 sm:p-6">
                     <FTVHeading level={2}>{data?.metadata?.title}</FTVHeading>
                     <p className={"text-rhc-color-cool-grey-900 py-2"}>De broncode van de beleidsregel.</p>
-                    <Textarea name="data" value={data?.data} readOnly={true} disabled={true} className="flex-1 bg-content-tertiary mt-3"/>
+                    <div className="flex-1 mt-3 h-[836px] ">
+                        <MonacoEditor
+                            value={data?.data}
+                            language={data?.language}
+                            readOnly={true}
+                            height="600px"
+                            className={"border-1 border-rhc-color-cool-grey-200 rounded-md overflow-hidden"}
+                        />
+                    </div>
                 </div>
             </Card>
             <div className="w-1/3 min-w-3xl 2xl:min-w-lg flex flex-col gap-6">

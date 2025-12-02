@@ -28,6 +28,7 @@ export default defineConfig({
           router: ["@tanstack/react-router", "@tanstack/react-router-devtools"],
           aggrid: ["ag-grid-community", "ag-grid-react"],
           icons: ["@tabler/icons-react", "@heroicons/react"],
+          monaco: ["@monaco-editor/react", "monaco-editor"],
         },
       },
     },
