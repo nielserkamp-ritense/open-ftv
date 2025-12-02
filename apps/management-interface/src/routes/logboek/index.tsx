@@ -7,7 +7,6 @@ import type {ColDef, RowClassRules, RowClassParams, RowClickedEvent} from "ag-gr
 import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
-import {DateTime} from "luxon";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 
 export const Route = createFileRoute('/logboek/')({
@@ -28,7 +27,7 @@ const BeslissingRenderer = (params: CustomCellRendererProps) => {
 
 function RouteComponent() {
     const navigate = useNavigate();
-  const defaultStart = useMemo(() => DateTime.now().minus({days: 2}).toISO({ includeOffset: true }), []);
+  const defaultStart = useMemo(() => "2025-11-20T07:20:50.52Z", []);
   const {data} = useAuthlogEntries({start: defaultStart});
 
     const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => {
