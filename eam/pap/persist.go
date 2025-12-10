@@ -28,6 +28,8 @@ type PolicyPersister interface {
 	ReadPolicy(ctx context.Context, id string) (*models.Policy, uint64, error)
 	ReadPolicyAudit(ctx context.Context, id string) ([]oas.AuditEntry, error)
 	ReadPolicyDeployments(ctx context.Context, id string) ([]oas.UsageData, error)
+	ReadPolicyVersions(ctx context.Context, id string) (oas.PolicyVersions, error)
+	ReadPolicyVersion(ctx context.Context, id string, version int) (*oas.PolicyVersion, error)
 	UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error)
 	DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error)
 	ListPolicies(ctx context.Context, language string) ([]*models.Policy, error)

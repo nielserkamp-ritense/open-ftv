@@ -131,6 +131,9 @@ type Policy struct {
 
 	// UsageData Usage data for the policy.
 	UsageData []UsageData `json:"usageData,omitempty"`
+
+	// Versions Previous version numbers of the policy.
+	Versions []int `json:"versions,omitempty"`
 }
 
 // PolicyStatus The status of a policy.
@@ -141,6 +144,37 @@ type PolicyStatus struct {
 	// Status The current status of the policy ('concept', 'accepted', 'deployed').
 	Status string `json:"status"`
 }
+
+// PolicyVersion The content of a specific version of a policy.
+type PolicyVersion struct {
+	// Data Content of the policy. Required when the policy is stored internally.
+	Data string `json:"data,omitempty"`
+
+	// Id The unique identifier of the policy (UUID).
+	Id string `json:"id"`
+
+	// Language The language of the policy.
+	// The value is case-insensitive.
+	// The value is considered as one of the tags of the policy.
+	//
+	// Supported values:
+	// - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
+	// - "cedar".
+	// - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
+	// - "openfga"; alternative: "open-fga".
+	//
+	// Verify with the languages endpoint.
+	Language string `json:"language"`
+
+	// Metadata The metadata associated with a policy.
+	Metadata Metadata `json:"metadata"`
+
+	// Version The version number of the policy.
+	Version int `json:"version,omitempty"`
+}
+
+// PolicyVersions defines model for PolicyVersions.
+type PolicyVersions = []PolicyVersion
 
 // Tag The details of a tag.
 type Tag struct {
@@ -190,6 +224,9 @@ type IgnoreMissing = bool
 // PolicyID defines model for PolicyID.
 type PolicyID = string
 
+// Version defines model for Version.
+type Version = int
+
 // AccessDenied The response for an error (as defined by RFC9457).
 type AccessDenied = Error
 
@@ -219,6 +256,12 @@ type TagsResponse = Tags
 
 // UnexpectedError The response for an error (as defined by RFC9457).
 type UnexpectedError = Error
+
+// VersionResponse The content of a specific version of a policy.
+type VersionResponse = PolicyVersion
+
+// VersionsResponse defines model for VersionsResponse.
+type VersionsResponse = PolicyVersions
 
 // DeletePolicyParams defines parameters for DeletePolicy.
 type DeletePolicyParams struct {

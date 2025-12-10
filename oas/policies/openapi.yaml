@@ -228,6 +228,83 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /policy/{id}/versions:
+    parameters:
+      - $ref: "#/components/parameters/PolicyID"
+
+    get:
+      operationId: "get-policy-versions"
+      summary: Retrieve policy versions.
+      description: Retrieve all previous versions of a policy.
+      tags:
+        - open_ftv
+        - policy
+      responses:
+        "200":
+          $ref: "#/components/responses/VersionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /policy/{id}/version/{version}:
+    parameters:
+      - $ref: "#/components/parameters/PolicyID"
+      - $ref: "#/components/parameters/Version"
+
+    get:
+      operationId: "get-policy-version"
+      summary: Retrieve specific policy version.
+      description: Retrieve a specific version of a policy.
+      tags:
+        - open_ftv
+        - policy
+      responses:
+        "200":
+          $ref: "#/components/responses/VersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /policy/{id}/version/{version}/restore:
+    parameters:
+      - $ref: "#/components/parameters/PolicyID"
+      - $ref: "#/components/parameters/Version"
+
+    post:
+      operationId: "post-policy-version"
+      summary: Restore previous policy.
+      description: Restore a specific version of a policy.
+      tags:
+        - open_ftv
+        - policy
+      responses:
+        "200":
+          $ref: "#/components/responses/VersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
 components:
   parameters:
     PolicyID:
@@ -239,6 +316,15 @@ components:
       required: true
       description: Unique identifier of a policy (UUID).
       example: "b4911124-e92a-482f-80b4-eb02383378ae"
+
+    Version:
+      in: path
+      name: version
+      schema:
+        type: integer
+      required: true
+      description: Specific version of a policy.
+      example: 1
 
     ForceUpsert:
       in: query
@@ -310,6 +396,32 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Policy"
+
+    VersionsResponse:
+      description: Policy versions found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyVersions"
+
+    VersionResponse:
+      description: Policy version found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PolicyVersion"
 
     BadRequest:
       description: Bad request.
@@ -643,6 +755,11 @@ components:
           description: Audit log for the policy.
           items:
             $ref: "#/components/schemas/AuditEntry"
+        versions:
+          type: array
+          description: Previous version numbers of the policy.
+          items:
+            type: integer
         usageData:
           type: array
           description: Usage data for the policy.
@@ -672,6 +789,61 @@ components:
       required:
         - id
         - status
+
+    PolicyVersions:
+      type: array
+      items:
+        $ref: "#/components/schemas/PolicyVersion"
+
+    PolicyVersion:
+      type: object
+      description: The content of a specific version of a policy.
+      properties:
+        version:
+          type: integer
+          description: The version number of the policy.
+          example: 1
+        id:
+          type: string
+          maxLength: 36
+          description: The unique identifier of the policy (UUID).
+          example: "e8fce68e-beb6-494f-b6c1-9b0f8f6cac56"
+        language:
+          type: string
+          minLength: 3
+          maxLength: 40
+          description: |
+            The language of the policy.
+            The value is case-insensitive.
+            The value is considered as one of the tags of the policy.
+            
+            Supported values:
+            - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
+            - "cedar".
+            - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel". 
+            - "openfga"; alternative: "open-fga".
+            
+            Verify with the languages endpoint.
+          example: "cedar"
+        data:
+          type: string
+          description: Content of the policy. Required when the policy is stored internally.
+          example: |
+            permit (
+              principal == doelbinding::"subsidies",
+              action == action::"POST",
+              resource is service
+            )
+            when {
+              principal has brpPersonen &&
+              resource.code == "BRP"
+            };
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+      required:
+        - id
+        - language
+        - metadata
 
     Error:
       type: object

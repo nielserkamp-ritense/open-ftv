@@ -45,7 +45,7 @@ fi
 
 echo "metadata accessible" >> ${LOG}
 
-STATUS=$(curl --location --connect-timeout 5 --write-out %{http_code} --silent --output /dev/null ${URL3})
+STATUS=$(curl -X POST --location --connect-timeout 5 --write-out %{http_code} --silent --output /dev/null ${URL3})
 if [[ $STATUS != 200 ]]; then
   echo "failed to get endpoint; status = ${STATUS}" >> ${LOG}
   finito 1

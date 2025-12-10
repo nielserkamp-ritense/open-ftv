@@ -100,6 +100,11 @@ func (s *Services) initPolicies(group fiber.Router) {
 		Post(handle.PathPolicy, apis.PostPolicy).
 		Patch(handle.PathPolicyStatus, apis.PatchPolicyStatus).
 		Delete(handle.PathPolicy, apis.DeletePolicy)
+
+	// policy versions.
+	group.Get(handle.PathPolicyVersions, apis.GetPolicyVersions).
+		Get(handle.PathPolicyVersion, apis.GetPolicyVersion).
+		Post(handle.PathPolicyRestore, apis.PostPolicyRestore)
 }
 
 func (s *Services) initAttributes(group fiber.Router) {

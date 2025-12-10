@@ -303,6 +303,26 @@ func (p *Policy) ContentString() string {
 	return string(p.content)
 }
 
+// RestoreFrom updates a policy with all data from a previous version.
+//
+// The status of the policy is set to 'concept'.
+func (p *Policy) RestoreFrom(old *policies.PolicyVersion) *Policy {
+	p.language = old.Language
+	p.status = StatusConcept
+	p.title = old.Metadata.Title
+	p.description = old.Metadata.Description
+	p.rvvaID = old.Metadata.RvvaId
+	p.uri = old.Metadata.Url
+	p.content = []byte(old.Data)
+
+	clear(p.tags)
+	for i := range old.Metadata.Tags {
+		p.tags[old.Metadata.Tags[i]] = struct{}{}
+	}
+
+	return p
+}
+
 // ToOAS returns the OAS model for this Policy.
 func (p *Policy) ToOAS(withData bool) *policies.Policy {
 	p.mutex.RLock()

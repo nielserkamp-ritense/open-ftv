@@ -130,6 +130,61 @@ func (db *PolicyDB) ReadPolicyDeployments(ctx context.Context, id string) ([]oas
 	return out, nil
 }
 
+// ReadPolicyVersions retrieves the versions for the identified policy from the database.
+func (db *PolicyDB) ReadPolicyVersions(ctx context.Context, id string) (oas.PolicyVersions, error) {
+	sql := `SELECT version,language,id,title,description,rvva_id,uri,tags,content
+ FROM policy_version WHERE id=$1 ORDER BY version DESC`
+
+	params := []any{id}
+	out := make([]oas.PolicyVersion, 0)
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		out = append(out, polVersionFromDB(values))
+		return true
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ReadPolicyVersion retrieves a specific version for the identified policy from the database.
+func (db *PolicyDB) ReadPolicyVersion(ctx context.Context, id string, version int) (*oas.PolicyVersion, error) {
+	sql := `SELECT version,language,id,title,description,rvva_id,uri,tags,content
+ FROM policy_version WHERE version=$1 AND id=$2 ORDER BY version DESC`
+
+	params := []any{version, id}
+	var out *oas.PolicyVersion
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		pol := polVersionFromDB(values)
+		out = &pol
+		return false
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func polVersionFromDB(values []any) oas.PolicyVersion {
+	return oas.PolicyVersion{
+		Version:  int(convert.AnyToInt64(values[0])),
+		Language: convert.AnyToString(values[1]),
+		Id:       postgresql.AnyToUUID(values[2]),
+		Metadata: oas.Metadata{
+			Title:       convert.AnyToString(values[3]),
+			Description: convert.AnyToString(values[4]),
+			RvvaId:      convert.AnyToString(values[5]),
+			Url:         convert.AnyToString(values[6]),
+			Tags:        convert.AnyToStrings(values[7]),
+		},
+		Data: convert.AnyToString(values[8]),
+	}
+}
+
 // UpdatePolicy replaces an existing policy in the database.
 func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	now := db.now().UTC()

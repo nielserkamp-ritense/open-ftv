@@ -26,13 +26,39 @@ func (p *PAP) Read(id string) (out *models.Policy, lastIndex uint64, err error) 
 }
 
 // ReadAudit retrieves the audit-log for a policy from cache/storage.
-func (p *PAP) ReadAudit(id string) (out []oas.AuditEntry, err error) {
+func (p *PAP) ReadAudit(id string) ([]oas.AuditEntry, error) {
 	return p.policyDB.ReadPolicyAudit(p.ctx, id)
 }
 
 // ReadDeployments retrieves the deployment-log for a policy from cache/storage.
-func (p *PAP) ReadDeployments(id string) (out []oas.UsageData, err error) {
+func (p *PAP) ReadDeployments(id string) ([]oas.UsageData, error) {
 	return p.policyDB.ReadPolicyDeployments(p.ctx, id)
+}
+
+// ReadVersions retrieves the versions for a policy from cache/storage.
+func (p *PAP) ReadVersions(id string) (oas.PolicyVersions, error) {
+	return p.policyDB.ReadPolicyVersions(p.ctx, id)
+}
+
+// ReadVersion retrieves a specific version for a policy from cache/storage.
+func (p *PAP) ReadVersion(id string, version int) (*oas.PolicyVersion, error) {
+	return p.policyDB.ReadPolicyVersion(p.ctx, id, version)
+}
+
+// RestoreVersion restores a specific version of a policy as the current concept.
+func (p *PAP) RestoreVersion(id string, version int, user string) (*models.Policy, error) {
+	polOld, err := p.policyDB.ReadPolicyVersion(p.ctx, id, version)
+	if err != nil {
+		return nil, err
+	}
+
+	pol, lastIndex, err2 := p.policyDB.ReadPolicy(p.ctx, id)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	pol = pol.RestoreFrom(polOld)
+	return p.Update(pol, lastIndex, pol, user)
 }
 
 // Update modifies a policy in cache/storage with a newer version.

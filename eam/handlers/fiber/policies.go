@@ -25,9 +25,12 @@ const PoliciesVersion = "1.7.1" // check against oas/policies/openapi.yaml!
 type PoliciesHandler interface {
 	GetPolicies(req *fiber.Ctx) error       // retrieve all policies.
 	GetPolicy(req *fiber.Ctx) error         // retrieve a single policy.
+	GetPolicyVersions(req *fiber.Ctx) error // retrieve all versions of a policy.
+	GetPolicyVersion(req *fiber.Ctx) error  // retrieve a specific version of a policy.
 	PostPolicy(req *fiber.Ctx) error        // create a new policy.
 	PutPolicy(req *fiber.Ctx) error         // update an existing policy.
 	PatchPolicyStatus(req *fiber.Ctx) error // update the status of an existing policy.
+	PostPolicyRestore(req *fiber.Ctx) error // restore an old version of a policy.
 	DeletePolicy(req *fiber.Ctx) error      // remove an existing policy.
 }
 
@@ -95,6 +98,59 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	}
 
 	return req.JSON(out)
+}
+
+// GetPolicyVersions implements the PoliciesHandler interface.
+func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	list, err2 := h.cache.ReadVersions(id)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(list)
+}
+
+// GetPolicyVersion implements the PoliciesHandler interface.
+func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	pol, err2 := h.cache.ReadVersion(id, version)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if pol == nil {
+		return h.error(req, fiber.StatusNotFound, polNotFound)
+	}
+
+	return req.JSON(pol)
 }
 
 // PostPolicy implements the PoliciesHandler interface.
@@ -212,6 +268,33 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 	return req.JSON(p2.ToOAS(true))
 }
 
+// PostPolicyRestore implements the PoliciesHandler interface.
+func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, PoliciesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	pol, err2 := h.cache.RestoreVersion(id, version, user)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(pol)
+}
+
 // DeletePolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
@@ -255,6 +338,18 @@ func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	return id, true, nil
+}
+
+func (h *policiesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+	v, err := req.ParamsInt("version")
+	if err != nil {
+		return 0, false, err
+	}
+
+	if v <= 0 {
+		return 0, false, h.error(req, fiber.StatusBadRequest, polVersionError)
+	}
+	return v, true, nil
 }
 
 func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, bool, error) {
@@ -350,8 +445,9 @@ type policiesHandler struct {
 }
 
 var (
-	polNotFound   = errors.New("policy not found")
-	polExists     = errors.New("policy already exists")
-	polKeyError   = errors.New("policy id must be filled and less or equal 40 characters")
-	polUrlContent = errors.New("policy data or url required")
+	polNotFound     = errors.New("policy not found")
+	polExists       = errors.New("policy already exists")
+	polKeyError     = errors.New("policy id must be filled and less or equal 40 characters")
+	polVersionError = errors.New("policy version must be filled and positive")
+	polUrlContent   = errors.New("policy data or url required")
 )
