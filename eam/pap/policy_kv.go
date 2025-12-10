@@ -1,5 +1,7 @@
 package pap
 
+// This file is deprecated. Please use the PostgreSQL persistence backend.
+
 import (
 	"context"
 	"errors"
@@ -81,14 +83,28 @@ func (s *KeyValueDB) ReadPolicy(ctx context.Context, id string) (*models.Policy,
 // ReadPolicyAudit retrieves the audit-log for the identified policy from the database.
 //
 // Not supported for key-value stores.
-func (s *KeyValueDB) ReadPolicyAudit(_ context.Context, _ string) ([]policies.AuditEntry, error) {
+func (s *KeyValueDB) ReadPolicyAudit(context.Context, string) ([]policies.AuditEntry, error) {
 	return nil, nil
 }
 
 // ReadPolicyDeployments retrieves the deployment-log for the identified policy from the database.
 //
 // Not supported for key-value stores.
-func (s *KeyValueDB) ReadPolicyDeployments(_ context.Context, _ string) ([]policies.UsageData, error) {
+func (s *KeyValueDB) ReadPolicyDeployments(context.Context, string) ([]policies.UsageData, error) {
+	return nil, nil
+}
+
+// ReadPolicyVersions retrieves the versions for the identified policy from the database.
+//
+// Not supported for key-value stores.
+func (s *KeyValueDB) ReadPolicyVersions(context.Context, string) (policies.PolicyVersions, error) {
+	return nil, nil
+}
+
+// ReadPolicyVersion retrieves a specific version for the identified policy from the database.
+//
+// Not supported for key-value stores.
+func (s *KeyValueDB) ReadPolicyVersion(context.Context, string, int) (*policies.PolicyVersion, error) {
 	return nil, nil
 }
 
