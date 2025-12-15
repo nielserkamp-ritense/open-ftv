@@ -53,13 +53,20 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 		ctx = context.Background()
 	}
 
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		w = nil // this means file handles are exhausted!
+	}
+
 	p := &PIP{
 		ctx:              ctx,
 		logger:           logger,
 		attributeUpdates: make([]string, 0),
 		attributeDeletes: make([]string, 0),
+		attributeWatcher: w,
 		entityUpdates:    make([]string, 0),
 		entityDeletes:    make([]string, 0),
+		entityWatcher:    w,
 		dynamicData: dynamicData{
 			attributes: models.NewAttributeSet(),
 			entities:   models.NewEntitySet(),

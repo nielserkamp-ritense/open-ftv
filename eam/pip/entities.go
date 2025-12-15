@@ -57,16 +57,56 @@ func (p *PIP) GetEntity(uid string) (*models.Entity, uint64, error) {
 	return p.entityDB.ReadEntity(p.ctx, ns, id)
 }
 
-// GetEntityAudit retrieves the audit-log of an attribute from the PIP.
+// GetEntityAudit retrieves the audit-log of an entity from the PIP.
 func (p *PIP) GetEntityAudit(uid string) ([]oas.AuditEntry, error) {
 	ns, id := models.SplitEntityUID(uid)
 	return p.entityDB.ReadEntityAudit(p.ctx, ns, id)
 }
 
-// GetEntityDeployments retrieves the deployment-log of an attribute from the PIP.
+// GetEntityDeployments retrieves the deployment-log of an entity from the PIP.
 func (p *PIP) GetEntityDeployments(uid string) ([]oas.UsageData, error) {
 	ns, id := models.SplitEntityUID(uid)
 	return p.entityDB.ReadEntityDeployments(p.ctx, ns, id)
+}
+
+// GetEntityVersions retrieves the versions of an entity from the PIP.
+func (p *PIP) GetEntityVersions(uid string) (oas.EntityVersions, error) {
+	ns, id := models.SplitEntityUID(uid)
+	return p.entityDB.ReadEntityVersions(p.ctx, ns, id)
+}
+
+// GetEntityVersion retrieves a specific version of an entity from the PIP.
+func (p *PIP) GetEntityVersion(uid string, version int) (*oas.EntityVersion, error) {
+	ns, id := models.SplitEntityUID(uid)
+	return p.entityDB.ReadEntityVersion(p.ctx, ns, id, version)
+}
+
+// RestoreEntityVersion restores a specific version of an entity as the current concept.
+func (p *PIP) RestoreEntityVersion(uid string, version int, user string) (*models.Entity, error) {
+	ns, id := models.SplitEntityUID(uid)
+
+	entOld, err := p.entityDB.ReadEntityVersion(p.ctx, ns, id, version)
+	if err != nil {
+		return nil, err
+	}
+
+	ent, lastIndex, err2 := p.entityDB.ReadEntity(p.ctx, ns, id)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	ent = ent.RestoreFrom(entOld)
+	return p.UpdateEntity(ent, lastIndex, ent, user)
+}
+
+// UpdateEntity modifies an entity in cache/storage with a newer version.
+//
+// An error is returned if the entity type/id doesn't exist.
+func (p *PIP) UpdateEntity(prev *models.Entity, lastIndex uint64, in *models.Entity, user string) (out *models.Entity, err error) {
+	if out, err = p.entityDB.UpdateEntity(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.EntityReplaced, out.UID())
+	}
+	return
 }
 
 // UpdateEntityStatus updates the status of an attribute in cache/storage.
@@ -81,7 +121,7 @@ func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user string) 
 
 	if (prev.Status() == models.StatusConcept && status == models.StatusAccepted) ||
 		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
-		return p.AddEntity(prev.WithStatus(status))
+		return p.AddEntityWithUser(prev.WithStatus(status), user)
 	}
 	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
 }

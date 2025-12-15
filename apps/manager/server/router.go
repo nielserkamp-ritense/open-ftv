@@ -117,6 +117,11 @@ func (s *Services) initAttributes(group fiber.Router) {
 		Post(handle.PathAttribute, apis.PostAttribute).
 		Patch(handle.PathAttributeStatus, apis.PatchAttributeStatus).
 		Delete(handle.PathAttribute, apis.DeleteAttribute)
+
+	// attribute versions.
+	group.Get(handle.PathAttributeVersions, apis.GetAttributeVersions).
+		Get(handle.PathAttributeVersion, apis.GetAttributeVersion).
+		Post(handle.PathAttributeRestore, apis.PostAttributeRestore)
 }
 
 func (s *Services) initEntities(group fiber.Router) {
@@ -129,6 +134,11 @@ func (s *Services) initEntities(group fiber.Router) {
 		Post(handle.PathEntity, apis.PostEntity).
 		Patch(handle.PathEntityStatus, apis.PatchEntityStatus).
 		Delete(handle.PathEntity, apis.DeleteEntity)
+
+	// entity versions.
+	group.Get(handle.PathEntityVersions, apis.GetEntityVersions).
+		Get(handle.PathEntityVersion, apis.GetEntityVersion).
+		Post(handle.PathEntityRestore, apis.PostEntityRestore)
 }
 
 func (s *Services) initRelations(_ fiber.Router) {

@@ -73,17 +73,31 @@ func (s *entityStore) ReadEntity(ctx context.Context, ns, id string) (*models.En
 	return e, kv.LastIndex, nil
 }
 
-// ReadEntityAudit retrieves the audit-log for the identified policy from the database.
+// ReadEntityAudit retrieves the audit-log for the identified entity from the database.
 //
 // Not implemented in key-value stores.
-func (db *entityStore) ReadEntityAudit(_ context.Context, _, _ string) ([]oas.AuditEntry, error) {
+func (s *entityStore) ReadEntityAudit(context.Context, string, string) ([]oas.AuditEntry, error) {
 	return nil, nil
 }
 
-// ReadEntityDeployments retrieves the deployment-log for the identified policy from the database.
+// ReadEntityDeployments retrieves the deployment-log for the identified entity from the database.
 //
 // Not implemented in key-value stores.
-func (db *entityStore) ReadEntityDeployments(_ context.Context, _, _ string) ([]oas.UsageData, error) {
+func (s *entityStore) ReadEntityDeployments(context.Context, string, string) ([]oas.UsageData, error) {
+	return nil, nil
+}
+
+// ReadEntityVersions retrieves the versions for the identified entity from the database.
+//
+// Not supported for key-value stores.
+func (s *entityStore) ReadEntityVersions(context.Context, string, string) (oas.EntityVersions, error) {
+	return nil, nil
+}
+
+// ReadEntityVersion retrieves a specific version for the identified entity from the database.
+//
+// Not supported for key-value stores.
+func (s *entityStore) ReadEntityVersion(context.Context, string, string, int) (*oas.EntityVersion, error) {
 	return nil, nil
 }
 

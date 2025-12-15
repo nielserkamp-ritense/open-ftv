@@ -196,6 +196,83 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /attribute/{key}/versions:
+    parameters:
+      - $ref: "#/components/parameters/AttributeKey"
+
+    get:
+      operationId: "get-attribute-versions"
+      summary: Retrieve attribute versions.
+      description: Retrieve all previous versions of an attribute.
+      tags:
+        - open_ftv
+        - attribute
+      responses:
+        "200":
+          $ref: "#/components/responses/AttributeVersionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /attribute/{key}/version/{version}:
+    parameters:
+      - $ref: "#/components/parameters/AttributeKey"
+      - $ref: "#/components/parameters/Version"
+
+    get:
+      operationId: "get-attribute-version"
+      summary: Retrieve specific attribute version.
+      description: Retrieve a specific version of an attribute.
+      tags:
+        - open_ftv
+        - attribute
+      responses:
+        "200":
+          $ref: "#/components/responses/AttributeVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /attribute/{key}/version/{version}/restore:
+    parameters:
+      - $ref: "#/components/parameters/AttributeKey"
+      - $ref: "#/components/parameters/Version"
+
+    post:
+      operationId: "post-attribute-version"
+      summary: Restore previous attribute.
+      description: Restore a specific version of an attribute.
+      tags:
+        - open_ftv
+        - attribute
+      responses:
+        "200":
+          $ref: "#/components/responses/AttributeVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
   /entities:
     get:
       operationId: "get-entities"
@@ -370,6 +447,86 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /entity/{type}/{id}/versions:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+
+    get:
+      operationId: "get-entity-versions"
+      summary: Retrieve entity versions.
+      description: Retrieve all previous versions of an entity.
+      tags:
+        - open_ftv
+        - entity
+      responses:
+        "200":
+          $ref: "#/components/responses/EntityVersionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /entity/{type}/{id}/version/{version}:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+      - $ref: "#/components/parameters/Version"
+
+    get:
+      operationId: "get-entity-version"
+      summary: Retrieve specific entity version.
+      description: Retrieve a specific version of an entity.
+      tags:
+        - open_ftv
+        - entity
+      responses:
+        "200":
+          $ref: "#/components/responses/EntityVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /entity/{type}/{id}/version/{version}/restore:
+    parameters:
+      - $ref: "#/components/parameters/EntityType"
+      - $ref: "#/components/parameters/EntityID"
+      - $ref: "#/components/parameters/Version"
+
+    post:
+      operationId: "post-entity-version"
+      summary: Restore previous entity.
+      description: Restore a specific version of an entity.
+      tags:
+        - open_ftv
+        - entity
+      responses:
+        "200":
+          $ref: "#/components/responses/EntityVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
   /relations:
     get:
       operationId: "get-relations"
@@ -542,6 +699,83 @@ paths:
         "500":
           $ref: "#/components/responses/UnexpectedError"
 
+  /relation/{id}/versions:
+    parameters:
+      - $ref: "#/components/parameters/RelationID"
+
+    get:
+      operationId: "get-relation-versions"
+      summary: Retrieve relation versions.
+      description: Retrieve all previous versions of a relation.
+      tags:
+        - open_ftv
+        - relation
+      responses:
+        "200":
+          $ref: "#/components/responses/RelationVersionsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /relation/{id}/version/{version}:
+    parameters:
+      - $ref: "#/components/parameters/RelationID"
+      - $ref: "#/components/parameters/Version"
+
+    get:
+      operationId: "get-relation-version"
+      summary: Retrieve specific relation version.
+      description: Retrieve a specific version of a relation.
+      tags:
+        - open_ftv
+        - relation
+      responses:
+        "200":
+          $ref: "#/components/responses/RelationVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /relation/{id}/version/{version}/restore:
+    parameters:
+      - $ref: "#/components/parameters/RelationID"
+      - $ref: "#/components/parameters/Version"
+
+    post:
+      operationId: "post-relation-version"
+      summary: Restore previous relation.
+      description: Restore a specific version of a relation.
+      tags:
+        - open_ftv
+        - relation
+      responses:
+        "200":
+          $ref: "#/components/responses/RelationVersionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
 components:
   parameters:
     AttributeKey:
@@ -582,6 +816,15 @@ components:
         maxLength: 36
       required: true
       description: Unique identifier of a relation (UUID).
+
+    Version:
+      in: path
+      name: version
+      schema:
+        type: integer
+      required: true
+      description: Specific version of an object.
+      example: 1
 
     ForceUpsert:
       in: query
@@ -624,6 +867,30 @@ components:
           schema:
             $ref: "#/components/schemas/Attribute"
 
+    AttributeVersionsResponse:
+      description: Attribute versions found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AttributeVersions"
+    
+    AttributeVersionResponse:
+      description: Attribute version found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AttributeVersion"
+
     EntitiesResponse:
       description: Entities found.
       headers:
@@ -648,6 +915,30 @@ components:
           schema:
             $ref: "#/components/schemas/Entity"
 
+    EntityVersionsResponse:
+      description: Entity versions found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EntityVersions"
+    
+    EntityVersionResponse:
+      description: Entity version found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EntityVersion"
+
     RelationsResponse:
       description: Relations found.
       headers:
@@ -671,6 +962,30 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Relation"
+
+    RelationVersionsResponse:
+      description: Relation versions found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RelationVersions"
+    
+    RelationVersionResponse:
+      description: Relation version found.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RelationVersion"
 
     BadRequest:
       description: Bad request.
@@ -936,6 +1251,55 @@ components:
         - key
         - status
 
+    AttributeVersions:
+      type: array
+      items:
+        $ref: "#/components/schemas/AttributeVersion"
+
+    AttributeVersion:
+      type: object
+      description: The content of a specific version of an attribute (key/value pair).
+      properties:
+        version:
+          type: integer
+          description: The version number of the attribute.
+          example: 1
+        key:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The unique key of the attribute.
+          example: "gemeentecode"
+        value:
+          description: The value of the attribute.
+          example: "0123"
+        type:
+          type: string
+          maxLength: 40
+          description: |
+            The optional type of a value. By default a value is stored as-is (e.g., JSON type).
+            
+            The following codes for type are supported: 
+            "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
+            Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
+            
+            An *integer* value (of any size) is stored as a 64-bit signed or unsigned integer.
+            
+            A *float* value is stored with double precision.
+            
+            A *boolean* value can be *true* (case-insensitive) or *1* to represent a true state,
+            or any other value to represent a false state.
+            
+            A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
+            If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+      required:
+        - version
+        - key
+        - value
+        - metadata
+
     Entities:
       type: array
       items:
@@ -1016,6 +1380,44 @@ components:
         - type
         - id
         - status
+
+    EntityVersions:
+      type: array
+      items:
+        $ref: "#/components/schemas/EntityVersion"
+
+    EntityVersion:
+      type: object
+      description: The content of a specific version of an entity.
+      properties:
+        version:
+          type: integer
+          description: The version number of the entity.
+          example: 1
+        type:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: The type of entity.
+          example: "user"
+        id:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The identification of the entity.
+          example: "alice"
+        attributes:
+          type: array
+          description: Optional attributes of the entity.
+          items:
+            $ref: "#/components/schemas/Attribute"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+      required:
+        - version
+        - type
+        - id
+        - metadata
 
     Relations:
       type: array
@@ -1116,6 +1518,71 @@ components:
       required:
         - id
         - status
+
+    RelationVersions:
+      type: array
+      items:
+        $ref: "#/components/schemas/RelationVersion"
+
+    RelationVersion:
+      type: object
+      description: The content of a specific version of a relation.
+      properties:
+        version:
+          type: integer
+          description: The version number of the relation.
+          example: 1
+        id:
+          type: string
+          maxLength: 36
+          description: The unique identifier of the relation (UUID).
+          example: "f1e40dfa-7e2a-4767-81a7-65f790d3bbcd"
+        subjectType:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: The type of subject of the relation.
+          example: "user"
+        subjectId:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The identifier of the subject of the relation.
+          example: "alice"
+        relation:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: The type of relation.
+          example: "managerOf"
+        objectType:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: The type of object of the relation.
+          example: "user"
+        objectId:
+          type: string
+          minLength: 3
+          maxLength: 200
+          description: The identifier of the object of the relation.
+          example: "bob"
+        attributes:
+          type: array
+          description: Optional attributes of the relation.
+          items:
+            $ref: "#/components/schemas/Attribute"
+        metadata:
+          $ref: "#/components/schemas/Metadata"
+      required:
+        - version
+        - id
+        - subjectType
+        - subjectId
+        - relation
+        - objectType
+        - objectId
+        - metadata
 
     Error:
       type: object

@@ -191,6 +191,26 @@ func (a *Attribute) HasTag(tag string) bool {
 	return ok
 }
 
+// RestoreFrom updates an attribute with all data from a previous version.
+//
+// The status of the attribute is set to 'concept'.
+func (a *Attribute) RestoreFrom(old *attributes.AttributeVersion) *Attribute {
+	a.key = old.Key
+	a.tp = old.Type
+	a.value = old.Value
+	a.original = old.Value
+	a.status = StatusConcept
+	a.title = old.Metadata.Title
+	a.description = old.Metadata.Description
+
+	clear(a.tags)
+	for i := range old.Metadata.Tags {
+		a.tags[old.Metadata.Tags[i]] = struct{}{}
+	}
+
+	return a
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 func (a *Attribute) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a.newMarshallAttr())

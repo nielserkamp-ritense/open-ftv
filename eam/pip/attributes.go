@@ -80,12 +80,48 @@ func (p *PIP) GetAttributeDeployments(key string) ([]oas.UsageData, error) {
 	return p.attributeDB.ReadAttributeDeployments(p.ctx, key)
 }
 
+// GetAttributeVersions retrieves the versions of an attribute from the PIP.
+func (p *PIP) GetAttributeVersions(key string) (oas.AttributeVersions, error) {
+	return p.attributeDB.ReadAttributeVersions(p.ctx, key)
+}
+
+// GetAttributeVersion retrieves a specific version of an attribute from the PIP.
+func (p *PIP) GetAttributeVersion(key string, version int) (*oas.AttributeVersion, error) {
+	return p.attributeDB.ReadAttributeVersion(p.ctx, key, version)
+}
+
 // GetAttributeValue retrieves the value of an attribute value from the PIP.
 func (p *PIP) GetAttributeValue(key string) any {
 	if a, _, _ := p.attributeDB.ReadAttribute(p.ctx, key); a != nil {
 		return a.Value()
 	}
 	return nil
+}
+
+// RestoreAttributeVersion restores a specific version of an attribute as the current concept.
+func (p *PIP) RestoreAttributeVersion(key string, version int, user string) (*models.Attribute, error) {
+	attrOld, err := p.attributeDB.ReadAttributeVersion(p.ctx, key, version)
+	if err != nil {
+		return nil, err
+	}
+
+	attr, lastIndex, err2 := p.attributeDB.ReadAttribute(p.ctx, key)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	attr = attr.RestoreFrom(attrOld)
+	return p.UpdateAttribute(attr, lastIndex, attr, user)
+}
+
+// UpdateAttribute modifies an attribute in cache/storage with a newer version.
+//
+// An error is returned if the attribute-key doesn't exist.
+func (p *PIP) UpdateAttribute(prev *models.Attribute, lastIndex uint64, in *models.Attribute, user string) (out *models.Attribute, err error) {
+	if out, err = p.attributeDB.UpdateAttribute(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+		p.sendEvent(models.AttributeReplaced, out.Key())
+	}
+	return
 }
 
 // UpdateAttributeStatus updates the status of an attribute in cache/storage.

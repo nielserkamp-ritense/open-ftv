@@ -21,9 +21,12 @@ const AttributesVersion = "1.7.1" // check against oas/attributes/openapi.yaml!
 type AttributesHandler interface {
 	GetAttributes(req *fiber.Ctx) error
 	GetAttribute(req *fiber.Ctx) error
+	GetAttributeVersions(req *fiber.Ctx) error
+	GetAttributeVersion(req *fiber.Ctx) error
 	PostAttribute(req *fiber.Ctx) error
 	PutAttribute(req *fiber.Ctx) error
 	PatchAttributeStatus(req *fiber.Ctx) error
+	PostAttributeRestore(req *fiber.Ctx) error
 	DeleteAttribute(req *fiber.Ctx) error
 }
 
@@ -87,6 +90,59 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	}
 
 	return req.JSON(out)
+}
+
+// GetAttributeVersions implements the AttributesHandler interface.
+func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	list, err2 := h.cache.GetAttributeVersions(id)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(list)
+}
+
+// GetAttributeVersion implements the AttributesHandler interface.
+func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var id string
+	if id, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	attr, err2 := h.cache.GetAttributeVersion(id, version)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if attr == nil {
+		return h.error(req, fiber.StatusNotFound, attrNotFound)
+	}
+
+	return req.JSON(attr)
 }
 
 // PostAttribute implements the AttributesHandler interface.
@@ -195,6 +251,33 @@ func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 	return req.JSON(a2.ToOAS())
 }
 
+// PostAttributeRestore implements the AttributesHandler interface.
+func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var key string
+	if key, ok, err = h.checkKey(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	attr, err2 := h.cache.RestoreAttributeVersion(key, version, user)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(attr)
+}
+
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
@@ -230,6 +313,18 @@ func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
 		return "", false, h.error(req, fiber.StatusBadRequest, attrKeyError)
 	}
 	return key, true, nil
+}
+
+func (h *attributesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+	v, err := req.ParamsInt("version")
+	if err != nil {
+		return 0, false, err
+	}
+
+	if v <= 0 {
+		return 0, false, h.error(req, fiber.StatusBadRequest, attrVersionError)
+	}
+	return v, true, nil
 }
 
 func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*oas.Attribute, bool, error) {
@@ -288,7 +383,8 @@ type attributesHandler struct {
 }
 
 var (
-	attrNotFound = errors.New("attribute not found")
-	attrExists   = errors.New("attribute already exists")
-	attrKeyError = errors.New("attribute key must be filled and less or equal 500 characters")
+	attrNotFound     = errors.New("attribute not found")
+	attrExists       = errors.New("attribute already exists")
+	attrKeyError     = errors.New("attribute key must be filled and less or equal 500 characters")
+	attrVersionError = errors.New("attribute version must be filled and positive")
 )

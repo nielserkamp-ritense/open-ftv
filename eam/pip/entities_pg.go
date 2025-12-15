@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // CreateEntity creates a new entity in the database.
@@ -104,6 +105,61 @@ func (db *PostgresDB) ReadEntityDeployments(ctx context.Context, ns, id string) 
 		return nil, err
 	}
 	return out, nil
+}
+
+// ReadEntityVersions retrieves the versions for the identified attribute from the database.
+func (db *PostgresDB) ReadEntityVersions(ctx context.Context, ns, id string) (oas.EntityVersions, error) {
+	sql := `SELECT version,type,id,title,description,tags,attributes,parents
+ FROM entity_version WHERE type=$1 AND id=$2 ORDER BY version DESC`
+
+	params := []any{ns, id}
+	out := make([]oas.EntityVersion, 0)
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		out = append(out, entityVersionFromDB(values))
+		return true
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ReadEntityVersion retrieves a specific version for the identified attribute from the database.
+func (db *PostgresDB) ReadEntityVersion(ctx context.Context, ns, id string, version int) (*oas.EntityVersion, error) {
+	sql := `SELECT version,type,id,title,description,tags,attributes,parents
+ FROM attribute_version WHERE version=$1 AND type=$2 AND id=$3 ORDER BY version DESC`
+
+	params := []any{version, ns, id}
+	var out *oas.EntityVersion
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		pol := entityVersionFromDB(values)
+		out = &pol
+		return false // there can only be one
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func entityVersionFromDB(values []any) oas.EntityVersion {
+	attrs, _ := gobDecodeAttributes(values[6].([]byte))
+
+	return oas.EntityVersion{
+		Version:    int(convert.AnyToInt64(values[0])),
+		Type:       postgresql.AnyToUUID(values[1]),
+		Id:         convert.AnyToString(values[2]),
+		Attributes: attrs.ToOAS(),
+		Metadata: oas.Metadata{
+			Title:       convert.AnyToString(values[3]),
+			Description: convert.AnyToString(values[4]),
+			Tags:        convert.AnyToStrings(values[5]),
+		},
+	}
 }
 
 // UpdateEntity replaces an existing entity in the database.

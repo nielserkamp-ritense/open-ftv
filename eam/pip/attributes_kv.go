@@ -70,17 +70,31 @@ func (s *attributeStore) ReadAttribute(ctx context.Context, id string) (*models.
 	return a, kv.LastIndex, nil
 }
 
-// ReadAttributeAudit retrieves the audit-log for the identified policy from the database.
+// ReadAttributeAudit retrieves the audit-log for the identified attribute from the database.
 //
 // Not implemented in key-value stores.
-func (db *attributeStore) ReadAttributeAudit(_ context.Context, _ string) ([]oas.AuditEntry, error) {
+func (s *attributeStore) ReadAttributeAudit(_ context.Context, _ string) ([]oas.AuditEntry, error) {
 	return nil, nil
 }
 
-// ReadAttributeDeployments retrieves the deployment-log for the identified policy from the database.
+// ReadAttributeDeployments retrieves the deployment-log for the identified attribute from the database.
 //
 // Not implemented in key-value stores.
-func (db *attributeStore) ReadAttributeDeployments(_ context.Context, _ string) ([]oas.UsageData, error) {
+func (s *attributeStore) ReadAttributeDeployments(_ context.Context, _ string) ([]oas.UsageData, error) {
+	return nil, nil
+}
+
+// ReadAttributeVersions retrieves the versions for the identified attribute from the database.
+//
+// Not supported for key-value stores.
+func (s *attributeStore) ReadAttributeVersions(context.Context, string) (oas.AttributeVersions, error) {
+	return nil, nil
+}
+
+// ReadAttributeVersion retrieves a specific version for the identified attribute from the database.
+//
+// Not supported for key-value stores.
+func (s *attributeStore) ReadAttributeVersion(context.Context, string, int) (*oas.AttributeVersion, error) {
 	return nil, nil
 }
 
