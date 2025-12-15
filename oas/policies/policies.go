@@ -170,7 +170,7 @@ type PolicyVersion struct {
 	Metadata Metadata `json:"metadata"`
 
 	// Version The version number of the policy.
-	Version int `json:"version,omitempty"`
+	Version int `json:"version"`
 }
 
 // PolicyVersions defines model for PolicyVersions.

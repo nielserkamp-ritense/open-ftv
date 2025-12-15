@@ -21,9 +21,12 @@ const EntitiesVersion = AttributesVersion
 type EntitiesHandler interface {
 	GetEntities(req *fiber.Ctx) error
 	GetEntity(req *fiber.Ctx) error
+	GetEntityVersions(req *fiber.Ctx) error
+	GetEntityVersion(req *fiber.Ctx) error
 	PostEntity(req *fiber.Ctx) error
 	PutEntity(req *fiber.Ctx) error
 	PatchEntityStatus(req *fiber.Ctx) error
+	PostEntityRestore(req *fiber.Ctx) error
 	DeleteEntity(req *fiber.Ctx) error
 }
 
@@ -89,6 +92,59 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	}
 
 	return req.JSON(out)
+}
+
+// GetEntityVersions implements the EntitiesHandler interface.
+func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var ns, id string
+	if ns, id, ok, err = h.checkUID(req); !ok {
+		return err
+	}
+
+	list, err2 := h.cache.GetEntityVersions(models.EntityUID(ns, id))
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(list)
+}
+
+// GetEntityVersion implements the EntitiesHandler interface.
+func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, AttributesVersion)
+
+	_, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var ns, id string
+	if ns, id, ok, err = h.checkUID(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	e, err2 := h.cache.GetEntityVersion(models.EntityUID(ns, id), version)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	if e == nil {
+		return h.error(req, fiber.StatusNotFound, attrNotFound)
+	}
+
+	return req.JSON(e)
 }
 
 // PostEntity implements the EntitiesHandler interface.
@@ -182,17 +238,46 @@ func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 		return err
 	}
 
-	e2, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
+	uid := models.EntityUID(e1.Type, e1.Id)
+
+	e2, _, err2 := h.cache.GetEntity(uid)
 	if err2 != nil {
 		h.logger.Error("failed to get attribute", "error", err2)
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	if e2, err2 = h.cache.UpdateEntityStatus(models.EntityUID(e1.Type, e1.Id), models.StatusFromString(e1.Status), user); err2 != nil {
+	if e2, err2 = h.cache.UpdateEntityStatus(uid, models.StatusFromString(e1.Status), user); err2 != nil {
 		h.logger.Error("failed to save entity status", "error", err2)
 		return h.error(req, fiber.StatusBadRequest, err2)
 	}
 	return req.JSON(e2.ToOAS())
+}
+
+// PostEntityRestore implements the AttributesHandler interface.
+func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
+	req.Set(HeaderVersion, EntitiesVersion)
+
+	user, ok, err := h.authorize(req)
+	if !ok {
+		return err
+	}
+
+	var ns, id string
+	if ns, id, ok, err = h.checkUID(req); !ok {
+		return err
+	}
+
+	var version int
+	if version, ok, err = h.checkVersion(req); !ok {
+		return err
+	}
+
+	e, err2 := h.cache.RestoreEntityVersion(models.EntityUID(ns, id), version, user)
+	if err2 != nil {
+		return h.error(req, fiber.StatusInternalServerError, err2)
+	}
+
+	return req.JSON(e)
 }
 
 // DeleteEntity implements the EntitiesHandler interface.
@@ -242,6 +327,18 @@ func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error)
 	}
 
 	return ns, id, true, nil
+}
+
+func (h *entitiesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+	v, err := req.ParamsInt("version")
+	if err != nil {
+		return 0, false, err
+	}
+
+	if v <= 0 {
+		return 0, false, h.error(req, fiber.StatusBadRequest, entityVersionError)
+	}
+	return v, true, nil
 }
 
 func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity, bool, error) {
@@ -302,8 +399,9 @@ type entitiesHandler struct {
 }
 
 var (
-	entityNotFound  = errors.New("entity not found")
-	entityExists    = errors.New("entity already exists")
-	entityTypeError = errors.New("entity type must be filled and less or equal 80 characters")
-	entityIDError   = errors.New("entity ID must be filled and less or equal 200 characters")
+	entityNotFound     = errors.New("entity not found")
+	entityExists       = errors.New("entity already exists")
+	entityTypeError    = errors.New("entity type must be filled and less or equal 80 characters")
+	entityIDError      = errors.New("entity ID must be filled and less or equal 200 characters")
+	entityVersionError = errors.New("entity version must be filled and positive")
 )

@@ -12,6 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // CreateAttribute creates a new attribute in the database.
@@ -109,6 +110,61 @@ func (db *PostgresDB) ReadAttributeDeployments(ctx context.Context, key string) 
 		return nil, err
 	}
 	return out, nil
+}
+
+// ReadAttributeVersions retrieves the versions for the identified attribute from the database.
+func (db *PostgresDB) ReadAttributeVersions(ctx context.Context, key string) (oas.AttributeVersions, error) {
+	sql := `SELECT version,key,type,title,description,value,original,tags
+ FROM attribute_version WHERE key=$1 ORDER BY version DESC`
+
+	params := []any{key}
+	out := make([]oas.AttributeVersion, 0)
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		out = append(out, attrVersionFromDB(values))
+		return true
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ReadAttributeVersion retrieves a specific version for the identified attribute from the database.
+func (db *PostgresDB) ReadAttributeVersion(ctx context.Context, key string, version int) (*oas.AttributeVersion, error) {
+	sql := `SELECT version,key,type,title,description,value,original,tags
+ FROM attribute_version WHERE version=$1 AND key=$2 ORDER BY version DESC`
+
+	params := []any{version, key}
+	var out *oas.AttributeVersion
+
+	err := db.p.Query(ctx, sql, params, func(values []any) bool {
+		pol := attrVersionFromDB(values)
+		out = &pol
+		return false // there can only be one
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func attrVersionFromDB(values []any) oas.AttributeVersion {
+	v, _ := decodeValues(values[5], values[6])
+
+	return oas.AttributeVersion{
+		Version: int(convert.AnyToInt64(values[0])),
+		Key:     postgresql.AnyToUUID(values[1]),
+		Type:    convert.AnyToString(values[2]),
+		Value:   v,
+		Metadata: oas.Metadata{
+			Title:       convert.AnyToString(values[3]),
+			Description: convert.AnyToString(values[4]),
+			Tags:        convert.AnyToStrings(values[7]),
+		},
+	}
 }
 
 // UpdateAttribute replaces an existing attribute in the database.

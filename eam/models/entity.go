@@ -191,6 +191,25 @@ func (e *Entity) HasTag(tag string) bool {
 	return ok
 }
 
+// RestoreFrom updates an entity with all data from a previous version.
+//
+// The status of the entity is set to 'concept'.
+func (e *Entity) RestoreFrom(old *attributes.EntityVersion) *Entity {
+	e.ns = old.Type
+	e.id = old.Id
+	e.status = StatusConcept
+	e.title = old.Metadata.Title
+	e.description = old.Metadata.Description
+	e.attrs = AttributeSetFromOAS(old.Attributes)
+
+	clear(e.tags)
+	for i := range old.Metadata.Tags {
+		e.tags[old.Metadata.Tags[i]] = struct{}{}
+	}
+
+	return e
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 func (e *Entity) MarshalJSON() ([]byte, error) {
 	e.mutex.RLock()

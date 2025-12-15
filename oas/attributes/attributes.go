@@ -53,6 +53,41 @@ type AttributeStatus struct {
 	Status string `json:"status"`
 }
 
+// AttributeVersion The content of a specific version of an attribute (key/value pair).
+type AttributeVersion struct {
+	// Key The unique key of the attribute.
+	Key string `json:"key"`
+
+	// Metadata The metadata associated with an object.
+	Metadata Metadata `json:"metadata"`
+
+	// Type The optional type of a value. By default a value is stored as-is (e.g., JSON type).
+	//
+	// The following codes for type are supported:
+	// "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
+	// Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
+	//
+	// An *integer* value (of any size) is stored as a 64-bit signed or unsigned integer.
+	//
+	// A *float* value is stored with double precision.
+	//
+	// A *boolean* value can be *true* (case-insensitive) or *1* to represent a true state,
+	// or any other value to represent a false state.
+	//
+	// A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
+	// If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
+	Type string `json:"type,omitempty"`
+
+	// Value The value of the attribute.
+	Value interface{} `json:"value"`
+
+	// Version The version number of the attribute.
+	Version int `json:"version"`
+}
+
+// AttributeVersions defines model for AttributeVersions.
+type AttributeVersions = []AttributeVersion
+
 // Attributes defines model for Attributes.
 type Attributes = []Attribute
 
@@ -111,6 +146,27 @@ type EntityStatus struct {
 	// Type The type of entity.
 	Type string `json:"type"`
 }
+
+// EntityVersion The content of a specific version of an entity.
+type EntityVersion struct {
+	// Attributes Optional attributes of the entity.
+	Attributes []Attribute `json:"attributes,omitempty"`
+
+	// Id The identification of the entity.
+	Id string `json:"id"`
+
+	// Metadata The metadata associated with an object.
+	Metadata Metadata `json:"metadata"`
+
+	// Type The type of entity.
+	Type string `json:"type"`
+
+	// Version The version number of the entity.
+	Version int `json:"version"`
+}
+
+// EntityVersions defines model for EntityVersions.
+type EntityVersions = []EntityVersion
 
 // Error The response for an error (as defined by RFC9457).
 type Error struct {
@@ -211,6 +267,39 @@ type RelationStatus struct {
 	Status string `json:"status"`
 }
 
+// RelationVersion The content of a specific version of a relation.
+type RelationVersion struct {
+	// Attributes Optional attributes of the relation.
+	Attributes []Attribute `json:"attributes,omitempty"`
+
+	// Id The unique identifier of the relation (UUID).
+	Id string `json:"id"`
+
+	// Metadata The metadata associated with an object.
+	Metadata Metadata `json:"metadata"`
+
+	// ObjectId The identifier of the object of the relation.
+	ObjectId string `json:"objectId"`
+
+	// ObjectType The type of object of the relation.
+	ObjectType string `json:"objectType"`
+
+	// Relation The type of relation.
+	Relation string `json:"relation"`
+
+	// SubjectId The identifier of the subject of the relation.
+	SubjectId string `json:"subjectId"`
+
+	// SubjectType The type of subject of the relation.
+	SubjectType string `json:"subjectType"`
+
+	// Version The version number of the relation.
+	Version int `json:"version"`
+}
+
+// RelationVersions defines model for RelationVersions.
+type RelationVersions = []RelationVersion
+
 // Relations defines model for Relations.
 type Relations = []Relation
 
@@ -250,6 +339,9 @@ type IgnoreMissing = bool
 // RelationID defines model for RelationID.
 type RelationID = string
 
+// Version defines model for Version.
+type Version = int
+
 // AccessDenied The response for an error (as defined by RFC9457).
 type AccessDenied = Error
 
@@ -258,6 +350,12 @@ type AlreadyExists = Error
 
 // AttributeResponse The content of an attribute (key/value pair).
 type AttributeResponse = Attribute
+
+// AttributeVersionResponse The content of a specific version of an attribute (key/value pair).
+type AttributeVersionResponse = AttributeVersion
+
+// AttributeVersionsResponse defines model for AttributeVersionsResponse.
+type AttributeVersionsResponse = AttributeVersions
 
 // AttributesResponse defines model for AttributesResponse.
 type AttributesResponse = Attributes
@@ -273,6 +371,12 @@ type EntitiesResponse = Entities
 // The combination of *type* and *id* defines the unique key of an entity.
 type EntityResponse = Entity
 
+// EntityVersionResponse The content of a specific version of an entity.
+type EntityVersionResponse = EntityVersion
+
+// EntityVersionsResponse defines model for EntityVersionsResponse.
+type EntityVersionsResponse = EntityVersions
+
 // NotAuthorized The response for an error (as defined by RFC9457).
 type NotAuthorized = Error
 
@@ -283,6 +387,12 @@ type NotFound = Error
 //
 // The combination of *subject type/id*, *relation* and *object type/id* must be unique for all relations.
 type RelationResponse = Relation
+
+// RelationVersionResponse The content of a specific version of a relation.
+type RelationVersionResponse = RelationVersion
+
+// RelationVersionsResponse defines model for RelationVersionsResponse.
+type RelationVersionsResponse = RelationVersions
 
 // RelationsResponse defines model for RelationsResponse.
 type RelationsResponse = Relations
