@@ -48,7 +48,7 @@ services:
       - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
       - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
       - MANAGER_MIGRATE_SOURCE=*embed*
-      - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
+      - MANAGER_POLICIES_LANGUAGE=rego            # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
       - MANAGER_PIP_STORE=/tmp/data/data          # local (design-time) data used by local policies.
@@ -89,7 +89,7 @@ services:
       - PDP_BUNDLE_ENCODING=bzip2
       - PDP_BUNDLE_TIMEOUT=30s
       - PDP_BUNDLE_RETRIES=5
-      - PDP_POLICIES_LANGUAGE=cedar                                     # policy language.
+      - PDP_POLICIES_LANGUAGE=rego                                      # policy language.
       - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml          # runtime data retrieval.
       - PDP_ADL_TYPE=postgresql                                         # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam

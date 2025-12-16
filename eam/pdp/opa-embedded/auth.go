@@ -35,6 +35,8 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 
 	c.AuthMutex.RUnlock()
 
+	var reason string
+
 	if err != nil {
 		logger.Error("authorization failed", "err", err, "pdp elapsed", duration.String())
 	} else {
@@ -46,6 +48,10 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 				resp = &models.Response{Allowed: true}
 				return
 			}
+
+			if reason, ok = m["reason"].(string); !ok || reason == "" {
+				reason = "not authorized"
+			}
 		}
 
 		if debug {
@@ -53,7 +59,7 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 		}
 	}
 
-	resp = &models.Response{Allowed: false, Message: "not authorized"}
+	resp = &models.Response{Allowed: false, Message: reason}
 	return
 }
 
@@ -78,6 +84,8 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 		decision, err := c.pdp.Decision(context.Background(), opts)
 		duration := time.Since(started)
 
+		var reason string
+
 		if err != nil {
 			logger.Error("authorization failed", "item#", i+1, "err", err, "pdp elapsed", duration.String())
 		} else {
@@ -94,6 +102,10 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 						continue
 					}
 				}
+
+				if reason, ok = m["reason"].(string); !ok || reason == "" {
+					reason = "not authorized"
+				}
 			}
 		}
 
@@ -101,7 +113,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 			logger.Warn("authorization not granted", "item#", i+1, "pdp elapsed", duration.String())
 		}
 
-		out = append(out, models.Response{Allowed: false, Message: "not authorized"})
+		out = append(out, models.Response{Allowed: false, Message: reason})
 
 		if req.Semantics == models.DenyOnFirstDeny {
 			break
@@ -122,13 +134,11 @@ func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.Dec
 	}
 
 	data := map[string]any{
-		"principal": models.EntityToAttribute(parc.Principal).Value(),
-		"action":    models.EntityToAttribute(parc.Action).Value(),
-		"resource":  models.EntityToAttribute(parc.Resource).Value(),
-		"context":   models.MapFromAttributes(parc.Context),
+		"subject":  models.EntityToAttribute(parc.Principal).Value(),
+		"action":   models.EntityToAttribute(parc.Action).Value(),
+		"resource": models.EntityToAttribute(parc.Resource).Value(),
+		"context":  models.MapFromAttributes(parc.Context),
 	}
-
-	// TODO: add attributes, entities and/or relations from PIP?
 
 	return sdk.DecisionOptions{
 		DecisionID: uid,
