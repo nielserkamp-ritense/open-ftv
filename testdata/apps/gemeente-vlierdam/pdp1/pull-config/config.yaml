@@ -13,7 +13,7 @@ sources:
           - name: "@fields"
             description: Data-minimalization on returned fields.
             in: query
-            value: "id,afdeling,laadpaal-opleiding"
+            value: "id,naam,afdeling,laadpaal-opleiding"
             type: "xsd:string"
         modifiedSince: true
         timeout: "10s"
@@ -24,7 +24,7 @@ sources:
           entities:
             - base: ""
               typeValue: "medewerker"
-              idField: "id"
+              idField: "naam"
               attributes:
                 - base: ""
                   map:
@@ -33,7 +33,7 @@ sources:
                       valueField: "afdeling"
                       required: true
                     - keyValue: "laadpaal-opleiding"
-                      typeValue: "xsd:date"
+                      typeValue: "xsd:dateTime"
                       valueField: "laadpaal-opleiding"
 
   - name: "RvVA"
