@@ -1,24 +1,26 @@
 import {Editor, Monaco, OnMount} from '@monaco-editor/react';
-import { editor } from 'monaco-editor';
-import { useRef } from 'react';
-import { regoLanguageConfig, regoLanguageTokens } from '@/lib/monaco/rego-language';
-import { cedarLanguageConfig, cedarLanguageTokens } from '@/lib/monaco/cedar-language';
+import {editor} from 'monaco-editor';
+import {useRef} from 'react';
+import {regoLanguageConfig, regoLanguageTokens} from '@/lib/monaco/rego-language';
+import {cedarLanguageConfig, cedarLanguageTokens} from '@/lib/monaco/cedar-language';
 
 interface MonacoEditorProps {
-  value?: string;
-  language?: string;
-  readOnly?: boolean;
-  height?: string | number;
-  className?: string;
+  value?: string,
+  language?: string,
+  readOnly?: boolean,
+  height?: string | number,
+  className?: string,
+  onChange?: (value: string | undefined, ev: editor.IModelContentChangedEvent) => void
 }
 
 export function MonacoEditor({
-  value = '',
-  language = 'plaintext',
-  readOnly = true,
-  height = '100%',
-  className,
-}: MonacoEditorProps) {
+                               value = '',
+                               language = 'plaintext',
+                               readOnly = true,
+                               height = '100%',
+                               className,
+                               onChange
+                             }: MonacoEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const languagesRegistered = useRef(false);
 
@@ -27,12 +29,12 @@ export function MonacoEditor({
     // Register custom languages once
     if (!languagesRegistered.current) {
       // Register Rego
-      monaco.languages.register({ id: 'rego' });
+      monaco.languages.register({id: 'rego'});
       monaco.languages.setMonarchTokensProvider('rego', regoLanguageTokens);
       monaco.languages.setLanguageConfiguration('rego', regoLanguageConfig);
 
       // Register Cedar
-      monaco.languages.register({ id: 'cedar' });
+      monaco.languages.register({id: 'cedar'});
       monaco.languages.setMonarchTokensProvider('cedar', cedarLanguageTokens);
       monaco.languages.setLanguageConfiguration('cedar', cedarLanguageConfig);
 
@@ -51,15 +53,16 @@ export function MonacoEditor({
         language={normalizedLanguage}
         value={value}
         theme="vs"
+        onChange={onChange}
         options={{
           readOnly,
           lineNumbers: 'on',
-          minimap: { enabled: false },
+          minimap: {enabled: false},
           wordWrap: 'on',
           scrollBeyondLastLine: false,
           automaticLayout: true,
           fontSize: 14,
-          padding: { top: 16, bottom: 16 },
+          padding: {top: 16, bottom: 16},
           scrollbar: {
             vertical: 'visible',
             horizontal: 'visible',
