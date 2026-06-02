@@ -1,5 +1,5 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
+FROM golang:1.24.6-alpine AS golang_builder
 
 WORKDIR /build
 
@@ -16,7 +16,7 @@ RUN cd mock/datasources/generic \
   && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /build/generic-ds ./cmd/*.go
 
 # Stage 2 - run
-FROM digilabpublic.azurecr.io/alpine:3.22
+FROM alpine:3.22
 
 COPY --from=golang_builder /build/generic-ds /
 
