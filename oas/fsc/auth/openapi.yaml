@@ -1,7 +1,7 @@
-# Copyright © RINIS 2026
+# Copyright © VNG Realisatie 2022
 # Licensed under the EUPL
 
-openapi: 3.1.1
+openapi: 3.0.0
 info:
   description: |
     The Outway has the option to configure a authorization service. Once configured, the requests going through the Outway will be authorized by this authorization service.
@@ -27,7 +27,6 @@ paths:
                 $ref: "#/components/schemas/AuthorizationResponse"
       requestBody:
         $ref: "#/components/requestBodies/AuthorizationRequest"
-security: []
 components:
   schemas:
     AuthorizationRequest:
