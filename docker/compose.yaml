@@ -7,10 +7,10 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_DB: openftv
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 4s
@@ -155,10 +155,10 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_DB: openftv
     volumes:
       - rvig-pg-data:/var/lib/postgresql/data
-      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 4s
@@ -306,7 +306,7 @@ services:
       POSTGRES_DB: mydb
     volumes:
       - rdw-pg-data:/var/lib/postgresql/data
-      - ./../scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 4s

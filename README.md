@@ -55,6 +55,26 @@ To build and test everything locally, run the following command from the project
 make all
 ```
 
+### Testing
+
+If you prefer not to install the Go toolchain locally, use `scripts/test.sh`. It runs
+the entire test suite (unit + e2e) inside a `golang` container — Docker is the only
+local requirement. On first run it builds a small cached helper image and downloads
+dependencies into reusable Docker volumes, so subsequent runs are fast.
+
+```shell
+./scripts/test.sh              # all unit tests + e2e (vlierdam/rdw/rvig)
+./scripts/test.sh --unit       # unit tests only
+./scripts/test.sh --e2e        # e2e only
+./scripts/test.sh apps/pdp eam/server   # only the given workspace modules (unit)
+RACE=1 ./scripts/test.sh       # enable the race detector
+IMAGE=golang:1.24.6-alpine ./scripts/test.sh   # override the base image
+```
+
+Modules are read dynamically from `go.work`, so any module added to the workspace is
+picked up automatically. Tests run per module (`go test ./...` from the repo root does
+not work in a `go.work` workspace).
+
 ### Docker Compose
 
 Docker Compose configurations are available in the `docker` directory to run local versions of OpenFTV.

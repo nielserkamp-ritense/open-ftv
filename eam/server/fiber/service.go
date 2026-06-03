@@ -83,8 +83,11 @@ func (s *service) ServeWithWG(wg *sync.WaitGroup) {
 // Shutdown stops the HTTP(S) service.
 func (s *service) Shutdown() {
 	s.mutex.Lock()
-	s.intChan <- syscall.SIGQUIT
-	s.mutex.Unlock()
+	defer s.mutex.Unlock()
+	select {
+	case s.intChan <- syscall.SIGQUIT:
+	case <-s.ctx.Done():
+	}
 }
 
 type service struct {
