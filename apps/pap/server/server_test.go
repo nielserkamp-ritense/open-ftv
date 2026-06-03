@@ -27,7 +27,7 @@ func TestNewService_Serve(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20000,
+					Port:         22000,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
@@ -77,7 +77,7 @@ func TestNewService_FailPDP(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20001,
+					Port:         22001,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
@@ -108,7 +108,7 @@ func TestNewService_ErrorHandler(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20002,
+					Port:         22002,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
