@@ -1,5 +1,5 @@
 # Stage 1 - build
-FROM digilabpublic.azurecr.io/golang:1.24.6-alpine AS golang_builder
+FROM golang:1.24.6-alpine AS golang_builder
 
 WORKDIR /build
 
@@ -16,7 +16,7 @@ RUN cd apps/pip \
   && CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/pip/config/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/pip/config/config.GitHash=${GIT_COMMIT_HASH}' " -o /build/pip ./cmd/*.go
 
 # Stage 2 - run
-FROM digilabpublic.azurecr.io/alpine:3.22
+FROM alpine:3.22
 
 RUN apk add --no-cache curl
 

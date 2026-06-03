@@ -27,7 +27,7 @@ func TestServe(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20000,
+					Port:         21000,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
@@ -77,7 +77,7 @@ func TestServe_FailPDP(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20001,
+					Port:         21001,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
@@ -108,7 +108,7 @@ func TestErrorHandler(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20002,
+					Port:         21002,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
@@ -161,7 +161,7 @@ func TestOpenSearchFail1(t *testing.T) {
 			ServerApp: config2.ServerApp{
 				Server: config2.Server{
 					Host:         "127.0.0.1",
-					Port:         20003,
+					Port:         21003,
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
