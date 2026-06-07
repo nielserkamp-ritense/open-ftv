@@ -53,6 +53,11 @@ type Request struct {
 	Method  string
 	Headers map[string][]string
 	Body    []byte
+
+	// Resource optionally carries the stored target object (with its
+	// attributes, e.g. status) so the PDP can evaluate fine-grained,
+	// resource-attribute policies. When nil, the PEP synthesizes one.
+	Resource *models.Entity
 }
 
 // Authorize implements the Authorizer interface.
@@ -63,6 +68,10 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, err error) {
 		Method:  req.Method,
 		Headers: req.Headers,
 		Body:    req.Body,
+	}
+
+	if req.Resource != nil {
+		r.Resource = req.Resource
 	}
 
 	parc := a.pep.PARCFromRequest(r, a.getter)

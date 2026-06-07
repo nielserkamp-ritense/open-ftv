@@ -51,19 +51,23 @@ func (s *Services) newAuth() AuthHandler {
 }
 
 func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
-	ep := pep.New(s.ctx, s.logger)
+	var pepOpts []pep.Option
+	if opt, err := pepOIDCOption(s.ctx, s.cfg.OIDC); err != nil {
+		s.logger.Error("failed to build OIDC pep option", "err", err)
+	} else if opt != nil {
+		pepOpts = append(pepOpts, opt)
+	}
+
+	ep := pep.New(s.ctx, s.logger, pepOpts...)
 
 	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ap, err2 := s.cfg.PAP.NewPAP(s.ctx, s.logger)
-	if err2 != nil {
-		return nil, nil, err2
-	}
-
-	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap)}
+	// Share the single, already-initialized PAP (postgres-backed when configured)
+	// so the embedded PDP enforces from the same policy store the UI manages.
+	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(s.pap)}
 
 	switch s.l {
 	case models.CEDAR:
