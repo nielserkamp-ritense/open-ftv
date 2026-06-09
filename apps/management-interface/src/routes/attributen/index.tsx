@@ -10,6 +10,7 @@ import Grid from "@/components/ui/grid.tsx";
 import type {ColDef, RowClickedEvent} from "ag-grid-community";
 import {useState} from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import {useCapabilities} from "@/auth/useCapabilities.ts";
 
 export const Route = createFileRoute('/attributen/')({
     component: RouteComponent,
@@ -24,6 +25,7 @@ const TypeBadgeComponent = (props: { value: string }) => {
 function RouteComponent() {
     const navigate = useNavigate({from: '/attributen'})
     const { status, data, error } = useAttributes();
+    const {canWrite} = useCapabilities();
 
     function handleRowClicked(e: RowClickedEvent<Attribute>) {
         const rowData = e.data;
@@ -96,12 +98,14 @@ function RouteComponent() {
         <Breadcrumb />
         <div className="flex items-center justify-between my-4">
             <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Context</h1>
+            {canWrite && (
             <Button href="/attributen/toevoegen" color={"primary"}>
                 <div className={"flex align-middle justify-center my-auto"}>
                     <IconPlus className={"text-content-inverse-secondary"} size={20}></IconPlus>
                 </div>
                 <span>Aanmaken</span>
             </Button>
+            )}
         </div>
         <Card className="min-w-3xl flex-1 h-[836px] py-3" disablePadding={true}>
             <div className="pt-6 pb-8 px-10 gap-8 flex-1">
