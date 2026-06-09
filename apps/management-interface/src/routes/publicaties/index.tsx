@@ -7,6 +7,7 @@ import Card from "@/components/ui/card.tsx";
 import type {ColDef} from "ag-grid-community";
 import {ScaleLoader} from "react-spinners";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import {useCapabilities} from "@/auth/useCapabilities.ts";
 
 export const Route = createFileRoute('/publicaties/')({
     component: PublicatiesComponent,
@@ -27,6 +28,7 @@ export default function PublicatiesComponent() {
     const {data, isLoading, isError} = useDeployments();
     const {data: statusesData} = useStatuses();
     const { mutate: startDeployment, isPending, error: startError } = useStartDeployment();
+    const { canPublish } = useCapabilities();
 
     // Create a lookup map for status codes to labels
     const statusLookup = statusesData?.reduce((acc, status) => {
@@ -99,7 +101,7 @@ export default function PublicatiesComponent() {
                             )}
                             <Button
                                 color={"primary"}
-                                disabled={isPending}
+                                disabled={isPending || !canPublish}
                                 onClick={() => {
                                     // Minimal body for starting a deployment
                                     startDeployment({
@@ -110,6 +112,9 @@ export default function PublicatiesComponent() {
                             >
                                 <span>{isPending ? 'Publiceren…' : 'Publiceren'}</span>
                             </Button>
+                            {!canPublish && (
+                                <p className="text-sm text-zinc-500 mt-1">Alleen een beheerder (admin) kan publiceren.</p>
+                            )}
                         </div>
                     </div>
                     <div className={"w-full h-[600px] mt-2"}>

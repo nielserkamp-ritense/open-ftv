@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Breadcrumb } from "@/components/ui/breadcrumb.tsx";
+import { useCapabilities } from "@/auth/useCapabilities.ts";
 import { MonacoEditor } from "@/components/ui/monaco-editor.tsx";
 import { useState, useEffect, useMemo } from 'react';
 import { Field, FieldGroup, Fieldset, Label, Description } from "@/components/ui/fieldset.tsx";
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/policies/$id/')({
 function RouteComponent() {
     const {id} = Route.useParams()
     const {status, data, error} = usePolicy(id)
+    const {canWrite} = useCapabilities();
     const [isEditMode, setIsEditMode] = useState(false)
     const [formData, setFormData] = useState<PolicyResponse>({
         id: '',
@@ -138,7 +140,7 @@ function RouteComponent() {
         )}
         <div className="flex items-center justify-end gap-2 py-2">
             {!isEditMode ? (
-                <Button color={"primary"} onClick={handleEdit}>Bewerken</Button>
+                canWrite ? <Button color={"primary"} onClick={handleEdit}>Bewerken</Button> : null
             ) : (
                 <>
                     <Button color={"zinc"} onClick={handleCancel}>Annuleren</Button>

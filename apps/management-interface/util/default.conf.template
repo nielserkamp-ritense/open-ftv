@@ -11,6 +11,7 @@ server {
     }
 
     location /runtime-env.js {
-        return 200 'window.__ENV__ = { "VITE_PAP_BASE_URL": "${VITE_PAP_BASE_URL}", "VITE_PIP_BASE_URL": "${VITE_PIP_BASE_URL}" };';
+        default_type application/javascript;
+        return 200 'window.__ENV__ = { "VITE_PAP_BASE_URL": "${VITE_PAP_BASE_URL}", "VITE_PIP_BASE_URL": "${VITE_PIP_BASE_URL}", "VITE_OIDC_AUTHORITY": "${VITE_OIDC_AUTHORITY}", "VITE_OIDC_CLIENT_ID": "${VITE_OIDC_CLIENT_ID}" };';
     }
 }

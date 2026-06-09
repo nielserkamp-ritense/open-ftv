@@ -37,3 +37,5 @@ export const getEnvVar = (key: string, fallback?: string): string => {
 
 export const PAP_BASE_URL = getEnvVar('VITE_PAP_BASE_URL', 'http://localhost:8080');
 export const PIP_BASE_URL = getEnvVar('VITE_PIP_BASE_URL', 'http://localhost:8080');
+export const OIDC_AUTHORITY = getEnvVar('VITE_OIDC_AUTHORITY', 'http://localhost:8088/realms/openftv');
+export const OIDC_CLIENT_ID = getEnvVar('VITE_OIDC_CLIENT_ID', 'openftv');
