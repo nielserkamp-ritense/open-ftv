@@ -42,12 +42,20 @@ func TestNew(t *testing.T) {
 		{
 			name:    "OpenFGA",
 			cfg:     &config.Config{PAP: config2.PAP{Language: "OpenFGA", Store: "../../../testdata/unittest/openfga"}},
-			wantLog: 5,
+			wantLog: 4,
 		},
 		{
 			name:    "OPA/Rego",
 			cfg:     &config.Config{PAP: config2.PAP{Language: "opa", Store: "../../../testdata/unittest/rego"}},
 			wantLog: 3,
+		},
+		{
+			// Fail-closed (secured) mode requires OIDC; without a JWKS URL the manager
+			// must refuse to initialize rather than boot and deny every request.
+			name:     "fail-closed without OIDC fails",
+			cfg:      &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: "../../../testdata/unittest/cedar"}, Authorization: config2.Authorization{FailClosedOnEmpty: true}},
+			wantFail: true,
+			wantLog:  1,
 		},
 	}
 
@@ -60,6 +68,8 @@ func TestNew(t *testing.T) {
 
 			s := &Services{ctx: context.Background(), logger: logger, cfg: tc.cfg}
 			s.l = models.LanguageFromString(tc.cfg.PAP.Language)
+			// Mirror the router: newAuth consumes the shared PAP, which must exist first.
+			s.pap, _ = s.newPAP()
 
 			auth := s.newAuth()
 			if tc.wantFail {

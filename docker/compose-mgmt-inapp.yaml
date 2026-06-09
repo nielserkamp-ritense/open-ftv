@@ -72,6 +72,9 @@ services:
       - MANAGER_OIDC_JWKS_URL=http://keycloak:8080/realms/openftv/protocol/openid-connect/certs
       - MANAGER_OIDC_AUDIENCE=openftv
       - MANAGER_OIDC_ROLES_CLAIM=roles
+      # Fail closed: an empty/unreadable policy store denies all requests instead of
+      # opening up, and OIDC becomes required (a manager without JWKS refuses to start).
+      - MANAGER_AUTHORIZATION_FAIL_CLOSED_ON_EMPTY=true
     depends_on:
       mgmt-db:
         condition: service_healthy
