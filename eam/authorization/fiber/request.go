@@ -30,6 +30,15 @@ func FormatRequest(req *fiber.Ctx) *authorization.Request {
 	}
 }
 
+// FormatRequestWithResource formats an authorization request like FormatRequest
+// but additionally attaches the stored target object so the PDP can evaluate
+// fine-grained, resource-attribute policies.
+func FormatRequestWithResource(req *fiber.Ctx, resource *models.Entity) *authorization.Request {
+	r := FormatRequest(req)
+	r.Resource = resource
+	return r
+}
+
 // Check verifies the response from an authorization test.
 //
 // The function returns true if authorization was successful, otherwise it returns false.

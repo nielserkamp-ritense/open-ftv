@@ -75,7 +75,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 		require.NotNil(t, data)
 
 		assert.Equal(t, out, string(data))
-		assert.GreaterOrEqual(t, 8, h.Count())
+		assert.GreaterOrEqual(t, 9, h.Count())
 	})
 }
 

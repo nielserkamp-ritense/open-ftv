@@ -199,13 +199,18 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
+	var id string
+	id, ok, err := h.checkKey(req)
 	if !ok {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
+	// Load the stored target object BEFORE authorizing, so the PDP can
+	// evaluate fine-grained policies against its attributes (e.g. status).
+	prev, _, _ := h.cache.Read(id)
+
+	var user string
+	if user, ok, err = h.authorizeResource(req, id, prev); !ok {
 		return err
 	}
 
@@ -430,6 +435,26 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 	}
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
+	return auth.Check(req, resp, err, h.logger)
+}
+
+// authorizeResource authorizes a request like authorize, but additionally
+// passes the stored target object (with its attributes, e.g. status) into
+// authorization so the PDP can evaluate fine-grained, resource-attribute
+// policies. When prev is nil (no stored object), no resource is attached.
+func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (string, bool, error) {
+	if h.authorizer == nil {
+		return auth.SystemUser, true, nil
+	}
+
+	var res *models.Entity
+	if prev != nil {
+		attrs := models.NewAttributeSet()
+		attrs.AddAttributeKV("status", prev.StatusName())
+		res = models.NewEntity(models.EntityTypeService, id, attrs)
+	}
+
+	resp, err := h.authorizer.Authorize(auth.FormatRequestWithResource(req, res))
 	return auth.Check(req, resp, err, h.logger)
 }
 

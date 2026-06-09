@@ -3,7 +3,9 @@ package pep
 import (
 	"log/slog"
 	"testing"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -121,4 +123,31 @@ func TestRun(t *testing.T) {
 			assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
 		})
 	}
+}
+
+func TestRunMapsJWTToPrincipal(t *testing.T) {
+	t.Parallel()
+	key, kf := testKey(t)
+
+	bearer := signRS256(t, key, jwt.MapClaims{
+		"iss": "https://idp.test", "aud": "openftv", "sub": "bob",
+		"roles": []any{"author"},
+		"exp":   time.Now().Add(time.Hour).Unix(),
+	})
+
+	c := &collector{
+		debug:  true,
+		logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug)),
+		req: &models.HTTPRequest{
+			Headers: map[string][]string{models.HeaderAuthorization: {"Bearer " + bearer}},
+		},
+		parc: &models.PARC{Context: models.NewAttributeSet()},
+		jwt:  &JWTConfig{Keyfunc: kf, Issuer: "https://idp.test", Audience: "openftv", RolesClaim: "roles"},
+	}
+
+	c.run()
+
+	assert.Equal(t, "user::bob", c.parc.Principal.UID())
+	assert.Equal(t, []string{"author"},
+		c.parc.Principal.Attributes().GetAttributeValue(models.AttrRoles))
 }

@@ -3,10 +3,13 @@ package config
 import (
 	"context"
 	"log/slog"
+	"net/url"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	authorization2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -14,6 +17,48 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
+
+// TestAuthorization_FailClosedOnEmpty verifies that an empty policy store allows all
+// requests by default (legacy fail-open) but denies them when FailClosedOnEmpty is set.
+func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
+	t.Parallel()
+
+	build := func(failClosed bool) authorization2.Authorizer {
+		ctx := context.Background()
+		logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+		p1 := pip.New(ctx, logger)
+		c := cedar_embedded.NewController(
+			pdp.WithContext(ctx),
+			pdp.WithLogger(logger),
+			pdp.WithPEP(pep.New(ctx, logger)),
+			pdp.WithPIP(p1),
+			pdp.WithPAP(pap.New(ctx, logger)), // empty store
+		)
+		a := &Authorization{FailClosedOnEmpty: failClosed}
+		az, err := a.NewAuthorizer(c, nil)
+		require.NoError(t, err)
+		require.NotNil(t, az)
+		return az
+	}
+
+	uid := uuid.New()
+	u, _ := url.Parse("http://localhost/v1/policies")
+	req := &authorization2.Request{UID: &uid, URL: u, Method: "GET"}
+
+	t.Run("fail open (default) allows when store empty", func(t *testing.T) {
+		t.Parallel()
+		resp, err := build(false).Authorize(req)
+		require.NoError(t, err)
+		require.True(t, resp.Allowed)
+	})
+
+	t.Run("fail closed denies when store empty", func(t *testing.T) {
+		t.Parallel()
+		resp, err := build(true).Authorize(req)
+		require.NoError(t, err)
+		require.False(t, resp.Allowed)
+	})
+}
 
 func TestAuthorization_NewAuthorizer(t *testing.T) {
 	t.Parallel()
