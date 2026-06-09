@@ -2,7 +2,6 @@ package pep
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,29 +22,41 @@ func (c *collector) processAuth(auth string) {
 }
 
 func (c *collector) processBearer(bearer string) {
-	token, err := jwt.Parse(bearer, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte("secret1!"), nil
-	})
-	if err != nil {
-		c.logger.Error("failed to parse jwt token", "error", err)
+	if c.jwt == nil || c.jwt.Keyfunc == nil {
+		c.logger.Warn("bearer token received but JWT validation is not configured")
 		return
 	}
 
-	m := map[string]any{
+	opts := []jwt.ParserOption{jwt.WithExpirationRequired()}
+	if c.jwt.Issuer != "" {
+		opts = append(opts, jwt.WithIssuer(c.jwt.Issuer))
+	}
+	if c.jwt.Audience != "" {
+		opts = append(opts, jwt.WithAudience(c.jwt.Audience))
+	}
+
+	token, err := jwt.Parse(bearer, c.jwt.Keyfunc, opts...)
+	if err != nil || !token.Valid {
+		c.logger.Error("failed to validate jwt token", "error", err)
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.logger.Warn("jwt token without claims", "jwt", token)
+		return
+	}
+
+	c.parc.Context.AddAttributeKV(models.AttrJWT, map[string]any{
 		models.AttrValid:   token.Valid,
 		models.AttrHeaders: token.Header,
-	}
+		// Store the claims as a plain map[string]any, not the named jwt.MapClaims type:
+		// the PDP's attribute->Cedar converter matches on map[string]any, so the named
+		// type would fail to convert and the whole jwt context attribute be dropped.
+		models.AttrClaims: map[string]any(claims),
+	})
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		m[models.AttrClaims] = claims
-	} else {
-		c.logger.Warn("jwt token without claims", "jwt", token)
-	}
-
-	c.parc.Context.AddAttributeKV(models.AttrJWT, m)
+	c.mapJWTPrincipal(claims)
 }
 
 func (c *collector) processBasic(basic string) {

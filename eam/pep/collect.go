@@ -34,6 +34,7 @@ func (p *PEP) PARCFromRequest(req *models.Request, e models.GetEntity) *models.P
 			Context:   models.NewAttributeSet(req.Context),
 		},
 		getEntity: e,
+		jwt:       p.jwt,
 	}
 
 	c.run()
@@ -52,6 +53,7 @@ func (p *PEP) PARCFromHTTP(uid uuid.UUID, req *models.HTTPRequest, attrs *models
 		req:       req,
 		parc:      &models.PARC{Context: models.NewAttributeSet(attrs)},
 		getEntity: e,
+		jwt:       p.jwt,
 	}
 
 	c.run()
@@ -65,4 +67,5 @@ type collector struct {
 	parc      *models.PARC
 	newURI    string
 	getEntity models.GetEntity
+	jwt       *JWTConfig
 }
