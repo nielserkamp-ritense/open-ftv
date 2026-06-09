@@ -77,9 +77,6 @@ not work in a `go.work` workspace).
 
 ### Docker Compose
 
-> For a hands-on quickstart with copy-paste commands and links to every running
-> application, see [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
-
 Docker Compose configurations are available in the `docker` directory to run local versions of OpenFTV.
 These setups include:
 - OpenFTV Manager (Authorization Management: PAP, PIP, tag management, bundle management, database migrations)
