@@ -27,6 +27,7 @@ const (
 	AttrQuery           = "query"
 	AttrRequestTime     = "request_time"
 	AttrResource        = "resource"
+	AttrRoles           = "roles"
 	AttrRvvaID          = "rvva_id"
 	AttrScheme          = "scheme"
 	AttrSpanID          = "span_id"
