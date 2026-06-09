@@ -1,0 +1,131 @@
+services:
+  mgmt-db:
+    image: postgres:15
+    container_name: openftv-mgmt-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: openftv
+    volumes:
+      - mgmt-postgres-data:/var/lib/postgresql/data
+      - ./../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+    networks:
+      - openftv
+
+  manager:
+    build:
+      context: ../
+      dockerfile: ./apps/manager/Dockerfile
+    container_name: openftv-mgmt-manager
+    environment:
+      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
+      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@mgmt-db:5432/openftv?sslmode=disable
+      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
+      - MANAGER_MIGRATE_SOURCE=*embed*
+      - MANAGER_POLICIES_LANGUAGE=rego            # default policy language.
+      - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
+      - MANAGER_POLICIES_STORE_RECURSE=true
+      - MANAGER_PIP_STORE=/tmp/data/data          # local (design-time) data used by local policies.
+      - MANAGER_PIP_STORE_RECURSE=true
+      - MANAGER_TAGS_PATH=/tmp/data/tags          # tags for the managed policies and data.
+      - MANAGER_AUTHENTICATION_TYPE=none          # local authentication type.
+      - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
+      - MANAGER_BUNDLE_RECURSE=true
+      - MANAGER_BUNDLE_SEND_TIMEOUT=60s
+      - MANAGER_ADL_TYPE=postgresql               # ADL.
+      - MANAGER_ADL_SERVICE_NAME=vlierdam
+      - MANAGER_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
+    depends_on:
+      mgmt-db:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/manager:/tmp/data
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  manager-pdp:
+    build:
+      context: ../
+      dockerfile: ./apps/pdp/Dockerfile
+    container_name: openftv-mgmt-pdp
+    environment:
+      - PDP_POLICIES_LANGUAGE=cedar
+      - PDP_POLICIES_STORE=/tmp/data/policies/cedar
+      - PDP_POLICIES_STORE_RECURSE=true
+      - PDP_ADL_TYPE=postgresql
+      - PDP_ADL_SERVICE_NAME=manager
+      - PDP_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
+      - PDP_MIGRATE_AUTO=true
+      - PDP_MIGRATE_SOURCE=*embed*
+    depends_on:
+      mgmt-db:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/manager/policies:/tmp/data/policies
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  manager-gateway:
+    build:
+      context: ../
+      dockerfile: ./external/gateways/kong/Dockerfile
+    container_name: openftv-mgmt-gateway
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/tmp/conf/conf.yaml"
+      KONG_PLUGINSERVER_NAMES: "openftv"
+      KONG_PLUGINSERVER_OPENFTV_QUERY_CMD: "/usr/local/bin/openftv -dump"
+      KONG_PLUGINS: "openftv,bundled"
+    ports:
+      - "9200:8000"
+    depends_on:
+      - manager
+      - manager-pdp
+      - keycloak
+    volumes:
+      - ./../testdata/apps/manager/kong:/tmp/conf
+    networks:
+      - openftv
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: openftv-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+volumes:
+  mgmt-postgres-data:
+
+networks:
+  openftv: {}

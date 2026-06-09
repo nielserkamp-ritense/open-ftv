@@ -1,0 +1,119 @@
+# App-only management-plane authorization (dogfooding): the manager itself is the PEP.
+# It validates the OIDC JWT in-process (eam/pep WithJWT) and authorizes each request
+# against its embedded Cedar PDP loaded with the role + fine-grained policies. No Kong
+# gateway / separate PDP — fine-grained (resource-attribute) policies need the app's
+# context, which only the manager has.
+services:
+  mgmt-db:
+    image: postgres:15
+    container_name: openftv-inapp-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: openftv
+    volumes:
+      - inapp-postgres-data:/var/lib/postgresql/data
+      - ./../scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+    networks:
+      - openftv
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: openftv-inapp-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  # The manager IS the policy enforcement point: in-process OIDC validation + embedded
+  # Cedar PDP. It publishes a host port (9100) because it is the secured endpoint.
+  manager:
+    build:
+      context: ../
+      dockerfile: ./apps/manager/Dockerfile
+    container_name: openftv-inapp-manager
+    environment:
+      - MANAGER_PERSIST_TYPE=postgres
+      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@mgmt-db:5432/openftv?sslmode=disable
+      - MANAGER_MIGRATE_AUTO=true
+      - MANAGER_MIGRATE_SOURCE=*embed*
+      # Self-authorization PDP: load OUR cedar role + fine-grained policies from the file store.
+      - MANAGER_POLICIES_LANGUAGE=cedar
+      - MANAGER_POLICIES_STORE=/tmp/data/policies/cedar
+      - MANAGER_POLICIES_STORE_RECURSE=true
+      - MANAGER_PIP_STORE=/tmp/data/data
+      - MANAGER_PIP_STORE_RECURSE=true
+      - MANAGER_TAGS_PATH=/tmp/data/tags
+      - MANAGER_AUTHENTICATION_TYPE=none
+      - MANAGER_ADL_TYPE=postgresql
+      - MANAGER_ADL_SERVICE_NAME=manager
+      - MANAGER_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
+      # In-process OIDC validation (eam/pep WithJWT, built from these by apps/manager/server/oidc.go).
+      # Issuer is the browser/host-facing URL Keycloak stamps into the token (iss);
+      # JWKS is fetched in-network (the manager cannot reach the host's localhost:8088).
+      - MANAGER_OIDC_ISSUER=http://localhost:8088/realms/openftv
+      - MANAGER_OIDC_JWKS_URL=http://keycloak:8080/realms/openftv/protocol/openid-connect/certs
+      - MANAGER_OIDC_AUDIENCE=openftv
+      - MANAGER_OIDC_ROLES_CLAIM=roles
+      # Fail closed: an empty/unreadable policy store denies all requests instead of
+      # opening up, and OIDC becomes required (a manager without JWKS refuses to start).
+      - MANAGER_AUTHORIZATION_FAIL_CLOSED_ON_EMPTY=true
+    depends_on:
+      mgmt-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/manager:/tmp/data
+    ports:
+      - "9100:8443"
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  # Management Interface (SPA): logs in at Keycloak, calls the manager API (:9100) with
+  # the Bearer token, and gates UI actions by role (auditor read-only; publish admin-only).
+  mgmt-frontend:
+    build:
+      context: ../
+      dockerfile: ./apps/management-interface/Dockerfile
+    container_name: openftv-inapp-frontend
+    environment:
+      VITE_PAP_BASE_URL: "http://localhost:9100"
+      VITE_PIP_BASE_URL: "http://localhost:9100"
+      VITE_OIDC_AUTHORITY: "http://localhost:8088/realms/openftv"
+      VITE_OIDC_CLIENT_ID: "openftv"
+    ports:
+      - "8090:8080"
+    depends_on:
+      - manager
+    networks:
+      - openftv
+
+volumes:
+  inapp-postgres-data:
+
+networks:
+  openftv: {}
