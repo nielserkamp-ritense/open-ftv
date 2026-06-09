@@ -1,0 +1,34 @@
+@startuml openftv-request-sequence
+title OpenFTV — Cross-org data request (Vlierdam -> RDW)
+
+actor Client
+participant "Vlierdam Outway\n(Kong + plugin)  :9002" as OUT
+participant "Vlierdam PDP\n:9004" as VPDP
+participant "RDW Inway\n(Kong + plugin)  :9042" as IN
+participant "RDW PDP\n:9044" as RPDP
+participant "RDW Dataspace\n:9050" as DS
+database    "RDW openftv_adl" as ADL
+
+Client -> OUT : POST /v1/voertuigen
+activate OUT
+OUT -> VPDP : AuthZEN /authzen/v1/evaluation (PARC)
+VPDP --> OUT : permit
+OUT -> IN : forward POST /v1/voertuigen
+activate IN
+IN -> RPDP : AuthZEN evaluate (PARC)
+RPDP -> ADL : log decision
+RPDP --> IN : permit
+IN -> DS : POST /v1/voertuigen
+DS --> IN : 200 + vehicle JSON (kenteken.csv)
+IN --> OUT : 200
+deactivate IN
+OUT --> Client : 200 + JSON
+deactivate OUT
+
+note over RPDP, ADL
+  On deny the plugin returns 403 instead.
+  Decisions are viewable per organization in
+  Management Interface -> Logboek
+  (Vlierdam :8080, RDW :8084).
+end note
+@enduml

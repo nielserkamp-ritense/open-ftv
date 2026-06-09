@@ -14,6 +14,7 @@ import {
 import {Badge} from "@/components/ui/badge.tsx";
 import Grid from "@/components/ui/grid.tsx";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import {useCapabilities} from "@/auth/useCapabilities.ts";
 
 export const Route = createFileRoute('/policies/')({
     component: PoliciesComponent,
@@ -29,6 +30,7 @@ const SimpleComponent = () => (
 export default function PoliciesComponent() {
     const navigate = useNavigate({from: '/policies'})
     const {data, isLoading, error} = usePolicies();
+    const {canWrite} = useCapabilities();
     const deletePolicyMutation = useDeletePolicy();
     const [isOpen, setIsOpen] = useState(false)
     const [selectedId] = useState<string | null>(null)
@@ -116,6 +118,7 @@ export default function PoliciesComponent() {
                             <span className={"text-rhc-lintblauw-500 text-[20px] font-normal"}>Beleidsregels</span>
                         </div>
                     </div>
+                    {canWrite && (
                     <div className={"pt-6 text-right"}>
                         <Button color={"primary"} href={"/policies/add"}>
                             <div className={"flex align-middle justify-center my-auto"}>
@@ -124,6 +127,7 @@ export default function PoliciesComponent() {
                             <span>Aanmaken</span>
                         </Button>
                     </div>
+                    )}
                     <div className={"w-full h-[600px] mt-2"}>
                         <Grid
                             onRowClicked={handleRowClicked}

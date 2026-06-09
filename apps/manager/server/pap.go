@@ -9,7 +9,14 @@ import (
 
 // NewPAP instantiates a vanilla PAP with an optional persistent storage backend.
 func (s *Services) newPAP() (*pap.PAP, error) {
-	opts := []pap.Option{pap.WithLanguage(s.l.Language())}
+	// Always make the seed file store known so LoadFiles can populate an empty
+	// (or freshly migrated) backend from the bundled cedar policy files.
+	// NOTE: no file store on this PAP — the embedded PDP's controller calls LoadFiles(),
+	// and a postgres-backed PAP must NOT load filename-keyed cedar files (their ids are not
+	// UUIDs). The cedar policies are seeded into postgres with UUID ids by seedAuthzPolicies.
+	opts := []pap.Option{
+		pap.WithLanguage(s.l.Language()),
+	}
 
 	switch {
 	case s.db != nil:

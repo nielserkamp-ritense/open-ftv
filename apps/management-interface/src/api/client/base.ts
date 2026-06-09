@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { PAP_BASE_URL } from '@/config/env';
+import { getAccessToken } from './token';
 
 // Create a base API configuration
 const apiConfig: AxiosRequestConfig = {
@@ -13,16 +14,11 @@ const apiConfig: AxiosRequestConfig = {
 const apiClient: AxiosInstance = axios.create(apiConfig);
 
 // Request interceptor for adding auth tokens, etc.
-apiClient.interceptors.request.use(
-    (config) => {
-        // You can add authentication headers here
-        // const token = getToken();
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
-        return config;
-    }
-);
+apiClient.interceptors.request.use((config) => {
+    const token = getAccessToken();
+    if (token) { config.headers.Authorization = `Bearer ${token}`; }
+    return config;
+});
 
 // Response interceptor for handling errors
 apiClient.interceptors.response.use(

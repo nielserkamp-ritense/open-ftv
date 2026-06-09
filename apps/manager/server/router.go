@@ -20,11 +20,6 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.PAP.Language)
 
-	s.auth = s.newAuth()
-	if s.auth == nil {
-		panic("failed to initialize authorization manager")
-	}
-
 	var isPG bool
 	switch strings.ToLower(s.cfg.Persist.Type) {
 	case "pg", "postgres", "postgresql":
@@ -45,6 +40,19 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	// initialize the PAP before the PIP, so database migrations happen before all else.
 	if s.pap, err = s.newPAP(); err != nil {
 		panic("failed to initialize PAP")
+	}
+
+	// seed the bundled cedar authorization policies into the (postgres) store with UUID ids
+	// on an empty store, so they are enforced AND visible/editable in the UI. MUST run before
+	// newAuth: the embedded PDP loads them at construction, before the authorizer decides
+	// whether to run in NoAuth (fail-open) mode for an empty policy set.
+	s.seedAuthzPolicies()
+
+	// initialize authorization after the PAP, so the embedded self-authorization PDP
+	// shares the very same (postgres-backed) policy store as the UI-managed policies.
+	s.auth = s.newAuth()
+	if s.auth == nil {
+		panic("failed to initialize authorization manager")
 	}
 
 	s.pip = s.newPIP()

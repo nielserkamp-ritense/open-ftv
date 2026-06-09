@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { PIP_BASE_URL } from '@/config/env';
+import { getAccessToken } from './token';
 
 // Create a PAP-specific API configuration
 const papApiConfig: AxiosRequestConfig = {
@@ -13,12 +14,11 @@ const papApiConfig: AxiosRequestConfig = {
 const pipApiClient: AxiosInstance = axios.create(papApiConfig);
 
 // Request interceptor (auth, etc.)
-pipApiClient.interceptors.request.use(
-  (config) => {
-    // Add authentication headers here if needed
-    return config;
-  }
-);
+pipApiClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) { config.headers.Authorization = `Bearer ${token}`; }
+  return config;
+});
 
 // Response interceptor for handling errors
 pipApiClient.interceptors.response.use(
