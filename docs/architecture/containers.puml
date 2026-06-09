@@ -1,0 +1,67 @@
+@startuml openftv-containers
+title OpenFTV — Containers & Services (docker compose)
+
+skinparam componentStyle rectangle
+left to right direction
+
+actor "Developer / Client" as client
+
+package "Gemeente Vlierdam (consumer)" as VL {
+  component "Management Interface\n(frontend)  :8080" as vl_fe
+  component "Manager\nPAP + PIP + bundles + migrations  :9000" as vl_mgr
+  component "Outway\n(Kong + openftv plugin)  :9002" as vl_gw
+  component "PDP1  :9004" as vl_pdp
+  component "Mock dataspace  :9010" as vl_ds
+  database  "Postgres\nopenftv / openftv_adl  :5400" as vl_db
+}
+
+package "RvIG (provider)" as RV {
+  component "Management Interface  :8082" as rv_fe
+  component "Manager  :9020" as rv_mgr
+  component "Inway (Kong + plugin)  :9022" as rv_gw
+  component "PDP1  :9024" as rv_pdp
+  component "Mock dataspace  :9030" as rv_ds
+  database  "Postgres  :5420" as rv_db
+}
+
+package "RDW (provider)" as RD {
+  component "Management Interface  :8084" as rd_fe
+  component "Manager  :9040" as rd_mgr
+  component "Inway (Kong + plugin)  :9042" as rd_gw
+  component "PDP1  :9044" as rd_pdp
+  component "Mock dataspace  :9050" as rd_ds
+  database  "Postgres  :5440" as rd_db
+}
+
+' ---- intra-org wiring (identical for every org) ----
+vl_fe  --> vl_mgr : PAP/PIP REST
+vl_pdp --> vl_mgr : pull policy bundle\n/v1/bundle/pdp1
+vl_gw  --> vl_pdp : AuthZEN evaluate
+vl_mgr --> vl_db
+vl_pdp --> vl_db  : decision log (ADL)
+
+rd_fe  --> rd_mgr : PAP/PIP REST
+rd_pdp --> rd_mgr : pull policy bundle
+rd_gw  --> rd_pdp : AuthZEN evaluate
+rd_gw  --> rd_ds  : routed request
+rd_mgr --> rd_db
+rd_pdp --> rd_db  : decision log (ADL)
+
+rv_fe  --> rv_mgr
+rv_pdp --> rv_mgr
+rv_gw  --> rv_pdp : AuthZEN evaluate
+rv_gw  --> rv_ds
+rv_mgr --> rv_db
+rv_pdp --> rv_db
+
+' ---- cross-org request path (the validation flow) ----
+client --> vl_gw : POST /v1/voertuigen
+vl_gw  --> rd_gw : forward to RDW inway
+
+note bottom
+  Every organization runs the same six containers.
+  Consumers expose an **outway**; providers an **inway**.
+  Both gateways run the openftv plugin that calls their
+  own PDP (AuthZEN) before letting a request through.
+end note
+@enduml
