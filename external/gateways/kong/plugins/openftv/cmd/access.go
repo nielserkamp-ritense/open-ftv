@@ -19,6 +19,8 @@ import (
 
 // Access implements the Kong-plugin Access handler.
 func (c *Config) Access(kong *pdk.PDK) {
+	c.ensurePEP()
+
 	var method string
 	var uri *url.URL
 
