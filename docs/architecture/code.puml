@@ -1,0 +1,96 @@
+@startuml openftv-code
+title OpenFTV — Code architecture (go.work modules)
+
+skinparam componentStyle rectangle
+left to right direction
+
+package "Deployable apps" {
+  component "apps/manager" as MGR
+  component "apps/pdp" as PDP
+  component "apps/pap" as PAP
+  component "apps/pip" as PIP
+  component "apps/fsc-auth" as FSC
+  component "apps/management-interface\n(React / Vite UI)" as MI
+}
+
+package "Gateway plugins (Go)" {
+  component "external/gateways/kong" as KONG
+  component "external/gateways/envoy" as ENVOY
+}
+
+package "eam — domain libraries" {
+  package "Enforcement (PEP)" {
+    component "eam/pep" as PEP
+  }
+  package "Decision (PDP)" {
+    component "eam/pdp/controller" as CTRL
+    component "eam/pdp/controller/adl" as CADL
+    component "cedar-embedded" as CEDAR
+    component "opa-embedded" as OPA
+    component "openfga-embedded" as FGA
+    component "cerbos-api" as CERBOS
+  }
+  package "Administration" {
+    component "eam/pap" as EPAP
+    component "eam/pip" as EPIP
+    component "eam/bundles" as BUND
+  }
+  package "Shared base / cross-cutting" {
+    component "eam/server (+fiber)" as SRV
+    component "eam/handlers (+fiber)" as HND
+    component "eam/authentication" as AUTHN
+    component "eam/authorization" as AUTHZ
+    component "eam/models" as MOD
+    component "eam/log (+decisions, +search)" as LOG
+    component "eam/mapping + mimetype" as MAP
+  }
+}
+
+package "Foundation" {
+  component "utilities/*\n(slog, storage/postgresql,\nmigrate, opentelemetry)" as UT
+  component "oas (generated types)" as OAS
+  component "migrations" as MIG
+  component "mock/datasources/generic" as MOCK
+}
+
+' ---- distinguishing app composition ----
+MGR --> EPAP
+MGR --> EPIP
+MGR --> BUND
+MGR --> LOG
+PAP --> EPAP
+PIP --> EPIP
+PDP --> CTRL
+PDP --> CADL
+PDP --> LOG
+FSC --> AUTHN
+
+' ---- PDP controller delegates to a policy engine ----
+CTRL --> CEDAR
+CTRL --> OPA
+CTRL --> FGA
+CTRL --> CERBOS
+
+' ---- gateways enforce via PEP, then call the PDP over HTTP ----
+KONG  --> PEP
+ENVOY --> PEP
+PEP  ..> PDP : AuthZEN evaluate (runtime HTTP)
+MI   ..> MGR : REST PAP/PIP (runtime)
+
+' ---- shared base + foundation ----
+MGR --> SRV
+PDP --> SRV
+PAP --> SRV
+PIP --> SRV
+SRV --> UT
+HND --> MOD
+BUND --> OAS
+CADL --> UT
+
+note as N1
+  All apps share the same base layer:
+  eam/config, eam/server(+fiber),
+  eam/handlers, eam/models, utilities/slog.
+  Only the distinguishing dependencies are drawn.
+end note
+@enduml
