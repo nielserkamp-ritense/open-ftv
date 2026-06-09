@@ -50,7 +50,10 @@ func (c *collector) processBearer(bearer string) {
 	c.parc.Context.AddAttributeKV(models.AttrJWT, map[string]any{
 		models.AttrValid:   token.Valid,
 		models.AttrHeaders: token.Header,
-		models.AttrClaims:  claims,
+		// Store the claims as a plain map[string]any, not the named jwt.MapClaims type:
+		// the PDP's attribute->Cedar converter matches on map[string]any, so the named
+		// type would fail to convert and the whole jwt context attribute be dropped.
+		models.AttrClaims: map[string]any(claims),
 	})
 
 	c.mapJWTPrincipal(claims)

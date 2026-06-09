@@ -59,6 +59,11 @@ func (s *Services) seedAuthzPolicies() {
 			continue
 		}
 
+		// The policy store has a UNIQUE(language, title) index (policy_ix1); without a
+		// distinct title every seeded cedar policy collides and only the first is stored,
+		// leaving the role policies missing. Use the file's base name as a stable title.
+		pol = pol.WithTitle(strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())))
+
 		if _, cerr := s.pap.Create(pol, "*SEED*"); cerr != nil {
 			s.logger.Error("seed: cannot create policy", "file", e.Name(), "err", cerr)
 			continue
