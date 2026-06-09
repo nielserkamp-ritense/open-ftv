@@ -77,4 +77,5 @@ type Config struct {
 	config2.Bundle
 	config2.Migration
 	config2.DecisionLog
+	config2.OIDC
 }
