@@ -24,6 +24,23 @@ func (p *PAP) LoadFiles() {
 	}
 }
 
+// LoadStore replays a PolicyAdded event for every policy currently in the backing store,
+// so subscribers (e.g. an embedded PDP) rebuild their policy set from the persisted store.
+// Used when policies already live in the store (e.g. a postgres-backed store at startup),
+// where LoadFiles is a no-op because there is no local file store.
+func (p *PAP) LoadStore() {
+	list, err := p.List("")
+	if err != nil {
+		p.logger.Error("pap: error loading policies from store", "err", err)
+		return
+	}
+	for _, pol := range list {
+		if p.eventSinks != nil {
+			p.sendEvent(models.PolicyAdded, pol.Key())
+		}
+	}
+}
+
 func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
@@ -55,6 +72,20 @@ func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 	var pol *models.Policy
 	if pol, err2 = models.NewPolicyFromStore(p.language, path, f); err2 != nil {
 		return err2
+	}
+
+	// The backing store is the source of truth. If this policy already exists
+	// (e.g. a postgres-backed store on restart, possibly carrying UI edits), do
+	// NOT re-create it from the seed file — that would version-bump/duplicate it
+	// and clobber UI changes. Instead re-emit an event for the STORED policy so
+	// subscribers (the embedded PDP controller) rebuild their policy set from the
+	// persisted content. On a fresh/empty store the read misses and we seed via
+	// Create, preserving the original file-load behavior.
+	if existing, _, rerr := p.Read(pol.ID()); rerr == nil && existing != nil {
+		if p.eventSinks != nil {
+			p.sendEvent(models.PolicyReplaced, existing.Key())
+		}
+		return nil
 	}
 
 	_, err2 = p.Create(pol, loadUser)

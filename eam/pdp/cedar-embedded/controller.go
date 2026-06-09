@@ -40,7 +40,8 @@ func NewController(options ...pdp.Option) pdp.Controller {
 
 	if c.PAP != nil {
 		c.PAP.AddEventSink(c)
-		c.PAP.LoadFiles()
+		c.PAP.LoadFiles() // populate from a local file store (no-op when there is none)
+		c.PAP.LoadStore() // replay policies already in the backing store (e.g. postgres) into the PDP
 	}
 
 	if c.PIP != nil {
