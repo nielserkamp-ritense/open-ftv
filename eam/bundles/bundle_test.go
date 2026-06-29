@@ -207,6 +207,42 @@ func TestBundle_AddPolicy(t *testing.T) {
 	}
 }
 
+func TestBundle_AddPolicy_setsBundledPolicyLanguage(t *testing.T) {
+	t.Parallel()
+
+	p, err := models.NewPolicyFromData("generic", "cedar", "", "", bytes.NewBufferString(`permit (
+    principal,
+    action,
+    resource is service
+);`))
+	require.NoError(t, err)
+	p.WithTags("rvig")
+
+	b := NewBundle(1, "cedar", "rvig", "rdw")
+	require.True(t, b.AddPolicy(p))
+
+	got, ok := b.Policies["generic"]
+	require.True(t, ok)
+	assert.Equal(t, "cedar", got.Language, "bundled OAS policy must carry bundle language for PDP wire format")
+	assert.Equal(t, "generic", got.Id)
+	assert.NotEmpty(t, got.Data)
+
+	buf := &bytes.Buffer{}
+	require.NoError(t, b.Compress(CompressGZ, buf))
+
+	b2, err := BundleFromAPI(buf, map[string][]string{"Content-Encoding": {"gzip"}})
+	require.NoError(t, err)
+	require.NotNil(t, b2)
+
+	wire, ok := b2.Policies["generic"]
+	require.True(t, ok)
+	assert.Equal(t, "cedar", wire.Language, "language must survive bundle compress/decompress round-trip")
+
+	pol, err := models.NewPolicyFromOAS(wire, bytes.NewBufferString(wire.Data))
+	require.NoError(t, err)
+	assert.Equal(t, "cedar/generic", pol.Key(), "PAP key must be cedar/<id> so Cedar PDP event sink loads the policy")
+}
+
 func TestBundle_AddAttribute(t *testing.T) {
 	t.Parallel()
 
