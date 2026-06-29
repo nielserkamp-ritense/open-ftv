@@ -124,22 +124,17 @@ func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64)
 	return prev, nil
 }
 
-// ReplaceAllTags replaces all tags in the database with the given list.
-func (db *TagDB) ReplaceAllTags(tags []*oas.Tag, user string) error {
+// EnsureTags inserts seed tags that are not already present.
+func (db *TagDB) EnsureTags(tags []*oas.Tag, user string) error {
 	ctx := context.Background()
+	now := db.now().UTC()
+	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (tag) DO NOTHING`
 
-	_ = tags
-
-	sql := "DELETE FROM tag"
-	if _, err := db.p.Exec(ctx, sql, nil); err != nil {
-		return err
-	}
-
-	now := time.Now().UTC()
-
-	sql = "INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 	for i := range tags {
 		tag := tags[i]
+		if tag == nil || tag.Id == "" {
+			continue
+		}
 		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user, now, user}); err != nil {
 			return err
 		}
