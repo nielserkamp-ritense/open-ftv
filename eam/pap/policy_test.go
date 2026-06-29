@@ -23,7 +23,7 @@ import (
 func TestPAP_Add(t *testing.T) {
 	t.Parallel()
 
-	closedFile, err := os.Open("/etc/hostname")
+	closedFile, err := os.Open(os.DevNull)
 	require.NoError(t, err)
 	closedFile.Close()
 
@@ -74,7 +74,7 @@ func TestPAP_Add(t *testing.T) {
 func TestPAP_Replace(t *testing.T) {
 	t.Parallel()
 
-	closedFile, err := os.Open("/etc/hostname")
+	closedFile, err := os.Open(os.DevNull)
 	require.NoError(t, err)
 	closedFile.Close()
 
