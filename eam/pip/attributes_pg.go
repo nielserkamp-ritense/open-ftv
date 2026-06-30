@@ -195,7 +195,7 @@ func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribut
 
 // DeleteAttribute removes an existing attribute from the database.
 func (db *PostgresDB) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
-	sql := `DELETE attribute WHERE key=$1 AND updated=$2`
+	sql := `DELETE FROM attribute WHERE key=$1 AND updated=$2`
 	params := []any{prev.Key(), timeFromLastIndex(lastIndex)}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {

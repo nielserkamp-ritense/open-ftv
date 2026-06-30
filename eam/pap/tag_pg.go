@@ -79,6 +79,10 @@ func (db *TagDB) ReadTag(ctx context.Context, tag string) (*oas.Tag, uint64, err
 		return nil, 0, errors.Join(err, err2)
 	}
 
+	if t == nil {
+		return nil, 0, nil
+	}
+
 	updated, _ := time.Parse(time.RFC3339Nano, t.Audit.Updated)
 	return t, timeToLastIndex(updated), nil
 }
@@ -103,7 +107,7 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 
 // DeleteTag removes the tag from the database.
 func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error) {
-	sql := `DELETE tag WHERE tag=$1 AND updated = $2`
+	sql := `DELETE FROM tag WHERE tag=$1 AND updated = $2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex)}
 
 	_, err := db.p.Exec(ctx, sql, params)

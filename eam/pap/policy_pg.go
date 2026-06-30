@@ -207,7 +207,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastI
 
 // DeletePolicy removes an existing policy from the database.
 func (db *PolicyDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
-	sql := `DELETE policy WHERE id=$1 AND updated=$2`
+	sql := `DELETE FROM policy WHERE id=$1 AND updated=$2`
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex)}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {

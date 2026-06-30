@@ -4,7 +4,6 @@ package postgresql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -105,7 +104,7 @@ func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int
 		}
 	}()
 
-	_, err = tx.Exec(ctx, fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", user))
+	_, err = tx.Exec(ctx, "SELECT set_config('openftv.user', $1, true)", user)
 	if err != nil {
 		return
 	}
@@ -143,7 +142,7 @@ func (db *Postgres) ExecBatch(ctx context.Context, statements []Statement) (coun
 		}
 	}()
 
-	_, err = tx.Exec(ctx, fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", user))
+	_, err = tx.Exec(ctx, "SELECT set_config('openftv.user', $1, true)", user)
 	if err != nil {
 		return
 	}
