@@ -11,17 +11,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewTagDB instantiates a new PostgreSQL database connection for managing tags.
-//
-// The given context is used to signal a clean shutdown of the connection pool.
-func NewTagDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*TagDB, error) {
-	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &TagDB{p: p, now: time.Now}, nil
-}
-
 // NewTagDBWithPool instantiates a new PostgreSQL database connection for managing tags using the given connection pool.
 func NewTagDBWithPool(pool *postgresql.Postgres) *TagDB {
 	return &TagDB{p: pool, now: time.Now}
