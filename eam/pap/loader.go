@@ -92,8 +92,7 @@ func (p *PAP) loadPolicy(path string, d fs.DirEntry, err error) error {
 	return err2
 }
 
-// LoadTags seeds configured tags into the database.
-// Tags that already exist are left unchanged; only missing ids are inserted.
+// LoadTags loads a list of standard tags into the database.
 func (p *PAP) LoadTags(tags []*policies.Tag) error {
 	if p.tagDB == nil {
 		return errors.New("pap: tagDB not initialized")

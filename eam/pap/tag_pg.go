@@ -124,7 +124,7 @@ func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64)
 	return prev, nil
 }
 
-// EnsureTags inserts seed tags that are not already present.
+// EnsureTags inserts tags that are not already present.
 func (db *TagDB) EnsureTags(tags []*oas.Tag, user string) error {
 	ctx := context.Background()
 	now := db.now().UTC()
