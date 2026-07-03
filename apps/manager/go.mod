@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.8.0
-	github.com/gofiber/fiber/v2 v2.52.10
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/google/uuid v1.6.0
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/stretchr/testify v1.11.1
