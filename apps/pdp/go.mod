@@ -3,7 +3,7 @@ module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp
 go 1.24.6
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.10
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/stretchr/testify v1.11.1
 	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization v0.0.0-20250716162429-b106327fedfb
