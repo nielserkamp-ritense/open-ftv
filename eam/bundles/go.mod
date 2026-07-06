@@ -6,7 +6,7 @@ require (
 	github.com/dsnet/compress v0.0.1
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.19.0
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/google/uuid v1.6.0
 	github.com/kvtools/etcdv3 v1.0.3
 	github.com/kvtools/valkeyrie v1.0.0

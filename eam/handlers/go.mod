@@ -5,7 +5,7 @@ go 1.24.6
 require (
 	github.com/dsnet/compress v0.0.1
 	github.com/goccy/go-json v0.10.5
-	github.com/gofiber/fiber/v2 v2.52.10
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/google/uuid v1.6.0
 	github.com/pashagolub/pgxmock/v4 v4.8.0
 	github.com/stretchr/testify v1.11.1

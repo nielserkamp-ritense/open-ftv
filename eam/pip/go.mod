@@ -8,7 +8,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.17.0
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v2 v2.52.13
 	github.com/kvtools/etcdv3 v1.0.3
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/pashagolub/pgxmock/v4 v4.8.0
