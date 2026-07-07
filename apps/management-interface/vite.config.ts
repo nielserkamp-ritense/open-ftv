@@ -11,9 +11,10 @@ const __dirname = dirname(__filename)
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(), 
-    tailwindcss(),
+    // The TanStack Router plugin must come before the JSX transform plugin.
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+    tailwindcss(),
   ],
   resolve: {
     alias: {
