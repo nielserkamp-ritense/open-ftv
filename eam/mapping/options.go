@@ -9,3 +9,14 @@ func WithHeaderKeys(keys ...string) Option {
 		b.headerKeys = keys
 	}
 }
+
+// base holds the shared configuration for mappers, populated through Option values.
+type base struct {
+	headerKeys []string
+}
+
+func (b *base) configure(opts []Option) {
+	for i := range opts {
+		opts[i](b)
+	}
+}

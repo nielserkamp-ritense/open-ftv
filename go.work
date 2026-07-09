@@ -32,6 +32,8 @@ use (
 	mock/datasources/handlers
 	mock/fds/ledenlijst
 	oas
+	plugins/mapping-body
+	plugins/mapping-doelbinding
 	utilities
 	utilities-no-ci
 )

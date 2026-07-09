@@ -1,4 +1,4 @@
-package mapping
+package body
 
 import (
 	"testing"
@@ -17,13 +17,11 @@ func TestBodyToContext(t *testing.T) {
 	context0 := models.NewAttributeSet(models.NewAttribute("body", "hello world"))
 
 	body1 := models.NewAttribute("body", "")
-	body2 := models.NewAttribute("body", "hello world")
 	body3 := models.NewAttribute("body", `{\"hello\":\"world\"}`)
 	body4 := models.NewAttribute("body", "<start>hello world</start>")
 
 	action0 := models.NewEntity("name", "POST", models.NewAttributeSet())
 	action1 := models.NewEntity("name", "POST", models.NewAttributeSet(body1))
-	action2 := models.NewEntity("name", "POST", models.NewAttributeSet(body2))
 	action3 := models.NewEntity("name", "POST", models.NewAttributeSet(body3))
 	action4 := models.NewEntity("name", "POST", models.NewAttributeSet(body4))
 
@@ -76,21 +74,6 @@ func TestBodyToContext(t *testing.T) {
 			},
 		},
 		{
-			name: "unsupported body",
-			in: &models.PARC{
-				Principal: subject,
-				Action:    action2,
-				Resource:  resource,
-				Context:   context0,
-			},
-			want: &models.PARC{
-				Principal: subject,
-				Action:    action2,
-				Resource:  resource,
-				Context:   context0,
-			},
-		},
-		{
 			name: "valid json",
 			in: &models.PARC{
 				Principal: subject,
@@ -135,4 +118,28 @@ func TestBodyToContext(t *testing.T) {
 			assert.True(t, models.AttributesEqual(tc.want.Context, got.Context))
 		})
 	}
+}
+
+// TestBodyToContext_Hardening verifies that a present-but-unparseable body sets an
+// explicit body_error context attribute and does NOT expose a body attribute.
+func TestBodyToContext_Hardening(t *testing.T) {
+	t.Parallel()
+
+	subject := models.NewEntity("user", "alice", models.NewAttributeSet())
+	resource := models.NewEntity("service", "brp-personen", models.NewAttributeSet())
+
+	// "hello world" is neither valid base64 nor parseable as JSON/XML, and no
+	// content-type is supplied, so it cannot be sniffed either.
+	action := models.NewEntity("name", "POST", models.NewAttributeSet(models.NewAttribute("body", "hello world")))
+	ctx := models.NewAttributeSet()
+
+	got := BodyToContext(&models.PARC{Principal: subject, Action: action, Resource: resource, Context: ctx})
+	require.NotNil(t, got)
+
+	// body_error is set with a non-empty reason.
+	require.NotNil(t, got.Context.GetAttribute(AttrBodyError))
+	assert.NotEmpty(t, got.Context.GetAttributeValue(AttrBodyError))
+
+	// the body attribute is absent: a failed parse must not leak a body.
+	assert.Nil(t, got.Context.GetAttribute(models.AttrBody))
 }

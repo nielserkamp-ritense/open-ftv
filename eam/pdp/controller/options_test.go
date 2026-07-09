@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
@@ -17,6 +18,11 @@ import (
 
 func TestOptions(t *testing.T) {
 	t.Parallel()
+
+	// Stub mappers: the concrete mappers moved to plugins/ (ADR 0002); the
+	// controller only needs the mapping.Mapper signature here.
+	mapperA := mapping.Mapper(func(parc *models.PARC, opts ...mapping.Option) *models.PARC { return parc })
+	mapperB := mapping.Mapper(func(parc *models.PARC, opts ...mapping.Option) *models.PARC { return parc })
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -89,13 +95,13 @@ func TestOptions(t *testing.T) {
 		},
 		{
 			name:        "mappings",
-			options:     []Option{WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
+			options:     []Option{WithMappings(mapperA, mapperB)},
 			wantCtx:     context.Background(),
-			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
+			wantMapping: []mapping.Mapper{mapperA, mapperB},
 		},
 		{
 			name:        "all",
-			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep), WithMappings(mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal)},
+			options:     []Option{WithPAP(ap), WithLogger(logger), WithPIP(ip), WithNameVersion("x1", "v1"), WithPEP(ep), WithMappings(mapperA, mapperB)},
 			wantName:    "x1",
 			wantVersion: "v1",
 			wantFull:    "x1 v1",
@@ -104,7 +110,7 @@ func TestOptions(t *testing.T) {
 			wantPEP:     ep,
 			wantPAP:     ap,
 			wantPIP:     ip,
-			wantMapping: []mapping.Mapper{mapping.DoelbindingToPrincipal, mapping.RvvaToPrincipal},
+			wantMapping: []mapping.Mapper{mapperA, mapperB},
 		},
 	}
 
