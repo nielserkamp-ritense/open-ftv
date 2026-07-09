@@ -91,7 +91,7 @@ func TestLoadEntityMap(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
-			p2.loadEntityMap(tc.in)
+			p2.loadEntityMap(tc.in, nil)
 			require.Zero(t, h.Count())
 
 			tc.want.IterateEntities(func(e1 models.Entity) {
@@ -175,7 +175,7 @@ func TestLoadEntitiesAny(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
-			p2.loadEntitiesAny(tc.in)
+			p2.loadEntitiesAny(tc.in, nil)
 			require.Zero(t, h.Count())
 
 			tc.want.IterateEntities(func(e1 models.Entity) {

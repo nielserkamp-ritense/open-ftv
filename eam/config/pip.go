@@ -7,6 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/warc"
 )
 
 // PIP contains the configuration variables for a generic PIP.
@@ -14,11 +15,29 @@ type PIP struct {
 	Store        string `yaml:"pip.store.path,omitempty" env:"PIP_STORE" flag:"pip-store" desc:"Path where PIP attribute files are stored"`
 	StoreRecurse bool   `yaml:"pip.store.recurse,omitempty" env:"PIP_STORE_RECURSE" flag:"pip-store-recurse" desc:"Search PIP attribute file storage recursively"`
 	PullConfigs  string `yaml:"pip.pull.configPath,omitempty" env:"PIP_PULL_CONFIGS" flag:"pip-pull-configs" desc:"Path where PIP pull configuration files are stored"`
+	WARCDir      string `yaml:"pip.warc.dir,omitempty" env:"PIP_WARC_DIR" flag:"pip-warc-dir" desc:"Directory where the PIP WARC log is stored (empty disables WARC logging)"`
+	WARCMaxMB    int    `yaml:"pip.warc.maxMB,omitempty" env:"PIP_WARC_MAX_MB" flag:"pip-warc-max-mb" desc:"Rotate the PIP WARC log after this many megabytes (0 disables size-based rotation)"`
+	WARCDaily    bool   `yaml:"pip.warc.rotateDaily,omitempty" env:"PIP_WARC_ROTATE_DAILY" flag:"pip-warc-rotate-daily" desc:"Rotate the PIP WARC log every (UTC) day"`
+}
+
+// NewWARC instantiates the WARC log writer for the PIP, or nil when not configured.
+func (p *PIP) NewWARC() (*warc.Writer, error) {
+	if p.WARCDir == "" {
+		return nil, nil
+	}
+	return warc.NewWriter(warc.Config{Dir: p.WARCDir, MaxBytes: int64(p.WARCMaxMB) << 20, RotateDaily: p.WARCDaily})
 }
 
 // NewPIP instantiates a new PIP using the given configuration.
 func (p *PIP) NewPIP(ctx context.Context, logger *slog.Logger, language models.Language) (pip.PIP, error) {
 	opts := []pip.Option{pip.WithFileStore(p.Store, p.StoreRecurse)}
+
+	// the WARC option must precede the pull option, so pull request/response pairs are logged.
+	if w, err := p.NewWARC(); err != nil {
+		logger.Error("failed to initialize WARC log", "dir", p.WARCDir, "error", err)
+	} else if w != nil {
+		opts = append(opts, pip.WithWARC(w))
+	}
 
 	if p.PullConfigs != "" {
 		opts = append(opts, pip.WithPullConfigs(p.PullConfigs))

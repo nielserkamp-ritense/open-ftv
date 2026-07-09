@@ -14,7 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
-func (p *pip) loadRDF(f io.Reader, path, mt string) {
+func (p *pip) loadRDF(f io.Reader, path, mt string, ref *SourceRef) {
 	if f == nil {
 		p.logger.Error("pip: nil input", "path", path, "mimetype", mt)
 		return
@@ -30,7 +30,7 @@ func (p *pip) loadRDF(f io.Reader, path, mt string) {
 		return
 	}
 
-	l := &loader{path: path, mt: mt, logger: p.logger, graph: graph, p: p}
+	l := &loader{path: path, mt: mt, logger: p.logger, graph: graph, p: p, ref: ref}
 	l.run()
 }
 
@@ -61,7 +61,9 @@ func (l *loader) loadEntities() {
 			}
 		}
 
-		l.p.AddEntity(models.NewEntity(ns, id, attributes))
+		e := models.NewEntity(ns, id, attributes)
+		l.p.AddEntity(e)
+		l.p.recordEntityFileRef(e, l.ref)
 	}
 }
 
@@ -73,6 +75,7 @@ func (l *loader) loadAttributes() {
 			l.logger.Error("pip: error processing RDF attributes", "path", l.path, "mimetype", l.mt, "err", err)
 		} else {
 			l.p.AddAttribute(k, v)
+			l.p.recordFileRef(k, l.ref)
 		}
 	}
 }
@@ -229,4 +232,5 @@ type loader struct {
 	logger *slog.Logger
 	graph  *rdf2go.Graph
 	p      *pip
+	ref    *SourceRef // file-store source reference for values loaded from this file.
 }

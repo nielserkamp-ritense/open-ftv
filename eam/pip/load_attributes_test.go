@@ -37,7 +37,7 @@ func TestLoadAttributeMap(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
-			p2.loadAttributeMap(tc.in)
+			p2.loadAttributeMap(tc.in, nil)
 
 			if k, ok2 := tc.in["key"].(string); ok2 {
 				got := p1.GetAttributeValue(k)
@@ -101,7 +101,7 @@ func TestLoadAttributesAny(t *testing.T) {
 			require.True(t, ok)
 			require.NotNil(t, p2)
 
-			p2.loadAttributesAny(tc.in)
+			p2.loadAttributesAny(tc.in, nil)
 
 			for k := range tc.want {
 				got := p1.GetAttributeValue(k)

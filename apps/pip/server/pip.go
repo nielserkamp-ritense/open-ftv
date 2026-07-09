@@ -19,5 +19,22 @@ func (s *service) newPIP() (pip2.PIP, error) {
 		}
 	}
 
+	// WARC logging of external information exchanges (shared with the push-ingest endpoint).
+	w, err := s.cfg.PIP.NewWARC()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create WARC log: %w", err)
+	}
+	if w != nil {
+		s.warc = w
+		opts = append(opts, pip2.WithWARC(w))
+	}
+
+	if s.cfg.PIP.PullConfigs != "" {
+		opts = append(opts, pip2.WithPullConfigs(s.cfg.PIP.PullConfigs))
+	}
+
+	// emit an event for every attribute/entity mutation.
+	opts = append(opts, pip2.WithEventSink(&slogEventSink{logger: s.logger}))
+
 	return pip2.New(s.ctx, s.logger, opts...), nil
 }

@@ -9,6 +9,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/warc"
 )
 
 // Option represents the function signature for options when creating a new PAP.
@@ -30,6 +31,10 @@ func WithFileStore(fileStore string, recurse bool) Option {
 }
 
 // WithPullConfigs adds the path where pull configurations can be found.
+//
+// When the PIP also has a WARC log configured (see WithWARC), make sure that option
+// precedes this one; every pull request/response pair is then logged to the WARC file
+// and each decoded attribute/entity is registered with a "Logged" source reference.
 func WithPullConfigs(path string) Option {
 	return func(p *pip) {
 		if pullManager, err := network.NewManager(network.ManagerParams{
@@ -39,6 +44,10 @@ func WithPullConfigs(path string) Option {
 			NewAttributes: p.newAttributes,
 			Attributes:    p,
 			Entities:      p,
+			WARC:          p.warc,
+			Recorder: func(kind, key, traceID, spanID, warcFile, version string) {
+				p.RecordSourceRef(SourceRef{Kind: kind, Key: key, TraceID: traceID, SpanID: spanID, WARCFile: warcFile, Version: version})
+			},
 		}); err != nil {
 			p.logger.Error("failed to initialize pull manager", "path", path, "error", err)
 		} else {
@@ -58,6 +67,29 @@ func WithPersistence(store store.Store, basePath string) Option {
 		base := convert.ForceSuffix(basePath, "/")
 		p.attributePersist = NewAttributeStore(p.ctx, store, base+"attribute/")
 		p.entityPersist = NewEntityStore(p.ctx, store, base+"entity/")
+		p.sourceRefs = newSourceRefStore(p.ctx, store, base+"sourceref/")
+	}
+}
+
+// WithEventSink connects an event sink to the PIP.
+//
+// The PIP emits an event for every added, replaced or removed attribute and entity.
+func WithEventSink(sink models.EventSink) Option {
+	return func(p *pip) {
+		p.events = sink
+	}
+}
+
+// WithWARC connects a WARC log to the PIP.
+//
+// All external information exchanges (outgoing pull requests and their responses) are
+// appended to the WARC log so that an Authorization Decision Log can reference them as
+// "Logged" source references (indexed on trace_id + span_id).
+//
+// This option should precede WithPullConfigs.
+func WithWARC(w *warc.Writer) Option {
+	return func(p *pip) {
+		p.warc = w
 	}
 }
 
