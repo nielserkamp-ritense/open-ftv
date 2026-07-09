@@ -1,0 +1,92 @@
+# OpenFTV ADL observability stack.
+#
+# Serves the Inzicht statistics/inzage endpoints from a real OpenTelemetry backend
+# instead of the local write-ahead log:
+#
+#   PDP / Inzicht  --OTLP-->  Collector  --OTLP/HTTP-->  Loki  <--query_range--  Inzicht (LokiSource)
+#                                        \--(optional)-->  OpenSearch
+#                                                          Grafana (datasource + dashboard)
+#
+# Versions are pinned so the pipeline is reproducible. Run from this directory:
+#   docker compose -f compose.yaml up -d
+#   docker compose -f compose.yaml --profile opensearch up -d   # + OpenSearch branch
+#
+# See README.md for the end-to-end curl walkthrough.
+
+name: openftv-observability
+
+services:
+  # OpenTelemetry Collector (contrib): OTLP gRPC (4317) + HTTP (4318) in, fan out to
+  # Loki (native OTLP) and, under the "opensearch" profile, to OpenSearch.
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.116.0
+    container_name: openftv-otel-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    depends_on:
+      - loki
+    networks:
+      - observability
+
+  # Grafana Loki: single-binary, filesystem storage. Ingests ADL records as OTLP logs
+  # on /otlp/v1/logs; the log line is the verbatim record JSON (identical to the WAL).
+  loki:
+    image: grafana/loki:3.3.0
+    container_name: openftv-loki
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - observability
+
+  # Grafana with provisioned datasource(s) and the "ADL-beslissingen" dashboard.
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: openftv-grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+    networks:
+      - observability
+
+  # Optional OpenSearch branch (profile: opensearch). The ADL record is stored verbatim
+  # as the document (_source), so query.OpenSearchSource reconstructs it losslessly.
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: openftv-opensearch
+    profiles: ["opensearch"]
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - DISABLE_SECURITY_PLUGIN=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - observability
+
+volumes:
+  loki-data:
+
+networks:
+  observability:
+    driver: bridge

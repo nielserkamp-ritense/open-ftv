@@ -1,0 +1,61 @@
+# Grafana Loki 3.3.0 - single-binary, filesystem storage, dev-grade (no auth).
+#
+# Native OTLP ingestion is enabled on /otlp/v1/logs. The critical part for the ADL
+# pipeline is `limits_config.otlp_config`: it promotes the low-cardinality ADL label
+# fields to INDEX LABELS so LokiSource can push down `{job=, event_name=, decision=}`.
+# High-cardinality fields (trace_id, span_id, subject) are deliberately NOT promoted -
+# they stay in the log line (structured metadata at most) to avoid a stream explosion.
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9095
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+limits_config:
+  allow_structured_metadata: true
+  # Promote the chosen ADL labels to index labels; everything else on the record stays
+  # in the log line. This mirrors the label choice documented in README.md.
+  otlp_config:
+    resource_attributes:
+      attributes_config:
+        - action: index_label
+          attributes:
+            - job
+            - service.name
+    scope_attributes:
+      - action: drop
+    log_attributes:
+      - action: index_label
+        attributes:
+          - event_name
+          - decision
+          - service_name
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+analytics:
+  reporting_enabled: false

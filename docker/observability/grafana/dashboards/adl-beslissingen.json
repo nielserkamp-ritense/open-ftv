@@ -1,0 +1,114 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 0,
+  "title": "ADL-beslissingen",
+  "uid": "adl-beslissingen",
+  "tags": ["adl", "openftv", "pbac"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "event",
+        "label": "event_name",
+        "type": "custom",
+        "current": { "text": "adl.access_evaluation", "value": "adl.access_evaluation" },
+        "query": "adl.access_evaluation,adl.access_evaluations,adl.search_subject,adl.search_action,adl.search_resource",
+        "includeAll": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Beslissingen over tijd (permit / deny)",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (decision) (count_over_time({job=\"adl\", event_name=\"$event\"} [$__auto]))",
+          "legendFormat": "{{decision}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Beslissingen per afnemer (verstrekkende organisatie)",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (afnemer) (count_over_time({job=\"adl\", event_name=\"$event\"} | json afnemer=\"body[\\\"adl.core.request\\\"].subject.id\" [$__auto]))",
+          "legendFormat": "{{afnemer}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Permit vs deny per doel (tabel)",
+      "type": "table",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (doel, decision) (count_over_time({job=\"adl\", event_name=\"$event\"} | json doel=\"body[\\\"adl.core.request\\\"].context.purpose\" [$__range]))",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Totaal deny-ratio",
+      "type": "stat",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "PERMIT",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum (count_over_time({job=\"adl\", event_name=\"$event\", decision=\"permit\"} [$__range]))",
+          "legendFormat": "permit",
+          "instant": true
+        },
+        {
+          "refId": "DENY",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum (count_over_time({job=\"adl\", event_name=\"$event\", decision=\"deny\"} [$__range]))",
+          "legendFormat": "deny",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Beslissingen per service (producent)",
+      "type": "timeseries",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (service_name, decision) (count_over_time({job=\"adl\", event_name=\"$event\"} [$__auto]))",
+          "legendFormat": "{{service_name}} / {{decision}}"
+        }
+      ]
+    }
+  ]
+}

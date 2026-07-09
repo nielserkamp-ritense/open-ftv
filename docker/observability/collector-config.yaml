@@ -1,0 +1,72 @@
+# OpenTelemetry Collector (contrib 0.116.0) config for the ADL pipeline.
+#
+# Exporter choice: the standalone `loki` exporter was deprecated and then removed from
+# collector-contrib in favour of writing to Loki's NATIVE OTLP endpoint with the standard
+# `otlphttp` exporter. That is what we use here (Loki 3.x ingests OTLP logs on /otlp).
+# This keeps the collector config vendor-neutral and forward-compatible.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Bound batches so Loki ingestion stays healthy.
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+  # Tag every record with a constant stream selector so LokiSource's `{job="adl"}`
+  # selector is never empty. Resource attributes are carried through to Loki.
+  resource:
+    attributes:
+      - key: job
+        value: adl
+        action: upsert
+
+  # Keep memory bounded in the single-node dev setup.
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+
+exporters:
+  # Loki native OTLP ingestion. The ADL record travels as the log-record Body (a JSON
+  # string); Loki stores it as the log line verbatim. The low-cardinality label fields
+  # (event_name, decision, service_name) are log attributes; Loki promotes them to index
+  # labels via its otlp_config (see loki-config.yaml).
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+  # Optional OpenSearch branch (enable together with the opensearch compose profile and
+  # the logs/opensearch pipeline below). The record is written as the document _source.
+  opensearch:
+    http:
+      endpoint: http://opensearch:9200
+      tls:
+        insecure: true
+    logs_index: adl
+    dataset: adl
+    namespace: default
+
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    # Primary pipeline: ADL logs -> Loki. This is the one the Inzicht LokiSource reads.
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [otlphttp/loki, debug]
+
+    # Optional: uncomment to also fan out to OpenSearch (needs the opensearch profile).
+    # logs/opensearch:
+    #   receivers: [otlp]
+    #   processors: [memory_limiter, resource, batch]
+    #   exporters: [opensearch]
