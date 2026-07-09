@@ -1,6 +1,7 @@
-package mapping
+package doelbinding
 
 import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -12,17 +13,14 @@ import (
 //   - if the RvVA-ID is present, a new PARC is based on the given PARC with the RvVA-ID as the principal.
 //     in this case, the old principal is stored in the context under the key "client_principal".
 //   - if the RvVA-ID is not present, the given parc is returned unmodified.
-func RvvaToPrincipal(parc *models.PARC, opts ...Option) *models.PARC {
+func RvvaToPrincipal(parc *models.PARC, opts ...mapping.Option) *models.PARC {
 	if parc.Principal.Type() == pep.PrincipalRVVA {
 		return parc
 	}
 
-	b := &base{headerKeys: []string{models.HeaderRvvaID, models.HeaderObsoleteRvvaID}}
-	b.configure(opts)
-
 	var id string
 	if id = convert.AnyToString(parc.Context.GetAttributeValue(models.AttrRvvaID)); id == "" {
-		id = b.fromHeaders(parc.Context.GetAttributeValue(models.AttrHeaders))
+		id = mapping.FromHeaders(parc.Context.GetAttributeValue(models.AttrHeaders), []string{models.HeaderRvvaID, models.HeaderObsoleteRvvaID}, opts...)
 	}
 
 	if id != "" {

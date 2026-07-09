@@ -1,4 +1,4 @@
-package mapping
+package doelbinding
 
 import (
 	"testing"
@@ -10,18 +10,18 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 )
 
-func TestDoelbindingAsPrincipal(t *testing.T) {
+func TestRvvaAsPrincipal(t *testing.T) {
 	t.Parallel()
 
 	alice := models.NewEntity("user", "alice", models.NewAttributeSet(models.NewAttributeWithType("admin", false, "xsd:boolean")))
 	bob := models.NewEntity("user", "bob", models.NewAttributeSet(models.NewAttributeWithType("admin", true, "xsd:boolean")))
-	doel := models.NewEntity(pep.PrincipalDoelbinding, "burgerzaken", models.NewAttributeSet(models.NewAttributeWithType(models.AttrRvvaID, "xyz", "xsd:string")))
+	rvva := models.NewEntity(pep.PrincipalRVVA, "id1", models.NewAttributeSet(models.NewAttributeWithType(models.AttrDoelbinding, "kap[vergunning", "xsd:string")))
 	action := models.NewEntity("name", "can_read", models.NewAttributeSet(models.NewAttributeWithType("method", "POST", "xsd:string")))
 	resource := models.NewEntity("service", "brp-personen", models.NewAttributeSet(models.NewAttributeWithType("owner", "RvIG", "xsd:string")))
 
-	attr1 := models.NewAttributeWithType(models.AttrDoelbinding, "parkeervergunning", "xsd:string")
-	attr2 := models.NewAttribute(models.AttrHeaders, map[string]string{models.HeaderDoelbinding: "kapvergunning", models.HeaderRvvaID: "abc"})
-	attr3 := models.NewAttributeWithType(models.AttrDoelbinding, 123456, "xsd:integer")
+	attr1 := models.NewAttributeWithType(models.AttrRvvaID, "xyz", "xsd:string")
+	attr2 := models.NewAttribute(models.AttrHeaders, map[string]string{"doelbinding": "xyz", models.HeaderRvvaID: "abc"})
+	attr3 := models.NewAttributeWithType(models.AttrRvvaID, 123456, "xsd:integer")
 
 	context1 := models.NewAttributeSet()
 	context2 := models.NewAttributeSet(attr1)
@@ -42,29 +42,29 @@ func TestDoelbindingAsPrincipal(t *testing.T) {
 			wantID:   alice.ID(),
 		},
 		{
-			name:     "already doel",
-			parc:     &models.PARC{Principal: doel, Action: action, Resource: resource, Context: context1},
-			wantType: pep.PrincipalDoelbinding,
-			wantID:   "burgerzaken",
+			name:     "already rvva",
+			parc:     &models.PARC{Principal: rvva, Action: action, Resource: resource, Context: context1},
+			wantType: pep.PrincipalRVVA,
+			wantID:   "id1",
 		},
 		{
-			name:         "doel in context",
+			name:         "rvva in context",
 			parc:         &models.PARC{Principal: alice, Action: action, Resource: resource, Context: context2},
-			wantType:     pep.PrincipalDoelbinding,
-			wantID:       "parkeervergunning",
+			wantType:     pep.PrincipalRVVA,
+			wantID:       "xyz",
 			wantOriginal: models.EntityToAttribute(alice),
 		},
 		{
-			name:         "doel in headers",
+			name:         "rvva in headers",
 			parc:         &models.PARC{Principal: bob, Action: action, Resource: resource, Context: context3},
-			wantType:     pep.PrincipalDoelbinding,
-			wantID:       "kapvergunning",
+			wantType:     pep.PrincipalRVVA,
+			wantID:       "abc",
 			wantOriginal: models.EntityToAttribute(bob),
 		},
 		{
-			name:         "doel in context and headers",
+			name:         "rvva in context and headers",
 			parc:         &models.PARC{Principal: bob, Action: action, Resource: resource, Context: context4},
-			wantType:     pep.PrincipalDoelbinding,
+			wantType:     pep.PrincipalRVVA,
 			wantID:       "123456",
 			wantOriginal: models.EntityToAttribute(bob),
 		},
@@ -74,7 +74,7 @@ func TestDoelbindingAsPrincipal(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := DoelbindingToPrincipal(tc.parc)
+			got := RvvaToPrincipal(tc.parc)
 			require.NotNil(t, got)
 			assert.Equal(t, tc.wantType, got.Principal.Type())
 			assert.Equal(t, tc.wantID, got.Principal.ID())
