@@ -1,0 +1,233 @@
+@prefix ftv:   <https://standaarden.overheid.nl/ftv/def/> .
+@prefix actie: <https://standaarden.overheid.nl/ftv/def/actie/> .
+@prefix subj:  <https://standaarden.overheid.nl/ftv/def/subject/> .
+@prefix res:   <https://standaarden.overheid.nl/ftv/def/resource/> .
+
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Ontology header
+#################################################################
+
+<https://standaarden.overheid.nl/ftv/def>
+  a owl:Ontology ;
+  skos:prefLabel "FTV AuthZEN informatiemodel"@nl ;
+  skos:prefLabel "FTV AuthZEN information model"@en ;
+  dcterms:title "Ontologie voor het FTV AuthZEN-informatiemodel (NLGov-profiel)"@nl ;
+  dcterms:title "Ontology for the FTV AuthZEN information model (NLGov profile)"@en ;
+  rdfs:comment "Definieert de canonieke Linked Data URI's voor de acties (AVG-verwerkingshandelingen), subject-typen en resource-typen die in een AuthZEN Access Evaluation-verzoek gebruikt worden."@nl ;
+.
+
+#################################################################
+# Actions — AVG verwerkingshandelingen (AVG art. 4 sub 2)
+#################################################################
+
+actie:verwerken
+  a rdfs:Class, skos:Concept ;
+  skos:prefLabel "Verwerken"@nl ;
+  skos:prefLabel "Processing"@en ;
+  dcterms:title "Elke bewerking of geheel van bewerkingen met betrekking tot persoonsgegevens"@nl ;
+  skos:example "Wortelklasse voor alle AVG-verwerkingshandelingen."@nl ;
+.
+
+# Sub-actions of actie:verwerken. All are rdfs:subClassOf actie:verwerken.
+
+actie:verzamelen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Verzamelen"@nl ; skos:prefLabel "Collecting"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:vastleggen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verzamelen ;
+  skos:prefLabel "Vastleggen"@nl ; skos:prefLabel "Recording"@en ;
+  skos:altLabel "registreren"@nl ;
+  skos:broader actie:verzamelen ;
+.
+
+actie:ordenen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Ordenen"@nl ; skos:prefLabel "Organising"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:structureren
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:ordenen ;
+  skos:prefLabel "Structureren"@nl ; skos:prefLabel "Structuring"@en ;
+  skos:broader actie:ordenen ;
+.
+
+actie:opslaan
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Opslaan"@nl ; skos:prefLabel "Storage"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:bijwerken-of-wijzigen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Bijwerken of wijzigen"@nl ; skos:prefLabel "Adaptation or alteration"@en ;
+  skos:altLabel "bijwerken"@nl ; skos:altLabel "wijzigen"@nl ;
+  skos:broader actie:verwerken ;
+.
+
+actie:opvragen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Opvragen"@nl ; skos:prefLabel "Retrieval"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:raadplegen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Raadplegen"@nl ; skos:prefLabel "Consultation"@en ;
+  skos:altLabel "lezen"@nl ;
+  skos:broader actie:verwerken ;
+.
+
+actie:gebruiken
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Gebruiken"@nl ; skos:prefLabel "Use"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:verstrekken
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Verstrekken door middel van doorzending"@nl ;
+  skos:prefLabel "Disclosure by transmission"@en ;
+  skos:broader actie:verwerken ;
+  skos:example "Groeperende actie voor doorzenden, verspreiden en beschikbaar stellen."@nl ;
+.
+
+actie:doorzenden
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verstrekken ;
+  skos:prefLabel "Doorzenden"@nl ; skos:prefLabel "Transmission"@en ;
+  skos:altLabel "doorleveren"@nl ;
+  skos:broader actie:verstrekken ;
+.
+
+actie:verspreiden
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verstrekken ;
+  skos:prefLabel "Verspreiden"@nl ; skos:prefLabel "Dissemination"@en ;
+  skos:broader actie:verstrekken ;
+.
+
+actie:beschikbaar-stellen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verstrekken ;
+  skos:prefLabel "Beschikbaar stellen"@nl ; skos:prefLabel "Making available"@en ;
+  skos:broader actie:verstrekken ;
+.
+
+actie:samenbrengen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Samenbrengen"@nl ; skos:prefLabel "Alignment"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:met-elkaar-in-verband-brengen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:samenbrengen ;
+  skos:prefLabel "Met elkaar in verband brengen"@nl ; skos:prefLabel "Combination"@en ;
+  skos:broader actie:samenbrengen ;
+.
+
+actie:afschermen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Afschermen"@nl ; skos:prefLabel "Restriction"@en ;
+  skos:broader actie:verwerken ;
+.
+
+actie:wissen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:verwerken ;
+  skos:prefLabel "Wissen"@nl ; skos:prefLabel "Erasure"@en ;
+  skos:altLabel "verwijderen"@nl ;
+  skos:broader actie:verwerken ;
+.
+
+actie:vernietigen
+  a rdfs:Class, skos:Concept ; rdfs:subClassOf actie:wissen ;
+  skos:prefLabel "Vernietigen"@nl ; skos:prefLabel "Destruction"@en ;
+  skos:broader actie:wissen ;
+.
+
+#################################################################
+# Subject (principal) types
+#################################################################
+
+ftv:Subject
+  a owl:Class ;
+  skos:prefLabel "Subject"@nl ;
+  dcterms:title "Aanvrager van een verwerkingsactiviteit"@nl ;
+.
+
+subj:user
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "Gebruiker"@nl ; skos:prefLabel "User"@en ;
+.
+
+subj:app
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "Applicatie"@nl ; skos:prefLabel "Application"@en ;
+.
+
+subj:doelbinding
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "Doelbinding"@nl ; skos:prefLabel "Purpose binding"@en ;
+.
+
+subj:activity
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "Verwerkingsactiviteit (RVVA)"@nl ; skos:prefLabel "Processing activity"@en ;
+  skos:example "Verwijzing naar een verwerking in het Register van Verwerkingsactiviteiten."@nl ;
+.
+
+subj:zaak
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "Zaak"@nl ; skos:prefLabel "Case"@en ;
+.
+
+subj:fsc-peer
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "FSC-peer"@nl ;
+  skos:example "Peer ID van een OpenFSC In-/Outway-verzoek."@nl ;
+.
+
+subj:ip-address
+  a owl:Class ; rdfs:subClassOf ftv:Subject ;
+  skos:prefLabel "IP-adres"@nl ; skos:prefLabel "IP address"@en ;
+  skos:example "Gebruikt wanneer bij een generiek HTTP-verzoek geen aanvrager bepaald kan worden."@nl ;
+.
+
+#################################################################
+# Resource (object) types
+#################################################################
+
+ftv:Resource
+  a owl:Class ;
+  skos:prefLabel "Resource"@nl ;
+  dcterms:title "Object waar de verwerkingsactiviteit betrekking op heeft"@nl ;
+.
+
+res:resource
+  a owl:Class ; rdfs:subClassOf ftv:Resource ;
+  skos:prefLabel "Resource"@nl ;
+.
+
+res:service
+  a owl:Class ; rdfs:subClassOf ftv:Resource ;
+  skos:prefLabel "Service"@nl ; skos:prefLabel "Service"@en ;
+  skos:example "Bijvoorbeeld brp-personen."@nl ;
+.
+
+res:uri
+  a owl:Class ; rdfs:subClassOf ftv:Resource ;
+  skos:prefLabel "URI"@nl ;
+  skos:example "Een generieke HTTP-resource geïdentificeerd door een URI."@nl ;
+.
+
+res:zaak
+  a owl:Class ; rdfs:subClassOf ftv:Resource ;
+  skos:prefLabel "Zaak"@nl ; skos:prefLabel "Case"@en ;
+.

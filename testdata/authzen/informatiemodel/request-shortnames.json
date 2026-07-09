@@ -1,0 +1,19 @@
+{
+  "subject": {
+    "type": "user",
+    "id": "alice"
+  },
+  "action": {
+    "name": "raadplegen",
+    "properties": {
+      "dpl.core.processing_activity_id": "https://rvva.example.gemeente.nl/verwerkingen/123"
+    }
+  },
+  "resource": {
+    "type": "service",
+    "id": "brp-personen"
+  },
+  "context": {
+    "timestamp": "2026-07-08T09:30:00Z"
+  }
+}

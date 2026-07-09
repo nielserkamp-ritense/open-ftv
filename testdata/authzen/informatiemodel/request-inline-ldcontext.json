@@ -1,0 +1,27 @@
+{
+  "subject": {
+    "type": "https://standaarden.overheid.nl/ftv/def/subject/fsc-peer",
+    "id": "1234567890"
+  },
+  "action": {
+    "name": "https://standaarden.overheid.nl/ftv/def/actie/verstrekken",
+    "properties": {
+      "nl.avg.verwerkingshandeling": "beschikbaar stellen"
+    }
+  },
+  "resource": {
+    "type": "https://standaarden.overheid.nl/ftv/def/resource/uri",
+    "id": "https://example.com/application/resources/1"
+  },
+  "context": {
+    "timestamp": "2026-07-08T09:30:00Z",
+    "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "mim": "https://standaarden.overheid.nl/ftv/def/ftv-informatiemodel.ttl",
+    "ld-context": {
+      "@version": 1.1,
+      "actie": "https://standaarden.overheid.nl/ftv/def/actie/",
+      "subject": "https://standaarden.overheid.nl/ftv/def/subject/",
+      "resource": "https://standaarden.overheid.nl/ftv/def/resource/"
+    }
+  }
+}

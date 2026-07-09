@@ -1,0 +1,22 @@
+{
+  "subject": {
+    "type": "https://standaarden.overheid.nl/ftv/def/subject/doelbinding",
+    "id": "parkeervergunning"
+  },
+  "action": {
+    "name": "https://standaarden.overheid.nl/ftv/def/actie/raadplegen",
+    "properties": {
+      "nl.avg.verwerkingshandeling": "raadplegen",
+      "processing_activity_id": "https://rvva.example.gemeente.nl/verwerkingen/123"
+    }
+  },
+  "resource": {
+    "type": "https://standaarden.overheid.nl/ftv/def/resource/service",
+    "id": "brp-personen"
+  },
+  "context": {
+    "timestamp": "2026-07-08T09:30:00Z",
+    "mim": "https://standaarden.overheid.nl/ftv/def/ftv-informatiemodel.ttl",
+    "ld-context": "https://standaarden.overheid.nl/ftv/def/ftv-context.jsonld"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "@context": {
+    "@version": 1.1,
+
+    "ftv": "https://standaarden.overheid.nl/ftv/def/",
+    "actie": "https://standaarden.overheid.nl/ftv/def/actie/",
+    "subject": "https://standaarden.overheid.nl/ftv/def/subject/",
+    "resource": "https://standaarden.overheid.nl/ftv/def/resource/",
+    "dpl": "https://logius.nl/dpl/core/",
+    "avg": "https://standaarden.overheid.nl/ftv/def/avg/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+
+    "Subject": {
+      "@id": "ftv:Subject",
+      "@context": {
+        "type": { "@id": "@type" },
+        "id": "@id",
+        "properties": "@nest"
+      }
+    },
+    "Resource": {
+      "@id": "ftv:Resource",
+      "@context": {
+        "type": { "@id": "@type" },
+        "id": "@id",
+        "properties": "@nest"
+      }
+    },
+    "Action": {
+      "@id": "ftv:action",
+      "@context": {
+        "name": { "@id": "@type" },
+        "properties": "@nest"
+      }
+    },
+
+    "subject": { "@id": "ftv:subject", "@type": "@id" },
+    "action": { "@id": "ftv:action", "@type": "@id" },
+    "resource": { "@id": "ftv:resource", "@type": "@id" },
+    "context": { "@id": "ftv:context" },
+
+    "processing_activity_id": { "@id": "dpl:processing_activity_id", "@type": "@id" },
+    "dpl.core.processing_activity_id": { "@id": "dpl:processing_activity_id", "@type": "@id" },
+    "algorithm_id": { "@id": "dpl:algorithm_id", "@type": "@id" },
+    "nl.avg.verwerkingshandeling": { "@id": "avg:verwerkingshandeling" },
+
+    "timestamp": { "@id": "ftv:timestamp", "@type": "xsd:dateTime" },
+    "traceparent": "ftv:traceparent",
+    "tracestate": "ftv:tracestate"
+  }
+}
