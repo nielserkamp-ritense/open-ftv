@@ -1,0 +1,369 @@
+openapi: 3.0.0
+
+info:
+  title: Inzicht API en geaggregeerde statistieken (ADL)
+  version: 0.1.0
+  description: |
+    OpenAPI-specificatie voor de Inzicht-app van OpenFTV. De app biedt twee dingen
+    bovenop de Authorization Decision Log (ADL) van een afnemer:
+
+    1. **Geaggregeerde gebruiksstatistieken per doel/afnemer** die met de
+       verstrekkende partij (bijv. RvIG) gedeeld worden. Dit is een vorm van
+       dataminimalisatie/anonimisering conform de ADL-standaard (§5a): alleen
+       tellingen (permit/deny) per (afnemer, doel, periode-bucket), met een
+       k-anonimiteitsdrempel zodat kleine buckets onderdrukt worden. Naast de
+       `GET /statistieken`-pull worden de aggregaten periodiek als CloudEvent
+       (`nl.overheid.ftv.adl.statistics`) naar geconfigureerde verstrekker-
+       endpoints gepusht.
+
+    2. Een **Inzicht API** waarmee de verstrekker een (set van) verwerkingen kan
+       opvragen (§5b). Een verzoek krijgt status `pending` en moet aan
+       afnemerszijde worden goedgekeurd (approve) of afgewezen (deny) voordat het
+       resultaat opgehaald kan worden. Een verwerking correleert op `trace_id` /
+       `adl.fsc.transaction_id`.
+
+    Elke bevraging van de Inzicht API zelf wordt óók als ADL-record gelogd, met
+    `event_name` = `adl.search_resource` (de dichtstbijzijnde conforme waarde:
+    een verzameling-teruggevende leesoperatie over de log; `adl.access_evaluation`
+    is niet passend omdat dit geen PDP-evaluatie is).
+
+    ## Authenticatie en autorisatie
+
+    Alle endpoints (behalve `GET /healthz`) vereisen een bearer-token
+    (`Authorization: Bearer <token>`). In deze simulatie is dat een statische,
+    geconfigureerde tokenlijst (`INZICHT_AUTH_TOKENS`) — een **stand-in** voor een
+    productie-OAuth2/mTLS-tokendienst: in productie zou dit een geverifieerd
+    OAuth2-accesstoken zijn (of de identiteit uit een mTLS-clientcertificaat), en
+    worden rol en verstrekker-identiteit uit geverifieerde claims afgeleid, nooit
+    uit een request-header. Elk token draagt een rol (`verstrekker` of `beheerder`)
+    en een verstrekker-identiteit.
+
+    - Zonder geconfigureerd token is de API dicht (`401`). Voor lokaal spelen kan
+      auth expliciet uitgezet worden met `INZICHT_AUTH_DISABLED=true` (identiteit
+      dan uit `X-Verstrekker`, alle rolchecks overgeslagen).
+    - `verstrekker`: maakt verzoeken aan en haalt het resultaat van de eigen
+      (goedgekeurde) verzoeken op; leest statistieken. De verstrekker-identiteit
+      komt uit het token, niet uit de request-body of een header.
+    - `beheerder`: bekijkt de wachtrij (`GET /inzicht/verzoeken`) en keurt
+      verzoeken goed/af. Kan niet zelf verzoeken indienen (geen self-approve).
+    - Het resultaat is alleen zichtbaar voor de verstrekker die het verzoek
+      indiende, en is beperkt tot de goedgekeurde doel-/afnemer-scope.
+  contact:
+    name: OpenFTV
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8443/v1
+    description: Local server.
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: statistieken
+    description: Geaggregeerde gebruiksstatistieken per doel/afnemer.
+  - name: inzicht
+    description: Inzicht API met approval-stap aan afnemerszijde.
+
+paths:
+  /statistieken:
+    get:
+      operationId: get-statistieken
+      summary: Geaggregeerde statistieken per (afnemer, doel, periode).
+      description: |
+        Retourneert permit/deny-tellingen gegroepeerd per afnemer, doel en
+        periode-bucket. Bevat géén persoonsgegevens: subject-ids worden gedropt
+        en buckets met minder dan `k` beslissingen worden onderdrukt.
+      tags: [statistieken]
+      parameters:
+        - name: vanaf
+          in: query
+          description: Ondergrens van de periode (RFC3339 of YYYY-MM-DD), inclusief.
+          schema: { type: string }
+        - name: tot
+          in: query
+          description: Bovengrens van de periode (RFC3339 of YYYY-MM-DD), exclusief.
+          schema: { type: string }
+        - name: doel
+          in: query
+          description: Filter op één doel (doelbinding).
+          schema: { type: string }
+        - name: bucket
+          in: query
+          description: Periode-granulariteit.
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+        - name: event
+          in: query
+          description: |
+            Filter op ADL `event_name`. Standaard `adl.access_evaluation`, zodat
+            de statistieken over data-toegangsbeslissingen gaan en niet over
+            toegang tot de Inzicht API zelf.
+          schema: { type: string, default: adl.access_evaluation }
+      responses:
+        "200":
+          description: Geaggregeerde statistieken.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatisticsResponse" }
+        "400":
+          description: Ongeldige parameter.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /inzicht/verzoeken:
+    post:
+      operationId: create-inzicht-verzoek
+      summary: Verzoek een set verwerkingen op (status pending).
+      description: |
+        De verstrekker vraagt een set verwerkingen op via een filter op periode,
+        doel en/of trace_ids. Het verzoek krijgt status `pending` en wacht op een
+        approval-beslissing aan afnemerszijde.
+      tags: [inzicht]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VerzoekRequest" }
+      responses:
+        "201":
+          description: Aangemaakt verzoek.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Verzoek" }
+        "400":
+          description: Ongeldige body.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    get:
+      operationId: list-inzicht-verzoeken
+      summary: Lijst met verzoeken (voor de afnemer-beheerder).
+      tags: [inzicht]
+      responses:
+        "200":
+          description: Lijst met verzoeken, nieuwste eerst.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verzoeken:
+                    type: array
+                    items: { $ref: "#/components/schemas/Verzoek" }
+
+  /inzicht/verzoeken/{id}/approve:
+    post:
+      operationId: approve-inzicht-verzoek
+      summary: Keur een verzoek goed (approval-stap).
+      tags: [inzicht]
+      parameters:
+        - $ref: "#/components/parameters/VerzoekID"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DecideRequest" }
+      responses:
+        "200":
+          description: Bijgewerkt verzoek (status approved).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Verzoek" }
+        "404":
+          description: Verzoek niet gevonden.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: Verzoek is niet meer pending.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /inzicht/verzoeken/{id}/deny:
+    post:
+      operationId: deny-inzicht-verzoek
+      summary: Wijs een verzoek af (approval-stap).
+      tags: [inzicht]
+      parameters:
+        - $ref: "#/components/parameters/VerzoekID"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DecideRequest" }
+      responses:
+        "200":
+          description: Bijgewerkt verzoek (status denied).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Verzoek" }
+        "404":
+          description: Verzoek niet gevonden.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: Verzoek is niet meer pending.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /inzicht/verzoeken/{id}/resultaat:
+    get:
+      operationId: get-inzicht-resultaat
+      summary: Haal het resultaat op (alleen na approve).
+      description: |
+        Retourneert de gevraagde verwerkingen als geminimaliseerde ADL-records-
+        subset (referenties, geen ruwe payload-duplicatie): trace_id, span_id,
+        transaction_id, timestamp, event_name, status, decision en de reeds
+        aanwezige source-referenties. Alleen beschikbaar wanneer het verzoek is
+        goedgekeurd; anders 403.
+      tags: [inzicht]
+      parameters:
+        - $ref: "#/components/parameters/VerzoekID"
+      responses:
+        "200":
+          description: De gevraagde verwerkingen.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResultaatResponse" }
+        "403":
+          description: Verzoek is niet goedgekeurd.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Verzoek niet gevonden.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Bearer-token uit de geconfigureerde tokenlijst (simulatie-stand-in voor
+        OAuth2/mTLS). Elk token is gekoppeld aan een rol (verstrekker/beheerder)
+        en een verstrekker-identiteit.
+
+  parameters:
+    VerzoekID:
+      name: id
+      in: path
+      required: true
+      description: Identifier van het inzicht-verzoek.
+      schema: { type: string }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    Count:
+      type: object
+      description: Tellingen voor één (afnemer, doel, periode)-bucket. Geen persoonsgegevens.
+      properties:
+        afnemer: { type: string }
+        doel: { type: string }
+        periode:
+          type: string
+          description: Bucket-label (bijv. "2026-07-08", "2026-W28" of "2026-07").
+        permit: { type: integer }
+        deny: { type: integer }
+        total: { type: integer }
+
+    StatisticsResponse:
+      type: object
+      properties:
+        vanaf: { type: string, format: date-time, nullable: true }
+        tot: { type: string, format: date-time, nullable: true }
+        bucket: { type: string, enum: [day, week, month] }
+        k:
+          type: integer
+          description: Toegepaste k-anonimiteitsdrempel.
+        statistieken:
+          type: array
+          items: { $ref: "#/components/schemas/Count" }
+
+    VerzoekRequest:
+      type: object
+      description: |
+        De verstrekker-identiteit wordt NIET uit deze body (of een header) gelezen,
+        maar aan het geauthenticeerde token gebonden.
+      properties:
+        vanaf: { type: string, format: date-time, nullable: true }
+        tot: { type: string, format: date-time, nullable: true }
+        doel: { type: string }
+        afnemer:
+          type: string
+          description: |
+            Afnemer-scope van de gevraagde (goed te keuren) verstrekking. Beperkt
+            het resultaat tot records van deze afnemer (dataminimalisatie).
+        trace_ids:
+          type: array
+          items: { type: string }
+          description: Correlatiesleutels (trace_id) van de gevraagde verwerkingen.
+
+    DecideRequest:
+      type: object
+      properties:
+        decided_by: { type: string }
+        reason: { type: string }
+
+    Verzoek:
+      type: object
+      properties:
+        id: { type: string }
+        verstrekker: { type: string }
+        vanaf: { type: string, format: date-time, nullable: true }
+        tot: { type: string, format: date-time, nullable: true }
+        doel: { type: string }
+        afnemer: { type: string }
+        trace_ids:
+          type: array
+          items: { type: string }
+        status:
+          type: string
+          enum: [pending, approved, denied]
+        created_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time, nullable: true }
+        decided_by: { type: string }
+        reason: { type: string }
+
+    Verwerking:
+      type: object
+      description: |
+        Geminimaliseerde projectie van een ADL-record. Bevat referenties en
+        afgeleide metadata, nooit een kopie van de ruwe request/response-payload
+        (locatie-regel).
+      properties:
+        trace_id: { type: string }
+        span_id: { type: string }
+        parent_span_id: { type: string }
+        transaction_id: { type: string }
+        event_name: { type: string }
+        timestamp: { type: string, format: date-time }
+        status: { type: string, enum: [Unset, Ok, Error] }
+        decision: { type: boolean, nullable: true }
+        afnemer: { type: string }
+        doel: { type: string }
+        references:
+          type: object
+          additionalProperties: true
+          description: Reeds aanwezige source-referenties (adl.core.policies, adl.core.information, adl.fsc.transaction_id).
+
+    ResultaatResponse:
+      type: object
+      properties:
+        verzoek_id: { type: string }
+        verwerkingen:
+          type: array
+          items: { $ref: "#/components/schemas/Verwerking" }
