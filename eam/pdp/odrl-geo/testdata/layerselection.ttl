@@ -1,0 +1,41 @@
+@prefix geonl:  <https://standaarden.overheid.nl/odrl-geo-nl/> .
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix geo:    <http://www.opengis.net/ont/geosparql#> .
+@prefix geof:   <http://www.opengis.net/def/function/geosparql/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix ex:     <https://example.gov.nl/bro/bhr/> .
+
+# Minimal, focused ODRL-Geo-NL policy exercising ONLY the geonl:LayerSelection
+# right operand (spec.md §3.2 bullet 3), so a test can isolate its behaviour.
+
+ex:wfs a dcat:Distribution ;
+    dcat:accessURL <https://api.example.gov.nl/bro/bhr/v1/wfs> .
+
+ex:gevoeligeMilieuzones a geonl:LayerSelection ;
+    rdfs:label "Gevoelige milieuzones (laag-selectie)"@nl ;
+    geonl:fromLayer <https://api.example.gov.nl/geo/milieuzonering> ;
+    geonl:where [ a odrl:Constraint ;
+        odrl:leftOperand geonl:featureProperty ;
+        geonl:property "classificatie" ;
+        odrl:operator odrl:eq ;
+        odrl:rightOperand "gevoelig" ] .
+
+ex:aanbod-laag a odrl:Offer ;
+    dct:title "Aanbod met laag-gebaseerd verbod"@nl ;
+    dct:publisher oorg:oorg10203 ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod-laag ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    odrl:assigner oorg:oorg10203 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:wfs ;
+        odrl:constraint [ a odrl:Constraint ;
+            odrl:leftOperand geonl:featureGeometry ;
+            odrl:operator geof:sfDisjoint ;
+            odrl:rightOperandReference ex:gevoeligeMilieuzones ] ] .

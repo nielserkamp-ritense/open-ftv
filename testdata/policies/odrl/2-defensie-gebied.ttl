@@ -1,0 +1,128 @@
+@prefix geonl:  <https://standaarden.overheid.nl/odrl-geo-nl/> .
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix geo:    <http://www.opengis.net/ont/geosparql#> .
+@prefix geof:   <http://www.opengis.net/def/function/geosparql/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix bwb:    <https://wetten.overheid.nl/> .
+@prefix ex:     <https://example.gov.nl/bro/bhr/> .
+
+# =============================================================================
+# ODRL-Geo-NL — Voorbeeld 2 (FICTIEF): Defensie-achtig gebiedsverbod
+#
+# Bronhouder-policy op een BRO-bodemonderzoekslaag. Binnen een als 'gevoelig'
+# aangemerkt Defensie-oefengebied mogen GEEN features worden ontsloten.
+#
+# Toont: ruimtelijke constraint met echte WKT-polygon in RD New (fictieve
+# coördinaten) en een benoemd gebied (geonl:Area) — requirement #2.
+# Gemodelleerd als odrl:prohibition op read voor features die BINNEN het gebied
+# liggen (geof:sfWithin). Equivalent kan als permission met geof:sfDisjoint;
+# zie de tweede permission hieronder ter illustratie.
+# =============================================================================
+
+ex:dataset a dcat:Dataset ;
+    dct:title "BRO Bodemkundig booronderzoek (BHR-P)"@nl ;
+    dct:description "Fictieve BRO-BHR-laag met booronderzoekpunten."@nl ;
+    dcat:distribution ex:wfs ;
+    dcat:hasPolicy ex:aanbod .
+
+ex:wfs a dcat:Distribution ;
+    dct:title "WFS — booronderzoekpunten"@nl ;
+    dcat:accessURL <https://api.example.gov.nl/bro/bhr/v1/wfs> .
+
+# --- Benoemd gebied X: fictief Defensie-oefengebied (WKT, RD New / EPSG:28992)
+# Ringrichting tegen de klok; eerste = laatste punt (gesloten ring).
+ex:defensiegebiedX a geonl:Area ;
+    rdfs:label "Defensie-oefengebied X (fictief)"@nl ;
+    dct:description "Fictief afgeschermd gebied; coördinaten in RD New (meters)."@nl ;
+    geo:hasGeometry [ a geo:Geometry ;
+        geo:asWKT "<http://www.opengis.net/def/crs/EPSG/0/28992> POLYGON ((150000 460000, 158000 460000, 158000 466000, 150000 466000, 150000 460000))"^^geo:wktLiteral ] .
+
+# --- TRAP A — Offer met gebiedsverbod --------------------------------------
+ex:aanbod a odrl:Offer ;
+    dct:title "Aanbod BHR-P met Defensie-gebiedsverbod"@nl ;
+    dct:description """Booronderzoekpunten mogen worden geraadpleegd, BEHALVE
+features die binnen het afgeschermde Defensie-oefengebied X liggen: die worden
+niet ontsloten (verbod). Beleid aangeleverd door de bronhouder en namens hem
+gehandhaafd door de landelijke voorziening."""@nl ;
+    dct:publisher oorg:oorg10203 ;                # fictieve bronhouder
+    dct:issued "2026-03-15"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    prov:wasDerivedFrom bwb:BWBR0037095 ;
+    odrl:assigner oorg:oorg10203 ;
+
+    # Algemene toegang tot de laag ...
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:wfs ] ;
+
+    # ... maar VERBOD op features die binnen gebied X liggen (sfWithin).
+    odrl:prohibition [ a odrl:Prohibition ;
+        odrl:action odrl:read ;
+        odrl:target ex:wfs ;
+        odrl:constraint [ a odrl:Constraint ;
+            odrl:leftOperand geonl:featureGeometry ;
+            odrl:operator geof:sfWithin ;
+            odrl:rightOperandReference ex:defensiegebiedX ] ] .
+
+# --- Equivalente formulering als permission met sfDisjoint (illustratief) ---
+# "toegestaan MITS de feature disjunct is van gebied X" = 'ligt niet in X'.
+ex:aanbod-alt a odrl:Offer ;
+    dct:title "Aanbod BHR-P (equivalente disjoint-formulering)"@nl ;
+    dct:description "Illustratief alternatief: permission beperkt tot features die niet in gebied X liggen."@nl ;
+    dct:publisher oorg:oorg10203 ;
+    dct:issued "2026-03-15"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod-alt ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    prov:wasDerivedFrom bwb:BWBR0037095 ;
+    odrl:assigner oorg:oorg10203 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:wfs ;
+        odrl:constraint [ a odrl:Constraint ;
+            odrl:leftOperand geonl:featureGeometry ;
+            odrl:operator geof:sfDisjoint ;
+            odrl:rightOperandReference ex:defensiegebiedX ] ] .
+
+# --- Laag-verwijzing (requirement #2, bullet 3) -----------------------------
+# "ligt niet in een gebied uit een ANDERE geo-laag waarvan attribuut = gevoelig"
+# De rightOperand is een dynamische geonl:LayerSelection: alle geometrieën uit de
+# milieuzoneringslaag waarvoor classificatie = 'gevoelig'. De feature moet daar
+# disjunct van zijn.
+ex:gevoeligeMilieuzones a geonl:LayerSelection ;
+    rdfs:label "Gevoelige milieuzones (laag-selectie)"@nl ;
+    geonl:fromLayer <https://api.example.gov.nl/geo/milieuzonering> ;
+    geonl:where [ a odrl:Constraint ;
+        odrl:leftOperand geonl:featureProperty ;
+        geonl:property "classificatie" ;              # kolomnaam in de andere laag
+        odrl:operator odrl:eq ;
+        odrl:rightOperand "gevoelig" ] .
+
+ex:aanbod-laagverwijzing a odrl:Offer ;
+    dct:title "Aanbod BHR-P met laag-gebaseerd verbod"@nl ;
+    dct:description """Illustratief: booronderzoekpunten die binnen een als
+'gevoelig' geclassificeerde milieuzone (uit een andere geo-laag) vallen, worden
+niet ontsloten. De feature moet disjunct zijn van de geselecteerde zones."""@nl ;
+    dct:publisher oorg:oorg10203 ;
+    dct:issued "2026-03-15"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod-laagverwijzing ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    prov:wasDerivedFrom bwb:BWBR0037095 ;
+    odrl:assigner oorg:oorg10203 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:wfs ;
+        odrl:constraint [ a odrl:Constraint ;
+            odrl:leftOperand geonl:featureGeometry ;
+            odrl:operator geof:sfDisjoint ;
+            odrl:rightOperandReference ex:gevoeligeMilieuzones ] ] .

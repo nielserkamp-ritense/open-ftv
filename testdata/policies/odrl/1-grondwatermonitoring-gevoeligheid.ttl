@@ -1,0 +1,90 @@
+@prefix geonl:  <https://standaarden.overheid.nl/odrl-geo-nl/> .
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix geo:    <http://www.opengis.net/ont/geosparql#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix dpv:    <https://w3id.org/dpv#> .
+@prefix prov6:  <https://identifier.overheid.nl/tooi/id/provincie/> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix bwb:    <https://wetten.overheid.nl/> .
+@prefix ex:     <https://example.gov.nl/bro/gmw/> .
+
+# =============================================================================
+# ODRL-Geo-NL — Voorbeeld 1 (FICTIEF): grondwatermonitoring, gevoeligheidswaarde
+#
+# Bronhouder-policy op een BRO-grondwatermonitoringlaag (GMW). Features met een
+# gevoeligheidswaarde >= 4 zijn UITSLUITEND voor overheidsafnemers; alle overige
+# afnemers (algemeen publiek) krijgen alleen features met gevoeligheid < 4.
+#
+# Toont: feature-eigenschap-constraint (geonl:featureProperty, requirement #1),
+# hergebruik van de ODRL-AP-NL drietraps + waivable-scope-opheffing.
+# =============================================================================
+
+ex:dataset a dcat:Dataset ;
+    dct:title "BRO Grondwatermonitoringput (GMW) — meetnet provincie"@nl ;
+    dct:description "Fictieve BRO-GMW-laag met putlocaties en een afgeleide gevoeligheidswaarde (1–5)."@nl ;
+    dcat:distribution ex:ogcApi ;
+    dcat:hasPolicy ex:aanbod .
+
+ex:ogcApi a dcat:Distribution ;
+    dct:title "OGC API Features — GMW"@nl ;
+    dcat:accessURL <https://api.example.gov.nl/bro/gmw/v1/collections/putten/items> .
+
+# --- Herbruikbare feature-eigenschap-constraint (requirement #1) ------------
+# "feature heeft gevoeligheidswaarde lager dan 4"
+ex:alleenLageGevoeligheid a odrl:Constraint ;
+    rdfs:label "Alleen features met gevoeligheid < 4"@nl ;
+    rdfs:comment "Beperkt de resultaatset tot features met een gevoeligheidswaarde lager dan 4."@nl ;
+    odrl:leftOperand geonl:featureProperty ;
+    geonl:property <https://example.gov.nl/bro/gmw/def/gevoeligheid> ;   # attribuut-aanduiding
+    odrl:operator odrl:lt ;
+    odrl:rightOperand "4"^^xsd:integer ;
+    apnl:waivable true .          # mag voor overheidsafnemers worden opgeheven
+
+# --- TRAP A — Offer (bronhouderbeleid op de dataset) ------------------------
+ex:aanbod a odrl:Offer ;
+    dct:title "Aanbod BRO-GMW meetnet"@nl ;
+    dct:description """Standaardaanbod: iedere afnemer mag putlocaties raadplegen,
+maar uitsluitend features met gevoeligheidswaarde lager dan 4. Voor
+overheidsafnemers met een wettelijke taak wordt die beperking opgeheven (de
+constraint is waivable), zodat zij ook de gevoelige features (>= 4) zien."""@nl ;
+    dct:publisher prov6:pv28 ;
+    dct:issued "2026-03-01"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    prov:wasDerivedFrom bwb:BWBR0037095 ;         # fictieve grondslag (Wet BRO, plaatshouder)
+    odrl:assigner prov6:pv28 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:ogcApi ;
+        odrl:constraint ex:alleenLageGevoeligheid ] .
+
+# --- TRAP B — Agreement voor een overheidsafnemer (provincie als afnemer) ---
+# De waivable constraint ex:alleenLageGevoeligheid is WEGGELATEN: deze
+# overheidsafnemer ziet ook de gevoelige features (>= 4).
+ex:overeenkomst-waterschap a odrl:Agreement ;
+    dct:title "GMW-overeenkomst Waterschap (overheidsafnemer)"@nl ;
+    dct:description """Afnemerspecifieke overeenkomst met een waterschap voor het
+doel grondwaterbeheer. De standaardbeperking tot gevoeligheid < 4 is opgeheven
+(waivable), omdat dit een overheidsafnemer met wettelijke taak is."""@nl ;
+    dct:publisher prov6:pv28 ;
+    dct:issued "2026-03-10"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:overeenkomst-waterschap ;
+    apnl:instantiates ex:aanbod ;
+    prov:wasDerivedFrom ex:aanbod ;
+    odrl:assigner prov6:pv28 ;
+    odrl:assignee oorg:oorg41000 ;               # fictief waterschap (TOOI, illustratief)
+    odrl:permission [ a odrl:Permission ;
+        odrl:action [ rdf:value odrl:read ;
+            odrl:refinement [ a odrl:Constraint ;
+                odrl:leftOperand odrl:purpose ;
+                odrl:operator odrl:isA ;
+                odrl:rightOperand dpv:FulfilmentOfObligation ] ] ;
+        odrl:target ex:ogcApi ] .                # geen gevoeligheidsconstraint → ook features >= 4

@@ -1,0 +1,96 @@
+@prefix geonl:  <https://standaarden.overheid.nl/odrl-geo-nl/> .
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix dpv:    <https://w3id.org/dpv#> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix bwb:    <https://wetten.overheid.nl/> .
+@prefix ex:     <https://example.gov.nl/bro/gtl/> .
+
+# =============================================================================
+# ODRL-Geo-NL — Voorbeeld 3 (FICTIEF): "ja, mits" generalisatie + geen doorlevering
+#
+# Bronhouder-policy: een geologische laag mag door een kennisinstelling worden
+# gebruikt voor onderzoek, MITS de data wordt gegeneraliseerd tot 1:50.000 en
+# NIET wordt doorgeleverd aan derden.
+#
+# Toont: "ja, mits"-obligatiemechanisme als odrl:duty (requirement #3) met
+# refinements, plus purpose-refinement conform ODRL-AP-NL (trap C).
+# =============================================================================
+
+ex:dataset a dcat:Dataset ;
+    dct:title "BRO Geotechnisch sonderingsonderzoek (CPT)"@nl ;
+    dct:description "Fictieve BRO-CPT-laag met sonderingen op meetpuntresolutie."@nl ;
+    dcat:distribution ex:api ;
+    dcat:hasPolicy ex:aanbod .
+
+ex:api a dcat:Distribution ;
+    dct:title "OGC API Features — CPT"@nl ;
+    dcat:accessURL <https://api.example.gov.nl/bro/cpt/v1/collections/sonderingen/items> .
+
+# --- Herbruikbare "ja, mits"-duties -----------------------------------------
+# Duty 1: generaliseren tot 1:50.000 (schaalnoemer MOET >= 50000 zijn).
+ex:duty-generaliseren-50k a odrl:Duty ;
+    rdfs:label "Generaliseren tot 1:50.000"@nl ;
+    odrl:action [ rdf:value geonl:generaliseren ;
+        odrl:refinement [ a odrl:Constraint ;
+            odrl:leftOperand geonl:schaalnoemer ;
+            odrl:operator odrl:gteq ;
+            odrl:rightOperand "50000"^^xsd:integer ] ] .
+
+# Duty 2: niet doorleveren aan derden.
+ex:duty-nietDoorleveren a odrl:Duty ;
+    rdfs:label "Niet doorleveren aan derden"@nl ;
+    odrl:action [ rdf:value geonl:nietDoorleveren ;
+        odrl:refinement [ a odrl:Constraint ;
+            odrl:leftOperand geonl:reikwijdte ;
+            odrl:operator odrl:eq ;
+            odrl:rightOperand "derden" ] ] .
+
+# --- TRAP A — Offer ---------------------------------------------------------
+ex:aanbod a odrl:Offer ;
+    dct:title "Aanbod BRO-CPT voor onderzoek (ja, mits)"@nl ;
+    dct:description """Sonderingsgegevens mogen voor wetenschappelijk onderzoek
+worden gebruikt, MITS (1) de data wordt gegeneraliseerd tot schaal 1:50.000 en
+(2) niet wordt doorgeleverd aan derden. Toegang wordt verleend zolang deze
+maatregelen worden uitgevoerd; de afnemer koppelt terug dat hij ze uitvoert."""@nl ;
+    dct:publisher oorg:oorg10203 ;
+    dct:issued "2026-04-01"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:aanbod ;
+    geonl:defaultCRS <http://www.opengis.net/def/crs/EPSG/0/28992> ;
+    prov:wasDerivedFrom bwb:BWBR0037095 ;
+    odrl:assigner oorg:oorg10203 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action odrl:read ;
+        odrl:target ex:api ;
+        odrl:duty ex:duty-generaliseren-50k , ex:duty-nietDoorleveren ] .
+
+# --- TRAP B/C — Agreement met kennisinstelling, purpose-refinement ----------
+ex:overeenkomst-instituut a odrl:Agreement ;
+    dct:title "CPT-overeenkomst kennisinstelling"@nl ;
+    dct:description """Afnemerspecifieke overeenkomst voor het doel
+wetenschappelijk onderzoek. De 'ja, mits'-maatregelen uit het aanbod
+(generaliseren tot 1:50.000, niet doorleveren) blijven gelden en zijn hier
+expliciet herhaald conform de ODRL-AP-NL-afspraak over kritieke duties."""@nl ;
+    dct:publisher oorg:oorg10203 ;
+    dct:issued "2026-04-08"^^xsd:date ;
+    odrl:profile apnl: , geonl: ;
+    odrl:uid ex:overeenkomst-instituut ;
+    apnl:instantiates ex:aanbod ;
+    prov:wasDerivedFrom ex:aanbod ;
+    odrl:assigner oorg:oorg10203 ;
+    odrl:assignee oorg:oorg55500 ;               # fictieve kennisinstelling (TOOI, illustratief)
+    odrl:permission [ a odrl:Permission ;
+        odrl:action [ rdf:value odrl:read ;
+            odrl:refinement [ a odrl:Constraint ;
+                odrl:leftOperand odrl:purpose ;
+                odrl:operator odrl:isA ;
+                odrl:rightOperand dpv:ResearchAndDevelopment ] ] ;
+        odrl:target ex:api ;
+        odrl:duty ex:duty-generaliseren-50k , ex:duty-nietDoorleveren ] .
