@@ -45,9 +45,11 @@ func TestNew(t *testing.T) {
 			wantLog: 5,
 		},
 		{
+			// An empty pull config no longer logs a spurious initialization
+			// error since the PIP is built via config.PIP.NewPIP.
 			name:    "OPA/Rego",
 			cfg:     &config.Config{PAP: config2.PAP{Language: "opa", Store: "../../../testdata/unittest/rego"}},
-			wantLog: 4,
+			wantLog: 3,
 		},
 	}
 

@@ -57,5 +57,6 @@ type Config struct {
 	config2.PIP
 	config2.Cerbos
 	config2.OpenSearch
+	config2.ADL
 	RequestMappings string
 }

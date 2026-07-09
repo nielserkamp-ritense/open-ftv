@@ -11,6 +11,7 @@ import (
 	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	odrl "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/odrl"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -76,8 +77,11 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 // Config represents our configuration variables.
 type Config struct {
 	config2.ServerApp
+	config2.PDP
 	config2.PIP
 	config2.PAP
 	config2.Cerbos
 	config2.OpenSearch
+	config2.ADL
+	odrl.Config // ODRL im-/export endpoints exposed on the PDP (A2).
 }

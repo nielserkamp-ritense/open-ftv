@@ -21,6 +21,10 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.initHealth(svc)
 	s.initAuth(svc)
+
+	// ODRL-AP-NL import/export against the running engine's in-process PAP (A2).
+	v1 := svc.Group("/v1")
+	s.initODRL(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
