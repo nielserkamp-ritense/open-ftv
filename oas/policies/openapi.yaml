@@ -16,6 +16,8 @@ servers:
 tags:
   - name: policy
     description: Operations on policies.
+  - name: odrl
+    description: ODRL-AP-NL im- and export of the administered policies.
 
 paths:
   /policies:
@@ -193,6 +195,210 @@ paths:
         "5XX":
           $ref: "#/components/responses/UnexpectedError"
 
+  /policy-hash/{hash}:
+    parameters:
+      - name: hash
+        in: path
+        required: true
+        description: Lowercase-hex SHA-256 of the policy source content.
+        schema:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+    get:
+      operationId: "get-policy-by-hash"
+      summary: Resolve a policy by its content hash.
+      description: |
+        Returns the exact policy source recorded under the given SHA-256 content hash.
+        This backs the ADL content-addressable resolution path: an
+        `adl.core.policies` reference of the form `{key: hash}` logged at decision
+        time is resolved here to the precise policy source that governed the decision.
+        Older versions of a policy remain retrievable under their own hash after the
+        live policy has been replaced (retention implication: the content-addressable
+        index grows monotonically and is not garbage-collected).
+      tags:
+        - policy
+      responses:
+        "200":
+          description: Policy source found.
+          headers:
+            X-Policy-Id:
+              schema:
+                type: string
+              description: Identifier of the resolved policy.
+            X-Policy-Language:
+              schema:
+                type: string
+              description: Language of the resolved policy.
+            X-Policy-Hash:
+              schema:
+                type: string
+              description: The requested content hash (echoed).
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: The raw policy source content.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /odrl/export:
+    get:
+      operationId: "odrl-export"
+      summary: Export all policies as ODRL-AP-NL.
+      description: |
+        Describes the administered policies as one ODRL-AP-NL document:
+        each executable policy (Rego/Cedar/OpenFGA) becomes an apnl:PolicyArtifact
+        under an odrl:Offer/Set with apnl:conformsToPolicy constraints.
+        The response syntax follows the Accept header (text/turtle default).
+      tags:
+        - odrl
+      responses:
+        "200":
+          description: ODRL-AP-NL export.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: object
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /odrl/export/{language}/{id}:
+    parameters:
+      - $ref: "#/components/parameters/PolicyLanguage"
+      - $ref: "#/components/parameters/PolicyID"
+
+    get:
+      operationId: "odrl-export-policy"
+      summary: Export one policy as ODRL-AP-NL.
+      description: |
+        Describes one policy key as an ODRL-AP-NL document.
+        Policies stored as language "odrl" are re-served from their imported source.
+      tags:
+        - odrl
+      responses:
+        "200":
+          description: ODRL-AP-NL export of the policy.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            text/turtle:
+              schema:
+                type: string
+            application/ld+json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /odrl/import:
+    post:
+      operationId: "odrl-import"
+      summary: Import an ODRL-AP-NL document.
+      description: |
+        Imports an ODRL-AP-NL document. The request body is the document itself
+        (text/turtle or application/ld+json) or a JSON reference {"url": "..."}.
+        Each policy is validated on the mandatory AP-NL base elements (uid,
+        title, publisher, profile) and stored under the "odrl" policy language,
+        idempotent on odrl:uid. Referenced apnl:PolicyArtifacts with a known
+        executable media type are downloaded, verified against their
+        apnl:sha256 and stored under their own policy language.
+      tags:
+        - odrl
+      requestBody:
+        description: The ODRL document or a reference to it.
+        content:
+          text/turtle:
+            schema:
+              type: string
+          application/ld+json:
+            schema:
+              type: object
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OdrlImportReference"
+      responses:
+        "200":
+          description: Import processed.
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OdrlImportResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "415":
+          description: Unsupported media type.
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+  /odrl/events:
+    post:
+      operationId: "odrl-events"
+      summary: Receive a policy change as a CloudEvents 1.0 event.
+      description: |
+        Near-real-time ingest: accepts a CloudEvents 1.0 event (structured mode
+        application/cloudevents+json, or binary mode with ce-* headers) whose
+        data is an ODRL-AP-NL document (datacontenttype text/turtle or
+        application/ld+json) or a JSON reference {"url": "..."}. Delivery is
+        idempotent on the (source, id) tuple. Event type is typically
+        nl.overheid.ftv.policy.updated with a "dataversion" extension holding
+        the sha256 of the payload.
+      tags:
+        - odrl
+      requestBody:
+        description: The CloudEvents envelope or event data (binary mode).
+        content:
+          application/cloudevents+json:
+            schema:
+              type: object
+          text/turtle:
+            schema:
+              type: string
+          application/ld+json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Event processed (or recognized as duplicate).
+          headers:
+            API-Version:
+              schema:
+                type: string
+              description: Full version number of the API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OdrlImportResult"
+        "202":
+          description: Event acknowledged without content to import.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
 components:
   parameters:
     PolicyLanguage:
@@ -330,6 +536,37 @@ components:
 
     PolicyResponse:
       $ref: "#/components/schemas/Policy"
+
+    OdrlImportReference:
+      type: object
+      description: Reference to an ODRL document to import.
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Location of the ODRL document (text/turtle or application/ld+json).
+      required:
+        - url
+
+    OdrlImportResult:
+      type: object
+      description: The result of an ODRL import.
+      properties:
+        policies:
+          type: array
+          description: PAP keys of the stored ODRL policies (odrl/...).
+          items:
+            type: string
+        artifacts:
+          type: array
+          description: PAP keys of downloaded and verified policy artifacts.
+          items:
+            type: string
+        warnings:
+          type: array
+          description: Non-fatal issues, e.g. artifacts that failed hash verification.
+          items:
+            type: string
 
     ErrorResponse:
       type: object

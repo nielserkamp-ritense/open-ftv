@@ -36,6 +36,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initAttributes(v1)
 	s.initEntities(v1)
 	s.initPolicies(v1)
+	s.initODRL(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -74,4 +75,7 @@ func (s *service) initPolicies(group fiber.Router) {
 	group.Put(handle.PathPolicy, policies.PutPolicy)
 	group.Post(handle.PathPolicy, policies.PostPolicy)
 	group.Delete(handle.PathPolicy, policies.DeletePolicy)
+
+	// Content-addressable policy resolution for ADL replay (adl.core.policies {key: hash}).
+	group.Get("/policy-hash/:hash", s.GetPolicyByHash)
 }

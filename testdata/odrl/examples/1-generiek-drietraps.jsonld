@@ -1,0 +1,99 @@
+{
+  "@context": {
+    "apnl": "https://standaarden.overheid.nl/odrl-ap-nl/",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dct": "http://purl.org/dc/terms/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dpv": "https://w3id.org/dpv#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "https://example.gov.nl/brf/alleenEigenGemeente",
+      "@type": "odrl:Constraint",
+      "odrl:leftOperand": { "@id": "https://example.gov.nl/brf/registratiegemeente" },
+      "odrl:operator": { "@id": "odrl:eq" },
+      "odrl:rightOperand": { "@id": "https://example.gov.nl/brf/werkgebiedAfnemer" },
+      "apnl:waivable": true
+    },
+    {
+      "@id": "https://example.gov.nl/brf/alleenOpenstaandeAangiften",
+      "@type": "odrl:Constraint",
+      "odrl:leftOperand": { "@id": "https://example.gov.nl/brf/aangiftestatus" },
+      "odrl:operator": { "@id": "odrl:eq" },
+      "odrl:rightOperand": "open",
+      "apnl:waivable": false
+    },
+    {
+      "@id": "https://example.gov.nl/brf/brfAanbod",
+      "@type": "odrl:Offer",
+      "dct:title": { "@value": "Aanbod BRF-gegevens", "@language": "nl" },
+      "dct:publisher": { "@id": "https://identifier.overheid.nl/tooi/id/oorg/oorg99001" },
+      "dct:issued": { "@type": "xsd:date", "@value": "2026-01-15" },
+      "odrl:profile": { "@id": "apnl:" },
+      "odrl:uid": { "@id": "https://example.gov.nl/brf/brfAanbod" },
+      "prov:wasDerivedFrom": { "@id": "https://wetten.overheid.nl/BWBR0000000" },
+      "odrl:assigner": { "@id": "https://identifier.overheid.nl/tooi/id/oorg/oorg99001" },
+      "odrl:permission": [{
+        "@type": "odrl:Permission",
+        "odrl:action": { "@id": "odrl:read" },
+        "odrl:target": { "@id": "https://example.gov.nl/brf/distributie" },
+        "odrl:constraint": [
+          { "@id": "https://example.gov.nl/brf/alleenEigenGemeente" },
+          { "@id": "https://example.gov.nl/brf/alleenOpenstaandeAangiften" }
+        ]
+      }]
+    },
+    {
+      "@id": "https://example.gov.nl/brf/overeenkomst-utrecht",
+      "@type": "odrl:Agreement",
+      "dct:title": { "@value": "BRF-overeenkomst Gemeente Utrecht", "@language": "nl" },
+      "dct:publisher": { "@id": "https://identifier.overheid.nl/tooi/id/oorg/oorg99001" },
+      "dct:issued": { "@type": "xsd:date", "@value": "2026-02-01" },
+      "odrl:profile": { "@id": "apnl:" },
+      "odrl:uid": { "@id": "https://example.gov.nl/brf/overeenkomst-utrecht" },
+      "apnl:instantiates": { "@id": "https://example.gov.nl/brf/brfAanbod" },
+      "prov:wasDerivedFrom": { "@id": "https://example.gov.nl/brf/brfAanbod" },
+      "odrl:assigner": { "@id": "https://identifier.overheid.nl/tooi/id/oorg/oorg99001" },
+      "odrl:assignee": { "@id": "https://identifier.overheid.nl/tooi/id/gemeente/gm0344" },
+      "odrl:permission": [
+        {
+          "@type": "odrl:Permission",
+          "odrl:action": {
+            "rdf:value": { "@id": "odrl:read" },
+            "odrl:refinement": {
+              "@type": "odrl:Constraint",
+              "odrl:leftOperand": { "@id": "odrl:purpose" },
+              "odrl:operator": { "@id": "odrl:isA" },
+              "odrl:rightOperand": { "@id": "https://register.utrecht.nl/verwerkingen/handhaving-openbare-ruimte" }
+            }
+          },
+          "odrl:target": { "@id": "https://example.gov.nl/brf/distributie" },
+          "odrl:constraint": [
+            { "@id": "https://example.gov.nl/brf/alleenEigenGemeente" },
+            { "@id": "https://example.gov.nl/brf/alleenOpenstaandeAangiften" }
+          ]
+        },
+        {
+          "@type": "odrl:Permission",
+          "odrl:action": {
+            "rdf:value": { "@id": "odrl:read" },
+            "odrl:refinement": {
+              "@type": "odrl:Constraint",
+              "odrl:leftOperand": { "@id": "odrl:purpose" },
+              "odrl:operator": { "@id": "odrl:isA" },
+              "odrl:rightOperand": { "@id": "dpv:FulfilmentOfObligation" }
+            }
+          },
+          "odrl:target": { "@id": "https://example.gov.nl/brf/distributie" },
+          "odrl:constraint": [
+            { "@id": "https://example.gov.nl/brf/alleenEigenGemeente" },
+            { "@id": "https://example.gov.nl/brf/alleenOpenstaandeAangiften" }
+          ]
+        }
+      ]
+    }
+  ]
+}

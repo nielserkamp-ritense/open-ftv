@@ -1,0 +1,119 @@
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix tpl:    <http://www.w3.org/ns/odrl/2/temporal/> .
+@prefix brp:    <https://data.rijksoverheid.nl/brp/def#> .
+@prefix brprub: <https://data.rijksoverheid.nl/brp/rubriek/> .
+@prefix brpafn: <https://data.rijksoverheid.nl/brp/afnemer/> .
+@prefix brpaut: <https://data.rijksoverheid.nl/brp/autorisatie/> .
+@prefix gem:    <https://identifier.overheid.nl/tooi/id/gemeente/> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix bwb:    <https://wetten.overheid.nl/> .
+@prefix ex:     <https://example.gov.nl/brp/> .
+
+# =============================================================================
+# ODRL-AP-NL — Voorbeeld 2: BRP-drietraps op basis van een ECHT besluit
+#
+# Bron: brpaut:001401-v5 "Autorisatiebesluit Gemeente Groningen/Burgerzakentaken
+# (versie 5)" uit brp-odrl/ttl/autorisatiebesluiten-actueel.ttl. Het originele
+# besluit is één odrl:Set met één permission (brp:adHocVerstrekking) en ~200
+# target-rubrieken. Hier geherstructureerd naar het ODRL-AP-NL drietraps-model:
+#
+#   Trap A: RvIG biedt de BRP-distributie aan (odrl:Offer)
+#   Trap B: Gemeente Groningen sluit een overeenkomst (odrl:Agreement)
+#   Trap C: per doel (burgerzaken, subsidies) een Permission met purpose-refinement
+#
+# De target-rubrieken zijn tot een representatieve subset ingekort (het origineel
+# bevat ~200). Domeinbegrippen (acties, operatoren, rubrieken) komen uit het
+# BRP-domeinprofiel (brp:), niet uit ODRL-AP-NL zelf.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DCAT-dataset (het WAAROVER)
+# -----------------------------------------------------------------------------
+
+ex:brpDataset a dcat:Dataset ;
+    dct:title "Basisregistratie Personen (BRP)"@nl ;
+    dcat:distribution ex:haalCentraal ;
+    dcat:hasPolicy ex:brpAanbod .
+
+ex:haalCentraal a dcat:Distribution ;
+    dct:title "HaalCentraal BRP Bevragen API"@nl ;
+    dcat:accessURL <https://api.brp.nl/haalcentraal/v2/personen> .
+
+# -----------------------------------------------------------------------------
+# TRAP A / NIVEAU 1 — odrl:Offer door RvIG
+# -----------------------------------------------------------------------------
+
+ex:brpAanbod a odrl:Offer ;
+    dct:title "BRP-aanbod ad-hocverstrekking"@nl ;
+    dct:description """Aanbod van de RvIG voor ad-hocverstrekking (bevraging) uit de
+BRP aan geautoriseerde overheidsorganen, langs het HaalCentraal-koppelvlak."""@nl ;
+    dct:publisher oorg:oorg10103 ;               # RvIG (BZK)
+    dct:issued "2025-01-01"^^xsd:date ;
+    odrl:profile apnl: ;
+    odrl:uid ex:brpAanbod ;
+    prov:wasDerivedFrom bwb:BWBR0033715 ;        # Wet basisregistratie personen (BWB/Juriconnect)
+    odrl:assigner oorg:oorg10103 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action brp:adHocVerstrekking ;
+        odrl:target ex:haalCentraal ;
+        brp:medium brp:MediumNetwerk ] .
+
+# -----------------------------------------------------------------------------
+# TRAP B / NIVEAU 2 + TRAP C / NIVEAU 3 — odrl:Agreement Gemeente Groningen
+#
+# Herleidbaar naar het oorspronkelijke besluit brpaut:001401-v5 via
+# prov:wasDerivedFrom, en naar het aanbod via apnl:instantiates.
+# -----------------------------------------------------------------------------
+
+ex:overeenkomst-groningen a odrl:Agreement ;
+    dct:title "BRP-overeenkomst Gemeente Groningen (burgerzakentaken)"@nl ;
+    dct:description """Afnemerspecifieke uitwerking van het autorisatiebesluit voor
+Gemeente Groningen. De burgerzakentaken zijn gesplitst in twee doelen met elk een
+eigen set toegestane rubrieken: burgerzaken (bijhouding/raadpleging) en
+subsidieverstrekking."""@nl ;
+    dct:publisher oorg:oorg10103 ;
+    dct:issued "2019-02-03"^^xsd:date ;
+    odrl:profile apnl: ;
+    odrl:uid ex:overeenkomst-groningen ;
+    apnl:instantiates ex:brpAanbod ;
+    prov:wasDerivedFrom ex:brpAanbod, brpaut:001401-v5 ;
+    tpl:effectiveFrom "2019-02-03T00:00:00"^^xsd:dateTime ;
+    odrl:assigner oorg:oorg10103 ;
+    odrl:assignee gem:gm0014 ;                    # Gemeente Groningen (TOOI)
+
+    # Doel 1: burgerzaken — doel-URI = processing_activity_id in het AuthZEN-verzoek
+    # en tevens de doelbinding die de Rego-module in voorbeeld 3 afdwingt.
+    odrl:permission [ a odrl:Permission ;
+        odrl:action [ rdf:value brp:adHocVerstrekking ;
+            odrl:refinement [ a odrl:Constraint ;
+                odrl:leftOperand odrl:purpose ;
+                odrl:operator odrl:eq ;
+                odrl:rightOperand <https://rvva.groningen.nl/verwerkingen/burgerzaken> ] ] ;
+        odrl:target
+            brprub:burgerservicenummerPersoon,
+            brprub:voornamenPersoon,
+            brprub:geslachtsnaamPersoon,
+            brprub:geboortedatumPersoon,
+            brprub:woonplaatsnaamVerblijfplaats,
+            brprub:datumInschrijvingVerblijfplaats ;
+        brp:medium brp:MediumNetwerk ] ;
+
+    # Doel 2: subsidieverstrekking — beperktere rubriekenset
+    odrl:permission [ a odrl:Permission ;
+        odrl:action [ rdf:value brp:adHocVerstrekking ;
+            odrl:refinement [ a odrl:Constraint ;
+                odrl:leftOperand odrl:purpose ;
+                odrl:operator odrl:eq ;
+                odrl:rightOperand <https://rvva.groningen.nl/verwerkingen/subsidies> ] ] ;
+        odrl:target
+            brprub:burgerservicenummerPersoon,
+            brprub:geslachtsnaamPersoon,
+            brprub:woonplaatsnaamVerblijfplaats ;
+        brp:medium brp:MediumNetwerk ] .

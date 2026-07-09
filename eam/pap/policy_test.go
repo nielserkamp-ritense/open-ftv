@@ -211,3 +211,32 @@ func TestNewPolicyFromStore(t *testing.T) {
 		})
 	}
 }
+
+func TestSplitPolicyKey(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name         string
+		key          string
+		wantLanguage string
+		wantID       string
+	}{
+		{"two segments", "odrl/some-policy", "odrl", "some-policy"},
+		{"rego package path", "rego/doelbinding/burgerzaken", "rego", "doelbinding/burgerzaken"},
+		{"cedar package path", "cedar/brp/burgerzaken", "cedar", "brp/burgerzaken"},
+		{"openfga package path", "openfga/store/model", "openfga", "store/model"},
+		{"deep rego package path", "rego/a/b/c/d", "rego", "a/b/c/d"},
+		{"unknown three segments", "foo/bar/baz", "", "foo/bar/baz"},
+		{"single segment", "policy", "", "policy"},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			gotLang, gotID := SplitPolicyKey(tc.key)
+			assert.Equal(t, tc.wantLanguage, gotLang)
+			assert.Equal(t, tc.wantID, gotID)
+		})
+	}
+}

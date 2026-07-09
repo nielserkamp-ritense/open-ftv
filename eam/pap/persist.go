@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/goccy/go-json"
@@ -23,6 +24,9 @@ type Persistence interface {
 	Update(prev Policy, lastIndex uint64, p Policy) (Policy, error)
 	Delete(prev Policy, lastIndex uint64) (Policy, error)
 	List(language string) ([]Policy, error)
+	// ReadByHash resolves a policy by the SHA-256 of its source content, from the
+	// content-addressable index maintained on every Create/Update.
+	ReadByHash(hash string) (Policy, error)
 }
 
 // NewStore instantiates a new persistent storage handler for policies.
@@ -51,6 +55,7 @@ func (s *wrapper) Create(p Policy) (Policy, error) {
 	if _, _, err := s.client.AtomicPut(s.ctx, key, s.mustMarshal(p), nil, writeOptions); err != nil {
 		return s.failure("create", p.ID(), err, false)
 	}
+	s.indexByHash(p)
 	return p, nil
 }
 
@@ -87,6 +92,7 @@ func (s *wrapper) Update(prev Policy, lastIndex uint64, p Policy) (Policy, error
 	if _, _, err := s.client.AtomicPut(s.ctx, key, s.mustMarshal(p), &kv, writeOptions); err != nil {
 		return s.failure("update", prev.ID(), err, true)
 	}
+	s.indexByHash(p)
 	return p, nil
 }
 
@@ -126,6 +132,11 @@ func (s *wrapper) List(language string) ([]Policy, error) {
 
 	out := make([]Policy, 0, len(list))
 	for _, kv := range list {
+		if s.isHashIndexKey(kv.Key) {
+			// content-addressable index entry, not a distinct policy: skip it so the
+			// index never shows up as duplicate policies in List (including List("")).
+			continue
+		}
 		p := new(policy)
 		if err = json.Unmarshal(kv.Value, p); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal policies: %w", err)
@@ -134,6 +145,47 @@ func (s *wrapper) List(language string) ([]Policy, error) {
 	}
 
 	return out, nil
+}
+
+// ReadByHash implements the Persistence interface: it resolves a policy by the
+// SHA-256 of its source content, using the content-addressable index. Older
+// versions of a policy remain retrievable under their own hash even after the
+// live policy has been updated - callers depending on this for replay must keep in
+// mind the retention implication: the index grows monotonically (one entry per
+// distinct content ever stored) and is never garbage-collected here.
+func (s *wrapper) ReadByHash(hash string) (Policy, error) {
+	key := s.bugFix(s.basePath + hashPrefix + hash)
+
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	kv, err := s.client.Get(s.ctx, key, readOptions)
+	if err != nil || kv == nil {
+		return nil, fmt.Errorf("policy for hash '%s' not found", hash)
+	}
+	return s.unmarshal(hash, kv)
+}
+
+// indexByHash writes (or overwrites, idempotently) the content-addressable index
+// entry for a policy: key "hash/<sha256-of-content>" -> the marshalled policy. A
+// failure to index is logged-through as a no-op: the primary write already
+// succeeded, and re-indexing is deterministic, so it never fails the Create/Update.
+func (s *wrapper) indexByHash(p Policy) {
+	h, err := policyContentHash(p)
+	if err != nil {
+		return
+	}
+	key := s.bugFix(s.basePath + hashPrefix + h)
+	_ = s.client.Put(s.ctx, key, s.mustMarshal(p), writeOptions)
+}
+
+// isHashIndexKey reports whether a raw store key belongs to the content-addressable
+// index (pseudo-language "hash") rather than being a real "<language>/<id>" policy.
+func (s *wrapper) isHashIndexKey(key string) bool {
+	k := strings.TrimPrefix(key, "/")
+	base := strings.TrimPrefix(s.basePath, "/")
+	rel := strings.TrimPrefix(k, base)
+	return strings.HasPrefix(rel, hashPrefix)
 }
 
 func (s *wrapper) makeKey(language, id string) string {

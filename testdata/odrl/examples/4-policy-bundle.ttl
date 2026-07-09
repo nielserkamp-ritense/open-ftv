@@ -1,0 +1,66 @@
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix ex:     <https://example.gov.nl/brp/> .
+
+# =============================================================================
+# ODRL-AP-NL — Voorbeeld 4: PolicyBundle
+#
+# Een apnl:PolicyBundle bundelt meerdere policy-artefacten als Linked
+# Data-entiteit. Correspondeert met een OPA-bundle (.tar.gz) die twee ECHTE
+# Rego-modules bevat:
+#   open-ftv/testdata/policies/opa/brp/burgerzaken.rego
+#   open-ftv/testdata/policies/opa/brp/subsidies.rego
+#
+# Versionering via prov:wasRevisionOf; integriteit via apnl:sha256 op zowel de
+# bundel als de losse artefacten.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# De losse artefacten
+# -----------------------------------------------------------------------------
+
+ex:artefact-burgerzaken a apnl:RegoModule ;
+    dct:title "Doelbindingsregels burgerzaken (BRP)"@nl ;
+    dct:format "application/vnd.rego" ;
+    dcat:downloadURL <https://raw.githubusercontent.com/example/open-ftv/main/testdata/policies/opa/brp/burgerzaken.rego> ;
+    apnl:entrypoint "data.doelbinding.burgerzaken.allow" ;
+    apnl:sha256 "e1482e92c4cf0faa3c88bfdc54bc39912fba6d5f6e8db298bc364ac7d5e8bfa8" .
+
+ex:artefact-subsidies a apnl:RegoModule ;
+    dct:title "Doelbindingsregels subsidies (BRP)"@nl ;
+    dct:format "application/vnd.rego" ;
+    dcat:downloadURL <https://raw.githubusercontent.com/example/open-ftv/main/testdata/policies/opa/brp/subsidies.rego> ;
+    apnl:entrypoint "data.doelbinding.subsidies.allow" ;
+    apnl:sha256 "62c98173211b3bc99ba0c9a3d500e7f53aecc9b41e067986f2f0c451b4704e30" .
+
+# -----------------------------------------------------------------------------
+# De bundel (OPA-bundle als Linked Data)
+# -----------------------------------------------------------------------------
+
+ex:bundel-brp-doelbinding-v2 a apnl:PolicyBundle ;
+    dct:title "BRP-doelbindingsbundel (v2)"@nl ;
+    dct:description """OPA-bundle met de doelbindingsmodules voor de BRP-koppelvlakken.
+Bevat de modules burgerzaken en subsidies. Wordt door de PDP geladen en per
+verwerkingsverzoek geëvalueerd."""@nl ;
+    dct:publisher oorg:oorg10103 ;
+    dct:issued "2026-03-01"^^xsd:date ;
+    dct:format "application/vnd.openpolicyagent.bundle" ;
+    dcat:downloadURL <https://bundles.example.gov.nl/brp/doelbinding-v2.tar.gz> ;
+    apnl:entrypoint "data.doelbinding" ;
+    apnl:sha256 "9f2c0a7b3e5d4c1a8b6f0e2d7c9a4b1e6f3d8c2a0b5e7f1d9c3a6b8e0f2d4c7a" ;
+    apnl:bundles ex:artefact-burgerzaken, ex:artefact-subsidies ;
+    prov:wasRevisionOf ex:bundel-brp-doelbinding-v1 .
+
+ex:bundel-brp-doelbinding-v1 a apnl:PolicyBundle ;
+    dct:title "BRP-doelbindingsbundel (v1)"@nl ;
+    dct:issued "2026-01-15"^^xsd:date ;
+    dct:format "application/vnd.openpolicyagent.bundle" ;
+    apnl:sha256 "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b" ;
+    apnl:bundles ex:artefact-burgerzaken .

@@ -29,6 +29,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	// API v1.
 	v1 := svc.Group("/v1")
 	s.initPolicies(v1)
+	s.initODRL(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
