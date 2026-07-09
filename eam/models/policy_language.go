@@ -13,9 +13,10 @@ const (
 	CEDAR
 	CERBOS
 	OPENFGA
+	ODRLGEO
 
 	langFirst = XACML
-	langLast  = OPENFGA
+	langLast  = ODRLGEO
 )
 
 // String implements the Stringer interface.
@@ -33,6 +34,8 @@ func (l Language) String() string {
 		return "Cerbos/CEL"
 	case OPENFGA:
 		return "OpenFGA"
+	case ODRLGEO:
+		return "ODRL-Geo"
 	default:
 		return "<unknown>"
 	}
@@ -53,6 +56,8 @@ func (l Language) Language() string {
 		return "cerbos"
 	case OPENFGA:
 		return "openfga"
+	case ODRLGEO:
+		return "odrl-geo"
 	default:
 		return "<unknown>"
 	}
@@ -80,4 +85,11 @@ func init() {
 	languages["cerbos-cel"] = CERBOS
 	languages["cerboscel"] = CERBOS
 	languages["open-fga"] = OPENFGA
+
+	// ODRL-Geo-NL engine aliases. The engine consumes policies stored under the
+	// "odrl" PAP language, so both PAP_LANGUAGE=odrl and =odrl-geo select it.
+	languages["odrl-geo"] = ODRLGEO
+	languages["odrlgeo"] = ODRLGEO
+	languages["odrl-geo-nl"] = ODRLGEO
+	languages["geo"] = ODRLGEO
 }

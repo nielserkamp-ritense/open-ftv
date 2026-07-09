@@ -21,6 +21,7 @@ use (
 	eam/pdp/cerbos-api
 	eam/pdp/controller
 	eam/pdp/odrl
+	eam/pdp/odrl-geo
 	eam/pdp/opa-embedded
 	eam/pdp/openfga-embedded
 	eam/pdp/xacml
