@@ -22,6 +22,7 @@ type PAP interface {
 	Update(prev Policy, lastIndex uint64, in Policy) (Policy, error) // replace an existing policy.
 	Delete(prev Policy, lastIndex uint64) (Policy, error)            // remove an existing policy.
 	List(language string) ([]Policy, error)                          // list all policies.
+	ReadByHash(hash string) (Policy, error)                          // resolve a policy by content hash.
 	AddEventSink(events models.EventSink)                            // add a closure to receive change events.
 	LoadFiles()                                                      // load policies from the configured path.
 	LoadString(language, policy string) error                        // load a policy from the given string.
@@ -147,6 +148,13 @@ func (p *pap) List(language string) ([]Policy, error) {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 	return p.persist.List(language)
+}
+
+// ReadByHash resolves a policy by the SHA-256 of its source content.
+func (p *pap) ReadByHash(hash string) (Policy, error) {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+	return p.persist.ReadByHash(hash)
 }
 
 func (p *pap) AddEventSink(events models.EventSink) {

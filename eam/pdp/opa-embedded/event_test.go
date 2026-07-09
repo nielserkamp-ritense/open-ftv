@@ -123,6 +123,17 @@ func TestController_Handle(t *testing.T) {
 			wantLog2:   1,
 			logPrefix2: "policy removed",
 		},
+		{
+			// A3: a rego artifact imported from an ODRL document is keyed by its
+			// package path, e.g. "rego/doelbinding/burgerzaken" (3 segments). It
+			// must still be upserted, not skipped by SplitPolicyKey.
+			name:       "add - rego package path (3 segments)",
+			policies:   map[string]string{"rego/doelbinding/burgerzaken": p1},
+			event1:     models.PolicyAdded,
+			key1:       "rego/doelbinding/burgerzaken",
+			wantLog1:   1,
+			logPrefix1: "policy added/replaced",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -148,7 +159,7 @@ func TestController_Handle(t *testing.T) {
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
-				parts := strings.Split(key, "/")
+				parts := strings.SplitN(key, "/", 2) // id may contain slashes (rego package paths).
 
 				pol, err2 := pap2.NewPolicy(&policies.Policy{Language: parts[0], Id: parts[1]}, bytes.NewReader(data))
 				require.NoError(t, err2)

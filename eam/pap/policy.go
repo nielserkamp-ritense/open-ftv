@@ -13,6 +13,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -176,15 +177,24 @@ func (p *policy) UnmarshalJSON(data []byte) error {
 }
 
 // SplitPolicyKey splits a policy-key into language and id.
+//
+// A policy id may itself contain slashes: executable artifacts imported from an
+// ODRL document are keyed by their (Rego/Cedar/OpenFGA) package path, e.g.
+// "rego/doelbinding/burgerzaken". When the first segment names a known policy
+// language, treat it as the language and the remainder as the id, so such keys
+// round-trip through the language-specific EventSinks instead of being skipped.
 func SplitPolicyKey(key string) (string, string) {
 	parts := strings.Split(key, "/")
-	switch len(parts) {
-	case 2:
+	if len(parts) < 2 {
+		return "", key
+	}
+
+	if models.LanguageFromString(parts[0]) != 0 {
+		return parts[0], strings.Join(parts[1:], "/")
+	}
+
+	if len(parts) == 2 {
 		return parts[0], parts[1]
-	case 3:
-		if strings.EqualFold(parts[0], "opa") || strings.EqualFold(parts[0], "cerbos") {
-			return strings.Join(parts[0:2], "/"), parts[2]
-		}
 	}
 
 	return "", key

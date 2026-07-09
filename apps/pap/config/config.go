@@ -9,6 +9,7 @@ import (
 	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	odrl "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/odrl"
 )
 
 const (
@@ -60,4 +61,5 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
+	odrl.Config
 }

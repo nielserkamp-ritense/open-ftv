@@ -1,0 +1,81 @@
+@prefix apnl:   <https://standaarden.overheid.nl/odrl-ap-nl/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dcat:   <http://www.w3.org/ns/dcat#> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix brp:    <https://data.rijksoverheid.nl/brp/def#> .
+@prefix brprub: <https://data.rijksoverheid.nl/brp/rubriek/> .
+@prefix gem:    <https://identifier.overheid.nl/tooi/id/gemeente/> .
+@prefix oorg:   <https://identifier.overheid.nl/tooi/id/oorg/> .
+@prefix ex:     <https://example.gov.nl/brp/> .
+
+# =============================================================================
+# ODRL-AP-NL — Voorbeeld 3: conformsToPolicy (NIVEAU 4)
+#
+# Maakt de doelbinding "burgerzaken" uit voorbeeld 2 machine-uitvoerbaar door de
+# permission te koppelen aan een ECHTE Rego-module:
+#   open-ftv/testdata/policies/opa/brp/burgerzaken.rego
+#
+# Het constraint-patroon zegt: het inkomende verwerkingsverzoek
+# (apnl:verwerkingsverzoek) MOET voldoen aan (apnl:conformsToPolicy) het
+# aangehaalde artefact. De evaluatie wordt gedelegeerd aan OPA/Rego.
+#
+# Sluit aan op de FTV-standaard: de PDP kan dit artefact als resterende
+# autorisatieregel (residual policy) teruggeven; het mediatype
+# application/vnd.rego staat in allowed_residual_policy_types, en apnl:sha256
+# kan als audit_identifiers.policy_version worden gelogd.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Het policy-artefact (Rego-module) als Linked Data-entiteit
+# -----------------------------------------------------------------------------
+
+ex:artefact-burgerzaken a apnl:RegoModule ;
+    dct:title "Doelbindingsregels burgerzaken (BRP)"@nl ;
+    dct:description """OPA/Rego-module die controleert of een BRP-bevraging past
+binnen de doelbinding burgerzaken: alleen POST, alleen toegestane query-types
+(Zoek*/Raadpleeg*) en uitsluitend rubrieken uit de toegestane veldenlijst."""@nl ;
+    dct:format "application/vnd.rego" ;
+    dcat:downloadURL <https://raw.githubusercontent.com/example/open-ftv/main/testdata/policies/opa/brp/burgerzaken.rego> ;
+    apnl:entrypoint "data.doelbinding.burgerzaken.allow" ;
+    apnl:sha256 "e1482e92c4cf0faa3c88bfdc54bc39912fba6d5f6e8db298bc364ac7d5e8bfa8" ;
+    prov:wasDerivedFrom <https://rvva.groningen.nl/verwerkingen/burgerzaken> .
+
+# -----------------------------------------------------------------------------
+# Agreement (niveau 4): purpose-refinement + conformsToPolicy-constraint
+# -----------------------------------------------------------------------------
+
+ex:overeenkomst-groningen-n4 a odrl:Agreement ;
+    dct:title "BRP-overeenkomst Gemeente Groningen — burgerzaken (machine-uitvoerbaar)"@nl ;
+    dct:description """Niveau-4-uitwerking van de doelbinding burgerzaken: naast de
+mensleesbare beschrijving en de doel-refinement draagt de permission een
+conformsToPolicy-constraint naar de afdwingbare Rego-module."""@nl ;
+    dct:publisher oorg:oorg10103 ;
+    dct:issued "2026-03-01"^^xsd:date ;
+    odrl:profile apnl: ;
+    odrl:uid ex:overeenkomst-groningen-n4 ;
+    apnl:instantiates ex:brpAanbod ;
+    prov:wasDerivedFrom ex:brpAanbod ;
+    odrl:assigner oorg:oorg10103 ;
+    odrl:assignee gem:gm0014 ;
+    odrl:permission [ a odrl:Permission ;
+        odrl:action [ rdf:value brp:adHocVerstrekking ;
+            odrl:refinement [ a odrl:Constraint ;
+                odrl:leftOperand odrl:purpose ;
+                odrl:operator odrl:eq ;
+                odrl:rightOperand <https://rvva.groningen.nl/verwerkingen/burgerzaken> ] ] ;
+        odrl:target
+            brprub:burgerservicenummerPersoon,
+            brprub:voornamenPersoon,
+            brprub:geslachtsnaamPersoon,
+            brprub:geboortedatumPersoon,
+            brprub:woonplaatsnaamVerblijfplaats ;
+        brp:medium brp:MediumNetwerk ;
+        # Kern van niveau 4: het verwerkingsverzoek moet voldoen aan het artefact.
+        odrl:constraint [ a odrl:Constraint ;
+            odrl:leftOperand apnl:verwerkingsverzoek ;
+            odrl:operator apnl:conformsToPolicy ;
+            odrl:rightOperand ex:artefact-burgerzaken ] ] .
