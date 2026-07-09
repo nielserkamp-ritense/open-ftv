@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip/network"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/warc"
 )
 
 // PIP represents the interface for a Policy Information Point.
@@ -45,6 +46,7 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) PIP {
 		store:            s,
 		attributePersist: ap,
 		entityPersist:    ep,
+		sourceRefs:       newSourceRefStore(ctx, s, "sourceref"),
 	}
 
 	for i := range options {
@@ -115,9 +117,13 @@ func (p *pip) AddOriginalAttribute(key string, value, original any, tp string) {
 func (p *pip) addAttribute(a models.Attribute) error {
 	prev, ix, err := p.attributePersist.Read(a.Key())
 	if err != nil || prev == nil {
-		_, err = p.attributePersist.Create(a)
+		if _, err = p.attributePersist.Create(a); err == nil {
+			p.emit(models.AttributeAdded, a.Key())
+		}
 	} else {
-		_, err = p.attributePersist.Update(prev, ix, a)
+		if _, err = p.attributePersist.Update(prev, ix, a); err == nil {
+			p.emit(models.AttributeReplaced, a.Key())
+		}
 	}
 	return err
 }
@@ -145,7 +151,9 @@ func (p *pip) GetAttributeValue(key string) any {
 // Use this to remove a default attribute from the PIP.
 func (p *pip) RemoveAttribute(key string) {
 	if prev, ix, err := p.attributePersist.Read(key); err == nil {
-		_, _ = p.attributePersist.Delete(prev, ix)
+		if _, err = p.attributePersist.Delete(prev, ix); err == nil {
+			p.emit(models.AttributeRemoved, key)
+		}
 	}
 }
 
@@ -177,9 +185,13 @@ func (p *pip) MergeAttributes(in ...models.AttributeSet) {
 func (p *pip) AddEntity(entity models.Entity) {
 	prev, ix, err := p.entityPersist.Read(entity.UID())
 	if err != nil || prev == nil {
-		_, err = p.entityPersist.Create(entity)
+		if _, err = p.entityPersist.Create(entity); err == nil {
+			p.emit(models.EntityAdded, entity.UID())
+		}
 	} else {
-		_, err = p.entityPersist.Update(prev, ix, entity)
+		if _, err = p.entityPersist.Update(prev, ix, entity); err == nil {
+			p.emit(models.EntityReplaced, entity.UID())
+		}
 	}
 }
 
@@ -196,7 +208,9 @@ func (p *pip) GetEntity(uid string) models.Entity {
 // Use this to remove an entity from the PIP.
 func (p *pip) RemoveEntity(uid string) {
 	if prev, ix, err := p.entityPersist.Read(uid); err == nil {
-		_, _ = p.entityPersist.Delete(prev, ix)
+		if _, err = p.entityPersist.Delete(prev, ix); err == nil {
+			p.emit(models.EntityRemoved, uid)
+		}
 	}
 }
 
@@ -245,10 +259,19 @@ type pip struct {
 	entityUpdates    []string
 	entityDeletes    []string
 	events           models.EventSink
+	warc             *warc.Writer
+	sourceRefs       *sourceRefStore
 	store            store.Store
 	attributePersist AttributePersistence
 	entityPersist    EntityPersistence
 	mutex            sync.RWMutex
+}
+
+// emit sends an event to the configured EventSink, if any.
+func (p *pip) emit(t models.EventType, key string) {
+	if p.events != nil {
+		p.events.Handle(t, key)
+	}
 }
 
 func (p *pip) entitiesToMap() map[string]any {

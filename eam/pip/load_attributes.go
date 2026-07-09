@@ -18,19 +18,22 @@ func (p *pip) loadAttributes(path string) {
 	}
 	defer f.Close()
 
+	// A file-store load registers a "file" source reference for every loaded value.
+	ref := p.fileSourceRef(path)
+
 	// detect the file-type and mime-type if possible.
 	// this should cover all supported file types.
 	if ft, mt, data := mime.DetectType(f, mime2.ConvertExt(filepath.Ext(path))); ft == mime.AttributesFile || ft == mime.CollectionFile {
 		if data != nil {
 			// this covers YAML, TOML & JSON.
-			p.loadAttributesAny(data)
+			p.loadAttributesAny(data, ref)
 			return
 		}
 
 		switch mt {
 		case mime2.MimeTypeTurtle, mime2.MimeTypeJSONLD, mime2.MimeTypeRDF:
 			// this covers our supported RDF file encodings.
-			p.loadRDF(f, path, mt)
+			p.loadRDF(f, path, mt, ref)
 			return
 		}
 	}
@@ -42,28 +45,29 @@ func (p *pip) loadAttributes(path string) {
 		return
 	}
 
-	p.loadAttributesAny(attributes)
+	p.loadAttributesAny(attributes, ref)
 }
 
-func (p *pip) loadAttributesAny(attributes any) {
+func (p *pip) loadAttributesAny(attributes any, ref *SourceRef) {
 	switch t := attributes.(type) {
 	case []any:
 		for i := range t {
-			p.loadAttributesAny(t[i])
+			p.loadAttributesAny(t[i], ref)
 		}
 	case []map[string]any:
 		for i := range t {
-			p.loadAttributeMap(t[i])
+			p.loadAttributeMap(t[i], ref)
 		}
 	case map[string]any:
-		p.loadAttributeMap(t)
+		p.loadAttributeMap(t, ref)
 	}
 }
 
-func (p *pip) loadAttributeMap(attribute map[string]any) {
+func (p *pip) loadAttributeMap(attribute map[string]any, ref *SourceRef) {
 	k, ok1 := attribute["key"].(string)
 	v, ok2 := attribute["value"]
 	if ok1 && ok2 {
 		p.AddAttribute(k, v)
+		p.recordFileRef(k, ref)
 	}
 }

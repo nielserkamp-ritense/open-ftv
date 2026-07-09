@@ -10,7 +10,7 @@ import (
 
 func (r *runner) decodeAttribute(obj *AttributesMapping) {
 	if data := findElement(splitKeys(obj.Base), r.data); data != nil {
-		r.decodeAttributesData(data, obj, r.manager.attributes)
+		r.decodeAttributesData(data, obj, r.attributeSet())
 	}
 }
 

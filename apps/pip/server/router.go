@@ -30,6 +30,7 @@ func (s *service) initRoutes(ctx context.Context, svc *fiber.App) {
 	v1 := svc.Group("/v1")
 	s.initAttributes(v1)
 	s.initEntities(v1)
+	s.initEvents(v1)
 }
 
 func (s *service) initHealth(svc *fiber.App) {
@@ -46,6 +47,15 @@ func (s *service) initAttributes(group fiber.Router) {
 	group.Put(handle.PathAttribute, attributes.PutAttribute)
 	group.Post(handle.PathAttribute, attributes.PostAttribute)
 	group.Delete(handle.PathAttribute, attributes.DeleteAttribute)
+}
+
+func (s *service) initEvents(group fiber.Router) {
+	events := newEventsHandler(s.logger, s.pip, s.auth.Authorizer(), s.warc)
+
+	// CloudEvents push-ingest & source-reference lookup.
+	group.Post("/events", events.PostEvent)
+	group.Get("/sourcerefs", events.GetSourceRefs)
+	group.Get("/sourceref", events.GetSourceRef)
 }
 
 func (s *service) initEntities(group fiber.Router) {

@@ -76,5 +76,5 @@ func (r *runner) processEntity(tp string, id string, attrs models.AttributeSet, 
 		attrs = r.manager.newAttributes()
 	}
 
-	r.manager.entities.AddEntity(models.NewEntity(tp, id, attrs, parents...))
+	r.entitySet().AddEntity(models.NewEntity(tp, id, attrs, parents...))
 }

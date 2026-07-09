@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/warc"
 )
 
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
@@ -41,4 +42,5 @@ type service struct {
 	l      models.Language
 	auth   AuthHandler
 	pip    pip.PIP
+	warc   *warc.Writer
 }

@@ -19,19 +19,23 @@ func (p *pip) loadEntities(path string) {
 	}
 	defer f.Close()
 
+	// A file-store load registers a "file" source reference for every loaded value,
+	// so the ADL level-3 hook can resolve where a file-backed attribute came from.
+	ref := p.fileSourceRef(path)
+
 	// detect the file-type and mime-type if possible.
 	// this should cover all supported file types.
 	if ft, mt, data := mime.DetectType(f, mime2.ConvertExt(filepath.Ext(path))); ft == mime.EntitiesFile || ft == mime.CollectionFile {
 		if data != nil {
 			// this covers YAML, TOML & JSON.
-			p.loadEntitiesAny(data)
+			p.loadEntitiesAny(data, ref)
 			return
 		}
 
 		switch mt {
 		case mime2.MimeTypeTurtle, mime2.MimeTypeJSONLD, mime2.MimeTypeRDF:
 			// this covers our supported RDF file encodings.
-			p.loadRDF(f, path, mt)
+			p.loadRDF(f, path, mt, ref)
 			return
 		}
 	}
@@ -43,25 +47,25 @@ func (p *pip) loadEntities(path string) {
 		return
 	}
 
-	p.loadEntitiesAny(entities)
+	p.loadEntitiesAny(entities, ref)
 }
 
-func (p *pip) loadEntitiesAny(entities any) {
+func (p *pip) loadEntitiesAny(entities any, ref *SourceRef) {
 	switch t := entities.(type) {
 	case []any:
 		for i := range t {
-			p.loadEntitiesAny(t[i])
+			p.loadEntitiesAny(t[i], ref)
 		}
 	case []map[string]any:
 		for i := range t {
-			p.loadEntityMap(t[i])
+			p.loadEntityMap(t[i], ref)
 		}
 	case map[string]any:
-		p.loadEntityMap(t)
+		p.loadEntityMap(t, ref)
 	}
 }
 
-func (p *pip) loadEntityMap(attribute map[string]any) {
+func (p *pip) loadEntityMap(attribute map[string]any, ref *SourceRef) {
 	t, ok1 := attribute["type"].(string)
 	id, ok2 := attribute["id"].(string)
 
@@ -86,6 +90,8 @@ func (p *pip) loadEntityMap(attribute map[string]any) {
 			}
 		}
 
-		p.AddEntity(models.NewEntity(t, id, attrs, parents...))
+		e := models.NewEntity(t, id, attrs, parents...)
+		p.AddEntity(e)
+		p.recordEntityFileRef(e, ref)
 	}
 }

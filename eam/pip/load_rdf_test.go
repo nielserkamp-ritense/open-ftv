@@ -64,7 +64,7 @@ func TestLoadRDF(t *testing.T) {
 				entityPersist:    ep,
 			}
 
-			p.loadRDF(f, tc.path, tc.mime)
+			p.loadRDF(f, tc.path, tc.mime, nil)
 			assert.Equal(t, tc.wantLog, h.Count())
 
 			var count int
