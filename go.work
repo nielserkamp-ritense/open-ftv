@@ -36,5 +36,6 @@ use (
 	plugins/mapping-body
 	plugins/mapping-doelbinding
 	utilities
+	utilities/adl-replay
 	utilities-no-ci
 )
