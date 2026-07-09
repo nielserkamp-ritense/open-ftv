@@ -176,11 +176,30 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier of the reason.
+          description: Unique identifier of the reason. For an ODRL/NLGov decision this carries the governing policy uid (odrl:uid).
         reasonAdmin:
           $ref: "#/components/schemas/ReasonField"
         reasonUser:
           $ref: "#/components/schemas/ReasonField"
+        obligations:
+          type: array
+          description: >-
+            NLGov/ODRL extension (backward-compatible additive property, x-nlgov-obligations):
+            the obligations/duties the PEP MUST fulfil when enforcing an allow decision.
+            Each item is an AuthZEN obligation object with an "id" (the odrl duty/action IRI)
+            and optional "properties" (refinements). Maps ODRL duties onto the Decision
+            context.obligations per the NLGov AuthZEN profile.
+          x-nlgov-obligations: true
+          items:
+            type: object
+            description: A single AuthZEN obligation.
+            properties:
+              id:
+                type: string
+                description: Identifier of the obligation (odrl duty/action IRI).
+              properties:
+                type: object
+                description: Optional refinement properties of the obligation.
       required:
         - id
 
