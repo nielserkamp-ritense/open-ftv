@@ -23,6 +23,13 @@ import (
 // AuthFSCVersion is the full semantic API version for the FSC authorization endpoint.
 const AuthFSCVersion = "1.0.0"
 
+// HeaderFSCTransactionID is the HTTP header carrying the FSC TransactionID that the Outway
+// generates and the Inway preserves; it correlates the FSC transaction log records of a
+// request across peers (see the FSC Logging standard). On the FSC authorization path the
+// request has by definition crossed an inway/outway, so this header identifies the ADL
+// record's adl.fsc.transaction_id.
+const HeaderFSCTransactionID = "Fsc-Transaction-Id"
+
 // FSCAuthorizer represents the interface for handling FSC authorization requests.
 type FSCAuthorizer interface {
 	Authorize(req *fiber.Ctx) error
@@ -111,6 +118,10 @@ func (p *authProcess) newAuthRequestFSC(req *auth.AuthorizationRequest) {
 		d, _ = base64.StdEncoding.DecodeString(b)
 	}
 
+	// F18: capture the FSC TransactionID (Fsc-Transaction-Id header) so the ADL record can
+	// set adl.fsc.transaction_id - mandatory when the request crossed an FSC inway/outway.
+	p.fscTransactionID = firstHeaderValue(req.Input.Headers, HeaderFSCTransactionID)
+
 	uid, now := uuid.New(), time.Now().UTC()
 	authReq := &models.Request{
 		UID:         &uid,
@@ -149,6 +160,17 @@ func (p *authProcess) authorizeFSC() error {
 			}{Reason: &msg},
 		},
 	})
+}
+
+// firstHeaderValue returns the first value of the named header from the FSC request headers,
+// matching case-insensitively (HTTP header names are case-insensitive). Returns "" when absent.
+func firstHeaderValue(headers map[string][]string, name string) string {
+	for k, v := range headers {
+		if strings.EqualFold(k, name) && len(v) > 0 {
+			return v[0]
+		}
+	}
+	return ""
 }
 
 type authFSC struct {

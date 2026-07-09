@@ -74,7 +74,7 @@ type ReasonField = map[string]any
 
 // ReasonObject Specifies a particular reason.
 type ReasonObject struct {
-	// Id Unique identifier of the reason.
+	// Id Unique identifier of the reason. For an ODRL/NLGov decision this carries the governing policy uid (odrl:uid).
 	Id string `json:"id"`
 
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
@@ -82,6 +82,12 @@ type ReasonObject struct {
 
 	// ReasonUser Map of one or more reasons, with a language-identifier as the key.
 	ReasonUser ReasonField `json:"reasonUser,omitempty"`
+
+	// Obligations NLGov/ODRL extension (x-nlgov-obligations): the obligations/duties
+	// the PEP MUST fulfil when enforcing an allow decision. Each item is an AuthZEN
+	// obligation object with an "id" (odrl duty/action IRI) and optional "properties".
+	// Manually maintained to match openapi.yaml (not produced by oapi-codegen).
+	Obligations []map[string]any `json:"obligations,omitempty"`
 }
 
 // AccessDenied Error response model (as defined by RFC9457).

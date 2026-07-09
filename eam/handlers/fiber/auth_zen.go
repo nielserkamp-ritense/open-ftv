@@ -130,10 +130,88 @@ func (p *authProcess) authorizeAuthZEN() error {
 		}
 	}
 
-	return p.fc.JSON(&authzen.AuthorizationResponse{
+	return p.fc.JSON(&authZENResponse{
 		Decision: allowed,
-		Context:  &authzen.ReasonObject{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}},
+		Context:  authZENContext(p.resp, msg),
 	})
+}
+
+// authZENResponse mirrors authzen.AuthorizationResponse but carries the extended
+// decision context below. It keeps the AuthZEN wire shape ("context" before
+// "decision") so existing clients (and the exact-match tests) are unaffected.
+type authZENResponse struct {
+	Context  *authZENDecisionContext `json:"context,omitempty"`
+	Decision bool                    `json:"decision"`
+}
+
+// authZENDecisionContext extends the NLGov AuthZEN ReasonObject with two fields
+// the BRO PEP's and the mock-PDP conventions read (findings A9/B19/B20):
+//
+//   - reason: a flat human-readable string (the mock-PDP and the BRO PEP's
+//     ResponseContext.DenyReason read context.reason; they cannot read the
+//     AuthZEN reasonUser/reasonAdmin maps, which are typed as strings there);
+//   - audit_identifiers.policy_version: the governing policy uid/hash, which the
+//     PEP's ResponseContext.PolicyRef reads as the policy reference.
+//
+// The map-shaped reasonUser/reasonAdmin and the obligations array are kept for
+// AuthZEN conformance; the new fields are additive and backward compatible.
+type authZENDecisionContext struct {
+	Id               string              `json:"id"`
+	Reason           string              `json:"reason,omitempty"`
+	ReasonAdmin      authzen.ReasonField `json:"reasonAdmin,omitempty"`
+	ReasonUser       authzen.ReasonField `json:"reasonUser,omitempty"`
+	Obligations      []map[string]any    `json:"obligations,omitempty"`
+	AuditIdentifiers map[string]any      `json:"audit_identifiers,omitempty"`
+}
+
+// authZENContext builds the AuthZEN Decision context from the PDP response: the
+// reason (reasonUser + flat reason), the governing policy uid (id + reasonAdmin
+// + audit_identifiers.policy_version) and any ODRL obligations/duties that the
+// PEP must fulfil.
+func authZENContext(resp *models.Response, msg string) *authZENDecisionContext {
+	ctx := &authZENDecisionContext{Id: "0", ReasonUser: authzen.ReasonField{"en": msg}}
+	if resp == nil {
+		return ctx
+	}
+
+	if resp.PolicyKey != "" {
+		ctx.Id = resp.PolicyKey
+		ctx.ReasonAdmin = authzen.ReasonField{"policy": resp.PolicyKey}
+		// audit_identifiers.policy_version: the policy reference the mock-PDP and
+		// the BRO PEP's PolicyRef read (B20).
+		ctx.AuditIdentifiers = map[string]any{"policy_version": resp.PolicyKey}
+	}
+	if reason, ok := resp.Attributes["decision_reason"].(string); ok && reason != "" {
+		if ctx.ReasonAdmin == nil {
+			ctx.ReasonAdmin = authzen.ReasonField{}
+		}
+		ctx.ReasonAdmin["reason"] = reason
+		// flat context.reason for the BRO PEP / mock-PDP (A9/B19).
+		ctx.Reason = reason
+	}
+	if obs := obligationsFromAttributes(resp.Attributes["obligations"]); len(obs) > 0 {
+		ctx.Obligations = obs
+	}
+	return ctx
+}
+
+// obligationsFromAttributes normalises the obligations carried in
+// models.Response.Attributes (produced by the ODRL/ODRL-geo engine) to the
+// AuthZEN obligation array shape.
+func obligationsFromAttributes(v any) []map[string]any {
+	switch o := v.(type) {
+	case []map[string]any:
+		return o
+	case []any:
+		out := make([]map[string]any, 0, len(o))
+		for _, e := range o {
+			if m, ok := e.(map[string]any); ok {
+				out = append(out, m)
+			}
+		}
+		return out
+	}
+	return nil
 }
 
 type authZEN struct {
