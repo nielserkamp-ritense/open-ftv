@@ -95,9 +95,11 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 	sql := `UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user}
 
-	_, err := db.p.Exec(ctx, sql, params)
-	if err != nil {
-		return nil, err
+	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
 
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
@@ -110,9 +112,11 @@ func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64)
 	sql := `DELETE FROM tag WHERE tag=$1 AND updated = $2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex)}
 
-	_, err := db.p.Exec(ctx, sql, params)
-	if err != nil {
-		return nil, err
+	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("delete failed; count=%d", count)
 	}
 	return prev, nil
 }

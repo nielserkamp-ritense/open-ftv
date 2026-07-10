@@ -36,10 +36,13 @@ func TestTagDB_DeleteTag(t *testing.T) {
 	ts := timeFromLastIndex(lastIndex)
 
 	testCases := []struct {
-		name    string
-		wantErr bool
+		name      string
+		rows      int64
+		wantErr   bool
+		errSubstr string
 	}{
-		{name: "delete"},
+		{name: "delete", rows: 1},
+		{name: "stale version", rows: 0, wantErr: true, errSubstr: "delete failed; count=0"},
 		{name: "force error", wantErr: true},
 	}
 
@@ -61,17 +64,20 @@ func TestTagDB_DeleteTag(t *testing.T) {
 
 			exp := mock.ExpectExec(`DELETE FROM tag WHERE tag=$1 AND updated = $2`).
 				WithArgs(prev.Id, ts)
-			if tc.wantErr {
+			if tc.name == "force error" {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
 			} else {
-				exp.WillReturnResult(pgxmock.NewResult("DELETE", 1))
+				exp.WillReturnResult(pgxmock.NewResult("DELETE", tc.rows))
 				mock.ExpectCommit()
 			}
 
 			got, err := db.DeleteTag(ctx, prev, lastIndex)
 			if tc.wantErr {
 				require.Error(t, err)
+				if tc.errSubstr != "" {
+					assert.ErrorContains(t, err, tc.errSubstr)
+				}
 				require.Nil(t, got)
 			} else {
 				require.NoError(t, err)
