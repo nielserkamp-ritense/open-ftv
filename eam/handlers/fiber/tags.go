@@ -92,7 +92,7 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	}
 
 	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+		return h.tagConcurrencyError(req, err2)
 	}
 	return req.Status(fiber.StatusCreated).JSON(t)
 }
@@ -129,7 +129,7 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	}
 
 	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+		return h.tagConcurrencyError(req, err2)
 	}
 	return req.JSON(t)
 }
@@ -161,7 +161,7 @@ func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	}
 
 	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+		return h.tagConcurrencyError(req, err2)
 	}
 	return req.JSON(prev)
 }
@@ -173,6 +173,13 @@ func (h *TagsHandler) authorize(req *fiber.Ctx) (string, bool, error) {
 
 	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
 	return auth.Check(req, resp, err, h.logger)
+}
+
+func (h *TagsHandler) tagConcurrencyError(req *fiber.Ctx, err error) error {
+	if errors.Is(err, pap.ErrTagConcurrency) {
+		return h.error(req, fiber.StatusConflict, tagConcurrency)
+	}
+	return h.error(req, fiber.StatusInternalServerError, err)
 }
 
 func (h *TagsHandler) error(req *fiber.Ctx, status int, err error) error {
@@ -213,7 +220,8 @@ type TagsHandler struct {
 }
 
 var (
-	tagNotFound = errors.New("tag not found")
-	tagExists   = errors.New("tag already exists")
-	tagKeyError = errors.New("tag must be filled and less or equal 40 characters")
+	tagNotFound    = errors.New("tag not found")
+	tagExists      = errors.New("tag already exists")
+	tagConcurrency = errors.New("tag was modified by another request")
+	tagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
 )

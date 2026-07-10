@@ -42,7 +42,7 @@ func TestTagDB_DeleteTag(t *testing.T) {
 		errSubstr string
 	}{
 		{name: "delete", rows: 1},
-		{name: "stale version", rows: 0, wantErr: true, errSubstr: "delete failed; count=0"},
+		{name: "stale version", rows: 0, wantErr: true, errSubstr: "tag concurrency conflict"},
 		{name: "force error", wantErr: true},
 	}
 

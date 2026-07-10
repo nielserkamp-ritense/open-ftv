@@ -11,6 +11,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
+// ErrTagConcurrency is returned from UpdateTag and DeleteTag when the tag was changed concurrently.
+var ErrTagConcurrency = errors.New("tag concurrency conflict")
+
 // NewTagDBWithPool instantiates a new PostgreSQL database connection for managing tags using the given connection pool.
 func NewTagDBWithPool(pool *postgresql.Postgres) *TagDB {
 	return &TagDB{p: pool, now: time.Now}
@@ -99,7 +102,7 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("update failed; count=%d", count)
+		return nil, fmt.Errorf("%w: count=%d", ErrTagConcurrency, count)
 	}
 
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
@@ -116,7 +119,7 @@ func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64)
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("delete failed; count=%d", count)
+		return nil, fmt.Errorf("%w: count=%d", ErrTagConcurrency, count)
 	}
 	return prev, nil
 }
