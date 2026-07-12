@@ -6,9 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/goccy/go-json"
+	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // seedNamespace makes the seeded policy ids deterministic (stable across restarts).
@@ -46,7 +49,8 @@ func (s *Services) seedAuthzPolicies() {
 			continue
 		}
 
-		content, rerr := os.ReadFile(filepath.Join(dir, e.Name()))
+		cedarPath := filepath.Join(dir, e.Name())
+		content, rerr := os.ReadFile(cedarPath)
 		if rerr != nil {
 			s.logger.Error("seed: cannot read policy file", "file", e.Name(), "err", rerr)
 			continue
@@ -64,10 +68,36 @@ func (s *Services) seedAuthzPolicies() {
 		// leaving the role policies missing. Use the file's base name as a stable title.
 		pol = pol.WithTitle(strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())))
 
+		if tags := readSeedMetaTags(cedarPath); len(tags) > 0 {
+			pol = pol.WithTags(tags...)
+		}
+
 		if _, cerr := s.pap.Create(pol, "*SEED*"); cerr != nil {
 			s.logger.Error("seed: cannot create policy", "file", e.Name(), "err", cerr)
 			continue
 		}
 		s.logger.Info("seed: authorization policy seeded into store", "file", e.Name(), "id", id)
 	}
+}
+
+func readSeedMetaTags(cedarPath string) []string {
+	for _, metaPath := range []string{
+		strings.TrimSuffix(cedarPath, filepath.Ext(cedarPath)) + ".meta",
+		cedarPath + ".meta",
+	} {
+		data, err := os.ReadFile(metaPath)
+		if err != nil {
+			continue
+		}
+		var sidecar oas.Policy
+		if err = yaml.Unmarshal(data, &sidecar); err != nil {
+			if err = json.Unmarshal(data, &sidecar); err != nil {
+				continue
+			}
+		}
+		if len(sidecar.Metadata.Tags) > 0 {
+			return sidecar.Metadata.Tags
+		}
+	}
+	return nil
 }

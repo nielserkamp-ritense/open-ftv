@@ -11,16 +11,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewTagDB instantiates a new PostgreSQL database connection for managing tags.
-//
-// The given context is used to signal a clean shutdown of the connection pool.
-func NewTagDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*TagDB, error) {
-	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &TagDB{p: p, now: time.Now}, nil
-}
+// ErrTagConcurrency is returned from UpdateTag and DeleteTag when the tag was changed concurrently.
+var ErrTagConcurrency = errors.New("tag concurrency conflict")
 
 // NewTagDBWithPool instantiates a new PostgreSQL database connection for managing tags using the given connection pool.
 func NewTagDBWithPool(pool *postgresql.Postgres) *TagDB {
@@ -90,6 +82,10 @@ func (db *TagDB) ReadTag(ctx context.Context, tag string) (*oas.Tag, uint64, err
 		return nil, 0, errors.Join(err, err2)
 	}
 
+	if t == nil {
+		return nil, 0, nil
+	}
+
 	updated, _ := time.Parse(time.RFC3339Nano, t.Audit.Updated)
 	return t, timeToLastIndex(updated), nil
 }
@@ -102,9 +98,11 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 	sql := `UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user}
 
-	_, err := db.p.Exec(ctx, sql, params)
-	if err != nil {
-		return nil, err
+	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%w: count=%d", ErrTagConcurrency, count)
 	}
 
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
@@ -114,32 +112,29 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 
 // DeleteTag removes the tag from the database.
 func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error) {
-	sql := `DELETE tag WHERE tag=$1 AND updated = $2`
+	sql := `DELETE FROM tag WHERE tag=$1 AND updated = $2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex)}
 
-	_, err := db.p.Exec(ctx, sql, params)
-	if err != nil {
-		return nil, err
+	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%w: count=%d", ErrTagConcurrency, count)
 	}
 	return prev, nil
 }
 
-// ReplaceAllTags replaces all tags in the database with the given list.
-func (db *TagDB) ReplaceAllTags(tags []*oas.Tag, user string) error {
+// EnsureTags inserts tags that are not already present.
+func (db *TagDB) EnsureTags(tags []*oas.Tag, user string) error {
 	ctx := context.Background()
+	now := db.now().UTC()
+	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (tag) DO NOTHING`
 
-	_ = tags
-
-	sql := "DELETE FROM tag"
-	if _, err := db.p.Exec(ctx, sql, nil); err != nil {
-		return err
-	}
-
-	now := time.Now().UTC()
-
-	sql = "INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7)"
 	for i := range tags {
 		tag := tags[i]
+		if tag == nil || tag.Id == "" {
+			continue
+		}
 		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user, now, user}); err != nil {
 			return err
 		}
