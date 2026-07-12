@@ -136,7 +136,7 @@ func (b *Bundle) AddPolicy(p *models.Policy) bool {
 
 	buf, _ := io.ReadAll(p.Content())
 
-	b.Policies[p.ID()] = &policies.Policy{Id: p.ID(), Language: b.Language, Data: string(buf)}
+	b.Policies[p.ID()] = &policies.Policy{Id: p.ID(), Language: b.l.Language(), Data: string(buf)}
 	return true
 }
 
