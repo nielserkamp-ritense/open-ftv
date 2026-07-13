@@ -23,7 +23,7 @@ const TypeBadgeComponent = (props: { value: string }) => {
 };
 
 function RouteComponent() {
-    const navigate = useNavigate({from: '/attributen'})
+    const navigate = useNavigate({from: '/attributen/'})
     const { status, data, error } = useAttributes();
     const {canWrite} = useCapabilities();
 

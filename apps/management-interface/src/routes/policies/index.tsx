@@ -28,7 +28,7 @@ const SimpleComponent = () => (
 );
 
 export default function PoliciesComponent() {
-    const navigate = useNavigate({from: '/policies'})
+    const navigate = useNavigate({from: '/policies/'})
     const {data, isLoading, error} = usePolicies();
     const {canWrite} = useCapabilities();
     const deletePolicyMutation = useDeletePolicy();
