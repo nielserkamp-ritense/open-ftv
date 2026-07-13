@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { rolesFromToken, canWrite, canPublish, isReadOnly } from './capabilities';
 
 // Build a fake JWT: header.payload.signature with a base64url-encoded payload.
+const base64url = (s: string): string =>
+  btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const jwt = (payload: object): string =>
-  'x.' + Buffer.from(JSON.stringify(payload)).toString('base64url') + '.y';
+  'x.' + base64url(JSON.stringify(payload)) + '.y';
 
 describe('rolesFromToken', () => {
   it('returns [] for undefined / malformed tokens', () => {
