@@ -75,13 +75,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
-  '/attributen': typeof AttributenIndexRoute
-  '/logboek': typeof LogboekIndexRoute
-  '/policies': typeof PoliciesIndexRoute
-  '/publicaties': typeof PublicatiesIndexRoute
-  '/attributen/$key': typeof AttributenKeyIndexRoute
-  '/logboek/$id': typeof LogboekIdIndexRoute
-  '/policies/$id': typeof PoliciesIdIndexRoute
+  '/attributen/': typeof AttributenIndexRoute
+  '/logboek/': typeof LogboekIndexRoute
+  '/policies/': typeof PoliciesIndexRoute
+  '/publicaties/': typeof PublicatiesIndexRoute
+  '/attributen/$key/': typeof AttributenKeyIndexRoute
+  '/logboek/$id/': typeof LogboekIdIndexRoute
+  '/policies/$id/': typeof PoliciesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,13 +114,13 @@ export interface FileRouteTypes {
     | '/'
     | '/attributen/toevoegen'
     | '/policies/add'
-    | '/attributen'
-    | '/logboek'
-    | '/policies'
-    | '/publicaties'
-    | '/attributen/$key'
-    | '/logboek/$id'
-    | '/policies/$id'
+    | '/attributen/'
+    | '/logboek/'
+    | '/policies/'
+    | '/publicaties/'
+    | '/attributen/$key/'
+    | '/logboek/$id/'
+    | '/policies/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,28 +172,28 @@ declare module '@tanstack/react-router' {
     '/publicaties/': {
       id: '/publicaties/'
       path: '/publicaties'
-      fullPath: '/publicaties'
+      fullPath: '/publicaties/'
       preLoaderRoute: typeof PublicatiesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/policies/': {
       id: '/policies/'
       path: '/policies'
-      fullPath: '/policies'
+      fullPath: '/policies/'
       preLoaderRoute: typeof PoliciesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logboek/': {
       id: '/logboek/'
       path: '/logboek'
-      fullPath: '/logboek'
+      fullPath: '/logboek/'
       preLoaderRoute: typeof LogboekIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attributen/': {
       id: '/attributen/'
       path: '/attributen'
-      fullPath: '/attributen'
+      fullPath: '/attributen/'
       preLoaderRoute: typeof AttributenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -214,21 +214,21 @@ declare module '@tanstack/react-router' {
     '/policies/$id/': {
       id: '/policies/$id/'
       path: '/policies/$id'
-      fullPath: '/policies/$id'
+      fullPath: '/policies/$id/'
       preLoaderRoute: typeof PoliciesIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logboek/$id/': {
       id: '/logboek/$id/'
       path: '/logboek/$id'
-      fullPath: '/logboek/$id'
+      fullPath: '/logboek/$id/'
       preLoaderRoute: typeof LogboekIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attributen/$key/': {
       id: '/attributen/$key/'
       path: '/attributen/$key'
-      fullPath: '/attributen/$key'
+      fullPath: '/attributen/$key/'
       preLoaderRoute: typeof AttributenKeyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

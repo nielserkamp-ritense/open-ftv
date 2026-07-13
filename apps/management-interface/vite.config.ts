@@ -11,9 +11,10 @@ const __dirname = dirname(__filename)
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(), 
-    tailwindcss(),
+    // The TanStack Router plugin must come before the JSX transform plugin.
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+    tailwindcss(),
   ],
   resolve: {
     alias: {
@@ -23,12 +24,16 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          router: ["@tanstack/react-router", "@tanstack/react-router-devtools"],
-          aggrid: ["ag-grid-community", "ag-grid-react"],
-          icons: ["@tabler/icons-react", "@heroicons/react"],
-          monaco: ["@monaco-editor/react", "monaco-editor"],
+        // Vite 8 bundles with Rolldown, which replaces the object form of
+        // manualChunks with advancedChunks groups matched by module id.
+        advancedChunks: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom)[\\/]/ },
+            { name: 'router', test: /node_modules[\\/]@tanstack[\\/]react-router/ },
+            { name: 'aggrid', test: /node_modules[\\/]ag-grid-/ },
+            { name: 'icons', test: /node_modules[\\/](@tabler[\\/]icons-react|@heroicons[\\/]react)[\\/]/ },
+            { name: 'monaco', test: /node_modules[\\/](@monaco-editor[\\/]react|monaco-editor)[\\/]/ },
+          ],
         },
       },
     },
