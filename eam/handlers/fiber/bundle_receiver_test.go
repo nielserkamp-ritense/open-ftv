@@ -117,7 +117,7 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 
 		defer resp.Body.Close()
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
 		got := new(bundles2.BundleActivated)
 		err = json.NewDecoder(resp.Body).Decode(got)

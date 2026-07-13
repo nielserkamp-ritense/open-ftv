@@ -3,7 +3,6 @@ package postgresql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -75,7 +74,7 @@ func TestPostgres_Exec(t *testing.T) {
 				exp1.WillReturnError(errors.New("begin"))
 			}
 
-			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp2 := mock.ExpectExec(tc.q)
 			if len(tc.params) > 0 {

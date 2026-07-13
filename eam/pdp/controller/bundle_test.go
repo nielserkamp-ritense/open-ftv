@@ -182,3 +182,53 @@ func TestBase_NewBundle(t *testing.T) {
 		})
 	}
 }
+
+func TestBase_NewBundle_wireBundleFromAddPolicy(t *testing.T) {
+	t.Parallel()
+
+	p, err := models.NewPolicyFromData("generic", "cedar", "", "", bytes.NewBufferString(`permit (
+    principal,
+    action,
+    resource is service
+);`))
+	require.NoError(t, err)
+	p.WithTags("pdp1")
+
+	src := bundles.NewBundle(2, "cedar", "pdp1")
+	require.True(t, src.AddPolicy(p))
+
+	buf := &bytes.Buffer{}
+	require.NoError(t, src.Compress(bundles.CompressGZ, buf))
+
+	wire, err := bundles.BundleFromAPI(buf, map[string][]string{"Content-Encoding": {"gzip"}})
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+	ap := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+	require.NotNil(t, ap)
+
+	ip := pip.New(ctx, logger)
+	require.NotNil(t, ip)
+
+	m := &Base{
+		Ctx:       ctx,
+		Logger:    logger,
+		PAP:       ap,
+		PIP:       ip,
+		AuthMutex: &sync.RWMutex{},
+	}
+
+	_, err = m.NewBundle(wire)
+	require.NoError(t, err)
+
+	var count int
+	ap.Iterate(func(pol *models.Policy) {
+		count++
+		assert.Equal(t, "cedar", pol.Language())
+		assert.Equal(t, "cedar/generic", pol.Key())
+	})
+	assert.Equal(t, 1, count)
+}

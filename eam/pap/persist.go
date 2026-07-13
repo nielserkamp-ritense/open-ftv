@@ -19,7 +19,7 @@ type TagPersister interface {
 	ReadTag(ctx context.Context, id string) (*oas.Tag, uint64, error)
 	UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64, t *oas.Tag) (*oas.Tag, error)
 	DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error)
-	ReplaceAllTags(tags []*oas.Tag, user string) error
+	EnsureTags(tags []*oas.Tag, user string) error
 }
 
 // PolicyPersister represents the interface for managing policies in a PAP persistence store.

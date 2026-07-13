@@ -48,7 +48,7 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 	}
 
 	resp := &oas.BundleActivated{PreviousVersion: int(oldVersion)}
-	return req.JSON(resp)
+	return req.Status(fiber.StatusCreated).JSON(resp)
 }
 
 // ProcessBundle processes a received bundle and replaces all policies/data.

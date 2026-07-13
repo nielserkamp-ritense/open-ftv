@@ -97,7 +97,7 @@ func (p *PAP) LoadTags(tags []*policies.Tag) error {
 	if p.tagDB == nil {
 		return errors.New("pap: tagDB not initialized")
 	}
-	return p.tagDB.ReplaceAllTags(tags, loadUser)
+	return p.tagDB.EnsureTags(tags, loadUser)
 }
 
 const loadUser = "*LOADER*"

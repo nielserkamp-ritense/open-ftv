@@ -9,7 +9,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
-	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -57,8 +57,7 @@ func TestAuthHandler_FSC(t *testing.T) {
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/auth", buf)
 		require.NotNil(t, req)
 
 		resp, err3 := app.Test(req, -1)
@@ -111,8 +110,7 @@ func TestAuthHandler_FSC_Fail1(t *testing.T) {
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/auth", buf)
 		require.NotNil(t, req)
 
 		resp, err3 := app.Test(req, -1)
@@ -163,8 +161,7 @@ func TestAuthHandler_FSC_Fail2(t *testing.T) {
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/auth", buf)
 		require.NotNil(t, req)
 
 		resp, err3 := app.Test(req, -1)
@@ -215,8 +212,7 @@ func TestAuthHandler_FSC_Fail3(t *testing.T) {
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/auth", buf)
 		require.NotNil(t, req)
 
 		resp, err3 := app.Test(req, -1)
@@ -267,8 +263,7 @@ func TestAuthHandler_FSC_Fail4(t *testing.T) {
 
 		buf := bytes.NewReader([]byte(in))
 
-		req, err2 := http.NewRequest(fiber.MethodPost, "/v1/auth", buf)
-		require.NoError(t, err2)
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/auth", buf)
 		require.NotNil(t, req)
 
 		resp, err3 := app.Test(req, -1)
