@@ -38,9 +38,12 @@ e2e: vlierdam rdw rvig
 oas:
 	+$(MAKE) -C ./oas
 
-.PHONY: $(DIRS)
+.PHONY: test $(DIRS)
+test:
+	@$(MAKE) -k $(DIRS)
+
 $(DIRS):
-	+$(MAKE) -C $@ test
+	+$(MAKE) GOFLAGS=-mod=readonly -C $@ -o dep test
 
 .PHONY: vlierdam
 vlierdam:
