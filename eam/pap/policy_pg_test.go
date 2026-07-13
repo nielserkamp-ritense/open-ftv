@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -188,7 +187,7 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
-			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`INSERT INTO policy
  (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
@@ -335,7 +334,7 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
-			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
@@ -416,10 +415,9 @@ func TestPostgresDB_DeletePolicy(t *testing.T) {
 
 			mock.ExpectBegin()
 
-			mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
-			exp := mock.ExpectExec(`DELETE policy
- WHERE id=$1 AND updated=$2`).WithArgs(p.ID(), now)
+			exp := mock.ExpectExec(`DELETE FROM policy WHERE id=$1 AND updated=$2`).WithArgs(p.ID(), now)
 			if tc.wantErr {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()

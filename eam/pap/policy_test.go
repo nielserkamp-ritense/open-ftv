@@ -3,7 +3,6 @@ package pap
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -23,7 +22,7 @@ import (
 func TestPAP_Add(t *testing.T) {
 	t.Parallel()
 
-	closedFile, err := os.Open("/etc/hostname")
+	closedFile, err := os.Open(os.DevNull)
 	require.NoError(t, err)
 	closedFile.Close()
 
@@ -74,7 +73,7 @@ func TestPAP_Add(t *testing.T) {
 func TestPAP_Replace(t *testing.T) {
 	t.Parallel()
 
-	closedFile, err := os.Open("/etc/hostname")
+	closedFile, err := os.Open(os.DevNull)
 	require.NoError(t, err)
 	closedFile.Close()
 
@@ -431,7 +430,7 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 
 		// create
 		mock.ExpectBegin()
-		mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u1)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+		mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u1).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 		mock.ExpectExec(`INSERT INTO policy
  (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`).
@@ -451,7 +450,7 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 
 		// update
 		mock.ExpectBegin()
-		mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u2)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+		mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u2).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 		mock.ExpectExec(`UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`).
@@ -460,9 +459,8 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 		mock.ExpectCommit()
 
 		mock.ExpectBegin()
-		mock.ExpectExec(fmt.Sprintf("SELECT set_config('openftv.user', '%s', true);", u1)).WillReturnResult(pgxmock.NewResult("SELECT", 1))
-		mock.ExpectExec(`DELETE policy
- WHERE id=$1 AND updated=$2`).WithArgs(p2.ID(), now).
+		mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u1).WillReturnResult(pgxmock.NewResult("SELECT", 1))
+		mock.ExpectExec(`DELETE FROM policy WHERE id=$1 AND updated=$2`).WithArgs(p2.ID(), now).
 			WillReturnResult(pgxmock.NewResult("DELETE", 1))
 		mock.ExpectCommit()
 

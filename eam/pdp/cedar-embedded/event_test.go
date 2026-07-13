@@ -117,6 +117,20 @@ func TestController_Handle(t *testing.T) {
 			wantLog2:   1,
 			logPrefix2: "policy removed",
 		},
+		{
+			name:     "add - empty language key ignored",
+			policies: map[string]string{"cedar/p1": p1},
+			event1:   models.PolicyAdded,
+			key1:     "/p1",
+			wantLog1: 0,
+		},
+		{
+			name:     "add - non-cedar language ignored",
+			policies: map[string]string{"cedar/p1": p1},
+			event1:   models.PolicyAdded,
+			key1:     "rego/p1",
+			wantLog1: 0,
+		},
 	}
 
 	for _, tc := range testCases {

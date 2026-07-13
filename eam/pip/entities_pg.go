@@ -186,8 +186,7 @@ func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, las
 
 // DeleteEntity removes an existing entity from the database.
 func (db *PostgresDB) DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
-	sql := `DELETE entity
- WHERE type=$1 AND id=$2 AND updated=$3`
+	sql := `DELETE FROM entity WHERE type=$1 AND id=$2 AND updated=$3`
 	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex)}
 
 	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {

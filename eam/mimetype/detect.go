@@ -112,6 +112,9 @@ func detectTypeFromTOML(f io.ReadSeeker) (FileType, string, any) {
 	if err := toml.NewDecoder(f).Decode(&data); err != nil {
 		return UnknownFile, "", nil
 	}
+	if len(data) == 0 {
+		return AttributesFile, mime.MimeTypeTOML, nil
+	}
 	return detectTypeFromMap(data, mime.MimeTypeTOML)
 }
 
