@@ -38,7 +38,10 @@ e2e: vlierdam rdw rvig
 oas:
 	+$(MAKE) -C ./oas
 
-.PHONY: $(DIRS)
+.PHONY: test $(DIRS)
+test:
+	@$(MAKE) -k $(DIRS)
+
 $(DIRS):
 	+$(MAKE) -C $@ test
 
