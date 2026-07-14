@@ -22,7 +22,6 @@ DIRS := \
  ./eam/pdp/openfga-embedded \
  ./eam/pdp/xacml \
  ./mock/datasources/data \
- ./apps/fsc-auth \
  ./apps/pdp \
  ./apps/pip \
  ./apps/pap \
