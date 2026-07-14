@@ -22,10 +22,8 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 
 ### Prerequisites
 
+- [mise](https://github.com/jdx/mise)
 - [Docker](https://docs.docker.com/install/)
-- [Golang](https://golang.org/doc/install)
-- [Spectral](https://stoplight.io/open-source/spectral)
-- [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen)
 - htpasswd
 - Make
 
@@ -34,6 +32,13 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 ```bash
 git clone git@gitlab.com:digilab.overheid.nl/ecosystem/ftv/open-ftv.git
 cd open-ftv
+```
+
+The tooling is defined in `mise.toml`.
+
+```bash
+mise trust
+mise install
 ```
 
 ### Building
