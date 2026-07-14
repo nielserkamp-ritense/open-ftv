@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/external/gateways/envoy/plugins/openftv
 
-go 1.24.6
+go 1.26.5
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0
