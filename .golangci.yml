@@ -1,0 +1,119 @@
+version: "2"
+run:
+  concurrency: 4
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godox
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - mnd
+    - nakedret
+    - prealloc
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - wsl_v5
+  settings:
+    copyloopvar:
+      check-alias: true
+    dupl:
+      threshold: 150
+    funlen:
+      lines: 100
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - wrapperFunc
+        - commentFormatting
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 10
+    govet:
+      enable-all: true
+      disable:
+        - shadow
+        - fieldalignment
+    misspell:
+      locale: US
+      ignore-rules:
+        - productie
+    revive:
+      rules:
+        - name: unexported-return
+          disabled: true
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+        text: weak cryptographic primitive
+      # Table-driven tests repeat case names and fixture literals by design.
+      - path: _test\.go
+        linters:
+          - dupl
+          - funlen
+          - gocognit
+          - gocyclo
+          - goconst
+          - mnd
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+output:
+  show-stats: false

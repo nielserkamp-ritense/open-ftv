@@ -26,3 +26,49 @@ openapi:
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
+
+golangci-lint:
+  stage: Linter
+  image: golangci/golangci-lint:v2.12.2-alpine
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/.go-cache
+    GOLANGCI_LINT_CACHE: ${CI_PROJECT_DIR}/.golangci-cache
+    GIT_DEPTH: 0
+  before_script:
+    - export PATH=$PATH:/usr/local/go/bin
+    - apk --no-cache add jq
+    - mkdir -p .go-cache .golangci-cache
+    #- git fetch --no-tags origin "+refs/heads/${CI_DEFAULT_BRANCH}:refs/remotes/origin/${CI_DEFAULT_BRANCH}"
+  script:
+    - golangci-lint run --new-from-merge-base=origin/main --output.text.path stdout --output.code-climate.path=gl-code-quality-report.json
+  needs: []
+  cache:
+    key: golangci-lint-cache
+    paths:
+      - .go-cache
+      - .golangci-cache
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+    paths:
+      - gl-code-quality-report.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: "main"
+        paths:
+          - utilities/**/*
+          - utilities-no-ci/**/*
+          - oas/**/*
+          - eam/**/*
+          - mock/**/*
+          - apps/**/*
+          - migrations/**/*
+          - external/**/*
+          - go.work
+          - \.gitlab/ci/tests/linters.yml
+          - \.golangci.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
