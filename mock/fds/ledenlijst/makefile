@@ -26,19 +26,19 @@ dep: ## upgrade local dependencies
 fmt: tidy dep ${GO_FILES}  ## format source code
 	@go fmt ${PKG_LIST}
 
-test: fmt ## run all unit tests
+test: ## run all unit tests
 	@go test -cover ${PKG_LIST}
 
-bench: fmt ## run all benchmarks
+bench: ## run all benchmarks
 	@go test -bench . -benchmem ${PKG_LIST}
 
-race: fmt ## run race detector
+race: ## run race detector
 	@go test -race ${PKG_LIST}
 
-cover: fmt ## run coverage report
+cover: ## run coverage report
 	@../../../scripts/coverage.sh
 
-coverhtml: fmt ## run coverage report and display in browser (requires 'xdg-open' to be installed!)
+coverhtml: ## run coverage report and display in browser (requires 'xdg-open' to be installed!)
 	@../../../scripts/coverage.sh html
 	@xdg-open cover.html > /dev/null 2>&1
 
