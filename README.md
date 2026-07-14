@@ -1,15 +1,6 @@
 # OpenFTV
 
-# Welcome
-This Gitlab repository is part of the project Federatieve Toegangsverlening. OpenFTV is the reference implementation 
-for the project.
-
-Here you will find all code modules related to the project, test-data, utilities, scripts, etc.
-
-The repo is set up as a mono-repo. This allows separate modules to be re-used in other projects.
-
-The main documentation for the FTV project (in Dutch) can be found at
-https://vng-realisatie.github.io/ftv/.
+This repository contains the reference implementation of [Federatieve Toegangsverlening](https://vng-realisatie.github.io/ftv/).
 
 ## Folder structure
 
@@ -27,25 +18,23 @@ https://vng-realisatie.github.io/ftv/.
 - `testdata  ` files with test data.
 - `utilities*` shared generic utility modules.
 
-## Building and running
+## Development setup
 
-### Cloning
+### Prerequisites
 
-```bash
-git clone git@gitlab.com:digilab.overheid.nl/ecosystem/ftv/open-ftv.git
-cd open-ftv
-```
-
-### Development setup
-
-Install the following tools
-
-- [Docker Desktop / Docker engine](https://docs.docker.com/install/)
+- [Docker](https://docs.docker.com/install/)
 - [Golang](https://golang.org/doc/install)
 - [Spectral](https://stoplight.io/open-source/spectral)
 - [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen)
 - htpasswd
 - Make
+
+### Installation
+
+```bash
+git clone git@gitlab.com:digilab.overheid.nl/ecosystem/ftv/open-ftv.git
+cd open-ftv
+```
 
 ### Building
 
@@ -148,7 +137,3 @@ docker compose -f docker/compose.yaml down -v
 ```
 
 **Warning** this will delete existing data.
-
-## License
-
-[Licensed under the EUPL](LICENSE.md)
