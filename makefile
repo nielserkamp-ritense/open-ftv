@@ -43,7 +43,7 @@ test:
 	@$(MAKE) -k $(DIRS)
 
 $(DIRS):
-	+$(MAKE) GOFLAGS=-mod=readonly -C $@ -o dep test
+	+$(MAKE) -C $@ test
 
 .PHONY: vlierdam
 vlierdam:

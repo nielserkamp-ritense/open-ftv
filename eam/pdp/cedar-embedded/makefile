@@ -34,22 +34,22 @@ vet: fmt  ## vet all source code
 lint: fmt ## lint all source code (requires revive tool)
 	@revive -set_exit_status ${PKG_LIST}
 
-test: fmt ## run all unit tests
+test: ## run all unit tests
 	@go test -cover ${PKG_LIST}
 
-bench: fmt ## run all benchmarks
+bench: ## run all benchmarks
 	@go test -bench . -benchmem ${PKG_LIST}
 
-race: fmt ## run race detector
+race: ## run race detector
 	@go test -race ${PKG_LIST}
 
-msan: fmt ## run memory sanitizer
+msan: ## run memory sanitizer
 	@go test -msan ${PKG_LIST}
 
-cover: fmt ## run coverage report
+cover: ## run coverage report
 	@../../scripts/coverage.sh
 
-coverhtml: fmt ## run coverage report and display in browser (requires xdg-open tool)
+coverhtml: ## run coverage report and display in browser (requires xdg-open tool)
 	@../../scripts/coverage.sh html
 	@xdg-open cover.html
 
