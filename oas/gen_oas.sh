@@ -31,17 +31,8 @@ go tool oapi-codegen -config config.yaml openapi.yaml
 cd ..
 
 ##### FSC #####
-OPEN_FSC_VERSION=v1.43.7
-
-# clone repo
-cd fsc
-git -c advice.detachedHead=false clone -q --depth 1 --branch "$OPEN_FSC_VERSION" https://gitlab.com/commonground/fsc/open-fsc.git
-cp open-fsc/outway/authorization-interface.yaml auth/openapi.yaml
-
-# generate
-cd auth
+cd fsc/auth
 go tool oapi-codegen -config config.yaml openapi.yaml
-cd ..
 
 # remove repo
 rm -Rf open-fsc
