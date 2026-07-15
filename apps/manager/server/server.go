@@ -44,6 +44,7 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 	if cfg.Cert != "" && cfg.Key != "" {
 		opts = append(opts, server.WithTLS(cfg.CA, cfg.Cert, cfg.Key))
 	}
+
 	if cfg.CA != "" {
 		opts = append(opts, server.WithMutualTLS())
 	}
@@ -67,6 +68,7 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 		if cfg.Cert != "" && cfg.Key != "" {
 			opts = append(opts, server.WithTLS(cfg.InternalCA, cfg.InternalCert, cfg.InternalKey))
 		}
+
 		if cfg.CA != "" {
 			opts = append(opts, server.WithMutualTLS())
 		}

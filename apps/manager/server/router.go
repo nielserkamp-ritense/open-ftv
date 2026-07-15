@@ -18,21 +18,24 @@ import (
 // initRoutes sets up the routing table for HTTP requests.
 func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
-	s.l = models.LanguageFromString(s.cfg.PAP.Language)
+	s.l = models.LanguageFromString(s.cfg.Language)
 
 	var isPG bool
+
 	switch strings.ToLower(s.cfg.Persist.Type) {
 	case "pg", "postgres", "postgresql":
 		isPG = true
 	}
 
 	var err error
+
 	switch {
 	case isPG:
 		s.db, err = postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.Persist.PgMaxConn)
 	case s.cfg.Persist.Type != "":
-		s.store, err = s.cfg.Persist.NewStore(ctx)
+		s.store, err = s.cfg.NewStore(ctx)
 	}
+
 	if err != nil {
 		panic("failed to create persistence store: " + err.Error())
 	}
@@ -213,8 +216,10 @@ func (s *Services) initDeployments(group fiber.Router) {
 func (s *Services) initADL(group fiber.Router) {
 	cfg := s.cfg.DecisionLog
 
-	var searcher search.Searcher
-	var err error
+	var (
+		searcher search.Searcher
+		err      error
+	)
 
 	switch strings.ToLower(cfg.Type) {
 	case "pg", "postgres", "postgresql":

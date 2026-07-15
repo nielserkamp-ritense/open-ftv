@@ -59,7 +59,7 @@ func TestNew(t *testing.T) {
 			logger := slog.New(h)
 
 			s := &Services{ctx: context.Background(), logger: logger, cfg: tc.cfg}
-			s.l = models.LanguageFromString(tc.cfg.PAP.Language)
+			s.l = models.LanguageFromString(tc.cfg.Language)
 
 			auth := s.newAuth()
 			if tc.wantFail {

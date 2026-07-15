@@ -69,7 +69,6 @@ type bundleGetter struct {
 
 func (b *bundleGetter) prepareTransport() error {
 	// b.transport = http.DefaultTransport.(*http.Transport).Clone()
-
 	cfg := &tls.Config{}
 
 	if b.cfg.BundleCA != "" {
@@ -109,7 +108,7 @@ func (b *bundleGetter) prepareClient() {
 }
 
 func (b *bundleGetter) prepareRequest() {
-	b.req, b.err = http.NewRequest("GET", b.url, nil)
+	b.req, b.err = http.NewRequest("GET", b.url, http.NoBody)
 	if b.err != nil {
 		return
 	}
@@ -131,13 +130,13 @@ func (b *bundleGetter) prepareRequest() {
 	if b.cfg.BundleEncoding != "" {
 		b.req.Header.Add(fiber.HeaderContentEncoding, b.cfg.BundleEncoding)
 	}
+
 	return
 }
 
 func (b *bundleGetter) doRequest() {
 	// ctx, cancel := context.WithTimeout(b.ctx, b.cfg.BundleTimeout)
 	// defer cancel()
-
 	b.resp, b.err = b.client.Do(b.req)
 	if b.err != nil {
 		return

@@ -44,6 +44,7 @@ func TestSeedAuthzPolicies_UniqueTitles(t *testing.T) {
 	require.GreaterOrEqual(t, len(list), 6, "all bundled cedar policies should be seeded")
 
 	seen := map[string]bool{}
+
 	for _, p := range list {
 		title := p.Title()
 		require.NotEmpty(t, title, "seeded policy %s has an empty title (would collide on policy_ix1)", p.ID())

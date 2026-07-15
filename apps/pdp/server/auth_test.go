@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -61,7 +62,7 @@ func TestNew(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			s := &Services{ctx: context.Background(), cfg: tc.cfg, logger: logger, l: models.LanguageFromString(tc.cfg.PAP.Language)}
+			s := &Services{ctx: context.Background(), cfg: tc.cfg, logger: logger, l: models.LanguageFromString(tc.cfg.Language)}
 
 			auth := s.newAuth("")
 			if tc.wantFail {
@@ -75,7 +76,7 @@ func TestNew(t *testing.T) {
 				srv := fiber.New()
 				srv.Get("/zen", auth.zen.Evaluation)
 
-				req := httptest.NewRequest("GET", "/zen", nil)
+				req := httptest.NewRequest("GET", "/zen", http.NoBody)
 				resp, err := srv.Test(req, 100)
 				require.NoError(t, err)
 				require.NotNil(t, resp)

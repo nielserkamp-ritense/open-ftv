@@ -8,8 +8,9 @@ import (
 
 func main() {
 	cfg, logger := config.New()
+
 	srv := server.NewExternal(cfg, logger)
-	if !cfg.Migration.ExitAfter {
+	if !cfg.ExitAfter {
 		srv.Serve()
 	}
 }

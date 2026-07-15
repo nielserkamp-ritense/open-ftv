@@ -14,26 +14,28 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 
 	switch {
 	case isPG:
-		db, err := postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+		db, err := postgresql.New(s.ctx, s.cfg.PgURL, s.cfg.PgMaxLife, s.cfg.PgMaxConn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect postgres backend: %w", err)
 		}
+
 		opts = append(opts, pap.WithPgPool(db))
 
 	case s.cfg.Persist.Type != "":
-		store, err := s.cfg.Persist.NewStore(s.ctx)
+		store, err := s.cfg.NewStore(s.ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create persistence store: %w", err)
 		}
+
 		if store != nil {
-			opts = append(opts, pap.WithKeyValueDB(store, s.cfg.Persist.Base))
+			opts = append(opts, pap.WithKeyValueDB(store, s.cfg.Base))
 		}
 	}
 
-	if s.cfg.Migration.Source != "" {
+	if s.cfg.Source != "" {
 		switch {
 		case isPG:
-			opts = append(opts, pap.WithMigration(s.cfg.Migration.Source, s.cfg.Persist.PgURL, s.cfg.Migration.Auto, s.cfg.Migration.Steps))
+			opts = append(opts, pap.WithMigration(s.cfg.Source, s.cfg.PgURL, s.cfg.Auto, s.cfg.Steps))
 		}
 	}
 

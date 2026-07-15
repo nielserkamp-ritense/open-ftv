@@ -67,7 +67,7 @@ func TestNew(t *testing.T) {
 			logger := slog.New(h)
 
 			s := &Services{ctx: context.Background(), logger: logger, cfg: tc.cfg}
-			s.l = models.LanguageFromString(tc.cfg.PAP.Language)
+			s.l = models.LanguageFromString(tc.cfg.Language)
 			// Mirror the router: newAuth consumes the shared PAP, which must exist first.
 			s.pap, _ = s.newPAP()
 

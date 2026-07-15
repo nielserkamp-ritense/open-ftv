@@ -49,6 +49,7 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	if cfg.InternalHost == "" {
 		cfg.InternalHost = cfg.Host
 	}
+
 	if cfg.HealthHost == "" {
 		cfg.HealthHost = cfg.Host
 	}
