@@ -1,5 +1,5 @@
-build_release_eam:
-  stage: Release
+build_production_eam:
+  stage: Build
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
@@ -36,12 +36,12 @@ build_release_eam:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
       - eam-${APP}-${ARCH}.tar
-  resource_group: build_release_eam
+  resource_group: build_production_eam
   tags:
     - ${ARCH}
 
-build_release_mock_ds:
-  stage: Release
+build_production_mock_ds:
+  stage: Build
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
@@ -77,12 +77,12 @@ build_release_mock_ds:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
       - mock-ds-${APP}-${ARCH}.tar
-  resource_group: build_release_mock_ds
+  resource_group: build_production_mock_ds
   tags:
     - ${ARCH}
 
-build_release_gw_plugin:
-  stage: Release
+build_production_gw_plugin:
+  stage: Build
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
@@ -115,7 +115,7 @@ build_release_gw_plugin:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
       - gw-plugin-${APP}-${ARCH}.tar
-  resource_group: build_release_gw_plugin
+  resource_group: build_production_gw_plugin
   tags:
     - ${ARCH}
 
@@ -131,7 +131,7 @@ push-release-eam:
           - manager
           - management-interface
   needs:
-    - job: build_release_eam
+    - job: build_production_eam
       artifacts: true
   before_script:
     - export SEMVER="${CI_COMMIT_TAG:1}"
@@ -172,7 +172,7 @@ push-release-mock-ds:
           - rvig
           - rdw
   needs:
-    - job: build_release_mock_ds
+    - job: build_production_mock_ds
       artifacts: true
   before_script:
     - export SEMVER="${CI_COMMIT_TAG:1}"
@@ -210,7 +210,7 @@ push-release-gw-plugin:
       - IMAGE:
           - envoy
   needs:
-    - job: build_release_gw_plugin
+    - job: build_production_gw_plugin
       artifacts: true
   before_script:
     - export SEMVER="${CI_COMMIT_TAG:1}"
