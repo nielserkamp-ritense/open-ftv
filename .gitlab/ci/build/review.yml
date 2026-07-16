@@ -43,7 +43,7 @@ build_review_eam:
       optional: false
   resource_group: build_review_eam
   tags:
-    - ${ARCH}
+    - saas-linux-small-${ARCH}
 
 build_review_mock_ds:
   stage: Build
@@ -88,7 +88,7 @@ build_review_mock_ds:
       optional: false
   resource_group: build_review_mock_ds
   tags:
-    - ${ARCH}
+    - saas-linux-small-${ARCH}
 
 build_review_gw_plugin:
   stage: Build
@@ -133,4 +133,4 @@ build_review_gw_plugin:
       optional: true
   resource_group: build_review_gw_plugin
   tags:
-    - ${ARCH}
+    - saas-linux-small-${ARCH}
