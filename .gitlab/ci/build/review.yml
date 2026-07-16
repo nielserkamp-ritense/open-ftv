@@ -1,6 +1,6 @@
 build_review_eam:
   stage: Build
-  image: quay.io/buildah/stable:v1.44.0
+  image: quay.io/buildah/stable:v1.43.1
   parallel:
     matrix:
       - ARCH:
@@ -47,7 +47,7 @@ build_review_eam:
 
 build_review_mock_ds:
   stage: Build
-  image: quay.io/buildah/stable:v1.44.0
+  image: quay.io/buildah/stable:v1.43.1
   parallel:
     matrix:
       - ARCH:
@@ -92,7 +92,7 @@ build_review_mock_ds:
 
 build_review_gw_plugin:
   stage: Build
-  image: quay.io/buildah/stable:v1.44.0
+  image: quay.io/buildah/stable:v1.43.1
   parallel:
     matrix:
       - ARCH:
