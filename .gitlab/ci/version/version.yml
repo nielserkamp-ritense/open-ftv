@@ -31,7 +31,7 @@ next-version:
           - utilities/**/*
           - utilities-no-ci/**/*
           - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
+          - \.gitlab/ci/build/review.yml
           - \.golang-ci.yml
           - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
