@@ -1,6 +1,4 @@
 variables:
-  pattern_prerelease_tag: '/^v\d*\.\d*\.\d*-rc\.\d*$/'
-  pattern_release_tag: '/^v\d*\.\d*\.\d*$/'
   RENOVATE_REPOSITORIES: $CI_PROJECT_PATH
 
 stages:
@@ -10,12 +8,6 @@ stages:
   - Build
   - Publish
   - deploy
-#  - Redeploy
-#  - Security
-#  - E2E tests
-#  - Tools
-#  - external
-#  - On Failure
 
 include:
   - ".gitlab/ci/**.yml"
