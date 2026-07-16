@@ -31,6 +31,7 @@ build_release_eam:
       when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
   artifacts:
+    expire_in: 1 hour
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
@@ -71,6 +72,7 @@ build_release_mock_ds:
       when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
   artifacts:
+    expire_in: 1 hour
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
@@ -108,6 +110,7 @@ build_release_gw_plugin:
       when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
   artifacts:
+    expire_in: 1 hour
     paths:
       - ci_build_image_registry.txt
       - ci_build_image_tag.txt
