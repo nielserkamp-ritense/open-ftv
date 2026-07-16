@@ -8,8 +8,7 @@ stages:
   - Linter
   - UnitTests
   - Build
-  - Release
-  - Push
+  - Publish
   - deploy
 #  - Redeploy
 #  - Security

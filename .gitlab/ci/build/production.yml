@@ -119,8 +119,8 @@ build_production_gw_plugin:
   tags:
     - ${ARCH}
 
-push-release-eam:
-  stage: Push
+publish_production_eam:
+  stage: Publish
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
@@ -161,8 +161,8 @@ push-release-eam:
   tags:
     - amd64
 
-push-release-mock-ds:
-  stage: Push
+publish_production_mock-ds:
+  stage: Publish
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
@@ -202,8 +202,8 @@ push-release-mock-ds:
   tags:
     - amd64
 
-push-release-gw-plugin:
-  stage: Push
+publish_production_gw-plugin:
+  stage: Publish
   image: quay.io/buildah/stable:v1.44.0
   parallel:
     matrix:
