@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities
 
-go 1.24.6
+go 1.26.5
 
 require (
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25

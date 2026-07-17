@@ -71,7 +71,7 @@ func TestBundlesHandler_GetStatuses(t *testing.T) {
 		srv.Get("/v1/statuses", ah.GetStatuses)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/statuses", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -120,7 +120,7 @@ func TestBundlesHandler_GetCompressTypes(t *testing.T) {
 		srv.Get("/v1/compression-types", ah.GetCompressTypes)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/compression-types", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -169,7 +169,7 @@ func TestBundlesHandler_GetConfigs(t *testing.T) {
 		srv.Get("/v1/configs", ah.GetConfigs)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/configs", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -219,7 +219,7 @@ func TestBundlesHandler_PostDeployment(t *testing.T) {
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodPost, "/v1/deployment", bytes.NewBufferString(`{"description":"yoyo"}`))
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -286,7 +286,7 @@ func TestBundlesHandler_GetDeployment(t *testing.T) {
 			if tc.deploy {
 				req := httptest.NewRequestWithContext(ctx, fiber.MethodPost, "/v1/deployment", bytes.NewBufferString(`{"description":"yoyo"}`))
 				req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-				resp, err2 := srv.Test(req, 100000)
+				resp, err2 := srv.Test(req)
 
 				require.NoError(t, err2)
 				require.NotNil(t, resp)
@@ -308,7 +308,7 @@ func TestBundlesHandler_GetDeployment(t *testing.T) {
 			}
 
 			req2 := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/deployment/"+tc.key, nil)
-			resp2, err4 := srv.Test(req2, 100000)
+			resp2, err4 := srv.Test(req2)
 
 			require.NoError(t, err4)
 			require.NotNil(t, resp2)

@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/handlers
 
-go 1.24.6
+go 1.26.5
 
 require (
 	github.com/goccy/go-json v0.10.5

@@ -1,12 +1,12 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data
 
-go 1.24.6
+go 1.26.5
 
 require (
 	github.com/goccy/go-json v0.10.5
 	github.com/goccy/go-yaml v1.18.0
 	github.com/stretchr/testify v1.10.0
-	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-00010101000000-000000000000
+	gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities v0.0.0-20260713122242-b4c72abf259a
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
 )
 

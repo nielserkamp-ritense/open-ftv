@@ -1,6 +1,6 @@
 unit-tests:
   stage: UnitTests
-  image: golang:1.24.6-alpine
+  image: golang:1.26.5-alpine
   services:
     - name:  ghcr.io/cerbos/cerbos:0.46.0
       alias: cerbos

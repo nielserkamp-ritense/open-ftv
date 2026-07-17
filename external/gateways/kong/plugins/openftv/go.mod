@@ -1,6 +1,6 @@
 module gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/external/gateways/kong/plugins/openftv
 
-go 1.24.6
+go 1.26.5
 
 require (
 	github.com/Kong/go-pdk v0.11.2
