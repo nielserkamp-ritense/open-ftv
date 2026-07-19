@@ -1,13 +1,13 @@
 package bundles
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
-	"golang.org/x/net/context"
-
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
@@ -15,7 +15,7 @@ import (
 type StatusHandler interface {
 	Advance() (*Deployment, error)
 	Fail(msg string) (*Deployment, error)
-	CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error
+	CreateBundleAudit(ctx context.Context, principal identity.Principal, version uint64, cfg *Config, bundle *Bundle) error
 }
 
 // Run executes the required steps for a new deployment.
@@ -34,7 +34,7 @@ type StatusHandler interface {
 // After a broken run (e.g., due to the service being restarted), the service must call this function during initialization.
 // Run will determine the status of the given deployment, and automatically continue where it was interrupted.
 // If the status is *Failed* or *Completed*, Run will do nothing.
-func (m *Manager) Run(d *Deployment, handler StatusHandler) any {
+func (m *Manager) Run(d *Deployment, handler StatusHandler, principal identity.Principal) any {
 	// The context is canceled when the deployment status reaches *Failed* or *Completed*.
 	ctx, cancel := context.WithCancel(m.ctx)
 
@@ -43,6 +43,7 @@ func (m *Manager) Run(d *Deployment, handler StatusHandler) any {
 		cancel:        cancel,
 		m:             m,
 		handler:       handler,
+		principal:     principal,
 		d:             d,
 		logger:        m.logger,
 		bundleTimeout: m.bundleTimeout,
@@ -63,6 +64,7 @@ type runner struct {
 	bundleTimeout time.Duration
 	client        *http.Client
 	handler       StatusHandler
+	principal     identity.Principal
 	bundleCount   uint64
 	targetCount   uint64
 	bundledCount  uint64

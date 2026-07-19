@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -37,20 +38,21 @@ type PolicyDB struct {
 }
 
 // CreatePolicy creates a new policy into the database.
-func (db *PolicyDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) CreatePolicy(ctx context.Context, user identity.Principal, p *models.Policy) (*models.Policy, error) {
 	now := db.now().UTC()
-	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `INSERT INTO policy
  (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
 
-	params := []any{p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, user, now, user}
+	name := user.DisplayName()
+	params := []any{p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, name, now, name}
 
-	if _, err := db.p.Exec(ctx, sql, params); err != nil {
+	if _, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
 	}
-	return p.WithAudit(now, user, now, user), nil
+
+	return p.WithAudit(now, name, now, name), nil
 }
 
 // ReadPolicy retrieves the identified policy from the database.
@@ -186,31 +188,32 @@ func polVersionFromDB(values []any) oas.PolicyVersion {
 }
 
 // UpdatePolicy replaces an existing policy in the database.
-func (db *PolicyDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+func (db *PolicyDB) UpdatePolicy(ctx context.Context, user identity.Principal, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	now := db.now().UTC()
-	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `UPDATE policy
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`
 
-	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, user}
+	name := user.DisplayName()
+	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, name}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
-	return p.WithAudit(p.Created(), p.CreatedBy(), now, user), nil
+
+	return p.WithAudit(p.Created(), p.CreatedBy(), now, name), nil
 }
 
 // DeletePolicy removes an existing policy from the database.
-func (db *PolicyDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
+func (db *PolicyDB) DeletePolicy(ctx context.Context, user identity.Principal, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	sql := `DELETE FROM policy WHERE id=$1 AND updated=$2`
 	params := []any{prev.ID(), timeFromLastIndex(lastIndex)}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}

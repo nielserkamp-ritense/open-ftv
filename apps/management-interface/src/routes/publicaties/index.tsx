@@ -8,21 +8,11 @@ import type {ColDef} from "ag-grid-community";
 import {ScaleLoader} from "react-spinners";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import {useCapabilities} from "@/auth/useCapabilities.ts";
+import {formatDateTime} from "@/utilities/datetime.ts";
 
 export const Route = createFileRoute('/publicaties/')({
     component: PublicatiesComponent,
 })
-
-// Helper function to format RFC3339 timestamp to "DD-MM-YYYY HH:mm"
-function formatDateTime(isoString: string): string {
-    const date = new Date(isoString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
-}
 
 export default function PublicatiesComponent() {
     const {data, isLoading, isError} = useDeployments();

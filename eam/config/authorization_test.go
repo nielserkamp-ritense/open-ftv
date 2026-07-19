@@ -47,14 +47,16 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 
 	t.Run("fail open (default) allows when store empty", func(t *testing.T) {
 		t.Parallel()
-		resp, err := build(false).Authorize(req)
+
+		resp, _, err := build(false).Authorize(req)
 		require.NoError(t, err)
 		require.True(t, resp.Allowed)
 	})
 
 	t.Run("fail closed denies when store empty", func(t *testing.T) {
 		t.Parallel()
-		resp, err := build(true).Authorize(req)
+
+		resp, _, err := build(true).Authorize(req)
 		require.NoError(t, err)
 		require.False(t, resp.Allowed)
 	})

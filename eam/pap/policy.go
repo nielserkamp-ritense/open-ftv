@@ -1,9 +1,9 @@
 package pap
 
 import (
-	"context"
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
@@ -11,8 +11,8 @@ import (
 // Create adds a policy to cache/storage.
 //
 // An error is returned if the policy-id already exists.
-func (p *PAP) Create(in *models.Policy, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.CreatePolicy(context.WithValue(p.ctx, "user", user), in); err == nil && out != nil && p.eventSinks != nil {
+func (p *PAP) Create(in *models.Policy, user identity.Principal) (out *models.Policy, err error) {
+	if out, err = p.policyDB.CreatePolicy(p.ctx, user, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyAdded, out.Key())
 	}
 	return
@@ -46,7 +46,7 @@ func (p *PAP) ReadVersion(id string, version int) (*oas.PolicyVersion, error) {
 }
 
 // RestoreVersion restores a specific version of a policy as the current concept.
-func (p *PAP) RestoreVersion(id string, version int, user string) (*models.Policy, error) {
+func (p *PAP) RestoreVersion(id string, version int, user identity.Principal) (*models.Policy, error) {
 	polOld, err := p.policyDB.ReadPolicyVersion(p.ctx, id, version)
 	if err != nil {
 		return nil, err
@@ -64,8 +64,8 @@ func (p *PAP) RestoreVersion(id string, version int, user string) (*models.Polic
 // Update modifies a policy in cache/storage with a newer version.
 //
 // An error is returned if the policy-id doesn't exist.
-func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.UpdatePolicy(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, user identity.Principal) (out *models.Policy, err error) {
+	if out, err = p.policyDB.UpdatePolicy(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyReplaced, out.Key())
 	}
 	return
@@ -74,7 +74,7 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, u
 // UpdateStatus updates the status of a policy in cache/storage.
 //
 // An error is returned if the policy key doesn't exist or the status update is not allowed.
-func (p *PAP) UpdateStatus(prev *models.Policy, lastIndex uint64, status models.Status, user string) (out *models.Policy, err error) {
+func (p *PAP) UpdateStatus(prev *models.Policy, lastIndex uint64, status models.Status, user identity.Principal) (out *models.Policy, err error) {
 	switch prev.Status() {
 	case models.StatusConcept:
 		if status != models.StatusAccepted {
@@ -88,21 +88,21 @@ func (p *PAP) UpdateStatus(prev *models.Policy, lastIndex uint64, status models.
 		return nil, fmt.Errorf("current status cannot be changed: %s", prev.Status().String())
 	}
 
-	return p.policyDB.UpdatePolicy(context.WithValue(p.ctx, "user", user), prev, lastIndex, prev.WithStatus(status))
+	return p.policyDB.UpdatePolicy(p.ctx, user, prev, lastIndex, prev.WithStatus(status))
 }
 
 // Delete removes a policy from cache/storage.
 //
 // An error is returned if the policy key doesn't exist.
-func (p *PAP) Delete(prev *models.Policy, lastIndex uint64, user string) (out *models.Policy, err error) {
-	if out, err = p.policyDB.DeletePolicy(context.WithValue(p.ctx, "user", user), prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
+func (p *PAP) Delete(prev *models.Policy, lastIndex uint64, user identity.Principal) (out *models.Policy, err error) {
+	if out, err = p.policyDB.DeletePolicy(p.ctx, user, prev, lastIndex); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.PolicyRemoved, out.Key())
 	}
 	return
 }
 
 // ReplaceAll removes all policies from cache/storage and adds the given list.
-func (p *PAP) ReplaceAll(list []*models.Policy, user string) error {
+func (p *PAP) ReplaceAll(list []*models.Policy, user identity.Principal) error {
 	// delete all existing policies.
 	old, _ := p.List("")
 	for _, policy := range old {

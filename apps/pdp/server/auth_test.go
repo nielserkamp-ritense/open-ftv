@@ -77,9 +77,10 @@ func TestNew(t *testing.T) {
 				srv.Get("/zen", auth.zen.Evaluation)
 
 				req := httptest.NewRequest("GET", "/zen", http.NoBody)
-				resp, err := srv.Test(req, 100)
+				resp, err := srv.Test(req)
 				require.NoError(t, err)
 				require.NotNil(t, resp)
+				defer resp.Body.Close()
 				assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 			}
 		})

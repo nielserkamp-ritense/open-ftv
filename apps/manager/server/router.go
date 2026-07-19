@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -191,7 +192,7 @@ func (s *Services) initDeployments(group fiber.Router) {
 				"Bootstrap",
 				"Initial bootstrapped deployment with dummy policies",
 				s.bundleManager,
-				"*SYSTEM*",
+				identity.NewSystemPrincipal(),
 			); err != nil {
 				s.logger.Error("failed to initialize bootstrap deployment", "error", err.Error())
 			}

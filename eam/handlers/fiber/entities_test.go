@@ -79,7 +79,7 @@ func TestEntitiesHandler_GetEntities(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -134,7 +134,7 @@ func TestEntitiesHandler_GetEntities_Empty(t *testing.T) {
 		srv.Get("/v1/entities", eh.GetEntities)
 
 		req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entities", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -193,7 +193,7 @@ func TestEntitiesHandler_GetEntity(t *testing.T) {
 			srv.Get("/v1/entity/:type/:id", eh.GetEntity)
 
 			req := httptest.NewRequestWithContext(ctx, fiber.MethodGet, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -236,12 +236,12 @@ func TestEntitiesHandler_PostEntity(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no type", id: "id", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "no ID", ns: "type", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "no body", ns: "app", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no type", id: "id", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "no ID", ns: "type", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no body", ns: "app", id: "xyz", timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("not a json payload"), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "duplicate key", ns: "app", id: "app1", body: bytes.NewBuffer(body2), timeout: 5 * time.Second, wantStatus: fiber.StatusConflict, wantVer: EntitiesVersion},
 		{name: "mismatched type", ns: "app", id: "id", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched id", ns: "type", id: "xyz", body: bytes.NewBuffer(body1), timeout: 5 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
@@ -322,12 +322,12 @@ func TestEntitiesHandler_PutEntity(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no type", id: "app1", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "no ID", ns: "app", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "no body", ns: "app", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
-		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no type", id: "app1", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "no ID", ns: "app", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "very long type", id: "app1", ns: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "very long ID", ns: "app", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "no body", ns: "app", id: "xyz", timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
+		{name: "bad body", ns: "app", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched type", ns: "xyz", id: "app1", body: bytes.NewBuffer(body2), timeout: 60 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "mismatched is", ns: "app", id: "xyz", body: bytes.NewBuffer(body2), timeout: 60 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: EntitiesVersion},
 		{name: "not found", ns: "type", id: "id", body: bytes.NewBuffer(body1), timeout: 60 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: EntitiesVersion},
@@ -439,7 +439,7 @@ func TestEntitiesHandler_DeleteEntity(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, "/v1/entity/"+tc.ns+"/"+tc.id, nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

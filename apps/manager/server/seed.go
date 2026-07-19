@@ -10,12 +10,15 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/google/uuid"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
 // seedNamespace makes the seeded policy ids deterministic (stable across restarts).
 var seedNamespace = uuid.NewSHA1(uuid.NameSpaceURL, []byte("openftv-mgmt-authz-policies"))
+
+var seedUser = identity.NewSeedPrincipal()
 
 // seedAuthzPolicies seeds the bundled cedar authorization policies (admin/author/auditor/…)
 // into the PAP store with deterministic UUID ids, so the manager's embedded PDP enforces
@@ -76,7 +79,7 @@ func (s *Services) seedAuthzPolicies() {
 			pol = pol.WithTags(tags...)
 		}
 
-		if _, cerr := s.pap.Create(pol, "*SEED*"); cerr != nil {
+		if _, cerr := s.pap.Create(pol, seedUser); cerr != nil {
 			s.logger.Error("seed: cannot create policy", "file", e.Name(), "err", cerr)
 			continue
 		}

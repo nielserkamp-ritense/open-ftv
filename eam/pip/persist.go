@@ -3,33 +3,34 @@ package pip
 import (
 	"context"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
 // AttributePersister represents the interface to manage persistent storage for attributes.
 type AttributePersister interface {
-	CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error)
+	CreateAttribute(ctx context.Context, user identity.Principal, a *models.Attribute) (*models.Attribute, error)
 	ReadAttribute(ctx context.Context, key string) (*models.Attribute, uint64, error)
 	ReadAttributeAudit(ctx context.Context, key string) ([]oas.AuditEntry, error)
 	ReadAttributeDeployments(ctx context.Context, key string) ([]oas.UsageData, error)
 	ReadAttributeVersions(ctx context.Context, id string) (oas.AttributeVersions, error)
 	ReadAttributeVersion(ctx context.Context, id string, version int) (*oas.AttributeVersion, error)
-	UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error)
-	DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error)
+	UpdateAttribute(ctx context.Context, user identity.Principal, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error)
+	DeleteAttribute(ctx context.Context, user identity.Principal, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error)
 	ListAttributes(ctx context.Context) ([]*models.Attribute, error)
 }
 
 // EntityPersister represents the interface to manage persistent storage for attributes.
 type EntityPersister interface {
-	CreateEntity(ctx context.Context, a *models.Entity) (*models.Entity, error)
+	CreateEntity(ctx context.Context, user identity.Principal, a *models.Entity) (*models.Entity, error)
 	ReadEntity(ctx context.Context, ns, id string) (*models.Entity, uint64, error)
 	ReadEntityAudit(ctx context.Context, ns, id string) ([]oas.AuditEntry, error)
 	ReadEntityDeployments(ctx context.Context, ns, id string) ([]oas.UsageData, error)
 	ReadEntityVersions(ctx context.Context, ns, id string) (oas.EntityVersions, error)
 	ReadEntityVersion(ctx context.Context, ns, id string, version int) (*oas.EntityVersion, error)
-	UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, a *models.Entity) (*models.Entity, error)
-	DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error)
+	UpdateEntity(ctx context.Context, user identity.Principal, prev *models.Entity, lastIndex uint64, a *models.Entity) (*models.Entity, error)
+	DeleteEntity(ctx context.Context, user identity.Principal, prev *models.Entity, lastIndex uint64) (*models.Entity, error)
 	ListEntities(ctx context.Context) ([]*models.Entity, error)
 }
 

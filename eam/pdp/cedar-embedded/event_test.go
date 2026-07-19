@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -152,7 +153,7 @@ func TestController_Handle(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol, "test")
+				_, err2 = p.Create(pol, identity.NewPrincipal(identity.KindUser, "test"))
 				require.NoError(t, err2)
 			}
 

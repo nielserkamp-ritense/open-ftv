@@ -6,6 +6,7 @@ import {ScaleLoader} from "react-spinners";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
+import { formatDateTime } from "@/utilities/datetime.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Breadcrumb } from "@/components/ui/breadcrumb.tsx";
 import { useCapabilities } from "@/auth/useCapabilities.ts";
@@ -207,9 +208,11 @@ function RouteComponent() {
                             <DescriptionTerm>Gemaakt door</DescriptionTerm>
                             <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
                             <DescriptionTerm>Gemaakt op</DescriptionTerm>
-                            <DescriptionDetails>{data?.audit?.created}</DescriptionDetails>
+                            <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : ''}</DescriptionDetails>
                             <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
-                            <DescriptionDetails>{data?.audit?.updated}</DescriptionDetails>
+                            <DescriptionDetails>{data?.audit?.updated ? formatDateTime(data.audit.updated) : ''}</DescriptionDetails>
+                            <DescriptionTerm>Laatst bijgewerkt door</DescriptionTerm>
+                            <DescriptionDetails>{data?.audit?.updatedBy}</DescriptionDetails>
                         </DescriptionList>
                     ) : (
                         <Fieldset>
@@ -284,9 +287,11 @@ function RouteComponent() {
                                     <DescriptionTerm>Gemaakt door</DescriptionTerm>
                                     <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
                                     <DescriptionTerm>Gemaakt op</DescriptionTerm>
-                                    <DescriptionDetails>{data?.audit?.created}</DescriptionDetails>
+                                    <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : ''}</DescriptionDetails>
                                     <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
-                                    <DescriptionDetails>{data?.audit?.updated}</DescriptionDetails>
+                                    <DescriptionDetails>{data?.audit?.updated ? formatDateTime(data.audit.updated) : ''}</DescriptionDetails>
+                                    <DescriptionTerm>Laatst bijgewerkt door</DescriptionTerm>
+                                    <DescriptionDetails>{data?.audit?.updatedBy}</DescriptionDetails>
                                 </DescriptionList>
                             </FieldGroup>
                         </Fieldset>

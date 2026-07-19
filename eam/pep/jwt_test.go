@@ -1,10 +1,14 @@
 package pep
 
 import (
+	"io"
+	"log/slog"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 func TestWithJWTDefaultsRolesClaim(t *testing.T) {
@@ -41,6 +45,36 @@ func TestExtractRoles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.want, extractRoles(tc.in))
+		})
+	}
+}
+
+func TestMapJWTPrincipal_PreferredUsername(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		claims jwt.MapClaims
+		want   any
+	}{
+		{"claim present", jwt.MapClaims{"sub": "alice", "preferred_username": "Alice A."}, "Alice A."},
+		{"claim absent", jwt.MapClaims{"sub": "alice"}, nil},
+		{"claim empty", jwt.MapClaims{"sub": "alice", "preferred_username": ""}, nil},
+		{"claim wrong type", jwt.MapClaims{"sub": "alice", "preferred_username": 123}, nil},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := &collector{
+				logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+				jwt:    &JWTConfig{RolesClaim: "roles"},
+				parc:   &models.PARC{Principal: models.NewEntity("", "", models.NewAttributeSet()), Context: models.NewAttributeSet()},
+			}
+			c.mapJWTPrincipal(tc.claims)
+
+			assert.Equal(t, tc.want, c.parc.Principal.Attributes().GetAttributeValue(models.AttrPreferredName))
 		})
 	}
 }

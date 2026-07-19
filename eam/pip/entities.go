@@ -1,9 +1,9 @@
 package pip
 
 import (
-	"context"
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -12,7 +12,7 @@ import (
 //
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddEntity(entity *models.Entity) (*models.Entity, error) {
-	return p.AddEntityWithUser(entity, "")
+	return p.AddEntityWithUser(entity, identity.NewSystemPrincipal())
 }
 
 // AddDynamicEntity adds/replaces an entity in the PIP.
@@ -22,7 +22,7 @@ func (p *PIP) AddEntity(entity *models.Entity) (*models.Entity, error) {
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddDynamicEntity(entity *models.Entity) (*models.Entity, error) {
 	p.dynamicData.addEntity(entity)
-	return p.AddEntityWithUser(entity, "")
+	return p.AddEntityWithUser(entity, identity.NewSystemPrincipal())
 }
 
 // AddEntityFromOAS adds/replaces an entity in the PIP based on the given OAS model.
@@ -30,21 +30,21 @@ func (p *PIP) AddDynamicEntity(entity *models.Entity) (*models.Entity, error) {
 // Unlike AddEntity, this function will also mark the entity as dynamic with respect to the Authorization Decision Log.
 //
 // If the given attribute exists, it is updated, otherwise created.
-func (p *PIP) AddEntityFromOAS(in *oas.Entity, user string) (*models.Entity, error) {
+func (p *PIP) AddEntityFromOAS(in *oas.Entity, user identity.Principal) (*models.Entity, error) {
 	e := models.EntityFromOAS(in)
 	p.dynamicData.addEntity(e)
 	return p.AddEntityWithUser(e, user)
 }
 
 // AddEntityWithUser adds/replaces an entity in the PIP on behalf of the given user.
-func (p *PIP) AddEntityWithUser(entity *models.Entity, user string) (*models.Entity, error) {
+func (p *PIP) AddEntityWithUser(entity *models.Entity, user identity.Principal) (*models.Entity, error) {
 	e2, ix, err := p.entityDB.ReadEntity(p.ctx, entity.Type(), entity.ID())
 	if err != nil || e2 == nil {
-		if e2, err = p.entityDB.CreateEntity(context.WithValue(p.ctx, "user", user), entity); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.CreateEntity(p.ctx, user, entity); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityAdded, entity.UID())
 		}
 	} else {
-		if e2, err = p.entityDB.UpdateEntity(context.WithValue(p.ctx, "user", user), e2, ix, entity); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.UpdateEntity(p.ctx, user, e2, ix, entity); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityReplaced, entity.UID())
 		}
 	}
@@ -82,7 +82,7 @@ func (p *PIP) GetEntityVersion(uid string, version int) (*oas.EntityVersion, err
 }
 
 // RestoreEntityVersion restores a specific version of an entity as the current concept.
-func (p *PIP) RestoreEntityVersion(uid string, version int, user string) (*models.Entity, error) {
+func (p *PIP) RestoreEntityVersion(uid string, version int, user identity.Principal) (*models.Entity, error) {
 	ns, id := models.SplitEntityUID(uid)
 
 	entOld, err := p.entityDB.ReadEntityVersion(p.ctx, ns, id, version)
@@ -102,8 +102,8 @@ func (p *PIP) RestoreEntityVersion(uid string, version int, user string) (*model
 // UpdateEntity modifies an entity in cache/storage with a newer version.
 //
 // An error is returned if the entity type/id doesn't exist.
-func (p *PIP) UpdateEntity(prev *models.Entity, lastIndex uint64, in *models.Entity, user string) (out *models.Entity, err error) {
-	if out, err = p.entityDB.UpdateEntity(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+func (p *PIP) UpdateEntity(prev *models.Entity, lastIndex uint64, in *models.Entity, user identity.Principal) (out *models.Entity, err error) {
+	if out, err = p.entityDB.UpdateEntity(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.EntityReplaced, out.UID())
 	}
 	return
@@ -112,7 +112,7 @@ func (p *PIP) UpdateEntity(prev *models.Entity, lastIndex uint64, in *models.Ent
 // UpdateEntityStatus updates the status of an attribute in cache/storage.
 //
 // An error is returned if the attribute key doesn't exist or the status update is not allowed.
-func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user string) (*models.Entity, error) {
+func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user identity.Principal) (*models.Entity, error) {
 	ns, id := models.SplitEntityUID(uid)
 	prev, _, err := p.entityDB.ReadEntity(p.ctx, ns, id)
 	if err != nil || prev == nil {
@@ -127,16 +127,16 @@ func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user string) 
 }
 
 // RemoveEntity removes an entity from the PIP.
-func (p *PIP) RemoveEntity(uid string, user string) (*models.Entity, error) {
+func (p *PIP) RemoveEntity(uid string, user identity.Principal) (*models.Entity, error) {
 	p.dynamicData.entities.RemoveEntity(uid)
 	return p.removeEntity(uid, user)
 }
 
-func (p *PIP) removeEntity(uid string, user string) (*models.Entity, error) {
+func (p *PIP) removeEntity(uid string, user identity.Principal) (*models.Entity, error) {
 	ns, id := models.SplitEntityUID(uid)
 	e2, ix, err := p.entityDB.ReadEntity(p.ctx, ns, id)
 	if err == nil {
-		if e2, err = p.entityDB.DeleteEntity(context.WithValue(p.ctx, "user", user), e2, ix); err == nil && p.eventSinks != nil {
+		if e2, err = p.entityDB.DeleteEntity(p.ctx, user, e2, ix); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.EntityRemoved, uid)
 		}
 	}
@@ -146,7 +146,7 @@ func (p *PIP) removeEntity(uid string, user string) (*models.Entity, error) {
 // ReplaceAllEntities replaces all entities with the new list.
 //
 // If an empty list is given, this function effective clears all entities from the PIP.
-func (p *PIP) ReplaceAllEntities(list *models.EntitySet, user string) {
+func (p *PIP) ReplaceAllEntities(list *models.EntitySet, user identity.Principal) {
 	// remove all existing entities.
 	p.IterateEntities(func(a *models.Entity) {
 		_, _ = p.removeEntity(a.UID(), user)

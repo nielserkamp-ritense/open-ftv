@@ -1,9 +1,9 @@
 package pip
 
 import (
-	"context"
 	"fmt"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -12,7 +12,7 @@ import (
 //
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
-	return p.addAttributeWithUser(in, "")
+	return p.addAttributeWithUser(in, identity.NewSystemPrincipal())
 }
 
 // AddDynamicAttribute adds/replaces the given attribute in the PIP.
@@ -22,7 +22,7 @@ func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddDynamicAttribute(in *models.Attribute) (*models.Attribute, error) {
 	p.dynamicData.addAttribute(in)
-	return p.addAttributeWithUser(in, "")
+	return p.addAttributeWithUser(in, identity.NewSystemPrincipal())
 }
 
 // AddAttributeFromOAS adds/replaces an attribute in the PIP based on the given OAS model.
@@ -30,20 +30,20 @@ func (p *PIP) AddDynamicAttribute(in *models.Attribute) (*models.Attribute, erro
 // Unlike AddAttribute, this function will also mark the attribute as dynamic with respect to the Authorization Decision Log.
 //
 // If the given attribute exists, it is updated, otherwise created.
-func (p *PIP) AddAttributeFromOAS(in *oas.Attribute, user string) (*models.Attribute, error) {
+func (p *PIP) AddAttributeFromOAS(in *oas.Attribute, user identity.Principal) (*models.Attribute, error) {
 	a := models.NewAttributeFromOAS(in)
 	p.dynamicData.addAttribute(a)
 	return p.addAttributeWithUser(a, user)
 }
 
-func (p *PIP) addAttributeWithUser(in *models.Attribute, user string) (*models.Attribute, error) {
+func (p *PIP) addAttributeWithUser(in *models.Attribute, user identity.Principal) (*models.Attribute, error) {
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, in.Key())
 	if err != nil || prev == nil {
-		if _, err = p.attributeDB.CreateAttribute(context.WithValue(p.ctx, "user", user), in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.CreateAttribute(p.ctx, user, in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeAdded, in.Key())
 		}
 	} else {
-		if _, err = p.attributeDB.UpdateAttribute(context.WithValue(p.ctx, "user", user), prev, ix, in); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.UpdateAttribute(p.ctx, user, prev, ix, in); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeReplaced, in.Key())
 		}
 	}
@@ -99,7 +99,7 @@ func (p *PIP) GetAttributeValue(key string) any {
 }
 
 // RestoreAttributeVersion restores a specific version of an attribute as the current concept.
-func (p *PIP) RestoreAttributeVersion(key string, version int, user string) (*models.Attribute, error) {
+func (p *PIP) RestoreAttributeVersion(key string, version int, user identity.Principal) (*models.Attribute, error) {
 	attrOld, err := p.attributeDB.ReadAttributeVersion(p.ctx, key, version)
 	if err != nil {
 		return nil, err
@@ -117,8 +117,8 @@ func (p *PIP) RestoreAttributeVersion(key string, version int, user string) (*mo
 // UpdateAttribute modifies an attribute in cache/storage with a newer version.
 //
 // An error is returned if the attribute-key doesn't exist.
-func (p *PIP) UpdateAttribute(prev *models.Attribute, lastIndex uint64, in *models.Attribute, user string) (out *models.Attribute, err error) {
-	if out, err = p.attributeDB.UpdateAttribute(context.WithValue(p.ctx, "user", user), prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
+func (p *PIP) UpdateAttribute(prev *models.Attribute, lastIndex uint64, in *models.Attribute, user identity.Principal) (out *models.Attribute, err error) {
+	if out, err = p.attributeDB.UpdateAttribute(p.ctx, user, prev, lastIndex, in); err == nil && out != nil && p.eventSinks != nil {
 		p.sendEvent(models.AttributeReplaced, out.Key())
 	}
 	return
@@ -127,7 +127,7 @@ func (p *PIP) UpdateAttribute(prev *models.Attribute, lastIndex uint64, in *mode
 // UpdateAttributeStatus updates the status of an attribute in cache/storage.
 //
 // An error is returned if the attribute key doesn't exist or the status update is not allowed.
-func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user string) (*models.Attribute, error) {
+func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user identity.Principal) (*models.Attribute, error) {
 	prev, _, err := p.attributeDB.ReadAttribute(p.ctx, key)
 	if err != nil || prev == nil {
 		return nil, fmt.Errorf("attribute not found")
@@ -135,21 +135,21 @@ func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user strin
 
 	if (prev.Status() == models.StatusConcept && status == models.StatusAccepted) ||
 		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
-		return p.AddAttribute(prev.WithStatus(status))
+		return p.addAttributeWithUser(prev.WithStatus(status), user)
 	}
 	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
 }
 
 // RemoveAttribute removes an attribute from the PIP.
-func (p *PIP) RemoveAttribute(key, user string) (*models.Attribute, error) {
+func (p *PIP) RemoveAttribute(key string, user identity.Principal) (*models.Attribute, error) {
 	p.dynamicData.attributes.RemoveAttribute(key) // also remove from dynamic data.
 	return p.removeAttribute(key, user)
 }
 
-func (p *PIP) removeAttribute(key, user string) (*models.Attribute, error) {
+func (p *PIP) removeAttribute(key string, user identity.Principal) (*models.Attribute, error) {
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, key)
 	if err == nil {
-		if _, err = p.attributeDB.DeleteAttribute(context.WithValue(p.ctx, "user", user), prev, ix); err == nil && p.eventSinks != nil {
+		if _, err = p.attributeDB.DeleteAttribute(p.ctx, user, prev, ix); err == nil && p.eventSinks != nil {
 			p.sendEvent(models.AttributeRemoved, key)
 		}
 	}
@@ -159,7 +159,7 @@ func (p *PIP) removeAttribute(key, user string) (*models.Attribute, error) {
 // ReplaceAllAttributes replaces all attributes with the new list.
 //
 // If an empty list is given, this function effectively clears all attributes from the PIP.
-func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user string) {
+func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user identity.Principal) {
 	// delete all existing attributes.
 	keys := make([]string, 0)
 	p.IterateAttributes(func(a *models.Attribute) {
@@ -193,7 +193,7 @@ func (p *PIP) IterateAttributes(f models.AttributeIterator) {
 func (p *PIP) MergeAttributes(in ...*models.AttributeSet) {
 	for _, set := range in {
 		set.IterateAttributes(func(attr *models.Attribute) {
-			_, _ = p.addAttributeWithUser(attr, "")
+			_, _ = p.addAttributeWithUser(attr, identity.NewSystemPrincipal())
 		})
 	}
 }

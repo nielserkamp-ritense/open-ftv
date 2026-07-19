@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
@@ -100,4 +101,4 @@ func (p *PAP) LoadTags(tags []*policies.Tag) error {
 	return p.tagDB.EnsureTags(tags, loadUser)
 }
 
-const loadUser = "*LOADER*"
+var loadUser = identity.NewLoaderPrincipal()

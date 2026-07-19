@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
@@ -119,7 +120,9 @@ func (l *myPolicyHandler) Iterate(f models.PolicyIterator) {
 	}
 }
 
-func (l *myPolicyHandler) Create(*models.Policy, string) (*models.Policy, error) { return nil, nil }
+func (l *myPolicyHandler) Create(*models.Policy, identity.Principal) (*models.Policy, error) {
+	return nil, nil
+}
 
 type myDataHandler struct {
 	count1 int

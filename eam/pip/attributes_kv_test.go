@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -184,7 +185,7 @@ func TestNewAttributeStore(t *testing.T) {
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:integer")
 		require.NotNil(t, a)
 
-		a2, err2 := s.CreateAttribute(ctx, a)
+		a2, err2 := s.CreateAttribute(ctx, identity.NewSystemPrincipal(), a)
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 		assert.EqualValues(t, a, a2)
@@ -197,12 +198,12 @@ func TestNewAttributeStore(t *testing.T) {
 		a = models.NewOriginalAttribute("k1", "haha", "haha", "xsd:string")
 		require.NotNil(t, a)
 
-		a4, err4 := s.UpdateAttribute(ctx, a3, ix, a)
+		a4, err4 := s.UpdateAttribute(ctx, identity.NewSystemPrincipal(), a3, ix, a)
 		require.NoError(t, err4)
 		require.NotNil(t, a4)
 		assert.EqualValues(t, a, a4)
 
-		a5, err5 := s.DeleteAttribute(ctx, a, ix)
+		a5, err5 := s.DeleteAttribute(ctx, identity.NewSystemPrincipal(), a, ix)
 		require.NoError(t, err5)
 		require.NotNil(t, a5)
 		assert.EqualValues(t, a, a5)
@@ -227,12 +228,12 @@ func TestNewAttributeStore_DupError(t *testing.T) {
 		a := models.NewOriginalAttribute("k1", 123, "123", "")
 		require.NotNil(t, a)
 
-		a2, err2 := s.CreateAttribute(ctx, a)
+		a2, err2 := s.CreateAttribute(ctx, identity.NewSystemPrincipal(), a)
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 		assert.EqualValues(t, a, a2)
 
-		a3, err3 := s.CreateAttribute(ctx, a)
+		a3, err3 := s.CreateAttribute(ctx, identity.NewSystemPrincipal(), a)
 		require.Error(t, err3)
 		require.Nil(t, a3)
 	})
@@ -277,7 +278,7 @@ func TestNewAttributeStore_Update_NotFound(t *testing.T) {
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
 		require.NotNil(t, a)
 
-		a2, err2 := s.UpdateAttribute(ctx, a, 0, a)
+		a2, err2 := s.UpdateAttribute(ctx, identity.NewSystemPrincipal(), a, 0, a)
 		require.Error(t, err2)
 		require.Nil(t, a2)
 	})
@@ -301,7 +302,7 @@ func TestNewAttributeStore_Delete_NotFound(t *testing.T) {
 		a := models.NewOriginalAttribute("k1", 123, "123", "xsd:positiveNumber")
 		require.NotNil(t, a)
 
-		a2, err3 := s.DeleteAttribute(ctx, a, 0)
+		a2, err3 := s.DeleteAttribute(ctx, identity.NewSystemPrincipal(), a, 0)
 		require.Error(t, err3)
 		require.Nil(t, a2)
 	})
@@ -330,7 +331,7 @@ func TestNewAttributeStore_List(t *testing.T) {
 			a := models.NewOriginalAttribute(fmt.Sprintf("k%d", i+1), 123, "123", "xsd:positiveNumber")
 			require.NotNil(t, a)
 
-			_, err = s.CreateAttribute(ctx, a)
+			_, err = s.CreateAttribute(ctx, identity.NewSystemPrincipal(), a)
 			require.NoError(t, err)
 		}
 

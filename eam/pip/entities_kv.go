@@ -14,6 +14,7 @@ import (
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -36,7 +37,9 @@ func NewEntityStore(client store.Store, basePath string) EntityPersister {
 }
 
 // CreateEntity implements the EntityPersister interface.
-func (s *entityStore) CreateEntity(ctx context.Context, e *models.Entity) (*models.Entity, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *entityStore) CreateEntity(ctx context.Context, _ identity.Principal, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(e.UID())
 
 	s.mutex.Lock()
@@ -102,7 +105,9 @@ func (s *entityStore) ReadEntityVersion(context.Context, string, string, int) (*
 }
 
 // UpdateEntity implements the EntityPersister interface.
-func (s *entityStore) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *entityStore) UpdateEntity(ctx context.Context, _ identity.Principal, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()
@@ -116,7 +121,9 @@ func (s *entityStore) UpdateEntity(ctx context.Context, prev *models.Entity, las
 }
 
 // DeleteEntity implements the EntityPersister interface.
-func (s *entityStore) DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *entityStore) DeleteEntity(ctx context.Context, _ identity.Principal, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	key := s.makeKey(prev.UID())
 
 	s.mutex.Lock()

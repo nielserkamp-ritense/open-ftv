@@ -1,18 +1,22 @@
 package pap
 
-import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+import (
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+)
 
 // NewDeployment creates a new deployment in the store.
-func (p *PAP) NewDeployment(title, description string, manager *bundles.Manager, user string) (*bundles.Deployment, error) {
+func (p *PAP) NewDeployment(title, description string, manager *bundles.Manager, user identity.Principal) (*bundles.Deployment, error) {
 	p.deployMutex.Lock()
 	defer p.deployMutex.Unlock()
 
-	d, err := p.bundleDB.Generate(p.ctx, title, description, user)
+	// Generate still takes a plain string; convert at this boundary.
+	d, err := p.bundleDB.Generate(p.ctx, title, description, user.DisplayName())
 	if err != nil {
 		return nil, err
 	}
 
-	manager.Run(d, p.bundleDB)
+	manager.Run(d, p.bundleDB, user)
 	return d, nil
 }
 
@@ -21,7 +25,7 @@ func (p *PAP) RestartDeployment(manager *bundles.Manager) {
 	if p.bundleDB != nil {
 		if d, err2 := p.bundleDB.LastDeployment(p.ctx); err2 == nil && d != nil {
 			if s := d.Status(); s != bundles.Failed && s != bundles.Completed {
-				manager.Run(d, p.bundleDB)
+				manager.Run(d, p.bundleDB, identity.NewSystemPrincipal())
 			}
 		}
 	}

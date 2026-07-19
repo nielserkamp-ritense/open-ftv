@@ -21,7 +21,10 @@ type Datasource struct {
 
 // Table returns the table definition for the given id.
 func (d *Datasource) Table(tableID string) *Table {
-	d.Fix(nil)
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	d.fix(nil)
 	return d.tables[strings.ToLower(tableID)]
 }
 

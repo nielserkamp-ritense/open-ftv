@@ -17,6 +17,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -55,9 +56,9 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		ap1 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
 		require.NotNil(t, ap1)
 
-		_, _ = ap1.Create(p1, "test")
-		_, _ = ap1.Create(p2, "test")
-		_, _ = ap1.Create(p3, "test")
+		_, _ = ap1.Create(p1, identity.NewPrincipal(identity.KindUser, "test"))
+		_, _ = ap1.Create(p2, identity.NewPrincipal(identity.KindUser, "test"))
+		_, _ = ap1.Create(p3, identity.NewPrincipal(identity.KindUser, "test"))
 
 		ip1 := pip.New(ctx, logger)
 		require.NotNil(t, ip1)

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -72,7 +73,7 @@ func TestPostgresDB_DeleteAttribute(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.DeleteAttribute(ctx, prev, lastIndex)
+			got, err := db.DeleteAttribute(ctx, identity.NewSystemPrincipal(), prev, lastIndex)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -130,7 +131,7 @@ func TestPostgresDB_DeleteEntity(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.DeleteEntity(ctx, prev, lastIndex)
+			got, err := db.DeleteEntity(ctx, identity.NewSystemPrincipal(), prev, lastIndex)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)

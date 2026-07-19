@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -276,7 +277,7 @@ func TestRunner_DummyRun(t *testing.T) {
 
 		h.Clear()
 
-		r := m.Run(d, handler).(*runner)
+		r := m.Run(d, handler, identity.NewSystemPrincipal()).(*runner)
 		require.NotNil(t, r)
 
 		clk := time.NewTimer(100 * time.Millisecond)

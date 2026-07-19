@@ -86,6 +86,9 @@ func TestADL_Evaluation(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			err = l2.Shutdown(ctx)
+			require.NoError(t, err)
+
 			assert.Equal(t, 1, h.Count())
 		})
 	}
@@ -160,6 +163,9 @@ func TestADL_Evaluations(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			err = l2.Shutdown(ctx)
+			require.NoError(t, err)
+
 			assert.Equal(t, 1, h.Count())
 		})
 	}
@@ -233,6 +239,9 @@ func TestADL_SearchSubject(t *testing.T) {
 			require.NoError(t, err)
 
 			time.Sleep(50 * time.Millisecond)
+
+			err = l2.Shutdown(ctx)
+			require.NoError(t, err)
 
 			assert.Equal(t, 1, h.Count())
 		})

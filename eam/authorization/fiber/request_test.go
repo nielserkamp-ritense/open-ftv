@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -104,7 +105,7 @@ func TestFormatRequest(t *testing.T) {
 				}
 			}
 
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -174,12 +175,12 @@ func TestCheck(t *testing.T) {
 
 			srv := fiber.New()
 			srv.Get("/v1/attributes", func(req *fiber.Ctx) (err error) {
-				_, got, err = Check(req, tc.resp, tc.err, log)
+				_, got, err = Check(req, tc.resp, identity.NewUnknownPrincipal(), tc.err, log)
 				return
 			})
 
 			req := httptest.NewRequest(fiber.MethodGet, "/v1/attributes", nil)
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			if tc.wantErr {
 				require.Error(t, err2)
@@ -187,6 +188,7 @@ func TestCheck(t *testing.T) {
 			} else {
 				require.NoError(t, err2)
 				assert.NotNil(t, resp)
+				defer resp.Body.Close()
 				assert.Equal(t, tc.wantOK, got)
 
 				if tc.wantHeader {

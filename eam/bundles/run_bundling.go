@@ -40,7 +40,7 @@ func (r *runner) createBundleAudit() bool {
 		cfg := r.m.bundles[k]
 		version := r.d.version
 
-		if err := r.handler.CreateBundleAudit(r.ctx, version, cfg, b); err != nil {
+		if err := r.handler.CreateBundleAudit(r.ctx, r.principal, version, cfg, b); err != nil {
 			r.error("failed to create bundle audit", "version", version, "bundle", cfg.ID, "error", err)
 			return false
 		}

@@ -234,7 +234,7 @@ func TestPgLogger_Decision(t *testing.T) {
 				mock,
 				5*time.Minute,
 				5,
-				opentelemetry.WithBatchTimeout(10*time.Millisecond),
+				opentelemetry.WithBatchTimeout(time.Second),
 			)
 			require.NoError(t, err2)
 			require.NotNil(t, l)

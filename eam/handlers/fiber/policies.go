@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -209,7 +210,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	// evaluate fine-grained policies against its attributes (e.g. status).
 	prev, _, _ := h.cache.Read(id)
 
-	var user string
+	var user identity.Principal
 	if user, ok, err = h.authorizeResource(req, id, prev); !ok {
 		return err
 	}
@@ -429,22 +430,17 @@ func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *oas.Policy) (*models.Po
 	return pol, true, nil
 }
 
-func (h *policiesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
-	if h.authorizer == nil {
-		return auth.SystemUser, true, nil
-	}
-
-	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-	return auth.Check(req, resp, err, h.logger)
+func (h *policiesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
 // authorizeResource authorizes a request like authorize, but additionally
 // passes the stored target object (with its attributes, e.g. status) into
 // authorization so the PDP can evaluate fine-grained, resource-attribute
 // policies. When prev is nil (no stored object), no resource is attached.
-func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (string, bool, error) {
+func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (identity.Principal, bool, error) {
 	if h.authorizer == nil {
-		return auth.SystemUser, true, nil
+		return identity.NewSystemPrincipal(), true, nil
 	}
 
 	var res *models.Entity
@@ -454,8 +450,9 @@ func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *mod
 		res = models.NewEntity(models.EntityTypeService, id, attrs)
 	}
 
-	resp, err := h.authorizer.Authorize(auth.FormatRequestWithResource(req, res))
-	return auth.Check(req, resp, err, h.logger)
+	resp, principal, err := h.authorizer.Authorize(auth.FormatRequestWithResource(req, res))
+
+	return auth.Check(req, resp, principal, err, h.logger)
 }
 
 func (h *policiesHandler) error(req *fiber.Ctx, status int, err error) error {

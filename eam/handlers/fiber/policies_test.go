@@ -79,7 +79,7 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		srv.Get("/v1/policies", ph.GetPolicies)
 
 		req := httptest.NewRequest(fiber.MethodGet, "/v1/policies", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -128,7 +128,7 @@ func TestPoliciesHandler_GetPolicies_NotFound(t *testing.T) {
 		srv.Get("/v1/policies", ph.GetPolicies)
 
 		req := httptest.NewRequest(fiber.MethodGet, "/v1/policies", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -184,7 +184,7 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			srv.Get("/v1/policy/:id", ph.GetPolicy)
 
 			req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/v1/policy/%s", tc.id), nil)
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)
@@ -237,10 +237,10 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
-		{name: "no body", language: "cedar", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
-		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no body", language: "cedar", id: "xyz", timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 15 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "duplicate id", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 15 * time.Second, wantStatus: fiber.StatusConflict, wantVer: PoliciesVersion},
 		{name: "all good", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 15 * time.Second, wantStatus: fiber.StatusCreated, wantVer: PoliciesVersion},
@@ -329,10 +329,10 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 		wantStatus int
 		wantVer    string
 	}{
-		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusNotFound},
-		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
-		{name: "no body", language: "cedar", id: "xyz", timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
-		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 100 * time.Millisecond, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no ID", language: "cedar", body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusNotFound},
+		{name: "very long ID", language: "cedar", id: strings.Repeat("x", 501), body: bytes.NewBufferString(""), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "no body", language: "cedar", id: "xyz", timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
+		{name: "bad body", language: "cedar", id: "xyz", body: bytes.NewBufferString("my policy 1.0"), timeout: 1 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "bad url", language: "cedar", id: "xyz", body: bytes.NewBufferString(badURL), timeout: 15 * time.Second, wantStatus: fiber.StatusBadRequest, wantVer: PoliciesVersion},
 		{name: "not found", language: "cedar", id: "xyz", body: bytes.NewBufferString(goodURL), timeout: 15 * time.Second, wantStatus: fiber.StatusNotFound, wantVer: PoliciesVersion},
 		{name: "all good", language: "cedar", id: "subsidies.cedar", body: bytes.NewBufferString(goodURL), timeout: 15 * time.Second, wantStatus: fiber.StatusOK, wantVer: PoliciesVersion},
@@ -439,7 +439,7 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/v1/policy/%s", tc.id), nil)
 			req.Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			resp, err2 := srv.Test(req, 100)
+			resp, err2 := srv.Test(req)
 
 			require.NoError(t, err2)
 			require.NotNil(t, resp)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -14,20 +15,19 @@ import (
 )
 
 // CreateEntity creates a new entity in the database.
-func (db *PostgresDB) CreateEntity(ctx context.Context, e *models.Entity) (*models.Entity, error) {
-	user := convert.AnyToString(ctx.Value("user"))
-
+func (db *PostgresDB) CreateEntity(ctx context.Context, user identity.Principal, e *models.Entity) (*models.Entity, error) {
 	sql := `INSERT INTO entity
  (status,type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
 	now := db.now().UTC()
-	params := []any{e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user, now, user}
+	params := []any{e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user.DisplayName(), now, user.DisplayName()}
 
-	if _, err := db.p.Exec(ctx, sql, params); err != nil {
+	if _, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
 	}
-	return e.WithAudit(now, user, now, user), nil
+
+	return e.WithAudit(now, user.DisplayName(), now, user.DisplayName()), nil
 }
 
 // ReadEntity retrieves the identified entity from the database.
@@ -163,33 +163,31 @@ func entityVersionFromDB(values []any) oas.EntityVersion {
 }
 
 // UpdateEntity replaces an existing entity in the database.
-func (db *PostgresDB) UpdateEntity(ctx context.Context, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
-	user := convert.AnyToString(ctx.Value("user"))
-
+func (db *PostgresDB) UpdateEntity(ctx context.Context, user identity.Principal, prev *models.Entity, lastIndex uint64, e *models.Entity) (*models.Entity, error) {
 	sql := `UPDATE entity
  SET title=$4,description=$5,tags=$6,attributes=$7,parents=$8,status=$9,updated=$10,updated_by=$11
  WHERE type=$1 AND id=$2 AND updated=$3`
 
 	attr := gobEncodeAttributes(e.Attributes())
 	now := db.now().UTC()
-	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), e.Title(), e.Description(), e.Tags(), attr, e.Parents(), e.StatusName(), now, user}
+	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), e.Title(), e.Description(), e.Tags(), attr, e.Parents(), e.StatusName(), now, user.DisplayName()}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
 
-	return e.WithAudit(e.Created(), e.CreatedBy(), now, user), nil
+	return e.WithAudit(e.Created(), e.CreatedBy(), now, user.DisplayName()), nil
 }
 
 // DeleteEntity removes an existing entity from the database.
-func (db *PostgresDB) DeleteEntity(ctx context.Context, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
+func (db *PostgresDB) DeleteEntity(ctx context.Context, user identity.Principal, prev *models.Entity, lastIndex uint64) (*models.Entity, error) {
 	sql := `DELETE FROM entity WHERE type=$1 AND id=$2 AND updated=$3`
 	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex)}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}

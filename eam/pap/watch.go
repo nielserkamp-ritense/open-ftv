@@ -6,6 +6,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
@@ -125,7 +126,6 @@ func (p *PAP) processDeletes() {
 	}
 }
 
-const (
-	watchTimerInterval = 100 * time.Millisecond
-	storageUser        = "*STORAGE*"
-)
+const watchTimerInterval = 100 * time.Millisecond
+
+var storageUser = identity.NewStoragePrincipal()

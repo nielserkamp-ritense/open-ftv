@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -72,7 +73,7 @@ func TestTagDB_DeleteTag(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.DeleteTag(ctx, prev, lastIndex)
+			got, err := db.DeleteTag(ctx, identity.NewSystemPrincipal(), prev, lastIndex)
 			if tc.wantErr {
 				require.Error(t, err)
 				if tc.errSubstr != "" {

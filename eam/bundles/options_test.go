@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -97,8 +98,10 @@ func TestOptions(t *testing.T) {
 
 type dummyLister struct{}
 
-func (l *dummyLister) Iterate(models.PolicyIterator)                             {}
-func (l *dummyLister) Create(*models.Policy, string) (*models.Policy, error)     { return nil, nil }
+func (l *dummyLister) Iterate(models.PolicyIterator) {}
+func (l *dummyLister) Create(*models.Policy, identity.Principal) (*models.Policy, error) {
+	return nil, nil
+}
 func (l *dummyLister) IterateAttributes(models.AttributeIterator)                {}
 func (l *dummyLister) AddAttribute(*models.Attribute) (*models.Attribute, error) { return nil, nil }
 func (l *dummyLister) IterateEntities(iterator models.EntityIterator)            {}

@@ -8,6 +8,7 @@ import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import {formatDateTime} from "@/utilities/datetime.ts";
 
 export const Route = createFileRoute('/logboek/')({
     component: RouteComponent,
@@ -54,7 +55,9 @@ function RouteComponent() {
             field: "created",
             resizable: false,
             filter: 'agDateColumnFilter',
-            cellStyle: {color: 'var(--color-content-secondary)'}
+            cellStyle: {color: 'var(--color-content-secondary)'},
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            valueFormatter: (params: any) => params.value ? formatDateTime(params.value) : '',
         },
         {
             headerName: "Subject",

@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -33,7 +34,9 @@ func NewAttributeStore(client store.Store, basePath string) AttributePersister {
 }
 
 // CreateAttribute implements the AttributePersister interface.
-func (s *attributeStore) CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *attributeStore) CreateAttribute(ctx context.Context, _ identity.Principal, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(a.Key())
 
 	s.mutex.Lock()
@@ -99,7 +102,9 @@ func (s *attributeStore) ReadAttributeVersion(context.Context, string, int) (*oa
 }
 
 // UpdateAttribute implements the AttributePersister interface.
-func (s *attributeStore) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *attributeStore) UpdateAttribute(ctx context.Context, _ identity.Principal, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()
@@ -113,7 +118,9 @@ func (s *attributeStore) UpdateAttribute(ctx context.Context, prev *models.Attri
 }
 
 // DeleteAttribute implements the AttributePersister interface.
-func (s *attributeStore) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *attributeStore) DeleteAttribute(ctx context.Context, _ identity.Principal, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	key := s.makeKey(prev.Key())
 
 	s.mutex.Lock()

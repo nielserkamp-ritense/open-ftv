@@ -32,8 +32,7 @@ func WithJWT(cfg JWTConfig) Option {
 	}
 }
 
-// mapJWTPrincipal maps validated claims onto the principal: sub -> user::<sub>,
-// and the roles claim -> principal "roles" attribute.
+// mapJWTPrincipal populates principal attributes from validated claims.
 func (c *collector) mapJWTPrincipal(claims jwt.MapClaims) {
 	sub, _ := claims["sub"].(string)
 	if sub == "" {
@@ -45,6 +44,10 @@ func (c *collector) mapJWTPrincipal(claims jwt.MapClaims) {
 
 	if roles := extractRoles(claims[c.jwt.RolesClaim]); len(roles) > 0 {
 		c.parc.Principal.Attributes().AddAttributeKV(models.AttrRoles, roles)
+	}
+
+	if name, _ := claims["preferred_username"].(string); name != "" {
+		c.parc.Principal.Attributes().AddAttributeKV(models.AttrPreferredName, name)
 	}
 }
 

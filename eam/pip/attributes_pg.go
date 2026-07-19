@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -16,8 +17,7 @@ import (
 )
 
 // CreateAttribute creates a new attribute in the database.
-func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) (*models.Attribute, error) {
-	user := convert.AnyToString(ctx.Value("user"))
+func (db *PostgresDB) CreateAttribute(ctx context.Context, user identity.Principal, a *models.Attribute) (*models.Attribute, error) {
 	v, o, err := encodeValues(a)
 	if err != nil {
 		return nil, err
@@ -28,12 +28,13 @@ func (db *PostgresDB) CreateAttribute(ctx context.Context, a *models.Attribute) 
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
 	now := db.now().UTC()
-	params := []any{a.StatusName(), a.Key(), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user, now, user}
+	params := []any{a.StatusName(), a.Key(), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), now, user.ID, now, user.ID}
 
-	if _, err = db.p.Exec(ctx, sql, params); err != nil {
+	if _, err = db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
 	}
-	return a.WithAudit(now, user, now, user), nil
+
+	return a.WithAudit(now, user.ID, now, user.ID), nil
 }
 
 // ReadAttribute retrieves the identified attribute from the database.
@@ -168,9 +169,7 @@ func attrVersionFromDB(values []any) oas.AttributeVersion {
 }
 
 // UpdateAttribute replaces an existing attribute in the database.
-func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
-	user := convert.AnyToString(ctx.Value("user"))
-
+func (db *PostgresDB) UpdateAttribute(ctx context.Context, user identity.Principal, prev *models.Attribute, lastIndex uint64, a *models.Attribute) (*models.Attribute, error) {
 	v, o, err := encodeValues(a)
 	if err != nil {
 		return nil, err
@@ -181,24 +180,24 @@ func (db *PostgresDB) UpdateAttribute(ctx context.Context, prev *models.Attribut
  WHERE key=$1 AND updated=$2`
 
 	now := db.now().UTC()
-	params := []any{prev.Key(), timeFromLastIndex(lastIndex), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), a.StatusName(), now, user}
+	params := []any{prev.Key(), timeFromLastIndex(lastIndex), a.Type(), a.Title(), a.Description(), v, o, a.Tags(), a.StatusName(), now, user.ID}
 
-	if count, err2 := db.p.Exec(ctx, sql, params); err2 != nil || count != 1 {
+	if count, err2 := db.p.Exec(identity.WithContext(ctx, user), sql, params); err2 != nil || count != 1 {
 		if err2 != nil {
 			return nil, err2
 		}
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
 
-	return a.WithAudit(a.Created(), a.CreatedBy(), now, user), nil
+	return a.WithAudit(a.Created(), a.CreatedBy(), now, user.ID), nil
 }
 
 // DeleteAttribute removes an existing attribute from the database.
-func (db *PostgresDB) DeleteAttribute(ctx context.Context, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
+func (db *PostgresDB) DeleteAttribute(ctx context.Context, user identity.Principal, prev *models.Attribute, lastIndex uint64) (*models.Attribute, error) {
 	sql := `DELETE FROM attribute WHERE key=$1 AND updated=$2`
 	params := []any{prev.Key(), timeFromLastIndex(lastIndex)}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}

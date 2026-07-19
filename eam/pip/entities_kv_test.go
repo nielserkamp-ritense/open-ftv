@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -151,7 +152,7 @@ func TestNewEntityStore(t *testing.T) {
 		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
 		require.NotNil(t, e)
 
-		e2, err2 := s.CreateEntity(ctx, e)
+		e2, err2 := s.CreateEntity(ctx, identity.NewSystemPrincipal(), e)
 		require.NoError(t, err2)
 		require.NotNil(t, e2)
 		assert.EqualValues(t, e, e2)
@@ -164,12 +165,12 @@ func TestNewEntityStore(t *testing.T) {
 		e4 := models.NewEntity(e3.Type(), e3.ID(), models.NewAttributeSet(models.NewAttribute("hello", "world2"), models.NewAttribute("bool", true)), "cedar:654")
 		require.NotNil(t, e4)
 
-		e5, err4 := s.UpdateEntity(ctx, e3, ix, e4)
+		e5, err4 := s.UpdateEntity(ctx, identity.NewSystemPrincipal(), e3, ix, e4)
 		require.NoError(t, err4)
 		require.NotNil(t, e5)
 		assert.EqualValues(t, e4, e5)
 
-		e6, err5 := s.DeleteEntity(ctx, e4, ix)
+		e6, err5 := s.DeleteEntity(ctx, identity.NewSystemPrincipal(), e4, ix)
 		require.NoError(t, err5)
 		require.NotNil(t, e6)
 		assert.EqualValues(t, e4, e6)
@@ -194,12 +195,12 @@ func TestNewEntityStore_DupError(t *testing.T) {
 		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
 		require.NotNil(t, e)
 
-		e2, err2 := s.CreateEntity(ctx, e)
+		e2, err2 := s.CreateEntity(ctx, identity.NewSystemPrincipal(), e)
 		require.NoError(t, err2)
 		require.NotNil(t, e2)
 		assert.EqualValues(t, e, e2)
 
-		e3, err3 := s.CreateEntity(ctx, e)
+		e3, err3 := s.CreateEntity(ctx, identity.NewSystemPrincipal(), e)
 		require.Error(t, err3)
 		require.Nil(t, e3)
 	})
@@ -244,7 +245,7 @@ func TestNewEntityStore_Update_NotFound(t *testing.T) {
 		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
 		require.NotNil(t, e)
 
-		e2, err2 := s.UpdateEntity(ctx, e, 0, e)
+		e2, err2 := s.UpdateEntity(ctx, identity.NewSystemPrincipal(), e, 0, e)
 		require.Error(t, err2)
 		require.Nil(t, e2)
 	})
@@ -268,7 +269,7 @@ func TestNewEntityStore_Delete_NotFound(t *testing.T) {
 		e := models.NewEntity("cedar", "12345", models.NewAttributeSet(models.NewAttribute("hello", "world"), models.NewAttribute("int", 12345)), "cedar:456", "cedar:789")
 		require.NotNil(t, e)
 
-		e2, err3 := s.DeleteEntity(ctx, e, 0)
+		e2, err3 := s.DeleteEntity(ctx, identity.NewSystemPrincipal(), e, 0)
 		require.Error(t, err3)
 		require.Nil(t, e2)
 	})
@@ -297,7 +298,7 @@ func TestNewEntityStore_List(t *testing.T) {
 			e := models.NewEntity("cedar", fmt.Sprintf("k%d", i+1), models.NewAttributeSet(models.NewAttribute("hello", "world")))
 			require.NotNil(t, e)
 
-			_, err = s.CreateEntity(ctx, e)
+			_, err = s.CreateEntity(ctx, identity.NewSystemPrincipal(), e)
 			require.NoError(t, err)
 		}
 
