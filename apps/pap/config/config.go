@@ -11,11 +11,15 @@ import (
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
 
+var (
+	// GitHash and GitTag identify the build; overridden at build time via -ldflags -X.
+	GitHash = "unknown"
+	GitTag  = "unknown"
+)
+
 const (
 	// AppName defines the name and version of this application.
 	AppName   = "OpenFTV PAP 2.0"
-	GitHash   = "unknown"
-	GitTag    = "unknown"
 	envPrefix = "PAP_"
 	cfg1      = "/etc/pap/default.conf"
 	cfg2      = "./etc/pap.yaml"

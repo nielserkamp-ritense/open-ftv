@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	intChan := make(chan os.Signal)
+	intChan := make(chan os.Signal, 1)
 	signal.Notify(intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 
 	s := grpc.NewServer()

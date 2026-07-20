@@ -23,7 +23,7 @@ services:
   vlierdam-dataspace:
     build:
       context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
+      dockerfile: ./mock/datasources/generic/generic.Dockerfile
     container_name: openftv-vlierdam-dataspace
     ports:
       - "9010:8443"

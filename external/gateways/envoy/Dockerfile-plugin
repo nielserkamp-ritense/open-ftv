@@ -2,16 +2,12 @@ FROM golang:1.26.5-alpine AS golang_builder
 
 WORKDIR /build
 
-COPY ./external/gateways/envoy/plugins/openftv ./external/gateways/envoy/plugins/openftv
-COPY ./oas ./oas
-COPY ./eam ./eam
-COPY ./utilities ./utilities
-COPY ./utilities-no-ci ./utilities-no-ci
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN  cd external/gateways/envoy/plugins/openftv \
-  && go mod tidy \
-  && go mod download \
-  && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/openftv ./cmd/*.go
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/openftv ./external/gateways/envoy/plugins/openftv/cmd/
 
 # Stage 2 - run
 FROM alpine:latest

@@ -1,3 +1,5 @@
+//go:build external
+
 package github
 
 import (

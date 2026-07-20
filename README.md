@@ -8,7 +8,7 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 - `demos     ` demo & presentation materials.
 - `docker    ` docker and compose related scripts.
 - `e2e       ` end-2-end scripts.
-- `eam       ` shared generic EAM modules.
+- `eam       ` shared generic EAM components.
 - `external  ` OpenFTV plugins for external software products. 
 - `migrations` database migration scripts.
 - `mock      ` mock services, including the generic mock data-service.
@@ -16,7 +16,7 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 - `resources ` various resources; e.g., project icon.
 - `scripts   ` various internal scripts.
 - `testdata  ` files with test data.
-- `utilities*` shared generic utility modules.
+- `utilities*` shared generic utility components.
 
 ## Development setup
 
@@ -42,6 +42,12 @@ mise install
 ```
 
 ### Building
+
+The repository is a single Go module (see
+[ADR 0003](docs/adr/0003-single-go-module.md)), so the standard Go commands work from the
+root: `go build ./...`, `go test ./...`. Tests that need external services (OpenSearch,
+GitHub credentials) are excluded via the `external` build tag and run with
+`make test-external`.
 
 To build and test everything locally, run the following command from the project root directory:
 

@@ -34,6 +34,10 @@ build_review_eam:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - go.mod
+          - go.sum
+          - \.dockerignore
+          - "**/*.go"
           - migrations/**/*
           - utilities/**/*
           - utilities-no-ci/**/*
@@ -42,7 +46,6 @@ build_review_eam:
           - apps/${APP}/**/*
           - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
           - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
@@ -81,7 +84,7 @@ build_review_mock_ds:
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
       --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
       --context "."
-      --dockerfile "mock/datasources/${APP}/Dockerfile"
+      --dockerfile "mock/datasources/generic/${APP}.Dockerfile"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
@@ -94,13 +97,19 @@ build_review_mock_ds:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - go.mod
+          - go.sum
+          - \.dockerignore
+          - "**/*.go"
           - utilities/**/*
           - utilities-no-ci/**/*
+          - oas/**/*
+          - migrations/**/*
           - eam/**/*
-          - mock/datasources/**/*
+          - mock/**/*
+          - testdata/**/*
           - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
           - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
@@ -152,11 +161,17 @@ build_review_gw_plugin:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - go.mod
+          - go.sum
+          - \.dockerignore
+          - "**/*.go"
+          - oas/**/*
+          - utilities/**/*
+          - utilities-no-ci/**/*
           - eam/**/*
-          - external/gateways/**/*
+          - external/**/*
           - \.gitlab/ci/version/version.yml
           - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
           - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

@@ -22,7 +22,9 @@ func TestServe(t *testing.T) {
 
 		cfg := &config.Config{
 			Host:         "127.0.0.1",
-			Port:         20010,
+			// Distinct from other server test packages: go test ./... runs
+			// packages in parallel, and a shared fixed port collides.
+			Port:         20110,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
@@ -58,7 +60,7 @@ func TestErrorHandler(t *testing.T) {
 
 		cfg := &config.Config{
 			Host:         "127.0.0.1",
-			Port:         20011,
+			Port:         20111,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
