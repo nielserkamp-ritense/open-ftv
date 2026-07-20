@@ -38,7 +38,7 @@ build_production_eam:
       - eam-${APP}-${ARCH}.tar
   resource_group: build_production_eam
   tags:
-    - saas-linux-small-${ARCH}
+    - ${ARCH}
 
 build_production_mock_ds:
   stage: Build
@@ -79,7 +79,7 @@ build_production_mock_ds:
       - mock-ds-${APP}-${ARCH}.tar
   resource_group: build_production_mock_ds
   tags:
-    - saas-linux-small-${ARCH}
+    - ${ARCH}
 
 build_production_gw_plugin:
   stage: Build
@@ -117,7 +117,7 @@ build_production_gw_plugin:
       - gw-plugin-${APP}-${ARCH}.tar
   resource_group: build_production_gw_plugin
   tags:
-    - saas-linux-small-${ARCH}
+    - ${ARCH}
 
 publish_production_eam:
   stage: Publish
@@ -159,7 +159,7 @@ publish_production_eam:
       when: never
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
   tags:
-    - saas-linux-small-amd64
+    - amd64
 
 publish_production_mock-ds:
   stage: Publish
@@ -200,7 +200,7 @@ publish_production_mock-ds:
       when: never
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
   tags:
-    - saas-linux-small-amd64
+    - amd64
 
 publish_production_gw-plugin:
   stage: Publish
@@ -238,4 +238,4 @@ publish_production_gw-plugin:
       when: never
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
   tags:
-    - saas-linux-small-amd64
+    - amd64
