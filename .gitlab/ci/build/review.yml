@@ -1,6 +1,9 @@
 build_review_eam:
   stage: Build
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -16,35 +19,20 @@ build_review_eam:
     - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
     - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
   script:
-    - /kaniko/executor
+    - buildah build
+      --platform=linux/${ARCH}
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
       --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
-      --context "."
-      --dockerfile "apps/${APP}/Dockerfile"
-      --single-snapshot
-      --cache="true"
-      --compressed-caching=false
-      --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      -f=apps/${APP}/Dockerfile
+      -t ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      .
+    - buildah push ${CI_REGISTRY_IMAGE}/eam/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - migrations/**/*
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - oas/**/*
-          - eam/**/*
-          - apps/${APP}/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -62,7 +50,10 @@ build_review_eam:
 
 build_review_mock_ds:
   stage: Build
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -76,33 +67,20 @@ build_review_mock_ds:
     - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
     - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
   script:
-    - /kaniko/executor
+    - buildah build
+      --platform=linux/${ARCH}
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
       --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
-      --context "."
-      --dockerfile "mock/datasources/${APP}/Dockerfile"
-      --single-snapshot
-      --cache="true"
-      --compressed-caching=false
-      --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      -f=mock/datasources/${APP}/Dockerfile
+      -t ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      .
+    - buildah push ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - eam/**/*
-          - mock/datasources/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks
@@ -120,7 +98,10 @@ build_review_mock_ds:
 
 build_review_gw_plugin:
   stage: Build
-  image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -134,31 +115,20 @@ build_review_gw_plugin:
     - echo "container tag=${CI_COMMIT_SHORT_SHA}-${ARCH}"
     - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
     - echo -n "${CI_COMMIT_SHORT_SHA}-${ARCH}" > ci_build_image_tag.txt
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
   script:
-    - /kaniko/executor
+    - buildah build
+      --platform=linux/${ARCH}
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
       --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
-      --context "."
-      --dockerfile "external/gateways/${APP}/Dockerfile-plugin"
-      --single-snapshot
-      --cache="true"
-      --compressed-caching=false
-      --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/gw-plugin/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      -f=external/gateways/${APP}/Dockerfile-plugin
+      -t ${CI_REGISTRY_IMAGE}/gw-plugin/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
+      .
+    - buildah push ${CI_REGISTRY_IMAGE}/gw-plugin/${APP}:${CI_COMMIT_SHORT_SHA}-review-${ARCH}
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - eam/**/*
-          - external/gateways/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
     expire_in: 2 weeks

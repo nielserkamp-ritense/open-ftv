@@ -1,0 +1,259 @@
+build_production_eam:
+  stage: Build
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - ARCH:
+          - amd64
+          - arm64
+        APP:
+          - pip
+          - pap
+          - pdp
+          - manager
+          - management-interface
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
+    - echo -n "${SEMVER}" > ci_build_image_tag.txt
+  script:
+    - buildah build
+      --platform=linux/${ARCH}
+      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      -f=apps/${APP}/Dockerfile
+      -t eam/${APP}:${SEMVER}-${ARCH}
+      .
+    - buildah push eam/${APP}:${SEMVER}-${ARCH} oci-archive:eam-${APP}-${ARCH}.tar
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - ci_build_image_registry.txt
+      - ci_build_image_tag.txt
+      - eam-${APP}-${ARCH}.tar
+  resource_group: build_production_eam
+  tags:
+    - ${ARCH}
+
+build_production_mock_ds:
+  stage: Build
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - ARCH:
+          - amd64
+          - arm64
+        APP:
+          - generic
+          - vlierdam
+          - rvig
+          - rdw
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
+    - echo -n "${SEMVER}" > ci_build_image_tag.txt
+  script:
+    - buildah build
+      --platform=linux/${ARCH}
+      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      -f=mock/datasources/generic/${APP}.Dockerfile
+      -t mock-ds/${APP}:${SEMVER}-${ARCH}
+      .
+    - buildah push mock-ds/${APP}:${SEMVER}-${ARCH} oci-archive:mock-ds-${APP}-${ARCH}.tar
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - ci_build_image_registry.txt
+      - ci_build_image_tag.txt
+      - mock-ds-${APP}-${ARCH}.tar
+  resource_group: build_production_mock_ds
+  tags:
+    - ${ARCH}
+
+build_production_gw_plugin:
+  stage: Build
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - ARCH:
+          - amd64
+          - arm64
+        APP:
+          - envoy
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
+    - echo -n "${SEMVER}" > ci_build_image_tag.txt
+  script:
+    - buildah build
+      --platform=linux/${ARCH}
+      --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      -f=external/gateways/${APP}/Dockerfile-plugin
+      -t gw-plugin/${APP}:${SEMVER}-${ARCH}
+      .
+    - buildah push gw-plugin/${APP}:${SEMVER}-${ARCH} oci-archive:gw-plugin-${APP}-${ARCH}.tar
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - ci_build_image_registry.txt
+      - ci_build_image_tag.txt
+      - gw-plugin-${APP}-${ARCH}.tar
+  resource_group: build_production_gw_plugin
+  tags:
+    - ${ARCH}
+
+publish_production_eam:
+  stage: Publish
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - IMAGE:
+          - pip
+          - pap
+          - pdp
+          - manager
+          - management-interface
+  needs:
+    - job: build_production_eam
+      artifacts: true
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+    - TARGET="${CI_REGISTRY_IMAGE}/eam/${IMAGE}"
+    - buildah manifest create "${TARGET}:${SEMVER}"
+    - |
+      found=0
+      for tar in eam-${IMAGE}-*.tar; do
+        [ -e "$tar" ] || continue
+        echo "Adding architecture archive: $tar"
+        buildah manifest add "${TARGET}:${SEMVER}" "oci-archive:$tar"
+        found=1
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "ERROR: no image archives matched eam-${IMAGE}-*.tar" >&2
+        exit 1
+      fi
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:${SEMVER}"
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:latest"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+  tags:
+    - amd64
+
+publish_production_mock-ds:
+  stage: Publish
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - IMAGE:
+          - generic
+          - vlierdam
+          - rvig
+          - rdw
+  needs:
+    - job: build_production_mock_ds
+      artifacts: true
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+    - TARGET="${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}"
+    - buildah manifest create "${TARGET}:${SEMVER}"
+    - |
+      found=0
+      for tar in mock-ds-${IMAGE}-*.tar; do
+        [ -e "$tar" ] || continue
+        echo "Adding architecture archive: $tar"
+        buildah manifest add "${TARGET}:${SEMVER}" "oci-archive:$tar"
+        found=1
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "ERROR: no image archives matched mock-ds-${IMAGE}-*.tar" >&2
+        exit 1
+      fi
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:${SEMVER}"
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:latest"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+  tags:
+    - amd64
+
+publish_production_gw-plugin:
+  stage: Publish
+  image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
+  parallel:
+    matrix:
+      - IMAGE:
+          - envoy
+  needs:
+    - job: build_production_gw_plugin
+      artifacts: true
+  before_script:
+    - export SEMVER="${CI_COMMIT_TAG:1}"
+    - echo "container tag=${SEMVER}"
+    - buildah login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+    - TARGET="${CI_REGISTRY_IMAGE}/gw-plugin/${IMAGE}"
+    - buildah manifest create "${TARGET}:${SEMVER}"
+    - |
+      found=0
+      for tar in gw-plugin-${IMAGE}-*.tar; do
+        [ -e "$tar" ] || continue
+        echo "Adding architecture archive: $tar"
+        buildah manifest add "${TARGET}:${SEMVER}" "oci-archive:$tar"
+        found=1
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "ERROR: no image archives matched gw-plugin-${IMAGE}-*.tar" >&2
+        exit 1
+      fi
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:${SEMVER}"
+    - buildah manifest push --all "${TARGET}:${SEMVER}" "docker://${TARGET}:latest"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+  tags:
+    - amd64
