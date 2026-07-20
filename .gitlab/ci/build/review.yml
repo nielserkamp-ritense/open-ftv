@@ -1,6 +1,9 @@
 build_review_eam:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -48,6 +51,9 @@ build_review_eam:
 build_review_mock_ds:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -93,6 +99,9 @@ build_review_mock_ds:
 build_review_gw_plugin:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:

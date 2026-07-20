@@ -1,6 +1,9 @@
 build_production_eam:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -43,6 +46,9 @@ build_production_eam:
 build_production_mock_ds:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -84,6 +90,9 @@ build_production_mock_ds:
 build_production_gw_plugin:
   stage: Build
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - ARCH:
@@ -122,6 +131,9 @@ build_production_gw_plugin:
 publish_production_eam:
   stage: Publish
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - IMAGE:
@@ -164,6 +176,9 @@ publish_production_eam:
 publish_production_mock-ds:
   stage: Publish
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - IMAGE:
@@ -205,6 +220,9 @@ publish_production_mock-ds:
 publish_production_gw-plugin:
   stage: Publish
   image: quay.io/buildah/stable:v1.43.1
+  variables:
+    BUILDAH_ISOLATION: chroot
+    STORAGE_DRIVER: vfs
   parallel:
     matrix:
       - IMAGE:
