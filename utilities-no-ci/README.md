@@ -9,10 +9,8 @@ them. Run them deliberately with:
 make test-external          # = go test -tags external ./utilities-no-ci/...
 ```
 
-Note: `module/version_test.go` needs no external service, is untagged, and runs in CI
-like any other test. A rename of this directory to `utilities-external` (matching the
-build tag, now that CI exclusion no longer works via module boundaries) is planned as a
-follow-up MR.
+A rename of this directory to `utilities-external` (matching the build tag, now that CI
+exclusion no longer works via module boundaries) is planned as a follow-up MR.
 
 ## OpenSearch
 
