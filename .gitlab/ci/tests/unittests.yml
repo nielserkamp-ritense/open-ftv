@@ -47,7 +47,6 @@ unit-tests:
           - go.mod
           - go.sum
           - utilities/**/*
-          - utilities-no-ci/**/*
           - oas/**/*
           - testdata/**/*
           - eam/**/*

@@ -61,7 +61,6 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 	logger.Info(AppName)
 
 	sanitized := *c
-	sanitized.OpenSearch = *sanitized.OpenSearch.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
 	logger.Info("configuration loaded successfully", "config", sanitized)
@@ -77,7 +76,6 @@ type Config struct {
 	config2.PIP
 	config2.PAP
 	config2.Cerbos
-	config2.OpenSearch
 	config2.Authentication
 	config2.Authorization
 	config2.DecisionLog

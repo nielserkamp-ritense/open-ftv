@@ -1,6 +1,6 @@
 PKG_LIST := ./...
 
-.PHONY: all tidy dep-up fmt vet lint test test-external bench race cover coverhtml escape oas e2e vlierdam rdw rvig help
+.PHONY: all tidy dep-up fmt vet lint test bench race cover coverhtml escape oas e2e vlierdam rdw rvig help
 
 all: oas vet lint test vlierdam rdw rvig
 
@@ -22,9 +22,6 @@ lint: fmt ## lint all source code (requires revive tool)
 
 test: ## run all unit tests
 	@go test -cover $(PKG_LIST)
-
-test-external: ## run tests that need external services (OpenSearch, GitHub credentials)
-	@go test -tags external ./utilities-no-ci/...
 
 bench: ## run all benchmarks
 	@go test -bench . -benchmem $(PKG_LIST)

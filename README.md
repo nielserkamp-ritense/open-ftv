@@ -45,9 +45,7 @@ mise install
 
 The repository is a single Go module (see
 [ADR 0003](docs/adr/0003-single-go-module.md)), so the standard Go commands work from the
-root: `go build ./...`, `go test ./...`. Tests that need external services (OpenSearch,
-GitHub credentials) are excluded via the `external` build tag and run with
-`make test-external`.
+root: `go build ./...`, `go test ./...`.
 
 To build and test everything locally, run the following command from the project root directory:
 

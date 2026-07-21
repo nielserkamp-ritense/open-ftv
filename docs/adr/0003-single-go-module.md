@@ -44,10 +44,8 @@ We merged to one module because the split delivered none of its intended benefit
   `go.mod`; components can no longer pin diverging versions of the same dependency.
   (In practice `go.work` already unified them for local and CI builds; only Docker builds
   ever saw per-component resolution.)
-- **Tests that need external services are excluded by build tag**, not by module boundary:
-  files under `utilities-no-ci/` that require OpenSearch or GitHub credentials carry
-  `//go:build external` and run via `make test-external`. `go test ./...` is the whole
-  suite everywhere (local, CI, any directory).
+- **`go test ./...` is the whole suite everywhere** (local, CI, any directory), no longer
+  split across module boundaries.
 - **Docker builds copy the repo root** (`COPY go.mod go.sum` + `go mod download`, then
   `COPY . .`) instead of hand-picked component directories, so adding an internal
   dependency can no longer break only the Docker build.
