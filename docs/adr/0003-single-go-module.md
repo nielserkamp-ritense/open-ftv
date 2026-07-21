@@ -1,5 +1,14 @@
 # Single Go module for the whole repository
 
+## Executive Summary
+This project is setup as a single Go module, because:
+
+1. That makes development easier
+2. All applications follow the same release cycle
+3. Nothing outside the project consumes the module(s). And there is no indication that will happen soon.
+
+
+## Description
 The repository is **one Go module** (`gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv`,
 root `go.mod`), not a collection of per-component modules. Before this decision the repo
 held 35 modules (every `eam/*`, `apps/*`, `utilities*`, `oas`, `migrations`, `mock/*` had
