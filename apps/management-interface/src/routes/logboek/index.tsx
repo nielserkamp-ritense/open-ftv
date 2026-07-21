@@ -28,8 +28,7 @@ const BeslissingRenderer = (params: CustomCellRendererProps) => {
 
 function RouteComponent() {
     const navigate = useNavigate();
-  const defaultStart = useMemo(() => "2025-11-20T07:20:50.52Z", []);
-  const {data} = useAuthlogEntries({start: defaultStart});
+    const { data } = useAuthlogEntries({recent: "168h"});
 
     const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => {
         if (event.data?.id) {
