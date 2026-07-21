@@ -30,20 +30,6 @@ build_review_eam:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - migrations/**/*
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - oas/**/*
-          - eam/**/*
-          - apps/${APP}/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
@@ -81,7 +67,7 @@ build_review_mock_ds:
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
       --build-arg GIT_TAG_NAME=${COMPONENT_VERSION}
       --context "."
-      --dockerfile "mock/datasources/${APP}/Dockerfile"
+      --dockerfile "mock/datasources/generic/${APP}.Dockerfile"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
@@ -90,18 +76,6 @@ build_review_mock_ds:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - utilities/**/*
-          - utilities-no-ci/**/*
-          - eam/**/*
-          - mock/datasources/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:
@@ -148,16 +122,6 @@ build_review_gw_plugin:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - eam/**/*
-          - external/gateways/**/*
-          - \.gitlab/ci/version/version.yml
-          - \.gitlab/ci/builds/review.yml
-          - \.golang-ci.yml
-          - semver.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
     - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
   artifacts:

@@ -1,57 +1,58 @@
-DIRS := \
- ./migrations \
- ./utilities \
- ./eam/authentication \
- ./eam/authorization \
- ./eam/models \
- ./eam/config \
- ./eam/log \
- ./eam/mapping \
- ./eam/mimetype \
- ./eam/bundles \
- ./eam/handlers \
- ./eam/server \
- ./eam/pep \
- ./eam/pip \
- ./eam/pap \
- ./eam/pdp/controller \
- ./eam/pdp/cedar-embedded \
- ./eam/pdp/cerbos-api \
- ./eam/pdp/odrl \
- ./eam/pdp/opa-embedded \
- ./eam/pdp/openfga-embedded \
- ./eam/pdp/xacml \
- ./mock/datasources/data \
- ./apps/pdp \
- ./apps/pip \
- ./apps/pap \
- ./apps/manager
+PKG_LIST := ./...
 
-.PHONY: all
-all: oas $(DIRS) vlierdam rdw rvig
+.PHONY: all tidy dep-up fmt vet lint test bench race cover coverhtml escape oas e2e vlierdam rdw rvig help
 
-.PHONY: e2e
-e2e: vlierdam rdw rvig
+all: oas vet lint test vlierdam rdw rvig
 
-.PHONY: oas
+tidy: ## go mod tidy
+	@go mod tidy
+
+dep-up: ## upgrade all dependencies
+	@go get -u $(PKG_LIST)
+	@go mod tidy
+
+fmt: ## format all source code
+	@go fmt $(PKG_LIST)
+
+vet: fmt ## vet all source code
+	@go vet $(PKG_LIST)
+
+lint: fmt ## lint all source code (requires revive tool)
+	@revive -set_exit_status $(PKG_LIST)
+
+test: ## run all unit tests
+	@go test -cover $(PKG_LIST)
+
+bench: ## run all benchmarks
+	@go test -bench . -benchmem $(PKG_LIST)
+
+race: ## run race detector
+	@go test -race $(PKG_LIST)
+
+cover: ## run coverage report
+	@go test -covermode=count -coverprofile=cover.out $(PKG_LIST)
+	@go tool cover -func=cover.out
+
+coverhtml: cover ## run coverage report and display in browser (requires xdg-open tool)
+	@go tool cover -html=cover.out -o cover.html
+	@xdg-open cover.html
+
+escape: ## run escape analysis
+	@go build -gcflags "-m" $(PKG_LIST) 2>&1
+
 oas:
 	+$(MAKE) -C ./oas
 
-.PHONY: test $(DIRS)
-test:
-	@$(MAKE) -k $(DIRS)
+e2e: vlierdam rdw rvig
 
-$(DIRS):
-	+$(MAKE) -C $@ test
-
-.PHONY: vlierdam
 vlierdam:
 	@./e2e/gemeente-vlierdam/test.sh
 
-.PHONY: rdw
 rdw:
 	@./e2e/rdw/test.sh
 
-.PHONY: rvig
 rvig:
 	@./e2e/rvig/test.sh
+
+help:
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

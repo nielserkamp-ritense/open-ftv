@@ -7,6 +7,13 @@ that administration is itself governed.
 
 ## Language
 
+**Component**:
+A functional unit of the codebase — a directory of cohesive Go packages such as
+`eam/config`, `eam/pdp/opa-embedded`, `apps/manager`, or `utilities`. Components are not
+separately versioned or published; the repository is a single Go module
+(see [ADR 0003](docs/adr/0003-single-go-module.md)).
+_Avoid_: module (that means the one Go module of the repo).
+
 **Management plane**:
 The administration surface — the `manager` app and its UI — where authorization policies
 are authored, versioned, and published. Distinct from the request path where actual

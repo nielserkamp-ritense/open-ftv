@@ -11,11 +11,15 @@ import (
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
 
+var (
+	// GitHash and GitTag identify the build; overridden at build time via -ldflags -X.
+	GitHash = "unknown"
+	GitTag  = "unknown"
+)
+
 const (
 	// AppName defines the name and version of this application.
 	AppName   = "OpenFTV Manager 2.0"
-	GitHash   = "unknown"
-	GitTag    = "unknown"
 	envPrefix = "MANAGER_"
 	cfg1      = "/etc/manager/default.conf"
 	cfg2      = "./etc/manager.yaml"

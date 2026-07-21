@@ -1,19 +1,17 @@
 # Stage 1 - build
 FROM golang:1.26.5-alpine AS golang_builder
 
+ARG GIT_TAG_NAME
+ARG GIT_COMMIT_HASH
+
 WORKDIR /build
 
-COPY ./apps/manager ./apps/manager
-COPY ./oas ./oas
-COPY ./eam ./eam
-COPY ./migrations ./migrations
-COPY ./utilities ./utilities
-COPY ./utilities-no-ci ./utilities-no-ci
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN cd apps/manager \
-  && go mod tidy \
-  && go mod download \
-  && CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/manager/config/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ftv/open-ftv/apps/manager/config/config.GitHash=${GIT_COMMIT_HASH}' " -o /build/manager ./cmd/*.go
+COPY . .
+
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config.GitHash=${GIT_COMMIT_HASH}'" -o /build/manager ./apps/manager/cmd/
 
 # Stage 2 - run
 FROM alpine:3.22

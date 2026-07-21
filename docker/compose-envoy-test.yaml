@@ -37,7 +37,7 @@ services:
   envoy-ds:
     build:
       context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
+      dockerfile: ./mock/datasources/generic/generic.Dockerfile
     container_name: envoy-test-dataspace
     ports:
       - "9010:8443"

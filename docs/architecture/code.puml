@@ -1,5 +1,5 @@
 @startuml openftv-code
-title OpenFTV — Code architecture (go.work modules)
+title OpenFTV — Code architecture (components of the single Go module)
 
 skinparam componentStyle rectangle
 left to right direction

@@ -150,8 +150,8 @@ func TestErrorHandler(t *testing.T) {
 	})
 }
 
-func TestOpenSearchFail1(t *testing.T) {
-	t.Run("open search fail (1)", func(t *testing.T) {
+func TestNewExternal_Logging(t *testing.T) {
+	t.Run("basic logging smoke test", func(t *testing.T) {
 		t.Parallel()
 
 		h := slog2.NewDummyHandler(slog.LevelInfo)

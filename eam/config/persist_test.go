@@ -139,7 +139,7 @@ persist:
 func TestPersist_Sanitized(t *testing.T) {
 	t.Parallel()
 
-	t.Run("sanitize opensearch", func(t *testing.T) {
+	t.Run("sanitize persist", func(t *testing.T) {
 		p := &Persist{
 			Type:            "type",
 			Addresses:       "address",

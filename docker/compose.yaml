@@ -23,7 +23,7 @@ services:
   vlierdam-dataspace:
     build:
       context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
+      dockerfile: ./mock/datasources/generic/generic.Dockerfile
     container_name: openftv-vlierdam-dataspace
     ports:
       - "9010:8443"
@@ -173,7 +173,7 @@ services:
   rvig-dataspace:
     build:
       context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
+      dockerfile: ./mock/datasources/generic/generic.Dockerfile
     container_name: openftv-rvig-dataspace
     ports:
       - "9030:8443"
@@ -323,7 +323,7 @@ services:
   rdw-dataspace:
     build:
       context: ../
-      dockerfile: ./mock/datasources/generic/Dockerfile
+      dockerfile: ./mock/datasources/generic/generic.Dockerfile
     container_name: openftv-rdw-dataspace
     ports:
       - "9050:8443"

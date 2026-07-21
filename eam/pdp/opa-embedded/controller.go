@@ -16,7 +16,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities-no-ci/module"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/module"
 )
 
 // Version defines the version of this OPA/Rego PDP.

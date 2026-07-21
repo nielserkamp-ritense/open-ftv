@@ -1,0 +1,11 @@
+# Kept out of every image build context. Deliberately NOT ignored:
+# - testdata/ (vlierdam/rvig/rdw images copy dataspaces into their runtime stage)
+# - oas/ (generated clients are imported by the apps)
+.git
+docker/
+docs/
+e2e/
+**/node_modules
+cover.out
+cover.html
+.go-cache

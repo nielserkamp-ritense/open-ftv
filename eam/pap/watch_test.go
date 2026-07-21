@@ -43,7 +43,15 @@ func TestClearWatcher(t *testing.T) {
 			p := &PAP{}
 
 			if len(tc.paths) > 0 {
-				p.policyWatcher, _ = fsnotify.NewWatcher()
+				w, err := fsnotify.NewWatcher()
+				require.NoError(t, err)
+
+				// clearWatcher only removes paths, it does not close the watcher,
+				// so close it here to avoid leaking inotify instances (the per-user
+				// limit is easily exhausted under parallel load).
+				t.Cleanup(func() { _ = w.Close() })
+
+				p.policyWatcher = w
 
 				for i := range tc.paths {
 					_ = p.policyWatcher.Add(tc.paths[i])
