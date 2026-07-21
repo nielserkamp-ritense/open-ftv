@@ -27,7 +27,7 @@ unit-tests:
       /usr/local/go/bin/go tool cover -func=cover.out
   coverage: /total:\t+\(statements\)\t+([\d\.]+?%)/
   cache:
-    key: OpenFTV-UnitTests-v2
+    key: OpenFTV-UnitTests
     paths:
       - .go-cache
   artifacts:
