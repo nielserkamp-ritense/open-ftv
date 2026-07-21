@@ -46,7 +46,15 @@ func TestClearEntityWatcher(t *testing.T) {
 			p := &PIP{}
 
 			if len(tc.paths) > 0 {
-				p.entityWatcher, _ = fsnotify.NewWatcher()
+				w, err := fsnotify.NewWatcher()
+				require.NoError(t, err)
+
+				// clearEntityWatcher only removes paths, it does not close the
+				// watcher, so close it here to avoid leaking inotify instances
+				// (the per-user limit is easily exhausted under parallel load).
+				t.Cleanup(func() { _ = w.Close() })
+
+				p.entityWatcher = w
 
 				for i := range tc.paths {
 					_ = p.entityWatcher.Add(tc.paths[i])
@@ -266,15 +274,20 @@ func TestWatchEntityFiles(t *testing.T) {
 
 			p.entityWatcher = w
 
-			wg := &sync.WaitGroup{}
-			wg.Add(2)
+			watcherWG := &sync.WaitGroup{}
+			watcherWG.Add(1)
 
-			go func(wg *sync.WaitGroup) {
+			go func() {
+				defer watcherWG.Done()
 				p.watchEntityFiles()
-				wg.Done()
-			}(wg)
+			}()
 
-			go func(wg *sync.WaitGroup) {
+			producerWG := &sync.WaitGroup{}
+			producerWG.Add(1)
+
+			go func() {
+				defer producerWG.Done()
+
 				for i := range tc.create {
 					f, err2 := os.Create(filepath.Join(dir, tc.create[i]))
 					require.NoError(t, err2)
@@ -291,17 +304,55 @@ func TestWatchEntityFiles(t *testing.T) {
 					err2 := os.Remove(filepath.Join(dir, tc.remove[i]))
 					require.NoError(t, err2)
 				}
+			}()
 
-				wg.Done()
-			}(wg)
+			// Wait for all filesystem changes to be emitted, then poll until the
+			// watcher has caught up. This replaces a fixed sleep that was flaky
+			// under load, where events weren't always processed within the budget.
+			producerWG.Wait()
 
-			for range 15 {
-				time.Sleep(25 * time.Millisecond)
+			// settled reports whether the watcher has fully processed every event:
+			// all entities loaded and both queues drained.
+			settled := func() bool {
+				var count int
+				p.IterateEntities(func(*models.Entity) {
+					count++
+				})
+
+				if count != tc.want {
+					return false
+				}
+
+				p.eventMutex.RLock()
+				defer p.eventMutex.RUnlock()
+
+				return len(p.entityUpdates) == 0 && len(p.entityDeletes) == 0
 			}
+
+			// fsnotify delivers events asynchronously and the watcher debounces
+			// them by watchTimerInterval before draining its queues. Deletes are a
+			// no-op, so an empty queue can be a transient state before straggler
+			// events arrive. Require the settled state to hold across the debounce
+			// window so any pending event would have surfaced.
+			require.Eventually(t, func() bool {
+				if !settled() {
+					return false
+				}
+
+				for range 4 {
+					time.Sleep(watchTimerInterval / 2)
+
+					if !settled() {
+						return false
+					}
+				}
+
+				return true
+			}, 10*time.Second, watchTimerInterval/2)
 
 			cancel()
 
-			wg.Wait()
+			watcherWG.Wait()
 
 			assert.Nil(t, p.entityWatcher)
 
