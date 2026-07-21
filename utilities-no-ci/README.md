@@ -22,7 +22,3 @@ simply take too long and not offer any added benefits.
 
 See **opensearch_test.go** for the connection parameters used against a local OpenSearch
 deployment.
-
-## GitHub
-
-The GitHub package tests require GitHub credentials/tokens and network access.
