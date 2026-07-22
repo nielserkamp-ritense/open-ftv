@@ -90,6 +90,10 @@ func (s *service) Shutdown() {
 	}
 }
 
+func (s *service) GetFiberApp() *fiber.App {
+	return s.svc
+}
+
 type service struct {
 	server.Config
 	ctx      context.Context

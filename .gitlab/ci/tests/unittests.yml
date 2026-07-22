@@ -11,14 +11,30 @@ unit-tests:
         - "--set=server.adminAPI.enabled=true"
         - "--set=server.adminAPI.adminCredentials.username=cerbos"
         - "--set=server.adminAPI.adminCredentials.passwordHash=JDJ5JDEwJElmZ0hMTlE4RThvTEpYQTRxNFJDLi5YYkdiU0pzV0xjQ3JEWFBSb2gwaFhYTHBDa3cyMFRPCgo="
+    - name: postgres:15.0-alpine
+      alias: postgres
+      variables:
+        POSTGRES_DB: openftv
+        POSTGRES_HOST_AUTH_METHOD: trust
+      command:
+        - "postgres"
+        - "-c"
+        - "max_connections=1500"
+        - "-c"
+        - "fsync=off"
+        - "-c"
+        - "synchronous_commit=off"
+        - "-c"
+        - "idle_in_transaction_session_timeout=30s"
   variables:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
     CERBOS_ADDRESS: "cerbos:3593"
+    MANAGER_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
   before_script:
     - mkdir -p .go-cache
   script:
     - >
-      /usr/local/go/bin/go test ./...
+      /usr/local/go/bin/go test ./... -tags=integration
       -covermode=atomic
       -coverprofile cover.out
 

@@ -688,6 +688,23 @@ Options for logging are processed first at startup.
 This means the log is ready before any other options are checked and possible errors are printed in the log.
 If logging options cause errors, these are printed using the standard Golang log mechanism.
 
+## Running the tests
+
+There are unit tests that depends on a PostgreSQL database. How to run them:
+
+```shell
+cd docker
+docker compose -f postgres.yml up
+```
+
+```shell
+cd ../apps/manager
+go test ./... -tags=integration
+```
+
+The tests connect to the Postgres instance from the Docker Compose file by default.
+You can override the Postgres URL using the environment variable `MANAGER_TEST_POSTGRES_URL`.
+
 ## License
 
 [Licensed under the EUPL](../../LICENSE.md)
