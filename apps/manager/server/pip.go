@@ -14,7 +14,7 @@ func (s *Services) newPIP() *pip.PIP {
 	case s.db != nil:
 		opts = append(opts, pip.WithPostgresDB(pip.NewPostgresWithPool(s.db)))
 	case s.store != nil:
-		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Persist.Base, pip.PathSeparator), "data", pip.PathSeparator)
+		base := fmt.Sprintf(convert.ForceSuffix(s.cfg.Base, pip.PathSeparator), "data", pip.PathSeparator)
 		opts = append(opts, pip.WithKeyValueDB(s.store, base))
 	}
 

@@ -32,12 +32,14 @@ func (s *Services) seedAuthzPolicies() {
 		s.logger.Error("seed: failed to list policies", "err", err)
 		return
 	}
+
 	if len(list) > 0 {
 		s.logger.Info("seed: policy store already populated; leaving it as the source of truth", "count", len(list))
 		return
 	}
 
 	dir := s.cfg.PAP.Store
+
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		s.logger.Error("seed: cannot read policy seed dir", "dir", dir, "err", err)
@@ -50,6 +52,7 @@ func (s *Services) seedAuthzPolicies() {
 		}
 
 		cedarPath := filepath.Join(dir, e.Name())
+
 		content, rerr := os.ReadFile(cedarPath)
 		if rerr != nil {
 			s.logger.Error("seed: cannot read policy file", "file", e.Name(), "err", rerr)
@@ -57,6 +60,7 @@ func (s *Services) seedAuthzPolicies() {
 		}
 
 		id := uuid.NewSHA1(seedNamespace, []byte(e.Name())).String()
+
 		pol, perr := models.NewPolicyFromData(id, "cedar", "", "", bytes.NewReader(content))
 		if perr != nil {
 			s.logger.Error("seed: cannot build policy", "file", e.Name(), "err", perr)
@@ -76,6 +80,7 @@ func (s *Services) seedAuthzPolicies() {
 			s.logger.Error("seed: cannot create policy", "file", e.Name(), "err", cerr)
 			continue
 		}
+
 		s.logger.Info("seed: authorization policy seeded into store", "file", e.Name(), "id", id)
 	}
 }
@@ -89,15 +94,18 @@ func readSeedMetaTags(cedarPath string) []string {
 		if err != nil {
 			continue
 		}
+
 		var sidecar oas.Policy
 		if err = yaml.Unmarshal(data, &sidecar); err != nil {
 			if err = json.Unmarshal(data, &sidecar); err != nil {
 				continue
 			}
 		}
+
 		if len(sidecar.Metadata.Tags) > 0 {
 			return sidecar.Metadata.Tags
 		}
 	}
+
 	return nil
 }

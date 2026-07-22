@@ -15,12 +15,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions/migrations"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
+	cedar_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
+	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
+	opa_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
+	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/migrate"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
@@ -60,7 +60,7 @@ func (s *Services) newAuth(basePath string) *authHandler {
 	// }
 
 	var authorizer authorization.Authorizer
-	if authorizer, err = s.cfg.Authorization.NewAuthorizer(controller, nil); err != nil {
+	if authorizer, err = s.cfg.NewAuthorizer(controller, nil); err != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err)
 		return nil
 	}
@@ -87,12 +87,12 @@ func (s *Services) newAuth(basePath string) *authHandler {
 func (s *Services) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	ep := pep.New(s.ctx, s.logger)
 
-	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
+	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, err
 	}
 
-	ap, err2 := s.cfg.PAP.NewPAP(s.ctx, s.logger)
+	ap, err2 := s.cfg.NewPAP(s.ctx, s.logger)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -114,10 +114,10 @@ func (s *Services) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	case models.OPENFGA:
 		return openfga_embedded.NewController(options...), nil
 	case models.CERBOS:
-		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}
+		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Address, Addr2: s.cfg.AdminAddress, CA: s.cfg.CA, User: s.cfg.User, Pswd: s.cfg.Pswd}
 		return cerbos_api.NewController(cerbosCFG, options...), nil
 	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
+		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.Language)
 	}
 }
 
@@ -127,6 +127,7 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(cfg.Timeout)}
 
 	var pg bool
+
 	switch strings.ToLower(lt) {
 	case "pg", "postgres", "postgresql":
 		pg = true
@@ -142,8 +143,10 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 		return nil, fmt.Errorf("unsupported decision log type '%s'", cfg.Type)
 	}
 
-	var logger *decisions.Logger
-	var err error
+	var (
+		logger *decisions.Logger
+		err    error
+	)
 
 	if pg {
 		if err = s.checkMigrations(); err == nil {
@@ -152,11 +155,13 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 	} else {
 		logger, err = decisions.New(s.ctx, svc, opts...)
 	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc)
+
 	return adl.New(logger), nil
 }
 
@@ -165,6 +170,7 @@ func (s *Services) checkMigrations() error {
 	if cfg.Source == "" || (cfg.Steps == 0 && !cfg.Auto) {
 		return nil
 	}
+
 	return s.migrateADL(cfg.Source, cfg.Steps, cfg.Auto)
 }
 
@@ -175,14 +181,15 @@ func (s *Services) migrateADL(source string, steps int, auto bool) (err error) {
 
 	switch {
 	case strings.EqualFold(source, "*embed*"):
-		err = migrate.PostgresEmbedded(migrations.PgDecisionLog, s.cfg.DecisionLog.PgURL, steps, s.logger)
+		err = migrate.PostgresEmbedded(migrations.PgDecisionLog, s.cfg.PgURL, steps, s.logger)
 
 	default:
 		if !strings.HasPrefix(source, "file://") {
 			source, _ = filepath.Abs(source)
 			source = "file://" + source
 		}
-		err = migrate.Postgres(source, s.cfg.DecisionLog.PgURL, steps, s.logger)
+
+		err = migrate.Postgres(source, s.cfg.PgURL, steps, s.logger)
 	}
 
 	if err != nil && !errors.Is(err, migrate2.ErrNoChange) {
@@ -194,7 +201,9 @@ func (s *Services) migrateADL(source string, steps int, auto bool) (err error) {
 		s.logger.Info("pdp database migration completed successfully")
 	} else {
 		s.logger.Info("pdp database migration completed; no changes")
+
 		err = nil
 	}
+
 	return
 }

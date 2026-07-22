@@ -12,7 +12,7 @@ import (
 // initMainRoutes sets up the routing table for HTTP requests.
 func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
-	s.l = models.LanguageFromString(s.cfg.PAP.Language)
+	s.l = models.LanguageFromString(s.cfg.Language)
 
 	s.auth = s.newAuth(handle.PathAuthZEN + handle.PathV1)
 	if s.auth == nil {
@@ -45,7 +45,7 @@ func (s *Services) initBundlesRoutes(_ context.Context, svc *fiber.App) {
 	v1 := svc.Group(handle.PathV1)
 	v1.Post(handle.PathBundle, handler.PostBundle)
 
-	if url := s.cfg.PDP.BundleManager; url != "" {
+	if url := s.cfg.BundleManager; url != "" {
 		go s.bundleRetriever(url, handler)
 	} else {
 		s.chk.SetReady(true) // NOTE: please make sure you set up with local storage!
@@ -66,10 +66,12 @@ func (s *Services) bundleRetriever(url string, handler *handle.BundleReceiverHan
 		if _, err = handler.ProcessBundle(ct, resp.Body); err != nil {
 			resp.Body.Close()
 			s.logger.Error("failed to process latest bundle", "url", url, "error", err)
+
 			continue
 		}
 
 		resp.Body.Close()
+
 		break
 	}
 

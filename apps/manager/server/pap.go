@@ -22,14 +22,14 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 	case s.db != nil:
 		opts = append(opts, pap.WithPgPool(s.db))
 	case s.store != nil:
-		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.Persist.Base, pap.PathSeparator), "policies", pap.PathSeparator)
+		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.Base, pap.PathSeparator), "policies", pap.PathSeparator)
 		opts = append(opts, pap.WithKeyValueDB(s.store, base))
 	}
 
-	if s.cfg.Migration.Source != "" {
+	if s.cfg.Source != "" {
 		switch {
 		case s.db != nil:
-			opts = append(opts, pap.WithMigration(s.cfg.Migration.Source, s.cfg.Persist.PgURL, s.cfg.Migration.Auto, s.cfg.Migration.Steps))
+			opts = append(opts, pap.WithMigration(s.cfg.Source, s.cfg.Persist.PgURL, s.cfg.Auto, s.cfg.Steps))
 		}
 	}
 

@@ -8,11 +8,11 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
+	cedar_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
+	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
+	opa_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
+	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
@@ -30,13 +30,13 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	authenticator, err2 := s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, p1.GetEntity)
+	authenticator, err2 := s.cfg.NewAuthenticator(s.ctx, s.logger, p1.GetEntity)
 	if err2 != nil {
 		s.logger.Error("failed to initialize authenticator", "error", err2)
 		return nil
 	}
 
-	authorizer, err3 := s.cfg.Authorization.NewAuthorizer(controller, authenticator)
+	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil
@@ -54,16 +54,18 @@ func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 	// Secured mode (fail-closed) requires OIDC: without a validated token no principal is
 	// derived, so fail-closed would deny every request. Fail fast with a clear error rather
 	// than booting a manager that silently rejects everything.
-	secured := s.cfg.Authorization.FailClosedOnEmpty
+	secured := s.cfg.FailClosedOnEmpty
 
 	opt, err := pepOIDCOption(s.ctx, s.cfg.OIDC)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build OIDC validation: %w", err)
 	}
+
 	if opt == nil {
 		if secured {
 			return nil, nil, fmt.Errorf("OIDC is required in fail-closed mode: set the OIDC_JWKS_URL (MANAGER_OIDC_JWKS_URL) so bearer tokens yield a principal, otherwise all requests are denied")
 		}
+
 		s.logger.Warn("manager: OIDC not configured; bearer tokens will not be validated and yield no principal")
 	}
 
@@ -74,7 +76,7 @@ func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 
 	ep := pep.New(s.ctx, s.logger, pepOpts...)
 
-	ip, err := s.cfg.PIP.NewPIP(s.ctx, s.logger, s.l)
+	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -91,10 +93,10 @@ func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 	case models.OPENFGA:
 		return openfga_embedded.NewController(options...), ip, nil
 	case models.CERBOS:
-		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}
+		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Address, Addr2: s.cfg.AdminAddress, CA: s.cfg.CA, User: s.cfg.User, Pswd: s.cfg.Pswd}
 		return cerbos_api.NewController(cerbosCFG, options...), ip, nil
 	default:
-		return nil, nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.PAP.Language)
+		return nil, nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.Language)
 	}
 }
 

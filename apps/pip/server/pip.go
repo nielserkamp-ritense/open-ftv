@@ -13,19 +13,21 @@ func (s *Services) newPIP() (*pip.PIP, error) {
 
 	switch {
 	case isPG:
-		db, err := pip.NewPostgresDB(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.PgMaxConn)
+		db, err := pip.NewPostgresDB(s.ctx, s.cfg.PgURL, s.cfg.PgMaxLife, s.cfg.PgMaxConn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect postgres backend: %w", err)
 		}
+
 		opts = append(opts, pip.WithPostgresDB(db))
 
 	case s.cfg.Persist.Type != "":
-		store, err := s.cfg.Persist.NewStore(s.ctx)
+		store, err := s.cfg.NewStore(s.ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create persistence store: %w", err)
 		}
+
 		if store != nil {
-			opts = append(opts, pip.WithKeyValueDB(store, s.cfg.Persist.Base))
+			opts = append(opts, pip.WithKeyValueDB(store, s.cfg.Base))
 		}
 	}
 
