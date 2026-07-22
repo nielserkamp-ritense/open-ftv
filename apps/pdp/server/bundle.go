@@ -68,7 +68,6 @@ type bundleGetter struct {
 }
 
 func (b *bundleGetter) prepareTransport() error {
-	// b.transport = http.DefaultTransport.(*http.Transport).Clone()
 	cfg := &tls.Config{}
 
 	if b.cfg.BundleCA != "" {
