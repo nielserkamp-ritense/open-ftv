@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -58,11 +59,11 @@ func TestPIP_Attributes(t *testing.T) {
 		assert.Equal(t, true, p.GetAttributeValue("bool"))
 		assert.Equal(t, "987", p.GetAttributeValue("int"))
 
-		a1, err1 = p.RemoveAttribute("bool", "")
+		a1, err1 = p.RemoveAttribute("bool", identity.NewSystemPrincipal())
 		require.NoError(t, err1)
 		require.NotNil(t, a1)
 
-		a2, err2 = p.RemoveAttribute("int", "")
+		a2, err2 = p.RemoveAttribute("int", identity.NewSystemPrincipal())
 		require.NoError(t, err2)
 		require.NotNil(t, a2)
 
@@ -135,7 +136,7 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 			assert.Zero(t, eh.deletes)
 			eh.inserts = 0
 
-			p.ReplaceAllAttributes(tc.list, "")
+			p.ReplaceAllAttributes(tc.list, identity.NewSystemPrincipal())
 
 			assert.Equal(t, tc.want, eh.inserts)
 			assert.Zero(t, eh.updates)

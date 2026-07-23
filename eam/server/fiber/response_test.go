@@ -22,7 +22,7 @@ func TestSendMessageResponse(t *testing.T) {
 		})
 
 		req := httptest.NewRequest("GET", "/test", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)

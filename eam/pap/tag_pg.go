@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
@@ -47,22 +48,21 @@ func (db *TagDB) ListTags(ctx context.Context) (oas.Tags, error) {
 }
 
 // CreateTag inserts the tag into the database.
-func (db *TagDB) CreateTag(ctx context.Context, t *oas.Tag) (*oas.Tag, error) {
+func (db *TagDB) CreateTag(ctx context.Context, user identity.Principal, t *oas.Tag) (*oas.Tag, error) {
 	now := time.Now().UTC()
-	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7)`
-	params := []any{t.Id, t.Name, t.Description, now, user, now, user}
+	params := []any{t.Id, t.Name, t.Description, now, user.DisplayName(), now, user.DisplayName()}
 
-	_, err := db.p.Exec(ctx, sql, params)
+	_, err := db.p.Exec(identity.WithContext(ctx, user), sql, params)
 	if err != nil {
 		return nil, err
 	}
 
 	t.Audit.Created = now.Format(time.RFC3339Nano)
-	t.Audit.CreatedBy = user
+	t.Audit.CreatedBy = user.DisplayName()
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
-	t.Audit.UpdatedBy = user
+	t.Audit.UpdatedBy = user.DisplayName()
 	return t, nil
 }
 
@@ -91,14 +91,13 @@ func (db *TagDB) ReadTag(ctx context.Context, tag string) (*oas.Tag, uint64, err
 }
 
 // UpdateTag replaces the tag in the database.
-func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64, t *oas.Tag) (*oas.Tag, error) {
+func (db *TagDB) UpdateTag(ctx context.Context, user identity.Principal, prev *oas.Tag, lastIndex uint64, t *oas.Tag) (*oas.Tag, error) {
 	now := time.Now().UTC()
-	user := convert.AnyToString(ctx.Value("user"))
 
 	sql := `UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`
-	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user}
+	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user.DisplayName()}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}
@@ -106,16 +105,16 @@ func (db *TagDB) UpdateTag(ctx context.Context, prev *oas.Tag, lastIndex uint64,
 	}
 
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
-	t.Audit.UpdatedBy = user
+	t.Audit.UpdatedBy = user.DisplayName()
 	return t, nil
 }
 
 // DeleteTag removes the tag from the database.
-func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error) {
+func (db *TagDB) DeleteTag(ctx context.Context, user identity.Principal, prev *oas.Tag, lastIndex uint64) (*oas.Tag, error) {
 	sql := `DELETE FROM tag WHERE tag=$1 AND updated = $2`
 	params := []any{prev.Id, timeFromLastIndex(lastIndex)}
 
-	if count, err := db.p.Exec(ctx, sql, params); err != nil || count != 1 {
+	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
 			return nil, err
 		}
@@ -125,8 +124,8 @@ func (db *TagDB) DeleteTag(ctx context.Context, prev *oas.Tag, lastIndex uint64)
 }
 
 // EnsureTags inserts tags that are not already present.
-func (db *TagDB) EnsureTags(tags []*oas.Tag, user string) error {
-	ctx := context.Background()
+func (db *TagDB) EnsureTags(tags []*oas.Tag, user identity.Principal) error {
+	ctx := identity.WithContext(context.Background(), user)
 	now := db.now().UTC()
 	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (tag) DO NOTHING`
 
@@ -135,7 +134,8 @@ func (db *TagDB) EnsureTags(tags []*oas.Tag, user string) error {
 		if tag == nil || tag.Id == "" {
 			continue
 		}
-		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user, now, user}); err != nil {
+
+		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user.DisplayName(), now, user.DisplayName()}); err != nil {
 			return err
 		}
 	}

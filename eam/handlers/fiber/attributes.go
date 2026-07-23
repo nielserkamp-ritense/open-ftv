@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -362,13 +362,8 @@ func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.At
 	return &a, true, nil
 }
 
-func (h *attributesHandler) authorize(req *fiber.Ctx) (string, bool, error) {
-	if h.authorizer == nil {
-		return auth.SystemUser, true, nil
-	}
-
-	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-	return auth.Check(req, resp, err, h.logger)
+func (h *attributesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
 func (h *attributesHandler) error(req *fiber.Ctx, status int, err error) error {

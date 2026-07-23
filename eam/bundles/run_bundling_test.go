@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
@@ -152,10 +153,10 @@ func (l *myLists) IterateRelations(f models.RelationIterator) {
 	}
 }
 
-func (l *myLists) Create(*models.Policy, string) (*models.Policy, error)     { return nil, nil }
-func (l *myLists) AddAttribute(*models.Attribute) (*models.Attribute, error) { return nil, nil }
-func (l *myLists) AddEntity(*models.Entity) (*models.Entity, error)          { return nil, nil }
-func (l *myLists) AddRelation(*models.Relation) (*models.Relation, error)    { return nil, nil }
+func (l *myLists) Create(*models.Policy, identity.Principal) (*models.Policy, error) { return nil, nil }
+func (l *myLists) AddAttribute(*models.Attribute) (*models.Attribute, error)         { return nil, nil }
+func (l *myLists) AddEntity(*models.Entity) (*models.Entity, error)                  { return nil, nil }
+func (l *myLists) AddRelation(*models.Relation) (*models.Relation, error)            { return nil, nil }
 
 var (
 	myP1, _ = models.NewPolicyFromData("1", "cedar", "", "", bytes.NewBufferString("allow();"))

@@ -11,8 +11,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
@@ -81,13 +81,8 @@ func (h *BundleReceiverHandler) ProcessBundle(ct string, body io.Reader) (old ui
 	return
 }
 
-func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (string, bool, error) {
-	if h.authorizer == nil {
-		return auth.SystemUser, true, nil
-	}
-
-	resp, err := h.authorizer.Authorize(auth.FormatRequest(req))
-	return auth.Check(req, resp, err, h.logger)
+func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
 func (h *BundleReceiverHandler) error(req *fiber.Ctx, status int, err error) error {

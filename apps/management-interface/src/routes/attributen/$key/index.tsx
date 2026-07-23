@@ -7,6 +7,7 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { badgeColorKeyFromString } from "@/utilities/color.ts";
+import { formatDateTime } from "@/utilities/datetime.ts";
 import { Button, SecondaryButton } from "@/components/ui/button.tsx";
 import { useState } from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
@@ -120,9 +121,9 @@ function RouteComponent() {
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.createdBy || "Onbekend"}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt op</DescriptionTerm>
-                        <DescriptionDetails>{data?.audit?.created  || "Onbekend"}</DescriptionDetails>
+                        <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : "Onbekend"}</DescriptionDetails>
                         <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
-                        <DescriptionDetails>{data?.audit?.updated ?? "Onbekend"}</DescriptionDetails>
+                        <DescriptionDetails>{data?.audit?.updated ? formatDateTime(data.audit.updated) : "Onbekend"}</DescriptionDetails>
                     </DescriptionList>
                 </Card>
                 <Card className="flex-1" header={

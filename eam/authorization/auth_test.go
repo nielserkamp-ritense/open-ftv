@@ -2,15 +2,20 @@ package authorization
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"log/slog"
 	"net/url"
 	"testing"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -96,7 +101,7 @@ func TestAuthorize(t *testing.T) {
 	ap := pap.New(ctx, log, pap.WithLanguage("cedar"), pap.WithFileStore("../../testdata/unittest/auth/policies", true))
 	dp := cedar_embedded.NewController(pdp.WithLogger(log), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithPEP(ep))
 
-	authenticator := authentication.NewBCrypt(authentication.WithContext(ctx), authentication.WithLogger(log), authentication.WithEntityGetter(ip.GetEntity))
+	authenticator := authentication.NewBCrypt(authentication.WithLogger(log), authentication.WithEntityGetter(ip.GetEntity))
 	require.NotNil(t, authenticator)
 
 	parseURL := func(s string) *url.URL {
@@ -105,10 +110,11 @@ func TestAuthorize(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name      string
-		req       *Request
-		wantErr   bool
-		wantAllow bool
+		name          string
+		req           *Request
+		wantErr       bool
+		wantAllow     bool
+		wantPrincipal identity.Principal
 	}{
 		{
 			name: "no authentication",
@@ -153,7 +159,8 @@ func TestAuthorize(t *testing.T) {
 					"Authorization": {"Basic bWlja2V5Om1vdXNl"},
 				},
 			},
-			wantAllow: false,
+			wantAllow:     false,
+			wantPrincipal: identity.NewUnknownPrincipal(),
 		},
 		{
 			name: "is admin",
@@ -165,7 +172,8 @@ func TestAuthorize(t *testing.T) {
 					"Authorization": {"Basic YWRtaW46YWRtaW4="},
 				},
 			},
-			wantAllow: true,
+			wantAllow:     true,
+			wantPrincipal: identity.NewPrincipal(identity.KindUser, "admin"),
 		},
 		{
 			name: "wrong apikey",
@@ -187,7 +195,8 @@ func TestAuthorize(t *testing.T) {
 					"Api-Key": {"abcdef"},
 				},
 			},
-			wantAllow: false,
+			wantAllow:     false,
+			wantPrincipal: identity.NewUnknownPrincipal(),
 		},
 		{
 			name: "good apikey - good method",
@@ -198,7 +207,11 @@ func TestAuthorize(t *testing.T) {
 					"Api-Key": {"abcdef"},
 				},
 			},
-			wantAllow: true,
+			// API-key callers are deliberately NOT attributed as a user (scoped out
+			// to avoid leaking the raw key into audit-read endpoints) — they fall
+			// back to the system principal like any other non-user caller.
+			wantPrincipal: identity.NewSystemPrincipal(),
+			wantAllow:     true,
 		},
 	}
 
@@ -212,7 +225,7 @@ func TestAuthorize(t *testing.T) {
 			uid := uuid.New()
 			tc.req.UID = &uid
 
-			got, err2 := a.Authorize(tc.req)
+			got, gotPrincipal, err2 := a.Authorize(tc.req)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, got)
@@ -220,7 +233,62 @@ func TestAuthorize(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, got)
 				assert.Equal(t, tc.wantAllow, got.Allowed)
+
+				if tc.wantPrincipal != identity.NewUnknownPrincipal() {
+					assert.Equal(t, tc.wantPrincipal, gotPrincipal)
+				}
 			}
 		})
 	}
+}
+
+// A caller who only presents a JWT (no Basic-Auth or API key) should still count as a user.
+func TestAuthorize_JWTPrincipal(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	log := slog.New(h)
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	kf := func(*jwt.Token) (any, error) { return &key.PublicKey, nil }
+
+	ep := pep.New(ctx, log, pep.WithJWT(pep.JWTConfig{
+		Keyfunc:  kf,
+		Issuer:   "https://idp.test",
+		Audience: "openftv",
+	}))
+
+	a := New(WithContext(ctx), WithLogger(log), WithPEP(ep), NoAuth())
+	require.NotNil(t, a)
+
+	tok := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": "https://idp.test",
+		"aud": "openftv",
+		"sub": "alice@wonderland.cc",
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
+	bearer, err2 := tok.SignedString(key)
+	require.NoError(t, err2)
+
+	u, _ := url.Parse("https://openftv.nl/v1/policy/123")
+	uid := uuid.New()
+
+	resp, principal, err3 := a.Authorize(&Request{
+		UID:    &uid,
+		URL:    u,
+		Method: "PUT",
+		Headers: map[string][]string{
+			"Authorization": {"Bearer " + bearer},
+		},
+	})
+
+	require.NoError(t, err3)
+	require.NotNil(t, resp)
+	assert.Equal(t, identity.KindUser, principal.Kind)
+	assert.Equal(t, "alice@wonderland.cc", principal.ID)
 }

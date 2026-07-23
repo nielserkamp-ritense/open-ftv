@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
@@ -21,7 +22,7 @@ var ErrUnauthorized = fmt.Errorf("unauthorized")
 // Authorizer represents the interface for authorizing local API requests.
 // For instance, to protect a PAP or PIP against unauthorized access of their CRUD endpoints.
 type Authorizer interface {
-	Authorize(req *Request) (*models.Response, error)
+	Authorize(req *Request) (*models.Response, identity.Principal, error)
 }
 
 // New instantiates a new authorization handler.
@@ -54,14 +55,15 @@ type Request struct {
 	Headers map[string][]string
 	Body    []byte
 
-	// Resource optionally carries the stored target object (with its
-	// attributes, e.g. status) so the PDP can evaluate fine-grained,
-	// resource-attribute policies. When nil, the PEP synthesizes one.
+	// Resource optionally carries the stored target object (with its attributes, e.g. status) so the PDP can evaluate
+	// fine-grained, resource-attribute policies. When nil, the PEP synthesizes one.
 	Resource *models.Entity
 }
 
 // Authorize implements the Authorizer interface.
-func (a *auth) Authorize(req *Request) (resp *models.Response, err error) {
+func (a *auth) Authorize(req *Request) (resp *models.Response, principal identity.Principal, err error) {
+	principal = identity.NewUnknownPrincipal()
+
 	r := &models.Request{
 		UID:     req.UID,
 		URL:     req.URL,
@@ -76,9 +78,8 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, err error) {
 
 	parc := a.pep.PARCFromRequest(r, a.getter)
 
-	var user string
 	if a.authenticator != nil {
-		user = convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
+		user := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
 		pswd := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicPswd))
 		apikey := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrAPIKey))
 
@@ -94,18 +95,19 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, err error) {
 		}
 	}
 
+	// Reuse parc.Principal, already resolved by eam/pep's DeterminePrincipal.
+	// Non-user kinds fall back to the system sentinel below.
+	principal = identity.FromEntity(parc.Principal)
+	principal.Name = convert.AnyToString(parc.Principal.Attributes().GetAttributeValue(models.AttrPreferredName))
+
+	if !principal.IsAuthenticatedUser() {
+		principal = identity.NewSystemPrincipal()
+	}
+
 	if a.noAuth {
 		resp = &models.Response{Allowed: true}
 	} else {
 		resp, err = a.pdp.Authorize(req.UID.String(), parc)
-	}
-
-	if err == nil && user != "" {
-		if resp.Attributes == nil {
-			resp.Attributes = map[string]any{"user": user}
-		} else {
-			resp.Attributes["user"] = user
-		}
 	}
 
 	return

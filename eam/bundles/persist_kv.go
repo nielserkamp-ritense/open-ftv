@@ -11,6 +11,7 @@ import (
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -200,7 +201,7 @@ func (s *KeyValueDB) ListDeployments(ctx context.Context) ([]*Deployment, error)
 }
 
 // CreateBundleAudit is not implemented for KV stores.
-func (s *KeyValueDB) CreateBundleAudit(context.Context, uint64, *Config, *Bundle) error {
+func (s *KeyValueDB) CreateBundleAudit(context.Context, identity.Principal, uint64, *Config, *Bundle) error {
 	return errors.New("not implemented")
 }
 

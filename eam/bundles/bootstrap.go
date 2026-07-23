@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
+
+var bootstrapUser = identity.NewBootstrapPrincipal()
 
 // bootstrapDeployment is used to initiate the very first bundle deployment.
 // Since PDPs require a bundle to work, a bootstrap-bundle ensures new installations will have a working setup.
@@ -81,7 +84,7 @@ func (b *bootstrapper) createFakePolicy(params fakeParams) {
 
 	policy.WithStatus(models.StatusDeployed)
 
-	if _, err := b.policies.Create(policy, "*BOOTSTRAP*"); err != nil {
+	if _, err := b.policies.Create(policy, bootstrapUser); err != nil {
 		b.logger.Warn("failed to create bootstrap policy", "language", params.language.String(), "tag", params.tag)
 	} else {
 		b.logger.Info("bootstrap policy created", "language", params.language.String(), "tag", params.tag)

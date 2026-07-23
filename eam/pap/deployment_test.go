@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -31,7 +32,7 @@ func TestPAP_NewDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("v1", "merry easter", m, "*SYSTEM*")
+		d, err := p.NewDeployment("v1", "merry easter", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -58,7 +59,7 @@ func TestPAP_LastDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("v2", "merry easter", m, "*SYSTEM*")
+		d, err := p.NewDeployment("v2", "merry easter", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -88,7 +89,7 @@ func TestPAP_RestartDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("v3", "happy christmas", m, "*SYSTEM*")
+		d, err := p.NewDeployment("v3", "happy christmas", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 		require.NotNil(t, d)
 
@@ -124,7 +125,7 @@ func TestPAP_ReadDeployment(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		_, err := p.NewDeployment("v4", "merry easter", m, "*SYSTEM*")
+		_, err := p.NewDeployment("v4", "merry easter", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 
 		d2, err2 := p.ReadDeployment(1)
@@ -157,7 +158,7 @@ func TestPAP_ListDeployments(t *testing.T) {
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		d, err := p.NewDeployment("v5", "merry easter", m, "*SYSTEM*")
+		d, err := p.NewDeployment("v5", "merry easter", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 		require.NotNil(t, d)
 

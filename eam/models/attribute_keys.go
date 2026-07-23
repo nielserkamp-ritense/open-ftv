@@ -23,6 +23,7 @@ const (
 	AttrMethod          = "method"
 	AttrPath            = "path"
 	AttrPathParts       = "path_parts"
+	AttrPreferredName   = "preferred_name"
 	AttrPrincipal       = "principal"
 	AttrQuery           = "query"
 	AttrRequestTime     = "request_time"

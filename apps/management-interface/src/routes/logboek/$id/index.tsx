@@ -5,6 +5,7 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
 import {AuthlogEntry} from "@/services/authlog.ts";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import {formatDateTime} from "@/utilities/datetime.ts";
 
 export const Route = createFileRoute('/logboek/$id/')({
     component: RouteComponent,
@@ -69,7 +70,7 @@ function RouteComponent() {
                         <DescriptionDetails>{entry.id}</DescriptionDetails>
                         
                         <DescriptionTerm>Tijdstempel</DescriptionTerm>
-                        <DescriptionDetails>{entry.created}</DescriptionDetails>
+                        <DescriptionDetails>{entry.created ? formatDateTime(entry.created) : 'Onbekend'}</DescriptionDetails>
                         
                         <DescriptionTerm>Request Type</DescriptionTerm>
                         <DescriptionDetails>{entry.requestType}</DescriptionDetails>

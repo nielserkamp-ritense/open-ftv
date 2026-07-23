@@ -4,9 +4,12 @@ import (
 	"bytes"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 )
+
+var bundleUser = identity.NewBundlePrincipal()
 
 // NewBundle implements the Controller interface.
 func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
@@ -47,7 +50,7 @@ func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 		list = append(list, p2)
 	}
 
-	return b.PAP.ReplaceAll(list, "*BUNDLE*")
+	return b.PAP.ReplaceAll(list, bundleUser)
 }
 
 func (b *Base) processAttributes(bundle *bundles.Bundle) {
@@ -56,7 +59,7 @@ func (b *Base) processAttributes(bundle *bundles.Bundle) {
 		list.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 	}
 
-	b.PIP.ReplaceAllAttributes(list, "*BUNDLE*")
+	b.PIP.ReplaceAllAttributes(list, bundleUser)
 }
 
 func (b *Base) processEntities(bundle *bundles.Bundle) {
@@ -70,7 +73,7 @@ func (b *Base) processEntities(bundle *bundles.Bundle) {
 		_, _ = list.AddEntity(models.NewEntity(e.Type, e.Id, attr))
 	}
 
-	b.PIP.ReplaceAllEntities(list, "*BUNDLE*")
+	b.PIP.ReplaceAllEntities(list, bundleUser)
 }
 
 func (b *Base) processRelations(_ *bundles.Bundle) {

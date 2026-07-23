@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -201,7 +202,7 @@ func TestPostgresDB_CreatePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.CreatePolicy(context.WithValue(ctx, "user", u), p)
+			got, err := db.CreatePolicy(ctx, identity.NewPrincipal(identity.KindUser, u), p)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -352,7 +353,7 @@ func TestPostgresDB_UpdatePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.UpdatePolicy(context.WithValue(ctx, "user", u), p, timeToLastIndex(now), p)
+			got, err := db.UpdatePolicy(ctx, identity.NewPrincipal(identity.KindUser, u), p, timeToLastIndex(now), p)
 			if tc.wantErr || tc.wantMismatch {
 				require.Error(t, err)
 				require.Nil(t, got)
@@ -430,7 +431,7 @@ func TestPostgresDB_DeletePolicy(t *testing.T) {
 				mock.ExpectCommit()
 			}
 
-			got, err := db.DeletePolicy(context.WithValue(ctx, "user", u), p, timeToLastIndex(now))
+			got, err := db.DeletePolicy(ctx, identity.NewPrincipal(identity.KindUser, u), p, timeToLastIndex(now))
 			if tc.wantErr || tc.wantMismatch {
 				require.Error(t, err)
 				require.Nil(t, got)

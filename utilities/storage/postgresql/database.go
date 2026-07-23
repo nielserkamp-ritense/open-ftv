@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
@@ -86,10 +86,7 @@ func (db *Postgres) Query(ctx context.Context, q string, params []any, f Process
 
 // Exec executes the given SQL statement with the given parameters.
 func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int64, err error) {
-	user := convert.AnyToString(ctx.Value("user"))
-	if user == "" {
-		user = "*SYSTEM*"
-	}
+	user := userIDFromContext(ctx)
 
 	var tx pgx.Tx
 	if tx, err = db.pool.Begin(ctx); err != nil {
@@ -124,10 +121,7 @@ func (db *Postgres) Exec(ctx context.Context, q string, params []any) (count int
 
 // ExecBatch executes the given set of SQL statements with the respective parameters.
 func (db *Postgres) ExecBatch(ctx context.Context, statements []Statement) (count int64, err error) {
-	user := convert.AnyToString(ctx.Value("user"))
-	if user == "" {
-		user = "*SYSTEM*"
-	}
+	user := userIDFromContext(ctx)
 
 	var tx pgx.Tx
 	if tx, err = db.pool.Begin(ctx); err != nil {
@@ -165,6 +159,16 @@ func (db *Postgres) ExecBatch(ctx context.Context, statements []Statement) (coun
 	}
 
 	return
+}
+
+// userIDFromContext returns the bare ID to put it into Postgres' Exec function as SQL parameter,
+// falling back to the system sentinel when unset.
+func userIDFromContext(ctx context.Context) string {
+	if p, ok := identity.FromContext(ctx); ok && p.ID != "" {
+		return p.ID
+	}
+
+	return identity.NewSystemPrincipal().ID
 }
 
 func (db *Postgres) background(ctx context.Context) {

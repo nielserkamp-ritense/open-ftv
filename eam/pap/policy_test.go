@@ -14,10 +14,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
+
+var testUser = identity.NewPrincipal(identity.KindUser, "test")
 
 func TestPAP_Add(t *testing.T) {
 	t.Parallel()
@@ -58,7 +61,7 @@ func TestPAP_Add(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				pol2, err3 := p.Create(pol, "test")
+				pol2, err3 := p.Create(pol, testUser)
 				require.NoError(t, err3)
 				require.NotNil(t, pol2)
 
@@ -129,7 +132,7 @@ func TestPAP_Replace(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol, "test")
+				_, err2 = p.Create(pol, testUser)
 				require.NoError(t, err2)
 			}
 
@@ -143,7 +146,7 @@ func TestPAP_Replace(t *testing.T) {
 			require.NoError(t, err3)
 			require.NotNil(t, pol)
 
-			pol2, err4 := p.Update(prev, 0, pol, "test")
+			pol2, err4 := p.Update(prev, 0, pol, testUser)
 			if tc.wantErr {
 				require.Error(t, err4)
 				require.Nil(t, pol2)
@@ -202,7 +205,7 @@ func TestPAP_Remove(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol, "test")
+				_, err2 = p.Create(pol, testUser)
 				require.NoError(t, err2)
 			}
 
@@ -211,7 +214,7 @@ func TestPAP_Remove(t *testing.T) {
 			require.NoError(t, err2)
 			require.NotNil(t, prev)
 
-			pol, err3 := p.Delete(prev, 0, "test")
+			pol, err3 := p.Delete(prev, 0, testUser)
 			if tc.wantErr {
 				require.Error(t, err3)
 				require.Nil(t, pol)
@@ -261,7 +264,7 @@ func TestPAP_List(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol, "test")
+				_, err2 = p.Create(pol, testUser)
 				require.NoError(t, err2)
 			}
 
@@ -309,7 +312,7 @@ func TestPAP_Iterate(t *testing.T) {
 				require.NoError(t, err2)
 				require.NotNil(t, pol)
 
-				_, err2 = p.Create(pol, "test")
+				_, err2 = p.Create(pol, testUser)
 				require.NoError(t, err2)
 			}
 
@@ -365,11 +368,11 @@ func TestPAP_ReplaceAll(t *testing.T) {
 
 			p.AddEventSink(e)
 
-			_, err := p.Create(p1, "test")
+			_, err := p.Create(p1, testUser)
 			require.NoError(t, err)
-			_, err = p.Create(p2, "test")
+			_, err = p.Create(p2, testUser)
 			require.NoError(t, err)
-			_, err = p.Create(p3, "test")
+			_, err = p.Create(p3, testUser)
 			require.NoError(t, err)
 
 			assert.Equal(t, 3, e.created)
@@ -378,7 +381,7 @@ func TestPAP_ReplaceAll(t *testing.T) {
 
 			e.created = 0
 
-			err = p.ReplaceAll(tc.list, "test")
+			err = p.ReplaceAll(tc.list, testUser)
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.want, e.created)
@@ -464,7 +467,7 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 			WillReturnResult(pgxmock.NewResult("DELETE", 1))
 		mock.ExpectCommit()
 
-		got, err := p.Create(p1, u1)
+		got, err := p.Create(p1, identity.NewPrincipal(identity.KindUser, u1))
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		policiesMatch(t, wp1, got)
@@ -474,12 +477,12 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 		require.NotNil(t, got)
 		policiesMatch(t, wp1, got)
 
-		got, err = p.Update(p1, timeToLastIndex(now), p2, u2)
+		got, err = p.Update(p1, timeToLastIndex(now), p2, identity.NewPrincipal(identity.KindUser, u2))
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		policiesMatch(t, wp2, got)
 
-		got, err = p.Delete(wp2, timeToLastIndex(now), u1)
+		got, err = p.Delete(wp2, timeToLastIndex(now), identity.NewPrincipal(identity.KindUser, u1))
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		policiesMatch(t, wp2, got)

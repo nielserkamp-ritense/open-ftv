@@ -3,6 +3,7 @@ package bundles
 import (
 	"context"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
@@ -14,7 +15,7 @@ type Persister interface {
 	LastDeployment(ctx context.Context) (*Deployment, error)
 	ReadDeployment(ctx context.Context, version uint64) (*Deployment, error)
 	ListDeployments(ctx context.Context) ([]*Deployment, error)
-	CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error
+	CreateBundleAudit(ctx context.Context, principal identity.Principal, version uint64, cfg *Config, bundle *Bundle) error
 }
 
 // PolicyLister represents the interface for retrieving a list of policies.
@@ -24,7 +25,7 @@ type PolicyLister interface {
 
 // PolicyCreator represents the interface to store a new policy.
 type PolicyCreator interface {
-	Create(in *models.Policy, user string) (out *models.Policy, err error)
+	Create(in *models.Policy, user identity.Principal) (out *models.Policy, err error)
 }
 
 // AttributeLister represents the interface for retrieving a list of attributes.

@@ -25,7 +25,7 @@ func TestHealthy(t *testing.T) {
 		srv.Get("/healthz", chk.HealthZ)
 
 		req := httptest.NewRequest("GET", "/healthz", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -51,7 +51,7 @@ func TestNotHealthy(t *testing.T) {
 		srv.Get("/healthz", chk.HealthZ)
 
 		req := httptest.NewRequest("GET", "/healthz", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -75,7 +75,7 @@ func TestAlive(t *testing.T) {
 		srv.Get("/livez", chk.LiveZ)
 
 		req := httptest.NewRequest("GET", "/livez", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -101,7 +101,7 @@ func TestNotAlive(t *testing.T) {
 		srv.Get("/livez", chk.LiveZ)
 
 		req := httptest.NewRequest("GET", "/livez", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -125,7 +125,7 @@ func TestReady(t *testing.T) {
 		srv.Get("/healthz", chk.ReadyZ)
 
 		req := httptest.NewRequest("GET", "/healthz", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)
@@ -151,7 +151,7 @@ func TestNotReady(t *testing.T) {
 		srv.Get("/readyz", chk.ReadyZ)
 
 		req := httptest.NewRequest("GET", "/readyz", nil)
-		resp, err2 := srv.Test(req, 100)
+		resp, err2 := srv.Test(req)
 
 		require.NoError(t, err2)
 		require.NotNil(t, resp)

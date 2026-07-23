@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -46,8 +47,8 @@ func TestPIP_Entities(t *testing.T) {
 		require.NoError(t, err)
 		require.Nil(t, e)
 
-		_, _ = p.RemoveEntity("q::y", "")
-		_, _ = p.RemoveEntity("q::x", "")
+		_, _ = p.RemoveEntity("q::y", identity.NewSystemPrincipal())
+		_, _ = p.RemoveEntity("q::x", identity.NewSystemPrincipal())
 
 		count = 0
 		p.IterateEntities(func(entity *models.Entity) {
@@ -115,7 +116,7 @@ func TestPIP_ReplaceAllEntities(t *testing.T) {
 				),
 			)
 
-			p.ReplaceAllEntities(tc.list, "*SYSTEM*")
+			p.ReplaceAllEntities(tc.list, identity.NewSystemPrincipal())
 
 			var count int
 			p.IterateEntities(func(_ *models.Entity) {

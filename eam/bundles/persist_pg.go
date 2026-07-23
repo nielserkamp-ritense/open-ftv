@@ -9,6 +9,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -213,14 +214,14 @@ func (s *PostgresDB) createDeployment(ctx context.Context, d *Deployment) error 
 }
 
 // CreateBundleAudit creates the audit trail for the bundle, linking it with the bundled policies, attributes, entities and/or relations.
-func (s *PostgresDB) CreateBundleAudit(ctx context.Context, version uint64, cfg *Config, bundle *Bundle) error {
+func (s *PostgresDB) CreateBundleAudit(ctx context.Context, principal identity.Principal, version uint64, cfg *Config, bundle *Bundle) error {
 	uid := uuid.New()
 	b, _ := json.Marshal(cfg)
 	now := time.Now().UTC()
 
-	user := convert.AnyToString(ctx.Value("user"))
+	user := principal.DisplayName()
 	if user == "" {
-		user = "*SYSTEM*"
+		user = identity.NewSystemPrincipal().ID
 	}
 
 	batch := make([]postgresql.Statement, len(bundle.Policies)+len(bundle.Attributes)+len(bundle.Entities)+len(bundle.Relations)+1)

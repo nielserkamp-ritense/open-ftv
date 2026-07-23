@@ -13,6 +13,7 @@ import (
 	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -43,7 +44,9 @@ type KeyValueDB struct {
 }
 
 // CreatePolicy adds a policy to the store.
-func (s *KeyValueDB) CreatePolicy(ctx context.Context, p *models.Policy) (*models.Policy, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *KeyValueDB) CreatePolicy(ctx context.Context, _ identity.Principal, p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(p.ID())
 
 	s.mutex.Lock()
@@ -109,7 +112,9 @@ func (s *KeyValueDB) ReadPolicyVersion(context.Context, string, int) (*policies.
 }
 
 // UpdatePolicy replaces a policy in the store.
-func (s *KeyValueDB) UpdatePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *KeyValueDB) UpdatePolicy(ctx context.Context, _ identity.Principal, prev *models.Policy, lastIndex uint64, p *models.Policy) (*models.Policy, error) {
 	key := s.makeKey(prev.ID())
 
 	s.mutex.Lock()
@@ -123,7 +128,9 @@ func (s *KeyValueDB) UpdatePolicy(ctx context.Context, prev *models.Policy, last
 }
 
 // DeletePolicy removes a policy from the store.
-func (s *KeyValueDB) DeletePolicy(ctx context.Context, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
+//
+// Identity is not tracked for the (deprecated) KV backend.
+func (s *KeyValueDB) DeletePolicy(ctx context.Context, _ identity.Principal, prev *models.Policy, lastIndex uint64) (*models.Policy, error) {
 	key := s.makeKey(prev.ID())
 
 	s.mutex.Lock()
