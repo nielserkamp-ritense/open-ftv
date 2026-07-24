@@ -36,6 +36,7 @@ unit-tests:
     - >
       /usr/local/go/bin/go test ./... -tags=integration
       -covermode=atomic
+      -coverpkg=gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/...
       -coverprofile cover.out
 
       /usr/local/go/bin/go tool cover -html=cover.out -o cover.html
