@@ -13,7 +13,7 @@ type EnvRecord = Record<string, string | undefined>;
 const w: (Window & typeof globalThis) | undefined =
   typeof window !== 'undefined' ? window : undefined;
 
-const runtimeEnv: EnvRecord = (w?.__ENV__ ?? {}) as EnvRecord;
+const runtimeEnv: EnvRecord = (w?.__ENV__ ?? {});
 
 let buildEnv: EnvRecord = {};
 try {
@@ -39,3 +39,11 @@ export const PAP_BASE_URL = getEnvVar('VITE_PAP_BASE_URL', 'http://localhost:808
 export const PIP_BASE_URL = getEnvVar('VITE_PIP_BASE_URL', 'http://localhost:8080');
 export const OIDC_AUTHORITY = getEnvVar('VITE_OIDC_AUTHORITY', 'http://localhost:8088/realms/openftv');
 export const OIDC_CLIENT_ID = getEnvVar('VITE_OIDC_CLIENT_ID', 'openftv');
+
+const DEFAULT_MAX_LOGO_BYTES = 100 * 1024;
+
+export const MANAGER_MAX_LOGO_SIZE = (() => {
+  const raw = getEnvVar('MANAGER_MAX_LOGO_SIZE', String(DEFAULT_MAX_LOGO_BYTES));
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_MAX_LOGO_BYTES;
+})();

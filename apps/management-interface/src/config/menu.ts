@@ -18,6 +18,7 @@ export interface MenuItem {
   label: string
   icon: ComponentType
   disabled?: boolean
+  adminOnly?: boolean
   section: MenuSection
 }
 
@@ -29,7 +30,7 @@ export const menuItems: MenuItem[] = [
   { href: '/regelingen', label: 'Regelingen', icon: IconSectionSign, disabled: true, section: 'top' },
   { href: '/publicaties', label: 'Publicaties', icon: IconPencilShare, section: 'top' },
   { href: '/logboek', label: 'Logboek', icon: IconLogs, disabled: false, section: 'top' },
-  { href: '#', label: 'Instellingen', icon: IconSettings, disabled: true, section: 'top' },
+  { href: '/instellingen', label: 'Instellingen', icon: IconSettings, adminOnly: true, section: 'top' },
   { href: '#', label: 'Ondersteuning', icon: IconHelpCircleFilled, section: 'bottom', disabled: true },
   { href: '#', label: 'Nieuws', icon: IconNews, section: 'bottom', disabled: true},
 ]

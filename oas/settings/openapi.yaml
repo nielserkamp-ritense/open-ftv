@@ -1,0 +1,208 @@
+openapi: 3.0.0
+
+info:
+  description: |
+    OpenAPI specification for maintaining the manager ui settings.
+  version: 1.0.0
+  title: Settings management
+  contact:
+    name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server.
+
+tags:
+  - name: open_ftv
+    description: OpenFTV
+  - name: settings
+    description: Operations on the manager ui settings.
+
+paths:
+  /settings:
+    get:
+      operationId: "get-settings"
+      summary: Retrieve settings.
+      description: |
+        Retrieve the manager ui settings.
+
+        If no settings have been saved yet, the current default values are returned.
+      tags:
+        - open_ftv
+        - settings
+      responses:
+        "200":
+          $ref: "#/components/responses/SettingsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+    put:
+      operationId: "update-settings"
+      summary: Replace settings.
+      description: Replace the manager ui settings.
+      tags:
+        - open_ftv
+        - settings
+      requestBody:
+        description: New ui settings.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Settings"
+      responses:
+        "200":
+          $ref: "#/components/responses/SettingsResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/NotAuthorized"
+        "403":
+          $ref: "#/components/responses/AccessDenied"
+        "5XX":
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  responses:
+    SettingsResponse:
+      description: Settings found or saved.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Settings"
+
+    BadRequest:
+      description: Bad request.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotAuthorized:
+      description: Not authorized.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    AccessDenied:
+      description: Access denied.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    UnexpectedError:
+      description: Unexpected error.
+      headers:
+        API-Version:
+          schema:
+            type: string
+          description: Full version number of the API.
+          example: "1.0.0"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Settings:
+      type: object
+      description: The manager ui settings.
+      required:
+        - headerTitle
+        - headerColor
+        - titleColor
+      properties:
+        headerTitle:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Header title.
+          example: "OpenFTV beheeromgeving"
+        headerColor:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          description: Background color of the header, as a hex color code.
+          example: "#F7E8E8"
+        titleColor:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          description: Text color of the header title, as a hex color code.
+          example: "#000000"
+        logo:
+          type: string
+          format: byte
+          description: Logo shown on the left side of the header, base64-encoded. Omit or leave empty to remove the logo.
+        logoMediaType:
+          type: string
+          description: Media type of the logo, required if logo is set.
+          enum:
+            - image/png
+            - image/jpeg
+            - image/svg+xml
+            - image/webp
+        updated:
+          type: string
+          maxLength: 36
+          description: Timestamp the settings were last updated (RFC3339 format).
+          example: "2025-08-15T07:53:41.493415Z"
+          readOnly: true
+        updatedBy:
+          type: string
+          maxLength: 80
+          description: User that last updated the settings.
+          example: "alice@wonderland.cc"
+          readOnly: true
+
+    Error:
+      type: object
+      description: The response for an error (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.

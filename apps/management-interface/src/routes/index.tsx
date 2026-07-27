@@ -47,10 +47,10 @@ function RouteComponent() {
             <Cog8ToothIcon className="size-16 rounded-full" />
           </div>
           <div className="min-w-0 flex-1">
-            <a href="#" className="focus:outline-hidden">
+            <Link to="/instellingen" className="focus:outline-hidden">
               <span aria-hidden="true" className="absolute inset-0" />
               <p className="text-sm font-medium text-gray-900">Instellingen</p>
-            </a>
+            </Link>
           </div>
         </div>
         

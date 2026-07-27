@@ -11,3 +11,4 @@ spectral lint -r .spectral.yml bundles/openapi.yaml
 spectral lint -r .spectral.yml authlog/openapi.yaml
 # spectral lint -r .spectral.yml authzen/openapi.yaml
 spectral lint -r .spectral.yml schema/openapi.yaml
+spectral lint -r .spectral.yml settings/openapi.yaml

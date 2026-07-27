@@ -47,6 +47,7 @@ const (
 	PathSearchAction      = "/search/action"
 	PathSearchResource    = "/search/resource"
 	PathSearchSubject     = "/search/subject"
+	PathSettings          = "/settings"
 	PathStatuses          = "/statuses"
 	PathTag               = "/tag/:tag"
 	PathTags              = "/tags"

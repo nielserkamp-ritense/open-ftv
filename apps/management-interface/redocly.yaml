@@ -15,3 +15,7 @@ apis:
     root: ../../oas/bundles/openapi.yaml
     x-openapi-ts:
       output: ./src/oas/bundles.ts
+  settings@v1:
+    root: ../../oas/settings/openapi.yaml
+    x-openapi-ts:
+      output: ./src/oas/settings.ts

@@ -1,10 +1,10 @@
 import { useAuth } from 'react-oidc-context';
-import { rolesFromToken, canWrite, canPublish } from './capabilities';
+import { rolesFromToken, canWrite, canPublish, isAdmin } from './capabilities';
 
 // useCapabilities reads the current user's roles from the access token and exposes the
 // UI capability flags. Roles live in the ACCESS token (not the ID token / profile).
-export const useCapabilities = (): { roles: string[]; canWrite: boolean; canPublish: boolean } => {
+export const useCapabilities = (): { roles: string[]; canWrite: boolean; canPublish: boolean; isAdmin: boolean } => {
   const auth = useAuth();
   const roles = rolesFromToken(auth.user?.access_token);
-  return { roles, canWrite: canWrite(roles), canPublish: canPublish(roles) };
+  return { roles, canWrite: canWrite(roles), canPublish: canPublish(roles), isAdmin: isAdmin(roles) };
 };

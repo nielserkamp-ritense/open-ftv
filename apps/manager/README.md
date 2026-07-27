@@ -170,7 +170,7 @@ MANAGER_TLS_KEY=<key-file>                      # TLS private key to use with th
 MANAGER_READ_TIMEOUT=<duration>                 # The read timeout for API requests (default "30s").
 MANAGER_WRITE_TIMEOUT=<duration>                # The read timeout for API requests (default "30s").
 MANAGER_IDLE_TIMEOUT=<duration>                 # The read timeout for API requests (default "300s").
-MANAGER_MAX_BODY_SIZE=<size>                    # Maximum allowed size of a request body (default 65536).
+MANAGER_MAX_BODY_SIZE=<size>                    # Maximum allowed size in bytes of a request body (default 137560).
 MANAGER_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 MANAGER_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 

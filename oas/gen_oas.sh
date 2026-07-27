@@ -30,10 +30,8 @@ cd authlog
 go tool oapi-codegen -config config.yaml openapi.yaml
 cd ..
 
-##### FSC #####
-cd fsc/auth
+##### Settings #####
+cd settings
 go tool oapi-codegen -config config.yaml openapi.yaml
-
-# remove repo
-rm -Rf open-fsc
 cd ..
+
