@@ -1,0 +1,137 @@
+<mxfile host="app.diagrams.net" agent="Claude Code">
+  <diagram name="Manager - Product vs Internal Auth" id="mgrAuth1">
+    <mxGraphModel dx="2448" dy="1283" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" value="OpenFTV Manager: customer-facing EAM vs internal self-EAM" vertex="1">
+          <mxGeometry height="30" width="1620" x="40" y="15" as="geometry" />
+        </mxCell>
+        <mxCell id="sec1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#1A5276;" value="1. Standalone product: apps/pdp — the business-decision PDP (its own binary + container)" vertex="1">
+          <mxGeometry height="25" width="900" x="60" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="pdpBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=13;align=center;verticalAlign=middle;" value="PDP&lt;br&gt;(apps/pdp)&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;runtime decision engine for business/data requests;&lt;br&gt;receives bundles, evaluates live requests;&lt;br&gt;called by the gateway over HTTP (AuthZEN)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="85" width="260" x="158" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="sec2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#1A5276;" value="2. apps/manager — PAP and PIP live only as internal modules (no longer separate services)" vertex="1">
+          <mxGeometry height="25" width="900" x="60" y="236" as="geometry" />
+        </mxCell>
+        <mxCell id="managerContainer" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;dashed=1;verticalAlign=top;align=left;fontSize=13;fontStyle=1;spacingLeft=12;spacingTop=8;" value="apps/manager service" vertex="1">
+          <mxGeometry height="180" width="620" x="80" y="271" as="geometry" />
+        </mxCell>
+        <mxCell id="managerPapBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=13;align=center;verticalAlign=middle;" value="PAP module&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Postgres-backed&lt;br&gt;internal library — not a separate service&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="250" x="110" y="316" as="geometry" />
+        </mxCell>
+        <mxCell id="managerPipBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=13;align=center;verticalAlign=middle;" value="PIP module (customer-facing)&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Postgres/KV-backed&lt;br&gt;internal library — not a separate service&lt;br&gt;serves /v1/attributes, /v1/entities&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="250" x="410" y="316" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeMgrPapPdp" edge="1" parent="1" source="managerPapBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#333333;endArrow=block;exitX=0.5;exitY=0;entryX=0.3;entryY=1;" target="pdpBox" value="push bundle to&#xa;customer&#39;s PDP(s)">
+          <mxGeometry relative="1" x="0.5902" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="235" y="255.5" />
+              <mxPoint x="236" y="255.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sec3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#B45F06;" value="3. Internal self-authorization: how the manager protects its OWN API" vertex="1">
+          <mxGeometry height="25" width="900" x="60" y="471" as="geometry" />
+        </mxCell>
+        <mxCell id="requestActor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;fontSize=13;align=center;verticalAlign=middle;" value="Incoming HTTP request&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;(admin UI / API call)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="180" x="80" y="533" as="geometry" />
+        </mxCell>
+        <mxCell id="pepBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=13;align=center;verticalAlign=middle;" value="PEP&lt;br&gt;(eam/pep)&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;builds Principal / Action / Resource / Context (PARC);&lt;br&gt;validates JWT via OIDC/JWKS&lt;/font&gt;" vertex="1">
+          <mxGeometry height="95" width="230" x="320" y="516" as="geometry" />
+        </mxCell>
+        <mxCell id="authenticatorBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=13;align=center;verticalAlign=middle;" value="Authenticator&lt;br&gt;(eam/authentication)&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;bcrypt / api-key / none&lt;br&gt;(only if authorization.authenticate = true)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="230" x="320" y="651" as="geometry" />
+        </mxCell>
+        <mxCell id="authorizerBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=13;align=center;verticalAlign=middle;" value="Authorizer&lt;br&gt;(eam/authorization)&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Authorize(PARC) → Allow/Deny&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="220" x="610" y="581" as="geometry" />
+        </mxCell>
+        <mxCell id="embeddedPdpBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=13;align=center;verticalAlign=middle;" value="Embedded PDP controller&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Cedar&lt;br&gt;compiled into this binary — plain function call,&lt;br&gt;not a network hop&lt;/font&gt;" vertex="1">
+          <mxGeometry height="100" width="250" x="900" y="581" as="geometry" />
+        </mxCell>
+        <mxCell id="internalPipBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=13;align=center;verticalAlign=middle;" value="Internal PIP&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;file-based (pip.store folder)&lt;br&gt;read-only: admin users + roles&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="250" x="900" y="731" as="geometry" />
+        </mxCell>
+        <mxCell id="decisionBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=13;align=center;verticalAlign=middle;" value="Allow → continue&lt;br&gt;Deny → 401/403" vertex="1">
+          <mxGeometry height="70" width="170" x="1210" y="596" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeReqPep" edge="1" parent="1" source="requestActor" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#333333;" target="pepBox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgePepAuth" edge="1" parent="1" source="pepBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;endArrow=block;strokeColor=#333333;" target="authorizerBox" value="PARC">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeAuthenticatorAuth" edge="1" parent="1" source="authenticatorBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;endArrow=block;strokeColor=#333333;" target="authorizerBox" value="auth result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeAuthPdp" edge="1" parent="1" source="authorizerBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;endArrow=block;strokeColor=#333333;" target="embeddedPdpBox" value="Authorize(PARC)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgePdpDecision" edge="1" parent="1" source="embeddedPdpBox" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeColor=#333333;" target="decisionBox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgePdpInternalPip" edge="1" parent="1" source="embeddedPdpBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;endArrow=block;strokeColor=#333333;" target="internalPipBox" value="reads role/user&#xa;data from">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgePdpSharedPap" edge="1" parent="1" source="embeddedPdpBox" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;fontStyle=1;fontColor=#2D6A2D;strokeColor=#82B366;strokeWidth=3;endArrow=block;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=0.97;entryDx=0;entryDy=0;entryPerimeter=0;" value="reads POLICIES from → SAME instance (shared)">
+          <mxGeometry relative="1" x="-0.0356" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1025" y="465" />
+              <mxPoint x="237" y="465" />
+            </Array>
+            <mxPoint x="977" y="595" as="sourcePoint" />
+            <mxPoint x="237" y="413" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeNotSharedPip" edge="1" parent="1" source="internalPipBox" style="edgeStyle=none;html=1;fontSize=11;fontStyle=1;fontColor=#B85450;strokeColor=#B85450;strokeWidth=2;dashed=1;endArrow=none;startArrow=none;" target="managerPipBox" value="✨ NOT shared — two separate, independent data stores">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1025" y="881" />
+              <mxPoint x="535" y="881" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="noteBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#999999;fontSize=11;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;fontStyle=2;" value="Note: apps/pdp remains a standalone product because the gateway that calls it (Kong/Envoy) is a different runtime and can&#39;t embed Go code — it must be reached over HTTP (AuthZEN). PIP and PAP have no such constraint, so they exist only as internal modules inside apps/manager, not standalone services.&lt;br&gt;The manager&#39;s own admin-API authorization always uses its embedded PDP (section 3) — apps/pdp is never called for that." vertex="1">
+          <mxGeometry height="80" width="950" x="80" y="969" as="geometry" />
+        </mxCell>
+        <mxCell id="legendBox" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;fontSize=13;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" value="Legend" vertex="1">
+          <mxGeometry height="150" width="530" x="1089" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="legendSwatch1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;" value="" vertex="1">
+          <mxGeometry height="16" width="24" x="1102" y="938" as="geometry" />
+        </mxCell>
+        <mxCell id="legendLabel1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Customer-facing product code / instance" vertex="1">
+          <mxGeometry height="24" width="380" x="1137" y="933" as="geometry" />
+        </mxCell>
+        <mxCell id="legendSwatch2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" value="" vertex="1">
+          <mxGeometry height="16" width="24" x="1102" y="963" as="geometry" />
+        </mxCell>
+        <mxCell id="legendLabel2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Internal self-authorization (manager protecting itself)" vertex="1">
+          <mxGeometry height="24" width="380" x="1137" y="958" as="geometry" />
+        </mxCell>
+        <mxCell id="legendLine1" edge="1" parent="1" style="html=1;strokeColor=#82B366;strokeWidth=3;endArrow=block;" value="">
+          <mxGeometry height="1" relative="1" width="1" x="1195" y="980" as="geometry">
+            <mxPoint x="1102" y="995" as="sourcePoint" />
+            <mxPoint x="1132" y="995" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legendLabel3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="PDP holds a reference to the SAME PAP instance → no separate copy of the policy store." vertex="1">
+          <mxGeometry height="24" width="380" x="1137" y="985" as="geometry" />
+        </mxCell>
+        <mxCell id="legendLine2" edge="1" parent="1" style="html=1;strokeColor=#B85450;strokeWidth=2;dashed=1;endArrow=none;" value="">
+          <mxGeometry height="1" relative="1" width="1" x="1195" y="1008" as="geometry">
+            <mxPoint x="1102" y="1021" as="sourcePoint" />
+            <mxPoint x="1132" y="1021" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legendLabel4" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Separate / independent instance (not shared)" vertex="1">
+          <mxGeometry height="24" width="380" x="1137" y="1011" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
