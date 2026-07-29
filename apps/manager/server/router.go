@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
@@ -68,6 +69,7 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	v1 := svc.Group(handle.PathV1)
 	s.initLanguages(v1)
 	s.initTags(v1)
+	s.initSettings(v1)
 	s.initPolicies(v1)
 	s.initAttributes(v1)
 	s.initEntities(v1)
@@ -100,6 +102,17 @@ func (s *Services) initTags(group fiber.Router) {
 		Put(handle.PathTag, apis.PutTag).
 		Post(handle.PathTag, apis.PostTag).
 		Delete(handle.PathTag, apis.DeleteTag)
+}
+
+func (s *Services) initSettings(group fiber.Router) {
+	if s.db == nil {
+		return
+	}
+
+	apis := handle.NewSettingsHandler(s.logger, settings.NewSettingsDBWithPool(s.db), s.auth.Authorizer())
+
+	group.Get(handle.PathSettings, apis.GetSettings).
+		Put(handle.PathSettings, apis.PutSettings)
 }
 
 func (s *Services) initPolicies(group fiber.Router) {

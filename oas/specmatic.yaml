@@ -7,4 +7,4 @@ sources:
       - attributes/openapi.yaml
       - bundles/openapi.yaml
       - schema/openapi.yaml
-      - fsc/auth/openapi.yaml
+      - settings/openapi.yaml

@@ -4,18 +4,18 @@ import "time"
 
 // Server contains the configuration variables for the main HTTP(S) service.
 type Server struct {
-	Host         string        `json:"mainHost"             yaml:"svc.host,omitempty"          env:"ADDRESS,HOST"  flag:"address,host,a,h" desc:"Address to use for service (default 0.0.0.0)"      default:"0.0.0.0"`
-	Port         uint16        `json:"mainPort"             yaml:"svc.port,omitempty"          env:"PORT"          flag:"port,p"           desc:"Port to use for service (default 8443)"            default:"8443"`
-	Domain       string        `json:"mainDomain,omitempty" yaml:"svc.domain,omitempty"        env:"DOMAIN"        flag:"domain,d"         desc:"Domain for the service (should match certificate)"`
-	CA           string        `json:"mainCA,omitempty"     yaml:"svc.tls.ca,omitempty"        env:"TLS_CA"        flag:"tls-ca,ca"        desc:"TLS Certificate authority to use for service"`
-	Cert         string        `json:"mainCert,omitempty"   yaml:"svc.tls.cert,omitempty"      env:"TLS_CERT"      flag:"tls-cert,cert"    desc:"TLS certificate to use for service"`
-	Key          string        `json:"mainKey,omitempty"    yaml:"svc.tls.key,omitempty"       env:"TLS_KEY"       flag:"tls-key,key"      desc:"TLS key authority to use for service"`
-	CorsOrigins  string        `json:"mainOrigins"          yaml:"svc.cors.origins,omitempty"  env:"CORS_ORIGINS"  flag:"cors-origins"     desc:"Cors origins (default '*')"                        default:"*"`
-	CorsHeaders  string        `json:"mainHeaders"          yaml:"svc.cors.headers,omitempty"  env:"CORS_HEADERS"  flag:"cors-headers"     desc:"Cors headers (default '*')"                        default:"*"`
-	ReadTimeout  time.Duration `json:"mainReadTimeout"      yaml:"svc.timeout.read,omitempty"  env:"READ_TIMEOUT"  flag:"read-timeout"     desc:"Read timeout for API requests (default 30s)"       default:"30s"`
-	WriteTimeout time.Duration `json:"mainWriteTimeout"     yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout"    desc:"Write timeout for API requests (default 30s)"      default:"30s"`
-	IdleTimeout  time.Duration `json:"mainIdleTimeout"      yaml:"svc.timeout.idle,omitempty"  env:"IDLE_TIMEOUT"  flag:"idle-timeout"     desc:"Idle timeout for API requests (default 300s)"      default:"300s"`
-	MaxBody      int           `json:"mainMaxBody"          yaml:"svc.maxBody,omitempty"       env:"MAX_BODY_SIZE" flag:"max-body"         desc:"Maximum size of request body (default 65536)"      default:"65536"`
+	Host         string        `json:"mainHost"              yaml:"svc.host,omitempty"          env:"ADDRESS,HOST"  flag:"address,host,a,h" desc:"Address to use for service (default 0.0.0.0)"      default:"0.0.0.0"`
+	Port         uint16        `json:"mainPort"              yaml:"svc.port,omitempty"          env:"PORT"          flag:"port,p"           desc:"Port to use for service (default 8443)"            default:"8443"`
+	Domain       string        `json:"mainDomain,omitempty"  yaml:"svc.domain,omitempty"        env:"DOMAIN"        flag:"domain,d"         desc:"Domain for the service (should match certificate)"`
+	CA           string        `json:"mainCA,omitempty"      yaml:"svc.tls.ca,omitempty"        env:"TLS_CA"        flag:"tls-ca,ca"        desc:"TLS Certificate authority to use for service"`
+	Cert         string        `json:"mainCert,omitempty"    yaml:"svc.tls.cert,omitempty"      env:"TLS_CERT"      flag:"tls-cert,cert"    desc:"TLS certificate to use for service"`
+	Key          string        `json:"mainKey,omitempty"     yaml:"svc.tls.key,omitempty"       env:"TLS_KEY"       flag:"tls-key,key"      desc:"TLS key authority to use for service"`
+	CorsOrigins  string        `json:"mainOrigins"           yaml:"svc.cors.origins,omitempty"  env:"CORS_ORIGINS"  flag:"cors-origins"     desc:"Cors origins (default '*')"                        default:"*"`
+	CorsHeaders  string        `json:"mainHeaders"           yaml:"svc.cors.headers,omitempty"  env:"CORS_HEADERS"  flag:"cors-headers"     desc:"Cors headers (default '*')"                        default:"*"`
+	ReadTimeout  time.Duration `json:"mainReadTimeout"       yaml:"svc.timeout.read,omitempty"  env:"READ_TIMEOUT"  flag:"read-timeout"     desc:"Read timeout for API requests (default 30s)"       default:"30s"`
+	WriteTimeout time.Duration `json:"mainWriteTimeout"      yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout"    desc:"Write timeout for API requests (default 30s)"      default:"30s"`
+	IdleTimeout  time.Duration `json:"mainIdleTimeout"       yaml:"svc.timeout.idle,omitempty"  env:"IDLE_TIMEOUT"  flag:"idle-timeout"     desc:"Idle timeout for API requests (default 300s)"      default:"300s"`
+	MaxBody      int           `json:"mainMaxBody"           yaml:"svc.maxBody,omitempty"       env:"MAX_BODY_SIZE" flag:"max-body"         desc:"Maximum size of request body (default 137560)"     default:"137560"`
 }
 
 // InternalServer contains the configuration variables for an internal HTTP(S) service.

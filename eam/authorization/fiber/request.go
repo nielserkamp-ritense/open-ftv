@@ -13,7 +13,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 )
 
 // FormatRequest formats an authorization request from a Fiber/FastHTTP request.
@@ -54,13 +53,13 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 		msg := "authentication failed" // 401
 		log.Error(msg, "path", req.Path(), "err", err)
 
-		return principal, false, server.SendMessageResponse(req, fiber.StatusUnauthorized, msg)
+		return principal, false, fiber.NewError(fiber.StatusUnauthorized, msg)
 
 	case err != nil || resp == nil || !resp.Allowed:
 		msg := "authorization failed" // 403
 		log.Error(msg, "path", req.Path(), "authResponse", resp, "err", err)
 
-		return principal, false, server.SendMessageResponse(req, fiber.StatusForbidden, msg)
+		return principal, false, fiber.NewError(fiber.StatusForbidden, msg)
 
 	default:
 		return principal, true, nil

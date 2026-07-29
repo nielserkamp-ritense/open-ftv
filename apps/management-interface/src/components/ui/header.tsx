@@ -1,11 +1,32 @@
+import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, useSettings } from '@/services/settings'
+
 interface HeaderProps {
     onLogoutHandler: () => void;
 }
 
 export function Header({ onLogoutHandler }: HeaderProps) {
-    return <div className="w-full h-[108px] flex items-center justify-between py-rhc-space-300 px-rhc-space-500 bg-heading-primary border-b border-black">
-        <div>
-            <h1 className="font-light text-[22px] leading-[20px]">OpenFTV beheeromgeving</h1>
+    const { data: settings } = useSettings()
+
+    return <div
+        className="w-full h-[108px] flex items-center justify-between pl-rhc-space-300 pr-rhc-space-500 border-b border-black"
+        style={{ backgroundColor: settings?.headerColor ?? DEFAULT_HEADER_COLOR }}
+    >
+        <div className="flex items-center gap-4 min-w-0 h-full">
+            {settings?.logo && (
+                <div className="h-full flex items-center -ml-6 py-2 pl-2">
+                    <img
+                        src={`data:${settings.logoMediaType};base64,${settings.logo}`}
+                        alt="Logo"
+                        className="h-full w-auto object-contain"
+                    />
+                </div>
+            )}
+            <h1
+                className="font-light text-[22px] leading-[28px] truncate"
+                style={{ color: settings?.titleColor ?? DEFAULT_TITLE_COLOR }}
+            >
+                {settings?.headerTitle ?? DEFAULT_HEADER_TITLE}
+            </h1>
         </div>
         <div className="relative group">
             <button

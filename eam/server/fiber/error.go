@@ -25,7 +25,14 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 			status = e.Code
 		}
 
-		logger.Error("internal server error", "status", status, "error", err)
+		if status >= fiber.StatusInternalServerError {
+			logger.Error("internal server error", "status", status, "error", err)
+		}
+
+		if e != nil && e.Message != "" {
+			return SendMessageResponse(req, status, e.Message)
+		}
+
 		return SendBasicResponse(req, status)
 	}
 }

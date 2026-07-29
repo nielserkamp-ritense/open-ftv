@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicatiesIndexRouteImport } from './routes/publicaties/index'
 import { Route as PoliciesIndexRouteImport } from './routes/policies/index'
 import { Route as LogboekIndexRouteImport } from './routes/logboek/index'
+import { Route as InstellingenIndexRouteImport } from './routes/instellingen/index'
 import { Route as AttributenIndexRouteImport } from './routes/attributen/index'
 import { Route as PoliciesAddRouteImport } from './routes/policies/add'
 import { Route as AttributenToevoegenRouteImport } from './routes/attributen/toevoegen'
@@ -38,6 +39,11 @@ const PoliciesIndexRoute = PoliciesIndexRouteImport.update({
 const LogboekIndexRoute = LogboekIndexRouteImport.update({
   id: '/logboek/',
   path: '/logboek/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstellingenIndexRoute = InstellingenIndexRouteImport.update({
+  id: '/instellingen/',
+  path: '/instellingen/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttributenIndexRoute = AttributenIndexRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen/': typeof AttributenIndexRoute
+  '/instellingen/': typeof InstellingenIndexRoute
   '/logboek/': typeof LogboekIndexRoute
   '/policies/': typeof PoliciesIndexRoute
   '/publicaties/': typeof PublicatiesIndexRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen': typeof AttributenIndexRoute
+  '/instellingen': typeof InstellingenIndexRoute
   '/logboek': typeof LogboekIndexRoute
   '/policies': typeof PoliciesIndexRoute
   '/publicaties': typeof PublicatiesIndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/attributen/toevoegen': typeof AttributenToevoegenRoute
   '/policies/add': typeof PoliciesAddRoute
   '/attributen/': typeof AttributenIndexRoute
+  '/instellingen/': typeof InstellingenIndexRoute
   '/logboek/': typeof LogboekIndexRoute
   '/policies/': typeof PoliciesIndexRoute
   '/publicaties/': typeof PublicatiesIndexRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen/'
+    | '/instellingen/'
     | '/logboek/'
     | '/policies/'
     | '/publicaties/'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen'
+    | '/instellingen'
     | '/logboek'
     | '/policies'
     | '/publicaties'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/attributen/toevoegen'
     | '/policies/add'
     | '/attributen/'
+    | '/instellingen/'
     | '/logboek/'
     | '/policies/'
     | '/publicaties/'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   AttributenToevoegenRoute: typeof AttributenToevoegenRoute
   PoliciesAddRoute: typeof PoliciesAddRoute
   AttributenIndexRoute: typeof AttributenIndexRoute
+  InstellingenIndexRoute: typeof InstellingenIndexRoute
   LogboekIndexRoute: typeof LogboekIndexRoute
   PoliciesIndexRoute: typeof PoliciesIndexRoute
   PublicatiesIndexRoute: typeof PublicatiesIndexRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/logboek'
       fullPath: '/logboek/'
       preLoaderRoute: typeof LogboekIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instellingen/': {
+      id: '/instellingen/'
+      path: '/instellingen'
+      fullPath: '/instellingen/'
+      preLoaderRoute: typeof InstellingenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attributen/': {
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   AttributenToevoegenRoute: AttributenToevoegenRoute,
   PoliciesAddRoute: PoliciesAddRoute,
   AttributenIndexRoute: AttributenIndexRoute,
+  InstellingenIndexRoute: InstellingenIndexRoute,
   LogboekIndexRoute: LogboekIndexRoute,
   PoliciesIndexRoute: PoliciesIndexRoute,
   PublicatiesIndexRoute: PublicatiesIndexRoute,
