@@ -10,6 +10,7 @@ import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, Settin
 import { useCapabilities } from '@/auth/useCapabilities'
 import { OIDC_AUTHORITY } from '@/config/env'
 import { extractPdpUrls, useBundleConfigurations } from '@/services/bundles'
+import { lookupErrorMessage } from '@/utilities/errorMessages'
 
 export const Route = createFileRoute('/instellingen/')({
     component: RouteComponent,
@@ -17,11 +18,6 @@ export const Route = createFileRoute('/instellingen/')({
 
 const NOT_CONFIGURED = 'Niet geconfigureerd'
 const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
-const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
-
-function isValidHexColor(value: string): boolean {
-    return HEX_COLOR_PATTERN.test(value)
-}
 
 // the native color input only accepts a full 6-digit hex value, so fall back
 // to black while the user is still typing a partial/invalid code by hand.
@@ -93,14 +89,6 @@ function SettingsForm({ initial }: { initial: Settings }) {
 
         setErrorMessage(null)
 
-        if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
-            setErrorMessage('Logo moet een PNG, JPEG, SVG of WebP-afbeelding zijn.')
-            if (logoInputRef.current) {
-                logoInputRef.current.value = ''
-            }
-            return
-        }
-
         try {
             const base64 = await fileToBase64(file)
             setLogoFileSize(file.size)
@@ -128,26 +116,9 @@ function SettingsForm({ initial }: { initial: Settings }) {
 
         setErrorMessage(null)
 
-        if (!formData.headerTitle) {
-            setErrorMessage('Titel is verplicht')
-            return
-        }
-        if (!formData.headerColor) {
-            setErrorMessage('Kleur is verplicht')
-            return
-        }
-        if (!isValidHexColor(formData.headerColor)) {
-            setErrorMessage('Kleur van de header moet een geldige kleurcode zijn, bijv. #364f78')
-            return
-        }
-        if (!formData.titleColor) {
-            setErrorMessage('Kleur van de titel is verplicht')
-            return
-        }
-        if (!isValidHexColor(formData.titleColor)) {
-            setErrorMessage('Kleur van de titel moet een geldige kleurcode zijn, bijv. #fcfcfc')
-            return
-        }
+        // Logo size can't be validated by the backend before the whole (base64-encoded) body
+        // has already been uploaded, so this check must stay client-side. Everything else is
+        // validated server-side, which returns a Code the Dutch message below is looked up by.
         if (logoFileSize !== null && logoFileSize > MANAGER_MAX_LOGO_SIZE) {
             setErrorMessage(`Logo is te groot (maximaal ${formatMaxLogoSize(MANAGER_MAX_LOGO_SIZE)}).`)
             return
@@ -156,7 +127,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
         try {
             await updateMutation.mutateAsync(formData)
         } catch (err) {
-            setErrorMessage(err instanceof Error ? err.message : 'Instellingen konden niet worden opgeslagen')
+            setErrorMessage(lookupErrorMessage(err))
         }
     }
 
@@ -193,7 +164,6 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 name="headerColor"
                                 value={formData.headerColor}
                                 onChange={handleChange}
-                                placeholder="#364f78"
                                 maxLength={7}
                                 disabled={!isAdmin}
                                 className="max-w-28"
@@ -216,7 +186,6 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 name="titleColor"
                                 value={formData.titleColor}
                                 onChange={handleChange}
-                                placeholder="#364f78"
                                 maxLength={7}
                                 disabled={!isAdmin}
                                 className="max-w-28"

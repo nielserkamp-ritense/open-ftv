@@ -1,0 +1,50 @@
+openapi: 3.0.0
+
+info:
+  title: Shared error response model.
+  version: 1.0.0
+  description: |
+    OpenAPI specification for the error response model shared by all OpenFTV backend services.
+  contact:
+    name: G. Juijn
+    url: https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv
+
+servers:
+  - url: https://localhost:8080/v1
+    description: Local server with TLS.
+
+paths: {}
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      description: Error response model (as defined by RFC9457).
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Identification of the problem.
+        status:
+          type: integer
+          description: Status code of the problem.
+        title:
+          type: string
+          description: Summary of the problem.
+        detail:
+          type: string
+          description: Detailed description of the problem.
+        instance:
+          type: string
+          format: uri
+          description: Identification of the problem instance.
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+
+    ErrorCode:
+      type: string
+      pattern: '^E\d{5}$'
+      example: "E10010"
+      description: |
+        Stable, machine-readable error code (e.g. "E10010") that clients can use to look up
+        their own localized (e.g. Dutch) message. Not part of RFC9457; an OpenFTV extension.

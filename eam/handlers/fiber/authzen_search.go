@@ -176,6 +176,7 @@ func (p *authProcess) searchAuthZEN() error {
 
 	if p.err != nil {
 		p.msg = fmt.Sprintf("AuthZEN %s search failed", p.search.String())
+		p.logger.Error(p.msg, "request", p.parc, "error", p.err)
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 

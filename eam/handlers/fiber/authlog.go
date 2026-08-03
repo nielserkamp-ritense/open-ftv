@@ -33,24 +33,26 @@ func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorizat
 func (h *adlHandler) Search(fc *fiber.Ctx) error {
 	fc.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(fc)
-	if !ok {
+	if _, err := h.authorize(fc); err != nil {
 		return err
 	}
 
-	var requestTypes []decisions.AuthRequestType
-	if requestTypes, err = h.getRequestTypes(fc); err != nil {
+	requestTypes, err := h.getRequestTypes(fc)
+	if err != nil {
+		h.logger.Warn("invalid request types", "path", fc.Path(), "err", err)
 		return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 	}
 
-	var bundles []int64
-	if bundles, err = h.getBundles(fc); err != nil {
+	bundles, err := h.getBundles(fc)
+	if err != nil {
+		h.logger.Warn("invalid bundles filter", "path", fc.Path(), "err", err)
 		return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 	}
 
 	var recent time.Duration
 	if s := convert.AnyToString(fc.Query("recent")); s != "" {
 		if recent, err = time.ParseDuration(s); err != nil {
+			h.logger.Warn("invalid recent duration", "path", fc.Path(), "err", err)
 			return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 		}
 	}
@@ -75,8 +77,10 @@ func (h *adlHandler) Search(fc *fiber.Ctx) error {
 	var resp authlog.AuthlogEntries
 	if resp, err = h.search.Search(fc.UserContext(), c); err != nil {
 		if errors.As(err, &pErr) {
+			h.logger.Warn("invalid search criteria", "path", fc.Path(), "err", err)
 			return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 		}
+		h.logger.Error("authorisation decision log search failed", "path", fc.Path(), "err", err)
 		return server.SendMessageResponse(fc, fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -125,7 +129,7 @@ func (h *adlHandler) getBundles(fc *fiber.Ctx) ([]int64, error) {
 	return out, nil
 }
 
-func (h *adlHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *adlHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 

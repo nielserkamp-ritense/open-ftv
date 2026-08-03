@@ -7,6 +7,8 @@ services:
   mgmt-db:
     image: postgres:15
     container_name: openftv-inapp-db
+    ports:
+      - "5401:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password

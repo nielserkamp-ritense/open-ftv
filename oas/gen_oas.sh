@@ -1,5 +1,10 @@
 #!/bin/bash
 
+##### Shared error response #####
+cd errors
+go tool oapi-codegen -config config.yaml openapi.yaml
+cd ..
+
 ##### AuthZEN #####
 cd authzen
 go tool oapi-codegen -config config.yaml openapi.yaml

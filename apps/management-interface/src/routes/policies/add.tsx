@@ -10,6 +10,7 @@ import {useAddPolicy} from '@/services/policies';
 import {v7 as uuidv7} from 'uuid';
 import { TagsEditor } from "@/components/ui/tags-editor.tsx";
 import { useTags } from '@/services/tags.ts';
+import { lookupErrorMessage, SOURCE_REQUIRED_MESSAGE } from '@/utilities/errorMessages';
 
 export const Route = createFileRoute('/policies/add')({
     component: AddPolicyComponent,
@@ -53,8 +54,8 @@ function AddPolicyComponent() {
         e.preventDefault();
         setError(null);
 
-        if (!formData.description || !formData.language || !formData.data) {
-            setError('All fields are required');
+        if (!formData.data?.trim()) {
+            setError(SOURCE_REQUIRED_MESSAGE);
             return;
         }
 
@@ -83,7 +84,7 @@ function AddPolicyComponent() {
             // Redirect to policies list on success
             await navigate({to: '/policies'});
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add policy');
+            setError(lookupErrorMessage(err));
         }
     };
 

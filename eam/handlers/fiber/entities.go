@@ -17,6 +17,17 @@ import (
 // EntitiesVersion is the full semantic API version for the entity endpoints.
 const EntitiesVersion = AttributesVersion
 
+var (
+	errEntityNotFound     = errors.New("entity not found")
+	errEntityExists       = errors.New("entity already exists")
+	errEntityTypeError    = errors.New("entity type must be filled and less or equal 80 characters")
+	errEntityIDError      = errors.New("entity ID must be filled and less or equal 200 characters")
+	errEntityVersionError = errors.New("entity version must be filled and positive")
+
+	errEntityTypeMismatch = checkIssue{code: "E03005", msg: "entity type mismatch"}
+	errEntityIDMismatch   = checkIssue{code: "E03010", msg: "entity id mismatch"}
+)
+
 // EntitiesHandler represents the interface for handling requests about entities.
 type EntitiesHandler interface {
 	GetEntities(req *fiber.Ctx) error
@@ -30,6 +41,12 @@ type EntitiesHandler interface {
 	DeleteEntity(req *fiber.Ctx) error
 }
 
+type entitiesHandler struct {
+	logger     *slog.Logger
+	cache      *pip.PIP
+	authorizer authorization.Authorizer
+}
+
 // NewEntitiesHandler instantiates a policy handler.
 func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) EntitiesHandler {
 	return &entitiesHandler{logger: logger, cache: pip, authorizer: authorizer}
@@ -39,8 +56,7 @@ func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorizat
 func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -56,14 +72,13 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	uid := models.EntityUID(ns, id)
@@ -74,7 +89,7 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	}
 
 	if e == nil {
-		return h.error(req, fiber.StatusNotFound, entityNotFound)
+		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 	}
 
 	out := e.ToOAS()
@@ -98,14 +113,13 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	list, err2 := h.cache.GetEntityVersions(models.EntityUID(ns, id))
@@ -120,19 +134,18 @@ func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
 func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	e, err2 := h.cache.GetEntityVersion(models.EntityUID(ns, id), version)
@@ -141,7 +154,7 @@ func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 	}
 
 	if e == nil {
-		return h.error(req, fiber.StatusNotFound, attrNotFound)
+		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 	}
 
 	return req.JSON(e)
@@ -151,19 +164,19 @@ func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var e1 *oas.Entity
-	if e1, ok, err = h.checkBody(req, ns, id); !ok || e1 == nil {
-		return err
+	e1, code, err := h.checkBody(req, ns, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
@@ -172,7 +185,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	}
 
 	if prev != nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusConflict, entityExists)
+		return h.error(req, fiber.StatusConflict, errEntityExists)
 	}
 
 	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
@@ -186,19 +199,19 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var e1 *oas.Entity
-	if e1, ok, err = h.checkBody(req, ns, id); !ok || e1 == nil {
-		return err
+	e1, code, err := h.checkBody(req, ns, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
@@ -207,7 +220,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	}
 
 	if prev == nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusNotFound, entityNotFound)
+		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 	}
 
 	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
@@ -221,21 +234,19 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var ns, id string
-	ns, id, ok, err = h.checkUID(req)
-	if !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var e1 *oas.EntityStatus
-	if e1, ok, err = h.checkBodyStatus(req, ns, id); !ok || err != nil {
-		h.logger.Error("failed to read body", "error", err)
-		return err
+	e1, code, err := h.checkBodyStatus(req, ns, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	uid := models.EntityUID(e1.Type, e1.Id)
@@ -257,19 +268,19 @@ func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	e, err2 := h.cache.RestoreEntityVersion(models.EntityUID(ns, id), version, user)
@@ -284,14 +295,14 @@ func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var ns, id string
-	if ns, id, ok, err = h.checkUID(req); !ok {
-		return err
+	ns, id, err := h.checkUID(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	uid := models.EntityUID(ns, id)
@@ -303,7 +314,7 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 
 	if prev == nil {
 		if !req.QueryBool(ParamIgnoreMissing) {
-			return h.error(req, fiber.StatusNotFound, entityNotFound)
+			return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 		} else {
 			return req.JSON(models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
 		}
@@ -315,70 +326,77 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	return req.JSON(prev.ToOAS())
 }
 
-func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, string, bool, error) {
-	ns := req.Params("type")
+func (h *entitiesHandler) checkUID(req *fiber.Ctx) (ns, id string, err error) {
+	ns = req.Params("type")
 	if ns == "" || len(ns) > 80 {
-		return "", "", false, h.error(req, fiber.StatusBadRequest, entityTypeError)
+		return "", "", errEntityTypeError
 	}
 
-	id := req.Params("id")
+	id = req.Params("id")
 	if id == "" || len(id) > 200 {
-		return "", "", false, h.error(req, fiber.StatusBadRequest, entityIDError)
+		return "", "", errEntityIDError
 	}
 
-	return ns, id, true, nil
+	return ns, id, nil
 }
 
-func (h *entitiesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+func (h *entitiesHandler) checkVersion(req *fiber.Ctx) (int, error) {
 	v, err := req.ParamsInt("version")
 	if err != nil {
-		return 0, false, err
+		return 0, err
 	}
 
 	if v <= 0 {
-		return 0, false, h.error(req, fiber.StatusBadRequest, entityVersionError)
+		return 0, errEntityVersionError
 	}
-	return v, true, nil
+
+	return v, nil
 }
 
-func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity, bool, error) {
+// checkBody parses and validates the request body, returning the Code and error to report via
+// badRequest on failure. A nil error means the returned Entity is valid.
+func (h *entitiesHandler) checkBody(req *fiber.Ctx, ns, id string) (*oas.Entity, string, error) {
 	var e oas.Entity
 	if err := req.BodyParser(&e); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(ns, &e.Type, "entity type mismatch").
-		checkIdentifiers(id, &e.Id, "entity id mismatch").
+		checkIdentifiers(ns, &e.Type, errEntityTypeMismatch).
+		checkIdentifiers(id, &e.Id, errEntityIDMismatch).
+		checkEntityType(e.Type).
 		checkStatus(e.Status).
 		checkTitle(e.Metadata.Title).
 		checkTags(e.Metadata.Tags).
 		checkAttributes(e.Attributes)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &e, true, nil
+
+	return &e, "", nil
 }
 
-func (h *entitiesHandler) checkBodyStatus(req *fiber.Ctx, ns, id string) (*oas.EntityStatus, bool, error) {
+// checkBodyStatus is like checkBody but for the status-only request body.
+func (h *entitiesHandler) checkBodyStatus(req *fiber.Ctx, ns, id string) (*oas.EntityStatus, string, error) {
 	var e oas.EntityStatus
 	if err := req.BodyParser(&e); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(ns, &e.Type, "entity type mismatch").
-		checkIdentifiers(id, &e.Id, "entity id mismatch").
+		checkIdentifiers(ns, &e.Type, errEntityTypeMismatch).
+		checkIdentifiers(id, &e.Id, errEntityIDMismatch).
 		checkStatus(e.Status)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &e, true, nil
+
+	return &e, "", nil
 }
 
-func (h *entitiesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *entitiesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
@@ -387,16 +405,8 @@ func (h *entitiesHandler) error(req *fiber.Ctx, status int, err error) error {
 	return server.SendMessageResponse(req, status, err.Error())
 }
 
-type entitiesHandler struct {
-	logger     *slog.Logger
-	cache      *pip.PIP
-	authorizer authorization.Authorizer
+// badRequest logs a warning and returns a 400 with the given validation error's code and message.
+func (h *entitiesHandler) badRequest(req *fiber.Ctx, code string, err error) error {
+	h.logger.Warn("entity request rejected", "path", req.Path(), "err", err, "status", fiber.StatusBadRequest)
+	return server.SendProblemResponse(req, fiber.StatusBadRequest, code, err.Error())
 }
-
-var (
-	entityNotFound     = errors.New("entity not found")
-	entityExists       = errors.New("entity already exists")
-	entityTypeError    = errors.New("entity type must be filled and less or equal 80 characters")
-	entityIDError      = errors.New("entity ID must be filled and less or equal 200 characters")
-	entityVersionError = errors.New("entity version must be filled and positive")
-)

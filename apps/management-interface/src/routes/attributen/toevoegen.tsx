@@ -7,6 +7,7 @@ import { Heading } from '@/components/ui/heading.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { useState } from 'react'
 import { Attribute, useAddAttribute } from '@/services/attributes'
+import { lookupErrorMessage } from '@/utilities/errorMessages'
 
 export const Route = createFileRoute('/attributen/toevoegen')({
     component: NewAttributeComponent,
@@ -76,11 +77,6 @@ function NewAttributeComponent() {
 
         setErrorMessage(null)
 
-        if (!formData.key) {
-            setErrorMessage('Key is required')
-            return
-        }
-
         try {
             const payload: Attribute = {
                 ...formData,
@@ -94,7 +90,7 @@ function NewAttributeComponent() {
 
             await navigate({ to: '/attributen' })
         } catch (err) {
-            setErrorMessage(err instanceof Error ? err.message : 'Failed to add attribute')
+            setErrorMessage(lookupErrorMessage(err))
         }
     }
 
@@ -111,7 +107,12 @@ function NewAttributeComponent() {
                     <FieldGroup>
                         <Field>
                             <Label>Key</Label>
-                            <Input name="key" value={formData.key} onChange={handleChange} required />
+                            <Input
+                                name="key"
+                                value={formData.key}
+                                onChange={handleChange}
+                                required
+                            />
                             <Description>Unieke sleutel van het attribuut.</Description>
                         </Field>
                         <Field>
@@ -142,7 +143,7 @@ function NewAttributeComponent() {
                     </FieldGroup>
                     <FieldGroup>
                         <Fieldset className={"flex justify-between"}>
-                            <Button type="button" href="/attributen" color={"zinc"}>Discard</Button>
+                            <Button type="button" href="/attributen" color={"zinc"}>Annuleren</Button>
                             <Button type="submit" color={"emerald"} disabled={addMutation.isPending}>
                                 {addMutation.isPending ? 'Saving...' : 'Save'}
                             </Button>

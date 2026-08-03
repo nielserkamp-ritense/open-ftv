@@ -4,6 +4,7 @@
 # we need to update our OpenAPI specs to be compatible first.
 # https://gitdocumentatie.logius.nl/publicatie/api/adr/<version>/media/linter.yaml)
 
+spectral lint -r .spectral.yml errors/openapi.yaml
 spectral lint -r .spectral.yml liveness/openapi.yaml
 spectral lint -r .spectral.yml attributes/openapi.yaml
 spectral lint -r .spectral.yml policies/openapi.yaml

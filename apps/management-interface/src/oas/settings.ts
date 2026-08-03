@@ -72,8 +72,11 @@ export interface components {
              */
             readonly updatedBy?: string;
         };
-        /** @description The response for an error (as defined by RFC9457). */
-        Error: {
+        Error: components["schemas"]["ErrorResponse"];
+        /** @description Error code that clients can use to look up their own localized message. An OpenFTV extension. */
+        ErrorCode: string;
+        /** @description Error response model (as defined by RFC9457). */
+        ErrorResponse: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -90,6 +93,7 @@ export interface components {
              * @description Identification of the problem instance.
              */
             instance?: string;
+            code?: components["schemas"]["ErrorCode"];
         };
     };
     responses: {
@@ -118,7 +122,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Not authorized. */
@@ -132,7 +136,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Access denied. */
@@ -146,7 +150,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Unexpected error. */
@@ -160,7 +164,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["Error"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
     };

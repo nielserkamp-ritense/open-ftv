@@ -2,7 +2,7 @@
 
 all: oas
 
-oas: ## create models for external OAS specs (requires 'oapi-codegen v2.5' to be installed!)
+oas: ## create models for external OAS specs (via go tool oapi-codegen from go.mod)
 	@./gen_oas.sh
 
 lint: ## lint all OpenAPI specs.
