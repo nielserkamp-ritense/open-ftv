@@ -80,6 +80,7 @@ func (h *adlHandler) Search(fc *fiber.Ctx) error {
 			h.logger.Warn("invalid search criteria", "path", fc.Path(), "err", err)
 			return server.SendMessageResponse(fc, fiber.StatusBadRequest, err.Error())
 		}
+
 		h.logger.Error("authorisation decision log search failed", "path", fc.Path(), "err", err)
 		return server.SendMessageResponse(fc, fiber.StatusInternalServerError, err.Error())
 	}
