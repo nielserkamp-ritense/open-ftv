@@ -7,18 +7,16 @@ import {Header} from "@/components/ui/header.tsx";
 import { menuItems } from "@/config/menu";
 import { Suspense } from 'react';
 import {useAuth} from "react-oidc-context";
-import {useCapabilities} from "@/auth/useCapabilities";
 
 
 const RootComponent = () => {
   const auth = useAuth()
-  const { isAdmin } = useCapabilities()
 
   const labelClass = 'text-rhc-sidenav-link-font-size/7 font-rhc-sidenav-link-font-weight'
 
   const renderItem = (item: (typeof menuItems)[number]) => {
     const Icon = item.icon
-    const disabled = item.disabled || (item.adminOnly && !isAdmin)
+    const disabled = item.disabled
     return (
       <SidebarItem
         key={`${item.section}-${item.label}`}

@@ -143,6 +143,7 @@ services:
       VITE_PIP_BASE_URL: "http://localhost:9000"
       VITE_OIDC_AUTHORITY: "http://localhost:8088/realms/openftv"
       VITE_OIDC_CLIENT_ID: "openftv"
+      MANAGER_MAX_LOGO_SIZE: "102400"
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -291,6 +292,7 @@ services:
       VITE_PIP_BASE_URL: "http://localhost:9020"
       VITE_OIDC_AUTHORITY: "http://localhost:8088/realms/openftv"
       VITE_OIDC_CLIENT_ID: "openftv"
+      MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
       - "8082:80"
     depends_on:
@@ -441,6 +443,7 @@ services:
         VITE_PIP_BASE_URL: "http://localhost:9040"
         VITE_OIDC_AUTHORITY: "http://localhost:8088/realms/openftv"
         VITE_OIDC_CLIENT_ID: "openftv"
+        MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
       - "8084:80"
     depends_on:

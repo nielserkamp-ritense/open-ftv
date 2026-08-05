@@ -17,6 +17,13 @@ export type NewDeploymentBody = components['schemas']['NewDeploymentBody'];
 export type DeploymentID = components['parameters']['DeploymentID'];
 export type BundleID = components['parameters']['BundleID'];
 
+/**
+ * Extracts the unique set of PDP target URIs across all bundle configurations.
+ */
+export function extractPdpUrls(configs: BundleConfigsResponse | undefined): string[] {
+  return Array.from(new Set((configs ?? []).flatMap((config) => config.targets.map((target) => target.uri))));
+}
+
 const BUNDLES_QUERY_KEYS = {
   all: ['bundles'] as const,
   statuses: () => [...BUNDLES_QUERY_KEYS.all, 'statuses'] as const,
@@ -54,11 +61,10 @@ export const bundlesService = {
 
   /**
    * Retrieve bundle configurations
-   * Note: The API defines this as a POST without body
    */
   getBundleConfigurations: async (): Promise<BundleConfigsResponse> => {
     return request<BundleConfigsResponse>({
-      method: 'POST',
+      method: 'GET',
       url: '/v1/bundle-configurations',
     });
   },
