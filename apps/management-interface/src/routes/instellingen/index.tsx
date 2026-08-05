@@ -1,16 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Description, Field, FieldGroup, Fieldset, Label } from '@/components/ui/fieldset.tsx'
+import { Description, Field, FieldGroup, Label } from '@/components/ui/fieldset.tsx'
 import { Input } from '@/components/ui/input.tsx'
-import { Heading, Subheading } from '@/components/ui/heading.tsx'
+import { Divider } from '@/components/ui/divider.tsx'
+import { Breadcrumb } from '@/components/ui/breadcrumb.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { useRef, useState } from 'react'
 import { MANAGER_MAX_LOGO_SIZE } from '@/config/env'
 import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, Settings, useSettings, useUpdateSettings } from '@/services/settings'
+import { useCapabilities } from '@/auth/useCapabilities'
+import { OIDC_AUTHORITY } from '@/config/env'
+import { extractPdpUrls, useBundleConfigurations } from '@/services/bundles'
 
 export const Route = createFileRoute('/instellingen/')({
     component: RouteComponent,
 })
 
+const NOT_CONFIGURED = 'Niet geconfigureerd'
 const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
@@ -37,6 +42,16 @@ function fileToBase64(file: File): Promise<string> {
     })
 }
 
+function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+        <div>
+            <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">{title}</h2>
+            <Divider className="mt-2 mb-6" soft />
+            <FieldGroup>{children}</FieldGroup>
+        </div>
+    )
+}
+
 function formatMaxLogoSize(bytes: number): string {
     if (bytes % 1024 === 0) {
         return `${bytes / 1024} KiB`
@@ -55,11 +70,15 @@ function RouteComponent() {
 }
 
 function SettingsForm({ initial }: { initial: Settings }) {
+    const { isAdmin } = useCapabilities()
     const updateMutation = useUpdateSettings()
+    const { data: bundleConfigs } = useBundleConfigurations()
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [formData, setFormData] = useState<Settings>(initial)
     const [logoFileSize, setLogoFileSize] = useState<number | null>(null)
     const logoInputRef = useRef<HTMLInputElement>(null)
+
+    const pdpUrls = extractPdpUrls(bundleConfigs)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -102,6 +121,11 @@ function SettingsForm({ initial }: { initial: Settings }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!isAdmin) {
+            return
+        }
+
         setErrorMessage(null)
 
         if (!formData.headerTitle) {
@@ -138,18 +162,20 @@ function SettingsForm({ initial }: { initial: Settings }) {
 
     return (
         <form onSubmit={(e) => { void handleSubmit(e) }}>
-            <Heading>Instellingen</Heading>
+            <Breadcrumb />
+            <div className="flex items-center justify-between my-4">
+                <h1 className="text-rhc-lintblauw-500 text-[30px] leading-9">Instellingen</h1>
+            </div>
             {errorMessage && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     {errorMessage}
                 </div>
             )}
-            <Fieldset>
-                <Subheading>Huisstijl</Subheading>
-                <FieldGroup>
+            <div className="space-y-12">
+                <SettingsSection title="Huisstijl">
                     <Field>
                         <Label>Titel</Label>
-                        <Input name="headerTitle" value={formData.headerTitle} onChange={handleChange} required maxLength={200} className="max-w-[170ch]" />
+                        <Input name="headerTitle" value={formData.headerTitle} onChange={handleChange} required maxLength={200} className="max-w-[170ch]" disabled={!isAdmin} />
                         <Description>Titel die in de header wordt getoond.</Description>
                     </Field>
                     <Field>
@@ -160,7 +186,8 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 name="headerColor"
                                 value={toColorInputValue(formData.headerColor)}
                                 onChange={handleChange}
-                                className="h-10 w-14 cursor-pointer rounded-md border border-zinc-950/10 dark:border-white/10"
+                                disabled={!isAdmin}
+                                className="h-10 w-14 cursor-pointer rounded-md border border-zinc-950/10 dark:border-white/10 disabled:cursor-not-allowed"
                             />
                             <Input
                                 name="headerColor"
@@ -168,6 +195,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 onChange={handleChange}
                                 placeholder="#364f78"
                                 maxLength={7}
+                                disabled={!isAdmin}
                                 className="max-w-28"
                             />
                         </div>
@@ -181,7 +209,8 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 name="titleColor"
                                 value={toColorInputValue(formData.titleColor)}
                                 onChange={handleChange}
-                                className="h-10 w-14 cursor-pointer rounded-md border border-zinc-950/10 dark:border-white/10"
+                                disabled={!isAdmin}
+                                className="h-10 w-14 cursor-pointer rounded-md border border-zinc-950/10 dark:border-white/10 disabled:cursor-not-allowed"
                             />
                             <Input
                                 name="titleColor"
@@ -189,6 +218,7 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 onChange={handleChange}
                                 placeholder="#364f78"
                                 maxLength={7}
+                                disabled={!isAdmin}
                                 className="max-w-28"
                             />
                         </div>
@@ -211,28 +241,48 @@ function SettingsForm({ initial }: { initial: Settings }) {
                                 onChange={(e) => { void handleLogoChange(e) }}
                                 className="sr-only"
                             />
-                            <Button type="button" color="zinc" onClick={() => logoInputRef.current?.click()}>
-                                Logo kiezen
-                            </Button>
+                            {isAdmin && (
+                                <Button type="button" color="zinc" onClick={() => logoInputRef.current?.click()}>
+                                    Logo kiezen
+                                </Button>
+                            )}
                             {!formData.logo && (
                                 <span className="text-sm text-content-secondary">Geen logo gekozen</span>
                             )}
-                            {formData.logo && (
+                            {formData.logo && isAdmin && (
                                 <Button type="button" color="zinc" onClick={handleRemoveLogo}>Verwijderen</Button>
                             )}
                         </div>
                         <Description>Optioneel. Wordt links in de header getoond, past automatisch binnen de hoogte van de header.</Description>
                     </Field>
-                </FieldGroup>
-                <FieldGroup>
-                    <Fieldset className={'flex justify-between'}>
-                        <Button type="button" href="/" color={'zinc'}>Annuleren</Button>
-                        <Button type="submit" color={'emerald'} disabled={updateMutation.isPending}>
-                            {updateMutation.isPending ? 'Opslaan...' : 'Opslaan'}
-                        </Button>
-                    </Fieldset>
-                </FieldGroup>
-            </Fieldset>
+                </SettingsSection>
+
+                <SettingsSection title="Toegangsbeheer Infrastructuur">
+                    <Field>
+                        <Label>IdP URL</Label>
+                        <Input value={OIDC_AUTHORITY || NOT_CONFIGURED} readOnly disabled className="max-w-[170ch]" />
+                        <Description>Identiteitsprovider waar gebruikers inloggen en hun identiteit wordt geverifieerd.</Description>
+                    </Field>
+                    <Field>
+                        <Label>PDP URL(S)</Label>
+                        <div data-slot="control" className="space-y-2">
+                            {(pdpUrls.length > 0 ? pdpUrls : [NOT_CONFIGURED]).map((url) => (
+                                <Input key={url} value={url} readOnly disabled className="max-w-[170ch]" />
+                            ))}
+                        </div>
+                        <Description>Beleidsbeslissingspunten waar beleidsbundels naar worden gepubliceerd.</Description>
+                    </Field>
+                </SettingsSection>
+            </div>
+
+            <div className="mt-10 flex justify-between">
+                <Button type="button" href="/" color={'zinc'}>{isAdmin ? 'Annuleren' : 'Terug'}</Button>
+                {isAdmin && (
+                    <Button type="submit" color={'emerald'} disabled={updateMutation.isPending}>
+                        {updateMutation.isPending ? 'Opslaan...' : 'Opslaan'}
+                    </Button>
+                )}
+            </div>
         </form>
     )
 }

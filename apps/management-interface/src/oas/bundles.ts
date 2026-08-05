@@ -51,13 +51,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
          * Retrieve bundle configurations.
          * @description Endpoint to retrieve the list of bundle configurations.
          */
-        post: operations["get-configurations"];
+        get: operations["get-configurations"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

@@ -61,7 +61,7 @@ paths:
           $ref: "#/components/responses/UnexpectedError"
 
   /bundle-configurations:
-    post:
+    get:
       operationId: "get-configurations"
       summary: Retrieve bundle configurations.
       description: Endpoint to retrieve the list of bundle configurations.

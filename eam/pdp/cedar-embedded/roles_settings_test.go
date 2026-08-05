@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestSettingsAuthorization verifies settings_admin_only.cedar.
+// TestSettingsAuthorization verifies settings_write_admin_only.cedar.
 func TestSettingsAuthorization(t *testing.T) {
-	c := managerPDP(t) // loads testdata/apps/manager/policies/cedar (incl. settings_admin_only.cedar)
+	c := managerPDP(t) // loads testdata/apps/manager/policies/cedar (incl. settings_write_admin_only.cedar)
 
 	cases := []struct {
 		role, action, path string
