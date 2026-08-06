@@ -1,6 +1,8 @@
 package fiber
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/context"
@@ -41,4 +43,24 @@ func pkValues(req *fiber.Ctx, keys []string) []any {
 		out[i] = req.Params(keys[i])
 	}
 	return out
+}
+
+// pathHasKeys reports whether path declares a named parameter for every one of keys,
+// e.g. "/aanvraag/:id" satisfies key "id" but the collection path "/aanvragen" does not.
+func pathHasKeys(path string, keys []string) bool {
+	params := make(map[string]bool)
+
+	for _, segment := range strings.Split(path, "/") {
+		if name, ok := strings.CutPrefix(segment, ":"); ok {
+			params[strings.TrimSuffix(name, "?")] = true
+		}
+	}
+
+	for _, key := range keys {
+		if !params[key] {
+			return false
+		}
+	}
+
+	return true
 }

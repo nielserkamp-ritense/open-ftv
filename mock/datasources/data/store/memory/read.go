@@ -122,6 +122,45 @@ func (s *storage) GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (
 	return out.MatchFields(ctx.Matcher), &modifiedSince, nil
 }
 
+// GetEndpointByPK implements the Reader interface.
+//
+// It returns a single record identified by its primary key, running it through the same table
+// transformations, joins and field matching that GetEndpoint applies, so both GET paths stay
+// consistent (e.g. a table with masking/pseudonymisation transforms behaves the same either way).
+func (s *storage) GetEndpointByPK(e *schema.Endpoint, pk []any, ctx *context.RequestContext) (*models.Row, *time.Time, error) {
+	if e.Primary() == nil {
+		return nil, nil, fmt.Errorf("endpoint: primary table missing")
+	}
+
+	primary, err := s.GetTable(e.Primary().FQID())
+	if err != nil {
+		return nil, nil, fmt.Errorf("endpoint: %w", err)
+	}
+
+	rec, modifiedSince, err := s.SelectPK(e.Primary().FQID(), pk, nil)
+	if err != nil {
+		return nil, nil, fmt.Errorf("endpoint: %w", err)
+	}
+
+	out := models.Rows{primary.AddTransformations(rec, ctx.Params)}
+
+	if list := e.Joins; len(list) > 0 {
+		if out, err = joins.ProcessJoins(out, primary, list, ctx, s); err != nil {
+			return nil, nil, fmt.Errorf("endpoint: %w", err)
+		}
+
+		ms := s.determineModifiedSince(*modifiedSince, list)
+		modifiedSince = &ms
+	}
+
+	out = out.MatchFields(ctx.Matcher)
+	if len(out) == 0 {
+		return nil, nil, fmt.Errorf("endpoint: primary key %v not found", pk)
+	}
+
+	return out[0], modifiedSince, nil
+}
+
 func (s *storage) determineModifiedSince(in time.Time, list []*schema.Join) time.Time {
 	out := in
 
