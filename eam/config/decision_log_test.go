@@ -12,6 +12,84 @@ import (
 	"gitlab.com/gjuyn/go-config/config"
 )
 
+func TestADLMigration(t *testing.T) {
+	const migrateCfg = `
+log:
+  decisions:
+    type: "postgresql"
+    migrate:
+      source: "/tmp/adl-scripts"
+      steps: 2
+      auto: true
+`
+
+	dir := t.TempDir()
+
+	testCases := []struct {
+		name       string
+		data       string
+		env        map[string]string
+		wantSource string
+		wantSteps  int
+		wantAuto   bool
+	}{
+		{
+			// the ADL scripts are embedded, so no configuration is needed to migrate.
+			name:       "embedded scripts by default",
+			data:       "log:\n  decisions:\n    type: \"postgresql\"\n",
+			wantSource: "*embed*",
+		},
+		{
+			name:       "from file",
+			data:       migrateCfg,
+			wantSource: "/tmp/adl-scripts",
+			wantSteps:  2,
+			wantAuto:   true,
+		},
+		{
+			name:       "environment overrides file",
+			data:       migrateCfg,
+			env:        map[string]string{"CFG_ADL_MIGRATE_SOURCE": "*embed*", "CFG_ADL_MIGRATE_STEPS": "-1"},
+			wantSource: "*embed*",
+			wantSteps:  -1,
+			wantAuto:   true,
+		},
+		{
+			// an emptied source is how migrating the ADL is switched off.
+			name:       "empty environment value disables the default",
+			data:       "log:\n  decisions:\n    type: \"postgresql\"\n",
+			env:        map[string]string{"CFG_ADL_MIGRATE_SOURCE": ""},
+			wantSource: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
+
+			file := dir + tc.name + ".yaml"
+			require.NoError(t, os.WriteFile(file, []byte(tc.data), 0o600))
+
+			cfg := &DecisionLog{}
+
+			opts := []config.Option{
+				yaml.FilesYAML(file),
+				config.WithArgs(),
+				config.EnvironmentPrefix("CFG_"),
+				config.AppName("test 1.0"),
+				config.NoHelpOnError(),
+			}
+
+			require.NoError(t, config.LoadConfig(cfg, opts...))
+			assert.Equal(t, tc.wantSource, cfg.MigrateSource)
+			assert.Equal(t, tc.wantSteps, cfg.MigrateSteps)
+			assert.Equal(t, tc.wantAuto, cfg.MigrateAuto)
+		})
+	}
+}
+
 func TestOpenTel(t *testing.T) {
 	t.Parallel()
 

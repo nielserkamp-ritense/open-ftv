@@ -1,19 +1,14 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"strings"
-
-	migrate2 "github.com/golang-migrate/migrate/v4"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions/migrations"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	cedar_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
@@ -22,7 +17,6 @@ import (
 	opa_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/migrate"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 )
 
@@ -165,45 +159,26 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 	return adl.New(logger), nil
 }
 
+// checkMigrations migrates the ADL database, which is the only database this app has.
+//
+// The ADL-specific settings (PDP_ADL_MIGRATE_*) take precedence; when they are not given the
+// general migration settings (PDP_MIGRATE_*) are used, which is how this app has always been
+// configured. See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
 func (s *Services) checkMigrations() error {
-	cfg := s.cfg.Migration
-	if cfg.Source == "" || (cfg.Steps == 0 && !cfg.Auto) {
-		return nil
+	adlCfg, cfg := s.cfg.DecisionLog, s.cfg.Migration
+
+	// An explicit ADL source wins; on the default (embedded scripts) the general source is
+	// used, so a PDP configured with PDP_MIGRATE_SOURCE=file://... keeps working unchanged.
+	// An explicitly emptied ADL source switches migration off.
+	source := adlCfg.MigrateSource
+	if strings.EqualFold(source, "*embed*") && cfg.Source != "" {
+		source = cfg.Source
 	}
 
-	return s.migrateADL(cfg.Source, cfg.Steps, cfg.Auto)
-}
-
-func (s *Services) migrateADL(source string, steps int, auto bool) (err error) {
-	if auto {
-		steps = 0
+	steps := adlCfg.MigrateSteps
+	if steps == 0 {
+		steps = cfg.Steps
 	}
 
-	switch {
-	case strings.EqualFold(source, "*embed*"):
-		err = migrate.PostgresEmbedded(migrations.PgDecisionLog, s.cfg.PgURL, steps, s.logger)
-
-	default:
-		if !strings.HasPrefix(source, "file://") {
-			source, _ = filepath.Abs(source)
-			source = "file://" + source
-		}
-
-		err = migrate.Postgres(source, s.cfg.PgURL, steps, s.logger)
-	}
-
-	if err != nil && !errors.Is(err, migrate2.ErrNoChange) {
-		s.logger.Error("pdp database migration failed", "auto", auto, "steps", steps, "err", err)
-		return
-	}
-
-	if err == nil {
-		s.logger.Info("pdp database migration completed successfully")
-	} else {
-		s.logger.Info("pdp database migration completed; no changes")
-
-		err = nil
-	}
-
-	return
+	return decisions.Migrate(source, adlCfg.PgURL, steps, adlCfg.MigrateAuto || cfg.Auto, s.logger)
 }

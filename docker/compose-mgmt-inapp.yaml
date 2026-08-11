@@ -67,6 +67,10 @@ services:
       - MANAGER_ADL_TYPE=postgresql
       - MANAGER_ADL_SERVICE_NAME=manager
       - MANAGER_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
+      # No PDP service runs here, so the manager creates the ADL schema itself. Other composes
+      # leave this out and inherit MANAGER_MIGRATE_AUTO (see ADR 0004).
+      - MANAGER_ADL_MIGRATE_AUTO=true
+      - MANAGER_ADL_MIGRATE_SOURCE=*embed*
       # In-process OIDC validation (eam/pep WithJWT, built from these by apps/manager/server/oidc.go).
       # Issuer is the browser/host-facing URL Keycloak stamps into the token (iss);
       # JWKS is fetched in-network (the manager cannot reach the host's localhost:8088).
