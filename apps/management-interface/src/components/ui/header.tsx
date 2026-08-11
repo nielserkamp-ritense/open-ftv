@@ -1,11 +1,16 @@
+import { Link } from '@tanstack/react-router'
+import { useProfile } from '@/auth/useProfile'
 import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, useSettings } from '@/services/settings'
 
 interface HeaderProps {
     onLogoutHandler: () => void;
 }
 
+const menuItemClass = 'w-full flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm/6 text-zinc-950 cursor-pointer hover:bg-blue-500 hover:text-white focus:bg-blue-500 focus:text-white focus:outline-hidden'
+
 export function Header({ onLogoutHandler }: HeaderProps) {
     const { data: settings } = useSettings()
+    const { displayName, initials } = useProfile()
 
     return <div
         className="w-full h-[108px] flex items-center justify-between pl-rhc-space-300 pr-rhc-space-500 border-b border-black"
@@ -32,20 +37,24 @@ export function Header({ onLogoutHandler }: HeaderProps) {
             <button
                 type="button"
                 aria-haspopup="menu"
-                aria-label="Gebruikersmenu"
+                aria-label={`Gebruikersmenu — ${displayName}`}
+                title={displayName}
                 className="w-[40px] h-[40px] bg-background-inverse-primary rounded-md flex items-center justify-center cursor-pointer"
             >
-                <span className="text-white">TW</span>
+                <span className="text-white">{initials}</span>
             </button>
 
             <div className="absolute right-0 top-0 z-50 pt-12 hidden group-hover:block group-focus-within:block">
                 <div className="min-w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-zinc-950/10">
+                    <Link to="/profiel" className={menuItemClass}>
+                        Profiel
+                    </Link>
                     <button
                         type="button"
                         onClick={onLogoutHandler}
-                        className="w-full flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm/6 text-zinc-950 cursor-pointer hover:bg-blue-500 hover:text-white focus:bg-blue-500 focus:text-white focus:outline-hidden"
+                        className={menuItemClass}
                     >
-                        Logout
+                        Uitloggen
                     </button>
                 </div>
             </div>
