@@ -1,5 +1,7 @@
-// Profile claims live in the ID token (scope `profile`), not the access token — the
-// Keycloak realm maps roles into the access token only. See ADR 0002.
+// Profile claims live in the ID token, not the access token — the Keycloak realm maps
+// roles into the access token only. See ADR 0002. `name`/`preferred_username` come from
+// the `profile` scope and `email` from the `email` scope, so both are requested in
+// oidc.ts; an IdP is free to omit a claim whose scope was not asked for.
 export interface ProfileClaims {
   name?: string;
   preferred_username?: string;
