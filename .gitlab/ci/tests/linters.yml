@@ -19,7 +19,7 @@ openapi:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
       changes:
-        compare_to: "main"
+        compare_to: $CI_DEFAULT_BRANCH
         paths:
           - oas/**/*
           - \.gitlab/ci/tests/linters.yml
@@ -58,7 +58,7 @@ golangci-lint:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
       changes:
-        compare_to: "main"
+        compare_to: $CI_DEFAULT_BRANCH
         paths:
           - utilities/**/*
           - utilities-no-ci/**/*

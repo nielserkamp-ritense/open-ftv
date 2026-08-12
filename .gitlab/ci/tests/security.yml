@@ -1,0 +1,228 @@
+npm_security_check:
+  stage: Security
+  image: node:22.17.1-alpine
+  before_script:
+    - cd apps/management-interface
+  script:
+    - npm ci
+    - |
+      set +e
+      npm audit --audit-level=high > npm-audit-report.txt 2>&1
+      NPM_AUDIT_EXIT=$?
+      set -e
+      cat npm-audit-report.txt
+      if [ "$NPM_AUDIT_EXIT" -ne 0 ]; then
+        printf '\e[1;31mWARNING: npm audit found HIGH/CRITICAL vulnerabilities, see report above.\e[0m\n'
+      else
+        echo "npm audit: no HIGH/CRITICAL vulnerabilities found."
+      fi
+      exit 0
+  needs: []
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - apps/management-interface/npm-audit-report.txt
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: $CI_DEFAULT_BRANCH
+        paths:
+          - apps/management-interface/**/*
+          - \.gitlab/ci/tests/security.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+go_security_check:
+  stage: Security
+  image: golang:1.26.5-alpine # matches go.mod
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/.go-cache
+  before_script:
+    - apk add --no-cache git
+    - mkdir -p .go-cache
+    - go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
+    - export PATH="${GOPATH}/bin:${PATH}"
+  script:
+    - |
+      set +e
+      govulncheck ./... > govulncheck-report.txt 2>&1
+      GOVULNCHECK_EXIT=$?
+      set -e
+      cat govulncheck-report.txt
+      if [ "$GOVULNCHECK_EXIT" -ne 0 ]; then
+        printf '\e[1;31mWARNING: govulncheck found vulnerabilities, see report above.\e[0m\n'
+      else
+        echo "govulncheck: no vulnerabilities found."
+      fi
+      exit 0
+  needs: []
+  cache:
+    key: OpenFTV-GoSecurityCheck
+    paths:
+      - .go-cache
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - govulncheck-report.txt
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: $CI_DEFAULT_BRANCH
+        paths:
+          - go.mod
+          - go.sum
+          - utilities/**/*
+          - oas/**/*
+          - eam/**/*
+          - mock/**/*
+          - apps/**/*
+          - migrations/**/*
+          - external/**/*
+          - go.work
+          - \.gitlab/ci/tests/security.yml
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+
+# Checks a CycloneDX SBOM's declared/detected licenses against a list of licenses known to be compatible with
+# EUPL (either EUPL's own Article 5 "Compatible Licences" appendix, see LICENSE.md, or common permissive licenses that never conflict with it).
+.eupl_license_report:
+  script:
+    - &eupl_license_report |
+      jq -r --slurpfile allowed_licenses "${CI_PROJECT_DIR}/.gitlab/ci/tests/scripts/allowed_licenses.json" '
+        ########################################################################
+        # 1. Extract license information from CycloneDX components
+        ########################################################################
+
+        # Convert a component’s license list into a readable string
+        def license_string:
+          (.licenses // [])
+          | map(.license.id // .license.name // .expression // "UNKNOWN")
+          | join(", ");
+
+        # Split SPDX expressions into individual tokens:
+        #   "(MIT OR Apache-2.0)" → ["MIT", "Apache-2.0"]
+        def license_tokens:
+          gsub("[()]"; "")
+          | [splits(",| +(OR|AND) +")]
+          | map(gsub("^\\s+|\\s+$"; "") | select(length > 0));
+
+        # True if *every* license token is in the allowlist
+        def all_tokens_allowed($allowed):
+          all(.[]; . as $t | $allowed | index($t));
+
+        ########################################################################
+        # 2. Emit components whose licenses are missing or incompatible
+        ########################################################################
+        $allowed_licenses[0] as $allowed
+        | .components[]
+        | {
+            name,
+            version,
+            lic: license_string,
+            tokens: (license_string | license_tokens)
+          }
+        | select(
+            .lic == "" or .lic == "UNKNOWN"
+            or (.tokens | all_tokens_allowed($allowed) | not)
+          )
+        | "  - \(.name)@\(.version): \(if .lic == "" then "UNKNOWN" else .lic end)"
+      ' "${SBOM_FILE}" > "${SBOM_FILE%.cdx.json}-license-issues.txt" || true
+
+      ##########################################################################
+      # 4. Human-readable output
+      ##########################################################################
+      if [ -s "${SBOM_FILE%.cdx.json}-license-issues.txt" ]; then
+        printf "\e[1;33mWARNING: %s contains dependencies with non‑EUPL‑compatible or unknown licenses:\e[0m\n" "${SBOM_FILE}"
+        cat "${SBOM_FILE%.cdx.json}-license-issues.txt"
+      else
+        echo "All dependency licenses in ${SBOM_FILE} are EUPL‑compatible."
+      fi
+
+      exit 0
+
+# Generates a CycloneDX SBOM for the Go dependency tree and checks its licenses against the EUPL allowlist.
+go_cyclonedx_sbom:
+  stage: Security
+  image: golang:1.26.5-bookworm
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/.go-cache
+    SBOM_FILE: gl-sbom-go.cdx.json
+  before_script:
+    - apt-get update -qq && apt-get install -y --no-install-recommends git licensecheck
+    - mkdir -p .go-cache
+    - go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.10.0
+    - export PATH="${GOPATH}/bin:${PATH}"
+  script:
+    - cyclonedx-gomod mod -licenses -assert-licenses -json -output "${SBOM_FILE}" . 2>/dev/null
+    - python3 .gitlab/ci/tests/scripts/go_license_report.py --sbom "${SBOM_FILE}" --output "${SBOM_FILE%.cdx.json}-license-issues.txt"
+  needs: []
+  cache:
+    key: OpenFTV-GoCycloneDX
+    paths:
+      - .go-cache
+  artifacts:
+    expire_in: 2 weeks
+    reports:
+      cyclonedx: gl-sbom-go.cdx.json
+    paths:
+      - gl-sbom-go.cdx.json
+      - gl-sbom-go-license-issues.txt
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: $CI_DEFAULT_BRANCH
+        paths:
+          - go.mod
+          - go.sum
+          - utilities/**/*
+          - oas/**/*
+          - eam/**/*
+          - mock/**/*
+          - apps/**/*
+          - migrations/**/*
+          - external/**/*
+          - go.work
+          - \.gitlab/ci/tests/security.yml
+          - \.gitlab/ci/tests/scripts/go_license_report.py
+          - \.gitlab/ci/tests/scripts/allowed_licenses.json
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event"
+
+npm_cyclonedx_sbom:
+  stage: Security
+  image: node:22.17.1-alpine
+  variables:
+    SBOM_FILE: gl-sbom-npm.cdx.json
+  before_script:
+    - apk add --no-cache jq
+    - cd apps/management-interface
+    - npm ci
+  script:
+    - npx --yes @cyclonedx/cyclonedx-npm@6.0.0 --output-format JSON --output-file "${SBOM_FILE}"
+    - *eupl_license_report
+  needs: []
+  artifacts:
+    expire_in: 2 weeks
+    reports:
+      cyclonedx: apps/management-interface/gl-sbom-npm.cdx.json
+    paths:
+      - apps/management-interface/gl-sbom-npm.cdx.json
+      - apps/management-interface/gl-sbom-npm-license-issues.txt
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        compare_to: $CI_DEFAULT_BRANCH
+        paths:
+          - apps/management-interface/**/*
+          - \.gitlab/ci/tests/security.yml
+          - \.gitlab/ci/tests/scripts/allowed_licenses.json
+    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event"
