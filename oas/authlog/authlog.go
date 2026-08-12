@@ -7,6 +7,27 @@ import (
 	apierrors "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
 )
 
+// Defines values for AuthlogEntryStatus.
+const (
+	Error AuthlogEntryStatus = "Error"
+	Ok    AuthlogEntryStatus = "Ok"
+	Unset AuthlogEntryStatus = "Unset"
+)
+
+// Valid indicates whether the value is a known member of the AuthlogEntryStatus enum.
+func (e AuthlogEntryStatus) Valid() bool {
+	switch e {
+	case Error:
+		return true
+	case Ok:
+		return true
+	case Unset:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthlogEntries A set of Authorization Decision Log entries.
 type AuthlogEntries = []AuthlogEntry
 
@@ -18,11 +39,17 @@ type AuthlogEntry struct {
 	// Engine Details of the PDP engine.
 	Engine map[string]interface{} `json:"engine,omitempty"`
 
+	// EventName Logius ADL event_name.
+	EventName string `json:"eventName,omitempty"`
+
 	// Id Unique identifier.
 	Id int64 `json:"id,omitempty"`
 
 	// Information Information (attributes) used during the authorization process.
 	Information map[string]interface{} `json:"information,omitempty"`
+
+	// ParentSpanId W3C parent span identifier when this record is a child span.
+	ParentSpanId string `json:"parentSpanId,omitempty"`
 
 	// Policies Unique identifier of the policy bundle used during the authorization process.
 	Policies string `json:"policies,omitempty"`
@@ -36,12 +63,21 @@ type AuthlogEntry struct {
 	// Response AuthZEN response.
 	Response map[string]interface{} `json:"response,omitempty"`
 
-	// SpanId W3C span identifier from the authorization request.
+	// SpanId W3C span identifier for this log record.
 	SpanId string `json:"spanId,omitempty"`
+
+	// Status Logius ADL evaluation status.
+	Status AuthlogEntryStatus `json:"status,omitempty"`
+
+	// Timestamp Milliseconds since Unix epoch when the decision was made.
+	Timestamp int64 `json:"timestamp,omitempty"`
 
 	// TraceId W3C trace identifier from the authorization request.
 	TraceId string `json:"traceId,omitempty"`
 }
+
+// AuthlogEntryStatus Logius ADL evaluation status.
+type AuthlogEntryStatus string
 
 // ActionName defines model for ActionName.
 type ActionName = string

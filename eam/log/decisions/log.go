@@ -51,11 +51,20 @@ func (l *Logger) Shutdown(ctx context.Context) error {
 
 // Decision writes an authorization decision to the log.
 func (l *Logger) Decision(ctx context.Context, d *Decision) error {
-	_, span := l.ot.StartSpan(ctx, "test", trace.WithTimestamp(d.Timestamp))
+	if d.EventName == "" && d.RequestType != 0 {
+		d.EventName = d.RequestType.EventName()
+	}
+	if d.Status == "" {
+		d.Status = StatusUnset
+	}
+
+	_, span := l.ot.StartSpan(ctx, d.EventName, trace.WithTimestamp(d.Timestamp))
 
 	span.SetAttributes(
 		attribute.Int64("request_type", int64(d.RequestType)),
 		attribute.Int64("policies", int64(d.Policies)),
+		attribute.String("event_name", d.EventName),
+		attribute.String("status", string(d.Status)),
 	)
 
 	if d.TraceID != "" {
@@ -64,21 +73,23 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 	if d.SpanID != "" {
 		span.SetAttributes(attribute.String("span_id", d.SpanID))
 	}
-
-	if d.Request != nil {
-		request, err := formatAny(d.Request)
-		if err != nil {
-			return err
-		}
-		span.SetAttributes(attribute.String("request", request))
+	if d.ParentSpanID != "" {
+		span.SetAttributes(attribute.String("parent_span_id", d.ParentSpanID))
 	}
 
-	if d.Response != nil {
-		response, err := formatAny(d.Response)
+	if d.Request != nil || d.Response != nil {
+		body, err := formatAny(BodyFromDecision(d))
 		if err != nil {
 			return err
 		}
-		span.SetAttributes(attribute.String("response", response))
+		attrs, err := formatAny(DefaultADLAttributes())
+		if err != nil {
+			return err
+		}
+		span.SetAttributes(
+			attribute.String("body", body),
+			attribute.String("attributes", attrs),
+		)
 	}
 
 	if d.Information != nil {

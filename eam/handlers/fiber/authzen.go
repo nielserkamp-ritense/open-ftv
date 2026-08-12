@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +13,7 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
@@ -99,27 +99,44 @@ func processHeaders(fc *fiber.Ctx) {
 }
 
 func processTraceParent(fc *fiber.Ctx) {
-	if s := strings.ToLower(fc.Get(models.HeaderTraceState)); traceParentRX.MatchString(s) {
-		list := traceParentRX.FindStringSubmatch(s)
-
-		if list[1] == "00" { // we only support version 00 for now.
-			if traceID := list[2]; traceID != invalidTraceID {
-				// ignoring the sampled flag.
-				spanID := list[3]
-
-				ctx := fc.UserContext()
-				ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
-				ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
-				fc.SetUserContext(ctx)
-			}
+	incoming := strings.TrimSpace(fc.Get(models.HeaderTraceParent))
+	if incoming != "" {
+		if tc, ok := models.ParseTraceParent(incoming); ok {
+			applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
+			return
 		}
 	}
+
+	_, tc := models.NewTraceParent()
+	applyDecisionTrace(fc, tc.TraceID, "", tc.SpanID)
 }
 
-var (
-	traceParentRX  = regexp.MustCompile("^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$")
-	invalidTraceID = strings.Repeat("0", 32)
-)
+func applyDecisionTrace(fc *fiber.Ctx, traceID, parentSpanID, spanID string) {
+	ctx := fc.UserContext()
+	ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
+	ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
+	if parentSpanID != "" {
+		ctx = context.WithValue(ctx, models.AttrParentSpanID, parentSpanID)
+	}
+	fc.SetUserContext(ctx)
+}
+
+func applyTraceParent(fc *fiber.Ctx, traceParent string) {
+	tc, ok := models.ParseTraceParent(traceParent)
+	if !ok {
+		return
+	}
+	applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
+}
+
+func applyTraceFromContext(fc *fiber.Ctx, attrs *models.AttributeSet) {
+	if attrs == nil || convert.AnyToString(fc.UserContext().Value(models.AttrTraceID)) != "" {
+		return
+	}
+	if tp := convert.AnyToString(attrs.GetAttributeValue(models.AttrTraceParent)); tp != "" {
+		applyTraceParent(fc, models.ResolveTraceParent(tp))
+	}
+}
 
 func prepareResponseHeaders(fc *fiber.Ctx) {
 	fc.Set(HeaderVersion, AuthZENVersion)

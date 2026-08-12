@@ -2,7 +2,6 @@ package decisions
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"strings"
 	"time"
@@ -65,10 +64,10 @@ func (pl *pgLogger) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySp
 	return nil
 }
 
-const sql = "INSERT INTO decision (created,trace_id,span_id,request_type,policies,request,response,information,engine) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)"
+const sql = "INSERT INTO decision (created,timestamp,trace_id,span_id,parent_span_id,event_name,status,request_type,policies,body,attributes,information,engine) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)"
 
 func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision {
-	d := Decision{Timestamp: timestamp}
+	d := Decision{Timestamp: timestamp, Status: StatusUnset}
 
 	for _, item := range attrs {
 		switch strings.ToLower(string(item.Key)) {
@@ -80,10 +79,14 @@ func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision
 			d.TraceID = item.Value.AsString()
 		case "span_id":
 			d.SpanID = item.Value.AsString()
-		case "request":
-			d.Request = []byte(item.Value.AsString())
-		case "response":
-			d.Response = []byte(item.Value.AsString())
+		case "parent_span_id":
+			d.ParentSpanID = item.Value.AsString()
+		case "event_name":
+			d.EventName = item.Value.AsString()
+		case "status":
+			d.Status = Status(item.Value.AsString())
+		case "body":
+			applyBodyAttribute(item.Value.AsString(), &d)
 		case "information":
 			d.Information = []byte(item.Value.AsString())
 		case "engine":
@@ -91,30 +94,40 @@ func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision
 		}
 	}
 
+	if d.EventName == "" && d.RequestType != 0 {
+		d.EventName = d.RequestType.EventName()
+	}
+	if d.Status == "" {
+		d.Status = StatusUnset
+	}
+
 	return &d
 }
 
 func decisionToParms(d *Decision) []any {
-	traceID2, _ := hex.DecodeString(d.TraceID)
-	spanID2, _ := hex.DecodeString(d.SpanID)
+	if d.Status == "" {
+		d.Status = StatusUnset
+	}
+	if d.EventName == "" && d.RequestType != 0 {
+		d.EventName = d.RequestType.EventName()
+	}
 
 	params := []any{
 		d.Timestamp,
-		traceID2,
-		spanID2,
+		int64(d.Timestamp.UnixMilli()),
+		nullableHex(d.TraceID),
+		nullableHex(d.SpanID),
+		nullableHex(d.ParentSpanID),
+		d.EventName,
+		string(d.Status),
 		int64(d.RequestType),
 		int64(d.Policies),
 	}
 
-	if d.Request != nil {
-		params = append(params, d.Request)
+	if body := BodyFromDecision(d); body != nil {
+		params = append(params, body, DefaultADLAttributes())
 	} else {
-		params = append(params, nil)
-	}
-	if d.Response != nil {
-		params = append(params, d.Response)
-	} else {
-		params = append(params, nil)
+		params = append(params, nil, nil)
 	}
 	if d.Information != nil {
 		params = append(params, d.Information)
@@ -128,6 +141,14 @@ func decisionToParms(d *Decision) []any {
 	}
 
 	return params
+}
+
+func nullableHex(s string) any {
+	s = strings.ToLower(strings.TrimSpace(s))
+	if s == "" {
+		return nil
+	}
+	return s
 }
 
 // Shutdown implements the SpanSyncer interface.

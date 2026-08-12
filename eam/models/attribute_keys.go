@@ -33,12 +33,12 @@ const (
 	AttrRoles           = "roles"
 	AttrRvvaID          = "rvva_id"
 	AttrScheme          = "scheme"
+	AttrParentSpanID    = "parent_span_id"
 	AttrSpanID          = "span_id"
 	AttrTaak            = "taak"
 	AttrTime            = "time"
 	AttrTraceID         = "trace_id"
 	AttrTraceParent     = "traceparent" // https://www.w3.org/TR/trace-context/
-	AttrTraceState      = "tracestate"  // https://www.w3.org/TR/trace-context/
 	AttrValid           = "valid"
 	AttrZaakType        = "zaak_type"
 )

@@ -45,6 +45,24 @@ var translate = map[string]AuthRequestType{
 	"search_resource": SearchResourceEndpoint,
 }
 
+// EventName returns the Logius ADL event_name for the request type.
+func (t AuthRequestType) EventName() string {
+	switch t {
+	case EvaluationEndpoint:
+		return "adl.access_evaluation"
+	case EvaluationsEndpoint:
+		return "adl.access_evaluations"
+	case SearchSubjectEndpoint:
+		return "adl.search_subject"
+	case SearchActionEndpoint:
+		return "adl.search_action"
+	case SearchResourceEndpoint:
+		return "adl.search_resource"
+	default:
+		return ""
+	}
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *AuthRequestType) UnmarshalJSON(b []byte) error {
 	*t = 0

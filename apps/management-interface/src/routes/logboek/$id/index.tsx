@@ -71,6 +71,15 @@ function RouteComponent() {
                         
                         <DescriptionTerm>Tijdstempel</DescriptionTerm>
                         <DescriptionDetails>{entry.created ? formatDateTime(entry.created) : 'Onbekend'}</DescriptionDetails>
+
+                        <DescriptionTerm>Timestamp (ms)</DescriptionTerm>
+                        <DescriptionDetails>{entry.timestamp ?? '-'}</DescriptionDetails>
+
+                        <DescriptionTerm>Event</DescriptionTerm>
+                        <DescriptionDetails>{entry.eventName ?? '-'}</DescriptionDetails>
+
+                        <DescriptionTerm>Status</DescriptionTerm>
+                        <DescriptionDetails>{entry.status ?? '-'}</DescriptionDetails>
                         
                         <DescriptionTerm>Request Type</DescriptionTerm>
                         <DescriptionDetails>{entry.requestType}</DescriptionDetails>
@@ -83,6 +92,9 @@ function RouteComponent() {
                         
                         <DescriptionTerm>Span ID</DescriptionTerm>
                         <DescriptionDetails>{entry.spanId ?? '-'}</DescriptionDetails>
+
+                        <DescriptionTerm>Parent Span ID</DescriptionTerm>
+                        <DescriptionDetails>{entry.parentSpanId ?? '-'}</DescriptionDetails>
                         
                         {entry.information && Object.keys(entry.information).length > 0 && (
                             <>

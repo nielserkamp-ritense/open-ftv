@@ -49,17 +49,21 @@ func (l *ADL) SearchResource(ctx context.Context, timestamp time.Time, req *oas.
 func (l *ADL) write(ctx context.Context, timestamp time.Time, tr decisions.AuthRequestType, req, resp any) error {
 	traceID := convert.AnyToString(ctx.Value(models.AttrTraceID))
 	spanID := convert.AnyToString(ctx.Value(models.AttrSpanID))
+	parentSpanID := convert.AnyToString(ctx.Value(models.AttrParentSpanID))
 
 	return l.logger.Decision(ctx, &decisions.Decision{
-		Timestamp:   timestamp.UTC(),
-		RequestType: tr,
-		Request:     req,
-		Response:    resp,
-		Policies:    l.bundleVersion,
-		Information: l.information,
-		Engine:      l.engine,
-		TraceID:     traceID,
-		SpanID:      spanID,
+		Timestamp:    timestamp.UTC(),
+		RequestType:  tr,
+		EventName:    tr.EventName(),
+		Status:       decisions.StatusUnset,
+		Request:      req,
+		Response:     resp,
+		Policies:     l.bundleVersion,
+		Information:  l.information,
+		Engine:       l.engine,
+		TraceID:      traceID,
+		SpanID:       spanID,
+		ParentSpanID: parentSpanID,
 	})
 }
 

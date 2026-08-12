@@ -40,6 +40,9 @@ func (c *Config) Access(kong *pdk.PDK) {
 	headers, _ := kong.Request.GetHeaders(1000)
 	body, _ := kong.Request.GetRawBody()
 
+	traceParent := models.ResolveTraceParent(models.FirstHeader(headers, models.HeaderTraceParent))
+	models.SetHeader(headers, models.HeaderTraceParent, traceParent)
+
 	uri = &url.URL{
 		Scheme:   scheme,
 		Host:     net.JoinHostPort(host, strconv.Itoa(port)),
@@ -90,6 +93,7 @@ func (c *Config) Access(kong *pdk.PDK) {
 		c.reportError(kong, err2)
 		return
 	}
+	authReq.Header.Set(models.HeaderTraceParent, traceParent)
 
 	resp, err3 := http.DefaultClient.Do(authReq)
 	if err3 != nil {

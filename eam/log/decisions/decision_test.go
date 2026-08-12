@@ -48,7 +48,7 @@ func TestDecision_MarshalJSON(t *testing.T) {
 				Response:    map[string]any{"a": "b"},
 				Policies:    15,
 			},
-			want: fmt.Sprintf(decisionJSON2, now.Format(time.RFC3339)),
+			want: fmt.Sprintf(decisionJSON2, now.Format(time.RFC3339), now.UnixMilli()),
 		},
 		{
 			name: "all",
@@ -63,7 +63,7 @@ func TestDecision_MarshalJSON(t *testing.T) {
 				TraceID:     "341d25f6ce326d77ff3a9004a0f45c2e",
 				SpanID:      "e12fd367f790ae51",
 			},
-			want: fmt.Sprintf(decisionJSON3, now.Format(time.RFC3339)),
+			want: fmt.Sprintf(decisionJSON3, now.Format(time.RFC3339), now.UnixMilli()),
 		},
 		{
 			name: "authzen request/response",
@@ -76,7 +76,7 @@ func TestDecision_MarshalJSON(t *testing.T) {
 				TraceID:     "341d25f6ce326d77ff3a9004a0f45c2e",
 				SpanID:      "e12fd367f790ae51",
 			},
-			want: fmt.Sprintf(decisionJSON4, now.Format(time.RFC3339)),
+			want: fmt.Sprintf(decisionJSON4, now.Format(time.RFC3339), now.UnixMilli()),
 		},
 		{
 			name: "bad request",
@@ -125,7 +125,7 @@ func TestDecision_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name: "minimum",
-			data: fmt.Sprintf(decisionJSON2, now.Format(time.RFC3339)),
+			data: fmt.Sprintf(decisionJSON2, now.Format(time.RFC3339), now.UnixMilli()),
 			want: &Decision{
 				Timestamp:   now,
 				RequestType: EvaluationEndpoint,
@@ -136,7 +136,7 @@ func TestDecision_UnmarshalJSON(t *testing.T) {
 		},
 		{
 			name: "authzen request/response",
-			data: fmt.Sprintf(decisionJSON4, now.Format(time.RFC3339)),
+			data: fmt.Sprintf(decisionJSON4, now.Format(time.RFC3339), now.UnixMilli()),
 			want: &Decision{
 				Timestamp:   now,
 				RequestType: EvaluationEndpoint,
@@ -175,10 +175,10 @@ func TestDecision_UnmarshalJSON(t *testing.T) {
 
 const (
 	decisionJSON1 = `{"timestamp":"0001-01-01T00:00:00Z","request_type":"???","request":null,"response":null,"policies":0}`
-	decisionJSON2 = `{"timestamp":"%s","request_type":"evaluation","request":{"x":"y"},"response":{"a":"b"},"policies":15}`
-	decisionJSON3 = `{"timestamp":"%s","request_type":"evaluation","request":{"x":"y"},"response":{"a":"b"},"policies":15,"information":{"z":123},` +
+	decisionJSON2 = `{"timestamp":"%s","timestamp_ms":%d,"request_type":"evaluation","request":{"x":"y"},"response":{"a":"b"},"policies":15}`
+	decisionJSON3 = `{"timestamp":"%s","timestamp_ms":%d,"request_type":"evaluation","request":{"x":"y"},"response":{"a":"b"},"policies":15,"information":{"z":123},` +
 		`"engine":{"c":true},"trace_id":"341d25f6ce326d77ff3a9004a0f45c2e","span_id":"e12fd367f790ae51"}`
-	decisionJSON4 = `{"timestamp":"%s","request_type":"evaluation","request":{"action":{"name":"GET"},"context":{"x":"hello world","y":12345,"z":true},` +
+	decisionJSON4 = `{"timestamp":"%s","timestamp_ms":%d,"request_type":"evaluation","request":{"action":{"name":"GET"},"context":{"x":"hello world","y":12345,"z":true},` +
 		`"resource":{"id":"https://api.myorg.nl/v1/data","type":"api"},"subject":{"id":"0011","type":"gebruiker"}},` +
 		`"response":{"context":{"reason_admin":{"en-AU":"all good mate"},"reason_user":{"nl":"toegang verleend"}},"decision":true},` +
 		`"policies":15,"trace_id":"341d25f6ce326d77ff3a9004a0f45c2e","span_id":"e12fd367f790ae51"}`

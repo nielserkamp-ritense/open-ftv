@@ -19,7 +19,6 @@ const (
 	HeaderRvvaID           = "dpl-processing-activity-id"
 	HeaderTaak             = "taak"
 	HeaderTraceParent      = "traceparent" // https://www.w3.org/TR/trace-context/
-	HeaderTraceState       = "tracestate"  // https://www.w3.org/TR/trace-context/
 	HeaderXForwardedFor    = "x-forwarded-for"
 	HeaderZaakType         = "zaak-type"
 )

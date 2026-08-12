@@ -30,7 +30,7 @@ func (p *authProcess) finish() {
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		p.log()
 	}
-	if p.adl != nil {
+	if p.adl != nil && p.authReq != nil && p.authResp != nil {
 		p.logDecision(p.fc.UserContext())
 	}
 }

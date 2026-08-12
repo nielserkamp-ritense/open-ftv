@@ -53,6 +53,9 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now().UTC()
+	ms := now.UnixMilli()
+	base := []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, nil}
+	adlAttrs := DefaultADLAttributes()
 
 	testCases := []struct {
 		name       string
@@ -64,71 +67,88 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 		{
 			name:       "only timestamp",
 			timestamp:  now,
-			want:       Decision{Timestamp: now},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(0), nil, nil, nil, nil},
+			want:       Decision{Timestamp: now, Status: StatusUnset},
+			wantParams: base,
 		},
 		{
-			name:       "timestamp + request_type (1)",
-			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.Int64("request_type", int64(EvaluationEndpoint))},
-			want:       Decision{Timestamp: now, RequestType: EvaluationEndpoint},
-			wantParams: []any{now, []byte{}, []byte{}, int64(EvaluationEndpoint), int64(0), nil, nil, nil, nil},
+			name:      "timestamp + request_type (1)",
+			timestamp: now,
+			attrs:     []attribute.KeyValue{attribute.Int64("request_type", int64(EvaluationEndpoint))},
+			want: Decision{
+				Timestamp:   now,
+				RequestType: EvaluationEndpoint,
+				EventName:   "adl.access_evaluation",
+				Status:      StatusUnset,
+			},
+			wantParams: []any{now, ms, nil, nil, nil, "adl.access_evaluation", string(StatusUnset), int64(EvaluationEndpoint), int64(0), nil, nil, nil, nil},
 		},
 		{
-			name:       "timestamp + request_type (2)",
-			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.Int64("request_type", int64(SearchActionEndpoint))},
-			want:       Decision{Timestamp: now, RequestType: SearchActionEndpoint},
-			wantParams: []any{now, []byte{}, []byte{}, int64(SearchActionEndpoint), int64(0), nil, nil, nil, nil},
+			name:      "timestamp + request_type (2)",
+			timestamp: now,
+			attrs:     []attribute.KeyValue{attribute.Int64("request_type", int64(SearchActionEndpoint))},
+			want: Decision{
+				Timestamp:   now,
+				RequestType: SearchActionEndpoint,
+				EventName:   "adl.search_action",
+				Status:      StatusUnset,
+			},
+			wantParams: []any{now, ms, nil, nil, nil, "adl.search_action", string(StatusUnset), int64(SearchActionEndpoint), int64(0), nil, nil, nil, nil},
 		},
 		{
 			name:       "timestamp + policies",
 			timestamp:  now,
 			attrs:      []attribute.KeyValue{attribute.Int64("policies", int64(55))},
-			want:       Decision{Timestamp: now, Policies: 55},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(55), nil, nil, nil, nil},
+			want:       Decision{Timestamp: now, Policies: 55, Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(55), nil, nil, nil, nil},
 		},
 		{
 			name:       "timestamp + trace_id",
 			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.String("trace_id", "1234567812345678")},
-			want:       Decision{Timestamp: now, TraceID: "1234567812345678"},
-			wantParams: []any{now, []byte{0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78}, []byte{}, int64(0), int64(0), nil, nil, nil, nil},
+			attrs:      []attribute.KeyValue{attribute.String("trace_id", "12345678123456781234567812345678")},
+			want:       Decision{Timestamp: now, TraceID: "12345678123456781234567812345678", Status: StatusUnset},
+			wantParams: []any{now, ms, "12345678123456781234567812345678", nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, nil},
 		},
 		{
 			name:       "timestamp + span_id",
 			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.String("span_id", "12345678")},
-			want:       Decision{Timestamp: now, SpanID: "12345678"},
-			wantParams: []any{now, []byte{}, []byte{0x12, 0x34, 0x56, 0x78}, int64(0), int64(0), nil, nil, nil, nil},
+			attrs:      []attribute.KeyValue{attribute.String("span_id", "1234567812345678")},
+			want:       Decision{Timestamp: now, SpanID: "1234567812345678", Status: StatusUnset},
+			wantParams: []any{now, ms, nil, "1234567812345678", nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, nil},
 		},
 		{
-			name:       "timestamp + request",
+			name:       "timestamp + parent_span_id",
 			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.String("request", `{"x":123}`)},
-			want:       Decision{Timestamp: now, Request: []byte(`{"x":123}`)},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(0), []byte(`{"x":123}`), nil, nil, nil},
+			attrs:      []attribute.KeyValue{attribute.String("parent_span_id", "abcdefabcdefabcd")},
+			want:       Decision{Timestamp: now, ParentSpanID: "abcdefabcdefabcd", Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, "abcdefabcdefabcd", "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, nil},
 		},
 		{
-			name:       "timestamp + response",
+			name:       "timestamp + body request",
 			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.String("response", `{"x":123}`)},
-			want:       Decision{Timestamp: now, Response: []byte(`{"x":123}`)},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(0), nil, []byte(`{"x":123}`), nil, nil},
+			attrs:      []attribute.KeyValue{attribute.String("body", `{"request":{"x":123}}`)},
+			want:       Decision{Timestamp: now, Request: []byte(`{"x":123}`), Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), map[string]any{"request": []byte(`{"x":123}`)}, adlAttrs, nil, nil},
+		},
+		{
+			name:       "timestamp + body response",
+			timestamp:  now,
+			attrs:      []attribute.KeyValue{attribute.String("body", `{"response":{"x":123}}`)},
+			want:       Decision{Timestamp: now, Response: []byte(`{"x":123}`), Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), map[string]any{"response": []byte(`{"x":123}`)}, adlAttrs, nil, nil},
 		},
 		{
 			name:       "timestamp + information",
 			timestamp:  now,
 			attrs:      []attribute.KeyValue{attribute.String("information", `{"x":123}`)},
-			want:       Decision{Timestamp: now, Information: []byte(`{"x":123}`)},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(0), nil, nil, []byte(`{"x":123}`), nil},
+			want:       Decision{Timestamp: now, Information: []byte(`{"x":123}`), Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, []byte(`{"x":123}`), nil},
 		},
 		{
 			name:       "timestamp + engine",
 			timestamp:  now,
 			attrs:      []attribute.KeyValue{attribute.String("engine", `{"x":123}`)},
-			want:       Decision{Timestamp: now, Engine: []byte(`{"x":123}`)},
-			wantParams: []any{now, []byte{}, []byte{}, int64(0), int64(0), nil, nil, nil, []byte(`{"x":123}`)},
+			want:       Decision{Timestamp: now, Engine: []byte(`{"x":123}`), Status: StatusUnset},
+			wantParams: []any{now, ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, []byte(`{"x":123}`)},
 		},
 	}
 

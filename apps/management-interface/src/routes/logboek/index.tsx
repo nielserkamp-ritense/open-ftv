@@ -50,6 +50,32 @@ function RouteComponent() {
             filter: true,
         },
         {
+            headerName: "Span ID",
+            field: "spanId",
+            resizable: true,
+            cellStyle: {color: 'var(--color-content-secondary)'},
+            filter: true,
+        },
+        {
+            headerName: "Parent Span ID",
+            field: "parentSpanId",
+            resizable: true,
+            cellStyle: {color: 'var(--color-content-secondary)'},
+            filter: true,
+        },
+        {
+            headerName: "Event",
+            field: "eventName",
+            resizable: true,
+            filter: true,
+        },
+        {
+            headerName: "Status",
+            field: "status",
+            resizable: false,
+            filter: true,
+        },
+        {
             headerName: "Tijdstempel",
             field: "created",
             resizable: false,

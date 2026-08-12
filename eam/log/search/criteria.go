@@ -54,6 +54,10 @@ func (c *Criteria) Test() error {
 			errs = append(errs, fmt.Errorf("id search is mutually exclusive with period selection: %s, %s, %s", c.From.String(), c.To.String(), c.Recent.String()))
 		}
 	} else {
+		if c.TraceId != "" && c.From.IsZero() && c.To.IsZero() && c.Recent == 0 {
+			c.To = time.Now().UTC().Add(time.Second)
+			c.From = c.To.AddDate(-5, 0, 0)
+		}
 		if c.To.IsZero() {
 			c.To = time.Now().UTC().Add(time.Second)
 		}
@@ -71,7 +75,9 @@ func (c *Criteria) Test() error {
 		case c.From.Before(time.Now().AddDate(-5, 0, 0)):
 			errs = append(errs, errors.New("selection period must be less than 5 years ago"))
 		case c.From.Add(maxPeriod).Before(c.To):
-			errs = append(errs, fmt.Errorf("selection period cannot be larger than %s", maxPeriod.String()))
+			if c.TraceId == "" {
+				errs = append(errs, fmt.Errorf("selection period cannot be larger than %s", maxPeriod.String()))
+			}
 		}
 	}
 	slices.Sort(c.RequestTypes)

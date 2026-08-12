@@ -28,6 +28,7 @@ func (h *AuthZENAuthorizer) Evaluation(fc *fiber.Ctx) error {
 	p.authReq = req
 
 	p.createRequestAuthZEN(req)
+	applyTraceFromContext(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
 
 	return p.authorizeRequestAuthZEN()

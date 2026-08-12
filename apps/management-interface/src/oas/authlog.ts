@@ -41,6 +41,18 @@ export interface components {
             id?: number;
             /** @description Timestamp the entry was created. */
             created?: string;
+            /**
+             * Format: int64
+             * @description Milliseconds since Unix epoch when the decision was made.
+             */
+            timestamp?: number;
+            /** @description Logius ADL event_name. */
+            eventName?: string;
+            /**
+             * @description Logius ADL evaluation status.
+             * @enum {string}
+             */
+            status?: "Unset" | "Ok" | "Error";
             /** @description Type of AuthZEN request. */
             requestType?: string;
             /** @description Unique identifier of the policy bundle used during the authorization process. */
@@ -55,8 +67,10 @@ export interface components {
             engine?: Record<string, never>;
             /** @description W3C trace identifier from the authorization request. */
             traceId?: string;
-            /** @description W3C span identifier from the authorization request. */
+            /** @description W3C span identifier for this log record. */
             spanId?: string;
+            /** @description W3C parent span identifier when this record is a child span. */
+            parentSpanId?: string;
         };
         /** @description Error code that clients can use to look up their own localized message. An OpenFTV extension. */
         ErrorCode: string;

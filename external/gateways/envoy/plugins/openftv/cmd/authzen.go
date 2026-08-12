@@ -67,6 +67,9 @@ func (server *authServer) authorizeRequest(ctx context.Context, request *auth.Ch
 		req.Headers[k] = []string{v}
 	}
 
+	traceParent := models.ResolveTraceParent(models.FirstHeader(req.Headers, models.HeaderTraceParent))
+	models.SetHeader(req.Headers, models.HeaderTraceParent, traceParent)
+
 	parc := server.pep.PARCFromRequest(&req, func(uid string) (*models.Entity, uint64, error) { return nil, 0, nil })
 
 	authBody := authzen.EvaluationRequest{
@@ -99,6 +102,7 @@ func (server *authServer) authorizeRequest(ctx context.Context, request *auth.Ch
 	if err2 != nil {
 		return fmt.Errorf("error creating authorization request: %w", err2)
 	}
+	authReq.Header.Set(models.HeaderTraceParent, traceParent)
 
 	resp, err3 := http.DefaultClient.Do(authReq)
 	if err3 != nil {
