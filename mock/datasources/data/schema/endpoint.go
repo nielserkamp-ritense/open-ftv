@@ -37,7 +37,7 @@ type Endpoint struct {
 	Datasource  string           // the datasource the endpoint will access.
 	Table       string           // the primary table within the datasource the endpoint will access.
 	Joins       []*Join          // optional joins tables the endpoint will access.
-	Keys        []string         // optional list of keys used for Create, Update, Patch, Delete.
+	Keys        []string         // optional list of keys used for Read, Create, Update, Patch, Delete.
 	Fields      []string         // the fields within the tables the endpoint will access.
 	Filter      map[string]any   // optional fixed filter for the endpoint.
 	// hidden fields

@@ -475,3 +475,105 @@ func TestStorage_GetEndpoint(t *testing.T) {
 		})
 	}
 }
+
+// TestStorage_GetEndpointByPK asserts that GetEndpointByPK runs through the same field-matching
+// pipeline as GetEndpoint, so a single-record lookup by PK is consistent with the list endpoint.
+func TestStorage_GetEndpointByPK(t *testing.T) {
+	s1 := New(mockFDS)
+	require.NotNil(t, s1)
+
+	loadFDS(s1)
+
+	e1 := &schema.Endpoint{
+		Version:     1,
+		Type:        enums.GetMethod,
+		CalledAs:    enums.GetMethod,
+		Path:        "/path/:bsn",
+		FullVersion: "1.0.0",
+		Datasource:  "xyz",
+		Table:       "persoon",
+		Keys:        []string{"bsn"},
+	}
+
+	e4 := &schema.Endpoint{
+		Version:     1,
+		Type:        enums.GetMethod,
+		CalledAs:    enums.GetMethod,
+		Path:        "/path/:bsn",
+		FullVersion: "1.0.0",
+		Datasource:  "brp",
+		Table:       "persoon",
+		Keys:        []string{"bsn"},
+	}
+
+	s1.AddEndpoint(e1)
+	s1.AddEndpoint(e4)
+
+	ctx1, err := context.New(nil, nil, "persoon")
+	require.NoError(t, err)
+	err = ctx1.Filter.Prepare(ds1, nil)
+	require.NoError(t, err)
+
+	ctx4, err4 := context.New(map[string]string{"@fields": "voornaam"}, nil, "persoon")
+	require.NoError(t, err4)
+	err4 = ctx4.Filter.Prepare(ds1, nil)
+	require.NoError(t, err4)
+
+	testCases := []struct {
+		name    string
+		s       store.Storage
+		e       *schema.Endpoint
+		pk      []any
+		ctx     *context.RequestContext
+		wantErr bool
+		want    map[string]any
+	}{
+		{
+			name:    "bad datasource",
+			s:       s1,
+			e:       e1,
+			pk:      []any{"999990287"},
+			ctx:     ctx1,
+			wantErr: true,
+		},
+		{
+			name:    "not found",
+			s:       s1,
+			e:       e4,
+			pk:      []any{"000000000"},
+			ctx:     ctx1,
+			wantErr: true,
+		},
+		{
+			name: "found all fields",
+			s:    s1,
+			e:    e4,
+			pk:   []any{"999990287"},
+			ctx:  ctx1,
+			want: map[string]any{"bsn": "999990287", "voornaam": "Ursula", "achternaam": "Koenders-van Zanten"},
+		},
+		{
+			name: "found - matcher applied like GetEndpoint",
+			s:    s1,
+			e:    e4,
+			pk:   []any{"999990287"},
+			ctx:  ctx4,
+			want: map[string]any{"voornaam": "Ursula"},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, modified, err9 := tc.s.GetEndpointByPK(tc.e, tc.pk, tc.ctx)
+			if tc.wantErr {
+				require.Error(t, err9)
+				require.Nil(t, got)
+				require.Nil(t, modified)
+			} else {
+				require.NoError(t, err9)
+				require.NotNil(t, modified)
+				assert.EqualValues(t, tc.want, got.Data)
+			}
+		})
+	}
+}

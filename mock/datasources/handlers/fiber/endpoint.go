@@ -47,6 +47,10 @@ func (h *endpointHandler) Handle(req *fiber.Ctx) error {
 }
 
 func (h *endpointHandler) handleGet(req *fiber.Ctx) error {
+	if len(h.def.Keys) > 0 && pathHasKeys(h.def.Path, h.def.Keys) {
+		return h.handleGetByPK(req)
+	}
+
 	reqCtx, err := buildRequestContext(req, h.def.Table)
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
@@ -62,6 +66,28 @@ func (h *endpointHandler) handleGet(req *fiber.Ctx) error {
 	}
 
 	return buildContent(req, list, modified)
+}
+
+// handleGetByPK handles a GET endpoint that identifies a single record via
+// path-parameter keys (h.def.Keys), e.g. GET /aanvraag/:id.
+func (h *endpointHandler) handleGetByPK(req *fiber.Ctx) error {
+	pk := pkValues(req, h.def.Keys)
+
+	reqCtx, err := buildRequestContext(req, h.def.Table)
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	if err = reqCtx.Filter.Prepare(h.def.GetDatasource(), h.def.Joins); err != nil {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	row, modified, err := h.s.GetEndpointByPK(h.def, pk, reqCtx)
+	if err != nil {
+		return server.SendMessageResponse(req, fiber.StatusNotFound, err.Error())
+	}
+
+	return buildContent(req, row, modified)
 }
 
 func (h *endpointHandler) handlePost(req *fiber.Ctx) error {
@@ -177,6 +203,10 @@ func (h *endpointHandler) patchRecord(old *models.Row, body map[string]any) (*mo
 }
 
 func (h *endpointHandler) handleDelete(req *fiber.Ctx) error {
+	if len(h.def.Keys) > 0 && !pathHasKeys(h.def.Path, h.def.Keys) {
+		return server.SendMessageResponse(req, fiber.StatusBadRequest, "endpoint path does not declare all configured keys")
+	}
+
 	pk := pkValues(req, h.def.Keys)
 
 	_, _, err := h.s.SelectPK(h.def.Table, pk, nil)

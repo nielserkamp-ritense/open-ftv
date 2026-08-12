@@ -57,4 +57,5 @@ type Reader interface {
 	SelectIX(tableID string, id string, keys []any, matcher matching.FieldMatcher) (models.Rows, *time.Time, error)
 	Search(tableID string, ctx *context.RequestContext) (models.Rows, *time.Time, error)
 	GetEndpoint(e *schema.Endpoint, ctx *context.RequestContext) (models.Rows, *time.Time, error)
+	GetEndpointByPK(e *schema.Endpoint, pk []any, ctx *context.RequestContext) (*models.Row, *time.Time, error)
 }
