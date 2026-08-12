@@ -48,31 +48,34 @@ type AuthlogEntry struct {
 	// Information Information (attributes) used during the authorization process.
 	Information map[string]interface{} `json:"information,omitempty"`
 
-	// ParentSpanId W3C parent span identifier when this record is a child span.
+	// ParentSpanId Logius ADL parent span identifier (W3C Trace Context format), when this record is a child span.
 	ParentSpanId string `json:"parentSpanId,omitempty"`
 
 	// Policies Unique identifier of the policy bundle used during the authorization process.
 	Policies string `json:"policies,omitempty"`
 
-	// Request AuthZEN request.
+	// Request Logius ADL body (adl.core.request); AuthZEN request.
 	Request map[string]interface{} `json:"request,omitempty"`
 
 	// RequestType Type of AuthZEN request.
 	RequestType string `json:"requestType,omitempty"`
 
-	// Response AuthZEN response.
+	// Resource Logius ADL resource; identifies the producer of the log record.
+	Resource map[string]interface{} `json:"resource,omitempty"`
+
+	// Response Logius ADL body (adl.core.response); AuthZEN response.
 	Response map[string]interface{} `json:"response,omitempty"`
 
-	// SpanId W3C span identifier for this log record.
+	// SpanId Logius ADL span identifier (W3C Trace Context format).
 	SpanId string `json:"spanId,omitempty"`
 
 	// Status Logius ADL evaluation status.
 	Status AuthlogEntryStatus `json:"status,omitempty"`
 
-	// Timestamp Milliseconds since Unix epoch when the decision was made.
+	// Timestamp Logius ADL timestamp; milliseconds since Unix epoch when the decision was made.
 	Timestamp int64 `json:"timestamp,omitempty"`
 
-	// TraceId W3C trace identifier from the authorization request.
+	// TraceId Logius ADL trace identifier (W3C Trace Context format).
 	TraceId string `json:"traceId,omitempty"`
 }
 
@@ -186,12 +189,12 @@ type GetAdlEntriesParams struct {
 	// Duplicate values are not allowed.
 	Policies Policies `form:"policies,omitempty" json:"policies,omitempty"`
 
-	// TraceId Filter entries with a matching W3C trace identifier.
+	// TraceId Filter entries with a matching Logius ADL trace identifier (W3C Trace Context format).
 	//
 	// Must be exactly 32 characters in hexadecimal.
 	TraceId TraceId `form:"traceId,omitempty" json:"traceId,omitempty"`
 
-	// SpanId Filter entries with a matching W3C span identifier.
+	// SpanId Filter entries with a matching Logius ADL span identifier (W3C Trace Context format).
 	//
 	// Must be exactly 16 characters in hexadecimal.
 	SpanId SpanId `form:"spanId,omitempty" json:"spanId,omitempty"`

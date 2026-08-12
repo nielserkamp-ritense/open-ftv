@@ -1,10 +1,17 @@
 package decisions
 
-import (
-	"encoding/base64"
+import "github.com/goccy/go-json"
 
-	"github.com/goccy/go-json"
+// bodyRequestKey and bodyResponseKey are the literal Logius ADL body keys
+// (Section 3.3.8): the raw adl.core.* payloads, as opposed to the source
+// references an implementation may place under attributes at higher levels.
+const (
+	bodyRequestKey  = "adl.core.request"
+	bodyResponseKey = "adl.core.response"
 )
+
+// jsonNull is the JSON encoding of a null value.
+const jsonNull = "null"
 
 // BodyFromDecision builds the Logius ADL body object from a decision.
 func BodyFromDecision(d *Decision) any {
@@ -12,13 +19,15 @@ func BodyFromDecision(d *Decision) any {
 		return nil
 	}
 
-	body := make(map[string]any, 2)
+	body := make(map[string]any)
 	if d.Request != nil {
-		body["request"] = d.Request
+		body[bodyRequestKey] = d.Request
 	}
+
 	if d.Response != nil {
-		body["response"] = d.Response
+		body[bodyResponseKey] = d.Response
 	}
+
 	return body
 }
 
@@ -29,59 +38,26 @@ func RequestResponseFromBody(body any) (request, response map[string]any) {
 		return nil, nil
 	}
 
-	return decodeBodyPart(m["request"]), decodeBodyPart(m["response"])
-}
+	request, _ = m[bodyRequestKey].(map[string]any)
+	response, _ = m[bodyResponseKey].(map[string]any)
 
-func decodeBodyPart(v any) map[string]any {
-	switch x := v.(type) {
-	case map[string]any:
-		return x
-	case string:
-		return decodeBodyJSON([]byte(x))
-	case []byte:
-		return decodeBodyJSON(x)
-	default:
-		return nil
-	}
-}
-
-func decodeBodyJSON(raw []byte) map[string]any {
-	if len(raw) == 0 || string(raw) == "null" {
-		return nil
-	}
-
-	data := raw
-	if decoded, err := base64.StdEncoding.DecodeString(string(raw)); err == nil && json.Valid(decoded) {
-		data = decoded
-	}
-
-	var out map[string]any
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil
-	}
-	return out
-}
-
-// DefaultADLAttributes returns Logius attribute refs for body request/response.
-func DefaultADLAttributes() map[string]any {
-	return map[string]any{
-		"adl.core.request":  map[string]any{"ref": "body.request"},
-		"adl.core.response": map[string]any{"ref": "body.response"},
-	}
+	return request, response
 }
 
 func applyBodyAttribute(raw string, d *Decision) {
 	var body struct {
-		Request  json.RawMessage `json:"request"`
-		Response json.RawMessage `json:"response"`
+		Request  json.RawMessage `json:"adl.core.request"`
+		Response json.RawMessage `json:"adl.core.response"`
 	}
 	if err := json.Unmarshal([]byte(raw), &body); err != nil {
 		return
 	}
-	if len(body.Request) > 0 && string(body.Request) != "null" {
-		d.Request = []byte(body.Request)
+
+	if len(body.Request) > 0 && string(body.Request) != jsonNull {
+		d.Request = body.Request
 	}
-	if len(body.Response) > 0 && string(body.Response) != "null" {
-		d.Response = []byte(body.Response)
+
+	if len(body.Response) > 0 && string(body.Response) != jsonNull {
+		d.Response = body.Response
 	}
 }

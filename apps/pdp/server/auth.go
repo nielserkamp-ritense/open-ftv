@@ -155,8 +155,9 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 	}
 
 	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc)
+	s.decisionLog = adl.New(logger, adl.WithResource(map[string]any{"service": svc}))
 
-	return adl.New(logger), nil
+	return s.decisionLog, nil
 }
 
 // checkMigrations migrates the ADL database, which is the only database this app has.

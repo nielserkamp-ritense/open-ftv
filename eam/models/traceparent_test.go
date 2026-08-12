@@ -18,6 +18,9 @@ func TestParseTraceParent(t *testing.T) {
 	_, ok = ParseTraceParent("00-00000000000000000000000000000000-00f067aa0ba902b7-01")
 	assert.False(t, ok)
 
+	_, ok = ParseTraceParent("00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01")
+	assert.False(t, ok)
+
 	_, ok = ParseTraceParent("invalid")
 	assert.False(t, ok)
 }

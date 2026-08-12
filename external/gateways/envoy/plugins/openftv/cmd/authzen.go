@@ -102,6 +102,7 @@ func (server *authServer) authorizeRequest(ctx context.Context, request *auth.Ch
 	if err2 != nil {
 		return fmt.Errorf("error creating authorization request: %w", err2)
 	}
+
 	authReq.Header.Set(models.HeaderTraceParent, traceParent)
 
 	resp, err3 := http.DefaultClient.Do(authReq)

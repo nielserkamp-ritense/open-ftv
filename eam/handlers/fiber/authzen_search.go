@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
@@ -23,7 +24,7 @@ func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
 
-	p, finish := initAuthProcess(fc, h.logger, nil, h.controller)
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
 	defer finish()
 
 	p.search = searchSubject
@@ -33,9 +34,9 @@ func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
 		p.logger.Error("AuthZEN subject search request invalid", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
-	p.authReq = req
 
 	p.createSearchAuthZEN(&req.Subject, &req.Resource, &req.Action, req.Context)
+	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN subject search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -49,7 +50,7 @@ func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
 
-	p, finish := initAuthProcess(fc, h.logger, nil, h.controller)
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
 	defer finish()
 
 	p.search = searchAction
@@ -59,9 +60,9 @@ func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
 		p.logger.Error("AuthZEN action search request invalid", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
-	p.authReq = req
 
 	p.createSearchAuthZEN(oas.EntityToSearch(&req.Subject), oas.EntityToSearch(&req.Resource), &oas.Action{}, req.Context)
+	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN action search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -75,7 +76,7 @@ func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
 		return server.SendMessageResponse(fc, fiber.StatusNotImplemented, utils.StatusMessage(fiber.StatusNotImplemented))
 	}
 
-	p, finish := initAuthProcess(fc, h.logger, nil, h.controller)
+	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
 	defer finish()
 
 	p.search = searchResource
@@ -85,9 +86,9 @@ func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
 		p.logger.Error("AuthZEN resource search request invalid", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
-	p.authReq = req
 
 	p.createSearchAuthZEN(&req.Subject, &req.Resource, &req.Action, req.Context)
+	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN resource search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -101,6 +102,10 @@ func (p *authProcess) verifySearchAuthZEN() *oas.SearchRequest {
 		p.msg = "invalid input data"
 		return nil
 	}
+
+	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
+	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
+	p.authReq = req
 
 	if req.Subject.Type == "" {
 		p.msg, p.err = "invalid subject", errors.New("subject type must be filled")
@@ -142,6 +147,11 @@ func (p *authProcess) verifyActionSearchAuthZEN() *oas.SearchActionRequest {
 		return nil
 	}
 
+	// From here on the body is a coherent AuthZEN object, even if it fails the
+	// checks below — log it (Logius ADL §3.3.6 lists missing attributes as an
+	// Error case), unlike a body that never parsed at all.
+	p.authReq = req
+
 	if req.Subject.Type == "" || req.Subject.Id == "" {
 		p.msg, p.err = "invalid subject", errors.New("subject type&id must be filled")
 		return nil
@@ -173,6 +183,7 @@ func (p *authProcess) searchAuthZEN() error {
 	p.controller.GetPIP().ReportDynamicData(func() {
 		list, p.err = p.controller.Search(p.reqUID, p.parc)
 	})
+	p.decided = time.Now()
 
 	if p.err != nil {
 		p.msg = fmt.Sprintf("AuthZEN %s search failed", p.search.String())

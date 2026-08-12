@@ -95,7 +95,7 @@ function RouteComponent() {
 
                         <DescriptionTerm>Parent Span ID</DescriptionTerm>
                         <DescriptionDetails>{entry.parentSpanId ?? '-'}</DescriptionDetails>
-                        
+
                         {entry.information && Object.keys(entry.information).length > 0 && (
                             <>
                                 <DescriptionTerm>Information</DescriptionTerm>
@@ -104,7 +104,7 @@ function RouteComponent() {
                                 </DescriptionDetails>
                             </>
                         )}
-                        
+
                         {entry.engine && Object.keys(entry.engine).length > 0 && (
                             <>
                                 <DescriptionTerm>Engine</DescriptionTerm>

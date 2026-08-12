@@ -98,26 +98,31 @@ func processHeaders(fc *fiber.Ctx) {
 	prepareResponseHeaders(fc)
 }
 
+// processTraceParent applies the W3C traceparent header, if present and
+// valid. It intentionally does not fall back to generating a trace when the
+// header is absent: that decision is deferred to applyTraceFallback, which
+// runs after the request body is parsed and can prefer a body-embedded
+// traceparent (Logius ADL Example 10) over an arbitrary new one.
 func processTraceParent(fc *fiber.Ctx) {
 	incoming := strings.TrimSpace(fc.Get(models.HeaderTraceParent))
-	if incoming != "" {
-		if tc, ok := models.ParseTraceParent(incoming); ok {
-			applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
-			return
-		}
+	if incoming == "" {
+		return
 	}
 
-	_, tc := models.NewTraceParent()
-	applyDecisionTrace(fc, tc.TraceID, "", tc.SpanID)
+	if tc, ok := models.ParseTraceParent(incoming); ok {
+		applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
+	}
 }
 
 func applyDecisionTrace(fc *fiber.Ctx, traceID, parentSpanID, spanID string) {
 	ctx := fc.UserContext()
 	ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
 	ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
+
 	if parentSpanID != "" {
 		ctx = context.WithValue(ctx, models.AttrParentSpanID, parentSpanID)
 	}
+
 	fc.SetUserContext(ctx)
 }
 
@@ -126,16 +131,32 @@ func applyTraceParent(fc *fiber.Ctx, traceParent string) {
 	if !ok {
 		return
 	}
+
 	applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
 }
 
-func applyTraceFromContext(fc *fiber.Ctx, attrs *models.AttributeSet) {
-	if attrs == nil || convert.AnyToString(fc.UserContext().Value(models.AttrTraceID)) != "" {
+// applyTraceFallback guarantees every request ends up with a trace/span pair
+// by the time ADL logging happens. Precedence, per Logius ADL: the HTTP
+// traceparent header (already applied by processTraceParent) wins; when
+// that's absent, a traceparent embedded in the AuthZEN request body's
+// context object is used instead (Example 10 — for callers that can't
+// propagate the header but can pass a JSON body through); if neither is
+// present, a fresh trace/span pair is generated so the ADL record still
+// gets one.
+func applyTraceFallback(fc *fiber.Ctx, attrs *models.AttributeSet) {
+	if convert.AnyToString(fc.UserContext().Value(models.AttrTraceID)) != "" {
 		return
 	}
-	if tp := convert.AnyToString(attrs.GetAttributeValue(models.AttrTraceParent)); tp != "" {
-		applyTraceParent(fc, models.ResolveTraceParent(tp))
+
+	if attrs != nil {
+		if tp := convert.AnyToString(attrs.GetAttributeValue(models.AttrTraceParent)); tp != "" {
+			applyTraceParent(fc, models.ResolveTraceParent(tp))
+			return
+		}
 	}
+
+	_, tc := models.NewTraceParent()
+	applyDecisionTrace(fc, tc.TraceID, "", tc.SpanID)
 }
 
 func prepareResponseHeaders(fc *fiber.Ctx) {

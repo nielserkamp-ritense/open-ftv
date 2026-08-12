@@ -60,6 +60,7 @@ func New(ctx context.Context, service string, opts ...Option) (*Exporter, error)
 	e.tp = sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(e.exporter, sdktrace.WithBatchTimeout(e.timeout)),
 		sdktrace.WithResource(tr),
+		sdktrace.WithIDGenerator(idGenerator{}),
 	)
 	e.tracer = e.tp.Tracer(e.service, e.opts...)
 

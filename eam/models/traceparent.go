@@ -14,9 +14,14 @@ const TraceIDLength = 32
 // SpanIDLength is the number of hex characters in a W3C span-id (8 bytes).
 const SpanIDLength = 16
 
+// hexCharsPerByte is the number of hex characters needed to represent one byte.
+const hexCharsPerByte = 2
+
 var traceParentRX = regexp.MustCompile(`^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$`)
 
 var invalidTraceID = strings.Repeat("0", TraceIDLength)
+
+var invalidSpanID = strings.Repeat("0", SpanIDLength)
 
 // TraceContext holds parsed W3C trace-context identifiers.
 type TraceContext struct {
@@ -27,23 +32,26 @@ type TraceContext struct {
 // ParseTraceParent extracts trace and span IDs from a W3C traceparent value.
 func ParseTraceParent(s string) (TraceContext, bool) {
 	s = strings.ToLower(strings.TrimSpace(s))
+
 	list := traceParentRX.FindStringSubmatch(s)
-	if len(list) != 5 || list[1] != "00" || list[2] == invalidTraceID {
+	if len(list) != 5 || list[1] != "00" || list[2] == invalidTraceID || list[3] == invalidSpanID {
 		return TraceContext{}, false
 	}
+
 	return TraceContext{TraceID: list[2], SpanID: list[3]}, true
 }
 
 // NewSpanID generates a new W3C span-id (16 lowercase hex characters).
 func NewSpanID() string {
-	return randomHex(SpanIDLength / 2)
+	return randomHex(SpanIDLength / hexCharsPerByte)
 }
 
 // NewTraceParent generates a W3C traceparent header value (version 00, sampled).
 func NewTraceParent() (string, TraceContext) {
-	traceID := randomHex(TraceIDLength / 2)
-	spanID := randomHex(SpanIDLength / 2)
+	traceID := randomHex(TraceIDLength / hexCharsPerByte)
+	spanID := randomHex(SpanIDLength / hexCharsPerByte)
 	parent := fmt.Sprintf("00-%s-%s-01", traceID, spanID)
+
 	return parent, TraceContext{TraceID: traceID, SpanID: spanID}
 }
 
@@ -55,7 +63,9 @@ func ResolveTraceParent(existing string) string {
 			return strings.ToLower(existing)
 		}
 	}
+
 	parent, _ := NewTraceParent()
+
 	return parent
 }
 
@@ -66,6 +76,7 @@ func FirstHeader(headers map[string][]string, key string) string {
 			return list[0]
 		}
 	}
+
 	return ""
 }
 
@@ -77,11 +88,13 @@ func SetHeader(headers map[string][]string, key, value string) {
 			return
 		}
 	}
+
 	headers[key] = []string{value}
 }
 
 func randomHex(byteLen int) string {
 	b := make([]byte, byteLen)
 	_, _ = rand.Read(b)
+
 	return hex.EncodeToString(b)
 }

@@ -43,7 +43,7 @@ export interface components {
             created?: string;
             /**
              * Format: int64
-             * @description Milliseconds since Unix epoch when the decision was made.
+             * @description Logius ADL timestamp; milliseconds since Unix epoch when the decision was made.
              */
             timestamp?: number;
             /** @description Logius ADL event_name. */
@@ -57,19 +57,21 @@ export interface components {
             requestType?: string;
             /** @description Unique identifier of the policy bundle used during the authorization process. */
             policies?: string;
-            /** @description AuthZEN request. */
+            /** @description Logius ADL body (adl.core.request); AuthZEN request. */
             request?: Record<string, never>;
-            /** @description AuthZEN response. */
+            /** @description Logius ADL body (adl.core.response); AuthZEN response. */
             response?: Record<string, never>;
             /** @description Information (attributes) used during the authorization process. */
             information?: Record<string, never>;
             /** @description Details of the PDP engine. */
             engine?: Record<string, never>;
-            /** @description W3C trace identifier from the authorization request. */
+            /** @description Logius ADL resource; identifies the producer of the log record. */
+            resource?: Record<string, never>;
+            /** @description Logius ADL trace identifier (W3C Trace Context format). */
             traceId?: string;
-            /** @description W3C span identifier for this log record. */
+            /** @description Logius ADL span identifier (W3C Trace Context format). */
             spanId?: string;
-            /** @description W3C parent span identifier when this record is a child span. */
+            /** @description Logius ADL parent span identifier (W3C Trace Context format), when this record is a child span. */
             parentSpanId?: string;
         };
         /** @description Error code that clients can use to look up their own localized message. An OpenFTV extension. */
@@ -216,13 +218,13 @@ export interface components {
          */
         Policies: string[];
         /**
-         * @description Filter entries with a matching W3C trace identifier.
+         * @description Filter entries with a matching Logius ADL trace identifier (W3C Trace Context format).
          *
          *     Must be exactly 32 characters in hexadecimal.
          */
         TraceId: string;
         /**
-         * @description Filter entries with a matching W3C span identifier.
+         * @description Filter entries with a matching Logius ADL span identifier (W3C Trace Context format).
          *
          *     Must be exactly 16 characters in hexadecimal.
          */
@@ -322,13 +324,13 @@ export interface operations {
                  */
                 policies?: components["parameters"]["Policies"];
                 /**
-                 * @description Filter entries with a matching W3C trace identifier.
+                 * @description Filter entries with a matching Logius ADL trace identifier (W3C Trace Context format).
                  *
                  *     Must be exactly 32 characters in hexadecimal.
                  */
                 traceId?: components["parameters"]["TraceId"];
                 /**
-                 * @description Filter entries with a matching W3C span identifier.
+                 * @description Filter entries with a matching Logius ADL span identifier (W3C Trace Context format).
                  *
                  *     Must be exactly 16 characters in hexadecimal.
                  */

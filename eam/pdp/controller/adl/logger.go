@@ -22,31 +22,31 @@ func New(logger *decisions.Logger, opts ...Option) *ADL {
 }
 
 // Evaluation logs a new evaluation call.
-func (l *ADL) Evaluation(ctx context.Context, timestamp time.Time, req *oas.EvaluationRequest, resp *oas.EvaluationResponse) error {
-	return l.write(ctx, timestamp, decisions.EvaluationEndpoint, req, resp)
+func (l *ADL) Evaluation(ctx context.Context, timestamp time.Time, req *oas.EvaluationRequest, resp *oas.EvaluationResponse, status decisions.Status) error {
+	return l.write(ctx, timestamp, decisions.EvaluationEndpoint, req, resp, status)
 }
 
 // Evaluations logs a new evaluations call.
-func (l *ADL) Evaluations(ctx context.Context, timestamp time.Time, req *oas.EvaluationsRequest, resp *oas.EvaluationsResponse) error {
-	return l.write(ctx, timestamp, decisions.EvaluationsEndpoint, req, resp)
+func (l *ADL) Evaluations(ctx context.Context, timestamp time.Time, req *oas.EvaluationsRequest, resp *oas.EvaluationsResponse, status decisions.Status) error {
+	return l.write(ctx, timestamp, decisions.EvaluationsEndpoint, req, resp, status)
 }
 
 // SearchSubject logs a new subject search call.
-func (l *ADL) SearchSubject(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse) error {
-	return l.write(ctx, timestamp, decisions.SearchSubjectEndpoint, req, resp)
+func (l *ADL) SearchSubject(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse, status decisions.Status) error {
+	return l.write(ctx, timestamp, decisions.SearchSubjectEndpoint, req, resp, status)
 }
 
 // SearchAction logs a new action search call.
-func (l *ADL) SearchAction(ctx context.Context, timestamp time.Time, req *oas.SearchActionRequest, resp *oas.SearchActionResponse) error {
-	return l.write(ctx, timestamp, decisions.SearchActionEndpoint, req, resp)
+func (l *ADL) SearchAction(ctx context.Context, timestamp time.Time, req *oas.SearchActionRequest, resp *oas.SearchActionResponse, status decisions.Status) error {
+	return l.write(ctx, timestamp, decisions.SearchActionEndpoint, req, resp, status)
 }
 
 // SearchResource logs a new resource search call.
-func (l *ADL) SearchResource(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse) error {
-	return l.write(ctx, timestamp, decisions.SearchResourceEndpoint, req, resp)
+func (l *ADL) SearchResource(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse, status decisions.Status) error {
+	return l.write(ctx, timestamp, decisions.SearchResourceEndpoint, req, resp, status)
 }
 
-func (l *ADL) write(ctx context.Context, timestamp time.Time, tr decisions.AuthRequestType, req, resp any) error {
+func (l *ADL) write(ctx context.Context, timestamp time.Time, tr decisions.AuthRequestType, req, resp any, status decisions.Status) error {
 	traceID := convert.AnyToString(ctx.Value(models.AttrTraceID))
 	spanID := convert.AnyToString(ctx.Value(models.AttrSpanID))
 	parentSpanID := convert.AnyToString(ctx.Value(models.AttrParentSpanID))
@@ -55,16 +55,29 @@ func (l *ADL) write(ctx context.Context, timestamp time.Time, tr decisions.AuthR
 		Timestamp:    timestamp.UTC(),
 		RequestType:  tr,
 		EventName:    tr.EventName(),
-		Status:       decisions.StatusUnset,
+		Status:       status,
 		Request:      req,
 		Response:     resp,
 		Policies:     l.bundleVersion,
 		Information:  l.information,
 		Engine:       l.engine,
+		Resource:     l.resource,
 		TraceID:      traceID,
 		SpanID:       spanID,
 		ParentSpanID: parentSpanID,
 	})
+}
+
+// Shutdown flushes any queued decisions and releases resources held by the
+// underlying decision log.
+//
+// Do not call Evaluation/Evaluations/Search* after Shutdown has been called.
+func (l *ADL) Shutdown(ctx context.Context) error {
+	if l == nil || l.logger == nil {
+		return nil
+	}
+
+	return l.logger.Shutdown(ctx)
 }
 
 // NewBundle associates a new bundle version with the ADL.
@@ -100,4 +113,5 @@ type ADL struct {
 	bundleVersion uint64
 	information   any
 	engine        any
+	resource      any
 }

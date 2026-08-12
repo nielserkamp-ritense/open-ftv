@@ -222,11 +222,11 @@ func TestPgLogger_Decision(t *testing.T) {
 			for i := range tc.count {
 				mock.ExpectExec(sql).
 					WithArgs(
-						now, now.UnixMilli(),
+						now.UnixMilli(),
 						traceID2, spanID2, nil,
 						"adl.access_evaluation", string(StatusUnset),
 						int64(1), int64(i+1),
-						nil, nil, nil, nil,
+						nil, nil, nil, nil, nil,
 					).
 					WillReturnResult(pgxmock.NewResult("INSERT", 1))
 			}

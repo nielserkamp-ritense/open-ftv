@@ -64,7 +64,7 @@ func (pl *pgLogger) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySp
 	return nil
 }
 
-const sql = "INSERT INTO decision (created,timestamp,trace_id,span_id,parent_span_id,event_name,status,request_type,policies,body,attributes,information,engine) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)"
+const sql = "INSERT INTO decision (timestamp,trace_id,span_id,parent_span_id,event_name,status,request_type,policies,body,attributes,information,engine,resource) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)"
 
 func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision {
 	d := Decision{Timestamp: timestamp, Status: StatusUnset}
@@ -91,12 +91,15 @@ func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision
 			d.Information = []byte(item.Value.AsString())
 		case "engine":
 			d.Engine = []byte(item.Value.AsString())
+		case "resource":
+			d.Resource = []byte(item.Value.AsString())
 		}
 	}
 
 	if d.EventName == "" && d.RequestType != 0 {
 		d.EventName = d.RequestType.EventName()
 	}
+
 	if d.Status == "" {
 		d.Status = StatusUnset
 	}
@@ -108,13 +111,13 @@ func decisionToParms(d *Decision) []any {
 	if d.Status == "" {
 		d.Status = StatusUnset
 	}
+
 	if d.EventName == "" && d.RequestType != 0 {
 		d.EventName = d.RequestType.EventName()
 	}
 
 	params := []any{
-		d.Timestamp,
-		int64(d.Timestamp.UnixMilli()),
+		d.Timestamp.UnixMilli(),
 		nullableHex(d.TraceID),
 		nullableHex(d.SpanID),
 		nullableHex(d.ParentSpanID),
@@ -125,17 +128,27 @@ func decisionToParms(d *Decision) []any {
 	}
 
 	if body := BodyFromDecision(d); body != nil {
-		params = append(params, body, DefaultADLAttributes())
+		// Level 1: request/response live in body, so attributes (source
+		// references) stays empty per the Logius ADL spec.
+		params = append(params, body, map[string]any{})
 	} else {
 		params = append(params, nil, nil)
 	}
+
 	if d.Information != nil {
 		params = append(params, d.Information)
 	} else {
 		params = append(params, nil)
 	}
+
 	if d.Engine != nil {
 		params = append(params, d.Engine)
+	} else {
+		params = append(params, nil)
+	}
+
+	if d.Resource != nil {
+		params = append(params, d.Resource)
 	} else {
 		params = append(params, nil)
 	}
@@ -148,6 +161,7 @@ func nullableHex(s string) any {
 	if s == "" {
 		return nil
 	}
+
 	return s
 }
 

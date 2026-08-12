@@ -93,6 +93,7 @@ func (c *Config) Access(kong *pdk.PDK) {
 		c.reportError(kong, err2)
 		return
 	}
+
 	authReq.Header.Set(models.HeaderTraceParent, traceParent)
 
 	resp, err3 := http.DefaultClient.Do(authReq)

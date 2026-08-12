@@ -54,9 +54,16 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 	if d.EventName == "" && d.RequestType != 0 {
 		d.EventName = d.RequestType.EventName()
 	}
+
 	if d.Status == "" {
 		d.Status = StatusUnset
 	}
+
+	// Per Logius ADL §3.4, the span and the log record are correlated via a
+	// shared trace_id/span_id — the span's own identity, not just an
+	// attribute on it, so that an OTLP-transported span (PDP_DECISIONLOG_TYPE=otel)
+	// actually correlates downstream.
+	ctx = opentelemetry.ContextWithSpanIDs(ctx, d.TraceID, d.SpanID)
 
 	_, span := l.ot.StartSpan(ctx, d.EventName, trace.WithTimestamp(d.Timestamp))
 
@@ -73,6 +80,7 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 	if d.SpanID != "" {
 		span.SetAttributes(attribute.String("span_id", d.SpanID))
 	}
+
 	if d.ParentSpanID != "" {
 		span.SetAttributes(attribute.String("parent_span_id", d.ParentSpanID))
 	}
@@ -82,13 +90,11 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 		if err != nil {
 			return err
 		}
-		attrs, err := formatAny(DefaultADLAttributes())
-		if err != nil {
-			return err
-		}
+		// Level 1: request/response live in body, so attributes (source
+		// references) stays empty per the Logius ADL spec.
 		span.SetAttributes(
 			attribute.String("body", body),
-			attribute.String("attributes", attrs),
+			attribute.String("attributes", "{}"),
 		)
 	}
 
@@ -97,6 +103,7 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 		if err != nil {
 			return err
 		}
+
 		span.SetAttributes(attribute.String("information", info))
 	}
 
@@ -105,7 +112,17 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 		if err != nil {
 			return err
 		}
+
 		span.SetAttributes(attribute.String("engine", engine))
+	}
+
+	if d.Resource != nil {
+		resource, err := formatAny(d.Resource)
+		if err != nil {
+			return err
+		}
+
+		span.SetAttributes(attribute.String("resource", resource))
 	}
 
 	span.End()

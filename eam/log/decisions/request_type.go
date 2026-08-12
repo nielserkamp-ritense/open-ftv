@@ -14,6 +14,15 @@ const (
 	SearchResourceEndpoint
 )
 
+// Logius ADL event names, one per request type.
+const (
+	eventNameAccessEvaluation  = "adl.access_evaluation"
+	eventNameAccessEvaluations = "adl.access_evaluations"
+	eventNameSearchSubject     = "adl.search_subject"
+	eventNameSearchAction      = "adl.search_action"
+	eventNameSearchResource    = "adl.search_resource"
+)
+
 // String implements the Stringer interface.
 func (t AuthRequestType) String() string {
 	switch t {
@@ -49,15 +58,15 @@ var translate = map[string]AuthRequestType{
 func (t AuthRequestType) EventName() string {
 	switch t {
 	case EvaluationEndpoint:
-		return "adl.access_evaluation"
+		return eventNameAccessEvaluation
 	case EvaluationsEndpoint:
-		return "adl.access_evaluations"
+		return eventNameAccessEvaluations
 	case SearchSubjectEndpoint:
-		return "adl.search_subject"
+		return eventNameSearchSubject
 	case SearchActionEndpoint:
-		return "adl.search_action"
+		return eventNameSearchAction
 	case SearchResourceEndpoint:
-		return "adl.search_resource"
+		return eventNameSearchResource
 	default:
 		return ""
 	}

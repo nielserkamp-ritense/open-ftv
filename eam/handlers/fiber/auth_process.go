@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
@@ -30,7 +31,8 @@ func (p *authProcess) finish() {
 	if p.logger.Enabled(nil, slog.LevelInfo) {
 		p.log()
 	}
-	if p.adl != nil && p.authReq != nil && p.authResp != nil {
+
+	if p.adl != nil && p.authReq != nil {
 		p.logDecision(p.fc.UserContext())
 	}
 }
@@ -84,21 +86,40 @@ func (p *authProcess) log() {
 }
 
 func (p *authProcess) logDecision(ctx context.Context) {
+	// Per Logius ADL §3.3.6, Error means the PDP failed to evaluate.
+	status := decisions.StatusOk
+	if p.err != nil {
+		status = decisions.StatusError
+	}
+
+	// Per §3.3.5, timestamp is when the decision was made, not when the
+	// request arrived. p.decided is set right after the PDP call returns;
+	// it stays zero when validation failed before the PDP was ever reached,
+	// in which case p.started (as close as we get to "decided") is used.
+	ts := p.started
+	if !p.decided.IsZero() {
+		ts = p.decided
+	}
+
 	var err error
 
 	switch t := p.authReq.(type) {
 	case *oas.EvaluationRequest:
-		err = p.adl.Evaluation(ctx, p.started, t, p.authResp.(*oas.EvaluationResponse))
+		resp, _ := p.authResp.(*oas.EvaluationResponse)
+		err = p.adl.Evaluation(ctx, ts, t, resp, status)
 	case *oas.EvaluationsRequest:
-		err = p.adl.Evaluations(ctx, p.started, t, p.authResp.(*oas.EvaluationsResponse))
+		resp, _ := p.authResp.(*oas.EvaluationsResponse)
+		err = p.adl.Evaluations(ctx, ts, t, resp, status)
 	case *oas.SearchRequest:
+		resp, _ := p.authResp.(*oas.SearchResponse)
 		if p.search == searchSubject {
-			err = p.adl.SearchSubject(ctx, p.started, t, p.authResp.(*oas.SearchResponse))
+			err = p.adl.SearchSubject(ctx, ts, t, resp, status)
 		} else {
-			err = p.adl.SearchResource(ctx, p.started, t, p.authResp.(*oas.SearchResponse))
+			err = p.adl.SearchResource(ctx, ts, t, resp, status)
 		}
 	case *oas.SearchActionRequest:
-		err = p.adl.SearchAction(ctx, p.started, t, p.authResp.(*oas.SearchActionResponse))
+		resp, _ := p.authResp.(*oas.SearchActionResponse)
+		err = p.adl.SearchAction(ctx, ts, t, resp, status)
 	default:
 		err = fmt.Errorf("invalid request type: %T", t)
 	}
@@ -121,6 +142,7 @@ type authProcess struct {
 	adl        *adl.ADL
 	controller pdp.Controller
 	started    time.Time
+	decided    time.Time
 	err        error
 	msg        string
 	authReq    any
