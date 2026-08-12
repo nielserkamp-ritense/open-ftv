@@ -6,13 +6,13 @@ variables:
 stages:
   - Version
   - Linter
+  - Security
   - UnitTests
   - Build
   - Release
   - Manifest
   - deploy
 #  - Redeploy
-#  - Security
 #  - E2E tests
 #  - Tools
 #  - external
