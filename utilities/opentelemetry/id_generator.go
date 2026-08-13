@@ -38,6 +38,29 @@ func ContextWithSpanIDs(ctx context.Context, traceIDHex, spanIDHex string) conte
 	return context.WithValue(ctx, spanIDsKey{}, spanIDs{traceID: tid, spanID: sid})
 }
 
+// ContextWithParentSpan attaches a remote parent SpanContext so the SDK links the next span to it on export,
+// not just via attributes. Invalid or empty IDs leave ctx unchanged, so the span is started as a root.
+func ContextWithParentSpan(ctx context.Context, traceIDHex, parentSpanIDHex string) context.Context {
+	tid, err := trace.TraceIDFromHex(traceIDHex)
+	if err != nil || !tid.IsValid() {
+		return ctx
+	}
+
+	psid, err := trace.SpanIDFromHex(parentSpanIDHex)
+	if err != nil || !psid.IsValid() {
+		return ctx
+	}
+
+	sc := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID:    tid,
+		SpanID:     psid,
+		TraceFlags: trace.FlagsSampled,
+		Remote:     true,
+	})
+
+	return trace.ContextWithRemoteSpanContext(ctx, sc)
+}
+
 // idGenerator is a sdktrace.IDGenerator that uses the trace/span IDs stashed in ctx by ContextWithSpanIDs when present,
 // and otherwise generates random ones.
 type idGenerator struct{}

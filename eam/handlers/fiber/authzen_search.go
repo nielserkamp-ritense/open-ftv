@@ -36,7 +36,6 @@ func (h *AuthZENAuthorizer) SearchSubject(fc *fiber.Ctx) error {
 	}
 
 	p.createSearchAuthZEN(&req.Subject, &req.Resource, &req.Action, req.Context)
-	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN subject search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -62,7 +61,6 @@ func (h *AuthZENAuthorizer) SearchAction(fc *fiber.Ctx) error {
 	}
 
 	p.createSearchAuthZEN(oas.EntityToSearch(&req.Subject), oas.EntityToSearch(&req.Resource), &oas.Action{}, req.Context)
-	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN action search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -88,7 +86,6 @@ func (h *AuthZENAuthorizer) SearchResource(fc *fiber.Ctx) error {
 	}
 
 	p.createSearchAuthZEN(&req.Subject, &req.Resource, &req.Action, req.Context)
-	applyTraceFallback(p.fc, p.parc.Context)
 	p.logger.Debug("AuthZEN resource search request", "request", p.parc)
 
 	return p.searchAuthZEN()
@@ -106,6 +103,7 @@ func (p *authProcess) verifySearchAuthZEN() *oas.SearchRequest {
 	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
 	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
 	p.authReq = req
+	applyTraceFallback(p.fc, models.NewAttributeSet(req.Context))
 
 	if req.Subject.Type == "" {
 		p.msg, p.err = "invalid subject", errors.New("subject type must be filled")
@@ -147,10 +145,10 @@ func (p *authProcess) verifyActionSearchAuthZEN() *oas.SearchActionRequest {
 		return nil
 	}
 
-	// From here on the body is a coherent AuthZEN object, even if it fails the
-	// checks below — log it (Logius ADL §3.3.6 lists missing attributes as an
-	// Error case), unlike a body that never parsed at all.
+	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
+	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
 	p.authReq = req
+	applyTraceFallback(p.fc, models.NewAttributeSet(req.Context))
 
 	if req.Subject.Type == "" || req.Subject.Id == "" {
 		p.msg, p.err = "invalid subject", errors.New("subject type&id must be filled")

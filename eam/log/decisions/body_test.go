@@ -32,6 +32,33 @@ func TestBodyFromDecision_storesJSONObjects(t *testing.T) {
 	assert.Equal(t, true, resp["decision"])
 }
 
+func TestAttributesFromDecision(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, map[string]any{}, AttributesFromDecision(nil))
+	assert.Equal(t, map[string]any{}, AttributesFromDecision(&Decision{}))
+	assert.Equal(t,
+		map[string]any{"adl.fsc.transaction_id": "abc-123"},
+		AttributesFromDecision(&Decision{FSCTransactionID: "abc-123"}),
+	)
+}
+
+func TestApplyAttributesAttribute(t *testing.T) {
+	t.Parallel()
+
+	d := new(Decision)
+	applyAttributesAttribute(`{"adl.fsc.transaction_id":"abc-123"}`, d)
+	assert.Equal(t, "abc-123", d.FSCTransactionID)
+
+	d2 := new(Decision)
+	applyAttributesAttribute("{}", d2)
+	assert.Equal(t, "", d2.FSCTransactionID)
+
+	d3 := new(Decision)
+	applyAttributesAttribute("not json", d3)
+	assert.Equal(t, "", d3.FSCTransactionID)
+}
+
 func TestRequestResponseFromBody_decodedMaps(t *testing.T) {
 	t.Parallel()
 

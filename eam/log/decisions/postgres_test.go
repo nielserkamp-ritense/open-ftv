@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
@@ -138,6 +139,35 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 			wantParams: []any{ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), map[string]any{"adl.core.response": json.RawMessage(`{"x":123}`)}, emptyAttrs, nil, nil, nil},
 		},
 		{
+			name:      "timestamp + body request + fsc transaction id",
+			timestamp: now,
+			attrs: []attribute.KeyValue{
+				attribute.String("body", `{"adl.core.request":{"x":123}}`),
+				attribute.String("attributes", `{"adl.fsc.transaction_id":"abc-123"}`),
+			},
+			want: Decision{Timestamp: now, Request: json.RawMessage(`{"x":123}`), FSCTransactionID: "abc-123", Status: StatusUnset},
+			wantParams: []any{
+				ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0),
+				map[string]any{"adl.core.request": json.RawMessage(`{"x":123}`)},
+				map[string]any{"adl.fsc.transaction_id": "abc-123"},
+				nil, nil, nil,
+			},
+		},
+		{
+			name:      "timestamp + fsc transaction id, no body",
+			timestamp: now,
+			attrs: []attribute.KeyValue{
+				attribute.String("attributes", `{"adl.fsc.transaction_id":"abc-123"}`),
+			},
+			want: Decision{Timestamp: now, FSCTransactionID: "abc-123", Status: StatusUnset},
+			wantParams: []any{
+				ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0),
+				nil,
+				map[string]any{"adl.fsc.transaction_id": "abc-123"},
+				nil, nil, nil,
+			},
+		},
+		{
 			name:       "timestamp + information",
 			timestamp:  now,
 			attrs:      []attribute.KeyValue{attribute.String("information", `{"x":123}`)},
@@ -171,6 +201,59 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 			params := decisionToParms(got)
 			require.NotNil(t, params)
 			require.EqualValues(t, tc.wantParams, params)
+		})
+	}
+}
+
+func TestFallbackSpanIDs(t *testing.T) {
+	t.Parallel()
+
+	traceID, err := trace.TraceIDFromHex("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	require.NoError(t, err)
+
+	spanID, err := trace.SpanIDFromHex("bbbbbbbbbbbbbbbb")
+	require.NoError(t, err)
+
+	validSC := trace.NewSpanContext(trace.SpanContextConfig{TraceID: traceID, SpanID: spanID})
+
+	testCases := []struct {
+		name string
+		d    Decision
+		sc   trace.SpanContext
+		want Decision
+	}{
+		{
+			// Belt and braces: trace_id/span_id missing (e.g. Logger.Decision never set
+			// them), but the span's own SpanContext is valid — fall back to it rather
+			// than leave the fields empty (which nullableHex turns into SQL NULL,
+			// violating the NOT NULL constraint).
+			name: "missing IDs fall back to a valid span context",
+			d:    Decision{},
+			sc:   validSC,
+			want: Decision{TraceID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", SpanID: "bbbbbbbbbbbbbbbb"},
+		},
+		{
+			// The fallback only fires when genuinely absent, it never overrides a real value.
+			name: "existing IDs take precedence over the span context",
+			d:    Decision{TraceID: "12345678123456781234567812345678", SpanID: "1234567812345678"},
+			sc:   validSC,
+			want: Decision{TraceID: "12345678123456781234567812345678", SpanID: "1234567812345678"},
+		},
+		{
+			name: "invalid span context leaves missing IDs empty",
+			d:    Decision{},
+			sc:   trace.SpanContext{},
+			want: Decision{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := tc.d
+			fallbackSpanIDs(&d, tc.sc)
+			assert.EqualValues(t, tc.want, d)
 		})
 	}
 }

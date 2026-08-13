@@ -95,14 +95,22 @@ func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
 
 func processHeaders(fc *fiber.Ctx) {
 	processTraceParent(fc)
+	processFSCTransactionID(fc)
 	prepareResponseHeaders(fc)
 }
 
-// processTraceParent applies the W3C traceparent header, if present and
-// valid. It intentionally does not fall back to generating a trace when the
-// header is absent: that decision is deferred to applyTraceFallback, which
-// runs after the request body is parsed and can prefer a body-embedded
-// traceparent (Logius ADL Example 10) over an arbitrary new one.
+// processFSCTransactionID stashes the Fsc-Transaction-Id header (adl.fsc.transaction_id, §3.3.7.6) on context.
+func processFSCTransactionID(fc *fiber.Ctx) {
+	txnID := strings.TrimSpace(fc.Get(models.HeaderFSCTransactionID))
+	if txnID == "" {
+		return
+	}
+
+	fc.SetUserContext(context.WithValue(fc.UserContext(), models.AttrFSCTransactionID, txnID))
+}
+
+// processTraceParent applies the header only; no fallback here, so applyTraceFallback can still prefer
+// a body-embedded traceparent (Logius ADL §4.1.1.1 Example 10) once the request body is parsed.
 func processTraceParent(fc *fiber.Ctx) {
 	incoming := strings.TrimSpace(fc.Get(models.HeaderTraceParent))
 	if incoming == "" {
@@ -135,14 +143,11 @@ func applyTraceParent(fc *fiber.Ctx, traceParent string) {
 	applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
 }
 
-// applyTraceFallback guarantees every request ends up with a trace/span pair
-// by the time ADL logging happens. Precedence, per Logius ADL: the HTTP
-// traceparent header (already applied by processTraceParent) wins; when
-// that's absent, a traceparent embedded in the AuthZEN request body's
-// context object is used instead (Example 10 — for callers that can't
-// propagate the header but can pass a JSON body through); if neither is
-// present, a fresh trace/span pair is generated so the ADL record still
-// gets one.
+// applyTraceFallback guarantees every request ends up with a trace/span pair by the time ADL logging happens.
+// Logius ADL sets the precedence: the HTTP traceparent header (already applied by processTraceParent) wins.
+// When that's absent, a traceparent embedded in the AuthZEN request body's context object is used instead
+// (Logius ADL §4.1.1.1 Example 10).
+// If neither is present, a fresh trace/span pair is generated so the ADL record still gets one.
 func applyTraceFallback(fc *fiber.Ctx, attrs *models.AttributeSet) {
 	if convert.AnyToString(fc.UserContext().Value(models.AttrTraceID)) != "" {
 		return
@@ -188,4 +193,23 @@ func fixPrefix(fc *fiber.Ctx, prefix string) string {
 func fixDomain(prefix string) string {
 	uri, _ := url.Parse(prefix)
 	return fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)
+}
+
+// reasonContext builds the AuthZEN response's context object: "id" set from the decision outcome,
+// and the human-readable reason in reason_user, falling back to a fixed message when the
+// controller didn't supply one.
+func reasonContext(resp *models.Response) oas.ReasonObject {
+	id, msg := "ok", resp.Message
+
+	if !resp.Allowed {
+		id = "not-authorized"
+
+		if msg == "" {
+			msg = "not authorized"
+		}
+	} else if msg == "" {
+		msg = "ok"
+	}
+
+	return oas.ReasonObject{Id: id, ReasonUser: oas.ReasonField{"en": msg}}
 }

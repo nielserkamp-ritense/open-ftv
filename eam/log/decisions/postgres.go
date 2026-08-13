@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
@@ -55,8 +56,10 @@ func (pl *pgLogger) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySp
 
 	for i := range spans {
 		span := spans[i]
-		params := decisionToParms(decisionFromSpan(span.StartTime().UTC(), span.Attributes()))
-		if _, err = t.Exec(ctx, sql, params...); err != nil {
+		d := decisionFromSpan(span.StartTime().UTC(), span.Attributes())
+		fallbackSpanIDs(d, span.SpanContext())
+
+		if _, err = t.Exec(ctx, sql, decisionToParms(d)...); err != nil {
 			return
 		}
 	}
@@ -64,10 +67,10 @@ func (pl *pgLogger) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySp
 	return nil
 }
 
-const sql = "INSERT INTO decision (timestamp,trace_id,span_id,parent_span_id,event_name,status,request_type,policies,body,attributes,information,engine,resource) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)"
+const sql = "INSERT INTO decision (timestamp,trace_id,span_id,parent_span_id,event_name,status,request_type,policies,body,attributes,information,engine,resource) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT (trace_id, span_id) DO NOTHING"
 
 func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision {
-	d := Decision{Timestamp: timestamp, Status: StatusUnset}
+	d := Decision{Timestamp: timestamp}
 
 	for _, item := range attrs {
 		switch strings.ToLower(string(item.Key)) {
@@ -87,6 +90,8 @@ func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision
 			d.Status = Status(item.Value.AsString())
 		case "body":
 			applyBodyAttribute(item.Value.AsString(), &d)
+		case "attributes":
+			applyAttributesAttribute(item.Value.AsString(), &d)
 		case "information":
 			d.Information = []byte(item.Value.AsString())
 		case "engine":
@@ -96,25 +101,29 @@ func decisionFromSpan(timestamp time.Time, attrs []attribute.KeyValue) *Decision
 		}
 	}
 
-	if d.EventName == "" && d.RequestType != 0 {
-		d.EventName = d.RequestType.EventName()
-	}
-
-	if d.Status == "" {
-		d.Status = StatusUnset
-	}
+	d.applyDefaults()
 
 	return &d
 }
 
-func decisionToParms(d *Decision) []any {
-	if d.Status == "" {
-		d.Status = StatusUnset
+// fallbackSpanIDs fills in trace_id/span_id from the span's own identity when missing.
+// Both are mandatory (Logius ADL §3.3.1/§3.3.2) and should always arrive as attributes handled by decisionFromSpan above.
+func fallbackSpanIDs(d *Decision, sc trace.SpanContext) {
+	if d.TraceID == "" {
+		if tid := sc.TraceID(); tid.IsValid() {
+			d.TraceID = tid.String()
+		}
 	}
 
-	if d.EventName == "" && d.RequestType != 0 {
-		d.EventName = d.RequestType.EventName()
+	if d.SpanID == "" {
+		if sid := sc.SpanID(); sid.IsValid() {
+			d.SpanID = sid.String()
+		}
 	}
+}
+
+func decisionToParms(d *Decision) []any {
+	d.applyDefaults()
 
 	params := []any{
 		d.Timestamp.UnixMilli(),
@@ -127,12 +136,20 @@ func decisionToParms(d *Decision) []any {
 		int64(d.Policies),
 	}
 
-	if body := BodyFromDecision(d); body != nil {
-		// Level 1: request/response live in body, so attributes (source
-		// references) stays empty per the Logius ADL spec.
-		params = append(params, body, map[string]any{})
+	body := BodyFromDecision(d)
+	attrs := AttributesFromDecision(d)
+
+	if body != nil {
+		params = append(params, body)
 	} else {
-		params = append(params, nil, nil)
+		params = append(params, nil)
+	}
+
+	// attributes (e.g. adl.fsc.transaction_id, §3.3.7.6) must persist even without a body to go with it.
+	if body != nil || len(attrs) > 0 {
+		params = append(params, attrs)
+	} else {
+		params = append(params, nil)
 	}
 
 	if d.Information != nil {

@@ -33,8 +33,6 @@ func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
 
-	applyTraceFallback(p.fc, models.NewAttributeSet(batch.Context))
-
 	p.createBatchAuthZEN(batch)
 	p.logger.Debug("AuthZEN evaluations request", "request", p.batch)
 
@@ -53,6 +51,7 @@ func (p *authProcess) verifyBatchAuthZEN() *oas.EvaluationsRequest {
 	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
 	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
 	p.authReq = req
+	applyTraceFallback(p.fc, models.NewAttributeSet(req.Context))
 
 	if len(req.Evaluations) == 0 {
 		p.msg, p.err = "invalid batch request", errors.New("evaluations array must not be empty")
@@ -151,18 +150,9 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 	for i := range results {
 		resp := &results[i]
 
-		allowed, msg := resp.Allowed, resp.Message
-		if msg == "" {
-			if allowed {
-				msg = "ok"
-			} else {
-				msg = "not authorized"
-			}
-		}
-
 		out.Evaluations = append(out.Evaluations, oas.EvaluationDecision{
 			Decision: resp.Allowed,
-			Context:  oas.ReasonObject{ReasonUser: oas.ReasonField{"en": msg}},
+			Context:  reasonContext(resp),
 		})
 	}
 

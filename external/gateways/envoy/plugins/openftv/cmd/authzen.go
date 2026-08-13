@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"time"
 
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	auth "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	types "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/goccy/go-json"
@@ -32,19 +33,48 @@ func newAuthZEN(c *cfg, logger *slog.Logger) *authServer {
 
 // Check implements an Envoy authorization check.
 func (server *authServer) Check(ctx context.Context, request *auth.CheckRequest) (*auth.CheckResponse, error) {
-	if request.Attributes.Request.Http.Method == "OPTIONS" {
-		return allowed(), nil
+	httpReq := request.Attributes.Request.Http
+
+	headers := make(map[string][]string, len(httpReq.Headers))
+	for k, v := range httpReq.Headers {
+		headers[k] = []string{v}
 	}
 
-	if err := server.authorizeRequest(ctx, request); err != nil {
+	// Resolved once so every outgoing hop for this request (the PDP call, and the forwarded call to the
+	// upstream service) shares the same trace_id — resolving independently per hop would otherwise mint a
+	// separate, unrelated trace_id on each hop whenever the incoming request carried none.
+	incomingTraceParent := models.FirstHeader(headers, models.HeaderTraceParent)
+	baseTraceParent := models.ResolveTraceParent(incomingTraceParent)
+	traceState := models.ResolveTraceState(incomingTraceParent, models.FirstHeader(headers, models.HeaderTraceState))
+	fscTransactionID := models.FirstHeader(headers, models.HeaderFSCTransactionID)
+
+	upstream := upstreamTrace{
+		traceParent:      models.ResolveOutgoingTraceParent(baseTraceParent),
+		traceState:       traceState,
+		fscTransactionID: fscTransactionID,
+	}
+
+	if httpReq.Method == "OPTIONS" {
+		return allowed(upstream), nil
+	}
+
+	if err := server.authorizeRequest(ctx, headers, baseTraceParent, traceState, fscTransactionID, request); err != nil {
 		server.logger.Error("authorization failed", "request", request, "error", err)
 		return denied(http.StatusUnauthorized, "unauthorized"), nil
 	}
 
-	return allowed(), nil
+	return allowed(upstream), nil
 }
 
-func (server *authServer) authorizeRequest(ctx context.Context, request *auth.CheckRequest) error {
+// upstreamTrace is the trace context applied, via OkHttpResponse.Headers, to the request Envoy forwards to
+// the protected service.
+type upstreamTrace struct {
+	traceParent      string
+	traceState       string
+	fscTransactionID string
+}
+
+func (server *authServer) authorizeRequest(ctx context.Context, headers map[string][]string, baseTraceParent, traceState, fscTransactionID string, request *auth.CheckRequest) error {
 	httpReq := request.Attributes.Request.Http
 
 	uri := &url.URL{
@@ -59,15 +89,11 @@ func (server *authServer) authorizeRequest(ctx context.Context, request *auth.Ch
 		RequestTime: &now,
 		Method:      httpReq.Method,
 		URL:         uri,
-		Headers:     make(map[string][]string, len(httpReq.Headers)),
+		Headers:     headers,
 		Body:        httpReq.RawBody,
 	}
 
-	for k, v := range httpReq.Headers {
-		req.Headers[k] = []string{v}
-	}
-
-	traceParent := models.ResolveTraceParent(models.FirstHeader(req.Headers, models.HeaderTraceParent))
+	traceParent := models.ResolveOutgoingTraceParent(baseTraceParent)
 	models.SetHeader(req.Headers, models.HeaderTraceParent, traceParent)
 
 	parc := server.pep.PARCFromRequest(&req, func(uid string) (*models.Entity, uint64, error) { return nil, 0, nil })
@@ -105,6 +131,14 @@ func (server *authServer) authorizeRequest(ctx context.Context, request *auth.Ch
 
 	authReq.Header.Set(models.HeaderTraceParent, traceParent)
 
+	if traceState != "" {
+		authReq.Header.Set(models.HeaderTraceState, traceState)
+	}
+
+	if fscTransactionID != "" {
+		authReq.Header.Set(models.HeaderFSCTransactionID, fscTransactionID)
+	}
+
 	resp, err3 := http.DefaultClient.Do(authReq)
 	if err3 != nil {
 		return fmt.Errorf("error executing authorization request: %w", err3)
@@ -140,12 +174,39 @@ func denied(code int32, body string) *auth.CheckResponse {
 	}
 }
 
-func allowed() *auth.CheckResponse {
+func allowed(tc upstreamTrace) *auth.CheckResponse {
+	headers := []*corev3.HeaderValueOption{headerOption(models.HeaderTraceParent, tc.traceParent)}
+
+	var headersToRemove []string
+
+	// If the request had no valid traceparent, we can't tell which trace the tracestate belongs
+	// to, so we don't forward it (§3.2.2/W3C §4.2-§4.3). But Envoy forwards headers by default: if we
+	// just leave tracestate out of our response, Envoy sends the client's original value anyway.
+	// So we have to explicitly tell Envoy to remove it, via HeadersToRemove.
+	if tc.traceState != "" {
+		headers = append(headers, headerOption(models.HeaderTraceState, tc.traceState))
+	} else {
+		headersToRemove = append(headersToRemove, models.HeaderTraceState)
+	}
+
+	if tc.fscTransactionID != "" {
+		headers = append(headers, headerOption(models.HeaderFSCTransactionID, tc.fscTransactionID))
+	}
+
 	return &auth.CheckResponse{
 		Status: &status.Status{Code: int32(codes.OK)},
 		HttpResponse: &auth.CheckResponse_OkResponse{
-			OkResponse: &auth.OkHttpResponse{},
+			OkResponse: &auth.OkHttpResponse{Headers: headers, HeadersToRemove: headersToRemove},
 		},
+	}
+}
+
+// headerOption overwrites rather than appends: the default APPEND_IF_EXISTS_OR_ADD would otherwise leave the
+// client's original header alongside ours instead of replacing it.
+func headerOption(key, value string) *corev3.HeaderValueOption {
+	return &corev3.HeaderValueOption{
+		Header:       &corev3.HeaderValue{Key: key, Value: value},
+		AppendAction: corev3.HeaderValueOption_OVERWRITE_IF_EXISTS_OR_ADD,
 	}
 }
 

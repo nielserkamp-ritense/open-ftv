@@ -1,9 +1,23 @@
 BEGIN;
 
+DROP INDEX IF EXISTS decision_ix1;
+
+DROP INDEX IF EXISTS decision_ux_trace_span;
+
+CREATE INDEX IF NOT EXISTS decision_ix2 ON decision (trace_id, span_id);
+
 ALTER TABLE decision
     ADD COLUMN IF NOT EXISTS request JSONB,
     ADD COLUMN IF NOT EXISTS response JSONB,
     ADD COLUMN IF NOT EXISTS created TIMESTAMP;
+
+UPDATE decision SET
+    created = (to_timestamp(timestamp / 1000.0) AT TIME ZONE 'UTC'),
+    request = body -> 'adl.core.request',
+    response = body -> 'adl.core.response';
+
+ALTER TABLE decision
+    ALTER COLUMN created SET NOT NULL;
 
 ALTER TABLE decision
     DROP COLUMN IF EXISTS body,

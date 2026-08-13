@@ -23,48 +23,60 @@ func New(logger *decisions.Logger, opts ...Option) *ADL {
 
 // Evaluation logs a new evaluation call.
 func (l *ADL) Evaluation(ctx context.Context, timestamp time.Time, req *oas.EvaluationRequest, resp *oas.EvaluationResponse, status decisions.Status) error {
-	return l.write(ctx, timestamp, decisions.EvaluationEndpoint, req, resp, status)
+	return l.write(ctx, timestamp, decisions.EvaluationEndpoint, req, nilable(resp), status)
 }
 
 // Evaluations logs a new evaluations call.
 func (l *ADL) Evaluations(ctx context.Context, timestamp time.Time, req *oas.EvaluationsRequest, resp *oas.EvaluationsResponse, status decisions.Status) error {
-	return l.write(ctx, timestamp, decisions.EvaluationsEndpoint, req, resp, status)
+	return l.write(ctx, timestamp, decisions.EvaluationsEndpoint, req, nilable(resp), status)
 }
 
 // SearchSubject logs a new subject search call.
 func (l *ADL) SearchSubject(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse, status decisions.Status) error {
-	return l.write(ctx, timestamp, decisions.SearchSubjectEndpoint, req, resp, status)
+	return l.write(ctx, timestamp, decisions.SearchSubjectEndpoint, req, nilable(resp), status)
 }
 
 // SearchAction logs a new action search call.
 func (l *ADL) SearchAction(ctx context.Context, timestamp time.Time, req *oas.SearchActionRequest, resp *oas.SearchActionResponse, status decisions.Status) error {
-	return l.write(ctx, timestamp, decisions.SearchActionEndpoint, req, resp, status)
+	return l.write(ctx, timestamp, decisions.SearchActionEndpoint, req, nilable(resp), status)
 }
 
 // SearchResource logs a new resource search call.
 func (l *ADL) SearchResource(ctx context.Context, timestamp time.Time, req *oas.SearchRequest, resp *oas.SearchResponse, status decisions.Status) error {
-	return l.write(ctx, timestamp, decisions.SearchResourceEndpoint, req, resp, status)
+	return l.write(ctx, timestamp, decisions.SearchResourceEndpoint, req, nilable(resp), status)
+}
+
+// nilable avoids a nil *T becoming a non-nil any (Go's typed-nil trap), otherwise BodyFromDecision writes
+// adl.core.response as a literal null instead of omitting it, which Logius ADL §3.3.7.2 disallows.
+func nilable[T any](v *T) any {
+	if v == nil {
+		return nil
+	}
+
+	return v
 }
 
 func (l *ADL) write(ctx context.Context, timestamp time.Time, tr decisions.AuthRequestType, req, resp any, status decisions.Status) error {
 	traceID := convert.AnyToString(ctx.Value(models.AttrTraceID))
 	spanID := convert.AnyToString(ctx.Value(models.AttrSpanID))
 	parentSpanID := convert.AnyToString(ctx.Value(models.AttrParentSpanID))
+	fscTransactionID := convert.AnyToString(ctx.Value(models.AttrFSCTransactionID))
 
 	return l.logger.Decision(ctx, &decisions.Decision{
-		Timestamp:    timestamp.UTC(),
-		RequestType:  tr,
-		EventName:    tr.EventName(),
-		Status:       status,
-		Request:      req,
-		Response:     resp,
-		Policies:     l.bundleVersion,
-		Information:  l.information,
-		Engine:       l.engine,
-		Resource:     l.resource,
-		TraceID:      traceID,
-		SpanID:       spanID,
-		ParentSpanID: parentSpanID,
+		Timestamp:        timestamp.UTC(),
+		RequestType:      tr,
+		EventName:        tr.EventName(),
+		Status:           status,
+		Request:          req,
+		Response:         resp,
+		Policies:         l.bundleVersion,
+		Information:      l.information,
+		Engine:           l.engine,
+		Resource:         l.resource,
+		FSCTransactionID: fscTransactionID,
+		TraceID:          traceID,
+		SpanID:           spanID,
+		ParentSpanID:     parentSpanID,
 	})
 }
 

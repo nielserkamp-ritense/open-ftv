@@ -121,6 +121,9 @@ func TestErrorHandler(t *testing.T) {
 		}()
 
 		go func(cfg *config.Config) {
+			defer wg.Done()
+			defer s.Shutdown()
+
 			time.Sleep(50 * time.Millisecond)
 
 			resp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d", cfg.Host, cfg.Port))
@@ -129,9 +132,6 @@ func TestErrorHandler(t *testing.T) {
 			assert.Equal(t, 404, resp.StatusCode)
 
 			time.Sleep(10 * time.Millisecond)
-
-			s.Shutdown()
-			wg.Done()
 		}(cfg)
 
 		wg.Wait()

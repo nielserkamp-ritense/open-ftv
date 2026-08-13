@@ -51,19 +51,14 @@ func (l *Logger) Shutdown(ctx context.Context) error {
 
 // Decision writes an authorization decision to the log.
 func (l *Logger) Decision(ctx context.Context, d *Decision) error {
-	if d.EventName == "" && d.RequestType != 0 {
-		d.EventName = d.RequestType.EventName()
-	}
+	d.applyDefaults()
 
-	if d.Status == "" {
-		d.Status = StatusUnset
-	}
-
-	// Per Logius ADL §3.4, the span and the log record are correlated via a
-	// shared trace_id/span_id — the span's own identity, not just an
-	// attribute on it, so that an OTLP-transported span (PDP_DECISIONLOG_TYPE=otel)
-	// actually correlates downstream.
+	// The span to be created normally gets a random trace/span ID from the OpenTelemetry SDK.
+	// Logius ADL §3.4 demands the decision's own trace_id/span_id to become that span's real ID, otherwise,
+	// when the log is shipped over OTLP (PDP_DECISIONLOG_TYPE=otel), tracing tools won't recognize it as part of
+	// the same trace. ContextWithSpanIDs makes the next StartSpan call use these IDs instead of random ones.
 	ctx = opentelemetry.ContextWithSpanIDs(ctx, d.TraceID, d.SpanID)
+	ctx = opentelemetry.ContextWithParentSpan(ctx, d.TraceID, d.ParentSpanID)
 
 	_, span := l.ot.StartSpan(ctx, d.EventName, trace.WithTimestamp(d.Timestamp))
 
@@ -85,17 +80,26 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 		span.SetAttributes(attribute.String("parent_span_id", d.ParentSpanID))
 	}
 
-	if d.Request != nil || d.Response != nil {
+	hasBody := d.Request != nil || d.Response != nil
+	attrs := AttributesFromDecision(d)
+
+	if hasBody {
 		body, err := formatAny(BodyFromDecision(d))
 		if err != nil {
 			return err
 		}
-		// Level 1: request/response live in body, so attributes (source
-		// references) stays empty per the Logius ADL spec.
-		span.SetAttributes(
-			attribute.String("body", body),
-			attribute.String("attributes", "{}"),
-		)
+
+		span.SetAttributes(attribute.String("body", body))
+	}
+
+	// attributes (e.g. adl.fsc.transaction_id, §3.3.7.6) must survive even without a body to go with it.
+	if hasBody || len(attrs) > 0 {
+		encoded, err := formatAny(attrs)
+		if err != nil {
+			return err
+		}
+
+		span.SetAttributes(attribute.String("attributes", encoded))
 	}
 
 	if d.Information != nil {
@@ -127,7 +131,10 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 
 	span.End()
 
-	return nil
+	// Logius ADL says the PDP SHOULD ensure a record has reached durable storage before answering its caller with the
+	// decision. StartSpan/span.End() only queue the record with the batch processor.
+	// ForceFlush blocks until it's actually been written.
+	return l.ot.ForceFlush(context.Background())
 }
 
 func formatAny(in any) (string, error) {

@@ -2,9 +2,8 @@ package decisions
 
 import "github.com/goccy/go-json"
 
-// bodyRequestKey and bodyResponseKey are the literal Logius ADL body keys
-// (Section 3.3.8): the raw adl.core.* payloads, as opposed to the source
-// references an implementation may place under attributes at higher levels.
+// bodyRequestKey and bodyResponseKey are the literal Logius ADL body keys (Section 3.3.8): the raw adl.core.* payloads,
+// as opposed to the source references an implementation may place under attributes at higher levels.
 const (
 	bodyRequestKey  = "adl.core.request"
 	bodyResponseKey = "adl.core.response"
@@ -12,6 +11,30 @@ const (
 
 // jsonNull is the JSON encoding of a null value.
 const jsonNull = "null"
+
+// attrFSCTransactionIDKey is the literal Logius ADL attribute key (Section 3.3.7.6) for the FSC TransactionID.
+const attrFSCTransactionIDKey = "adl.fsc.transaction_id"
+
+// AttributesFromDecision builds the Logius ADL attributes object from a decision (Section 3.3.7).
+func AttributesFromDecision(d *Decision) map[string]any {
+	attrs := make(map[string]any)
+	if d != nil && d.FSCTransactionID != "" {
+		attrs[attrFSCTransactionIDKey] = d.FSCTransactionID
+	}
+
+	return attrs
+}
+
+func applyAttributesAttribute(raw string, d *Decision) {
+	var attrs struct {
+		FSCTransactionID string `json:"adl.fsc.transaction_id"`
+	}
+	if err := json.Unmarshal([]byte(raw), &attrs); err != nil {
+		return
+	}
+
+	d.FSCTransactionID = attrs.FSCTransactionID
+}
 
 // BodyFromDecision builds the Logius ADL body object from a decision.
 func BodyFromDecision(d *Decision) any {
