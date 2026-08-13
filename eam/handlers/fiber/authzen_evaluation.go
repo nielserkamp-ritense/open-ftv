@@ -103,7 +103,7 @@ func (p *authProcess) authorizeRequestAuthZEN() error {
 
 	p.authResp = &oas.EvaluationDecision{
 		Decision: allowed,
-		Context:  oas.ReasonObject{Id: "0", ReasonUser: oas.ReasonField{"en": msg}},
+		Context:  oas.ReasonObject{ReasonUser: oas.ReasonField{"en": msg}},
 	}
 	return p.fc.JSON(p.authResp)
 }

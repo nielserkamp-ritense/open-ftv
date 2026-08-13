@@ -426,7 +426,7 @@ components:
           type: object
           description: Optional attributes for the action.
       required:
-        - type
+        - name
 
     ReasonField:
       type: object
@@ -436,15 +436,10 @@ components:
       type: object
       description: Specifies a particular reason.
       properties:
-        id:
-          type: string
-          description: Unique identifier of the reason.
-        reasonAdmin:
+        reason_admin:
           $ref: "#/components/schemas/ReasonField"
-        reasonUser:
+        reason_user:
           $ref: "#/components/schemas/ReasonField"
-      required:
-        - id
 
     EvaluationObject:
       type: object
@@ -541,12 +536,7 @@ components:
 
     PageResponse:
       type: object
-      description: |
-        Pagination options.
-        
-        !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-        However the AuthZEN standard uses *kebab_case* for some properties.
-        So these properties will be flagged when using the NL API Design Rules.
+      description: Pagination options.
       properties:
         next_token:
           type: string
@@ -673,12 +663,7 @@ components:
 
     MetadataObject:
       type: object
-      description: |
-        Metadata model.
-        
-        !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-        However the AuthZEN standard uses *kebab_case* for some properties.
-        So these properties will be flagged when using the NL API Design Rules.
+      description: Metadata model.
       properties:
         policy_decision_point:
           type: string

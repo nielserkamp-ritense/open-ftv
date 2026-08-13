@@ -27,7 +27,6 @@ func TestDecision_MarshalJSON(t *testing.T) {
 	resp1 := oas.EvaluationResponse{
 		Decision: true,
 		Context: oas.ReasonObject{
-			Id:          "13",
 			ReasonAdmin: oas.ReasonField{"en-AU": "all good mate"},
 			ReasonUser:  oas.ReasonField{"nl": "toegang verleend"},
 		},
@@ -148,7 +147,7 @@ func TestDecision_UnmarshalJSON(t *testing.T) {
 					"subject":  map[string]any{"id": "0011", "type": "gebruiker"},
 				},
 				Response: map[string]any{
-					"context":  map[string]any{"id": "13", "reasonAdmin": map[string]any{"en-AU": "all good mate"}, "reasonUser": map[string]any{"nl": "toegang verleend"}},
+					"context":  map[string]any{"reason_admin": map[string]any{"en-AU": "all good mate"}, "reason_user": map[string]any{"nl": "toegang verleend"}},
 					"decision": true,
 				},
 				Policies: 15,
@@ -181,6 +180,6 @@ const (
 		`"engine":{"c":true},"trace_id":"341d25f6ce326d77ff3a9004a0f45c2e","span_id":"e12fd367f790ae51"}`
 	decisionJSON4 = `{"timestamp":"%s","request_type":"evaluation","request":{"action":{"name":"GET"},"context":{"x":"hello world","y":12345,"z":true},` +
 		`"resource":{"id":"https://api.myorg.nl/v1/data","type":"api"},"subject":{"id":"0011","type":"gebruiker"}},` +
-		`"response":{"context":{"id":"13","reasonAdmin":{"en-AU":"all good mate"},"reasonUser":{"nl":"toegang verleend"}},"decision":true},` +
+		`"response":{"context":{"reason_admin":{"en-AU":"all good mate"},"reason_user":{"nl":"toegang verleend"}},"decision":true},` +
 		`"policies":15,"trace_id":"341d25f6ce326d77ff3a9004a0f45c2e","span_id":"e12fd367f790ae51"}`
 )
