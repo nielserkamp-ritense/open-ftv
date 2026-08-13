@@ -6,7 +6,7 @@ package authzen
 // Action The action associated with an authorization request.
 type Action struct {
 	// Name The name of the action.
-	Name string `json:"name,omitempty"`
+	Name string `json:"name"`
 
 	// Properties Optional attributes for the action.
 	Properties map[string]interface{} `json:"properties,omitempty"`
@@ -108,10 +108,6 @@ type EvaluationsObject struct {
 }
 
 // MetadataObject Metadata model.
-//
-// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-// However the AuthZEN standard uses *kebab_case* for some properties.
-// So these properties will be flagged when using the NL API Design Rules.
 type MetadataObject struct {
 	// AccessEvaluationEndpoint URL to AuthZEN compatible evaluation endpoint.
 	AccessEvaluationEndpoint string `json:"access_evaluation_endpoint"`
@@ -151,10 +147,6 @@ type PageRequest struct {
 }
 
 // PageResponse Pagination options.
-//
-// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-// However the AuthZEN standard uses *kebab_case* for some properties.
-// So these properties will be flagged when using the NL API Design Rules.
 type PageResponse struct {
 	// Count Number of results returned.
 	Count int `json:"count,omitempty"`
@@ -174,14 +166,11 @@ type ReasonField = map[string]interface{}
 
 // ReasonObject Specifies a particular reason.
 type ReasonObject struct {
-	// Id Unique identifier of the reason.
-	Id string `json:"id"`
-
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
-	ReasonAdmin ReasonField `json:"reasonAdmin,omitempty"`
+	ReasonAdmin ReasonField `json:"reason_admin,omitempty"`
 
 	// ReasonUser Map of one or more reasons, with a language-identifier as the key.
-	ReasonUser ReasonField `json:"reasonUser,omitempty"`
+	ReasonUser ReasonField `json:"reason_user,omitempty"`
 }
 
 // SearchActionObject Search action object model.
@@ -210,10 +199,6 @@ type SearchActionResult struct {
 // SearchActionResults Search action results model.
 type SearchActionResults struct {
 	// Page Pagination options.
-	//
-	// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-	// However the AuthZEN standard uses *kebab_case* for some properties.
-	// So these properties will be flagged when using the NL API Design Rules.
 	Page PageResponse `json:"page,omitempty"`
 
 	// Results List of action search results.
@@ -265,10 +250,6 @@ type SearchResult struct {
 // SearchResults Search results model.
 type SearchResults struct {
 	// Page Pagination options.
-	//
-	// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-	// However the AuthZEN standard uses *kebab_case* for some properties.
-	// So these properties will be flagged when using the NL API Design Rules.
 	Page PageResponse `json:"page,omitempty"`
 
 	// Results List of search results.
@@ -288,10 +269,6 @@ type EvaluationResponse = EvaluationDecision
 type EvaluationsResponse = EvaluationsDecision
 
 // MetadataResponse Metadata model.
-//
-// !!NOTE!! The NL API Design Rules only allow *lowerCamelCase* for response object properties.
-// However the AuthZEN standard uses *kebab_case* for some properties.
-// So these properties will be flagged when using the NL API Design Rules.
 type MetadataResponse = MetadataObject
 
 // NotAuthorized Error response model (as defined by RFC9457).
