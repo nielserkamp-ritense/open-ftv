@@ -2,8 +2,10 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
 
+import { clearRequiredFieldValidity, markRequiredFieldInvalid } from './required-field'
+
 export const Select = forwardRef(function Select(
-  { className, multiple, ...props }: { className?: string } & Omit<Headless.SelectProps, 'as' | 'className'>,
+  { className, multiple, onInvalid, onInput, ...props }: { className?: string } & Omit<Headless.SelectProps, 'as' | 'className'>,
   ref: React.ForwardedRef<HTMLSelectElement>
 ) {
   return (
@@ -27,6 +29,14 @@ export const Select = forwardRef(function Select(
         ref={ref}
         multiple={multiple}
         {...props}
+        onInvalid={(e) => {
+          markRequiredFieldInvalid(e)
+          onInvalid?.(e)
+        }}
+        onInput={(e) => {
+          clearRequiredFieldValidity(e)
+          onInput?.(e)
+        }}
         className={clsx([
           // Basic layout
           'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

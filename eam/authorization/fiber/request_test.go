@@ -174,9 +174,11 @@ func TestCheck(t *testing.T) {
 			var got bool
 
 			srv := fiber.New()
-			srv.Get("/v1/attributes", func(req *fiber.Ctx) (err error) {
-				_, got, err = Check(req, tc.resp, identity.NewUnknownPrincipal(), tc.err, log)
-				return
+			srv.Get("/v1/attributes", func(req *fiber.Ctx) error {
+				_, err := Check(req, tc.resp, identity.NewUnknownPrincipal(), tc.err, log)
+				got = err == nil
+
+				return err
 			})
 
 			req := httptest.NewRequest(fiber.MethodGet, "/v1/attributes", nil)

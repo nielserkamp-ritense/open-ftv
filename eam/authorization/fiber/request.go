@@ -37,9 +37,9 @@ func FormatRequestWithResource(req *fiber.Ctx, resource *models.Entity) *authori
 	return r
 }
 
-// Check verifies an authorization attempt, returning the principal to attribute the caller's action to,
-// whether access was allowed, and an error response written to req on failure.
-func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, err error, log *slog.Logger) (identity.Principal, bool, error) {
+// Check verifies an authorization attempt, returning the principal to attribute the caller's action to and, on failure,
+// an error describing why access was denied. A nil error means access was allowed.
+func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, err error, log *slog.Logger) (identity.Principal, error) {
 	if principal == identity.NewUnknownPrincipal() {
 		principal = identity.NewSystemPrincipal()
 	}
@@ -53,16 +53,16 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 		msg := "authentication failed" // 401
 		log.Error(msg, "path", req.Path(), "err", err)
 
-		return principal, false, fiber.NewError(fiber.StatusUnauthorized, msg)
+		return principal, fiber.NewError(fiber.StatusUnauthorized, msg)
 
 	case err != nil || resp == nil || !resp.Allowed:
 		msg := "authorization failed" // 403
 		log.Error(msg, "path", req.Path(), "authResponse", resp, "err", err)
 
-		return principal, false, fiber.NewError(fiber.StatusForbidden, msg)
+		return principal, fiber.NewError(fiber.StatusForbidden, msg)
 
 	default:
-		return principal, true, nil
+		return principal, nil
 	}
 }
 

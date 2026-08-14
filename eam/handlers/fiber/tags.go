@@ -13,6 +13,22 @@ import (
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
+var (
+	errTagNotFound    = errors.New("tag not found")
+	errTagExists      = errors.New("tag already exists")
+	errTagConcurrency = errors.New("tag was modified by another request")
+	errTagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
+
+	errTagMismatch = checkIssue{code: "E05005", msg: "tag mismatch"}
+)
+
+// TagsHandler implements the interface for handling requests about policy tags.
+type TagsHandler struct {
+	logger     *slog.Logger
+	pap        *pap.PAP
+	authorizer authorization.Authorizer
+}
+
 // NewTagsHandler instantiates a tag handler.
 func NewTagsHandler(logger *slog.Logger, pap *pap.PAP, authorizer authorization.Authorizer) *TagsHandler {
 	return &TagsHandler{logger: logger, pap: pap, authorizer: authorizer}
@@ -22,8 +38,7 @@ func NewTagsHandler(logger *slog.Logger, pap *pap.PAP, authorizer authorization.
 func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -39,14 +54,13 @@ func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var tag string
-	if tag, ok, err = h.checkKey(req); !ok {
-		return err
+	tag, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	t, _, err2 := h.pap.ReadTag(tag)
@@ -55,7 +69,7 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 	}
 
 	if t == nil {
-		return h.error(req, fiber.StatusNotFound, tagNotFound)
+		return h.error(req, fiber.StatusNotFound, errTagNotFound)
 	}
 	return req.JSON(t)
 }
@@ -64,19 +78,19 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var tag string
-	if tag, ok, err = h.checkKey(req); !ok {
-		return err
+	tag, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var t *oas.Tag
-	if t, ok, err = h.checkBody(req, tag); !ok {
-		return err
+	t, code, err := h.checkBody(req, tag)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	prev, lastIndex, err2 := h.pap.ReadTag(tag)
@@ -84,7 +98,7 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev != nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusConflict, tagExists)
+		return h.error(req, fiber.StatusConflict, errTagExists)
 	case prev != nil:
 		t, err2 = h.pap.UpdateTag(prev, lastIndex, t, user)
 	default:
@@ -101,19 +115,19 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var tag string
-	if tag, ok, err = h.checkKey(req); !ok {
-		return err
+	tag, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var t *oas.Tag
-	if t, ok, err = h.checkBody(req, tag); !ok {
-		return err
+	t, code, err := h.checkBody(req, tag)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	prev, lastIndex, err2 := h.pap.ReadTag(tag)
@@ -121,7 +135,7 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusNotFound, tagNotFound)
+		return h.error(req, fiber.StatusNotFound, errTagNotFound)
 	case prev == nil:
 		t, err2 = h.pap.CreateTag(t, user)
 	default:
@@ -138,14 +152,14 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var tag string
-	if tag, ok, err = h.checkKey(req); !ok {
-		return err
+	tag, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	prev, lastIndex, err2 := h.pap.ReadTag(tag)
@@ -153,7 +167,7 @@ func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("ignoreMissing"):
-		return h.error(req, fiber.StatusNotFound, tagNotFound)
+		return h.error(req, fiber.StatusNotFound, errTagNotFound)
 	case prev == nil:
 		prev = &oas.Tag{Id: tag}
 	default:
@@ -166,13 +180,13 @@ func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	return req.JSON(prev)
 }
 
-func (h *TagsHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *TagsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
 func (h *TagsHandler) tagConcurrencyError(req *fiber.Ctx, err error) error {
 	if errors.Is(err, pap.ErrTagConcurrency) {
-		return h.error(req, fiber.StatusConflict, tagConcurrency)
+		return h.error(req, fiber.StatusConflict, errTagConcurrency)
 	}
 	return h.error(req, fiber.StatusInternalServerError, err)
 }
@@ -182,41 +196,35 @@ func (h *TagsHandler) error(req *fiber.Ctx, status int, err error) error {
 	return server.SendMessageResponse(req, status, err.Error())
 }
 
-func (h *TagsHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
-	id := req.Params("tag")
-	if id == "" || len(id) > 40 {
-		return "", false, h.error(req, fiber.StatusBadRequest, tagKeyError)
-	}
-
-	return id, true, nil
+// badRequest logs a warning and returns a 400 with the given validation error's code and message.
+func (h *TagsHandler) badRequest(req *fiber.Ctx, code string, err error) error {
+	h.logger.Warn("tag request rejected", "path", req.Path(), "err", err, "status", fiber.StatusBadRequest)
+	return server.SendProblemResponse(req, fiber.StatusBadRequest, code, err.Error())
 }
 
-func (h *TagsHandler) checkBody(req *fiber.Ctx, tag string) (*oas.Tag, bool, error) {
+func (h *TagsHandler) checkKey(req *fiber.Ctx) (string, error) {
+	id := req.Params("tag")
+	if id == "" || len(id) > 40 {
+		return "", errTagKeyError
+	}
+
+	return id, nil
+}
+
+// checkBody parses and validates the request body.
+func (h *TagsHandler) checkBody(req *fiber.Ctx, tag string) (*oas.Tag, string, error) {
 	var t oas.Tag
 	if err := req.BodyParser(&t); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(tag, &t.Id, "tag mismatch").
+		checkIdentifiers(tag, &t.Id, errTagMismatch).
 		checkTitle(t.Name)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &t, true, nil
-}
 
-// TagsHandler implements the interface for handling requests about policy tags.
-type TagsHandler struct {
-	logger     *slog.Logger
-	pap        *pap.PAP
-	authorizer authorization.Authorizer
+	return &t, "", nil
 }
-
-var (
-	tagNotFound    = errors.New("tag not found")
-	tagExists      = errors.New("tag already exists")
-	tagConcurrency = errors.New("tag was modified by another request")
-	tagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
-)

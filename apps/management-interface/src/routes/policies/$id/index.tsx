@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input.tsx";
 import { Select } from "@/components/ui/select.tsx";
 import { TagsEditor } from "@/components/ui/tags-editor.tsx";
 import { useTags } from '@/services/tags.ts';
+import { lookupErrorMessage, SOURCE_REQUIRED_MESSAGE } from '@/utilities/errorMessages';
 
 export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
@@ -85,9 +86,11 @@ function RouteComponent() {
         }
     }
 
-    const handleSave = async () => {
-        if (!formData?.metadata?.description || !formData?.language || !formData.data) {
-            setErrorMessage('Vul alle verplichte velden in')
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (!formData.data?.trim()) {
+            setErrorMessage(SOURCE_REQUIRED_MESSAGE)
             return
         }
 
@@ -99,7 +102,7 @@ function RouteComponent() {
             setIsEditMode(false)
             setErrorMessage(null)
         } catch (err) {
-            setErrorMessage(err instanceof Error ? err.message : 'Opslaan mislukt')
+            setErrorMessage(lookupErrorMessage(err))
         }
     }
 
@@ -125,7 +128,7 @@ function RouteComponent() {
 
     const tags: string[] = data?.metadata?.tags ?? []
 
-    return <>
+    return <form onSubmit={(e) => { void handleSubmit(e) }}>
         <Breadcrumb items={[
             { label: 'Home', href: '/' },
             { label: 'Beleidsregels', href: '/policies' },
@@ -146,8 +149,8 @@ function RouteComponent() {
                 <>
                     <Button color={"zinc"} onClick={handleCancel}>Annuleren</Button>
                     <Button
+                        type="submit"
                         color={"emerald"}
-                        onClick={() => { void handleSave(); }}
                         disabled={replacePolicyMutation.isPending}
                     >
                         {replacePolicyMutation.isPending ? 'Bezig met opslaan...' : 'Opslaan'}
@@ -240,6 +243,7 @@ function RouteComponent() {
                                         name="language"
                                         value={formData?.language}
                                         onChange={handleChange}
+                                        required
                                     >
                                         <option value="cedar">Cedar</option>
                                         <option value="rego">Rego</option>
@@ -303,5 +307,5 @@ function RouteComponent() {
                 </Card>
             </div>
         </div>
-    </>
+    </form>
 }

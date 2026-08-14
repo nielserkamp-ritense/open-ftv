@@ -255,7 +255,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorObject"
+            $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'
 
     NotAuthorized:
       description: Not authorized.
@@ -267,7 +267,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorObject"
+            $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'
 
     AccessDenied:
       description: Access denied.
@@ -279,7 +279,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorObject"
+            $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'
 
     NotFound:
       description: Resource not found.
@@ -291,7 +291,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorObject"
+            $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'
           examples:
             GET_ATTRIBUTE_404_NOTFOUND:
               summary: Unsuccessful retrieval of unknown attribute.
@@ -308,7 +308,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ErrorObject"
+            $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'
 
   schemas:
     AuthlogEntries:
@@ -637,25 +637,3 @@ components:
           $ref: "#/components/schemas/PageResponse"
       required:
         - results
-
-    ErrorObject:
-      type: object
-      description: The body for an error response (as defined by RFC9457).
-      properties:
-        type:
-          type: string
-          format: uri
-          description: Identification of the problem.
-        status:
-          type: integer
-          description: Status code of the problem.
-        title:
-          type: string
-          description: Summary of the problem.
-        detail:
-          type: string
-          description: Detailed description of the problem.
-        instance:
-          type: string
-          format: uri
-          description: Identification of the problem instance.

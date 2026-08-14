@@ -2,12 +2,10 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
 
+import { clearRequiredFieldValidity, markRequiredFieldInvalid } from './required-field'
+
 export const Textarea = forwardRef(function Textarea(
-  {
-    className,
-    resizable = true,
-    ...props
-  }: { className?: string; resizable?: boolean } & Omit<Headless.TextareaProps, 'as' | 'className'>,
+  { className, resizable = true, onInvalid, onInput, ...props }: { className?: string; resizable?: boolean } & Omit<Headless.TextareaProps, 'as' | 'className'>,
   ref: React.ForwardedRef<HTMLTextAreaElement>
 ) {
   return (
@@ -30,6 +28,14 @@ export const Textarea = forwardRef(function Textarea(
       <Headless.Textarea
         ref={ref}
         {...props}
+        onInvalid={(e) => {
+          markRequiredFieldInvalid(e)
+          onInvalid?.(e)
+        }}
+        onInput={(e) => {
+          clearRequiredFieldValidity(e)
+          onInput?.(e)
+        }}
         className={clsx([
           // Basic layout
           'relative block h-full w-full appearance-none rounded-sm px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

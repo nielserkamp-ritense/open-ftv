@@ -1,6 +1,7 @@
 sources:
   - provider: filesystem
     provides:
+      - errors/openapi.yaml
       - authzen/openapi.yaml
       - authlog/openapi.yaml
       - policies/openapi.yaml

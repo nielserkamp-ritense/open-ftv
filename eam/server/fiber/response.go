@@ -6,7 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
+	apierror "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/redact"
 )
 
 // SendBasicResponse sends a basic response corresponding with the given status code.
@@ -18,7 +19,22 @@ func SendBasicResponse(req *fiber.Ctx, status int) error {
 
 // SendMessageResponse sends a basic response corresponding with the given status code.
 func SendMessageResponse(req *fiber.Ctx, status int, msg string) error {
-	return req.Status(status).JSON(&authzen.ErrorResponse{Title: msg})
+	return req.Status(status).JSON(&apierror.ErrorResponse{
+		Status: status,
+		Title:  utils.StatusMessage(status),
+		Detail: redact.Sensitive(msg),
+	})
+}
+
+// SendProblemResponse sends an error response like SendMessageResponse, additionally including
+// a stable, machine-readable Code that clients can use to look up their own localized message.
+func SendProblemResponse(req *fiber.Ctx, status int, code, msg string) error {
+	return req.Status(status).JSON(&apierror.ErrorResponse{
+		Status: status,
+		Title:  utils.StatusMessage(status),
+		Detail: redact.Sensitive(msg),
+		Code:   code,
+	})
 }
 
 var (
@@ -40,6 +56,6 @@ var (
 
 func init() {
 	for _, status := range supportedStatus {
-		ResponseBody[status], _ = json.Marshal(&authzen.ErrorResponse{Title: utils.StatusMessage(status)})
+		ResponseBody[status], _ = json.Marshal(&apierror.ErrorResponse{Status: status, Title: utils.StatusMessage(status)})
 	}
 }

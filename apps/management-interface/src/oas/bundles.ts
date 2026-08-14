@@ -308,8 +308,11 @@ export interface components {
             /** @description Version number of the replaced deployment. */
             previousVersion: number;
         };
-        /** @description The response for an error (as defined by RFC9457). */
-        ErrorMessage: {
+        ErrorMessage: components["schemas"]["ErrorResponse"];
+        /** @description Error code that clients can use to look up their own localized message. An OpenFTV extension. */
+        ErrorCode: string;
+        /** @description Error response model (as defined by RFC9457). */
+        ErrorResponse: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -326,6 +329,7 @@ export interface components {
              * @description Identification of the problem instance.
              */
             instance?: string;
+            code?: components["schemas"]["ErrorCode"];
         };
     };
     responses: {
@@ -427,7 +431,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Not authenticated (401 status code). */
@@ -438,7 +442,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Not authorized (403 status code - access denied). */
@@ -449,7 +453,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Resource not found. */
@@ -460,7 +464,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Unexpected error. */
@@ -471,7 +475,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorMessage"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
     };

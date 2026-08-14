@@ -107,10 +107,3 @@ type datasourceHandler struct {
 	logger *slog.Logger
 	s      store.Storage
 }
-
-// const (
-// 	datasourceNotFound   = "datasource not found"
-// 	datasourceExists     = "datasource already exists"
-// 	datasourceIDError    = "datasource ID must be filled and less or equal to 100 characters"
-// 	datasourceIDMismatch = "datasource ID mismatch"
-// )

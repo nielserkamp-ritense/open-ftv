@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -460,4 +461,70 @@ func TestPoliciesHandler_DeletePolicy(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPoliciesHandler_buildPolicy(t *testing.T) {
+	t.Parallel()
+
+	const cedar = "permit(principal, action, resource);"
+
+	t.Run("neither url nor data", func(t *testing.T) {
+		t.Parallel()
+
+		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+		pol, err := h.buildPolicy(&policies.Policy{Language: "cedar"})
+
+		require.ErrorIs(t, err, errPolUrlContent)
+		assert.Nil(t, pol)
+	})
+
+	t.Run("inline data", func(t *testing.T) {
+		t.Parallel()
+
+		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+		pol, err := h.buildPolicy(&policies.Policy{Language: "cedar", Data: cedar})
+
+		require.NoError(t, err)
+		assert.NotNil(t, pol)
+	})
+
+	t.Run("url", func(t *testing.T) {
+		t.Parallel()
+
+		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = w.Write([]byte(cedar))
+		}))
+		defer srv.Close()
+
+		p := &policies.Policy{Language: "cedar"}
+		p.Metadata.Url = srv.URL
+
+		pol, err := h.buildPolicy(p)
+
+		require.NoError(t, err)
+		assert.NotNil(t, pol)
+	})
+
+	t.Run("unreachable url", func(t *testing.T) {
+		t.Parallel()
+
+		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+		// A server that is started and immediately stopped hands us an address that is
+		// guaranteed to refuse connections.
+		srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+		srv.Close()
+
+		p := &policies.Policy{Language: "cedar"}
+		p.Metadata.Url = srv.URL
+
+		pol, err := h.buildPolicy(p)
+
+		require.Error(t, err)
+		assert.Nil(t, pol)
+	})
 }

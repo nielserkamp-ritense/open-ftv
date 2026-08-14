@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -22,6 +24,65 @@ import (
 // PoliciesVersion is the full semantic API version for the policy endpoints.
 const PoliciesVersion = "1.7.1" // check against oas/policies/openapi.yaml!
 
+// Maximum lengths enforced by the policy field checks below.
+const (
+	maxLanguageLength  = 40
+	maxRvvaIDLength    = 80
+	maxPolicyURLLength = 400
+	maxPolicyKeyLength = 40
+)
+
+// policyFetchTimeout bounds how long a policy uri may take to respond.
+const policyFetchTimeout = 10 * time.Second
+
+var (
+	errPolNotFound     = errors.New("policy not found")
+	errPolExists       = errors.New("policy already exists")
+	errPolKeyError     = fmt.Errorf("policy id must be filled and less or equal %d characters", maxPolicyKeyLength)
+	errPolVersionError = errors.New("policy version must be filled and positive")
+	errPolUrlContent   = errors.New("policy data or url required")
+
+	errLanguageRequired  = checkIssue{code: "E02005", msg: "language must be filled"}
+	errLanguageTooLong   = checkIssue{code: "E02010", msg: fmt.Sprintf("language too long (max %d characters)", maxLanguageLength)}
+	errRvvaIDTooLong     = checkIssue{code: "E02015", msg: fmt.Sprintf("RvVA identifier too long (max %d characters)", maxRvvaIDLength)}
+	errPolicyDataMissing = checkIssue{code: "E02020", msg: "either uri or data must be filled"}
+	errPolicyDataBothSet = checkIssue{code: "E02025", msg: "only one of uri and data can be filled"}
+	errPolicyURLTooLong  = checkIssue{code: "E02030", msg: fmt.Sprintf("uri too long (max %d characters)", maxPolicyURLLength)}
+	errPolicyIDMismatch  = checkIssue{code: "E02035", msg: "policy id mismatch"}
+)
+
+func (f *fieldChecker) checkLanguage(language string) *fieldChecker {
+	switch {
+	case language == "":
+		f.addIssue(errLanguageRequired)
+	case utf8.RuneCountInString(language) > maxLanguageLength:
+		f.addIssue(errLanguageTooLong)
+	}
+
+	return f
+}
+
+func (f *fieldChecker) checkRvvaID(id string) *fieldChecker {
+	if utf8.RuneCountInString(id) > maxRvvaIDLength {
+		f.addIssue(errRvvaIDTooLong)
+	}
+
+	return f
+}
+
+func (f *fieldChecker) checkPolicyData(url, data string) *fieldChecker {
+	switch {
+	case url == "" && data == "":
+		f.addIssue(errPolicyDataMissing)
+	case url != "" && data != "":
+		f.addIssue(errPolicyDataBothSet)
+	case utf8.RuneCountInString(url) > maxPolicyURLLength:
+		f.addIssue(errPolicyURLTooLong)
+	}
+
+	return f
+}
+
 // PoliciesHandler represents the interface for handling requests about policies.
 type PoliciesHandler interface {
 	GetPolicies(req *fiber.Ctx) error       // retrieve all policies.
@@ -35,6 +96,12 @@ type PoliciesHandler interface {
 	DeletePolicy(req *fiber.Ctx) error      // remove an existing policy.
 }
 
+type policiesHandler struct {
+	logger     *slog.Logger
+	cache      *pap.PAP
+	authorizer authorization.Authorizer
+}
+
 // NewPoliciesHandler instantiates a policy handler.
 func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
 	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer}
@@ -44,8 +111,7 @@ func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authoriz
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -65,14 +131,13 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	pol, _, err2 := h.cache.Read(id)
@@ -81,7 +146,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	}
 
 	if pol == nil {
-		return h.error(req, fiber.StatusNotFound, polNotFound)
+		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	}
 
 	out := pol.ToOAS(true)
@@ -105,14 +170,13 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	list, err2 := h.cache.ReadVersions(id)
@@ -127,19 +191,18 @@ func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
 func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	pol, err2 := h.cache.ReadVersion(id, version)
@@ -148,7 +211,7 @@ func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 	}
 
 	if pol == nil {
-		return h.error(req, fiber.StatusNotFound, polNotFound)
+		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	}
 
 	return req.JSON(pol)
@@ -158,24 +221,24 @@ func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var p *oas.Policy
-	if p, ok, err = h.checkBody(req, id); !ok {
-		return err
+	p, code, err := h.checkBody(req, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
-	var p2 *models.Policy
-	if p2, ok, err = h.buildPolicy(req, p); !ok {
-		return err
+	p2, err := h.buildPolicy(p)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	prev, lastIndex, err2 := h.cache.Read(p.Id)
@@ -183,7 +246,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev != nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusConflict, polExists)
+		return h.error(req, fiber.StatusConflict, errPolExists)
 	case prev != nil:
 		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
 	default:
@@ -200,29 +263,28 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	var id string
-	id, ok, err := h.checkKey(req)
-	if !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	// Load the stored target object BEFORE authorizing, so the PDP can
 	// evaluate fine-grained policies against its attributes (e.g. status).
 	prev, _, _ := h.cache.Read(id)
 
-	var user identity.Principal
-	if user, ok, err = h.authorizeResource(req, id, prev); !ok {
+	user, err := h.authorizeResource(req, id, prev)
+	if err != nil {
 		return err
 	}
 
-	var p *oas.Policy
-	if p, ok, err = h.checkBody(req, id); !ok {
-		return err
+	p, code, err := h.checkBody(req, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
-	var p2 *models.Policy
-	if p2, ok, err = h.buildPolicy(req, p); !ok {
-		return err
+	p2, err := h.buildPolicy(p)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	prev, lastIndex, err2 := h.cache.Read(p.Id)
@@ -230,7 +292,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusNotFound, polNotFound)
+		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	case prev == nil:
 		p2, err2 = h.cache.Create(p2, user)
 	default:
@@ -247,19 +309,19 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var p *oas.PolicyStatus
-	if p, ok, err = h.checkBodyStatus(req, id); !ok {
-		return err
+	p, code, err := h.checkBodyStatus(req, id)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	prev, lastIndex, err2 := h.cache.Read(p.Id)
@@ -278,19 +340,19 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	pol, err2 := h.cache.RestoreVersion(id, version, user)
@@ -305,16 +367,14 @@ func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	_ = user
-
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	var p2 *models.Policy
@@ -324,7 +384,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	case err2 != nil:
 		// no-op
 	case prev == nil && !req.QueryBool("ignoreMissing"):
-		return h.error(req, fiber.StatusNotFound, polNotFound)
+		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	case prev == nil:
 		p2, err2 = models.NewPolicyFromData(id, "", "", "", &bytes.Buffer{})
 	default:
@@ -337,35 +397,38 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	return req.JSON(p2.ToOAS(true))
 }
 
-func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
+func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, error) {
 	id := req.Params("id")
-	if id == "" || len(id) > 40 {
-		return "", false, h.error(req, fiber.StatusBadRequest, polKeyError)
+	if id == "" || len(id) > maxPolicyKeyLength {
+		return "", errPolKeyError
 	}
 
-	return id, true, nil
+	return id, nil
 }
 
-func (h *policiesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+func (h *policiesHandler) checkVersion(req *fiber.Ctx) (int, error) {
 	v, err := req.ParamsInt("version")
 	if err != nil {
-		return 0, false, err
+		return 0, err
 	}
 
 	if v <= 0 {
-		return 0, false, h.error(req, fiber.StatusBadRequest, polVersionError)
+		return 0, errPolVersionError
 	}
-	return v, true, nil
+
+	return v, nil
 }
 
-func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, bool, error) {
+// checkBody parses and validates the request body, returning the Code and error to report via
+// badRequest on failure. A nil error means the returned Policy is valid.
+func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, string, error) {
 	var p oas.Policy
 	if err := req.BodyParser(&p); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(id, &p.Id, "policy id mismatch").
+		checkIdentifiers(id, &p.Id, errPolicyIDMismatch).
 		checkLanguage(p.Language).
 		checkStatus(p.Status).
 		checkTitle(p.Metadata.Title).
@@ -374,63 +437,59 @@ func (h *policiesHandler) checkBody(req *fiber.Ctx, id string) (*oas.Policy, boo
 		checkTags(p.Metadata.Tags)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &p, true, nil
+
+	return &p, "", nil
 }
 
-func (h *policiesHandler) checkBodyStatus(req *fiber.Ctx, id string) (*oas.PolicyStatus, bool, error) {
+// checkBodyStatus is like checkBody but for the status-only request body.
+func (h *policiesHandler) checkBodyStatus(req *fiber.Ctx, id string) (*oas.PolicyStatus, string, error) {
 	var p oas.PolicyStatus
 	if err := req.BodyParser(&p); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(id, &p.Id, "policy id mismatch").
+		checkIdentifiers(id, &p.Id, errPolicyIDMismatch).
 		checkStatus(p.Status)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &p, true, nil
+
+	return &p, "", nil
 }
 
-func (h *policiesHandler) buildPolicy(req *fiber.Ctx, p *oas.Policy) (*models.Policy, bool, error) {
+// buildPolicy resolves a policy from either its inline data or the uri it points at.
+func (h *policiesHandler) buildPolicy(p *oas.Policy) (*models.Policy, error) {
 	if p.Metadata.Url == "" {
 		if p.Data == "" {
-			return nil, false, h.error(req, fiber.StatusBadRequest, polUrlContent)
+			return nil, errPolUrlContent
 		}
 
-		pol, err3 := models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
-		if err3 != nil {
-			return nil, false, h.error(req, fiber.StatusBadRequest, err3)
-		}
-		return pol, true, nil
+		return models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), policyFetchTimeout)
 	defer cancel()
 
-	req2, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Metadata.Url, nil)
+	fetch, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Metadata.Url, http.NoBody)
 	if err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, err
 	}
 
-	resp, err2 := http.DefaultClient.Do(req2)
-	if err2 != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err2)
+	resp, err := http.DefaultClient.Do(fetch)
+	if err != nil {
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
-	pol, err3 := models.NewPolicyFromOAS(p, resp.Body)
-	if err3 != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err3)
-	}
-	return pol, true, nil
+	return models.NewPolicyFromOAS(p, resp.Body)
 }
 
-func (h *policiesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *policiesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
@@ -438,9 +497,9 @@ func (h *policiesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, e
 // passes the stored target object (with its attributes, e.g. status) into
 // authorization so the PDP can evaluate fine-grained, resource-attribute
 // policies. When prev is nil (no stored object), no resource is attached.
-func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (identity.Principal, bool, error) {
+func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (identity.Principal, error) {
 	if h.authorizer == nil {
-		return identity.NewSystemPrincipal(), true, nil
+		return identity.NewSystemPrincipal(), nil
 	}
 
 	var res *models.Entity
@@ -460,16 +519,8 @@ func (h *policiesHandler) error(req *fiber.Ctx, status int, err error) error {
 	return server.SendMessageResponse(req, status, err.Error())
 }
 
-type policiesHandler struct {
-	logger     *slog.Logger
-	cache      *pap.PAP
-	authorizer authorization.Authorizer
+// badRequest logs a warning and returns a 400 with the given validation error's code and message.
+func (h *policiesHandler) badRequest(req *fiber.Ctx, code string, err error) error {
+	h.logger.Warn("policy request rejected", "path", req.Path(), "err", err, "status", fiber.StatusBadRequest)
+	return server.SendProblemResponse(req, fiber.StatusBadRequest, code, err.Error())
 }
-
-var (
-	polNotFound     = errors.New("policy not found")
-	polExists       = errors.New("policy already exists")
-	polKeyError     = errors.New("policy id must be filled and less or equal 40 characters")
-	polVersionError = errors.New("policy version must be filled and positive")
-	polUrlContent   = errors.New("policy data or url required")
-)

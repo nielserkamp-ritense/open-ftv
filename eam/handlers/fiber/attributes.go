@@ -17,6 +17,15 @@ import (
 // AttributesVersion is the full semantic API version for the attribute endpoints.
 const AttributesVersion = "1.7.1" // check against oas/attributes/openapi.yaml!
 
+var (
+	errAttrNotFound     = errors.New("attribute not found")
+	errAttrExists       = errors.New("attribute already exists")
+	errAttrKeyError     = errors.New("attribute key must be filled and less or equal 500 characters")
+	errAttrVersionError = errors.New("attribute version must be filled and positive")
+
+	errAttributeKeyMismatch = checkIssue{code: "E04005", msg: "attribute key mismatch"}
+)
+
 // AttributesHandler represents the interface for handling requests about attributes.
 type AttributesHandler interface {
 	GetAttributes(req *fiber.Ctx) error
@@ -30,6 +39,12 @@ type AttributesHandler interface {
 	DeleteAttribute(req *fiber.Ctx) error
 }
 
+type attributesHandler struct {
+	logger     *slog.Logger
+	cache      *pip.PIP
+	authorizer authorization.Authorizer
+}
+
 // NewAttributesHandler instantiates a policy handler.
 func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) AttributesHandler {
 	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer}
@@ -39,8 +54,7 @@ func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authoriz
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -56,14 +70,13 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var key string
-	if key, ok, err = h.checkKey(req); !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	a, _, err2 := h.cache.GetAttribute(key)
@@ -72,7 +85,7 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	}
 
 	if a == nil {
-		return h.error(req, fiber.StatusNotFound, attrNotFound)
+		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
 	}
 
 	out := a.ToOAS()
@@ -96,14 +109,13 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	list, err2 := h.cache.GetAttributeVersions(id)
@@ -118,19 +130,18 @@ func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var id string
-	if id, ok, err = h.checkKey(req); !ok {
-		return err
+	id, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	attr, err2 := h.cache.GetAttributeVersion(id, version)
@@ -139,7 +150,7 @@ func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 	}
 
 	if attr == nil {
-		return h.error(req, fiber.StatusNotFound, attrNotFound)
+		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
 	}
 
 	return req.JSON(attr)
@@ -149,19 +160,19 @@ func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var key string
-	if key, ok, err = h.checkKey(req); !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var a *oas.Attribute
-	if a, ok, err = h.checkBody(req, key); !ok || err != nil {
-		return err
+	a, code, err := h.checkBody(req, key)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	a2, _, err2 := h.cache.GetAttribute(a.Key)
@@ -170,7 +181,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	}
 
 	if a2 != nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusConflict, attrExists)
+		return h.error(req, fiber.StatusConflict, errAttrExists)
 	}
 
 	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
@@ -183,21 +194,19 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var key string
-	key, ok, err = h.checkKey(req)
-	if !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var a *oas.Attribute
-	if a, ok, err = h.checkBody(req, key); !ok || err != nil {
-		h.logger.Error("failed to read body", "error", err)
-		return err
+	a, code, err := h.checkBody(req, key)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	a2, _, err2 := h.cache.GetAttribute(a.Key)
@@ -207,7 +216,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	}
 
 	if a2 == nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusNotFound, attrNotFound)
+		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
 	}
 
 	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
@@ -221,21 +230,19 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var key string
-	key, ok, err = h.checkKey(req)
-	if !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var a *oas.AttributeStatus
-	if a, ok, err = h.checkBodyStatus(req, key); !ok || err != nil {
-		h.logger.Error("failed to read body", "error", err)
-		return err
+	a, code, err := h.checkBodyStatus(req, key)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	a2, _, err2 := h.cache.GetAttribute(a.Key)
@@ -255,19 +262,19 @@ func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var key string
-	if key, ok, err = h.checkKey(req); !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var version int
-	if version, ok, err = h.checkVersion(req); !ok {
-		return err
+	version, err := h.checkVersion(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	attr, err2 := h.cache.RestoreAttributeVersion(key, version, user)
@@ -282,14 +289,14 @@ func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok || err != nil {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
-	var key string
-	if key, ok, err = h.checkKey(req); !ok {
-		return err
+	key, err := h.checkKey(req)
+	if err != nil {
+		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
 	a2, _, err2 := h.cache.GetAttribute(key)
@@ -298,7 +305,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	}
 
 	if a2 == nil && !req.QueryBool(ParamIgnoreMissing) {
-		return h.error(req, fiber.StatusNotFound, attrNotFound)
+		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
 	}
 
 	if a2, err2 = h.cache.RemoveAttribute(key, user); err2 != nil {
@@ -307,62 +314,69 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	return req.JSON(a2.ToOAS())
 }
 
-func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, bool, error) {
+func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, error) {
 	key := req.Params("key")
 	if key == "" || len(key) > 200 {
-		return "", false, h.error(req, fiber.StatusBadRequest, attrKeyError)
+		return "", errAttrKeyError
 	}
-	return key, true, nil
+
+	return key, nil
 }
 
-func (h *attributesHandler) checkVersion(req *fiber.Ctx) (int, bool, error) {
+func (h *attributesHandler) checkVersion(req *fiber.Ctx) (int, error) {
 	v, err := req.ParamsInt("version")
 	if err != nil {
-		return 0, false, err
+		return 0, err
 	}
 
 	if v <= 0 {
-		return 0, false, h.error(req, fiber.StatusBadRequest, attrVersionError)
+		return 0, errAttrVersionError
 	}
-	return v, true, nil
+
+	return v, nil
 }
 
-func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*oas.Attribute, bool, error) {
+// checkBody parses and validates the request body, returning the Code and error to report via
+// badRequest on failure. A nil error means the returned Attribute is valid.
+func (h *attributesHandler) checkBody(req *fiber.Ctx, key string) (*oas.Attribute, string, error) {
 	var a oas.Attribute
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(key, &a.Key, "attribute key mismatch").
+		checkIdentifiers(key, &a.Key, errAttributeKeyMismatch).
 		checkStatus(a.Status).
 		checkAttrType(a.Type).
 		checkTitle(a.Metadata.Title).
 		checkTags(a.Metadata.Tags)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &a, true, nil
+
+	return &a, "", nil
 }
 
-func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.AttributeStatus, bool, error) {
+// checkBodyStatus is like checkBody but for the status-only request body.
+func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.AttributeStatus, string, error) {
 	var a oas.AttributeStatus
 	if err := req.BodyParser(&a); err != nil {
-		return nil, false, h.error(req, fiber.StatusBadRequest, err)
+		return nil, codeBadRequest, err
 	}
 
 	chk := newFieldChecker().
-		checkIdentifiers(key, &a.Key, "attribute key mismatch").
+		checkIdentifiers(key, &a.Key, errAttributeKeyMismatch).
 		checkStatus(a.Status)
 
 	if chk.checkFailed() {
-		return nil, false, h.error(req, fiber.StatusBadRequest, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
-	return &a, true, nil
+
+	return &a, "", nil
 }
 
-func (h *attributesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *attributesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
@@ -371,15 +385,8 @@ func (h *attributesHandler) error(req *fiber.Ctx, status int, err error) error {
 	return server.SendMessageResponse(req, status, err.Error())
 }
 
-type attributesHandler struct {
-	logger     *slog.Logger
-	cache      *pip.PIP
-	authorizer authorization.Authorizer
+// badRequest logs a warning and returns a 400 with the given validation error's code and message.
+func (h *attributesHandler) badRequest(req *fiber.Ctx, code string, err error) error {
+	h.logger.Warn("attribute request rejected", "path", req.Path(), "err", err, "status", fiber.StatusBadRequest)
+	return server.SendProblemResponse(req, fiber.StatusBadRequest, code, err.Error())
 }
-
-var (
-	attrNotFound     = errors.New("attribute not found")
-	attrExists       = errors.New("attribute already exists")
-	attrKeyError     = errors.New("attribute key must be filled and less or equal 500 characters")
-	attrVersionError = errors.New("attribute version must be filled and positive")
-)
