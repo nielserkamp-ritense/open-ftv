@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -237,13 +238,21 @@ func (s *Services) initADL(group fiber.Router) {
 
 	switch strings.ToLower(cfg.Type) {
 	case "pg", "postgres", "postgresql":
+		// The ADL schema is owned by eam/log/decisions, not by an app: a manager without a
+		// PDP alongside it (in-app deployment) would otherwise never see the schema created,
+		// and with a PDP alongside it startup order would decide whether the log works.
+		// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
+		if err = decisions.Migrate(cfg.MigrateSource, cfg.PgURL, s.adlMigrateSteps(), s.adlMigrateAuto(), s.logger); err != nil {
+			panic("failed to migrate the Authorization Decision Log database: " + err.Error())
+		}
+
 		searcher, err = searchPG.New(s.ctx, cfg.PgURL, nil, cfg.PgMaxLife, cfg.PgMaxConn)
 	default:
 		return
 	}
 
 	if err != nil {
-		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err.Error())
+		panic("failed to initialize Authorization Decision Log search API: " + err.Error())
 	}
 
 	adl := handle.NewADLHandler(s.logger, searcher, s.auth.Authorizer())
@@ -251,6 +260,28 @@ func (s *Services) initADL(group fiber.Router) {
 
 	grp2 := group.Group(handle.PathADL)
 	grp2.Get(handle.PathEntries, adl.Search)
+}
+
+// adlMigrateAuto reports whether the ADL must be migrated up to the latest level, falling back
+// to the manager's general migration settings when the ADL-specific setting is not given.
+func (s *Services) adlMigrateAuto() bool {
+	// MigrateAuto is the ADL setting (ADL_MIGRATE_AUTO), Auto the general one (MIGRATE_AUTO).
+	return s.cfg.MigrateAuto || s.cfg.Auto
+}
+
+// adlMigrateSteps returns the number of ADL migration steps, falling back to the manager's
+// general migration settings when the ADL-specific setting is not given.
+//
+// NOTE: only the number of steps and the auto flag are inherited, never the source:
+// MANAGER_MIGRATE_SOURCE locates the scripts of the manager's OWN database, which must never
+// be applied to the ADL database. ADL_MIGRATE_SOURCE defaults to the embedded ADL scripts.
+func (s *Services) adlMigrateSteps() int {
+	// MigrateSteps is the ADL setting (ADL_MIGRATE_STEPS), Steps the general one (MIGRATE_STEPS).
+	if steps := s.cfg.MigrateSteps; steps != 0 {
+		return steps
+	}
+
+	return s.cfg.Steps
 }
 
 // initBundleRoutes sets up the routing table for bundle retrieval requests.

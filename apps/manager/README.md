@@ -94,6 +94,17 @@ log:   # options for the application-log.
   format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
+  decisions:   # options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
+    type: "<type>"              # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
+    postgresql:
+      url: "<url>"              # URL of the Postgres backend holding the ADL (no default).
+      connection:
+        ttl: "<duration>"       # Timeout for closing inactive Postgres connections (default "5m").
+        max: <number>           # Maximum number of connections to the Postgres backend (default 100).
+    migrate:   # options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
+      source: "<source>"        # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
+      auto: true|false          # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, the `migrate.auto` setting below is used.
+      steps: <number>           # Number of steps to migrate. A negative number means to migrate down. When not given, the `migrate.steps` setting below is used.
 
 persist:   # this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
   type: "<type>"                # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
@@ -203,6 +214,17 @@ MANAGER_LOG_FORMAT=<encoding>                   # Type of encoding for the log; 
 MANAGER_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 MANAGER_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
+# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
+MANAGER_ADL_TYPE=<type>                         # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
+MANAGER_ADL_PG_URL=<url>                        # URL of the Postgres backend holding the ADL (no default).
+MANAGER_ADL_PG_MAX_LIFE=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
+MANAGER_ADL_PG_MAX_CONN=<number>                # Maximum number of connections to the Postgres backend (default 100).
+
+# options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
+MANAGER_ADL_MIGRATE_SOURCE=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
+MANAGER_ADL_MIGRATE_AUTO=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, MANAGER_MIGRATE_AUTO is used.
+MANAGER_ADL_MIGRATE_STEPS=<number>              # Number of steps to migrate. A negative number means to migrate down. When not given, MANAGER_MIGRATE_STEPS is used.
+
 # this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
 MANAGER_PERSIST_TYPE=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
 MANAGER_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
@@ -302,6 +324,17 @@ These match the corresponding options in a configuration file.
 --log-format=<encoding>                   # Type of encoding for the log; supported are "text" and "json" (default "json").
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
+
+# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
+--adl-type=<type>                         # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
+--adl-pg-url=<url>                        # URL of the Postgres backend holding the ADL (no default).
+--adl-pg-max-life=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
+--adl-pg-max-conn=<number>                # Maximum number of connections to the Postgres backend (default 100).
+
+# options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
+--adl-migrate-source=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
+--adl-migrate-auto=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, --migrate-auto is used.
+--adl-migrate-steps=<number>              # Number of steps to migrate. A negative number means to migrate down. When not given, --migrate-steps is used.
 
 # this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
 --persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres", "memory" (default "memory").

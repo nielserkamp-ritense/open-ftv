@@ -14,6 +14,13 @@ type DecisionLog struct {
 	OtelInsecure bool          `json:"adlOtelInsecure,omitempty" yaml:"log.decisions.otel.insecure,omitempty"             env:"ADL_OTEL_INSECURE" flag:"adl-otel-insecure" desc:"ADL allow insecure OpenTelemetry connection"`
 	SlogMsg      string        `json:"adlSLogMsg,omitempty"      yaml:"log.decisions.slog.message,omitempty"              env:"ADL_SLOG_MESSAGE"  flag:"adl-slog-message"  desc:"ADL log message for slog type"`
 	Pretty       bool          `json:"adlLPretty,omitempty"      yaml:"log.decisions.file.prettyPrint,omitempty"          env:"ADL_PRETTY_PRINT"  flag:"adl-pretty-print"  desc:"ADL pretty printing for stdout/stderr type"`
+
+	// Migration of the ADL database. The ADL is not the app's own database, so it has its own
+	// migration settings; when Auto and Steps are left unset the app falls back to its general
+	// Migration settings. Set the source to an empty value to switch ADL migration off.
+	MigrateSource string `json:"adlMigrationSource,omitempty" yaml:"log.decisions.migrate.source,omitempty" env:"ADL_MIGRATE_SOURCE" flag:"adl-migrate-source" desc:"Source location of ADL migration scripts (default embedded scripts)"  default:"*embed*"`
+	MigrateSteps  int    `json:"adlMigrationSteps,omitempty"  yaml:"log.decisions.migrate.steps,omitempty"  env:"ADL_MIGRATE_STEPS"  flag:"adl-migrate-steps"  desc:"ADL migration steps to perform (positive is up, negative is down)"`
+	MigrateAuto   bool   `json:"adlMigrationAuto,omitempty"   yaml:"log.decisions.migrate.auto,omitempty"   env:"ADL_MIGRATE_AUTO"   flag:"adl-migrate-auto"   desc:"Always migrate the ADL up to the latest level"`
 }
 
 // Sanitized returns the configuration variables where all sensitive data has been scrubbed.

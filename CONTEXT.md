@@ -50,6 +50,12 @@ Once seeded it is an ordinary, editable policy — the files are bootstrap, not 
 authoritative baseline that gets re-asserted.
 _Avoid_: default policy, built-in policy.
 
+**Authorization Decision Log (ADL)**:
+The record of authorization **decisions** the PDP has made — one entry per evaluated
+request — kept in its own database, separate from the **policy** store. Surfaced in the
+management UI as *Logboek*.
+_Avoid_: audit log, authlog, decision log (spell it out on first use).
+
 ## Access-control roles (PEP / PDP / PIP / PAP)
 
 The XACML / AuthZEN role acronyms and how OpenFTV maps them to packages are documented

@@ -118,6 +118,10 @@ log:   # options for the application-log.
       prettyPrint: true|false   # Flag to force "pretty printing" on stdout/stderr types.
     slog:
       message: "<msg>"          # ADL log message for slog type.
+    migrate:   # options for migrating the ADL database; these take precedence over the general `migrate` options below.
+      source: "<source>"        # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
+      auto: true|false          # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+      steps: <number>           # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
 
 migrate:    # options for migrating an ADL database.
   source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
@@ -206,6 +210,11 @@ PDP_ADL_OTEL_URL=<url>                      # URL of an OpenTelemetry collector 
 PDP_ADL_OTEL_INSECURE=true|false            # allow insecure OpenTelemetry connection.
 PDP_ADL_PRETTY_PRINT=true|false             # Flag to force "pretty printing" on stdout/stderr types.
 PDP_ADL_SLOG_MESSAGE=<msg>                  # ADL log message for slog type.
+
+# options for migrating the ADL database; these take precedence over the general PDP_MIGRATE_* options.
+PDP_ADL_MIGRATE_SOURCE=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
+PDP_ADL_MIGRATE_AUTO=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
+PDP_ADL_MIGRATE_STEPS=<number>              # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
 
 # policies used for authorizing user interface requests.
 PDP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
