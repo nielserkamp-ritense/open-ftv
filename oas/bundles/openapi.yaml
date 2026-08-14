@@ -597,23 +597,4 @@ components:
         - previousVersion
 
     ErrorMessage:
-      type: object
-      description: The response for an error (as defined by RFC9457).
-      properties:
-        type:
-          type: string
-          format: uri
-          description: Identification of the problem.
-        status:
-          type: integer
-          description: Status code of the problem.
-        title:
-          type: string
-          description: Summary of the problem.
-        detail:
-          type: string
-          description: Detailed description of the problem.
-        instance:
-          type: string
-          format: uri
-          description: Identification of the problem instance.
+      $ref: '../errors/openapi.yaml#/components/schemas/ErrorResponse'

@@ -17,14 +17,21 @@ import (
 // SettingsVersion is the full semantic API version for the settings endpoint.
 const SettingsVersion = "1.0.0" // check against oas/settings/openapi.yaml!
 
-var (
-	errUnauthorized = fiber.NewError(fiber.StatusForbidden, "unauthorized")
-	// settingsHexColor matches a 6-digit hex color code, e.g. #F7E8E8.
-	settingsHexColor = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
-)
-
 // maxHeaderTitleLength is the maximum allowed length of the header title.
 const maxHeaderTitleLength = 200
+
+var (
+	// settingsHexColor matches a 6-digit hex color code, e.g. #F7E8E8.
+	settingsHexColor = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
+
+	errHeaderTitleRequired  = checkIssue{code: "E08005", msg: "header title must be filled"}
+	errHeaderTitleTooLong   = checkIssue{code: "E08010", msg: "header title too long (max 200 characters)"}
+	errHeaderColorRequired  = checkIssue{code: "E08015", msg: "header color must be filled"}
+	errHeaderColorInvalid   = checkIssue{code: "E08020", msg: "header color must be a hex color code, e.g. #F7E8E8"}
+	errTitleColorRequired   = checkIssue{code: "E08025", msg: "title color must be filled"}
+	errTitleColorInvalid    = checkIssue{code: "E08030", msg: "title color must be a hex color code, e.g. #CFCFCF"}
+	errLogoMediaTypeInvalid = checkIssue{code: "E08035", msg: "logo media type must be one of image/png, image/jpeg, image/svg+xml, image/webp"}
+)
 
 // SettingsHandler implements the interface for handling requests about the manager ui settings.
 type SettingsHandler struct {
@@ -42,13 +49,8 @@ func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, a
 func (h *SettingsHandler) GetSettings(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, SettingsVersion)
 
-	_, ok, err := h.authorize(req)
-	if err != nil {
+	if _, err := h.authorize(req); err != nil {
 		return err
-	}
-
-	if !ok {
-		return errUnauthorized
 	}
 
 	resp, err2 := h.store.GetSettings(req.Context())
@@ -63,18 +65,14 @@ func (h *SettingsHandler) GetSettings(req *fiber.Ctx) error {
 func (h *SettingsHandler) PutSettings(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, SettingsVersion)
 
-	user, ok, err := h.authorize(req)
+	user, err := h.authorize(req)
 	if err != nil {
 		return err
 	}
 
-	if !ok {
-		return errUnauthorized
-	}
-
-	var s *oas.Settings
-	if s, ok, err = h.checkBody(req); !ok {
-		return err
+	s, code, err := h.checkBody(req)
+	if err != nil {
+		return h.badRequest(req, code, err)
 	}
 
 	resp, err2 := h.store.UpdateSettings(req.Context(), user, s)
@@ -85,7 +83,7 @@ func (h *SettingsHandler) PutSettings(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-func (h *SettingsHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *SettingsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 
@@ -94,16 +92,18 @@ func (h *SettingsHandler) error(req *fiber.Ctx, status int, err error) error {
 	return server.SendMessageResponse(req, status, err.Error())
 }
 
-// badRequest logs a warning and returns a 400 with the given validation error as message.
-func (h *SettingsHandler) badRequest(req *fiber.Ctx, err error) error {
+// badRequest logs a warning and returns a 400 with the given validation error's code and message.
+func (h *SettingsHandler) badRequest(req *fiber.Ctx, code string, err error) error {
 	h.logger.Warn("settings request rejected", "path", req.Path(), "err", err, "status", fiber.StatusBadRequest)
-	return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	return server.SendProblemResponse(req, fiber.StatusBadRequest, code, err.Error())
 }
 
-func (h *SettingsHandler) checkBody(req *fiber.Ctx) (*oas.Settings, bool, error) {
+// checkBody parses and validates the request body, returning the Code and error to report via
+// badRequest on failure. A nil error means the returned Settings is valid.
+func (h *SettingsHandler) checkBody(req *fiber.Ctx) (*oas.Settings, string, error) {
 	var s oas.Settings
 	if err := req.BodyParser(&s); err != nil {
-		return nil, false, h.badRequest(req, err)
+		return nil, codeBadRequest, err
 	}
 
 	// Request body size is enforced by Fiber BodyLimit (MANAGER_MAX_BODY_SIZE).
@@ -114,18 +114,18 @@ func (h *SettingsHandler) checkBody(req *fiber.Ctx) (*oas.Settings, bool, error)
 		checkLogo(&s)
 
 	if chk.checkFailed() {
-		return nil, false, h.badRequest(req, chk.error())
+		return nil, chk.firstCode(), chk.error()
 	}
 
-	return &s, true, nil
+	return &s, "", nil
 }
 
 func (f *fieldChecker) checkHeaderTitle(title string) *fieldChecker {
 	switch {
 	case title == "":
-		f.add("header title must be filled")
+		f.addIssue(errHeaderTitleRequired)
 	case utf8.RuneCountInString(title) > maxHeaderTitleLength:
-		f.add("header title too long (max 200 characters)")
+		f.addIssue(errHeaderTitleTooLong)
 	}
 
 	return f
@@ -134,9 +134,9 @@ func (f *fieldChecker) checkHeaderTitle(title string) *fieldChecker {
 func (f *fieldChecker) checkHeaderColor(color string) *fieldChecker {
 	switch {
 	case color == "":
-		f.add("header color must be filled")
+		f.addIssue(errHeaderColorRequired)
 	case !settingsHexColor.MatchString(color):
-		f.add("header color must be a hex color code, e.g. #F7E8E8")
+		f.addIssue(errHeaderColorInvalid)
 	}
 
 	return f
@@ -145,9 +145,9 @@ func (f *fieldChecker) checkHeaderColor(color string) *fieldChecker {
 func (f *fieldChecker) checkTitleColor(color string) *fieldChecker {
 	switch {
 	case color == "":
-		f.add("title color must be filled")
+		f.addIssue(errTitleColorRequired)
 	case !settingsHexColor.MatchString(color):
-		f.add("title color must be a hex color code, e.g. #000000")
+		f.addIssue(errTitleColorInvalid)
 	}
 
 	return f
@@ -158,7 +158,7 @@ func (f *fieldChecker) checkLogo(s *oas.Settings) *fieldChecker {
 	case len(s.Logo) == 0:
 		s.LogoMediaType = ""
 	case !s.LogoMediaType.Valid():
-		f.add("logo media type must be one of image/png, image/jpeg, image/svg+xml, image/webp")
+		f.addIssue(errLogoMediaTypeInvalid)
 	}
 
 	return f

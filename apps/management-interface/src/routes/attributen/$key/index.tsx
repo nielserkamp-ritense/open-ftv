@@ -11,6 +11,7 @@ import { formatDateTime } from "@/utilities/datetime.ts";
 import { Button, SecondaryButton } from "@/components/ui/button.tsx";
 import { useState } from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
+import { lookupErrorMessage } from "@/utilities/errorMessages";
 
 export const Route = createFileRoute('/attributen/$key/')({
     component: RouteComponent,
@@ -22,6 +23,7 @@ function RouteComponent() {
     const replaceAttributeMutation = useReplaceAttribute()
     const [isEditing, setIsEditing] = useState(false)
     const [editedValue, setEditedValue] = useState<string>("")
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     if (status == "pending") {
         return <>
@@ -53,6 +55,8 @@ function RouteComponent() {
     const handleSave = async () => {
         if (!data) return
 
+        setErrorMessage(null)
+
         // Optimistically update UI
         setIsEditing(false)
 
@@ -67,7 +71,7 @@ function RouteComponent() {
         } catch (error) {
             // Revert on error
             setIsEditing(true)
-            console.error('Failed to save attribute:', error)
+            setErrorMessage(lookupErrorMessage(error))
         }
     }
 
@@ -94,6 +98,11 @@ function RouteComponent() {
                 </SecondaryButton>
             )}
         </div>
+        {errorMessage && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {errorMessage}
+            </div>
+        )}
         <div className="flex flex-col 2xl:flex-row py-3 gap-6">
             <Card className="w-2/3 min-w-3xl flex-1 h-[836px]" disablePadding={true}>
                 <div className="flex flex-col h-full px-4 py-5 sm:p-6">

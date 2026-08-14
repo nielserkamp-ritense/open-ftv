@@ -22,6 +22,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/settings"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -147,8 +148,9 @@ func TestSettingsHandler_GetSettings_StoreError(t *testing.T) {
 func TestSettingsHandler_GetSettings_Forbidden(t *testing.T) {
 	t.Parallel()
 
-	sh := NewSettingsHandler(settingsLogger(), &stubSettings{}, denyAuthorizer{})
-	srv := fiber.New()
+	logger := settingsLogger()
+	sh := NewSettingsHandler(logger, &stubSettings{}, denyAuthorizer{})
+	srv := fiber.New(fiber.Config{ErrorHandler: server.ErrorHandler(logger)})
 	srv.Get("/v1/settings", sh.GetSettings)
 
 	resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, "/v1/settings", http.NoBody), 60000)
@@ -236,8 +238,9 @@ func TestSettingsHandler_PutSettings_StoreError(t *testing.T) {
 func TestSettingsHandler_PutSettings_Forbidden(t *testing.T) {
 	t.Parallel()
 
-	sh := NewSettingsHandler(settingsLogger(), &stubSettings{}, denyAuthorizer{})
-	srv := fiber.New()
+	logger := settingsLogger()
+	sh := NewSettingsHandler(logger, &stubSettings{}, denyAuthorizer{})
+	srv := fiber.New(fiber.Config{ErrorHandler: server.ErrorHandler(logger)})
 	srv.Put("/v1/settings", sh.PutSettings)
 
 	req := httptest.NewRequest(fiber.MethodPut, "/v1/settings", bytes.NewReader(validSettingsJSON()))
@@ -279,42 +282,46 @@ func TestSettingsHandler_PutSettings_Validation(t *testing.T) {
 	srv.Put("/v1/settings", sh.PutSettings)
 
 	tests := []struct {
-		name string
-		body []byte
-		want string
+		name     string
+		body     []byte
+		want     string
+		wantCode string
 	}{
 		{
-			name: "empty title and bad header color",
-			body: []byte(`{"headerTitle":"","headerColor":"not-a-color","titleColor":"#000000"}`),
-			want: "header title must be filled",
+			name:     "empty title and bad header color",
+			body:     []byte(`{"headerTitle":"","headerColor":"not-a-color","titleColor":"#000000"}`),
+			want:     "header title must be filled",
+			wantCode: "E08005",
 		},
 		{
-			name: "title too long",
-			body: validSettingsJSON(func(m map[string]any) {
-				m["headerTitle"] = strings.Repeat("x", 201)
-			}),
-			want: "header title too long",
+			name:     "title too long",
+			body:     validSettingsJSON(func(m map[string]any) { m["headerTitle"] = strings.Repeat("x", 201) }),
+			want:     "header title too long",
+			wantCode: "E08010",
 		},
 		{
-			name: "empty header color",
-			body: validSettingsJSON(func(m map[string]any) {
-				m["headerColor"] = ""
-			}),
-			want: "header color must be filled",
+			name:     "empty header color",
+			body:     validSettingsJSON(func(m map[string]any) { m["headerColor"] = "" }),
+			want:     "header color must be filled",
+			wantCode: "E08015",
 		},
 		{
-			name: "empty title color",
-			body: validSettingsJSON(func(m map[string]any) {
-				m["titleColor"] = ""
-			}),
-			want: "title color must be filled",
+			name:     "bad header color",
+			body:     validSettingsJSON(func(m map[string]any) { m["headerColor"] = "#xyz" }),
+			want:     "header color must be a hex color code",
+			wantCode: "E08020",
 		},
 		{
-			name: "bad title color",
-			body: validSettingsJSON(func(m map[string]any) {
-				m["titleColor"] = "#xyz"
-			}),
-			want: "title color must be a hex color code",
+			name:     "empty title color",
+			body:     validSettingsJSON(func(m map[string]any) { m["titleColor"] = "" }),
+			want:     "title color must be filled",
+			wantCode: "E08025",
+		},
+		{
+			name:     "bad title color",
+			body:     validSettingsJSON(func(m map[string]any) { m["titleColor"] = "#xyz" }),
+			want:     "title color must be a hex color code",
+			wantCode: "E08030",
 		},
 		{
 			name: "logo without valid media type",
@@ -322,7 +329,8 @@ func TestSettingsHandler_PutSettings_Validation(t *testing.T) {
 				m["logo"] = base64.StdEncoding.EncodeToString([]byte("png"))
 				m["logoMediaType"] = "image/gif"
 			}),
-			want: "logo media type must be one of",
+			want:     "logo media type must be one of",
+			wantCode: "E08035",
 		},
 	}
 
@@ -344,6 +352,7 @@ func TestSettingsHandler_PutSettings_Validation(t *testing.T) {
 			b, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
 			assert.Contains(t, string(b), tc.want, fmt.Sprintf("body=%s", b))
+			assert.Contains(t, string(b), tc.wantCode, fmt.Sprintf("body=%s", b))
 		})
 	}
 }

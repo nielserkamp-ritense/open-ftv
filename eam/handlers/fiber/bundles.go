@@ -37,8 +37,7 @@ func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manag
 func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -53,8 +52,7 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -69,8 +67,7 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -108,13 +105,12 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var list []*bundles.Deployment
-	if list, err = h.pap.ListDeployments(); err != nil {
+	list, err := h.pap.ListDeployments()
+	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 
@@ -130,18 +126,21 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var version int
-	if version, err = req.ParamsInt("key"); err != nil {
+	version, err := req.ParamsInt("key")
+	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var resp *bundles.Deployment
-	if resp, err = h.pap.ReadDeployment(uint64(version)); err != nil {
+	if version < 0 {
+		return h.error(req, fiber.StatusBadRequest, errors.New("deployment version must be positive"))
+	}
+
+	resp, err := h.pap.ReadDeployment(uint64(version))
+	if err != nil {
 		return h.error(req, fiber.StatusNotFound, err)
 	}
 	return req.JSON(resp.ToOAS())
@@ -151,13 +150,12 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
-	var last *bundles.Deployment
-	if last, err = h.pap.LastDeployment(); err != nil {
+	last, err := h.pap.LastDeployment()
+	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 
@@ -165,8 +163,8 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
 	}
 
-	var resp *bundles.Deployment
-	if resp, err = h.pap.ReadDeployment(last.Version()); err != nil {
+	resp, err := h.pap.ReadDeployment(last.Version())
+	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 	return req.JSON(resp.ToOAS())
@@ -176,18 +174,18 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, ok, err := h.authorize(req)
-	if !ok {
+	user, err := h.authorize(req)
+	if err != nil {
 		return err
 	}
 
 	var body oas.NewDeploymentBody
 	if err = req.BodyParser(&body); err != nil {
-		return h.error(req, fiber.StatusBadRequest, err)
+		return server.SendProblemResponse(req, fiber.StatusBadRequest, codeBadRequest, err.Error())
 	}
 
-	var resp *bundles.Deployment
-	if resp, err = h.pap.NewDeployment(body.Title, body.Description, h.manager, user); err != nil {
+	resp, err := h.pap.NewDeployment(body.Title, body.Description, h.manager, user)
+	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 	return req.JSON(resp.ToOAS())
@@ -197,8 +195,7 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -207,8 +204,8 @@ func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, errors.New("bundle id required"))
 	}
 
-	var last *bundles.Deployment
-	if last, err = h.pap.LastDeployment(); err != nil {
+	last, err := h.pap.LastDeployment()
+	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
 
@@ -216,8 +213,8 @@ func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
 	}
 
-	var b *bundles.Bundle
-	if b, err = h.manager.Get(last, id); err != nil {
+	b, err := h.manager.Get(last, id)
+	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
@@ -237,7 +234,7 @@ func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 	return req.Send(buf.Bytes())
 }
 
-func (h *BundlesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *BundlesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 

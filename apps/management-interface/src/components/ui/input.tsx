@@ -2,6 +2,8 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import React, { forwardRef } from 'react'
 
+import { clearRequiredFieldValidity, markRequiredFieldInvalid } from './required-field'
+
 export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>) {
   return (
     <span
@@ -25,6 +27,8 @@ type DateType = (typeof dateTypes)[number]
 export const Input = forwardRef(function Input(
   {
     className,
+    onInvalid,
+    onInput,
     ...props
   }: {
     className?: string
@@ -54,6 +58,14 @@ export const Input = forwardRef(function Input(
       <Headless.Input
         ref={ref}
         {...props}
+        onInvalid={(e) => {
+          markRequiredFieldInvalid(e)
+          onInvalid?.(e)
+        }}
+        onInput={(e) => {
+          clearRequiredFieldValidity(e)
+          onInput?.(e)
+        }}
         className={clsx([
           // Date classes
           props.type &&

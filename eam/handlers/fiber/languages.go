@@ -20,8 +20,7 @@ func NewLanguagesHandler(logger *slog.Logger, pap *pap.PAP, authorizer authoriza
 func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -33,7 +32,7 @@ func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 	return req.JSON(resp)
 }
 
-func (h *LanguagesHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *LanguagesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 

@@ -1,8 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/deepmap/oapi-codegen/HEAD/configuration-schema.json
-package: authzen
-output: authzen.go
-import-mapping:
-  ../errors/openapi.yaml: apierrors gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors
+package: errors
+output: errors.go
 generate:
   models: true
 output-options:

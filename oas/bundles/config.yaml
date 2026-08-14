@@ -1,5 +1,7 @@
 package: bundles
 output: bundles.go
+import-mapping:
+  ../errors/openapi.yaml: apierrors gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors
 generate:
   models: true
 output-options:

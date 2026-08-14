@@ -136,6 +136,7 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 
 	if p.err != nil {
 		p.msg = "AuthZEN evaluations failed"
+		p.logger.Error(p.msg, "request", p.batch, "error", p.err)
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 

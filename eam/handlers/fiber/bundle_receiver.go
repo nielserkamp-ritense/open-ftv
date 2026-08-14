@@ -34,8 +34,7 @@ func NewBundleReceiverHandler(logger *slog.Logger, ctl pdp.Controller, authorize
 func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	_, ok, err := h.authorize(req)
-	if !ok {
+	if _, err := h.authorize(req); err != nil {
 		return err
 	}
 
@@ -81,7 +80,7 @@ func (h *BundleReceiverHandler) ProcessBundle(ct string, body io.Reader) (old ui
 	return
 }
 
-func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (identity.Principal, bool, error) {
+func (h *BundleReceiverHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 	return authorizeRequest(h.authorizer, req, h.logger)
 }
 

@@ -58,8 +58,10 @@ export interface components {
             /** @description W3C span identifier from the authorization request. */
             spanId?: string;
         };
-        /** @description The body for an error response (as defined by RFC9457). */
-        ErrorObject: {
+        /** @description Error code that clients can use to look up their own localized message. An OpenFTV extension. */
+        ErrorCode: string;
+        /** @description Error response model (as defined by RFC9457). */
+        ErrorResponse: {
             /**
              * Format: uri
              * @description Identification of the problem.
@@ -76,6 +78,7 @@ export interface components {
              * @description Identification of the problem instance.
              */
             instance?: string;
+            code?: components["schemas"]["ErrorCode"];
         };
     };
     responses: {
@@ -98,7 +101,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorObject"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Not authorized. */
@@ -109,7 +112,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorObject"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Access denied. */
@@ -120,7 +123,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorObject"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Resource not found. */
@@ -131,7 +134,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorObject"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
         /** @description Unexpected error. */
@@ -142,7 +145,7 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["ErrorObject"];
+                "application/json": components["schemas"]["ErrorResponse"];
             };
         };
     };
