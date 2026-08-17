@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
@@ -46,7 +47,7 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := NewExternal(cfg, logger)
+		s := server.NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -91,7 +92,7 @@ func TestServe_FailPDP(t *testing.T) {
 			require.NotNil(t, e)
 		}()
 
-		_ = NewExternal(cfg, logger)
+		_ = server.NewExternal(cfg, logger)
 
 		require.True(t, false) // should never trigger
 	})
@@ -120,7 +121,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 		}
 
-		s := NewExternal(cfg, logger)
+		s := server.NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -173,7 +174,7 @@ func TestNewExternal_Logging(t *testing.T) {
 			},
 		}
 
-		s := NewExternal(cfg, logger)
+		s := server.NewExternal(cfg, logger)
 		require.NotNil(t, s)
 
 		assert.GreaterOrEqual(t, h.Count(), 4)
