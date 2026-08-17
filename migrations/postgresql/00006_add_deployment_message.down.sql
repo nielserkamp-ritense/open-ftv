@@ -1,5 +1,0 @@
-BEGIN;
-
-ALTER TABLE deployment DROP COLUMN message;
-
-COMMIT;
