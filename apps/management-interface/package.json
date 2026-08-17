@@ -52,7 +52,7 @@
     "eslint": "10.6.0",
     "eslint-plugin-react-dom": "5.13.1",
     "eslint-plugin-react-hooks": "7.1.1",
-    "eslint-plugin-react-refresh": "0.5.3",
+    "eslint-plugin-react-refresh": "0.5.4",
     "eslint-plugin-react-x": "5.13.1",
     "globals": "17.7.0",
     "openapi-typescript": "7.13.0",
