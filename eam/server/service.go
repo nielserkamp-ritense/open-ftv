@@ -5,6 +5,8 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 // Service represents the interface for an HTTP service.
@@ -14,4 +16,5 @@ type Service interface {
 	Serve()                         // start the service.
 	ServeWithWG(wg *sync.WaitGroup) // start the service, and signal the WaitGroup when finished.
 	Shutdown()                      // stop the service.
+	GetFiberApp() *fiber.App
 }

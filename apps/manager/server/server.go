@@ -15,7 +15,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	eam_fiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
@@ -49,7 +49,7 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 		opts = append(opts, server.WithMutualTLS())
 	}
 
-	s.main = fiber.New(logger, s.initRoutes, opts...)
+	s.main = eam_fiber.New(logger, s.initRoutes, opts...)
 
 	if s.cfg.BundlePath != "" {
 		// internal service (bundles)
@@ -73,11 +73,11 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 			opts = append(opts, server.WithMutualTLS())
 		}
 
-		s.bundles = fiber.New(logger, s.initBundleRoutes, opts...)
+		s.bundles = eam_fiber.New(logger, s.initBundleRoutes, opts...)
 	}
 
 	// health service
-	s.health = fiber.New(
+	s.health = eam_fiber.New(
 		logger,
 		s.initHealthRoutes,
 		server.WithDefaults(),
@@ -136,4 +136,12 @@ type Services struct {
 	pap           *pap.PAP
 	pip           *pip.PIP
 	chk           *handle.Checks
+}
+
+func (s *Services) GetMainService() server.Service {
+	return s.main
+}
+
+func (s *Services) GetHealthService() server.Service {
+	return s.health
 }
