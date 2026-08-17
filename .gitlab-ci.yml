@@ -1,7 +1,6 @@
 variables:
   pattern_prerelease_tag: '/^v\d*\.\d*\.\d*-rc\.\d*$/'
   pattern_release_tag: '/^v\d*\.\d*\.\d*$/'
-  RENOVATE_REPOSITORIES: $CI_PROJECT_PATH
 
 stages:
   - Version
@@ -20,6 +19,3 @@ stages:
 
 include:
   - ".gitlab/ci/**.yml"
-  # https://gitlab.com/gitlab-com/gl-infra/renovate/renovate-runner/-/blob/main/templates/renovate.gitlab-ci.yml?ref_type=heads
-  - project: 'renovate-bot/renovate-runner'
-    file: '/templates/renovate.gitlab-ci.yml'
