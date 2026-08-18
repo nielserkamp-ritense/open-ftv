@@ -31,7 +31,7 @@ func WithPrincipals(store principals.Store) HandlerOption {
 
 // principalResolver turns the stored attribution ids in a response into display data.
 //
-// Resolution happens here, at the serialisation boundary, rather than as a SQL join in each read
+// Resolution happens here, at the serialization boundary, rather than as a SQL join in each read
 // query: the principal table belongs to eam/principals, and the components that own policies,
 // entities, settings and bundles should not reach into it. See docs/adr/0004.
 type principalResolver struct {
@@ -123,15 +123,7 @@ func collectPrincipals(v reflect.Value, depth int, out *[]reflect.Value) {
 		}
 
 	case reflect.Slice, reflect.Array:
-		// Skip element types that cannot contain a Principal. Without this, a []byte logo or an
-		// arbitrary attribute payload is walked one element at a time on every response.
-		if !mayContainPrincipal(v.Type().Elem()) {
-			return
-		}
-
-		for i := range v.Len() {
-			collectPrincipals(v.Index(i), depth+1, out)
-		}
+		collectFromElements(v, depth, out)
 
 	case reflect.Map:
 		for _, k := range v.MapKeys() {
@@ -139,18 +131,37 @@ func collectPrincipals(v reflect.Value, depth int, out *[]reflect.Value) {
 		}
 
 	case reflect.Struct:
-		if isPrincipal(v) {
-			*out = append(*out, v)
-			return
-		}
-
-		for i := range v.NumField() {
-			if v.Type().Field(i).IsExported() {
-				collectPrincipals(v.Field(i), depth+1, out)
-			}
-		}
+		collectFromStruct(v, depth, out)
 
 	default:
+	}
+}
+
+// collectFromElements walks a slice or array, skipping element types that cannot contain a
+// Principal. Without that check a []byte logo or an arbitrary attribute payload is walked one
+// element at a time on every response.
+func collectFromElements(v reflect.Value, depth int, out *[]reflect.Value) {
+	if !mayContainPrincipal(v.Type().Elem()) {
+		return
+	}
+
+	for i := range v.Len() {
+		collectPrincipals(v.Index(i), depth+1, out)
+	}
+}
+
+// collectFromStruct records v itself when it is a Principal, and otherwise descends into its
+// exported fields.
+func collectFromStruct(v reflect.Value, depth int, out *[]reflect.Value) {
+	if isPrincipal(v) {
+		*out = append(*out, v)
+		return
+	}
+
+	for i := range v.NumField() {
+		if v.Type().Field(i).IsExported() {
+			collectPrincipals(v.Field(i), depth+1, out)
+		}
 	}
 }
 

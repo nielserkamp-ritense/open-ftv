@@ -338,7 +338,7 @@ func (p *Policy) ToOAS(withData bool) *policies.Policy {
 			RvvaId:      p.rvvaID,
 			Tags:        p.Tags(),
 		},
-		// Only the id is set here: names are resolved at the serialisation boundary, so the
+		// Only the id is set here: names are resolved at the serialization boundary, so the
 		// models package stays free of any dependency on the principal store. See docs/adr/0004.
 		Audit: policies.ObjectAudit{
 			CreatedBy: policies.Principal{Id: p.createdBy},
@@ -509,7 +509,7 @@ type marshalPolicy struct {
 }
 
 // optionalPrincipal returns nil for an absent attribution, so the field is omitted from the
-// response rather than serialised as a principal identifying nobody.
+// response rather than serialized as a principal identifying nobody.
 func optionalPrincipal(id string) *policies.Principal {
 	if id == "" {
 		return nil

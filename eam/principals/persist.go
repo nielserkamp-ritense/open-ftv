@@ -46,8 +46,8 @@ func (r Record) Linkable() bool {
 // Store records the Principals the manager has seen, and resolves stored attribution ids back
 // into display data.
 type Store interface {
-	// Upsert records that p was seen acting on the management plane.
-	Upsert(ctx context.Context, p identity.Principal) error
+	// Upsert records that p was seen acting on the management plane. It never mutates p.
+	Upsert(ctx context.Context, p *identity.Principal) error
 	// Resolve returns a Record for each of the given ids that is known. Ids with no record are
 	// absent from the map: the caller falls back to showing the raw id.
 	Resolve(ctx context.Context, ids []string) (map[string]Record, error)

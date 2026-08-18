@@ -31,8 +31,8 @@ type TagsHandler struct {
 }
 
 // NewTagsHandler instantiates a tag handler.
-func NewTagsHandler(logger *slog.Logger, pap *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) *TagsHandler {
-	return &TagsHandler{logger: logger, pap: pap, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) *TagsHandler {
+	return &TagsHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetTags retrieves all tags from the PAP.
@@ -72,6 +72,7 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 	if t == nil {
 		return h.error(req, fiber.StatusNotFound, errTagNotFound)
 	}
+
 	return h.respond(req, t)
 }
 
@@ -109,6 +110,7 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
+
 	return h.respond(req.Status(fiber.StatusCreated), t)
 }
 
@@ -146,6 +148,7 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
+
 	return h.respond(req, t)
 }
 
@@ -178,6 +181,7 @@ func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
+
 	return h.respond(req, prev)
 }
 

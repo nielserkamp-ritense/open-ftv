@@ -30,8 +30,8 @@ type BundlesHandler struct {
 }
 
 // NewBundlesHandler instantiates a bundle deployment handler.
-func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer, opts ...HandlerOption) *BundlesHandler {
-	return &BundlesHandler{logger: logger, pap: pap, manager: manager, cfg: manager.Bundles(), authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+func NewBundlesHandler(logger *slog.Logger, store *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer, opts ...HandlerOption) *BundlesHandler {
+	return &BundlesHandler{logger: logger, pap: store, manager: manager, cfg: manager.Bundles(), authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetStatuses is the endpoint for retrieving the list of bundle status codes.
@@ -46,6 +46,7 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	for s := bundles.StatusMIN; s <= bundles.StatusMAX; s++ {
 		resp = append(resp, oas.Status{Code: int(s), Name: s.String()})
 	}
+
 	return h.respond(req, resp)
 }
 
@@ -61,6 +62,7 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	for s := bundles.CompressMIN; s <= bundles.CompressMAX; s++ {
 		resp = append(resp, oas.CompressType{Code: int(s), Name: s.String()})
 	}
+
 	return h.respond(req, resp)
 }
 
@@ -144,6 +146,7 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusNotFound, err)
 	}
+
 	return h.respond(req, resp.ToOAS())
 }
 
@@ -168,6 +171,7 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
+
 	return h.respond(req, resp.ToOAS())
 }
 
@@ -189,6 +193,7 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
+
 	return h.respond(req, resp.ToOAS())
 }
 

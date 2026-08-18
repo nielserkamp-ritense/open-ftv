@@ -33,7 +33,7 @@ type DB struct {
 // never erases what the manager already knew. A user principal can be resolved without any token
 // at all (eam/pep.DeterminePrincipal reads a `user::<id>` attribute), which would otherwise blank
 // the issuer recorded on an earlier request.
-func (db *DB) Upsert(ctx context.Context, p identity.Principal) error {
+func (db *DB) Upsert(ctx context.Context, p *identity.Principal) error {
 	sql := `INSERT INTO principal (id, kind, issuer, display_name, email, first_seen, last_seen)
  VALUES ($1,$2,$3,$4,$5,now(),now())
  ON CONFLICT (id) DO UPDATE SET
@@ -75,6 +75,7 @@ func (db *DB) Resolve(ctx context.Context, ids []string) (map[string]Record, err
 		}
 
 		out[r.ID] = r
+
 		return true
 	})
 

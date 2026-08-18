@@ -37,7 +37,7 @@ func (e *ErrPrincipalNotRecorded) Unwrap() error { return e.Err }
 // PrincipalRecorder records that a Principal was seen acting on the management plane.
 // Implemented by eam/principals; declared here so authorization keeps no storage dependency.
 type PrincipalRecorder interface {
-	Upsert(ctx context.Context, p identity.Principal) error
+	Upsert(ctx context.Context, p *identity.Principal) error
 }
 
 // Authorizer represents the interface for authorizing local API requests.
@@ -136,7 +136,7 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, principal identit
 	// Record the caller only once the request is permitted, so a token that is valid but allowed
 	// nothing leaves no personal data behind. See docs/adr/0004.
 	if err == nil && resp != nil && resp.Allowed {
-		err = a.recordPrincipal(req.Method, principal)
+		err = a.recordPrincipal(req.Method, &principal)
 	}
 
 	return
@@ -149,7 +149,7 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, principal identit
 // foreign keys to principal, so a write whose principal row is missing would fail deep inside the
 // handler; failing here instead turns that into an early, comprehensible error. A read has no such
 // dependency, and a degraded database must never lock everyone out of the management UI.
-func (a *auth) recordPrincipal(method string, p identity.Principal) error {
+func (a *auth) recordPrincipal(method string, p *identity.Principal) error {
 	if a.principals == nil || !p.IsAuthenticatedUser() {
 		return nil
 	}

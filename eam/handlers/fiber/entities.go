@@ -49,8 +49,8 @@ type entitiesHandler struct {
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) EntitiesHandler {
-	return &entitiesHandler{logger: logger, cache: pip, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+func NewEntitiesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) EntitiesHandler {
+	return &entitiesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetEntities implements the EntitiesHandler interface.
@@ -193,6 +193,7 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
+
 	return h.respond(req.Status(fiber.StatusCreated), e2.ToOAS())
 }
 
@@ -228,6 +229,7 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
+
 	return h.respond(req, e2.ToOAS())
 }
 
@@ -262,6 +264,7 @@ func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 		h.logger.Error("failed to save entity status", "error", err2)
 		return h.error(req, fiber.StatusBadRequest, err2)
 	}
+
 	return h.respond(req, e2.ToOAS())
 }
 
@@ -324,6 +327,7 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	if prev, err2 = h.cache.RemoveEntity(uid, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req, prev.ToOAS())
 }
 

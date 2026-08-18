@@ -122,7 +122,7 @@ func (d *Deployment) UnmarshalJSON(data []byte) (err error) {
 }
 
 // optionalPrincipal returns nil for an absent attribution, so the field is omitted from the
-// response rather than serialised as a principal identifying nobody.
+// response rather than serialized as a principal identifying nobody.
 func optionalPrincipal(id string) *oas.Principal {
 	if id == "" {
 		return nil

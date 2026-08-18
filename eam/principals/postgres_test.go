@@ -68,7 +68,7 @@ func TestDB_Upsert_PassesDisplayDataAndNullsUnknownClaims(t *testing.T) {
 				WillReturnResult(pgxmock.NewResult("INSERT", 1))
 			mock.ExpectCommit()
 
-			require.NoError(t, db.Upsert(ctx, tc.principal))
+			require.NoError(t, db.Upsert(ctx, &tc.principal))
 			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
@@ -91,7 +91,7 @@ func TestDB_Upsert_WrapsFailure(t *testing.T) {
 		WillReturnError(boom)
 	mock.ExpectRollback()
 
-	err := db.Upsert(ctx, identity.Principal{Kind: identity.KindUser, ID: "sub-1"})
+	err := db.Upsert(ctx, &identity.Principal{Kind: identity.KindUser, ID: "sub-1"})
 	require.Error(t, err)
 	assert.ErrorIs(t, err, boom)
 }
@@ -175,6 +175,6 @@ func TestDB_Upsert_PreservesIssuerWhenTheRequestCarriedNoJWT(t *testing.T) {
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
 	mock.ExpectCommit()
 
-	require.NoError(t, db.Upsert(ctx, identity.Principal{Kind: identity.KindUser, ID: "sub-1"}))
+	require.NoError(t, db.Upsert(ctx, &identity.Principal{Kind: identity.KindUser, ID: "sub-1"}))
 	require.NoError(t, mock.ExpectationsWereMet())
 }

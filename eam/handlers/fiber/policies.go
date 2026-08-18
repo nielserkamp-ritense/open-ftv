@@ -125,6 +125,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	for i := range list {
 		list2[i] = list[i].ToOAS(false)
 	}
+
 	return h.respond(req, list2)
 }
 
@@ -257,6 +258,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req.Status(fiber.StatusCreated), p2.ToOAS(true))
 }
 
@@ -303,6 +305,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req, p2.ToOAS(true))
 }
 
@@ -334,6 +337,7 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusBadRequest, err3)
 	}
+
 	return h.respond(req, p2.ToOAS(true))
 }
 
@@ -395,6 +399,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req, p2.ToOAS(true))
 }
 

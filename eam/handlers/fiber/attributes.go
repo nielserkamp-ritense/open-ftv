@@ -47,8 +47,8 @@ type attributesHandler struct {
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) AttributesHandler {
-	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+func NewAttributesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) AttributesHandler {
+	return &attributesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetAttributes implements the AttributesHandler interface.
@@ -188,6 +188,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req.Status(fiber.StatusCreated), a2.ToOAS())
 }
 
@@ -224,6 +225,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		h.logger.Error("failed to save attribute", "error", err2)
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req, a2.ToOAS())
 }
 
@@ -256,6 +258,7 @@ func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 		h.logger.Error("failed to save attribute status", "error", err2)
 		return h.error(req, fiber.StatusBadRequest, err2)
 	}
+
 	return h.respond(req, a2.ToOAS())
 }
 
@@ -312,6 +315,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	if a2, err2 = h.cache.RemoveAttribute(key, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
+
 	return h.respond(req, a2.ToOAS())
 }
 

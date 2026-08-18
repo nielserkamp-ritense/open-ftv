@@ -30,7 +30,7 @@ type storeStub struct {
 	asked   []string
 }
 
-func (s *storeStub) Upsert(context.Context, identity.Principal) error { return nil }
+func (s *storeStub) Upsert(context.Context, *identity.Principal) error { return nil }
 
 func (s *storeStub) Resolve(_ context.Context, ids []string) (map[string]principals.Record, error) {
 	s.calls++
@@ -54,11 +54,13 @@ func respond(t *testing.T, r principalResolver, v any) []byte {
 	app := fiber.New()
 	app.Get("/", func(c *fiber.Ctx) error { return r.respond(c, v) })
 
-	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -169,7 +171,7 @@ func TestHandlers_NeverSerialiseWithoutResolving(t *testing.T) {
 			for i, line := range strings.Split(string(src), "\n") {
 				if strings.Contains(line, ".JSON(") {
 					assert.Contains(t, line, "h.respond(",
-						"%s:%d serialises without resolving principals; use h.respond(req, v)", name, i+1)
+						"%s:%d serializes without resolving principals; use h.respond(req, v)", name, i+1)
 				}
 			}
 		})
@@ -208,11 +210,14 @@ func TestPrincipalResolver_SkipsLargeByteSlices(t *testing.T) {
 	app := fiber.New()
 	app.Get("/", func(c *fiber.Ctx) error { return newResolver(store).respond(c, settings) })
 
-	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
 	require.Equal(t, 200, resp.StatusCode)
 
 	// The principal is still resolved; the 256 KB logo beside it is simply not walked.
