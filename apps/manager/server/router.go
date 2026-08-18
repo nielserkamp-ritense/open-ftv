@@ -14,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
@@ -79,8 +80,19 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.initADL(v1)
 }
 
+// principalOption gives a handler the principal store, so attribution ids in its responses are
+// resolved to names. It is empty when the manager runs without postgres, in which case responses
+// carry ids only.
+func (s *Services) principalOption() []handle.HandlerOption {
+	if s.db == nil {
+		return nil
+	}
+
+	return []handle.HandlerOption{handle.WithPrincipals(principals.NewDBWithPool(s.db))}
+}
+
 func (s *Services) initLanguages(group fiber.Router) {
-	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer())
+	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer(), s.principalOption()...)
 
 	// languages CRUD.
 	group.Get(handle.PathLanguages, apis.GetLanguages)
@@ -95,7 +107,7 @@ func (s *Services) initTags(group fiber.Router) {
 		}
 	}
 
-	apis := handle.NewTagsHandler(s.logger, s.pap, s.auth.Authorizer())
+	apis := handle.NewTagsHandler(s.logger, s.pap, s.auth.Authorizer(), s.principalOption()...)
 
 	// tags CRUD.
 	group.Get(handle.PathTags, apis.GetTags).
@@ -110,14 +122,14 @@ func (s *Services) initSettings(group fiber.Router) {
 		return
 	}
 
-	apis := handle.NewSettingsHandler(s.logger, settings.NewSettingsDBWithPool(s.db), s.auth.Authorizer())
+	apis := handle.NewSettingsHandler(s.logger, settings.NewSettingsDBWithPool(s.db), s.auth.Authorizer(), s.principalOption()...)
 
 	group.Get(handle.PathSettings, apis.GetSettings).
 		Put(handle.PathSettings, apis.PutSettings)
 }
 
 func (s *Services) initPolicies(group fiber.Router) {
-	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
+	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer(), s.principalOption()...)
 
 	// policies CRUD.
 	group.Get(handle.PathPolicies, apis.GetPolicies).
@@ -134,7 +146,7 @@ func (s *Services) initPolicies(group fiber.Router) {
 }
 
 func (s *Services) initAttributes(group fiber.Router) {
-	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
+	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer(), s.principalOption()...)
 
 	// attributes CRUD.
 	group.Get(handle.PathAttributes, apis.GetAttributes).
@@ -151,7 +163,7 @@ func (s *Services) initAttributes(group fiber.Router) {
 }
 
 func (s *Services) initEntities(group fiber.Router) {
-	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
+	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer(), s.principalOption()...)
 
 	// entities CRUD.
 	group.Get(handle.PathEntities, apis.GetEntities).
@@ -195,7 +207,7 @@ func (s *Services) initDeployments(group fiber.Router) {
 
 	s.bundleManager = bundles.NewManager(s.ctx, s.logger, opts...)
 
-	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer(), s.principalOption()...)
 
 	if last == nil {
 		// create the first deployment, so any PDP can find this bundle at startup.
@@ -286,7 +298,7 @@ func (s *Services) adlMigrateSteps() int {
 
 // initBundleRoutes sets up the routing table for bundle retrieval requests.
 func (s *Services) initBundleRoutes(_ context.Context, svc *fiber.App) {
-	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
+	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer(), s.principalOption()...)
 
 	// bundle retrieval for PDPs.
 	v1 := svc.Group(handle.PathV1)

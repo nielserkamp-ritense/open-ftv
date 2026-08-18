@@ -43,11 +43,12 @@ type attributesHandler struct {
 	logger     *slog.Logger
 	cache      *pip.PIP
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) AttributesHandler {
-	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer}
+func NewAttributesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) AttributesHandler {
+	return &attributesHandler{logger: logger, cache: pip, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetAttributes implements the AttributesHandler interface.
@@ -63,7 +64,7 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 		resp = append(resp, attr.ToOAS())
 	})
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 // GetAttribute implements the AttributesHandler interface.
@@ -102,7 +103,7 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 		out.UsageData = usage
 	}
 
-	return req.JSON(out)
+	return h.respond(req, out)
 }
 
 // GetAttributeVersions implements the AttributesHandler interface.
@@ -123,7 +124,7 @@ func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(list)
+	return h.respond(req, list)
 }
 
 // GetAttributeVersion implements the AttributesHandler interface.
@@ -153,7 +154,7 @@ func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
 	}
 
-	return req.JSON(attr)
+	return h.respond(req, attr)
 }
 
 // PostAttribute implements the AttributesHandler interface.
@@ -187,7 +188,7 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.Status(fiber.StatusCreated).JSON(a2.ToOAS())
+	return h.respond(req.Status(fiber.StatusCreated), a2.ToOAS())
 }
 
 // PutAttribute implements the AttributesHandler interface.
@@ -223,7 +224,7 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		h.logger.Error("failed to save attribute", "error", err2)
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(a2.ToOAS())
+	return h.respond(req, a2.ToOAS())
 }
 
 // PatchAttributeStatus implements the AttributesHandler interface.
@@ -255,7 +256,7 @@ func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 		h.logger.Error("failed to save attribute status", "error", err2)
 		return h.error(req, fiber.StatusBadRequest, err2)
 	}
-	return req.JSON(a2.ToOAS())
+	return h.respond(req, a2.ToOAS())
 }
 
 // PostAttributeRestore implements the AttributesHandler interface.
@@ -282,7 +283,7 @@ func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(attr)
+	return h.respond(req, attr)
 }
 
 // DeleteAttribute implements the AttributesHandler interface.
@@ -311,7 +312,7 @@ func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	if a2, err2 = h.cache.RemoveAttribute(key, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(a2.ToOAS())
+	return h.respond(req, a2.ToOAS())
 }
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, error) {

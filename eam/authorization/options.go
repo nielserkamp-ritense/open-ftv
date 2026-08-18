@@ -55,6 +55,14 @@ func WithAuthenticator(authenticator authentication.Authenticator) Option {
 	}
 }
 
+// WithPrincipalRecorder passes the principal store to the authorization handler. When unset, no
+// principal is recorded and attribution ids stay unresolvable.
+func WithPrincipalRecorder(recorder PrincipalRecorder) Option {
+	return func(a *auth) {
+		a.principals = recorder
+	}
+}
+
 func NoAuth() Option {
 	return func(a *auth) {
 		a.noAuth = true

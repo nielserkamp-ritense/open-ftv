@@ -4,11 +4,12 @@ import {useDeployments, useStatuses, useStartDeployment, type Deployment} from "
 import {useState} from "react";
 import {createFileRoute} from "@tanstack/react-router";
 import Card from "@/components/ui/card.tsx";
-import type {ColDef} from "ag-grid-community";
+import type {ColDef, ValueGetterParams} from "ag-grid-community";
 import {ScaleLoader} from "react-spinners";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import {useCapabilities} from "@/auth/useCapabilities.ts";
 import {formatDateTime} from "@/utilities/datetime.ts";
+import {principalName} from "@/auth/principal.ts";
 
 export const Route = createFileRoute('/publicaties/')({
     component: PublicatiesComponent,
@@ -37,7 +38,15 @@ export default function PublicatiesComponent() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             valueFormatter: (params: any) => params.value ? formatDateTime(params.value) : ''
         },
-        {field: "audit.createdBy", headerName: "Created By", flex: 1},
+        {
+            field: "audit.createdBy",
+            headerName: "Created By",
+            flex: 1,
+            // A valueGetter rather than a valueFormatter: the grid sorts and filters on the
+            // underlying value, which is now a Principal object. Deriving the name here keeps
+            // the column sortable instead of comparing objects.
+            valueGetter: (params: ValueGetterParams<Deployment>) => principalName(params.data?.audit?.createdBy)
+        },
         {
             field: "status",
             headerName: "Status",

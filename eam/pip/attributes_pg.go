@@ -72,7 +72,7 @@ func (db *PostgresDB) ReadAttributeAudit(ctx context.Context, key string) ([]oas
 		out = append(out, oas.AuditEntry{
 			Created:   convert.AnyToDateTime(values[0]).Format(time.RFC3339),
 			Operation: convert.AnyToString(values[1]),
-			UserId:    convert.AnyToString(values[2]),
+			UserId:    oas.Principal{Id: convert.AnyToString(values[2])},
 		})
 		return true
 	})
@@ -101,7 +101,7 @@ func (db *PostgresDB) ReadAttributeDeployments(ctx context.Context, key string) 
 			Bundle:    convert.AnyToString(values[0]),
 			Version:   int(convert.AnyToInt64(values[1])),
 			Created:   convert.AnyToString(values[2]),
-			CreatedBy: convert.AnyToString(values[3]),
+			CreatedBy: optionalPrincipal(convert.AnyToString(values[3])),
 			Status:    bundles.Status(convert.AnyToInt64(values[4])).Status(),
 		})
 		return true

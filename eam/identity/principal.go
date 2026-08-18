@@ -21,21 +21,20 @@ var (
 	KindSystem      = Kind{"system"}
 )
 
-// Principal identifies the caller of a request, for both PDP evaluation and audit attribution (created_by/updated_by).
+// Principal identifies the caller of a request, for both PDP evaluation and audit attribution.
+//
+// ID is the value persisted into created_by/updated_by and *_audit.user_id; Name, Email and
+// Issuer are display/provenance data, persisted only into the principal table so a stored ID
+// can be rendered as a person. See docs/adr/0004-principal-attribution-and-retention.md.
 type Principal struct {
 	Kind Kind
 	ID   string
-	// Name is the caller's display name (JWT preferred_username), used only for audit attribution.
+	// Name is the caller's display name (JWT preferred_username).
 	Name string
-}
-
-// DisplayName returns Name if set, otherwise ID — the value to persist into created_by/updated_by.
-func (p Principal) DisplayName() string {
-	if p.Name != "" {
-		return p.Name
-	}
-
-	return p.ID
+	// Email is the caller's email address (JWT email claim), when the IdP granted the scope.
+	Email string
+	// Issuer is the IdP that minted the token (JWT iss claim), kept as provenance.
+	Issuer string
 }
 
 // NewPrincipal builds a Principal of the given Kind and id.

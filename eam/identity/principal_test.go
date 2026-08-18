@@ -29,24 +29,3 @@ func TestPrincipal_IsUser(t *testing.T) {
 		})
 	}
 }
-
-func TestPrincipal_DisplayName(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		p    Principal
-		want string
-	}{
-		{"name set", Principal{Kind: KindUser, ID: "alice", Name: "Alice"}, "Alice"},
-		{"name empty falls back to id", NewPrincipal(KindUser, "alice"), "alice"},
-		{"both empty", Principal{}, ""},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tc.want, tc.p.DisplayName())
-		})
-	}
-}

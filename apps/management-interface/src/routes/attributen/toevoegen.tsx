@@ -24,7 +24,7 @@ function NewAttributeComponent() {
         type: 'string',
         audit: {
             created: '',
-            createdBy: ''
+            createdBy: {id: ''}
         },
         metadata: {
             title: '',

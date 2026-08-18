@@ -60,7 +60,7 @@ func TestPostgresDB_CreateEntity(t *testing.T) {
 			exp := mock.ExpectExec(`INSERT INTO entity
  (status,type,id,title,description,tags,attributes,parents,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`).
-				WithArgs(e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, u.DisplayName(), now, u.DisplayName())
+				WithArgs(e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, u.ID, now, u.ID)
 			if tc.wantErr {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
@@ -77,9 +77,9 @@ func TestPostgresDB_CreateEntity(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, got)
 				assert.Equal(t, now, got.Created())
-				assert.Equal(t, u.DisplayName(), got.CreatedBy())
+				assert.Equal(t, u.ID, got.CreatedBy())
 				assert.Equal(t, now, got.Updated())
-				assert.Equal(t, u.DisplayName(), got.UpdatedBy())
+				assert.Equal(t, u.ID, got.UpdatedBy())
 			}
 
 			require.NoError(t, mock.ExpectationsWereMet())
@@ -153,7 +153,7 @@ func TestPostgresDB_UpdateEntity(t *testing.T) {
 			exp := mock.ExpectExec(`UPDATE entity
  SET title=$4,description=$5,tags=$6,attributes=$7,parents=$8,status=$9,updated=$10,updated_by=$11
  WHERE type=$1 AND id=$2 AND updated=$3`).
-				WithArgs(prev.Type(), prev.ID(), created, e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), e.StatusName(), now, u.DisplayName())
+				WithArgs(prev.Type(), prev.ID(), created, e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), e.StatusName(), now, u.ID)
 
 			switch {
 			case tc.wantErr:
@@ -177,7 +177,7 @@ func TestPostgresDB_UpdateEntity(t *testing.T) {
 				assert.Equal(t, created, got.Created())
 				assert.Equal(t, "donald@duck.us", got.CreatedBy()) // creator is preserved from prev, not the caller
 				assert.Equal(t, now, got.Updated())
-				assert.Equal(t, u.DisplayName(), got.UpdatedBy())
+				assert.Equal(t, u.ID, got.UpdatedBy())
 			}
 
 			require.NoError(t, mock.ExpectationsWereMet())

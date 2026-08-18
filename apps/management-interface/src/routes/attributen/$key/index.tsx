@@ -12,6 +12,7 @@ import { Button, SecondaryButton } from "@/components/ui/button.tsx";
 import { useState } from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import { lookupErrorMessage } from "@/utilities/errorMessages";
+import {principalName} from "@/auth/principal.ts";
 
 export const Route = createFileRoute('/attributen/$key/')({
     component: RouteComponent,
@@ -128,7 +129,7 @@ function RouteComponent() {
                         <DescriptionTerm>Datatype</DescriptionTerm>
                         <DescriptionDetails>{data?.type}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt door</DescriptionTerm>
-                        <DescriptionDetails>{data?.audit?.createdBy || "Onbekend"}</DescriptionDetails>
+                        <DescriptionDetails>{principalName(data?.audit?.createdBy) || "Onbekend"}</DescriptionDetails>
                         <DescriptionTerm>Gemaakt op</DescriptionTerm>
                         <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : "Onbekend"}</DescriptionDetails>
                         <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>

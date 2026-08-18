@@ -52,7 +52,7 @@ func (db *TagDB) CreateTag(ctx context.Context, user identity.Principal, t *oas.
 	now := time.Now().UTC()
 
 	sql := `INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7)`
-	params := []any{t.Id, t.Name, t.Description, now, user.DisplayName(), now, user.DisplayName()}
+	params := []any{t.Id, t.Name, t.Description, now, user.ID, now, user.ID}
 
 	_, err := db.p.Exec(identity.WithContext(ctx, user), sql, params)
 	if err != nil {
@@ -60,9 +60,9 @@ func (db *TagDB) CreateTag(ctx context.Context, user identity.Principal, t *oas.
 	}
 
 	t.Audit.Created = now.Format(time.RFC3339Nano)
-	t.Audit.CreatedBy = user.DisplayName()
+	t.Audit.CreatedBy = oas.Principal{Id: user.ID}
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
-	t.Audit.UpdatedBy = user.DisplayName()
+	t.Audit.UpdatedBy = optionalPrincipal(user.ID)
 	return t, nil
 }
 
@@ -95,7 +95,7 @@ func (db *TagDB) UpdateTag(ctx context.Context, user identity.Principal, prev *o
 	now := time.Now().UTC()
 
 	sql := `UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`
-	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user.DisplayName()}
+	params := []any{prev.Id, timeFromLastIndex(lastIndex), t.Name, t.Description, now, user.ID}
 
 	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
@@ -105,7 +105,7 @@ func (db *TagDB) UpdateTag(ctx context.Context, user identity.Principal, prev *o
 	}
 
 	t.Audit.Updated = now.Format(time.RFC3339Nano)
-	t.Audit.UpdatedBy = user.DisplayName()
+	t.Audit.UpdatedBy = optionalPrincipal(user.ID)
 	return t, nil
 }
 
@@ -135,7 +135,7 @@ func (db *TagDB) EnsureTags(tags []*oas.Tag, user identity.Principal) error {
 			continue
 		}
 
-		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user.DisplayName(), now, user.DisplayName()}); err != nil {
+		if _, err := db.p.Exec(ctx, sql, []any{tag.Id, tag.Name, tag.Description, now, user.ID, now, user.ID}); err != nil {
 			return err
 		}
 	}
@@ -161,9 +161,9 @@ func tagFromValues(values []any) (*oas.Tag, error) {
 		Description: convert.AnyToString(values[2]),
 		Audit: oas.ObjectAudit{
 			Created:   created,
-			CreatedBy: convert.AnyToString(values[4]),
+			CreatedBy: oas.Principal{Id: convert.AnyToString(values[4])},
 			Updated:   updated,
-			UpdatedBy: convert.AnyToString(values[6]),
+			UpdatedBy: optionalPrincipal(convert.AnyToString(values[6])),
 		},
 	}, nil
 }

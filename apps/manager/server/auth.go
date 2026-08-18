@@ -15,6 +15,7 @@ import (
 	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -36,7 +37,16 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator)
+	// Record principals whenever this manager is postgres-backed. The standalone PAP and PIP do
+	// the same for their own writes: they share this schema, so created_by there is bound by the
+	// same foreign key (see their principalRecorder). The PDP needs none -- its POST endpoints are
+	// AuthZEN evaluation and the bundle receiver, and its postgres holds only the decision log.
+	var extra []authorization.Option
+	if s.db != nil {
+		extra = append(extra, authorization.WithPrincipalRecorder(principals.NewDBWithPool(s.db)))
+	}
+
+	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator, extra...)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil

@@ -11,7 +11,7 @@ func (p *PAP) NewDeployment(title, description string, manager *bundles.Manager,
 	defer p.deployMutex.Unlock()
 
 	// Generate still takes a plain string; convert at this boundary.
-	d, err := p.bundleDB.Generate(p.ctx, title, description, user.DisplayName())
+	d, err := p.bundleDB.Generate(p.ctx, title, description, user.ID)
 	if err != nil {
 		return nil, err
 	}

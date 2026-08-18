@@ -194,6 +194,32 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description Who performed an action. `id` is the stored attribution value and is always present;
+         *     `name` is filled in from the manager's local principal record and is absent when that
+         *     record is unknown, in which case clients show the raw `id`. Only a principal of kind
+         *     `user` identifies a real subject and may be linked to.
+         */
+        Principal: {
+            /**
+             * @description Stable identifier of the principal, as stored on the object.
+             * @example 8f14e45f-ceea-467a-9c1b-1a1b0c2d3e4f
+             */
+            id: string;
+            /**
+             * @description Display name of the principal, when known.
+             * @example alice@wonderland.cc
+             */
+            name?: string;
+            /**
+             * @description `user` for an authenticated subject, `system` for the manager's own actions, and
+             *     `legacy` for an attribution value predating the principal record, which is shown
+             *     but identifies nobody.
+             * @example user
+             * @enum {string}
+             */
+            kind?: "user" | "system" | "legacy";
+        };
         /** @description Body content for a new deployment request. */
         NewDeploymentBody: {
             /** @description Title of the new deployment. */
@@ -208,21 +234,13 @@ export interface components {
              * @example 2025-08-15T07:53:41.493415Z
              */
             created: string;
-            /**
-             * @description User that created the object.
-             * @example alice@wonderland.cc
-             */
-            createdBy: string;
+            createdBy: components["schemas"]["Principal"];
             /**
              * @description Timestamp the object was last updated (RFC3339 format).
              * @example 2025-08-15T07:53:41.493415Z
              */
             updated?: string;
-            /**
-             * @description User that last updated the object.
-             * @example bob@wonderworld.cc
-             */
-            updatedBy?: string;
+            updatedBy?: components["schemas"]["Principal"];
         };
         /** @description List of deployment status codes and names. */
         Statuses: components["schemas"]["Status"][];

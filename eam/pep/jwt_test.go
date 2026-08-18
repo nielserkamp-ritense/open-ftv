@@ -78,3 +78,41 @@ func TestMapJWTPrincipal_PreferredUsername(t *testing.T) {
 		})
 	}
 }
+
+func TestCollector_mapJWTPrincipal_DisplayClaims(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		claims    jwt.MapClaims
+		wantEmail any
+		wantIss   any
+	}{
+		{
+			name:      "both claims present",
+			claims:    jwt.MapClaims{"sub": "alice", "email": "alice@wonderland.cc", "iss": "https://idp/realms/openftv"},
+			wantEmail: "alice@wonderland.cc",
+			wantIss:   "https://idp/realms/openftv",
+		},
+		// An IdP is free to omit a claim whose scope was not granted, so neither may be assumed.
+		{name: "claims absent", claims: jwt.MapClaims{"sub": "alice"}},
+		{name: "claims empty", claims: jwt.MapClaims{"sub": "alice", "email": "", "iss": ""}},
+		{name: "claims wrong type", claims: jwt.MapClaims{"sub": "alice", "email": 123, "iss": true}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := &collector{
+				logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+				jwt:    &JWTConfig{RolesClaim: "roles"},
+				parc:   &models.PARC{Principal: models.NewEntity("", "", models.NewAttributeSet()), Context: models.NewAttributeSet()},
+			}
+			c.mapJWTPrincipal(tc.claims)
+
+			assert.Equal(t, tc.wantEmail, c.parc.Principal.Attributes().GetAttributeValue(models.AttrEmail))
+			assert.Equal(t, tc.wantIss, c.parc.Principal.Attributes().GetAttributeValue(models.AttrIssuer))
+		})
+	}
+}

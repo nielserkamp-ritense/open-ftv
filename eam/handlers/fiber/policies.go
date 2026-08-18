@@ -100,11 +100,12 @@ type policiesHandler struct {
 	logger     *slog.Logger
 	cache      *pap.PAP
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewPoliciesHandler instantiates a policy handler.
-func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer) PoliciesHandler {
-	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer}
+func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) PoliciesHandler {
+	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetPolicies implements the PoliciesHandler interface.
@@ -124,7 +125,7 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	for i := range list {
 		list2[i] = list[i].ToOAS(false)
 	}
-	return req.JSON(list2)
+	return h.respond(req, list2)
 }
 
 // GetPolicy implements the PoliciesHandler interface.
@@ -163,7 +164,7 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 		out.UsageData = usage
 	}
 
-	return req.JSON(out)
+	return h.respond(req, out)
 }
 
 // GetPolicyVersions implements the PoliciesHandler interface.
@@ -184,7 +185,7 @@ func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(list)
+	return h.respond(req, list)
 }
 
 // GetPolicyVersion implements the PoliciesHandler interface.
@@ -214,7 +215,7 @@ func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	}
 
-	return req.JSON(pol)
+	return h.respond(req, pol)
 }
 
 // PostPolicy implements the PoliciesHandler interface.
@@ -256,7 +257,7 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.Status(fiber.StatusCreated).JSON(p2.ToOAS(true))
+	return h.respond(req.Status(fiber.StatusCreated), p2.ToOAS(true))
 }
 
 // PutPolicy implements the PoliciesHandler interface.
@@ -302,7 +303,7 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(p2.ToOAS(true))
+	return h.respond(req, p2.ToOAS(true))
 }
 
 // PatchPolicyStatus implements the PoliciesHandler interface.
@@ -333,7 +334,7 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusBadRequest, err3)
 	}
-	return req.JSON(p2.ToOAS(true))
+	return h.respond(req, p2.ToOAS(true))
 }
 
 // PostPolicyRestore implements the PoliciesHandler interface.
@@ -360,7 +361,7 @@ func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(pol)
+	return h.respond(req, pol)
 }
 
 // DeletePolicy implements the PoliciesHandler interface.
@@ -394,7 +395,7 @@ func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(p2.ToOAS(true))
+	return h.respond(req, p2.ToOAS(true))
 }
 
 func (h *policiesHandler) checkKey(req *fiber.Ctx) (string, error) {

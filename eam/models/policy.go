@@ -128,9 +128,9 @@ func newPolicy(p *policies.Policy, path string, d []byte) *Policy {
 		content:     d,
 		Audit: Audit{
 			created:   convert.AnyToDateTime(p.Audit.Created),
-			createdBy: p.Audit.CreatedBy,
+			createdBy: p.Audit.CreatedBy.Id,
 			updated:   convert.AnyToDateTime(p.Audit.Updated),
-			updatedBy: p.Audit.UpdatedBy,
+			updatedBy: principalID(p.Audit.UpdatedBy),
 		},
 	}
 }
@@ -338,9 +338,11 @@ func (p *Policy) ToOAS(withData bool) *policies.Policy {
 			RvvaId:      p.rvvaID,
 			Tags:        p.Tags(),
 		},
+		// Only the id is set here: names are resolved at the serialisation boundary, so the
+		// models package stays free of any dependency on the principal store. See docs/adr/0004.
 		Audit: policies.ObjectAudit{
-			CreatedBy: p.createdBy,
-			UpdatedBy: p.updatedBy,
+			CreatedBy: policies.Principal{Id: p.createdBy},
+			UpdatedBy: optionalPrincipal(p.updatedBy),
 		},
 	}
 
@@ -504,4 +506,23 @@ type marshalPolicy struct {
 	CreatedBy   string   `json:"createdBy,omitempty"   yaml:"createdBy,omitempty"`
 	Updated     string   `json:"updated,omitempty"     yaml:"updated,omitempty"`
 	UpdatedBy   string   `json:"updatedBy,omitempty"   yaml:"updatedBy,omitempty"`
+}
+
+// optionalPrincipal returns nil for an absent attribution, so the field is omitted from the
+// response rather than serialised as a principal identifying nobody.
+func optionalPrincipal(id string) *policies.Principal {
+	if id == "" {
+		return nil
+	}
+
+	return &policies.Principal{Id: id}
+}
+
+// principalID reads the id from an optional attribution, which is absent when nothing set it.
+func principalID(p *policies.Principal) string {
+	if p == nil {
+		return ""
+	}
+
+	return p.Id
 }

@@ -45,14 +45,14 @@ func (db *PolicyDB) CreatePolicy(ctx context.Context, user identity.Principal, p
  (status,language,id,title,description,rvva_id,uri,tags,content,created,created_by,updated,updated_by)
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
 
-	name := user.DisplayName()
-	params := []any{p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, name, now, name}
+	by := user.ID
+	params := []any{p.StatusName(), p.Language(), p.ID(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), now, by, now, by}
 
 	if _, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
 	}
 
-	return p.WithAudit(now, name, now, name), nil
+	return p.WithAudit(now, by, now, by), nil
 }
 
 // ReadPolicy retrieves the identified policy from the database.
@@ -91,7 +91,7 @@ func (db *PolicyDB) ReadPolicyAudit(ctx context.Context, id string) ([]oas.Audit
 		out = append(out, oas.AuditEntry{
 			Created:   convert.AnyToDateTime(values[0]).Format(time.RFC3339),
 			Operation: convert.AnyToString(values[1]),
-			User:      convert.AnyToString(values[2]),
+			User:      oas.Principal{Id: convert.AnyToString(values[2])},
 		})
 		return true
 	})
@@ -120,7 +120,7 @@ func (db *PolicyDB) ReadPolicyDeployments(ctx context.Context, id string) ([]oas
 			Bundle:    convert.AnyToString(values[0]),
 			Version:   int(convert.AnyToInt64(values[1])),
 			Created:   convert.AnyToString(values[2]),
-			CreatedBy: convert.AnyToString(values[3]),
+			CreatedBy: optionalPrincipal(convert.AnyToString(values[3])),
 			Status:    bundles.Status(convert.AnyToInt64(values[4])).Status(),
 		})
 		return true
@@ -195,8 +195,8 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, user identity.Principal, p
  SET language=$3,title=$4,description=$5,rvva_id=$6,uri=$7,tags=$8,content=$9,status=$10,updated=$11,updated_by=$12
  WHERE id=$1 AND updated=$2`
 
-	name := user.DisplayName()
-	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, name}
+	by := user.ID
+	params := []any{prev.ID(), timeFromLastIndex(lastIndex), p.Language(), p.Title(), p.Description(), p.RvvaID(), p.URI(), p.Tags(), p.ContentString(), p.StatusName(), now, by}
 
 	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
@@ -205,7 +205,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, user identity.Principal, p
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
 
-	return p.WithAudit(p.Created(), p.CreatedBy(), now, name), nil
+	return p.WithAudit(p.Created(), p.CreatedBy(), now, by), nil
 }
 
 // DeletePolicy removes an existing policy from the database.

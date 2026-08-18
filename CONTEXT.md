@@ -21,9 +21,16 @@ cross-organization data requests are evaluated.
 _Avoid_: control plane, admin panel.
 
 **Principal**:
-The authenticated subject of an authorization request, identified from a validated token
-as `user::<sub>`. Carries roles and other attributes the PDP evaluates.
-_Avoid_: subject, account, identity, user (when you mean the principal specifically).
+The subject that acts on the management plane, identified by the `sub` of a validated
+token (or a `*SYSTEM*`-style sentinel for the manager's own actions). A Principal has two
+lifetimes: the **request-scoped** value the PEP derives per request, carrying the roles and
+attributes the PDP evaluates, and the **stored** record the manager keeps of every
+Principal it has seen, holding only display data (name, email) so past actions can be
+attributed to a nameable, linkable subject. The stored record is display-facing and is
+never an input to a **decision** — roles stay in the token and the PDP stays authoritative
+(see [ADR 0002](docs/adr/0002-roles-as-open-data-flat-claim.md)).
+_Avoid_: subject, account, identity, user (when you mean the principal specifically);
+actor (that is the same thing).
 
 **Role**:
 An operator-defined label carried in the token's flat top-level `roles` claim, which

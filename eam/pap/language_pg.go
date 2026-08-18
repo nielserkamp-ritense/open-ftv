@@ -72,9 +72,9 @@ func languageFromValues(values []any) (*policies.Language, error) {
 		Name: convert.AnyToString(values[1]),
 		Audit: policies.ObjectAudit{
 			Created:   created,
-			CreatedBy: convert.AnyToString(values[4]),
+			CreatedBy: policies.Principal{Id: convert.AnyToString(values[4])},
 			Updated:   updated,
-			UpdatedBy: convert.AnyToString(values[6]),
+			UpdatedBy: optionalPrincipal(convert.AnyToString(values[6])),
 		},
 	}, nil
 }

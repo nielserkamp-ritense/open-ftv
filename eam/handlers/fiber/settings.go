@@ -38,11 +38,12 @@ type SettingsHandler struct {
 	logger     *slog.Logger
 	store      settings.SettingsPersister
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewSettingsHandler instantiates a settings handler.
-func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.Authorizer) *SettingsHandler {
-	return &SettingsHandler{logger: logger, store: store, authorizer: authorizer}
+func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.Authorizer, opts ...HandlerOption) *SettingsHandler {
+	return &SettingsHandler{logger: logger, store: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetSettings retrieves the manager ui settings.
@@ -58,7 +59,7 @@ func (h *SettingsHandler) GetSettings(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 // PutSettings replaces the manager ui settings.
@@ -80,7 +81,7 @@ func (h *SettingsHandler) PutSettings(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 func (h *SettingsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
