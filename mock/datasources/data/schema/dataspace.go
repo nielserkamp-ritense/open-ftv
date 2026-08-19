@@ -2,8 +2,6 @@
 package schema
 
 import (
-	"sync"
-
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 )
@@ -14,13 +12,11 @@ type Dataspace struct {
 	Description string
 	DataSources []*Datasource
 	// hidden fields
-	mutex   sync.Mutex
 	sources map[string]*Datasource
 }
 
 // Source returns the source definition for the given id.
 func (d *Dataspace) Source(sourceID string) *Datasource {
-	d.Fix()
 	return d.sources[sourceID]
 }
 
@@ -45,9 +41,7 @@ func (d *Dataspace) UnmarshalJSON(b []byte) error {
 	d.Description = d2.Description
 	d.DataSources = d2.DataSources
 
-	for _, ds := range d2.DataSources {
-		ds.fix(d)
-	}
+	d.Fix()
 
 	return nil
 }
@@ -73,9 +67,7 @@ func (d *Dataspace) UnmarshalYAML(b []byte) error {
 	d.Description = d2.Description
 	d.DataSources = d2.DataSources
 
-	for _, ds := range d2.DataSources {
-		ds.fix(d)
-	}
+	d.Fix()
 
 	return nil
 }
@@ -88,19 +80,13 @@ type encodeDataspace struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (d *Dataspace) Fix() {
-	d.mutex.Lock()
-	d.fix()
-	d.mutex.Unlock()
-}
-
-func (d *Dataspace) fix() {
 	d.sources = make(map[string]*Datasource, len(d.DataSources))
 	for _, ds := range d.DataSources {
 		d.sources[ds.ID] = ds
 	}
 
 	// fix the data sources after we have the full map!
-	for _, ds := range d.sources {
+	for _, ds := range d.DataSources {
 		ds.Fix(d)
 	}
 }

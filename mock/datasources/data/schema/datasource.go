@@ -2,7 +2,6 @@ package schema
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -14,17 +13,12 @@ type Datasource struct {
 	Description string
 	Tables      []*Table
 	// hidden fields
-	mutex  sync.Mutex
 	ds     *Dataspace
 	tables map[string]*Table
 }
 
 // Table returns the table definition for the given id.
 func (d *Datasource) Table(tableID string) *Table {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-
-	d.fix(nil)
 	return d.tables[strings.ToLower(tableID)]
 }
 
@@ -49,9 +43,7 @@ func (d *Datasource) UnmarshalJSON(b []byte) error {
 	d.Description = d2.Description
 	d.Tables = d2.Tables
 
-	for _, table := range d.Tables {
-		table.Fix(d)
-	}
+	d.Fix(nil)
 
 	return nil
 }
@@ -77,9 +69,7 @@ func (d *Datasource) UnmarshalYAML(b []byte) error {
 	d.Description = d2.Description
 	d.Tables = d2.Tables
 
-	for _, table := range d.Tables {
-		table.Fix(d)
-	}
+	d.Fix(nil)
 
 	return nil
 }
@@ -92,12 +82,6 @@ type encodeDatasource struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (d *Datasource) Fix(ds *Dataspace) {
-	d.mutex.Lock()
-	d.fix(ds)
-	d.mutex.Unlock()
-}
-
-func (d *Datasource) fix(ds *Dataspace) {
 	if ds != nil {
 		d.parent = &ds.Parent
 		d.ds = ds
@@ -109,7 +93,13 @@ func (d *Datasource) fix(ds *Dataspace) {
 	}
 
 	// fix the tables *after* we have the full map!
-	for _, t := range d.tables {
-		t.Fix(d)
+	for _, t := range d.Tables {
+		t.fixSelf(d)
+	}
+
+	// fix the foreign keys *after* every table has resolved its own fields,
+	// as a foreign key points at the fields of another table!
+	for _, t := range d.Tables {
+		t.fixRelations(d)
 	}
 }

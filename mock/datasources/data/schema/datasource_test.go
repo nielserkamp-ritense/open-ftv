@@ -24,6 +24,7 @@ func TestDataSource_Table(t *testing.T) {
 				{Object: Object{Parent: Parent{ID: "t3"}}},
 			},
 		}
+		d.Fix(nil)
 
 		got := d.Table("t3")
 		require.NotNil(t, got)
@@ -185,7 +186,7 @@ func TestDataSource_Fix(t *testing.T) {
 			t.Parallel()
 
 			d := tc.d
-			d.fix(tc.parent)
+			d.Fix(tc.parent)
 
 			if tc.parent != nil {
 				assert.Equal(t, tc.wantParent, d.parent)

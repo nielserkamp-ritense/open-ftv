@@ -1,18 +1,19 @@
 package schema
 
 import (
-	"sync"
-
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/maps"
 )
 
 // Object represents a datasource object; e.g., a datasource table or structured field.
+//
+// The parent-child relationships are resolved once, while the schema is being loaded,
+// by the Fix methods on this object and its parents.
+// After that the object is read-only and safe for concurrent use.
 type Object struct {
 	Parent
 	Description string   `json:"description,omitempty" yaml:"description,omitempty"`
 	Fields      []*Field `json:"fields" yaml:"fields"`
 	// hidden fields
-	mutex       sync.Mutex
 	parentTable *Table
 	parentField *Field
 	fields      map[string]*Field
@@ -20,13 +21,11 @@ type Object struct {
 
 // GetField returns the field definition for the given identifier.
 func (o *Object) GetField(id string) *Field {
-	o.FixFields(nil, nil)
 	return o.fields[id]
 }
 
 // IterateFields iterates over the field definitions in the object and calls the closure for each field.
 func (o *Object) IterateFields(f func(*Field)) {
-	o.FixFields(nil, nil)
 	maps.ProcessOrdered(o.fields, func(_ string, v *Field) {
 		f(v)
 	})
@@ -34,12 +33,6 @@ func (o *Object) IterateFields(f func(*Field)) {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (o *Object) Fix(parent *Parent) {
-	o.mutex.Lock()
-	o.fix(parent)
-	o.mutex.Unlock()
-}
-
-func (o *Object) fix(parent *Parent) {
 	if parent != nil {
 		o.parent = parent
 	}
@@ -47,16 +40,6 @@ func (o *Object) fix(parent *Parent) {
 
 // FixFields (re)sets the parent-child relationships for the fields in this object.
 func (o *Object) FixFields(table *Table, field *Field) {
-	o.mutex.Lock()
-	o.fixFields(table, field)
-	o.mutex.Unlock()
-}
-
-func (o *Object) fixFields(table *Table, field *Field) {
-	if o.fields != nil {
-		return
-	}
-
 	o.fields = make(map[string]*Field, len(o.Fields))
 	for _, f2 := range o.Fields {
 		f2.Fix(table, field)

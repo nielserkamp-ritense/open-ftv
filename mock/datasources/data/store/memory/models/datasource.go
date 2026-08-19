@@ -39,15 +39,7 @@ func (s *Datasource) Definition() *schema.Datasource {
 
 // AsRow converts the datasource definition into an exportable row.
 func (s *Datasource) AsRow() *Row {
-	def := &schema.Object{Fields: []*schema.Field{
-		&fieldDefFQDN,
-		&fieldDefID,
-		&fieldDefDescription,
-		&fieldDefTables,
-	}}
-	def.FixFields(nil, nil)
-
-	out := &Row{Data: make(map[string]any), def: def}
+	out := &Row{Data: make(map[string]any), def: datasourceRowDef}
 
 	out.Data[fieldDefFQDN.ID] = s.def.FQDN()
 	out.Data[fieldDefID.ID] = s.def.ID

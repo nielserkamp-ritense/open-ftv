@@ -5,24 +5,7 @@ import (
 )
 
 func fieldAsRow(f *schema.Field) *Row {
-	def := &schema.Object{Fields: []*schema.Field{
-		&fieldDefFQDN,
-		&fieldDefID,
-		&fieldDefDescription,
-		&fieldDefType,
-		&fieldDefDescription,
-		&fieldDefArray,
-		&fieldDefEnum,
-		&fieldDefFormat,
-		&fieldDefMinLen,
-		&fieldDefMaxLen,
-		&fieldDefMinValue,
-		&fieldDefMaxValue,
-		&fieldDefAllowed,
-		&fieldDefFields,
-	}}
-
-	out := &Row{Data: make(map[string]any), def: def}
+	out := &Row{Data: make(map[string]any), def: fieldRowDef}
 
 	out.Data[fieldDefFQDN.ID] = f.FQDN()
 	out.Data[fieldDefID.ID] = f.ID
@@ -39,7 +22,7 @@ func fieldAsRow(f *schema.Field) *Row {
 	}
 	if f.IsPII {
 		out.Data[fieldDefPII.ID] = f.IsPII
-		def.Fields = append(def.Fields, &fieldDefPII)
+		out.def = fieldPIIRowDef
 	}
 	if f.Format != "" {
 		out.Data[fieldDefFormat.ID] = f.Format

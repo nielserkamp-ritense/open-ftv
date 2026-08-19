@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -43,7 +42,6 @@ type Transformation struct {
 	InputTransforms    map[int]string
 	InputValues        map[int]any
 	// hidden fields
-	mutex      sync.Mutex
 	transforms map[string]*Transformation
 	rx         *regexp.Regexp
 }
@@ -200,14 +198,8 @@ type encodeTransformation struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (t *Transformation) Fix(table *Table) {
-	t.mutex.Lock()
-	t.fix(table)
-	t.mutex.Unlock()
-}
-
-func (t *Transformation) fix(table *Table) {
 	if table != nil {
-		t.Object.fix(&table.Parent)
+		t.Object.Fix(&table.Parent)
 		t.Object.parentTable = table
 
 		t.Object.fields = make(map[string]*Field, len(t.InputFields))

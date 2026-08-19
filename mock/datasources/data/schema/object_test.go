@@ -25,7 +25,7 @@ func TestObject_IterateFields(t *testing.T) {
 			},
 		}
 
-		o.fixFields(nil, nil)
+		o.FixFields(nil, nil)
 
 		var count int
 		o.IterateFields(func(field *Field) {

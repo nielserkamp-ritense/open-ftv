@@ -9,10 +9,17 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
-var datasource1 = &schema.Datasource{
-	Parent:      schema.Parent{ID: "src1"},
-	Description: "source 1",
-	Tables:      []*schema.Table{table1},
+var datasource1 = fixedDatasource()
+
+func fixedDatasource() *schema.Datasource {
+	d := &schema.Datasource{
+		Parent:      schema.Parent{ID: "src1"},
+		Description: "source 1",
+		Tables:      []*schema.Table{table1},
+	}
+	d.Fix(nil)
+
+	return d
 }
 
 func TestNewSource(t *testing.T) {
@@ -32,8 +39,6 @@ func TestDatasource_AddTableFromData(t *testing.T) {
 
 	t.Run("new table", func(t *testing.T) {
 		t.Parallel()
-
-		datasource1.Fix(nil)
 
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
@@ -62,8 +67,6 @@ func TestDatasource_AddTableFromCSV(t *testing.T) {
 	t.Run("new table", func(t *testing.T) {
 		t.Parallel()
 
-		datasource1.Fix(nil)
-
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
 		require.NotNil(t, s1.Tables)
@@ -90,8 +93,6 @@ func TestDatasource_AsRecord(t *testing.T) {
 	t.Parallel()
 
 	t.Run("as record", func(t *testing.T) {
-		datasource1.Fix(nil)
-
 		s1 := NewSource(datasource1)
 		require.NotNil(t, s1)
 		require.NotNil(t, s1.Tables)

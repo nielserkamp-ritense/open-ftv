@@ -21,7 +21,6 @@ type ForeignKey struct {
 
 // IterateForeignFields iterates over the foreign table field definitions and calls the closure for each field.
 func (fk *ForeignKey) IterateForeignFields(f func(*Field)) {
-	fk.Fix(nil, nil)
 	for _, field := range fk.foreignFields {
 		f(field)
 	}
@@ -93,22 +92,17 @@ type encodeFK struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (fk *ForeignKey) Fix(t *Table, tables map[string]*Table) {
-	fk.mutex.Lock()
-	fk.fix(t, tables)
-	fk.mutex.Unlock()
-}
-
-func (fk *ForeignKey) fix(t *Table, tables map[string]*Table) {
-	fk.Index.fix(t)
+	fk.Index.Fix(t)
 
 	fk.SourceFields, fk.TargetFields = SplitFields(fk.Fields)
 
-	if tables == nil && t.parentSource != nil {
+	if tables == nil && t != nil && t.parentSource != nil {
 		tables = t.parentSource.tables
 	}
 
 	if tables != nil {
-		fk.foreignTable = tables[fk.ForeignTable]
+		// the table map is keyed on the lowercase id, so the reference has to be folded too.
+		fk.foreignTable = tables[strings.ToLower(fk.ForeignTable)]
 	}
 
 	if fk.foreignTable != nil && len(fk.foreignFields) == 0 {

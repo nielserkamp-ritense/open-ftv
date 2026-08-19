@@ -2,7 +2,6 @@ package schema
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -24,8 +23,6 @@ type Field struct {
 	MinValue      any
 	MaxValue      any
 	AllowedValues []any
-	// hidden fields
-	mutex sync.Mutex
 }
 
 // FQID returns the fully qualified ID of this field.
@@ -159,12 +156,6 @@ type encodeField struct {
 
 // Fix (re)sets the parent-child relationships for this field.
 func (f *Field) Fix(table *Table, field *Field) {
-	f.mutex.Lock()
-	f.fix(table, field)
-	f.mutex.Unlock()
-}
-
-func (f *Field) fix(table *Table, field *Field) {
 	if table != nil {
 		f.parentTable = table
 		f.Object.Fix(&table.Parent)

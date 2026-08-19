@@ -24,6 +24,7 @@ func TestEndpoint_Fix(t *testing.T) {
 	t2 := &Table{Object: Object{Parent: Parent{ID: "t2"}, Description: "table 2", Fields: []*Field{f3, f4}}}
 
 	ds1 := &Datasource{Parent: Parent{ID: "src1"}, Description: "source 1", Tables: []*Table{t1, t2}}
+	ds1.Fix(nil)
 
 	testCases := []struct {
 		name         string

@@ -10,43 +10,51 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 )
 
-var table1 = &schema.Table{
-	Object: schema.Object{
-		Parent:      schema.Parent{ID: "t1"},
-		Description: "table 1",
-		Fields: []*schema.Field{
-			{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType, IsPII: true},
-			{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.IntegerType},
-			{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.BooleanType},
-		},
-	},
-	PrimaryKey: &schema.Index{
-		Parent:      schema.Parent{ID: "pk"},
-		Description: "primary key",
-		Fields:      []string{"f1"},
-	},
-	SecondaryIndexes: []*schema.Index{
-		{
-			Parent:      schema.Parent{ID: "ix2"},
-			Description: "second index",
-			Fields:      []string{"f3"},
-		},
-		{
-			Parent:      schema.Parent{ID: "ix3"},
-			Description: "third index",
-			Fields:      []string{"f2"},
-		},
-	},
-	ForeignKeys: []*schema.ForeignKey{
-		{
-			Index: schema.Index{
-				Parent:      schema.Parent{ID: "fk1"},
-				Description: "foreign key 1",
-				Fields:      []string{"f1"},
+// table1 is fixed once, as the schema is read-only once it has been fixed.
+var table1 = fixedTable()
+
+func fixedTable() *schema.Table {
+	t := &schema.Table{
+		Object: schema.Object{
+			Parent:      schema.Parent{ID: "t1"},
+			Description: "table 1",
+			Fields: []*schema.Field{
+				{Object: schema.Object{Parent: schema.Parent{ID: "f1"}}, Type: enums.StringType, IsPII: true},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f2"}}, Type: enums.IntegerType},
+				{Object: schema.Object{Parent: schema.Parent{ID: "f3"}}, Type: enums.BooleanType},
 			},
-			ForeignTable: "foreign1",
 		},
-	},
+		PrimaryKey: &schema.Index{
+			Parent:      schema.Parent{ID: "pk"},
+			Description: "primary key",
+			Fields:      []string{"f1"},
+		},
+		SecondaryIndexes: []*schema.Index{
+			{
+				Parent:      schema.Parent{ID: "ix2"},
+				Description: "second index",
+				Fields:      []string{"f3"},
+			},
+			{
+				Parent:      schema.Parent{ID: "ix3"},
+				Description: "third index",
+				Fields:      []string{"f2"},
+			},
+		},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Index: schema.Index{
+					Parent:      schema.Parent{ID: "fk1"},
+					Description: "foreign key 1",
+					Fields:      []string{"f1"},
+				},
+				ForeignTable: "foreign1",
+			},
+		},
+	}
+	t.Fix(nil)
+
+	return t
 }
 
 func TestNewTable(t *testing.T) {
@@ -54,8 +62,6 @@ func TestNewTable(t *testing.T) {
 
 	t.Run("new table", func(t *testing.T) {
 		t.Parallel()
-
-		table1.Fix(nil)
 
 		t1 := newTable(table1, 0)
 		require.NotNil(t, t1)
@@ -70,8 +76,6 @@ func TestTableFromData(t *testing.T) {
 
 	t.Run("table from data", func(t *testing.T) {
 		t.Parallel()
-
-		table1.Fix(nil)
 
 		t1 := TableFromData(table1, []map[string]any{
 			{"f1": "hello world", "f2": "123", "f3": true},
@@ -94,8 +98,6 @@ func TestTableFromCSV(t *testing.T) {
 
 	t.Run("table from csv", func(t *testing.T) {
 		t.Parallel()
-
-		table1.Fix(nil)
 
 		t1 := TableFromCSV(table1, [][]string{
 			{"f1", "f2", "f3"},
@@ -186,8 +188,6 @@ func TestTable_CreateRow(t *testing.T) {
 	t.Run("create row", func(t *testing.T) {
 		t.Parallel()
 
-		table1.Fix(nil)
-
 		t1 := newTable(table1, 0)
 		require.NotNil(t, t1)
 
@@ -202,8 +202,6 @@ func TestTable_DummyRecord(t *testing.T) {
 
 	t.Run("dummy record", func(t *testing.T) {
 		t.Parallel()
-
-		table1.Fix(nil)
 
 		t1 := newTable(table1, 0)
 		require.NotNil(t, t1)

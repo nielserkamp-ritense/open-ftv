@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"sync"
-
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
 )
 
@@ -44,7 +42,6 @@ type Join struct {
 	JoinID            string         `json:"joinID,omitempty"            yaml:"joinID,omitempty"`
 	Joins             []*Join        `json:"joins,omitempty"             yaml:"joins,omitempty"`
 	// hidden fields
-	mutex  sync.Mutex
 	target *Table
 	source *Table
 }
@@ -69,12 +66,6 @@ func (j *Join) GetJoinID() string {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (j *Join) Fix(ds *Datasource) {
-	j.mutex.Lock()
-	j.fix(ds)
-	j.mutex.Unlock()
-}
-
-func (j *Join) fix(ds *Datasource) {
 	if ds != nil {
 		j.source = ds.Table(j.Source)
 

@@ -29,3 +29,45 @@ var (
 	fieldDefTables       = schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "tables"}}, Type: enums.ObjectType, IsArray: true}
 	fieldDefSources      = schema.Field{Object: schema.Object{Parent: schema.Parent{ID: "sources"}}, Type: enums.ObjectType, IsArray: true}
 )
+
+// The row definitions below describe the metadata rows.
+//
+// They are shared and fixed once, as a schema definition is read-only once it has been fixed,
+// and metadata rows are exported concurrently.
+var (
+	dataspaceRowDef  = newRowDef(&fieldDefFQDN, &fieldDefID, &fieldDefDescription, &fieldDefSources)
+	datasourceRowDef = newRowDef(&fieldDefFQDN, &fieldDefID, &fieldDefDescription, &fieldDefTables)
+	tableRowDef      = newRowDef(&fieldDefFQDN, &fieldDefID, &fieldDefDescription, &fieldDefFields,
+		&fieldDefPK, &fieldDefIndexes, &fieldDefFK)
+	indexRowDef = newRowDef(&fieldDefFQDN, &fieldDefID, &fieldDefDescription,
+		&fieldDefIndexFields, &fieldDefIndexOrders)
+	fkRowDef = newRowDef(&fieldDefFQDN, &fieldDefID, &fieldDefDescription,
+		&fieldDefForeignTable, &fieldDefIndexFields)
+	fieldRowDef    = newRowDef(fieldRowFields()...)
+	fieldPIIRowDef = newRowDef(append(fieldRowFields(), &fieldDefPII)...)
+)
+
+func fieldRowFields() []*schema.Field {
+	return []*schema.Field{
+		&fieldDefFQDN,
+		&fieldDefID,
+		&fieldDefDescription,
+		&fieldDefType,
+		&fieldDefArray,
+		&fieldDefEnum,
+		&fieldDefFormat,
+		&fieldDefMinLen,
+		&fieldDefMaxLen,
+		&fieldDefMinValue,
+		&fieldDefMaxValue,
+		&fieldDefAllowed,
+		&fieldDefFields,
+	}
+}
+
+func newRowDef(fields ...*schema.Field) *schema.Object {
+	def := &schema.Object{Fields: fields}
+	def.FixFields(nil, nil)
+
+	return def
+}

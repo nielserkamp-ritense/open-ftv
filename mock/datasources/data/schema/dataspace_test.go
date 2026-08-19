@@ -24,6 +24,7 @@ func TestDataSpace_Source(t *testing.T) {
 				{Parent: Parent{ID: "ds3"}},
 			},
 		}
+		d.Fix()
 
 		got := d.Source("ds4")
 		require.Nil(t, got)
@@ -207,7 +208,7 @@ func TestDataSpace_Fix(t *testing.T) {
 			t.Parallel()
 
 			d := tc.d
-			d.fix()
+			d.Fix()
 
 			assert.Nil(t, d.parent)
 
