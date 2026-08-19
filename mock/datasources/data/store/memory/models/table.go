@@ -64,17 +64,7 @@ func (t *Table) AsRow() *Row {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
 
-	def := &schema.Object{Fields: []*schema.Field{
-		&fieldDefFQDN,
-		&fieldDefID,
-		&fieldDefDescription,
-		&fieldDefFields,
-		&fieldDefPK,
-		&fieldDefIndexes,
-		&fieldDefFK,
-	}}
-
-	out := &Row{Data: make(map[string]any), def: def}
+	out := &Row{Data: make(map[string]any), def: tableRowDef}
 
 	out.Data[fieldDefFQDN.ID] = t.def.FQDN()
 	out.Data[fieldDefID.ID] = t.def.ID
@@ -288,8 +278,6 @@ func KeyFromData(keys []any, index *schema.Index) string {
 }
 
 func newTable(def *schema.Table, cap int) *Table {
-	def.Fix(nil)
-
 	if cap < 2 {
 		cap = 2
 	}

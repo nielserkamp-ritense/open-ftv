@@ -2,7 +2,6 @@ package schema
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -19,14 +18,12 @@ type Index struct {
 	Fields      []string
 	Orders      []enums.OrderType
 	// hidden fields
-	mutex       sync.Mutex
 	parentTable *Table
 	fields      []*Field
 }
 
 // IterateFields iterates over the field definitions in the index and calls the closure for each field.
 func (i *Index) IterateFields(f func(*Field)) {
-	i.Fix(nil)
 	for _, field := range i.fields {
 		f(field)
 	}
@@ -116,21 +113,16 @@ type encodeIndex struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (i *Index) Fix(t *Table) {
-	i.mutex.Lock()
-	i.fix(t)
-	i.mutex.Unlock()
-}
-
-func (i *Index) fix(t *Table) {
 	if t != nil {
 		i.parent = &t.Parent
 		i.parentTable = t
 
 		i.fields = make([]*Field, 0, len(i.Fields))
 		for _, id := range i.Fields {
-			parts := strings.Split(id, ":")
-			if len(parts) > 0 {
-				i.fields = append(i.fields, t.fields[parts[0]])
+			name, _, _ := strings.Cut(id, ":")
+			// skip a field the table does not have: a nil entry here panics every consumer.
+			if f := t.fields[name]; f != nil {
+				i.fields = append(i.fields, f)
 			}
 		}
 	}

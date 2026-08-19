@@ -60,6 +60,7 @@ linters:
       locale: US
       ignore-rules:
         - productie
+        - adres
     revive:
       rules:
         - name: unexported-return

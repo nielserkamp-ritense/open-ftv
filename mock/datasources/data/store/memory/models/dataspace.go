@@ -27,14 +27,7 @@ func (s *Dataspace) AddDatasource(source *Datasource) {
 
 // AsRow converts the datasource definition into an exportable row.
 func (s *Dataspace) AsRow() *Row {
-	def := &schema.Object{Fields: []*schema.Field{
-		&fieldDefFQDN,
-		&fieldDefID,
-		&fieldDefDescription,
-		&fieldDefSources,
-	}}
-
-	out := &Row{Data: make(map[string]any), def: def}
+	out := &Row{Data: make(map[string]any), def: dataspaceRowDef}
 
 	out.Data[fieldDefFQDN.ID] = s.def.FQDN()
 	out.Data[fieldDefID.ID] = s.def.ID

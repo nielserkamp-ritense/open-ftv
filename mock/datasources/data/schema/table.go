@@ -3,13 +3,16 @@ package schema
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
 )
 
 // Table represents a datasource table.
+//
+// The parent-child relationships are resolved once, while the schema is being loaded,
+// by Fix or by the Fix of the datasource owning the table.
+// After that the table is read-only and safe for concurrent use.
 type Table struct {
 	Object
 	PrimaryKey       *Index
@@ -17,7 +20,6 @@ type Table struct {
 	ForeignKeys      []*ForeignKey
 	Transforms       []*Transformation
 	// hidden fields
-	mutex        sync.Mutex
 	parentSource *Datasource
 	indexes      map[string]*Index
 	foreignKeys  map[string]*ForeignKey
@@ -39,32 +41,26 @@ func (t *Table) Datasource() *Datasource {
 
 // Field returns the field definition for the given id.
 func (t *Table) Field(fieldID string) *Field {
-	t.Fix(nil)
 	return t.fields[fieldID]
 }
 
 // SecondaryIndex returns the secondary index definition for the given id.
 func (t *Table) SecondaryIndex(id string) *Index {
-	t.Fix(nil)
 	return t.indexes[id]
 }
 
 // ForeignKey returns the foreign key definition for the given id.
 func (t *Table) ForeignKey(id string) *ForeignKey {
-	t.Fix(nil)
 	return t.foreignKeys[id]
 }
 
 // Transformation returns the transformation definition for the given id.
 func (t *Table) Transformation(id string) *Transformation {
-	t.Fix(nil)
 	return t.transforms[id]
 }
 
 // FindForeignKey returns the foreign key definition that matches the given index.
 func (t *Table) FindForeignKey(foreign *Table) *ForeignKey {
-	t.Fix(nil)
-
 	for _, fk := range t.foreignKeys {
 		if strings.EqualFold(foreign.ID, fk.ForeignTable) && fk.Equal(foreign.PrimaryKey.Fields) {
 			return fk
@@ -149,20 +145,20 @@ type encodeTable struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (t *Table) Fix(d *Datasource) {
-	t.mutex.Lock()
-	t.fix(d)
-	t.mutex.Unlock()
+	t.fixSelf(d)
+	t.fixRelations(d)
 }
 
-func (t *Table) fix(d *Datasource) {
+// fixSelf (re)sets everything that only depends on the table itself.
+func (t *Table) fixSelf(d *Datasource) {
 	if d == nil {
-		t.Object.fix(nil)
+		t.Object.Fix(nil)
 	} else {
-		t.Object.fix(&d.Parent)
+		t.Object.Fix(&d.Parent)
 		t.parentSource = d
 	}
 
-	t.Object.fixFields(t, nil)
+	t.FixFields(t, nil)
 
 	if t.PrimaryKey != nil {
 		t.PrimaryKey.Fix(t)
@@ -175,18 +171,30 @@ func (t *Table) fix(d *Datasource) {
 		t.indexes[index.ID] = index
 	}
 
-	if d != nil {
-		// fix foreign keys after we have the full map of fields!
-		t.foreignKeys = make(map[string]*ForeignKey, len(t.ForeignKeys))
-		for _, fk := range t.ForeignKeys {
-			fk.Fix(t, d.tables)
-			t.foreignKeys[fk.ID] = fk
-		}
-	}
-
 	t.transforms = make(map[string]*Transformation, len(t.Transforms))
 	for _, transform := range t.Transforms {
-		transform.Fix(t)
 		t.transforms[transform.ID] = transform
+	}
+
+	// fix the transformations *after* we have the full map,
+	// so a transformation can use another transformation as its input!
+	for _, transform := range t.Transforms {
+		transform.Fix(t)
+	}
+}
+
+// fixRelations (re)sets the foreign keys of the table.
+//
+// The tables of the datasource must have been fixed by fixSelf first,
+// as a foreign key resolves the fields of the table it points at.
+func (t *Table) fixRelations(d *Datasource) {
+	if d == nil {
+		return
+	}
+
+	t.foreignKeys = make(map[string]*ForeignKey, len(t.ForeignKeys))
+	for _, fk := range t.ForeignKeys {
+		fk.Fix(t, d.tables)
+		t.foreignKeys[fk.ID] = fk
 	}
 }

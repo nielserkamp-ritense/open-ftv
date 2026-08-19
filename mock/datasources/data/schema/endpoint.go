@@ -3,7 +3,6 @@ package schema
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -41,7 +40,6 @@ type Endpoint struct {
 	Fields      []string         // the fields within the tables the endpoint will access.
 	Filter      map[string]any   // optional fixed filter for the endpoint.
 	// hidden fields
-	mutex         sync.Mutex
 	datasource    *Datasource       // the datasource of the tables.
 	primary       *Table            // primary table in a join.
 	includeFields map[string]*Field // list of fields to include.
@@ -184,12 +182,6 @@ type encodeEndpoint struct {
 
 // Fix (re)sets the parent-child relationships for this object.
 func (e *Endpoint) Fix(ds *Datasource) {
-	e.mutex.Lock()
-	e.fix(ds)
-	e.mutex.Unlock()
-}
-
-func (e *Endpoint) fix(ds *Datasource) {
 	if e.includeFields == nil {
 		e.includeFields = make(map[string]*Field)
 	}
@@ -216,7 +208,7 @@ func (e *Endpoint) fix(ds *Datasource) {
 		}
 
 		for _, j := range e.Joins {
-			j.fix(ds)
+			j.Fix(ds)
 		}
 
 		// fix fields after the table and joins!
@@ -245,6 +237,10 @@ func (e *Endpoint) fixField(id string) {
 	parts := strings.Split(id, ".")
 
 	testTable := func(t *Table, m matching.FieldMatcher) {
+		if t == nil {
+			return
+		}
+
 		for _, field := range t.Fields {
 			if m.Match(field.ID) {
 				if exclude {

@@ -15,8 +15,6 @@ import (
 func TestStorage_ProcessJoins(t *testing.T) {
 	t.Parallel()
 
-	ds.Fix(nil)
-
 	p1 := map[string]any{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"}
 	p2 := map[string]any{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"}
 	p3 := map[string]any{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"}
@@ -267,8 +265,6 @@ func TestStorage_ProcessJoins(t *testing.T) {
 func TestJoin_SubJoin(t *testing.T) {
 	t.Parallel()
 
-	ds.Fix(nil)
-
 	p1 := map[string]any{"bsn": "999990391", "voornaam": "Jan", "achternaam": "Jansen"}
 	p2 := map[string]any{"bsn": "999990408", "voornaam": "Piet", "achternaam": "Pietersen"}
 	p3 := map[string]any{"bsn": "999990421", "voornaam": "Hendrik", "achternaam": "Hendriksen"}
@@ -373,9 +369,16 @@ var kenteken = &schema.Table{
 	PrimaryKey: &schema.Index{Parent: schema.Parent{ID: "pk"}, Description: "primary key", Fields: []string{"kenteken"}},
 }
 
-var ds = &schema.Datasource{
-	Parent: schema.Parent{ID: "ds"},
-	Tables: []*schema.Table{persoon, adres, kenteken, inwoners},
+var ds = fixedDatasource()
+
+func fixedDatasource() *schema.Datasource {
+	d := &schema.Datasource{
+		Parent: schema.Parent{ID: "ds"},
+		Tables: []*schema.Table{persoon, adres, kenteken, inwoners},
+	}
+	d.Fix(nil)
+
+	return d
 }
 
 type myMeta struct {

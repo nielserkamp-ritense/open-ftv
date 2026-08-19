@@ -13,7 +13,7 @@ func TestNew(t *testing.T) {
 	t.Run("new", func(t *testing.T) {
 		t.Parallel()
 
-		s := New(mockFDS)
+		s := New(newMockFDS())
 		require.NotNil(t, s)
 
 		s2, ok := s.(*storage)
@@ -31,7 +31,7 @@ func TestNew(t *testing.T) {
 func TestStorage_FindTableDef(t *testing.T) {
 	t.Parallel()
 
-	s := New(mockFDS)
+	s := New(newMockFDS())
 	require.NotNil(t, s)
 
 	s2, ok := s.(*storage)
@@ -71,7 +71,7 @@ func TestStorage_FindTableDef(t *testing.T) {
 func TestStorage_FindTable(t *testing.T) {
 	t.Parallel()
 
-	s := New(mockFDS)
+	s := New(newMockFDS())
 	require.NotNil(t, s)
 
 	s2, ok := s.(*storage)
@@ -111,7 +111,7 @@ func TestStorage_FindTable(t *testing.T) {
 func TestStorage_FindUnqualifiedTable(t *testing.T) {
 	t.Parallel()
 
-	s := New(mockFDS)
+	s := New(newMockFDS())
 	require.NotNil(t, s)
 
 	s2, ok := s.(*storage)

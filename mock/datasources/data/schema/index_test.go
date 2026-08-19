@@ -36,7 +36,7 @@ func TestIndex_IterateFields(t *testing.T) {
 			SecondaryIndexes: []*Index{ix2},
 		}
 
-		t1.fix(nil)
+		t1.Fix(nil)
 
 		var count int
 		ix2.IterateFields(func(field *Field) {
@@ -178,7 +178,7 @@ func TestIndex_Fix(t *testing.T) {
 	}
 
 	ds.Tables = append(ds.Tables, t1, t2)
-	ds.fix(nil)
+	ds.Fix(nil)
 
 	testCases := []struct {
 		name     string
@@ -202,7 +202,7 @@ func TestIndex_Fix(t *testing.T) {
 			t.Parallel()
 
 			fk := tc.fk
-			fk.fix(t2)
+			fk.Fix(t2)
 
 			assert.Equal(t, &t2.Parent, fk.parent)
 			assert.Equal(t, t2, fk.parentTable)

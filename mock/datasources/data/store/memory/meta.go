@@ -10,6 +10,8 @@ import (
 
 // SetDataspace implements the Storage interface.
 func (s *storage) SetDataspace(def *schema.Dataspace) {
+	def.Fix()
+
 	s.spaceDef = def
 	s.space = models.NewSpace(def)
 
@@ -21,6 +23,8 @@ func (s *storage) SetDataspace(def *schema.Dataspace) {
 
 // AddDatasource implements the Storage interface.
 func (s *storage) AddDatasource(def *schema.Datasource) {
+	def.Fix(nil)
+
 	s.sourceDefs[strings.ToLower(def.ID)] = def
 	s.sources[strings.ToLower(def.ID)] = models.NewSource(def)
 }

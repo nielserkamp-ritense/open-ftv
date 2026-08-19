@@ -38,6 +38,8 @@ func TestTable_Field(t *testing.T) {
 			},
 		}
 
+		t1.Fix(nil)
+
 		fqdn := t1.FQDN()
 		assert.Equal(t, "t1", fqdn)
 
@@ -256,7 +258,7 @@ func TestTable_Fix(t *testing.T) {
 	}
 
 	ds.Tables = append(ds.Tables, t1)
-	ds.fix(nil)
+	ds.Fix(nil)
 
 	testCases := []struct {
 		name     string
@@ -358,7 +360,7 @@ func TestTable_Fix(t *testing.T) {
 			t.Parallel()
 
 			table := tc.t
-			table.fix(ds)
+			table.Fix(ds)
 
 			assert.Equal(t, &ds.Parent, table.parent)
 			assert.Equal(t, ds, table.parentSource)

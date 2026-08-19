@@ -39,6 +39,7 @@ func TestTransformation_Fix(t *testing.T) {
 		Parent: Parent{ID: "ds1"},
 		Tables: []*Table{t1},
 	}
+	ds.Fix(nil)
 
 	testCases := []struct {
 		name     string
@@ -104,8 +105,6 @@ func TestTransformation_Fix(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-
-			ds.Fix(nil)
 
 			tr := tc.tr
 			tr.Fix(tc.t)

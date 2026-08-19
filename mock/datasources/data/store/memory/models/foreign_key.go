@@ -3,15 +3,7 @@ package models
 import "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 
 func fkAsRow(fk *schema.ForeignKey) *Row {
-	def := &schema.Object{Fields: []*schema.Field{
-		&fieldDefFQDN,
-		&fieldDefID,
-		&fieldDefDescription,
-		&fieldDefForeignTable,
-		&fieldDefIndexFields,
-	}}
-
-	out := &Row{Data: make(map[string]any), def: def}
+	out := &Row{Data: make(map[string]any), def: fkRowDef}
 
 	out.Data[fieldDefFQDN.ID] = fk.FQDN()
 	out.Data[fieldDefID.ID] = fk.ID

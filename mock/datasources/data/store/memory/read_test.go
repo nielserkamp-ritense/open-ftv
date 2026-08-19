@@ -15,7 +15,7 @@ import (
 )
 
 func TestStorage_SelectPK(t *testing.T) {
-	s1 := New(mockFDS)
+	s1 := New(newMockFDS())
 	require.NotNil(t, s1)
 
 	loadFDS(s1)
@@ -92,7 +92,7 @@ func TestStorage_SelectPK(t *testing.T) {
 }
 
 func TestStorage_SelectIX(t *testing.T) {
-	s1 := New(mockFDS)
+	s1 := New(newMockFDS())
 	require.NotNil(t, s1)
 
 	loadFDS(s1)
@@ -191,10 +191,7 @@ func TestStorage_SelectIX(t *testing.T) {
 }
 
 func TestStorage_Search(t *testing.T) {
-	s1 := New(mockFDS)
-	require.NotNil(t, s1)
-
-	loadFDS(s1)
+	s1, ds1 := newMockStore(t)
 
 	ctx0, err0 := context.New(map[string]string{"@filter": "persoon.bsn = xyz"}, nil, "persoon")
 	require.NoError(t, err0)
@@ -312,10 +309,7 @@ func TestStorage_Search(t *testing.T) {
 }
 
 func TestStorage_GetEndpoint(t *testing.T) {
-	s1 := New(mockFDS)
-	require.NotNil(t, s1)
-
-	loadFDS(s1)
+	s1, ds1 := newMockStore(t)
 
 	e1 := &schema.Endpoint{
 		Version:     1,
@@ -479,10 +473,7 @@ func TestStorage_GetEndpoint(t *testing.T) {
 // TestStorage_GetEndpointByPK asserts that GetEndpointByPK runs through the same field-matching
 // pipeline as GetEndpoint, so a single-record lookup by PK is consistent with the list endpoint.
 func TestStorage_GetEndpointByPK(t *testing.T) {
-	s1 := New(mockFDS)
-	require.NotNil(t, s1)
-
-	loadFDS(s1)
+	s1, ds1 := newMockStore(t)
 
 	e1 := &schema.Endpoint{
 		Version:     1,

@@ -34,7 +34,7 @@ func TestStorage_CreateRecord(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			s := New(mockFDS)
+			s := New(newMockFDS())
 			require.NotNil(t, s)
 
 			rec := &models.Row{Data: tc.rec}

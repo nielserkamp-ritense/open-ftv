@@ -144,7 +144,7 @@ func TestForeignKey_Fix(t *testing.T) {
 	}
 
 	ds.Tables = append(ds.Tables, t1, t2)
-	ds.fix(nil)
+	ds.Fix(nil)
 
 	testCases := []struct {
 		name     string
@@ -170,7 +170,7 @@ func TestForeignKey_Fix(t *testing.T) {
 			t.Parallel()
 
 			fk := tc.fk
-			fk.fix(t2, ds.tables)
+			fk.Fix(t2, ds.tables)
 
 			assert.Equal(t, &t2.Parent, fk.parent)
 			assert.Equal(t, t2, fk.parentTable)
