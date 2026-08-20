@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object"
+    },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "postgresql": {
+      "type": "object",
+      "properties": {
+        "existingCluster": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "instances": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storageSize": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "databaseOwner": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "databaseReclaimPolicy": {
+          "enum": [
+            "retain",
+            "delete"
+          ]
+        }
+      },
+      "required": [
+        "databaseOwner",
+        "databaseReclaimPolicy"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "existingCluster"
+          ],
+          "not": {
+            "required": [
+              "instances",
+              "storageSize"
+            ]
+          }
+        },
+        {
+          "required": [
+            "instances",
+            "storageSize"
+          ]
+        }
+      ]
+    },
+    "pdp": {
+      "type": "object"
+    },
+    "manager": {
+      "$ref": "#/definitions/objectWithEnabled"
+    },
+    "management-interface": {
+      "$ref": "#/definitions/objectWithEnabled"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objectWithEnabled": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

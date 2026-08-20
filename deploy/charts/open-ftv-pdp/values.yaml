@@ -1,0 +1,79 @@
+image:
+  repository: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/pdp
+  # tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+config:
+  tls:
+    enabled: false
+    # existingSecret: ""
+  logFormat: json
+  logLevel: info
+
+  policySource: "local"
+  policyLanguage: "cedar"
+  policies: {}
+  #   filename.ext: |-
+  #     ""
+  # policiesExistingConfigMap: ""
+  policyAttributes: {}
+  policyEntities: {}
+
+  pipPullConfig: {}
+
+  requestMappings: []
+
+  authorizationDecisionLog:
+    type: stdout
+    serviceName: openftv-pdp
+    postgresql:
+      # hostname: ""
+      # database: ""
+      existingSecret:
+        # name: ""
+        hostnameKey: host
+        databaseKey: dbname
+        usernameKey: username
+        passwordKey: password
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 65534
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  httpsPort: 443
+  httpPort: 80
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

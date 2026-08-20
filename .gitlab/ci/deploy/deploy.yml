@@ -1,0 +1,16 @@
+simulatieomgeving:
+  stage: Deploy
+  image: ghcr.io/fluxcd/flux-cli:v2.9.4@sha256:5260c79fb1b744c78755d98bcb271971c93e4ea214623c3f9f96ff59536d0398
+  script:
+    - export OPEN_FTV_VERSION=${VERSION}
+    - kubectl kustomize deploy/kustomize/simulation | flux envsubst --strict > manifests.yaml
+    - flux push artifact oci://${CI_REGISTRY_IMAGE}/kustomize/simulation:${VERSION}
+      --source="${CI_PROJECT_URL}.git"
+      --revision="${CI_COMMIT_REF_NAME}@sha1:${CI_COMMIT_SHA}"
+      --path="manifests.yaml"
+      --creds="${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}"
+  environment:
+    name: simulatieomgeving
+    url: https://open-ftv.simulatie.datastelsel.nl
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"

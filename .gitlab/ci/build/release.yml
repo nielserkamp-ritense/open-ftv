@@ -1,5 +1,5 @@
 build_release_eam:
-  stage: Release
+  stage: Build
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -11,36 +11,24 @@ build_release_eam:
           - pdp
           - manager
           - management-interface
-  before_script:
-    - export SEMVER="${CI_COMMIT_TAG:1}"
-    - echo "container tag=${SEMVER}-${ARCH}"
-    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${SEMVER}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
-      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      --build-arg GIT_TAG_NAME=${IMAGE_TAG}
       --context "."
       --dockerfile "apps/${APP}/Dockerfile"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/eam/${APP}:${SEMVER}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/${APP}:${IMAGE_TAG}-${ARCH}
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-  artifacts:
-    paths:
-      - ci_build_image_registry.txt
-      - ci_build_image_tag.txt
-  resource_group: build_release_eam
   tags:
     - ${ARCH}
 
 build_release_mock_ds:
-  stage: Release
+  stage: Build
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -51,36 +39,24 @@ build_release_mock_ds:
           - vlierdam
           - rvig
           - rdw
-  before_script:
-    - export SEMVER="${CI_COMMIT_TAG:1}"
-    - echo "container tag=${SEMVER}-${ARCH}"
-    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${SEMVER}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
-      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      --build-arg GIT_TAG_NAME=${IMAGE_TAG}
       --context "."
       --dockerfile "mock/datasources/generic/${APP}.Dockerfile"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/mock-ds/${APP}:${SEMVER}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/mock-ds-${APP}:${IMAGE_TAG}-${ARCH}
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-  artifacts:
-    paths:
-      - ci_build_image_registry.txt
-      - ci_build_image_tag.txt
-  resource_group: build_release_mock_ds
   tags:
     - ${ARCH}
 
 build_release_gw_plugin:
-  stage: Release
+  stage: Build
   image: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:c3109d5926a997b100c4343944e06c6b30a6804b2f9abe0994d3de6ef92b028e
   parallel:
     matrix:
@@ -88,30 +64,18 @@ build_release_gw_plugin:
           - amd64
         APP:
           - envoy
-  before_script:
-    - export SEMVER="${CI_COMMIT_TAG:1}"
-    - echo "container tag=${SEMVER}-${ARCH}"
-    - echo -n "${CI_REGISTRY_IMAGE}" > ci_build_image_registry.txt
-    - echo -n "${SEMVER}-${ARCH}" > ci_build_image_tag.txt
   script:
     - /kaniko/executor
       --build-arg GIT_COMMIT_HASH=${CI_COMMIT_SHA}
-      --build-arg GIT_TAG_NAME=${CI_COMMIT_TAG}
+      --build-arg GIT_TAG_NAME=${IMAGE_TAG}
       --context "."
       --dockerfile "external/gateways/${APP}/Dockerfile-plugin"
       --single-snapshot
       --cache="true"
       --compressed-caching=false
       --cache-ttl="168h"
-      --destination ${CI_REGISTRY_IMAGE}/gw-plugin/${APP}:${SEMVER}-${ARCH}
+      --destination ${CI_REGISTRY_IMAGE}/gw-plugin-${APP}:${IMAGE_TAG}-${ARCH}
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-  artifacts:
-    paths:
-      - ci_build_image_registry.txt
-      - ci_build_image_tag.txt
-  resource_group: build_release_gw_plugin
   tags:
     - ${ARCH}

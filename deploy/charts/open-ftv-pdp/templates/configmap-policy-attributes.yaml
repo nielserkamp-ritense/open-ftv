@@ -1,0 +1,13 @@
+{{- if and (eq .Values.config.policySource "local") .Values.config.policyAttributes -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "open-ftv-pdp.fullname" . }}-policy-attributes
+  labels:
+    {{- include "open-ftv-pdp.labels" . | nindent 4 }}
+data:
+{{- range $key, $value := .Values.config.policyAttributes }}
+  {{ $key }}.json: |-
+    {{- dict "key" $key "value" $value | toJson | nindent 4 }}
+{{- end }}
+{{- end }}

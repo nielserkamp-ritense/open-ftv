@@ -1,4 +1,4 @@
-manifest-release:
+manifest-testing:
   stage: Manifest
   image:
     name: mplatform/manifest-tool:alpine-v2.2.2@sha256:566f66687564e125c43bb86e2d035ad9b7fb4449f38814535b691d1a7f8d20db
@@ -6,15 +6,10 @@ manifest-release:
   parallel:
     matrix:
       - IMAGE:
-          - pip
-          - pap
           - pdp
           - manager
           - management-interface
           - mock-ds-generic
-          - mock-ds-vlierdam
-          - mock-ds-rvig
-          - mock-ds-rdw
           - gw-plugin-envoy
   script:
     - manifest-tool
@@ -24,6 +19,5 @@ manifest-release:
       --platforms linux/amd64
       --template ${CI_REGISTRY_IMAGE}/${IMAGE}:${IMAGE_TAG}-ARCH
       --target ${CI_REGISTRY_IMAGE}/${IMAGE}:${IMAGE_TAG}
-      --tags latest
   rules:
-    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"

@@ -1,0 +1,29 @@
+nameOverride: ""
+fullnameOverride: ""
+
+postgresql:
+  # existingCluster: ""
+  instances: 1
+  storageSize: 1Gi
+  databaseOwner: app
+  databaseReclaimPolicy: delete
+
+pdp:
+  nameOverride: pdp
+  config:
+    policySource: local
+    # policyLanguage: ""
+    authorizationDecisionLog: &authorizationDecisionLog
+      postgresql:
+        existingSecret:
+          name: open-ftv-postgresql-app
+
+manager:
+  enabled: false
+  nameOverride: manager
+  config:
+    authorizationDecisionLog: *authorizationDecisionLog
+
+management-interface:
+  enabled: false
+  nameOverride: management-interface

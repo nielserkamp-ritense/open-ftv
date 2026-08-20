@@ -1,0 +1,42 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: open-ftv
+spec:
+  url: oci://registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/charts/open-ftv
+  ref:
+    tag: ${OPEN_FTV_VERSION}
+  interval: 10m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-ftv
+spec:
+  serviceAccountName: flux-reconciler
+  interval: 35m
+  chartRef:
+    kind: OCIRepository
+    name: open-ftv
+  values:
+    pdp:
+      config:
+        authorizationDecisionLog:
+          type: postgresql
+    manager:
+      enabled: true
+      config:
+        authorizationDecisionLog:
+          type: postgresql
+    management-interface:
+      enabled: true
+      httpRoute:
+        enabled: true
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: default-gateway
+            namespace: fds-public
+            sectionName: https
+        hostnames:
+          - open-ftv.simulatie.datastelsel.nl

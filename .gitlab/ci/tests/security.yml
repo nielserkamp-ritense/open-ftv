@@ -32,7 +32,6 @@ npm_security_check:
         paths:
           - apps/management-interface/**/*
           - \.gitlab/ci/tests/security.yml
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
 go_security_check:
   stage: Security
@@ -86,7 +85,6 @@ go_security_check:
           - external/**/*
           - go.work
           - \.gitlab/ci/tests/security.yml
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
 
 # Checks a CycloneDX SBOM's declared/detected licenses against a list of licenses known to be compatible with
 # EUPL (either EUPL's own Article 5 "Compatible Licences" appendix, see LICENSE.md, or common permissive licenses that never conflict with it).
@@ -194,7 +192,6 @@ go_cyclonedx_sbom:
           - \.gitlab/ci/tests/security.yml
           - \.gitlab/ci/tests/scripts/go_license_report.py
           - \.gitlab/ci/tests/scripts/allowed_licenses.json
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event"
 
 npm_cyclonedx_sbom:
   stage: Security
@@ -227,4 +224,3 @@ npm_cyclonedx_sbom:
           - apps/management-interface/**/*
           - \.gitlab/ci/tests/security.yml
           - \.gitlab/ci/tests/scripts/allowed_licenses.json
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event"

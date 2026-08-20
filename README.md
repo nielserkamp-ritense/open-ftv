@@ -126,3 +126,32 @@ docker compose -f docker/compose.yaml down -v
 ```
 
 **Warning** this will delete existing data.
+
+#### Release
+
+Commits on a feature-branch will only run the test-jobs.
+
+Everything is published under `registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/<component>` for container
+images and `.../open-ftv/charts/<chart>` for Helm charts.
+
+Commits on the `main` branch publish a SemVer *pre-release*, `<next-version>-<branch>.<commits since the last tag>`. 
+For example chart `0.0.2-main.16` and image `v0.0.2-main.16`.
+
+Tags publish the tag itself, for example chart `0.0.2` and image `v0.0.2`, and additionally move `latest`.
+
+Helm chart versions are bare SemVer, while container images carry a `v` prefix.
+
+#### Simulatieomgeving
+
+The latest `main` pre-release is deployed automatically by Flux.
+
+- Management interface: https://open-ftv.simulatie.datastelsel.nl
+- Namespace: `fds-tenant-ictu-open-ftv`
+- [Cluster access](https://gitlab.com/datastelsel.nl/federatief/simulation/simulation/#access-to-k8s-cluster)
+- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
+
+Check the deployed images:
+
+```shell
+kubectl get pods -n fds-tenant-ictu-open-ftv -o jsonpath='{..image}'
+```

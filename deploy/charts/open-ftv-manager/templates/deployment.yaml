@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-ftv-manager.fullname" . }}
+  labels:
+    {{- include "open-ftv-manager.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-ftv-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "open-ftv-manager.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "open-ftv-manager.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MANAGER_HOST
+              value: "0.0.0.0"
+            - name: MANAGER_PORT
+              value: "8080"
+            - name: MANAGER_CORS_ORIGINS
+              value: {{ include "open-ftv-manager.corsOrigins" . }}
+            - name: MANAGER_CORS_HEADERS
+              value: {{ join "," .Values.config.corsHeaders | quote }}
+            - name: MANAGER_HEALTH_PORT
+              value: "8081"
+            - name: MANAGER_LOG_TARGET
+              value: stdout
+            - name: MANAGER_LOG_FORMAT
+              value: {{ .Values.config.logFormat }}
+            - name: MANAGER_LOG_LEVEL
+              value: {{ .Values.config.logLevel }}
+            - name: MANAGER_PERSIST_TYPE
+              value: memory
+          {{- with .Values.config.authorizationDecisionLog }}
+            - name: MANAGER_ADL_TYPE
+              value: {{ .type }}
+            - name: MANAGER_ADL_SERVICE_NAME
+              value: {{ .serviceName }}
+            {{- if eq .type "postgresql" }}
+            {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: health
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
