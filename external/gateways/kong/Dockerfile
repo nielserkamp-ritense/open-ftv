@@ -10,6 +10,6 @@ COPY . .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/openftv ./external/gateways/kong/plugins/openftv/cmd/
 
 # Stage 2 - run
-FROM kong:3.9.1
+FROM kong:3.9.3
 
 COPY --from=golang_builder /build/openftv /usr/local/bin
