@@ -63,6 +63,7 @@ unit-tests:
         paths:
           - go.mod
           - go.sum
+          - mise.toml
           - utilities/**/*
           - oas/**/*
           - testdata/**/*
