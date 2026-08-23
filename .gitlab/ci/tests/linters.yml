@@ -60,6 +60,7 @@ golangci-lint:
       changes:
         compare_to: $CI_DEFAULT_BRANCH
         paths:
+          - mise.toml
           - utilities/**/*
           - utilities-no-ci/**/*
           - oas/**/*

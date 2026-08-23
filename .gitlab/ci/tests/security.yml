@@ -76,6 +76,7 @@ go_security_check:
         paths:
           - go.mod
           - go.sum
+          - mise.toml
           - utilities/**/*
           - oas/**/*
           - eam/**/*
@@ -181,6 +182,7 @@ go_cyclonedx_sbom:
         paths:
           - go.mod
           - go.sum
+          - mise.toml
           - utilities/**/*
           - oas/**/*
           - eam/**/*
