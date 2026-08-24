@@ -8,28 +8,37 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
+// bootstrapTitle includes the tag in the title: the policy table enforces
+// UNIQUE(language, title), and a manager with multiple same-language bundles
+// (e.g. "openftv" + "pdp1", both cedar) would otherwise have every bootstrap
+// policy after the first silently fail to insert, leaving those bundles
+// permanently empty (default-deny) until someone notices.
+func bootstrapTitle(tag string) string {
+	return "initieel voorbeeld (alles toestaan) [" + tag + "]"
+}
+
 func newCedarPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.CEDAR.String(), "", "", bytes.NewBufferString(cedarDummy))
-	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
+	return p.WithTags(tag).WithTitle(bootstrapTitle(tag)).WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newRegoPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.REGO.String(), "", "", bytes.NewBufferString(regoDummy))
-	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
+	return p.WithTags(tag).WithTitle(bootstrapTitle(tag)).WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newCerbosPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.CERBOS.String(), "", "", bytes.NewBufferString(cerbosDummy))
-	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
+	return p.WithTags(tag).WithTitle(bootstrapTitle(tag)).WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newOpenFGAPolicy(tag string) *models.Policy {
 	uid := uuid.New().String()
 	p, _ := models.NewPolicyFromData(uid, models.OPENFGA.String(), "", "", bytes.NewBufferString(openfgaDummy))
-	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
+	return p.WithTags(tag).WithTitle(bootstrapTitle(tag)).WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
 func newOpenFGARelations(tags []string) []*models.Relation {

@@ -1,0 +1,83 @@
+{
+  "realm": "vlierdam",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "ambtenaar" },
+      { "name": "gemeentesecretaris" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "laadpalen-applicatie",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "protocolMappers": [
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        },
+        {
+          "name": "laadpalen-applicatie-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "laadpalen-applicatie",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "rick",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "rick@vlierdam.local",
+      "firstName": "Rick",
+      "lastName": "Sanchez",
+      "credentials": [
+        { "type": "password", "value": "demo-vlierdam", "temporary": false }
+      ],
+      "realmRoles": ["ambtenaar"]
+    },
+    {
+      "username": "morty",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "morty@vlierdam.local",
+      "firstName": "Morty",
+      "lastName": "Smith",
+      "credentials": [
+        { "type": "password", "value": "demo-vlierdam", "temporary": false }
+      ],
+      "realmRoles": ["ambtenaar"]
+    },
+    {
+      "username": "jerry",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "jerry@vlierdam.local",
+      "firstName": "Jerry",
+      "lastName": "Smith",
+      "credentials": [
+        { "type": "password", "value": "demo-vlierdam", "temporary": false }
+      ],
+      "realmRoles": ["gemeentesecretaris"]
+    }
+  ]
+}
