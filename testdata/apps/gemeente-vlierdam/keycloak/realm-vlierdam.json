@@ -68,6 +68,18 @@
       "realmRoles": ["ambtenaar"]
     },
     {
+      "username": "beth",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "beth@vlierdam.local",
+      "firstName": "Beth",
+      "lastName": "Smith",
+      "credentials": [
+        { "type": "password", "value": "demo-vlierdam", "temporary": false }
+      ],
+      "realmRoles": ["ambtenaar"]
+    },
+    {
       "username": "jerry",
       "enabled": true,
       "emailVerified": true,

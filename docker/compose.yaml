@@ -75,9 +75,6 @@ services:
       retries: 5
       start_period: 2s
 
-  # Identity provider for the laadpalen-applicatie SPA. rdw-inway and rvig-inway validate
-  # bearer tokens against this realm so the RDW/BRP data-plane calls go through the real
-  # inway -> pdp -> dataspace chain instead of hitting the dataspace directly.
   vlierdam-keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: openftv-vlierdam-keycloak
