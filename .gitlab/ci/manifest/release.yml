@@ -19,7 +19,7 @@ manifest-release-eam:
       --username=${CI_REGISTRY_USER}
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
-      --platforms linux/amd64,linux/arm64
+      --platforms linux/amd64
       --template ${CI_REGISTRY_IMAGE}/eam/${IMAGE}:${SEMVER}-ARCH
       --target ${CI_REGISTRY_IMAGE}/eam/${IMAGE}:${SEMVER}
       --tags latest
@@ -46,7 +46,7 @@ manifest-release-mock-ds:
       --username=${CI_REGISTRY_USER}
       --password=${CI_REGISTRY_PASSWORD}
       push from-args
-      --platforms linux/amd64,linux/arm64
+      --platforms linux/amd64
       --template ${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}:${SEMVER}-ARCH
       --target ${CI_REGISTRY_IMAGE}/mock-ds/${IMAGE}:${SEMVER}
       --tags latest

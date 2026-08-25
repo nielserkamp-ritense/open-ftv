@@ -5,7 +5,6 @@ build_release_eam:
     matrix:
       - ARCH:
           - amd64
-          - arm64
         APP:
           - pip
           - pap
@@ -47,7 +46,6 @@ build_release_mock_ds:
     matrix:
       - ARCH:
           - amd64
-          - arm64
         APP:
           - generic
           - vlierdam
@@ -88,7 +86,6 @@ build_release_gw_plugin:
     matrix:
       - ARCH:
           - amd64
-          - arm64
         APP:
           - envoy
   before_script:
