@@ -86,9 +86,9 @@ func (d *Deployment) ToOAS() *oas.Deployment {
 		Message:     d.msg,
 		Audit: oas.ObjectAudit{
 			Created:   d.created.Format(time.RFC3339),
-			CreatedBy: d.createdBy,
+			CreatedBy: oas.Principal{Id: d.createdBy},
 			Updated:   d.updated.Format(time.RFC3339),
-			UpdatedBy: d.updatedBy,
+			UpdatedBy: optionalPrincipal(d.updatedBy),
 		},
 	}
 }
@@ -110,8 +110,8 @@ func (d *Deployment) UnmarshalJSON(data []byte) (err error) {
 	d.description = d2.Description
 	d.status = Status(d2.Status)
 	d.msg = d2.Message
-	d.createdBy = d2.Audit.CreatedBy
-	d.updatedBy = d2.Audit.UpdatedBy
+	d.createdBy = d2.Audit.CreatedBy.Id
+	d.updatedBy = principalID(d2.Audit.UpdatedBy)
 
 	if d.created, err = time.Parse(time.RFC3339, d2.Audit.Created); err != nil {
 		return
@@ -119,4 +119,23 @@ func (d *Deployment) UnmarshalJSON(data []byte) (err error) {
 
 	d.updated, err = time.Parse(time.RFC3339, d2.Audit.Updated)
 	return
+}
+
+// optionalPrincipal returns nil for an absent attribution, so the field is omitted from the
+// response rather than serialized as a principal identifying nobody.
+func optionalPrincipal(id string) *oas.Principal {
+	if id == "" {
+		return nil
+	}
+
+	return &oas.Principal{Id: id}
+}
+
+// principalID reads the id from an optional attribution, which is absent when nothing set it.
+func principalID(p *oas.Principal) string {
+	if p == nil {
+		return ""
+	}
+
+	return p.Id
 }

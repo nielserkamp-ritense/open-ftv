@@ -160,14 +160,14 @@ func TestDeployment_JSON(t *testing.T) {
 			version: 1,
 			title:   "v1",
 			desc:    "version 1",
-			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"version 1","status":1,"title":"v1","version":1}`,
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":{"id":""},"updated":"2025-07-22T12:13:14Z"},"description":"version 1","status":1,"title":"v1","version":1}`,
 		},
 		{
 			name:    "v101",
 			version: 101,
 			title:   "v101",
 			desc:    "blah blah",
-			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":"","updated":"2025-07-22T12:13:14Z"},"description":"blah blah","status":1,"title":"v101","version":101}`,
+			want:    `{"audit":{"created":"2025-07-22T12:13:14Z","createdBy":{"id":""},"updated":"2025-07-22T12:13:14Z"},"description":"blah blah","status":1,"title":"v101","version":101}`,
 		},
 	}
 

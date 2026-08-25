@@ -19,7 +19,9 @@ type Authorization struct {
 }
 
 // NewAuthorizer instantiates a new authorizer using the given configuration.
-func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator) (authorization2.Authorizer, error) {
+// NewAuthorizer builds an authorizer. The extra options let a caller add concerns this shared
+// constructor should not know about, such as the manager passing its principal store.
+func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator, extra ...authorization2.Option) (authorization2.Authorizer, error) {
 	opts := []authorization2.Option{
 		authorization2.WithContext(controller.GetContext()),
 		authorization2.WithLogger(controller.GetLogger()),
@@ -27,6 +29,8 @@ func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator a
 		authorization2.WithPDP(controller),
 		authorization2.WithEntityGetter(controller.GetPIP().GetEntity),
 	}
+
+	opts = append(opts, extra...)
 
 	// Decide whether the policy store is empty/unreadable (or absent entirely). A nil PAP
 	// is treated as empty rather than dereferenced, so a misconfigured controller follows

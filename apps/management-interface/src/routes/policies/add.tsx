@@ -70,7 +70,7 @@ function AddPolicyComponent() {
                     data: formData.data,
                     audit: {
                         created: '',
-                        createdBy: ''
+                        createdBy: {id: ''}
                     },
                     metadata: {
                         rvvaId: formData.rvvaId,

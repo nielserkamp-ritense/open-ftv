@@ -27,11 +27,12 @@ type TagsHandler struct {
 	logger     *slog.Logger
 	pap        *pap.PAP
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewTagsHandler instantiates a tag handler.
-func NewTagsHandler(logger *slog.Logger, pap *pap.PAP, authorizer authorization.Authorizer) *TagsHandler {
-	return &TagsHandler{logger: logger, pap: pap, authorizer: authorizer}
+func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) *TagsHandler {
+	return &TagsHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetTags retrieves all tags from the PAP.
@@ -47,7 +48,7 @@ func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 // GetTag retrieves a specific tag from the PAP.
@@ -71,7 +72,8 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 	if t == nil {
 		return h.error(req, fiber.StatusNotFound, errTagNotFound)
 	}
-	return req.JSON(t)
+
+	return h.respond(req, t)
 }
 
 // PostTag inserts a new tag into the PAP.
@@ -108,7 +110,8 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
-	return req.Status(fiber.StatusCreated).JSON(t)
+
+	return h.respond(req.Status(fiber.StatusCreated), t)
 }
 
 // PutTag replaces a tag in the PAP.
@@ -145,7 +148,8 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
-	return req.JSON(t)
+
+	return h.respond(req, t)
 }
 
 // DeleteTag removes a tag from the PAP.
@@ -177,7 +181,8 @@ func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	if err2 != nil {
 		return h.tagConcurrencyError(req, err2)
 	}
-	return req.JSON(prev)
+
+	return h.respond(req, prev)
 }
 
 func (h *TagsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {

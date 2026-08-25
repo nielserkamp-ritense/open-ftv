@@ -26,11 +26,12 @@ type BundlesHandler struct {
 	manager    *bundles.Manager
 	cfg        []*bundles.Config
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewBundlesHandler instantiates a bundle deployment handler.
-func NewBundlesHandler(logger *slog.Logger, pap *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer) *BundlesHandler {
-	return &BundlesHandler{logger: logger, pap: pap, manager: manager, cfg: manager.Bundles(), authorizer: authorizer}
+func NewBundlesHandler(logger *slog.Logger, store *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer, opts ...HandlerOption) *BundlesHandler {
+	return &BundlesHandler{logger: logger, pap: store, manager: manager, cfg: manager.Bundles(), authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetStatuses is the endpoint for retrieving the list of bundle status codes.
@@ -45,7 +46,8 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	for s := bundles.StatusMIN; s <= bundles.StatusMAX; s++ {
 		resp = append(resp, oas.Status{Code: int(s), Name: s.String()})
 	}
-	return req.JSON(resp)
+
+	return h.respond(req, resp)
 }
 
 // GetCompressTypes is the endpoint for retrieving the list of compression types.
@@ -60,7 +62,8 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	for s := bundles.CompressMIN; s <= bundles.CompressMAX; s++ {
 		resp = append(resp, oas.CompressType{Code: int(s), Name: s.String()})
 	}
-	return req.JSON(resp)
+
+	return h.respond(req, resp)
 }
 
 // GetConfigs is the endpoint for retrieving the bundle configurations.
@@ -98,7 +101,7 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 		resp[i] = cfg2
 	}
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 // GetDeployments is the endpoint for retrieving the list of all bundle deployments.
@@ -119,7 +122,7 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 		resp = append(resp, list[i].ToOAS())
 	}
 
-	return req.JSON(resp)
+	return h.respond(req, resp)
 }
 
 // GetDeployment is the endpoint for retrieving a specific bundle deployment.
@@ -143,7 +146,8 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusNotFound, err)
 	}
-	return req.JSON(resp.ToOAS())
+
+	return h.respond(req, resp.ToOAS())
 }
 
 // GetLastDeployment is the endpoint for retrieving the last bundle deployment.
@@ -167,7 +171,8 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
-	return req.JSON(resp.ToOAS())
+
+	return h.respond(req, resp.ToOAS())
 }
 
 // PostDeployment is the endpoint for starting a new bundle deployment.
@@ -188,7 +193,8 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
-	return req.JSON(resp.ToOAS())
+
+	return h.respond(req, resp.ToOAS())
 }
 
 // GetBundle is the endpoint for retrieving the last deployment bundle.

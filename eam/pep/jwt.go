@@ -49,6 +49,15 @@ func (c *collector) mapJWTPrincipal(claims jwt.MapClaims) {
 	if name, _ := claims["preferred_username"].(string); name != "" {
 		c.parc.Principal.Attributes().AddAttributeKV(models.AttrPreferredName, name)
 	}
+
+	// email and iss are display/provenance data for the principal record, never decision input.
+	if email, _ := claims["email"].(string); email != "" {
+		c.parc.Principal.Attributes().AddAttributeKV(models.AttrEmail, email)
+	}
+
+	if iss, _ := claims["iss"].(string); iss != "" {
+		c.parc.Principal.Attributes().AddAttributeKV(models.AttrIssuer, iss)
+	}
 }
 
 // extractRoles normalizes a roles claim value into a []string.

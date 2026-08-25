@@ -219,7 +219,7 @@ func (s *PostgresDB) CreateBundleAudit(ctx context.Context, principal identity.P
 	b, _ := json.Marshal(cfg)
 	now := time.Now().UTC()
 
-	user := principal.DisplayName()
+	user := principal.ID
 	if user == "" {
 		user = identity.NewSystemPrincipal().ID
 	}

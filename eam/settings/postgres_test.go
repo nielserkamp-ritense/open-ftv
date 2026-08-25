@@ -75,7 +75,7 @@ func TestPostgres_GetSettings_Existing(t *testing.T) {
 	assert.Equal(t, "#334455", got.TitleColor)
 	assert.Equal(t, []byte{1, 2, 3}, got.Logo)
 	assert.Equal(t, oas.SettingsLogoMediaType("image/png"), got.LogoMediaType)
-	assert.Equal(t, "alice@wonderland.cc", got.UpdatedBy)
+	assert.Equal(t, "alice@wonderland.cc", got.UpdatedBy.Id)
 
 	require.NoError(t, mock.ExpectationsWereMet())
 }
@@ -95,7 +95,7 @@ func TestPostgres_UpdateSettings(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(user.ID).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 	mock.ExpectExec("INSERT INTO settings (singleton_id,header_title,header_color,title_color,logo,logo_media_type,created,created_by,updated,updated_by) VALUES (TRUE,$1,$2,$3,$4,$5,$6,$7,$6,$7) ON CONFLICT (singleton_id) DO UPDATE SET header_title=$1,header_color=$2,title_color=$3,logo=$4,logo_media_type=$5,updated=$6,updated_by=$7").
-		WithArgs("ACME", "#112233", "#334455", []byte(nil), (*string)(nil), now, user.DisplayName()).
+		WithArgs("ACME", "#112233", "#334455", []byte(nil), (*string)(nil), now, user.ID).
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
 	mock.ExpectCommit()
 
@@ -103,7 +103,7 @@ func TestPostgres_UpdateSettings(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, "ACME", got.HeaderTitle)
-	assert.Equal(t, user.DisplayName(), got.UpdatedBy)
+	assert.Equal(t, user.ID, got.UpdatedBy.Id)
 	assert.Equal(t, now.Format(time.RFC3339Nano), got.Updated)
 
 	require.NoError(t, mock.ExpectationsWereMet())

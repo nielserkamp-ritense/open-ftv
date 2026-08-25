@@ -7,6 +7,27 @@ import (
 	apierrors "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
 )
 
+// Defines values for PrincipalKind.
+const (
+	Legacy PrincipalKind = "legacy"
+	System PrincipalKind = "system"
+	User   PrincipalKind = "user"
+)
+
+// Valid indicates whether the value is a known member of the PrincipalKind enum.
+func (e PrincipalKind) Valid() bool {
+	switch e {
+	case Legacy:
+		return true
+	case System:
+		return true
+	case User:
+		return true
+	default:
+		return false
+	}
+}
+
 // BundleActivated The details of a deployment bundle activation.
 type BundleActivated struct {
 	// PreviousVersion Version number of the replaced deployment.
@@ -94,15 +115,38 @@ type ObjectAudit struct {
 	// Created Timestamp the object was created (RFC3339 format).
 	Created string `json:"created"`
 
-	// CreatedBy User that created the object.
-	CreatedBy string `json:"createdBy"`
+	// CreatedBy Who performed an action. `id` is the stored attribution value and is always present;
+	// `name` is filled in from the manager's local principal record and is absent when that
+	// record is unknown, in which case clients show the raw `id`. Only a principal of kind
+	// `user` identifies a real subject and may be linked to.
+	CreatedBy Principal `json:"createdBy"`
 
 	// Updated Timestamp the object was last updated (RFC3339 format).
-	Updated string `json:"updated,omitempty"`
-
-	// UpdatedBy User that last updated the object.
-	UpdatedBy string `json:"updatedBy,omitempty"`
+	Updated   string     `json:"updated,omitempty"`
+	UpdatedBy *Principal `json:"updatedBy,omitempty"`
 }
+
+// Principal Who performed an action. `id` is the stored attribution value and is always present;
+// `name` is filled in from the manager's local principal record and is absent when that
+// record is unknown, in which case clients show the raw `id`. Only a principal of kind
+// `user` identifies a real subject and may be linked to.
+type Principal struct {
+	// Id Stable identifier of the principal, as stored on the object.
+	Id string `json:"id"`
+
+	// Kind `user` for an authenticated subject, `system` for the manager's own actions, and
+	// `legacy` for an attribution value predating the principal record, which is shown
+	// but identifies nobody.
+	Kind PrincipalKind `json:"kind,omitempty"`
+
+	// Name Display name of the principal, when known.
+	Name string `json:"name,omitempty"`
+}
+
+// PrincipalKind `user` for an authenticated subject, `system` for the manager's own actions, and
+// `legacy` for an attribution value predating the principal record, which is shown
+// but identifies nobody.
+type PrincipalKind string
 
 // Status The code and name of a deployment status.
 type Status struct {

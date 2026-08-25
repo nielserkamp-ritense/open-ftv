@@ -65,7 +65,7 @@ func (db *SettingsDB) UpdateSettings(ctx context.Context, user identity.Principa
 		logoMediaType = &s
 	}
 
-	params := []any{in.HeaderTitle, in.HeaderColor, in.TitleColor, in.Logo, logoMediaType, now, user.DisplayName()}
+	params := []any{in.HeaderTitle, in.HeaderColor, in.TitleColor, in.Logo, logoMediaType, now, user.ID}
 
 	if _, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (db *SettingsDB) UpdateSettings(ctx context.Context, user identity.Principa
 
 	out := *in
 	out.Updated = now.Format(time.RFC3339Nano)
-	out.UpdatedBy = user.DisplayName()
+	out.UpdatedBy = optionalPrincipal(user.ID)
 
 	return &out, nil
 }
@@ -97,6 +97,16 @@ func settingsFromValues(values []any) (*oas.Settings, error) {
 		Logo:          logo,
 		LogoMediaType: oas.SettingsLogoMediaType(convert.AnyToString(values[4])),
 		Updated:       updated,
-		UpdatedBy:     convert.AnyToString(values[6]),
+		UpdatedBy:     optionalPrincipal(convert.AnyToString(values[6])),
 	}, nil
+}
+
+// optionalPrincipal returns nil for an absent attribution, so the field is omitted from the
+// response rather than serialized as a principal identifying nobody.
+func optionalPrincipal(id string) *oas.Principal {
+	if id == "" {
+		return nil
+	}
+
+	return &oas.Principal{Id: id}
 }

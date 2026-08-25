@@ -21,13 +21,13 @@ func (db *PostgresDB) CreateEntity(ctx context.Context, user identity.Principal,
  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 
 	now := db.now().UTC()
-	params := []any{e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user.DisplayName(), now, user.DisplayName()}
+	params := []any{e.StatusName(), e.Type(), e.ID(), e.Title(), e.Description(), e.Tags(), gobEncodeAttributes(e.Attributes()), e.Parents(), now, user.ID, now, user.ID}
 
 	if _, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil {
 		return nil, err
 	}
 
-	return e.WithAudit(now, user.DisplayName(), now, user.DisplayName()), nil
+	return e.WithAudit(now, user.ID, now, user.ID), nil
 }
 
 // ReadEntity retrieves the identified entity from the database.
@@ -66,7 +66,7 @@ func (db *PostgresDB) ReadEntityAudit(ctx context.Context, ns, id string) ([]oas
 		out = append(out, oas.AuditEntry{
 			Created:   convert.AnyToDateTime(values[0]).Format(time.RFC3339),
 			Operation: convert.AnyToString(values[1]),
-			UserId:    convert.AnyToString(values[2]),
+			UserId:    oas.Principal{Id: convert.AnyToString(values[2])},
 		})
 		return true
 	})
@@ -95,7 +95,7 @@ func (db *PostgresDB) ReadEntityDeployments(ctx context.Context, ns, id string) 
 			Bundle:    convert.AnyToString(values[0]),
 			Version:   int(convert.AnyToInt64(values[1])),
 			Created:   convert.AnyToString(values[2]),
-			CreatedBy: convert.AnyToString(values[3]),
+			CreatedBy: optionalPrincipal(convert.AnyToString(values[3])),
 			Status:    bundles.Status(convert.AnyToInt64(values[4])).Status(),
 		})
 		return true
@@ -170,7 +170,7 @@ func (db *PostgresDB) UpdateEntity(ctx context.Context, user identity.Principal,
 
 	attr := gobEncodeAttributes(e.Attributes())
 	now := db.now().UTC()
-	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), e.Title(), e.Description(), e.Tags(), attr, e.Parents(), e.StatusName(), now, user.DisplayName()}
+	params := []any{prev.Type(), prev.ID(), timeFromLastIndex(lastIndex), e.Title(), e.Description(), e.Tags(), attr, e.Parents(), e.StatusName(), now, user.ID}
 
 	if count, err := db.p.Exec(identity.WithContext(ctx, user), sql, params); err != nil || count != 1 {
 		if err != nil {
@@ -179,7 +179,7 @@ func (db *PostgresDB) UpdateEntity(ctx context.Context, user identity.Principal,
 		return nil, fmt.Errorf("update failed; count=%d", count)
 	}
 
-	return e.WithAudit(e.Created(), e.CreatedBy(), now, user.DisplayName()), nil
+	return e.WithAudit(e.Created(), e.CreatedBy(), now, user.ID), nil
 }
 
 // DeleteEntity removes an existing entity from the database.

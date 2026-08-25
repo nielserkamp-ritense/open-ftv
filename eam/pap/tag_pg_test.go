@@ -47,7 +47,7 @@ func TestTagDB_CreateTag(t *testing.T) {
 			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u.ID).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`INSERT INTO tag (tag,title,description,created,created_by,updated,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7)`).
-				WithArgs(tag.Id, tag.Name, tag.Description, pgxmock.AnyArg(), u.DisplayName(), pgxmock.AnyArg(), u.DisplayName())
+				WithArgs(tag.Id, tag.Name, tag.Description, pgxmock.AnyArg(), u.ID, pgxmock.AnyArg(), u.ID)
 			if tc.wantErr {
 				exp.WillReturnError(errors.New("test error"))
 				mock.ExpectRollback()
@@ -66,8 +66,8 @@ func TestTagDB_CreateTag(t *testing.T) {
 				assert.Equal(t, tag.Id, got.Id)
 				assert.Equal(t, tag.Name, got.Name)
 				assert.Equal(t, tag.Description, got.Description)
-				assert.Equal(t, u.DisplayName(), got.Audit.CreatedBy)
-				assert.Equal(t, u.DisplayName(), got.Audit.UpdatedBy)
+				assert.Equal(t, u.ID, got.Audit.CreatedBy.Id)
+				assert.Equal(t, u.ID, got.Audit.UpdatedBy.Id)
 				assert.Equal(t, got.Audit.Created, got.Audit.Updated)
 				_, parseErr := time.Parse(time.RFC3339Nano, got.Audit.Created)
 				require.NoError(t, parseErr)
@@ -124,7 +124,7 @@ func TestTagDB_UpdateTag(t *testing.T) {
 			mock.ExpectExec("SELECT set_config('openftv.user', $1, true)").WithArgs(u.ID).WillReturnResult(pgxmock.NewResult("SELECT", 1))
 
 			exp := mock.ExpectExec(`UPDATE tag SET title=$3,description=$4,updated=$5,updated_by=$6 WHERE tag=$1 AND updated=$2`).
-				WithArgs(prev.Id, created, tag.Name, tag.Description, pgxmock.AnyArg(), u.DisplayName())
+				WithArgs(prev.Id, created, tag.Name, tag.Description, pgxmock.AnyArg(), u.ID)
 
 			switch {
 			case tc.wantErr:
@@ -152,7 +152,7 @@ func TestTagDB_UpdateTag(t *testing.T) {
 				require.NotNil(t, got)
 				assert.Equal(t, tag.Name, got.Name)
 				assert.Equal(t, tag.Description, got.Description)
-				assert.Equal(t, u.DisplayName(), got.Audit.UpdatedBy)
+				assert.Equal(t, u.ID, got.Audit.UpdatedBy.Id)
 				_, parseErr := time.Parse(time.RFC3339Nano, got.Audit.Updated)
 				require.NoError(t, parseErr)
 			}

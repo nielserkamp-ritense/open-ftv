@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/select.tsx";
 import { TagsEditor } from "@/components/ui/tags-editor.tsx";
 import { useTags } from '@/services/tags.ts';
 import { lookupErrorMessage, SOURCE_REQUIRED_MESSAGE } from '@/utilities/errorMessages';
+import {principalName} from "@/auth/principal.ts";
 
 export const Route = createFileRoute('/policies/$id/')({
     component: RouteComponent,
@@ -35,7 +36,7 @@ function RouteComponent() {
         status: '',
         audit: {
             created: '',
-            createdBy: ''
+            createdBy: {id: ''}
         },
         metadata: {
             title: '',
@@ -209,13 +210,13 @@ function RouteComponent() {
                                 </div>
                             </DescriptionDetails>
                             <DescriptionTerm>Gemaakt door</DescriptionTerm>
-                            <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
+                            <DescriptionDetails>{principalName(data?.audit?.createdBy)}</DescriptionDetails>
                             <DescriptionTerm>Gemaakt op</DescriptionTerm>
                             <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : ''}</DescriptionDetails>
                             <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
                             <DescriptionDetails>{data?.audit?.updated ? formatDateTime(data.audit.updated) : ''}</DescriptionDetails>
                             <DescriptionTerm>Laatst bijgewerkt door</DescriptionTerm>
-                            <DescriptionDetails>{data?.audit?.updatedBy}</DescriptionDetails>
+                            <DescriptionDetails>{principalName(data?.audit?.updatedBy)}</DescriptionDetails>
                         </DescriptionList>
                     ) : (
                         <Fieldset>
@@ -289,13 +290,13 @@ function RouteComponent() {
                             <FieldGroup>
                                 <DescriptionList>
                                     <DescriptionTerm>Gemaakt door</DescriptionTerm>
-                                    <DescriptionDetails>{data?.audit?.createdBy}</DescriptionDetails>
+                                    <DescriptionDetails>{principalName(data?.audit?.createdBy)}</DescriptionDetails>
                                     <DescriptionTerm>Gemaakt op</DescriptionTerm>
                                     <DescriptionDetails>{data?.audit?.created ? formatDateTime(data.audit.created) : ''}</DescriptionDetails>
                                     <DescriptionTerm>Laatst bijgewerkt op</DescriptionTerm>
                                     <DescriptionDetails>{data?.audit?.updated ? formatDateTime(data.audit.updated) : ''}</DescriptionDetails>
                                     <DescriptionTerm>Laatst bijgewerkt door</DescriptionTerm>
-                                    <DescriptionDetails>{data?.audit?.updatedBy}</DescriptionDetails>
+                                    <DescriptionDetails>{principalName(data?.audit?.updatedBy)}</DescriptionDetails>
                                 </DescriptionList>
                             </FieldGroup>
                         </Fieldset>

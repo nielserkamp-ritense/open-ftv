@@ -45,11 +45,12 @@ type entitiesHandler struct {
 	logger     *slog.Logger
 	cache      *pip.PIP
 	authorizer authorization.Authorizer
+	principalResolver
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, pip *pip.PIP, authorizer authorization.Authorizer) EntitiesHandler {
-	return &entitiesHandler{logger: logger, cache: pip, authorizer: authorizer}
+func NewEntitiesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) EntitiesHandler {
+	return &entitiesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
 // GetEntities implements the EntitiesHandler interface.
@@ -65,7 +66,7 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 		resp = append(resp, e.ToOAS())
 	})
 
-	return req.JSON(&resp)
+	return h.respond(req, &resp)
 }
 
 // GetEntity implements the EntitiesHandler interface.
@@ -106,7 +107,7 @@ func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 		out.UsageData = usage
 	}
 
-	return req.JSON(out)
+	return h.respond(req, out)
 }
 
 // GetEntityVersions implements the EntitiesHandler interface.
@@ -127,7 +128,7 @@ func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(list)
+	return h.respond(req, list)
 }
 
 // GetEntityVersion implements the EntitiesHandler interface.
@@ -157,7 +158,7 @@ func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 	}
 
-	return req.JSON(e)
+	return h.respond(req, e)
 }
 
 // PostEntity implements the EntitiesHandler interface.
@@ -192,7 +193,8 @@ func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
-	return req.Status(fiber.StatusCreated).JSON(e2.ToOAS())
+
+	return h.respond(req.Status(fiber.StatusCreated), e2.ToOAS())
 }
 
 // PutEntity implements the EntitiesHandler interface.
@@ -227,7 +229,8 @@ func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	if err3 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err3)
 	}
-	return req.JSON(e2.ToOAS())
+
+	return h.respond(req, e2.ToOAS())
 }
 
 // PatchEntityStatus implements the EntitiesHandler interface.
@@ -261,7 +264,8 @@ func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 		h.logger.Error("failed to save entity status", "error", err2)
 		return h.error(req, fiber.StatusBadRequest, err2)
 	}
-	return req.JSON(e2.ToOAS())
+
+	return h.respond(req, e2.ToOAS())
 }
 
 // PostEntityRestore implements the AttributesHandler interface.
@@ -288,7 +292,7 @@ func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
 
-	return req.JSON(e)
+	return h.respond(req, e)
 }
 
 // DeleteEntity implements the EntitiesHandler interface.
@@ -316,14 +320,15 @@ func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 		if !req.QueryBool(ParamIgnoreMissing) {
 			return h.error(req, fiber.StatusNotFound, errEntityNotFound)
 		} else {
-			return req.JSON(models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
+			return h.respond(req, models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
 		}
 	}
 
 	if prev, err2 = h.cache.RemoveEntity(uid, user); err2 != nil {
 		return h.error(req, fiber.StatusInternalServerError, err2)
 	}
-	return req.JSON(prev.ToOAS())
+
+	return h.respond(req, prev.ToOAS())
 }
 
 func (h *entitiesHandler) checkUID(req *fiber.Ctx) (ns, id string, err error) {

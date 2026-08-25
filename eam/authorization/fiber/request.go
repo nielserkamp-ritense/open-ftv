@@ -45,6 +45,12 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 	}
 
 	switch {
+	case err != nil && principalError(err):
+		msg := "failed to record principal" // 500
+		log.Error(msg, "path", req.Path(), "err", err)
+
+		return principal, fiber.NewError(fiber.StatusInternalServerError, msg)
+
 	case err != nil && authenticationError(err):
 		if !strings.Contains(err.Error(), "api-key") {
 			req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
@@ -64,6 +70,11 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 	default:
 		return principal, nil
 	}
+}
+
+func principalError(err error) bool {
+	var e *authorization.ErrPrincipalNotRecorded
+	return errors.As(err, &e)
 }
 
 func authenticationError(err error) bool {

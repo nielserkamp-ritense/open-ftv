@@ -4,6 +4,7 @@ package server
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
@@ -15,6 +16,8 @@ import (
 	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -36,7 +39,7 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator)
+	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator, s.principalRecorder()...)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil
@@ -91,4 +94,24 @@ type authHandler struct {
 	controller    pdp.Controller
 	authenticator authentication.Authenticator
 	authorizer    authorization.Authorizer
+}
+
+// principalRecorder returns the principal store when this app is postgres-backed.
+//
+// The standalone PIP writes created_by/updated_by into the same schema the manager uses, where
+// migration 00014 makes those columns foreign keys to principal. Without recording the caller,
+// every create and update here would fail on a foreign-key violation. It opens its own pool
+// because the PIP store is built after the authorizer.
+func (s *Services) principalRecorder() []authorization.Option {
+	if !strings.EqualFold(s.cfg.Persist.Type, "postgres") {
+		return nil
+	}
+
+	db, err := postgresql.New(s.ctx, s.cfg.PgURL, s.cfg.PgMaxLife, s.cfg.PgMaxConn)
+	if err != nil {
+		s.logger.Error("failed to connect the principal store; writes will fail on the created_by foreign key", "error", err)
+		return nil
+	}
+
+	return []authorization.Option{authorization.WithPrincipalRecorder(principals.NewDBWithPool(db))}
 }

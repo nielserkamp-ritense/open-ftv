@@ -141,7 +141,7 @@ func Test_Post_Policy(t *testing.T) {
 		require.Equal(t, "The very first policy", got.Metadata.Description)
 		require.Equal(t, "rvva-1", got.Metadata.RvvaId)
 		require.Equal(t, []string{"first"}, got.Metadata.Tags)
-		require.Equal(t, "*SYSTEM*", got.Audit.CreatedBy)
+		require.Equal(t, oas.Principal{Id: "*SYSTEM*", Kind: "system", Name: "*SYSTEM*"}, got.Audit.CreatedBy)
 		require.NotEmpty(t, got.Audit.Created)
 	})
 }
