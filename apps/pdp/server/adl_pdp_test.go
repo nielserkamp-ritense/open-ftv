@@ -260,6 +260,38 @@ func TestADLCompliance_FSCTransactionID(t *testing.T) {
 	assert.JSONEq(t, `{"adl.fsc.transaction_id":"`+fscTxnID+`"}`, string(row.Attributes))
 }
 
+// TestADLCompliance_BodyAttributesNoOverlap covers §3.3.7's placement rule for a single request that
+// populates both fields: adl.core.request/adl.core.response MUST land in body, adl.fsc.transaction_id
+// MUST land in attributes, and neither MUST cross over into the other.
+func TestADLCompliance_BodyAttributesNoOverlap(t *testing.T) {
+	cfg, dsn := newADLTestConfig(t)
+	app := newADLTestApp(t, cfg)
+
+	const traceID = "6bf92f3577b34da6a3ce929d0e0e4738"
+	const fscTxnID = "fsc-txn-no-overlap"
+
+	resp := postEvaluation(t, app, map[string]string{
+		"traceparent":        "00-" + traceID + "-00f067aa0ba902b7-01",
+		"fsc-transaction-id": fscTxnID,
+	})
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	row := queryDecisionByTraceID(t, dsn, traceID)
+
+	var body, attrs map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(row.Body, &body))
+	require.NoError(t, json.Unmarshal(row.Attributes, &attrs))
+
+	assert.Contains(t, body, "adl.core.request", "§3.3.8: request MUST be carried in body")
+	assert.Contains(t, body, "adl.core.response", "§3.3.8: response MUST be carried in body")
+	assert.Contains(t, attrs, "adl.fsc.transaction_id", "§3.3.7.6: transaction id MUST be carried in attributes")
+
+	assert.NotContains(t, body, "adl.fsc.transaction_id", "§3.3.7: a field MUST NOT appear in both body and attributes")
+	assert.NotContains(t, attrs, "adl.core.request", "§3.3.7: a field MUST NOT appear in both body and attributes")
+	assert.NotContains(t, attrs, "adl.core.response", "§3.3.7: a field MUST NOT appear in both body and attributes")
+}
+
 // TestADLCompliance_TraceContextOnReceipt covers "Honouring the caller's trace" (§3.2.2, §3.3.3).
 func TestADLCompliance_TraceContextOnReceipt(t *testing.T) {
 	t.Run("no traceparent starts a root trace", func(t *testing.T) {
