@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	authfiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -131,18 +132,21 @@ func (s *Services) initSettings(group fiber.Router) {
 func (s *Services) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer(), s.principalOption()...)
 
+	// the policy routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// policies CRUD.
-	group.Get(handle.PathPolicies, apis.GetPolicies).
-		Get(handle.PathPolicy, apis.GetPolicy).
-		Put(handle.PathPolicy, apis.PutPolicy).
-		Post(handle.PathPolicy, apis.PostPolicy).
-		Patch(handle.PathPolicyStatus, apis.PatchPolicyStatus).
-		Delete(handle.PathPolicy, apis.DeletePolicy)
+	group.Get(handle.PathPolicies, identify, apis.GetPolicies).
+		Get(handle.PathPolicy, identify, apis.GetPolicy).
+		Put(handle.PathPolicy, identify, apis.PutPolicy).
+		Post(handle.PathPolicy, identify, apis.PostPolicy).
+		Patch(handle.PathPolicyStatus, identify, apis.PatchPolicyStatus).
+		Delete(handle.PathPolicy, identify, apis.DeletePolicy)
 
 	// policy versions.
-	group.Get(handle.PathPolicyVersions, apis.GetPolicyVersions).
-		Get(handle.PathPolicyVersion, apis.GetPolicyVersion).
-		Post(handle.PathPolicyRestore, apis.PostPolicyRestore)
+	group.Get(handle.PathPolicyVersions, identify, apis.GetPolicyVersions).
+		Get(handle.PathPolicyVersion, identify, apis.GetPolicyVersion).
+		Post(handle.PathPolicyRestore, identify, apis.PostPolicyRestore)
 }
 
 func (s *Services) initAttributes(group fiber.Router) {

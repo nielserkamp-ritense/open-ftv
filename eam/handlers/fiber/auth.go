@@ -21,3 +21,19 @@ func authorizeRequest(authorizer authorization.Authorizer, req *fiber.Ctx, logge
 
 	return auth.Check(req, resp, principal, err, logger)
 }
+
+// callerOf returns the request-scoped Principal the Identify middleware attached.
+//
+// Without it the handler runs as the system principal: right for a route without an
+// authorizer, and a wiring mistake for a secured one, which is logged so it is not silent.
+func callerOf(req *fiber.Ctx, secured bool, logger *slog.Logger) *authorization.RequestPrincipal {
+	if p, ok := authorization.RequestPrincipalFromContext(req.UserContext()); ok {
+		return p
+	}
+
+	if secured {
+		logger.Error("no principal in the request context: the route is missing the Identify middleware; running as the system principal", "path", req.Path())
+	}
+
+	return authorization.SystemRequestPrincipal()
+}
