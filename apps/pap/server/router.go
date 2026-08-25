@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	authfiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -62,12 +63,15 @@ func (s *Services) initTags(group fiber.Router) {
 func (s *Services) initPolicies(group fiber.Router) {
 	apis := handle.NewPoliciesHandler(s.logger, s.pap, s.auth.Authorizer())
 
+	// the policy routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// policies CRUD.
-	group.Get(handle.PathPolicies, apis.GetPolicies).
-		Get(handle.PathPolicy, apis.GetPolicy).
-		Put(handle.PathPolicy, apis.PutPolicy).
-		Post(handle.PathPolicy, apis.PostPolicy).
-		Delete(handle.PathPolicy, apis.DeletePolicy)
+	group.Get(handle.PathPolicies, identify, apis.GetPolicies).
+		Get(handle.PathPolicy, identify, apis.GetPolicy).
+		Put(handle.PathPolicy, identify, apis.PutPolicy).
+		Post(handle.PathPolicy, identify, apis.PostPolicy).
+		Delete(handle.PathPolicy, identify, apis.DeletePolicy)
 }
 
 func (s *Services) initDeployments(group fiber.Router) {

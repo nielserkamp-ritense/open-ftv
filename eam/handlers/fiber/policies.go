@@ -14,7 +14,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
@@ -97,28 +97,35 @@ type PoliciesHandler interface {
 }
 
 type policiesHandler struct {
-	logger     *slog.Logger
-	cache      *pap.PAP
-	authorizer authorization.Authorizer
+	logger  *slog.Logger
+	svc     *management.PolicyService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewPoliciesHandler instantiates a policy handler.
+// NewPoliciesHandler instantiates a policy handler. Every operation is decided by the policy
+// service through the authorizer; a nil authorizer permits everything.
 func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) PoliciesHandler {
-	return &policiesHandler{logger: logger, cache: cache, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+	return &policiesHandler{
+		logger:            logger,
+		svc:               management.NewPolicyService(logger, cache, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *policiesHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetPolicies implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	list, err2 := h.cache.List("")
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	list, err := h.svc.List(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	list2 := make([]*oas.Policy, len(list))
@@ -133,37 +140,19 @@ func (h *policiesHandler) GetPolicies(req *fiber.Ctx) error {
 func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
 	id, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	pol, _, err2 := h.cache.Read(id)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	details, err := h.svc.Get(req.UserContext(), h.caller(req), id)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if pol == nil {
-		return h.error(req, fiber.StatusNotFound, errPolNotFound)
-	}
-
-	out := pol.ToOAS(true)
-
-	if audit, err3 := h.cache.ReadAudit(id); err3 != nil {
-		h.logger.Warn("failed to read policy audit", "id", id, "err", err3)
-	} else {
-		out.AuditLog = audit
-	}
-
-	if usage, err3 := h.cache.ReadDeployments(id); err3 != nil {
-		h.logger.Warn("failed to read policy deployments", "id", id, "err", err3)
-	} else {
-		out.UsageData = usage
-	}
+	out := details.Policy.ToOAS(true)
+	out.AuditLog = details.AuditLog
+	out.UsageData = details.UsageData
 
 	return h.respond(req, out)
 }
@@ -172,18 +161,14 @@ func (h *policiesHandler) GetPolicy(req *fiber.Ctx) error {
 func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
 	id, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	list, err2 := h.cache.ReadVersions(id)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	list, err := h.svc.Versions(req.UserContext(), h.caller(req), id)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, list)
@@ -192,10 +177,6 @@ func (h *policiesHandler) GetPolicyVersions(req *fiber.Ctx) error {
 // GetPolicyVersion implements the PoliciesHandler interface.
 func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
-
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
 
 	id, err := h.checkKey(req)
 	if err != nil {
@@ -207,13 +188,9 @@ func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	pol, err2 := h.cache.ReadVersion(id, version)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	if pol == nil {
-		return h.error(req, fiber.StatusNotFound, errPolNotFound)
+	pol, err := h.svc.Version(req.UserContext(), h.caller(req), id, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, pol)
@@ -222,11 +199,6 @@ func (h *policiesHandler) GetPolicyVersion(req *fiber.Ctx) error {
 // PostPolicy implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
-
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
 
 	id, err := h.checkKey(req)
 	if err != nil {
@@ -243,20 +215,9 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	prev, lastIndex, err2 := h.cache.Read(p.Id)
-	switch {
-	case err2 != nil:
-		// no-op
-	case prev != nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusConflict, errPolExists)
-	case prev != nil:
-		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
-	default:
-		p2, err2 = h.cache.Create(p2, user)
-	}
-
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	p2, err = h.svc.Create(req.UserContext(), h.caller(req), p2, req.QueryBool("forceUpsert"))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req.Status(fiber.StatusCreated), p2.ToOAS(true))
@@ -271,15 +232,6 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	// Load the stored target object BEFORE authorizing, so the PDP can
-	// evaluate fine-grained policies against its attributes (e.g. status).
-	prev, _, _ := h.cache.Read(id)
-
-	user, err := h.authorizeResource(req, id, prev)
-	if err != nil {
-		return err
-	}
-
 	p, code, err := h.checkBody(req, id)
 	if err != nil {
 		return h.badRequest(req, code, err)
@@ -290,20 +242,9 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	prev, lastIndex, err2 := h.cache.Read(p.Id)
-	switch {
-	case err2 != nil:
-		// no-op
-	case prev == nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusNotFound, errPolNotFound)
-	case prev == nil:
-		p2, err2 = h.cache.Create(p2, user)
-	default:
-		p2, err2 = h.cache.Update(prev, lastIndex, p2, user)
-	}
-
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	p2, err = h.svc.Update(req.UserContext(), h.caller(req), p2, req.QueryBool("forceUpsert"))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, p2.ToOAS(true))
@@ -312,11 +253,6 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 // PatchPolicyStatus implements the PoliciesHandler interface.
 func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
-
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
 
 	id, err := h.checkKey(req)
 	if err != nil {
@@ -328,14 +264,9 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	prev, lastIndex, err2 := h.cache.Read(p.Id)
-	if err2 != nil {
-		return h.error(req, fiber.StatusNotFound, err2)
-	}
-
-	p2, err3 := h.cache.UpdateStatus(prev, lastIndex, models.StatusFromString(p.Status), user)
-	if err3 != nil {
-		return h.error(req, fiber.StatusBadRequest, err3)
+	p2, err := h.svc.SetStatus(req.UserContext(), h.caller(req), id, models.StatusFromString(p.Status))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, p2.ToOAS(true))
@@ -344,11 +275,6 @@ func (h *policiesHandler) PatchPolicyStatus(req *fiber.Ctx) error {
 // PostPolicyRestore implements the PoliciesHandler interface.
 func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
-
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
 
 	id, err := h.checkKey(req)
 	if err != nil {
@@ -360,9 +286,9 @@ func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	pol, err2 := h.cache.RestoreVersion(id, version, user)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	pol, err := h.svc.Restore(req.UserContext(), h.caller(req), id, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, pol)
@@ -372,32 +298,14 @@ func (h *policiesHandler) PostPolicyRestore(req *fiber.Ctx) error {
 func (h *policiesHandler) DeletePolicy(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	id, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	var p2 *models.Policy
-
-	prev, lastIndex, err2 := h.cache.Read(id)
-	switch {
-	case err2 != nil:
-		// no-op
-	case prev == nil && !req.QueryBool("ignoreMissing"):
-		return h.error(req, fiber.StatusNotFound, errPolNotFound)
-	case prev == nil:
-		p2, err2 = models.NewPolicyFromData(id, "", "", "", &bytes.Buffer{})
-	default:
-		p2, err2 = h.cache.Delete(prev, lastIndex, user)
-	}
-
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	p2, err := h.svc.Delete(req.UserContext(), h.caller(req), id, req.QueryBool("ignoreMissing"))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, p2.ToOAS(true))
@@ -495,29 +403,22 @@ func (h *policiesHandler) buildPolicy(p *oas.Policy) (*models.Policy, error) {
 	return models.NewPolicyFromOAS(p, resp.Body)
 }
 
-func (h *policiesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
-}
-
-// authorizeResource authorizes a request like authorize, but additionally
-// passes the stored target object (with its attributes, e.g. status) into
-// authorization so the PDP can evaluate fine-grained, resource-attribute
-// policies. When prev is nil (no stored object), no resource is attached.
-func (h *policiesHandler) authorizeResource(req *fiber.Ctx, id string, prev *models.Policy) (identity.Principal, error) {
-	if h.authorizer == nil {
-		return identity.NewSystemPrincipal(), nil
+// fail answers a failed service call: a denial is 403 regardless of whether the object
+// exists, the life cycle's refusal 400, the store's own outcomes 404 or 409, and anything
+// else (including a permitted caller that could not be recorded) 500.
+func (h *policiesHandler) fail(req *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, authorization.ErrForbidden):
+		return auth.Forbidden(req, err, h.logger)
+	case errors.Is(err, management.ErrInvalidTransition):
+		return h.error(req, fiber.StatusBadRequest, err)
+	case errors.Is(err, management.ErrNotFound):
+		return h.error(req, fiber.StatusNotFound, errPolNotFound)
+	case errors.Is(err, management.ErrExists):
+		return h.error(req, fiber.StatusConflict, errPolExists)
+	default:
+		return h.error(req, fiber.StatusInternalServerError, err)
 	}
-
-	var res *models.Entity
-	if prev != nil {
-		attrs := models.NewAttributeSet()
-		attrs.AddAttributeKV("status", prev.StatusName())
-		res = models.NewEntity(models.EntityTypeService, id, attrs)
-	}
-
-	resp, principal, err := h.authorizer.Authorize(auth.FormatRequestWithResource(req, res))
-
-	return auth.Check(req, resp, principal, err, h.logger)
 }
 
 func (h *policiesHandler) error(req *fiber.Ctx, status int, err error) error {
