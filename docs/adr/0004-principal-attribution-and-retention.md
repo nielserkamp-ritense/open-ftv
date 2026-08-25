@@ -39,7 +39,7 @@ id back into a nameable, linkable subject.
 
 ## Consequences
 
-- Attribution values written before this change are display names, not ids. Migration `00013`
+- Attribution values written before this change are display names, not ids. Migration `00014`
   inserts each distinct legacy value as a `kind='legacy'` principal so the constraints validate
   without rewriting the attribution columns. Those rows are keyed by a name and are shown but
   not linked; the same human gets a second, `sub`-keyed row on next login.

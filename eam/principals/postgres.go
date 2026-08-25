@@ -26,7 +26,7 @@ type DB struct {
 // Upsert records that p was seen acting on the management plane.
 //
 // The conflict target is the primary key, not (issuer, subject): principal.id IS the attribution
-// string, so a row backfilled by migration 00013 (which knows no issuer) and the same subject
+// string, so a row backfilled by migration 00014 (which knows no issuer) and the same subject
 // arriving with a real issuer are one row, not two. See docs/adr/0004.
 //
 // display_name, email and issuer are all COALESCEd so a request that carries less than a full JWT

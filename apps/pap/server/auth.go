@@ -99,7 +99,7 @@ type authHandler struct {
 // principalRecorder returns the principal store when this app is postgres-backed.
 //
 // The standalone PAP writes created_by/updated_by into the same schema the manager uses, where
-// migration 00013 makes those columns foreign keys to principal. Without recording the caller,
+// migration 00014 makes those columns foreign keys to principal. Without recording the caller,
 // every create and update here would fail on a foreign-key violation. It opens its own pool
 // because the PAP store is built after the authorizer.
 func (s *Services) principalRecorder() []authorization.Option {
