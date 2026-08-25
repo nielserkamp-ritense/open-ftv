@@ -57,6 +57,29 @@ Once seeded it is an ordinary, editable policy — the files are bootstrap, not 
 authoritative baseline that gets re-asserted.
 _Avoid_: default policy, built-in policy.
 
+**Beslispunt**:
+A named Policy Decision Point that a set of policies is published to, identified in the
+management plane by a **tag** on the policy. Authorization for the management plane is scoped
+to a beslispunt: a principal's role applies to the policies carrying that tag. The UI shows
+tags as *Beslispunten*.
+_Avoid_: tag (when you mean the decision point rather than the label), PDP (when you mean the
+administrative unit rather than the software component).
+
+**Resource** (management plane):
+The domain object a management-plane request acts on, identified by its type and id: a
+policy, tag, deployment, setting, attribute, entity, language, principal, or decision.
+A resource carries only the properties a policy may need to decide (`id`, `status`, `tags`,
+`language`); a collection of resources is addressed with id `*`.
+_Avoid_: service (the request-path resource type), URL, endpoint, route.
+
+**Action** (management plane):
+What a principal does to a **resource**, named independently of the resource type: `read`,
+`create`, `update`, `delete` on every type, and the business actions `accept` (status →
+accepted), `deploy` (status → deployed, and publishing a deployment) and `restore` (an older
+version becomes the current concept). An action is never `read_policy`-style per type, and
+never an HTTP verb.
+_Avoid_: operation, method, verb, `can_read`.
+
 **Authorization Decision Log (ADL)**:
 The record of authorization **decisions** the PDP has made — one entry per evaluated
 request — kept in its own database, separate from the **policy** store. Surfaced in the
