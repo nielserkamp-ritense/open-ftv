@@ -17,6 +17,15 @@
   "commitBody": "Issue: open-ftv#18",
   "packageRules": [
     {
+      "groupName": "golang",
+      "description": "Upgrade the Go toolchain everywhere in one MR: go.mod directive, mise.toml, Dockerfiles and CI images",
+      "matchDatasources": ["golang-version", "docker"],
+      "matchPackageNames": ["go", "golang"],
+      "rangeStrategy": "bump",
+      "automerge": false,
+      "minimumReleaseAge": "14 days"
+    },
+    {
       "groupName": "v8.x has been converted to an ES Module which we don't (yet) support",
       "packageNames": ["replace-in-file"],
       "managers": ["npm"],
