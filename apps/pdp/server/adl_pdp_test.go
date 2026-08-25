@@ -5,6 +5,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"io"
@@ -233,7 +234,11 @@ func TestADLCompliance_RecordFields(t *testing.T) {
 	assert.Contains(t, string(row.Body), `"adl.core.response"`, "§3.3.7.2, §3.3.8: response MUST be carried in body")
 	assert.JSONEq(t, "{}", string(row.Attributes), "§3.3.7, §4.1.1: source references stay empty at Level 1")
 
-	assert.Contains(t, string(row.Resource), "adl-compliance-test", "§3.3.9: producer identity MUST be set")
+	var resource map[string]string
+	require.NoError(t, json.Unmarshal(row.Resource, &resource))
+	assert.Equal(t, "pdp", resource["service.name"], "§3.3.9: producer identity MUST unambiguously say this is the PDP")
+	assert.Equal(t, "adl-compliance-test", resource["service.namespace"], "§3.3.9: producer identity MUST carry the configured deployment label")
+	assert.NotEmpty(t, resource["service.instance.id"], "§3.3.9: producer identity MUST be unique per PDP instance")
 }
 
 // TestADLCompliance_FSCTransactionID covers ADR "FSC TransactionID" (§3.3.7.6).

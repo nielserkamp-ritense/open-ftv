@@ -94,7 +94,7 @@ function RouteComponent() {
         },
         {
             headerName: "Beslispunt",
-            valueGetter: (params) => (params.data?.resource as unknown as { service?: string } | undefined)?.service,
+            valueGetter: (params) => (params.data?.resource as unknown as { "service.namespace"?: string } | undefined)?.["service.namespace"],
             resizable: true
         },
         {

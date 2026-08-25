@@ -182,11 +182,21 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 			wantParams: []any{ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, []byte(`{"x":123}`), nil},
 		},
 		{
-			name:       "timestamp + resource",
-			timestamp:  now,
-			attrs:      []attribute.KeyValue{attribute.String("resource", `{"service":"pdp"}`)},
-			want:       Decision{Timestamp: now, Resource: []byte(`{"service":"pdp"}`), Status: StatusUnset},
-			wantParams: []any{ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0), nil, nil, nil, nil, []byte(`{"service":"pdp"}`)},
+			name:      "timestamp + resource",
+			timestamp: now,
+			attrs: []attribute.KeyValue{
+				attribute.String("resource", `{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+			},
+			want: Decision{
+				Timestamp: now,
+				Resource:  []byte(`{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+				Status:    StatusUnset,
+			},
+			wantParams: []any{
+				ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0),
+				nil, nil, nil, nil,
+				[]byte(`{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+			},
 		},
 	}
 
