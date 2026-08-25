@@ -42,10 +42,6 @@ plugins:
   config:
     pdp: "http://rdw-pdp1:8443/authzen/v1/evaluation"
     timeout: 30000
-    issuer: "http://localhost:8089/realms/vlierdam"
-    jwks_url: "http://vlierdam-keycloak:8080/realms/vlierdam/protocol/openid-connect/certs"
-    audience: "laadpalen-applicatie"
-    roles_claim: "roles"
 
 - id: d4ca26b6-eb71-4ce5-b163-604553ccca6c
   route: c819e9f5-f417-43bd-9489-871262704cfb
