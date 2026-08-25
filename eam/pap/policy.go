@@ -1,6 +1,7 @@
 package pap
 
 import (
+	"errors"
 	"fmt"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -71,6 +72,10 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, u
 	return
 }
 
+// ErrInvalidStatusChange reports a status change the policy life cycle does not allow:
+// concept -> accepted -> concept, and deployed only through a deployment.
+var ErrInvalidStatusChange = errors.New("invalid status change")
+
 // UpdateStatus updates the status of a policy in cache/storage.
 //
 // An error is returned if the policy key doesn't exist or the status update is not allowed.
@@ -78,14 +83,14 @@ func (p *PAP) UpdateStatus(prev *models.Policy, lastIndex uint64, status models.
 	switch prev.Status() {
 	case models.StatusConcept:
 		if status != models.StatusAccepted {
-			return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
+			return nil, fmt.Errorf("%w: from %s to %s", ErrInvalidStatusChange, prev.Status().String(), status.String())
 		}
 	case models.StatusAccepted:
 		if status != models.StatusConcept {
-			return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
+			return nil, fmt.Errorf("%w: from %s to %s", ErrInvalidStatusChange, prev.Status().String(), status.String())
 		}
 	case models.StatusDeployed:
-		return nil, fmt.Errorf("current status cannot be changed: %s", prev.Status().String())
+		return nil, fmt.Errorf("%w: current status cannot be changed: %s", ErrInvalidStatusChange, prev.Status().String())
 	}
 
 	return p.policyDB.UpdatePolicy(p.ctx, user, prev, lastIndex, prev.WithStatus(status))

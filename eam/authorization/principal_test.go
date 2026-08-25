@@ -58,7 +58,7 @@ func TestAuth_recordPrincipal_OnlyAuthenticatedUsers(t *testing.T) {
 			rec := &recorderStub{}
 			a := newAuthWithRecorder(rec)
 
-			require.NoError(t, a.recordPrincipal(http.MethodGet, &tc.p))
+			require.NoError(t, a.recordPrincipal(isSafeMethod(http.MethodGet), &tc.p))
 
 			if tc.want {
 				require.Len(t, rec.seen, 1)
@@ -99,7 +99,7 @@ func TestAuth_recordPrincipal_FailureIsFatalOnlyForWrites(t *testing.T) {
 
 			a := newAuthWithRecorder(&recorderStub{err: boom})
 
-			err := a.recordPrincipal(tc.method, &user)
+			err := a.recordPrincipal(isSafeMethod(tc.method), &user)
 			if !tc.wantErr {
 				assert.NoError(t, err)
 				return
@@ -119,5 +119,5 @@ func TestAuth_recordPrincipal_NoStoreConfigured(t *testing.T) {
 	a := newAuthWithRecorder(nil)
 
 	// Without postgres there is no principal table, and no foreign key that a write could violate.
-	assert.NoError(t, a.recordPrincipal(http.MethodPost, &identity.Principal{Kind: identity.KindUser, ID: "sub-123"}))
+	assert.NoError(t, a.recordPrincipal(isSafeMethod(http.MethodPost), &identity.Principal{Kind: identity.KindUser, ID: "sub-123"}))
 }

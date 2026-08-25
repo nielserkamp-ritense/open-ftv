@@ -16,7 +16,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 var ErrUnauthorized = fmt.Errorf("unauthorized")
@@ -43,7 +42,14 @@ type PrincipalRecorder interface {
 // Authorizer represents the interface for authorizing local API requests.
 // For instance, to protect a PAP or PIP against unauthorized access of their CRUD endpoints.
 type Authorizer interface {
+	// Authorize decides an HTTP request as a whole: the PEP derives action and resource from
+	// the request. This is the request-path shape; the management plane moves to Identify and
+	// Decide, handler by handler (ADR 0006).
 	Authorize(req *Request) (*models.Response, identity.Principal, error)
+	// Identify validates the caller once, without deciding anything.
+	Identify(req *Request) (*RequestPrincipal, error)
+	// Decide answers the management plane's question for an identified caller.
+	Decide(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error
 }
 
 // New instantiates a new authorization handler.
@@ -75,10 +81,6 @@ type Request struct {
 	Method  string
 	Headers map[string][]string
 	Body    []byte
-
-	// Resource optionally carries the stored target object (with its attributes, e.g. status) so the PDP can evaluate
-	// fine-grained, resource-attribute policies. When nil, the PEP synthesizes one.
-	Resource *models.Entity
 }
 
 // Authorize implements the Authorizer interface.
@@ -93,36 +95,15 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, principal identit
 		Body:    req.Body,
 	}
 
-	if req.Resource != nil {
-		r.Resource = req.Resource
-	}
-
 	parc := a.pep.PARCFromRequest(r, a.getter)
 
-	if a.authenticator != nil {
-		user := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicUser))
-		pswd := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrBasicPswd))
-		apikey := convert.AnyToString(parc.Context.GetAttributeValue(models.AttrAPIKey))
-
-		switch {
-		case user == "" && apikey != "":
-			err = a.authenticator.AuthenticateApiKey(a.ctx, apikey)
-		default:
-			err = a.authenticator.AuthenticateUser(a.ctx, user, pswd)
-		}
-
-		if err != nil {
-			return
-		}
+	if err := a.authenticate(parc); err != nil {
+		return resp, principal, err
 	}
 
 	// Reuse parc.Principal, already resolved by eam/pep's DeterminePrincipal.
-	// Non-user kinds fall back to the system sentinel below.
-	principal = identity.FromEntity(parc.Principal)
-	principal.Name = convert.AnyToString(parc.Principal.Attributes().GetAttributeValue(models.AttrPreferredName))
-	principal.Email = convert.AnyToString(parc.Principal.Attributes().GetAttributeValue(models.AttrEmail))
-	principal.Issuer = convert.AnyToString(parc.Principal.Attributes().GetAttributeValue(models.AttrIssuer))
-
+	// Non-user kinds fall back to the system sentinel: attribution names users only.
+	principal = principalFrom(parc).Principal
 	if !principal.IsAuthenticatedUser() {
 		principal = identity.NewSystemPrincipal()
 	}
@@ -136,20 +117,20 @@ func (a *auth) Authorize(req *Request) (resp *models.Response, principal identit
 	// Record the caller only once the request is permitted, so a token that is valid but allowed
 	// nothing leaves no personal data behind. See docs/adr/0004.
 	if err == nil && resp != nil && resp.Allowed {
-		err = a.recordPrincipal(req.Method, &principal)
+		err = a.recordPrincipal(isSafeMethod(req.Method), &principal)
 	}
 
-	return
+	return resp, principal, err
 }
 
 // recordPrincipal stores the caller in the principal store, so actions attributed to their id can
 // later be rendered as a person.
 //
-// A failure is fatal for an unsafe method and ignored for a safe one. created_by/updated_by are
+// A failure is fatal for a write and ignored for a read (safe). created_by/updated_by are
 // foreign keys to principal, so a write whose principal row is missing would fail deep inside the
 // handler; failing here instead turns that into an early, comprehensible error. A read has no such
 // dependency, and a degraded database must never lock everyone out of the management UI.
-func (a *auth) recordPrincipal(method string, p *identity.Principal) error {
+func (a *auth) recordPrincipal(safe bool, p *identity.Principal) error {
 	if a.principals == nil || !p.IsAuthenticatedUser() {
 		return nil
 	}
@@ -159,7 +140,7 @@ func (a *auth) recordPrincipal(method string, p *identity.Principal) error {
 		return nil
 	}
 
-	if isSafeMethod(method) {
+	if safe {
 		a.log.Error("failed to record principal", "principal", p.String(), "error", err)
 		return nil
 	}

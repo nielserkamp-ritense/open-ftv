@@ -29,14 +29,6 @@ func FormatRequest(req *fiber.Ctx) *authorization.Request {
 	}
 }
 
-// FormatRequestWithResource formats an authorization request like FormatRequest but additionally attaches the stored
-// target object so the PDP can evaluate fine-grained, resource-attribute policies.
-func FormatRequestWithResource(req *fiber.Ctx, resource *models.Entity) *authorization.Request {
-	r := FormatRequest(req)
-	r.Resource = resource
-	return r
-}
-
 // Check verifies an authorization attempt, returning the principal to attribute the caller's action to and, on failure,
 // an error describing why access was denied. A nil error means access was allowed.
 func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, err error, log *slog.Logger) (identity.Principal, error) {
@@ -52,24 +44,37 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 		return principal, fiber.NewError(fiber.StatusInternalServerError, msg)
 
 	case err != nil && authenticationError(err):
-		if !strings.Contains(err.Error(), "api-key") {
-			req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
-		}
-
-		msg := "authentication failed" // 401
-		log.Error(msg, "path", req.Path(), "err", err)
-
-		return principal, fiber.NewError(fiber.StatusUnauthorized, msg)
+		return principal, unauthenticated(req, err, log)
 
 	case err != nil || resp == nil || !resp.Allowed:
-		msg := "authorization failed" // 403
-		log.Error(msg, "path", req.Path(), "authResponse", resp, "err", err)
+		log.Debug("authorization response", "path", req.Path(), "authResponse", resp)
 
-		return principal, fiber.NewError(fiber.StatusForbidden, msg)
+		return principal, Forbidden(req, err, log)
 
 	default:
 		return principal, nil
 	}
+}
+
+// Forbidden answers a denied request with 403.
+func Forbidden(req *fiber.Ctx, err error, log *slog.Logger) error {
+	msg := "authorization failed" // 403
+	log.Error(msg, "path", req.Path(), "err", err)
+
+	return fiber.NewError(fiber.StatusForbidden, msg)
+}
+
+// unauthenticated answers a failed authentication with 401, offering Basic where that is the
+// scheme the caller may still use.
+func unauthenticated(req *fiber.Ctx, err error, log *slog.Logger) error {
+	if !strings.Contains(err.Error(), "api-key") {
+		req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
+	}
+
+	msg := "authentication failed" // 401
+	log.Error(msg, "path", req.Path(), "err", err)
+
+	return fiber.NewError(fiber.StatusUnauthorized, msg)
 }
 
 func principalError(err error) bool {

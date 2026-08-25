@@ -63,6 +63,14 @@ func (denyAuthorizer) Authorize(*authorization.Request) (*models.Response, ident
 	return &models.Response{Allowed: false}, identity.Principal{}, nil
 }
 
+func (denyAuthorizer) Identify(*authorization.Request) (*authorization.RequestPrincipal, error) {
+	return authorization.SystemRequestPrincipal(), nil
+}
+
+func (denyAuthorizer) Decide(context.Context, *authorization.RequestPrincipal, string, *models.Entity) error {
+	return authorization.ErrForbidden
+}
+
 func settingsAuth(t *testing.T) authorization.Authorizer {
 	t.Helper()
 

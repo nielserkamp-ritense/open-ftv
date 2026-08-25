@@ -20,12 +20,17 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   with id `*`, so `resource is policy` covers a list and a single object alike. Which
   objects a principal may *see* in a list is filtering, not a decision, and is out of scope.
 - **Actions are generic across types, plus a few business actions:** `read`, `create`,
-  `update`, `delete` on every type; `accept` (status → accepted), `deploy` (status →
-  deployed, and publishing a deployment: both mean "make it live"), `restore` (an older
-  version becomes the current concept). Never `read_policy`-style names per type, so "this
-  role may read everything" stays a one-line policy. `tag`/`untag` are not actions: no
-  endpoint exists, and a tag-scoped rule is expressed on `update` with `resource.tags`.
-  The Cedar action type is `Action`, ids without the old `can_` prefix.
+  `update`, `delete` on every type; `accept` (status → accepted), `revert` (status back to
+  concept, withdrawing an accepted policy for editing), `deploy` (status → deployed, and
+  publishing a deployment: both mean "make it live"), `restore` (an older version becomes
+  the current concept). Never `read_policy`-style names per type, so "this role may read
+  everything" stays a one-line policy. `tag`/`untag` are not actions: no endpoint exists,
+  and a tag-scoped rule is expressed on `update` with `resource.tags`. The Cedar action
+  type is `Action`, ids without the old `can_` prefix.
+  *Refined during implementation (SCRUM-142):* `revert` was added because "an accepted
+  policy is not edited in place" forbids `update` on it, and the life cycle's only way
+  out of accepted is back to concept; without its own action that transition was
+  unauthorizable for every role.
 - **The subject is `user` (or `app` for API keys) with id `sub` and the single property
   `roles`.** Display and provenance claims (`preferred_username`, `email`, `iss`) reach the
   stored principal record (ADR 0004) and never the PDP. The context carries only `time`,
@@ -45,12 +50,17 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   also serves the gateway plugin, where `context.http` and the JWT are legitimate policy
   input for cross-organization requests. The standalone PAP and PIP mount the same handlers
   as the manager and therefore inherit the lean model.
-- **The role matrix of SCRUM-16 is the target for the shipped example policies:** `author`
-  (functioneel beheerder) edits, accepts and deploys rules and PIP data; `admin`
+- **The role matrix of SCRUM-16 is the target for the manager's shipped example policies:**
+  `author` (functioneel beheerder) edits, accepts and deploys rules and PIP data; `admin`
   (systeembeheerder) manages beslispunten and settings; everyone reads, the ADL included.
   `admin` is not a superuser. Claim values stay `admin`, `author`, `auditor` (ADR 0002); the
-  `user` role is dropped from the examples because `auditor` already means "read
-  everything".
+  `user` role is dropped from the manager's examples because `auditor` already means "read
+  everything". The **standalone PAP and PIP are the exception**: they have no OIDC and their
+  locally seeded users carry the roles `admin` and `user`, so their example policies keep
+  those semantics (`admin` everything, `user` and API keys read) in the new model. The
+  matrix is the manager's; a standalone PAP is an operator tool, not the management plane.
+  Locally seeded users may carry `roles` as one string rather than a set, so the example
+  policies accept both shapes (`roles == "x" || roles.contains("x")`).
 - **Roles are scoped to a beslispunt by a scoped role string in the existing flat claim**
   (`author:laadpalen`), with one policy per beslispunt. ADR 0002 is unchanged; adding a
   beslispunt-scoped role is IdP configuration plus a policy. A structured claim or a
@@ -85,8 +95,9 @@ the management plane, so that limitation costs nothing in practice.
 - `admin` loses rule editing and deployment relative to the previous example policies. The
   UI's interim capability flags are flipped to the same matrix in the deployments step;
   their replacement by PDP evaluations is SCRUM-16 / SCRUM-98.
-- The standalone PAP and PIP change behaviour with the manager, without a change of their
-  own: their example policies are rewritten in the same steps.
+- The standalone PAP and PIP move to the new model with the manager, without a change of
+  their own, because they mount the same handlers; their example policies are rewritten in
+  the same steps, keeping their own role semantics (see above).
 - A per-beslispunt policy is written per beslispunt, because Cedar cannot split a role
   string. If that becomes a burden, the structured-claim option is the next candidate, and
   it can be adopted per deployment without touching the model above.

@@ -75,8 +75,8 @@ _Avoid_: service (the request-path resource type), URL, endpoint, route.
 **Action** (management plane):
 What a principal does to a **resource**, named independently of the resource type: `read`,
 `create`, `update`, `delete` on every type, and the business actions `accept` (status →
-accepted), `deploy` (status → deployed, and publishing a deployment) and `restore` (an older
-version becomes the current concept). An action is never `read_policy`-style per type, and
+accepted), `revert` (status back to concept), `deploy` (status → deployed, and publishing a
+deployment) and `restore` (an older version becomes the current concept). An action is never `read_policy`-style per type, and
 never an HTTP verb.
 _Avoid_: operation, method, verb, `can_read`.
 
