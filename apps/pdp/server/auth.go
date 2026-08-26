@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
@@ -161,23 +160,21 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 
 	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc, "instance", instanceID)
 	s.decisionLog = adl.New(logger, adl.WithResource(map[string]any{
-		string(semconv.ServiceNameKey):       "pdp",
-		string(semconv.ServiceNamespaceKey):  svc,
-		string(semconv.ServiceInstanceIDKey): instanceID,
+		"organization": svc,
+		"instanceId":   instanceID,
 	}))
 
 	return s.decisionLog, nil
 }
 
-// adlInstanceID identifies this running PDP process, so that §3.3.9 resource records stay
-// unambiguous across replicas of the same deployment. It prefers the host/pod name, which
-// stays stable across restarts, and falls back to a random ID when that isn't available.
+// adlInstanceID returns a "pdp-" prefixed identifier for this process: the host/pod name if
+// available, otherwise a random ID.
 func adlInstanceID() string {
 	if hostname, err := os.Hostname(); err == nil && hostname != "" {
-		return hostname
+		return "pdp-" + hostname
 	}
 
-	return uuid.New().String()
+	return "pdp-" + uuid.New().String()
 }
 
 // checkMigrations migrates the ADL database, which is the only database this app has.
