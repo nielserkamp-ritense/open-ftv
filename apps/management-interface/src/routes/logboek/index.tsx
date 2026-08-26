@@ -50,6 +50,32 @@ function RouteComponent() {
             filter: true,
         },
         {
+            headerName: "Span ID",
+            field: "spanId",
+            resizable: true,
+            cellStyle: {color: 'var(--color-content-secondary)'},
+            filter: true,
+        },
+        {
+            headerName: "Parent Span ID",
+            field: "parentSpanId",
+            resizable: true,
+            cellStyle: {color: 'var(--color-content-secondary)'},
+            filter: true,
+        },
+        {
+            headerName: "Event",
+            field: "eventName",
+            resizable: true,
+            filter: true,
+        },
+        {
+            headerName: "Status",
+            field: "status",
+            resizable: false,
+            filter: true,
+        },
+        {
             headerName: "Tijdstempel",
             field: "created",
             resizable: false,
@@ -68,11 +94,14 @@ function RouteComponent() {
         },
         {
             headerName: "Beslispunt",
-            valueGetter: () => "",
+            valueGetter: (params) => (params.data?.resource as unknown as { "service.namespace"?: string } | undefined)?.["service.namespace"],
             resizable: true
         },
         {
             headerName: "Actie",
+            valueGetter: (params) => (params.data?.request as unknown as {
+                action?: { name?: string }
+            } | undefined)?.action?.name,
             resizable: true,
             cellStyle: {color: 'var(--color-content-secondary)'}
         },
@@ -85,7 +114,13 @@ function RouteComponent() {
         },
         {
             headerName: "Reden",
-            valueGetter: params => params.data?.response?.reason,
+            valueGetter: (params) => {
+                const context = (params.data?.response as unknown as {
+                    context?: { reason_user?: Record<string, string>, reason_admin?: Record<string, string> }
+                } | undefined)?.context;
+                const reasons = context?.reason_user ?? context?.reason_admin;
+                return reasons ? Object.values(reasons)[0] : undefined;
+            },
             resizable: false,
             cellStyle: {color: 'var(--color-content-secondary)'}
         }

@@ -7,6 +7,6 @@ policies: true
 data: true
 version: true
 targets:
-  - uri: "http://vlierdam-pdp1:9443"
+  - uri: "http://vlierdam-pdp1:9443/v1/bundle"
     apikey: ""
     encoding: "bzip2"

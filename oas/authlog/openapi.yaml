@@ -152,7 +152,7 @@ components:
         minLength: 32
         maxLength: 32
       description: |
-        Filter entries with a matching W3C trace identifier.
+        Filter entries with a matching Logius ADL trace identifier (W3C Trace Context format).
 
         Must be exactly 32 characters in hexadecimal.
 
@@ -164,7 +164,7 @@ components:
         minLength: 16
         maxLength: 16
       description: |
-        Filter entries with a matching W3C span identifier.
+        Filter entries with a matching Logius ADL span identifier (W3C Trace Context format).
 
         Must be exactly 16 characters in hexadecimal.
 
@@ -329,6 +329,18 @@ components:
           type: string
           maxLength: 32
           description: Timestamp the entry was created.
+        timestamp:
+          type: integer
+          format: int64
+          description: Logius ADL timestamp; milliseconds since Unix epoch when the decision was made.
+        eventName:
+          type: string
+          maxLength: 40
+          description: Logius ADL event_name.
+        status:
+          type: string
+          enum: [Unset, Ok, Error]
+          description: Logius ADL evaluation status.
         requestType:
           type: string
           maxLength: 20
@@ -339,23 +351,31 @@ components:
           description: Unique identifier of the policy bundle used during the authorization process.
         request:
           type: object
-          description: AuthZEN request.
+          description: Logius ADL body (adl.core.request); AuthZEN request.
         response:
           type: object
-          description: AuthZEN response.
+          description: Logius ADL body (adl.core.response); AuthZEN response.
         information:
           type: object
           description: Information (attributes) used during the authorization process.
         engine:
           type: object
           description: Details of the PDP engine.
+        resource:
+          type: object
+          description: Logius ADL resource; identifies the producer of the log record.
         traceId:
           type: string
           minLength: 32
           maxLength: 32
-          description: W3C trace identifier from the authorization request.
+          description: Logius ADL trace identifier (W3C Trace Context format).
         spanId:
           type: string
           minLength: 16
           maxLength: 16
-          description: W3C span identifier from the authorization request.
+          description: Logius ADL span identifier (W3C Trace Context format).
+        parentSpanId:
+          type: string
+          minLength: 16
+          maxLength: 16
+          description: Logius ADL parent span identifier (W3C Trace Context format), when this record is a child span.

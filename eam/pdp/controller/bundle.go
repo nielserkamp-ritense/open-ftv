@@ -43,6 +43,9 @@ func (b *Base) NewBundle(bundle *bundles.Bundle) (uint64, error) {
 func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 	list := make([]*models.Policy, 0, len(bundle.Policies))
 	for _, p1 := range bundle.Policies {
+		if p1.Language == "" {
+			p1.Language = bundle.Language
+		}
 		p2, err := models.NewPolicyFromOAS(p1, bytes.NewBufferString(p1.Data))
 		if err != nil {
 			return err
