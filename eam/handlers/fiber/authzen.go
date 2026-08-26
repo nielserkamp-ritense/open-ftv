@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +13,7 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
@@ -95,31 +95,74 @@ func (h *AuthZENAuthorizer) Metadata(fc *fiber.Ctx) error {
 
 func processHeaders(fc *fiber.Ctx) {
 	processTraceParent(fc)
+	processFSCTransactionID(fc)
 	prepareResponseHeaders(fc)
 }
 
+// processFSCTransactionID stashes the Fsc-Transaction-Id header (adl.fsc.transaction_id, §3.3.7.6) on context.
+func processFSCTransactionID(fc *fiber.Ctx) {
+	txnID := strings.TrimSpace(fc.Get(models.HeaderFSCTransactionID))
+	if txnID == "" {
+		return
+	}
+
+	fc.SetUserContext(context.WithValue(fc.UserContext(), models.AttrFSCTransactionID, txnID))
+}
+
+// processTraceParent applies the header only; no fallback here, so applyTraceFallback can still prefer
+// a body-embedded traceparent (Logius ADL §4.1.1.1 Example 10) once the request body is parsed.
 func processTraceParent(fc *fiber.Ctx) {
-	if s := strings.ToLower(fc.Get(models.HeaderTraceState)); traceParentRX.MatchString(s) {
-		list := traceParentRX.FindStringSubmatch(s)
+	incoming := strings.TrimSpace(fc.Get(models.HeaderTraceParent))
+	if incoming == "" {
+		return
+	}
 
-		if list[1] == "00" { // we only support version 00 for now.
-			if traceID := list[2]; traceID != invalidTraceID {
-				// ignoring the sampled flag.
-				spanID := list[3]
-
-				ctx := fc.UserContext()
-				ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
-				ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
-				fc.SetUserContext(ctx)
-			}
-		}
+	if tc, ok := models.ParseTraceParent(incoming); ok {
+		applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
 	}
 }
 
-var (
-	traceParentRX  = regexp.MustCompile("^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$")
-	invalidTraceID = strings.Repeat("0", 32)
-)
+func applyDecisionTrace(fc *fiber.Ctx, traceID, parentSpanID, spanID string) {
+	ctx := fc.UserContext()
+	ctx = context.WithValue(ctx, models.AttrTraceID, traceID)
+	ctx = context.WithValue(ctx, models.AttrSpanID, spanID)
+
+	if parentSpanID != "" {
+		ctx = context.WithValue(ctx, models.AttrParentSpanID, parentSpanID)
+	}
+
+	fc.SetUserContext(ctx)
+}
+
+func applyTraceParent(fc *fiber.Ctx, traceParent string) {
+	tc, ok := models.ParseTraceParent(traceParent)
+	if !ok {
+		return
+	}
+
+	applyDecisionTrace(fc, tc.TraceID, tc.SpanID, models.NewSpanID())
+}
+
+// applyTraceFallback guarantees every request ends up with a trace/span pair by the time ADL logging happens.
+// Logius ADL sets the precedence: the HTTP traceparent header (already applied by processTraceParent) wins.
+// When that's absent, a traceparent embedded in the AuthZEN request body's context object is used instead
+// (Logius ADL §4.1.1.1 Example 10).
+// If neither is present, a fresh trace/span pair is generated so the ADL record still gets one.
+func applyTraceFallback(fc *fiber.Ctx, attrs *models.AttributeSet) {
+	if convert.AnyToString(fc.UserContext().Value(models.AttrTraceID)) != "" {
+		return
+	}
+
+	if attrs != nil {
+		if tp := convert.AnyToString(attrs.GetAttributeValue(models.AttrTraceParent)); tp != "" {
+			applyTraceParent(fc, models.ResolveTraceParent(tp))
+			return
+		}
+	}
+
+	_, tc := models.NewTraceParent()
+	applyDecisionTrace(fc, tc.TraceID, "", tc.SpanID)
+}
 
 func prepareResponseHeaders(fc *fiber.Ctx) {
 	fc.Set(HeaderVersion, AuthZENVersion)
@@ -150,4 +193,23 @@ func fixPrefix(fc *fiber.Ctx, prefix string) string {
 func fixDomain(prefix string) string {
 	uri, _ := url.Parse(prefix)
 	return fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)
+}
+
+// reasonContext builds the AuthZEN response's context object: "id" set from the decision outcome,
+// and the human-readable reason in reason_user, falling back to a fixed message when the
+// controller didn't supply one.
+func reasonContext(resp *models.Response) oas.ReasonObject {
+	id, msg := "ok", resp.Message
+
+	if !resp.Allowed {
+		id = "not-authorized"
+
+		if msg == "" {
+			msg = "not authorized"
+		}
+	} else if msg == "" {
+		msg = "ok"
+	}
+
+	return oas.ReasonObject{Id: id, ReasonUser: oas.ReasonField{"en": msg}}
 }

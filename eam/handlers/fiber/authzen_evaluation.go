@@ -25,7 +25,6 @@ func (h *AuthZENAuthorizer) Evaluation(fc *fiber.Ctx) error {
 		p.logger.Error("AuthZEN authorization handler failed", "request", req, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
 	}
-	p.authReq = req
 
 	p.createRequestAuthZEN(req)
 	p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
@@ -41,6 +40,11 @@ func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 		p.msg = "invalid input data"
 		return nil
 	}
+
+	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
+	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
+	p.authReq = req
+	applyTraceFallback(p.fc, models.NewAttributeSet(req.Context))
 
 	if !p.checkEvaluationObject(req) {
 		return nil
@@ -86,6 +90,7 @@ func (p *authProcess) authorizeRequestAuthZEN() error {
 	p.controller.GetPIP().ReportDynamicData(func() {
 		p.resp, p.err = p.controller.Authorize(p.reqUID, p.parc)
 	})
+	p.decided = time.Now()
 
 	if p.err != nil {
 		p.msg = "AuthZEN evaluation failed"
@@ -93,18 +98,9 @@ func (p *authProcess) authorizeRequestAuthZEN() error {
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
 	}
 
-	allowed, msg := p.resp.Allowed, p.resp.Message
-	if msg == "" {
-		if allowed {
-			msg = "ok"
-		} else {
-			msg = "not authorized"
-		}
-	}
-
 	p.authResp = &oas.EvaluationDecision{
-		Decision: allowed,
-		Context:  oas.ReasonObject{ReasonUser: oas.ReasonField{"en": msg}},
+		Decision: p.resp.Allowed,
+		Context:  reasonContext(p.resp),
 	}
 	return p.fc.JSON(p.authResp)
 }

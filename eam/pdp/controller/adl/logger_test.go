@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 	otel "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -65,10 +66,10 @@ func TestADL_Evaluation(t *testing.T) {
 			defer cancel()
 
 			if tc.traceID != "" {
-				ctx = context.WithValue(ctx, "trace_id", tc.traceID)
+				ctx = context.WithValue(ctx, models.AttrTraceID, tc.traceID)
 			}
 			if tc.spanID != "" {
-				ctx = context.WithValue(ctx, "span_id", tc.spanID)
+				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
 			h := slog2.NewDummyHandler(slog.LevelDebug)
@@ -81,7 +82,7 @@ func TestADL_Evaluation(t *testing.T) {
 			logger := New(l2, tc.opts...)
 			require.NotNil(t, logger)
 
-			err = logger.Evaluation(ctx, now, &tc.req, &tc.resp)
+			err = logger.Evaluation(ctx, now, &tc.req, &tc.resp, decisions.StatusUnset)
 			require.NoError(t, err)
 
 			time.Sleep(50 * time.Millisecond)
@@ -92,6 +93,36 @@ func TestADL_Evaluation(t *testing.T) {
 			assert.Equal(t, 1, h.Count())
 		})
 	}
+}
+
+func TestADL_Evaluation_Error(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	h := slog2.NewDummyHandler(slog.LevelDebug)
+	l1 := slog.New(h)
+
+	l2, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+	require.NoError(t, err)
+	require.NotNil(t, l2)
+
+	logger := New(l2)
+	require.NotNil(t, logger)
+
+	req := oas.EvaluationRequest{Subject: oas.Entity{Type: "gebruiker", Id: "0012"}}
+
+	// The PDP could not produce a decision: log a record with no response.
+	err = logger.Evaluation(ctx, time.Now().UTC(), &req, nil, decisions.StatusError)
+	require.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+
+	err = l2.Shutdown(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, h.Count())
 }
 
 func TestADL_Evaluations(t *testing.T) {
@@ -142,10 +173,10 @@ func TestADL_Evaluations(t *testing.T) {
 			defer cancel()
 
 			if tc.traceID != "" {
-				ctx = context.WithValue(ctx, "trace_id", tc.traceID)
+				ctx = context.WithValue(ctx, models.AttrTraceID, tc.traceID)
 			}
 			if tc.spanID != "" {
-				ctx = context.WithValue(ctx, "span_id", tc.spanID)
+				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
 			h := slog2.NewDummyHandler(slog.LevelDebug)
@@ -158,7 +189,7 @@ func TestADL_Evaluations(t *testing.T) {
 			logger := New(l2, tc.opts...)
 			require.NotNil(t, logger)
 
-			err = logger.Evaluations(ctx, now, &tc.req, &tc.resp)
+			err = logger.Evaluations(ctx, now, &tc.req, &tc.resp, decisions.StatusUnset)
 			require.NoError(t, err)
 
 			time.Sleep(50 * time.Millisecond)
@@ -219,10 +250,10 @@ func TestADL_SearchSubject(t *testing.T) {
 			defer cancel()
 
 			if tc.traceID != "" {
-				ctx = context.WithValue(ctx, "trace_id", tc.traceID)
+				ctx = context.WithValue(ctx, models.AttrTraceID, tc.traceID)
 			}
 			if tc.spanID != "" {
-				ctx = context.WithValue(ctx, "span_id", tc.spanID)
+				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
 			h := slog2.NewDummyHandler(slog.LevelDebug)
@@ -235,7 +266,7 @@ func TestADL_SearchSubject(t *testing.T) {
 			logger := New(l2, tc.opts...)
 			require.NotNil(t, logger)
 
-			err = logger.SearchSubject(ctx, now, &tc.req, &tc.resp)
+			err = logger.SearchSubject(ctx, now, &tc.req, &tc.resp, decisions.StatusUnset)
 			require.NoError(t, err)
 
 			time.Sleep(50 * time.Millisecond)

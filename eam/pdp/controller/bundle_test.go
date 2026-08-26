@@ -233,3 +233,41 @@ func TestBase_NewBundle_wireBundleFromAddPolicy(t *testing.T) {
 	})
 	assert.Equal(t, 1, count)
 }
+
+func TestBase_processPolicies_emptyLanguage(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+	ap := pap.New(context.Background(), logger)
+	ip := pip.New(context.Background(), logger)
+
+	m := &Base{
+		PAP:       ap,
+		PIP:       ip,
+		Logger:    logger,
+		AuthMutex: &sync.RWMutex{},
+	}
+
+	bundle := &bundles.Bundle{
+		Version:  2,
+		Language: "cedar",
+		Policies: map[string]*policies.Policy{
+			"p1": {Data: cedarDummy, Id: "p1"},
+		},
+	}
+
+	require.NoError(t, m.processPolicies(bundle))
+
+	got, _, err := ap.Read("p1")
+	require.NoError(t, err)
+	assert.Equal(t, "cedar", got.Language())
+	assert.Equal(t, "cedar/p1", got.Key())
+}
+
+const cedarDummy = `@comment("test")
+permit (
+    principal,
+    action,
+    resource
+);
+`

@@ -59,7 +59,6 @@ services:
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
       - MANAGER_ADL_TYPE=postgresql               # ADL.
-      - MANAGER_ADL_SERVICE_NAME=vlierdam
       - MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
     depends_on:
       vlierdam-db:

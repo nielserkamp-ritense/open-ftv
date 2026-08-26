@@ -19,6 +19,7 @@ import (
 // This can be used to log policy decisions to the Authorization Decision Log.
 type Logger interface {
 	StartSpan(ctx context.Context, id string, opts ...trace.SpanStartOption) (context.Context, trace.Span)
+	ForceFlush(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 }
 
@@ -60,6 +61,10 @@ func New(ctx context.Context, service string, opts ...Option) (*Exporter, error)
 	e.tp = sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(e.exporter, sdktrace.WithBatchTimeout(e.timeout)),
 		sdktrace.WithResource(tr),
+		sdktrace.WithIDGenerator(idGenerator{}),
+		// The SDK default, ParentBased(AlwaysSample), drops spans under an unsampled remote parent — wrong
+		// for ADL records, which per Logius ADL §3.2.2 MUST be produced regardless of the sampled bit.
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 	)
 	e.tracer = e.tp.Tracer(e.service, e.opts...)
 
@@ -69,6 +74,16 @@ func New(ctx context.Context, service string, opts ...Option) (*Exporter, error)
 // StartSpan initializes a new trace span.
 func (e *Exporter) StartSpan(ctx context.Context, id string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	return e.tracer.Start(ctx, id, opts...)
+}
+
+// ForceFlush blocks until every span queued by the batch processor has actually been exported, or
+// until the batch timeout elapses. Use this when a caller must know a span reached its exporter —
+// e.g. the Authorization Decision Log confirming a record is durably stored before answering its caller.
+func (e *Exporter) ForceFlush(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, e.timeout)
+	defer cancel()
+
+	return e.tp.ForceFlush(ctx)
 }
 
 // Shutdown cleans up held resources.
