@@ -236,9 +236,9 @@ func TestADLCompliance_RecordFields(t *testing.T) {
 
 	var resource map[string]string
 	require.NoError(t, json.Unmarshal(row.Resource, &resource))
-	assert.Equal(t, "pdp", resource["service.name"], "§3.3.9: producer identity MUST unambiguously say this is the PDP")
-	assert.Equal(t, "adl-compliance-test", resource["service.namespace"], "§3.3.9: producer identity MUST carry the configured deployment label")
-	assert.NotEmpty(t, resource["service.instance.id"], "§3.3.9: producer identity MUST be unique per PDP instance")
+	assert.Equal(t, "adl-compliance-test", resource["organization"], "§3.3.9: producer identity MUST carry the configured deployment label")
+	assert.True(t, strings.HasPrefix(resource["instanceId"], "pdp-"), "§3.3.9: producer identity MUST unambiguously say this is the PDP")
+	assert.NotEmpty(t, strings.TrimPrefix(resource["instanceId"], "pdp-"), "§3.3.9: producer identity MUST be unique per PDP instance")
 }
 
 // TestADLCompliance_FSCTransactionID covers ADR "FSC TransactionID" (§3.3.7.6).

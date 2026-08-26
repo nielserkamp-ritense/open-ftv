@@ -94,7 +94,11 @@ function RouteComponent() {
         },
         {
             headerName: "Beslispunt",
-            valueGetter: (params) => (params.data?.resource as unknown as { "service.namespace"?: string } | undefined)?.["service.namespace"],
+            valueGetter: (params) => {
+                const resource = params.data?.resource as unknown as { organization?: string, instanceId?: string } | undefined;
+                if (!resource?.organization && !resource?.instanceId) return undefined;
+                return [resource.organization, resource.instanceId].filter(Boolean).join(' / ');
+            },
             resizable: true
         },
         {

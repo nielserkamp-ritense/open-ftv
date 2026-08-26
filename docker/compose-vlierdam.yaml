@@ -34,6 +34,25 @@ services:
     networks:
       - openftv
 
+  vlierdam-keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: openftv-vlierdam-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
   vlierdam-manager:
     build:
       context: ../

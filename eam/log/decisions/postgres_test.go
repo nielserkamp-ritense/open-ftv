@@ -185,17 +185,17 @@ func TestDecisionFromSpanToParams(t *testing.T) {
 			name:      "timestamp + resource",
 			timestamp: now,
 			attrs: []attribute.KeyValue{
-				attribute.String("resource", `{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+				attribute.String("resource", `{"organization":"rdw","instanceId":"pdp-1"}`),
 			},
 			want: Decision{
 				Timestamp: now,
-				Resource:  []byte(`{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+				Resource:  []byte(`{"organization":"rdw","instanceId":"pdp-1"}`),
 				Status:    StatusUnset,
 			},
 			wantParams: []any{
 				ms, nil, nil, nil, "", string(StatusUnset), int64(0), int64(0),
 				nil, nil, nil, nil,
-				[]byte(`{"service.name":"pdp","service.namespace":"rdw","service.instance.id":"pdp-1"}`),
+				[]byte(`{"organization":"rdw","instanceId":"pdp-1"}`),
 			},
 		},
 	}
