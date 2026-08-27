@@ -7,7 +7,7 @@ sources:
     requests:
       - name: "gebruikers"
         description: "Lijst van gebruikers"
-        method: "GET"
+        method: "POST"
         uri: http://vlierdam-dataspace:8443/v1/gebruiker
         parameters:
           - name: "@fields"

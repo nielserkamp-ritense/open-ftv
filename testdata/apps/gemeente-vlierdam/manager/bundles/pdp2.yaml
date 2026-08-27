@@ -1,0 +1,12 @@
+---
+id: "pdp2"
+title: "Outway deployment bundle (pdp2)"
+language: "rego"
+tags: ["rvig", "rdw"]
+policies: true
+data: true
+version: true
+targets:
+  - uri: "http://vlierdam-pdp2:9443/v1/bundle"
+    apikey: ""
+    encoding: "gzip"

@@ -1,0 +1,37 @@
+---
+description: "PIP-data manager voor gemeente Vlierdam (laadpalen applicatie, PDP2)"
+
+sources:
+  - name: "IAM"
+    description: "Identity Access Management service"
+    requests:
+      - name: "gebruikers"
+        description: "Lijst van gebruikers"
+        method: "POST"
+        uri: http://vlierdam-dataspace:8443/v1/gebruiker
+        parameters:
+          - name: "@fields"
+            description: Data-minimalization on returned fields.
+            in: query
+            value: "id,naam,afdeling,laadpaal-opleiding"
+            type: "xsd:string"
+        modifiedSince: true
+        timeout: "10s"
+        interval: "5m"
+        initialInterval: "1s"
+        contentType: "application/json"
+        mapping:
+          entities:
+            - base: ""
+              typeValue: "medewerker"
+              idField: "naam"
+              attributes:
+                - base: ""
+                  map:
+                    - keyValue: "afdeling"
+                      typeValue: "xsd:string"
+                      valueField: "afdeling"
+                      required: true
+                    - keyValue: "laadpaal-opleiding"
+                      typeValue: "xsd:dateTime"
+                      valueField: "laadpaal-opleiding"
