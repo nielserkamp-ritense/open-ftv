@@ -1,0 +1,5 @@
+id: "diplomaat-beslissing"
+language: "rego"
+metadata:
+  description: "Scenario 2: diplomatiek kenteken vereist afdeling Gemeentesecretaris"
+  tags: ["rvig", "rdw"]
