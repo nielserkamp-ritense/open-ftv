@@ -20,11 +20,20 @@ var seedNamespace = uuid.NewSHA1(uuid.NameSpaceURL, []byte("openftv-mgmt-authz-p
 
 var seedUser = identity.NewSeedPrincipal()
 
-// seedAuthzPolicies seeds the bundled cedar authorization policies (admin/author/auditor/…)
-// into the PAP store with deterministic UUID ids, so the manager's embedded PDP enforces
-// them AND they are visible/editable in the UI (the postgres policy table requires UUID
-// ids, so the filename-keyed seed files cannot be loaded directly). It only seeds when the
-// store is empty; once seeded, the store (postgres) is the source of truth and UI edits win.
+// seedLanguageByExt maps a policy file's extension to the language string
+// expected by models.NewPolicyFromData. Only languages actually authored as
+// seed files in this repo need an entry here.
+var seedLanguageByExt = map[string]string{
+	".cedar": "cedar",
+	".rego":  "rego",
+}
+
+// seedAuthzPolicies seeds the bundled authorization policies (admin/author/auditor/…,
+// one file per seedLanguageByExt entry) into the PAP store with deterministic UUID ids,
+// so the manager's embedded PDP enforces them AND they are visible/editable in the UI
+// (the postgres policy table requires UUID ids, so the filename-keyed seed files cannot
+// be loaded directly). It only seeds when the store is empty; once seeded, the store
+// (postgres) is the source of truth and UI edits win.
 func (s *Services) seedAuthzPolicies() {
 	if s.pap == nil {
 		return
@@ -50,13 +59,18 @@ func (s *Services) seedAuthzPolicies() {
 	}
 
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".cedar") {
+		if e.IsDir() {
 			continue
 		}
 
-		cedarPath := filepath.Join(dir, e.Name())
+		language, ok := seedLanguageByExt[filepath.Ext(e.Name())]
+		if !ok {
+			continue
+		}
 
-		content, rerr := os.ReadFile(cedarPath)
+		policyPath := filepath.Join(dir, e.Name())
+
+		content, rerr := os.ReadFile(policyPath)
 		if rerr != nil {
 			s.logger.Error("seed: cannot read policy file", "file", e.Name(), "err", rerr)
 			continue
@@ -64,18 +78,18 @@ func (s *Services) seedAuthzPolicies() {
 
 		id := uuid.NewSHA1(seedNamespace, []byte(e.Name())).String()
 
-		pol, perr := models.NewPolicyFromData(id, "cedar", "", "", bytes.NewReader(content))
+		pol, perr := models.NewPolicyFromData(id, language, "", "", bytes.NewReader(content))
 		if perr != nil {
 			s.logger.Error("seed: cannot build policy", "file", e.Name(), "err", perr)
 			continue
 		}
 
 		// The policy store has a UNIQUE(language, title) index (policy_ix1); without a
-		// distinct title every seeded cedar policy collides and only the first is stored,
-		// leaving the role policies missing. Use the file's base name as a stable title.
+		// distinct title every seeded policy collides with same-language siblings and only
+		// the first is stored. Use the file's base name as a stable title.
 		pol = pol.WithTitle(strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())))
 
-		if tags := readSeedMetaTags(cedarPath); len(tags) > 0 {
+		if tags := readSeedMetaTags(policyPath); len(tags) > 0 {
 			pol = pol.WithTags(tags...)
 		}
 
@@ -88,10 +102,10 @@ func (s *Services) seedAuthzPolicies() {
 	}
 }
 
-func readSeedMetaTags(cedarPath string) []string {
+func readSeedMetaTags(policyPath string) []string {
 	for _, metaPath := range []string{
-		strings.TrimSuffix(cedarPath, filepath.Ext(cedarPath)) + ".meta",
-		cedarPath + ".meta",
+		strings.TrimSuffix(policyPath, filepath.Ext(policyPath)) + ".meta",
+		policyPath + ".meta",
 	} {
 		data, err := os.ReadFile(metaPath)
 		if err != nil {
