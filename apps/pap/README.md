@@ -540,10 +540,10 @@ The following storage backends are currently supported:
 - ```PostgreSQL```: using a custom-built Valkeyrie interface. ** RECOMMENDED **
 - ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
 - ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
-- ```in-memory```: using a custom-built Valkeyrie interface (non-persistent, for caching or testing only).
 
-If no persistence backend is configured, the ```in-memory``` backend will be used.
-This means that when the service is restarted, all created and/or updated policies will be gone.
+A persistence backend must be configured explicitly; there is no default. If ```persist.type``` is
+left unset or set to an unsupported value, the service fails to start with a clear error instead of
+silently falling back to non-persistent, in-memory storage.
 
 For proper persistence, please configure the use of ```PostgreSQL```.
 

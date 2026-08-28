@@ -14,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestOptions(t *testing.T) {
@@ -25,10 +26,12 @@ func TestOptions(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	logger := slog.New(h)
 
-	ip := pip.New(nil, logger)
+	ip, err := pip.New(t.Context(), logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
 	require.NotNil(t, ip)
 
-	ap := pap.New(nil, logger)
+	ap, err := pap.New(t.Context(), logger, pap.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
 	require.NotNil(t, ap)
 
 	ep := pep.New(nil, logger)

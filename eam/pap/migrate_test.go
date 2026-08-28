@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestPAP_migration(t *testing.T) {
@@ -22,13 +23,12 @@ func TestPAP_migration(t *testing.T) {
 
 		d := "../../testdata/unittest/migrate/sqlite3"
 
-		// we don't supply the persistence option, so the automatic migration is skipped.
-		p := New(nil, logger, WithMigration(d, "sqlite://:memory:", true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration(d, "sqlite://:memory:", true, 3))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		h.Clear()
 
-		// now we can call it separately.
-		err := p.migration()
+		err = p.Migrate()
 		require.NoError(t, err)
 		assert.Equalf(t, 2, h.Count(), h.Log())
 	})
@@ -46,24 +46,22 @@ func TestPAP_migration_no_change(t *testing.T) {
 		d := "../../testdata/unittest/migrate/sqlite3"
 		db := fmt.Sprintf("sqlite://%s/test.sqlite3", tmp)
 
-		// we don't supply the persistence option, so the automatic migration is skipped.
-		p := New(nil, logger, WithMigration(d, db, true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration(d, db, true, 3))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		h.Clear()
 
-		// now we can call it separately.
-		err := p.migration()
+		err = p.Migrate()
 		require.NoError(t, err)
 		assert.Equalf(t, 2, h.Count(), h.Log())
 		h.Clear()
 
-		// we don't supply the persistence option, so the automatic migration is skipped.
-		p2 := New(nil, logger, WithMigration(d, db, true, -1))
+		p2, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration(d, db, true, -1))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 		h.Clear()
 
-		// now we can call it separately.
-		err = p2.migration()
+		err = p2.Migrate()
 		require.NoError(t, err)
 		assert.Equalf(t, 1, h.Count(), h.Log())
 	})
@@ -78,13 +76,12 @@ func TestPAP_migration_fail(t *testing.T) {
 
 		d := "/this/is/not/a/valid/path"
 
-		// we don't supply the persistence option, so the automatic migration is skipped.
-		p := New(nil, logger, WithMigration(d, "sqlite://:memory:", true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration(d, "sqlite://:memory:", true, 3))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		h.Clear()
 
-		// now we can call it separately.
-		err := p.migration()
+		err = p.Migrate()
 		require.Error(t, err)
 		assert.Equalf(t, 1, h.Count(), h.Log())
 	})

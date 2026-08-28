@@ -18,6 +18,7 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	memory2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestController_HandleModel(t *testing.T) {
@@ -145,7 +146,8 @@ func TestController_HandleModel(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, engine)
 
-			p := pap2.New(nil, logger)
+			p, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory2.New(), ""))
+			require.NoError(t, err)
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
@@ -353,7 +355,8 @@ func TestController_HandleRelations(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, engine)
 
-			p := pap2.New(nil, logger)
+			p, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory2.New(), ""))
+			require.NoError(t, err)
 
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])

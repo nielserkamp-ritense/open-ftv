@@ -51,6 +51,7 @@ func TestNewPAP(t *testing.T) {
 			name:     "no type",
 			language: "cedar",
 			persist:  config2.Persist{},
+			wantErr:  true,
 		},
 		{
 			name:     "bad type",

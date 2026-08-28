@@ -67,9 +67,15 @@ func TestServe(t *testing.T) {
 	})
 }
 
-func TestServe_FailPDP(t *testing.T) {
-	t.Run("fail PDP", func(t *testing.T) {
-		t.Parallel()
+// TestServe_FailNoPersistence asserts a config with no persistence backend panics at startup,
+// since initRoutes has no other way to abort construction.
+func TestServe_FailNoPersistence(t *testing.T) {
+	t.Parallel()
+
+	t.Run("fail no persistence", func(t *testing.T) {
+		defer func() {
+			require.NotNil(t, recover())
+		}()
 
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
@@ -85,16 +91,12 @@ func TestServe_FailPDP(t *testing.T) {
 					MaxBody:      64536,
 				},
 			},
+			PAP: config2.PAP{Language: "cedar"},
 		}
-
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
 
 		_ = server.NewExternal(cfg, logger)
 
-		require.True(t, false) // should never trigger
+		require.Fail(t, "should never reach here")
 	})
 }
 
@@ -118,6 +120,13 @@ func TestErrorHandler(t *testing.T) {
 			},
 			PAP: config2.PAP{
 				Language: "cedar",
+			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
 			},
 		}
 
@@ -171,6 +180,13 @@ func TestNewExternal_Logging(t *testing.T) {
 			},
 			PAP: config2.PAP{
 				Language: "cedar",
+			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
 			},
 		}
 

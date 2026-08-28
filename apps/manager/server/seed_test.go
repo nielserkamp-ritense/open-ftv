@@ -14,6 +14,7 @@ import (
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 // TestSeedAuthzPolicies_UniqueTitles guards against the policy_ix1 UNIQUE(language, title)
@@ -25,7 +26,8 @@ func TestSeedAuthzPolicies_UniqueTitles(t *testing.T) {
 
 	ctx := context.Background()
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
-	ap := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+	ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
 
 	s := &Services{
 		ctx:    ctx,
@@ -66,7 +68,8 @@ func TestSeedAuthzPolicies_readsMetaTags(t *testing.T) {
 
 	ctx := context.Background()
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
-	ap := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+	ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
 
 	s := &Services{
 		ctx:    ctx,

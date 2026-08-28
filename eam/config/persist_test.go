@@ -201,6 +201,7 @@ func TestNewStore(t *testing.T) {
 			cfg: &Persist{
 				Type: "memory",
 			},
+			fail: true,
 		},
 		{
 			name: "postgres",

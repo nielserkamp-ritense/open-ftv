@@ -7,7 +7,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-func (s *Services) newPIP() *pip.PIP {
+func (s *Services) newPIP() (*pip.PIP, error) {
 	var opts []pip.Option
 
 	switch {

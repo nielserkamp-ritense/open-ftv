@@ -41,12 +41,14 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	}
 
 	if err != nil {
+		s.logger.Error("failed to create persistence store", "error", err)
 		panic("failed to create persistence store: " + err.Error())
 	}
 
 	// initialize the PAP before the PIP, so database migrations happen before all else.
 	if s.pap, err = s.newPAP(); err != nil {
-		panic("failed to initialize PAP")
+		s.logger.Error("failed to initialize PAP", "error", err)
+		panic("failed to initialize PAP: " + err.Error())
 	}
 
 	// seed the bundled cedar authorization policies into the (postgres) store with UUID ids
@@ -59,12 +61,13 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	// shares the very same (postgres-backed) policy store as the UI-managed policies.
 	s.auth = s.newAuth()
 	if s.auth == nil {
+		s.logger.Error("failed to initialize authorization manager")
 		panic("failed to initialize authorization manager")
 	}
 
-	s.pip = s.newPIP()
-	if s.pip == nil {
-		panic("failed to initialize PIP")
+	if s.pip, err = s.newPIP(); err != nil {
+		s.logger.Error("failed to initialize PIP", "error", err)
+		panic("failed to initialize PIP: " + err.Error())
 	}
 
 	// API v1.
@@ -255,6 +258,7 @@ func (s *Services) initADL(group fiber.Router) {
 		// and with a PDP alongside it startup order would decide whether the log works.
 		// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
 		if err = decisions.Migrate(cfg.MigrateSource, cfg.PgURL, s.adlMigrateSteps(), s.adlMigrateAuto(), s.logger); err != nil {
+			s.logger.Error("failed to migrate the Authorization Decision Log database", "error", err)
 			panic("failed to migrate the Authorization Decision Log database: " + err.Error())
 		}
 
@@ -264,6 +268,7 @@ func (s *Services) initADL(group fiber.Router) {
 	}
 
 	if err != nil {
+		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err)
 		panic("failed to initialize Authorization Decision Log search API: " + err.Error())
 	}
 

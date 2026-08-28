@@ -11,6 +11,7 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewController(t *testing.T) {
@@ -67,10 +68,12 @@ func TestNewController(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			ip := pip2.New(nil, logger, pip2.WithFileStore(tc.store1, tc.recurse1))
+			ip, err := pip2.New(t.Context(), logger, pip2.WithKeyValueDB(memory.New(), ""), pip2.WithFileStore(tc.store1, tc.recurse1))
+			require.NoError(t, err)
 			require.NotNil(t, ip)
 
-			ap := pap2.New(nil, logger, pap2.WithLanguage("openfga"), pap2.WithFileStore(tc.store2, tc.recurse2))
+			ap, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory.New(), ""), pap2.WithLanguage("openfga"), pap2.WithFileStore(tc.store2, tc.recurse2))
+			require.NoError(t, err)
 			require.NotNil(t, ap)
 
 			h.Clear()

@@ -24,7 +24,8 @@ func TestWithKeyValueDB(t *testing.T) {
 
 		s := memory.New()
 
-		p := New(nil, logger, WithKeyValueDB(s, ""))
+		p, err := New(t.Context(), logger, WithKeyValueDB(s, ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		assert.Equal(t, s, p.kvStore)
 		assert.NotNil(t, p.attributeDB)
@@ -46,7 +47,8 @@ func TestWithPostgresDB(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, db)
 
-		p := New(nil, logger, WithPostgresDB(NewPostgresWithPool(db)))
+		p, err := New(t.Context(), logger, WithPostgresDB(NewPostgresWithPool(db)))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		assert.Nil(t, p.kvStore)
 		assert.NotNil(t, p.attributeDB)
@@ -63,7 +65,8 @@ func TestWithFileStore(t *testing.T) {
 
 		path := "../../testdata/pip"
 
-		p := New(nil, logger, WithFileStore(path, true))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithFileStore(path, true))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		path2, err := filepath.Abs(path)
@@ -83,14 +86,16 @@ func TestWithPullConfigs(t *testing.T) {
 		logger := slog.New(h)
 
 		// empty but good
-		p := New(nil, logger, WithPullConfigs("../../testdata/unittest/pip2/pull/empty.yaml"))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithPullConfigs("../../testdata/unittest/pip2/pull/empty.yaml"))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 		assert.NotNil(t, p.pullManager)
 
 		h.Clear()
 
 		// empty but good
-		p3 := New(nil, logger, WithPullConfigs("../../testdata/unittest/pip2/pull/not_a_valid_file.xyz"))
+		p3, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithPullConfigs("../../testdata/unittest/pip2/pull/not_a_valid_file.xyz"))
+		require.NoError(t, err)
 		require.NotNil(t, p3)
 		assert.GreaterOrEqual(t, h.Count(), 2)
 		assert.Nil(t, p3.pullManager)

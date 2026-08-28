@@ -86,7 +86,7 @@ func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 
 	ep := pep.New(s.ctx, s.logger, pepOpts...)
 
-	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
+	ip, err := s.cfg.NewSelfAuthzPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, nil, err
 	}

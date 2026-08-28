@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNew(t *testing.T) {
@@ -16,7 +17,8 @@ func TestNew(t *testing.T) {
 	t.Run("new PAP", func(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 
-		p := New(nil, slog.New(h))
+		p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.NotNil(t, p.logger)

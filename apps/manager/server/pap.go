@@ -35,9 +35,13 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 
 	_ = s.cfg.FixTags()
 
-	p := pap.New(s.ctx, s.logger, opts...)
-	if p == nil {
-		return nil, fmt.Errorf("failed to create pap")
+	p, err := pap.New(s.ctx, s.logger, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = p.Migrate(); err != nil {
+		return nil, fmt.Errorf("pap: migration failed: %w", err)
 	}
 
 	return p, nil

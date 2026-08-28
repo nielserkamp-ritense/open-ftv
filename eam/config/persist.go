@@ -42,23 +42,36 @@ func (p *Persist) Sanitized() *Persist {
 	return &sanitized
 }
 
+// Validate reports whether Type names a supported persistence backend, so a misconfiguration can be
+// caught before anything is constructed.
+func (p *Persist) Validate() error {
+	switch strings.ToLower(p.Type) {
+	case "postgres", "postgresql", "pg", "etcd", "etcdv3", "consul": //nolint:goconst // type names, not worth centralizing
+		return nil
+	case "":
+		return fmt.Errorf("persist-type is required: use one of postgres, etcd, or consul")
+	default:
+		return fmt.Errorf("unsupported persist-type %q: use one of postgres, etcd, or consul", p.Type)
+	}
+}
+
 // NewStore returns a new persistence store based on the configuration variables.
 //
 // The function may produce an error if the configuration is invalid.
 //
 // The given context must be long-lived, and should be used to signal the store to shut down cleanly.
 func (p *Persist) NewStore(ctx context.Context) (store.Store, error) {
+	if err := p.Validate(); err != nil {
+		return nil, err
+	}
+
 	switch strings.ToLower(p.Type) {
-	case "memory", "mem":
-		return nil, nil // the default storage engine.
 	case "postgres", "postgresql", "pg":
 		return p.newPG(ctx)
 	case "etcd", "etcdv3":
 		return p.newETCD(ctx)
-	case "consul":
-		return p.newConsul(ctx)
 	default:
-		return nil, fmt.Errorf("unsupported persistent storage type: %s", p.Type)
+		return p.newConsul(ctx)
 	}
 }
 

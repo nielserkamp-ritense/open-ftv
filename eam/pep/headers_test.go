@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestProcessHeaders(t *testing.T) {
@@ -263,7 +264,8 @@ func TestProcessActivityID(t *testing.T) {
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
-	ip := pip.New(nil, logger, pip.WithFileStore("../../testdata/unittest/pip2", true))
+	ip, err := pip.New(t.Context(), logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../testdata/unittest/pip2", true))
+	require.NoError(t, err)
 
 	testCases := []struct {
 		name string

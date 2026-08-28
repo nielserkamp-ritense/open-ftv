@@ -25,6 +25,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewPoliciesHandler(t *testing.T) {
@@ -37,10 +38,12 @@ func TestNewPoliciesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -61,10 +64,12 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -94,7 +99,8 @@ func TestPoliciesHandler_GetPolicies(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list []*policies.Policy
-		err := json.Unmarshal(b, &list)
+
+		err = json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(list), 6)
 	})
@@ -110,10 +116,12 @@ func TestPoliciesHandler_GetPolicies_NotFound(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/non_existing_folder", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/non_existing_folder", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/non_existing_folder", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/non_existing_folder", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -166,10 +174,12 @@ func TestPoliciesHandler_GetPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -257,10 +267,12 @@ func TestPoliciesHandler_PostPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -349,10 +361,12 @@ func TestPoliciesHandler_PutPolicy(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))

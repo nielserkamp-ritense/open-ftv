@@ -66,10 +66,16 @@ func TestNewService_Serve(t *testing.T) {
 	})
 }
 
-func TestNewService_FailPDP(t *testing.T) {
+// TestNewService_FailUnsupportedLanguage asserts a config with no policy language panics at
+// startup, since initMainRoutes has no other way to abort construction.
+func TestNewService_FailUnsupportedLanguage(t *testing.T) {
 	t.Parallel()
 
-	t.Run("fail PDP", func(t *testing.T) {
+	t.Run("fail unsupported language", func(t *testing.T) {
+		defer func() {
+			require.NotNil(t, recover())
+		}()
+
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
@@ -86,14 +92,9 @@ func TestNewService_FailPDP(t *testing.T) {
 			},
 		}
 
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
-
 		_ = NewService(cfg, logger)
 
-		require.True(t, false) // should never trigger
+		require.Fail(t, "should never reach here")
 	})
 }
 
@@ -117,6 +118,13 @@ func TestNewService_ErrorHandler(t *testing.T) {
 			},
 			PAP: config2.PAP{
 				Language: "cedar",
+			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
 			},
 		}
 

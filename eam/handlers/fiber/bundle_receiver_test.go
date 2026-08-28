@@ -26,6 +26,7 @@ import (
 	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewBundleReceiverHandler(t *testing.T) {
@@ -53,14 +54,16 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		ap1 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+		ap1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+		require.NoError(t, err)
 		require.NotNil(t, ap1)
 
 		_, _ = ap1.Create(p1, identity.NewPrincipal(identity.KindUser, "test"))
 		_, _ = ap1.Create(p2, identity.NewPrincipal(identity.KindUser, "test"))
 		_, _ = ap1.Create(p3, identity.NewPrincipal(identity.KindUser, "test"))
 
-		ip1 := pip.New(ctx, logger)
+		ip1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, ip1)
 
 		ip1.MergeAttributes(setA)
@@ -106,7 +109,7 @@ func TestNewBundleReceiverHandler(t *testing.T) {
 		}
 
 		buf := &bytes.Buffer{}
-		err := bundle.Compress(bundles.CompressBZ2, buf)
+		err = bundle.Compress(bundles.CompressBZ2, buf)
 		require.NoError(t, err)
 
 		req := httptest.NewRequest(fiber.MethodPost, "/v1/bundle", buf)

@@ -56,12 +56,12 @@ func (s *Services) newAuth() AuthHandler {
 func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 	ep := pep.New(s.ctx, s.logger)
 
-	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
+	ip, err := s.cfg.NewSelfAuthzPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ap, err2 := s.cfg.NewPAP(s.ctx, s.logger)
+	ap, err2 := s.cfg.NewSelfAuthzPAP(s.ctx, s.logger)
 	if err2 != nil {
 		return nil, nil, err2
 	}

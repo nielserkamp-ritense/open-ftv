@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestLoadEntityMap(t *testing.T) {
@@ -82,7 +83,8 @@ func TestLoadEntityMap(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			p := New(nil, logger)
+			p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			h.Clear()
@@ -163,7 +165,8 @@ func TestLoadEntitiesAny(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			p1 := New(nil, logger)
+			p1, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
 			h.Clear()
@@ -288,7 +291,8 @@ func TestLoadEntities(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p := New(nil, logger)
+			p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 
 			h.Clear()
 

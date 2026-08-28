@@ -19,6 +19,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewBundlesHandler(t *testing.T) {
@@ -31,7 +32,8 @@ func TestNewBundlesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pap.New(ctx, logger)
+		p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
 		manager := bundles.NewManager(ctx, logger, bundles.WithConfig("../../../testdata/unittest/bundles/test2", true))
@@ -52,7 +54,8 @@ func TestBundlesHandler_GetStatuses(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pap.New(ctx, logger)
+		p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
 		manager := bundles.NewManager(ctx, logger,
@@ -85,7 +88,8 @@ func TestBundlesHandler_GetStatuses(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list bundles2.Statuses
-		err := json.Unmarshal(b, &list)
+
+		err = json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.Equal(t, int(bundles.StatusCount), len(list))
 	})
@@ -101,7 +105,8 @@ func TestBundlesHandler_GetCompressTypes(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pap.New(ctx, logger)
+		p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
 		manager := bundles.NewManager(ctx, logger,
@@ -134,7 +139,8 @@ func TestBundlesHandler_GetCompressTypes(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list bundles2.CompressTypes
-		err := json.Unmarshal(b, &list)
+
+		err = json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.Equal(t, int(bundles.CompressCount), len(list))
 	})
@@ -150,7 +156,8 @@ func TestBundlesHandler_GetConfigs(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pap.New(ctx, logger)
+		p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
 		manager := bundles.NewManager(ctx, logger,
@@ -183,7 +190,8 @@ func TestBundlesHandler_GetConfigs(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list bundles2.BundleConfigs
-		err := json.Unmarshal(b, &list)
+
+		err = json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(list), 3)
 	})
@@ -199,7 +207,8 @@ func TestBundlesHandler_PostDeployment(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pap.New(ctx, logger)
+		p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
 		manager := bundles.NewManager(ctx, logger,
@@ -233,7 +242,8 @@ func TestBundlesHandler_PostDeployment(t *testing.T) {
 		require.NotNil(t, b)
 
 		var d bundles2.Deployment
-		err := json.Unmarshal(b, &d)
+
+		err = json.Unmarshal(b, &d)
 		require.NoError(t, err)
 		assert.Equal(t, 1, d.Version)
 		assert.Equal(t, "yoyo", d.Description)
@@ -264,7 +274,8 @@ func TestBundlesHandler_GetDeployment(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pap.New(ctx, logger)
+			p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
 			manager := bundles.NewManager(ctx, logger,

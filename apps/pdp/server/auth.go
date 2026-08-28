@@ -83,12 +83,12 @@ func (s *Services) newAuth(basePath string) *authHandler {
 func (s *Services) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
 	ep := pep.New(s.ctx, s.logger)
 
-	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
+	ip, err := s.cfg.NewSelfAuthzPIP(s.ctx, s.logger, s.l)
 	if err != nil {
 		return nil, err
 	}
 
-	ap, err2 := s.cfg.NewPAP(s.ctx, s.logger)
+	ap, err2 := s.cfg.NewSelfAuthzPAP(s.ctx, s.logger)
 	if err2 != nil {
 		return nil, err2
 	}

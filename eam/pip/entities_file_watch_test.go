@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestClearEntityWatcher(t *testing.T) {
@@ -269,7 +270,8 @@ func TestWatchEntityFiles(t *testing.T) {
 			err = w.Add(dir)
 			require.NoError(t, err)
 
-			p := New(ctx, logger)
+			p, err := New(ctx, logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.entityWatcher = w

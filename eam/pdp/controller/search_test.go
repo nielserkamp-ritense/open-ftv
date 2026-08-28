@@ -11,6 +11,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestBase_Search(t *testing.T) {
@@ -161,7 +162,8 @@ func TestBase_Search(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			ip := pip.New(ctx, logger)
+			ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, ip)
 			if tc.attrs != nil {
 				ip.MergeAttributes(tc.attrs)

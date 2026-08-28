@@ -3,6 +3,7 @@ package pip
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 	"time"
@@ -12,8 +13,14 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip/network"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
+
+// ErrNoPersistence is returned by New when no persistence backend was configured via
+// WithKeyValueDB() or WithPostgresDB().
+var ErrNoPersistence = errors.New("pip: no persistence backend configured")
+
+// logArgsCapacity is the pre-allocated size of the slog argument slice built in logInitialized.
+const logArgsCapacity = 8
 
 // ReportDynamicData is the function signature for reporting changes in runtime PIP data.
 type ReportDynamicData func(data map[string]any)
@@ -46,17 +53,15 @@ type PIP struct {
 
 // New instantiates a new Policy Information Point.
 //
-// By default, a PIP uses an in-memory key-value cache.
-// Use the WithKeyValueDB or WithPostgresDB option to connect a PIP to persistent storage.
-func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
+// A PIP requires a persistence backend: use WithKeyValueDB() or WithPostgresDB() to connect one. Without
+// one, New returns ErrNoPersistence. WithFileStore() additionally loads attributes and entities from local
+// files into whichever backend is configured.
+func New(ctx context.Context, logger *slog.Logger, options ...Option) (_ *PIP, err error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	w, err := fsnotify.NewWatcher()
-	if err != nil {
-		w = nil // this means file handles are exhausted!
-	}
+	w := newFileWatcher()
 
 	p := &PIP{
 		ctx:              ctx,
@@ -74,52 +79,85 @@ func New(ctx context.Context, logger *slog.Logger, options ...Option) *PIP {
 		},
 	}
 
+	// watchFiles() takes ownership of w and closes it once started; if we fail before that, closing it here.
+	defer func() {
+		if err != nil {
+			p.cleanup(w)
+		}
+	}()
+
 	for i := range options {
 		options[i](p)
 	}
 
 	if p.attributeDB == nil || p.entityDB == nil /* || p.relationDB == nil */ {
-		p.kvStore = memory.New()
-
-		if p.attributeDB == nil {
-			p.attributeDB = NewAttributeStore(p.kvStore, "attribute")
-		}
-		if p.entityDB == nil {
-			p.entityDB = NewEntityStore(p.kvStore, "entity")
-		}
-		// if p.relationDB == nil {
-		// 	p.relationDB = NewRelationStore(p.kvStore, "entity")
-		// }
+		logger.Error("pip: no persistence backend configured")
+		return nil, ErrNoPersistence
 	}
 
 	p.loadFromStore()
+	p.logInitialized()
 
-	if p.logger.Enabled(nil, slog.LevelInfo) {
-		args := make([]any, 0, 8)
+	return p, nil
+}
 
-		if (p.attrStore != "" && p.attrStore != "/") || (p.entityStore != "" && p.entityStore != "/") {
-			if p.attrStore != "" {
-				args = append(args, "attributeStore", p.attrStore)
-			}
-			if p.entityStore != "" {
-				args = append(args, "entityStore", p.entityStore)
-			}
-			args = append(args, "recurse", p.recurse)
-		}
-
-		if p.kvStore == nil && (p.entityDB != nil || p.attributeDB != nil) {
-			args = append(args, "persistence", true)
-		}
-
-		if p.logger.Enabled(nil, slog.LevelDebug) {
-			attrs, _ := p.attributeDB.ListAttributes(p.ctx)
-			args = append(args, "attributes", attrs, "entities", p.entitiesToMap())
-			p.logger.Debug("pip initialized", args...)
-		} else {
-			p.logger.Info("pip initialized", args...)
-		}
+// newFileWatcher creates a filesystem watcher, or returns nil if file handles are exhausted.
+func newFileWatcher() *fsnotify.Watcher {
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil
 	}
-	return p
+
+	return w
+}
+
+// cleanup releases resources acquired before New() failed.
+func (p *PIP) cleanup(w *fsnotify.Watcher) {
+	if w != nil {
+		_ = w.Close()
+	}
+
+	if p.pullManager != nil {
+		p.pullManager.Stop()
+	}
+}
+
+func (p *PIP) hasFileStore() bool {
+	return (p.attrStore != "" && p.attrStore != "/") || (p.entityStore != "" && p.entityStore != "/")
+}
+
+func (p *PIP) logInitialized() {
+	if !p.logger.Enabled(p.ctx, slog.LevelInfo) {
+		return
+	}
+
+	args := make([]any, 0, logArgsCapacity)
+
+	if p.hasFileStore() {
+		if p.attrStore != "" {
+			args = append(args, "attributeStore", p.attrStore)
+		}
+
+		if p.entityStore != "" {
+			args = append(args, "entityStore", p.entityStore)
+		}
+
+		args = append(args, "recurse", p.recurse)
+	}
+
+	if p.kvStore == nil {
+		args = append(args, "persistence", true)
+	}
+
+	if p.logger.Enabled(p.ctx, slog.LevelDebug) {
+		attrs, _ := p.attributeDB.ListAttributes(p.ctx)
+		args = append(args, "attributes", attrs, "entities", p.entitiesToMap())
+		p.logger.Debug("pip initialized", args...)
+
+		return
+	}
+
+	p.logger.Info("pip initialized", args...)
 }
 
 // MarshalJSON implements the json.Marshaler interface.

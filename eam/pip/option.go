@@ -33,8 +33,6 @@ func WithPullConfigs(path string) Option {
 }
 
 // WithKeyValueDB connects the PIP to persistent storage.
-//
-// By default, a PIP is created with an in-memory key-value cache.
 func WithKeyValueDB(store store.Store, basePath string) Option {
 	return func(p *PIP) {
 		if p.kvStore != nil {
@@ -58,7 +56,7 @@ func WithPostgresDB(db *PostgresDB) Option {
 	}
 }
 
-// WithFileStore adds a file storage location to the PIP.
+// WithFileStore adds a file storage location to the PIP (strictly for data retrieval).
 func WithFileStore(fileStore string, recurse bool) Option {
 	return func(p *PIP) {
 		if fileStore != "" {

@@ -16,6 +16,7 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.auth = s.newAuth(handle.PathAuthZEN + handle.PathV1)
 	if s.auth == nil {
+		s.logger.Error("failed to initialize authorization handler")
 		panic("failed to initialize authorization handler")
 	}
 

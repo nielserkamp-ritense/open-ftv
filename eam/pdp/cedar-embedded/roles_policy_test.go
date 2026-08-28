@@ -13,15 +13,18 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func managerPDP(t *testing.T) *controller {
 	t.Helper()
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
 	ep := pep.New(nil, logger)
-	ip := pip.New(nil, logger)
-	ap := pap.New(nil, logger, pap.WithLanguage("cedar"),
+	ip, err := pip.New(t.Context(), logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+	ap, err := pap.New(t.Context(), logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"),
 		pap.WithFileStore("../../../testdata/apps/manager/policies/cedar", true))
+	require.NoError(t, err)
 	c := NewController(pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
 	return c.(*controller)
 }

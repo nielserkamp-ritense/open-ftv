@@ -18,6 +18,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestBase_NewBundle(t *testing.T) {
@@ -110,14 +111,16 @@ func TestBase_NewBundle(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			ap1 := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+			ap1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+			require.NoError(t, err)
 			require.NotNil(t, ap1)
 
 			_, _ = ap1.Create(p1, identity.NewPrincipal(identity.KindUser, "test"))
 			_, _ = ap1.Create(p2, identity.NewPrincipal(identity.KindUser, "test"))
 			_, _ = ap1.Create(p3, identity.NewPrincipal(identity.KindUser, "test"))
 
-			ip1 := pip.New(ctx, logger)
+			ip1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, ip1)
 
 			ip1.MergeAttributes(setA)
@@ -208,10 +211,12 @@ func TestBase_NewBundle_wireBundleFromAddPolicy(t *testing.T) {
 	defer cancel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	ap := pap.New(ctx, logger, pap.WithLanguage("cedar"))
+	ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
 	require.NotNil(t, ap)
 
-	ip := pip.New(ctx, logger)
+	ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
 	require.NotNil(t, ip)
 
 	m := &Base{
@@ -238,8 +243,10 @@ func TestBase_processPolicies_emptyLanguage(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	ap := pap.New(context.Background(), logger)
-	ip := pip.New(context.Background(), logger)
+	ap, err := pap.New(context.Background(), logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
+	ip, err := pip.New(context.Background(), logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
 
 	m := &Base{
 		PAP:       ap,

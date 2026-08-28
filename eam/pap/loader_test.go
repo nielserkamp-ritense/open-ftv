@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestPAP_LoadFiles(t *testing.T) {
@@ -67,7 +68,8 @@ func TestPAP_LoadFiles(t *testing.T) {
 			t.Parallel()
 
 			h := slog2.NewDummyHandler(slog.LevelInfo)
-			p := New(nil, slog.New(h), WithFileStore(tc.path, tc.recurse))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""), WithFileStore(tc.path, tc.recurse))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.LoadFiles()

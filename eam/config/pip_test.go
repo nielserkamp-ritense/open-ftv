@@ -102,7 +102,7 @@ pip:
 	}
 }
 
-func TestPIP_NewPIP(t *testing.T) {
+func TestPIP_NewSelfAuthzPIP(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new pip", func(t *testing.T) {
@@ -115,7 +115,7 @@ func TestPIP_NewPIP(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p2, err := p1.NewPIP(context.Background(), logger, models.CEDAR)
+		p2, err := p1.NewSelfAuthzPIP(context.Background(), logger, models.CEDAR)
 		require.NoError(t, err)
 		require.NotNil(t, p2)
 	})
