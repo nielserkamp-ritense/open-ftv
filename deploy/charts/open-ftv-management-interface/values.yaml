@@ -1,0 +1,65 @@
+image:
+  repository: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/management-interface
+  # tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+config:
+  managerURL: /
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 101
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  runAsUser: 101
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+  managerServiceName: open-ftv-manager
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  # hostnames: []
+  # filters: []
+  managerServiceName: open-ftv-manager
+  managerServicePort: 80
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,22 +1,32 @@
-variables:
-  GIT_DEPTH: 0
+version-testing:
+  stage: Version
+  image: alpine:3.22
+  variables:
+    GIT_DEPTH: 0 # `git describe` and the commit count need tags and full history.
+  script:
+    - apk add --no-cache git
+    - BASE=$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
+    - NEXT=$(echo "${BASE#v}" | awk -F. '{print $1"."$2"."$3+1}')
+    - HEIGHT=$(git rev-list --count "${BASE}..HEAD")
+    - BRANCH=$(printf '%s' "${CI_COMMIT_REF_NAME}" | LC_ALL=C tr -c 'A-Za-z0-9' '-' | tr '[:upper:]' '[:lower:]' | cut -c1-24 | sed 's|--*|-|g; s|^-*||; s|-*$||')
+    - case "${BRANCH}" in '') BRANCH=branch ;; *[!0-9]*) ;; *) BRANCH=$(echo "${BRANCH}" | sed 's|^0*||'); BRANCH=${BRANCH:-0} ;; esac
+    - VERSION="${NEXT}-${BRANCH}.${HEIGHT}"
+    - printf 'VERSION=%s\nIMAGE_TAG=v%s\n' "${VERSION}" "${VERSION}" > version.env
+    - cat version.env
+  artifacts:
+    reports:
+      dotenv: version.env
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
 
-next-version:
+version-release:
   stage: Version
   image: alpine:3.22
   script:
-    - apk --no-cache add git bash
-    - export CURRENT_SEMVER=$(git describe --tags --abbrev=0)
-    - echo ${CURRENT_SEMVER}
-    - export NEXT_SEMVER=$(${CI_PROJECT_DIR}/semver.sh -m ${CURRENT_SEMVER})
-    - echo ${NEXT_SEMVER}
-    - echo ${NEXT_SEMVER} > ci_semantic_release_next_version.txt
+    - printf 'VERSION=%s\nIMAGE_TAG=%s\n' "${CI_COMMIT_TAG#v}" "${CI_COMMIT_TAG}" > version.env
+    - cat version.env
   artifacts:
-    expire_in: 2 weeks
-    paths:
-      - ci_semantic_release_next_version.txt
+    reports:
+      dotenv: version.env
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'

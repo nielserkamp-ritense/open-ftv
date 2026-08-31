@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "logFormat": {
+          "enum": [
+            "json",
+            "text"
+          ]
+        },
+        "logLevel": {
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ]
+        },
+        "authorizationDecisionLog": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "stdout",
+                "postgresql"
+              ]
+            },
+            "serviceName": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          },
+          "required": [
+            "type",
+            "serviceName"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "postgresql"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "postgresql": {
+                    "type": "object",
+                    "properties": {
+                      "hostname": {
+                        "$ref": "#/definitions/nonEmptyString",
+                        "format": "hostname"
+                      },
+                      "database": {
+                        "$ref": "#/definitions/nonEmptyString"
+                      },
+                      "existingSecret": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "hostnameKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "databaseKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "usernameKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "passwordKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "hostnameKey",
+                          "databaseKey",
+                          "usernameKey",
+                          "passwordKey"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "existingSecret"
+                    ]
+                  }
+                },
+                "required": [
+                  "postgresql"
+                ]
+              }
+            }
+          ]
+        },
+        "corsOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "anyOf": [
+              {
+                "format": "url"
+              },
+              {
+                "format": "hostname"
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "corsHeaders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "logFormat",
+        "logLevel",
+        "authorizationDecisionLog",
+        "corsOrigins",
+        "corsHeaders"
+      ]
+    }
+  },
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

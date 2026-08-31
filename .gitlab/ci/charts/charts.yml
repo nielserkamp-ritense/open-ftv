@@ -1,0 +1,26 @@
+helm-charts:
+  stage: Charts
+  image:
+    name: docker.io/alpine/helm:4.2.3@sha256:b97ba4f9b27fe7af16ee3d37e6815783c9d4a51289b6240a9024ec471611ae9b
+    entrypoint: [""]
+  script:
+    - echo "chart version=${VERSION} appVersion=${IMAGE_TAG}"
+    # Rewrite every chart before packaging any of them: the umbrella chart pulls its
+    # subcharts from file://, so they must already carry the new version.
+    - |-
+      for CHART in deploy/charts/*; do
+        sed -i "s|^\(version: \).*|\1\"${VERSION}\"|" "${CHART}/Chart.yaml"
+        sed -i "s|^\(appVersion: \).*|\1\"${IMAGE_TAG}\"|" "${CHART}/Chart.yaml"
+      done
+    - |-
+      for CHART in deploy/charts/*; do
+        helm package --dependency-update --destination build "${CHART}"
+      done
+    - echo "${CI_REGISTRY_PASSWORD}" | helm registry login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
+    - |-
+      for PACKAGE in build/*.tgz; do
+        helm push "${PACKAGE}" "oci://${CI_REGISTRY_IMAGE}/charts"
+      done
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'

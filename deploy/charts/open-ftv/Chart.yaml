@@ -1,0 +1,22 @@
+apiVersion: v2
+name: open-ftv
+description: Meta chart for installing OpenFTV components
+type: application
+version: "0.0.0"
+appVersion: "v0.0.0"
+
+dependencies:
+  - name: open-ftv-pdp
+    version: "*-0"
+    repository: file://../open-ftv-pdp
+    alias: pdp
+  - name: open-ftv-manager
+    version: "*-0"
+    repository: file://../open-ftv-manager
+    alias: manager
+    condition: manager.enabled
+  - name: open-ftv-management-interface
+    version: "*-0"
+    repository: file://../open-ftv-management-interface
+    alias: management-interface
+    condition: management-interface.enabled

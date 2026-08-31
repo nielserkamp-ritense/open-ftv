@@ -1,0 +1,65 @@
+image:
+  repository: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/manager
+  # tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+config:
+  logFormat: json
+  logLevel: info
+
+  authorizationDecisionLog:
+    type: stdout
+    serviceName: openftv-manager
+    postgresql:
+      # hostname: ""
+      # database: ""
+      existingSecret:
+        # name: ""
+        hostnameKey: host
+        databaseKey: dbname
+        usernameKey: username
+        passwordKey: password
+
+  corsOrigins: []
+  corsHeaders: []
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 65534
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

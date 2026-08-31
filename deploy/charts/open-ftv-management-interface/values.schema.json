@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "managerURL": {
+          "type": "string",
+          "format": "url"
+        }
+      },
+      "required": [
+        "managerURL"
+      ]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "managerServiceName": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      },
+      "required": [
+        "managerServiceName"
+      ]
+    },
+    "httpRoute": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "managerServiceName": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "managerServicePort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "if": {
+        "$ref": "#/definitions/ifEnabledTrue"
+      },
+      "then": {
+        "properties": {
+          "parentRefs": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "parentRefs",
+          "managerServiceName",
+          "managerServicePort"
+        ]
+      }
+    }
+  },
+  "required": [
+    "config",
+    "ingress",
+    "httpRoute"
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ifEnabledTrue": {
+      "properties": {
+        "enabled": {
+          "const": true
+        }
+      }
+    }
+  }
+}

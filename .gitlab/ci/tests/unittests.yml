@@ -1,5 +1,5 @@
-unit-tests:
-  stage: UnitTests
+Golang:
+  stage: Tests
   image: golang:1.26.5-alpine
   services:
     - name:  ghcr.io/cerbos/cerbos:0.46.0
@@ -30,6 +30,7 @@ unit-tests:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
     CERBOS_ADDRESS: "cerbos:3593"
     MANAGER_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
+  needs: []
   before_script:
     - mkdir -p .go-cache
   script:
@@ -51,27 +52,3 @@ unit-tests:
     expire_in: 2 weeks
     paths:
       - cover.html
-  needs: []
-  resource_group: unit-tests
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - go.mod
-          - go.sum
-          - mise.toml
-          - utilities/**/*
-          - oas/**/*
-          - testdata/**/*
-          - eam/**/*
-          - migrations/**/*
-          - mock/**/*
-          - external/**/*
-          - apps/**/*
-          - \.gitlab/ci/tests/unittests.yml
-          - \.golang-ci.yml
-    - if: $CI_PROJECT_PATH != "digilab.overheid.nl/ecosystem/ftv/open-ftv" && $CI_PIPELINE_SOURCE == "merge_request_event" # run for external fork merge requests

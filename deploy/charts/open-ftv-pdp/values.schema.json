@@ -1,0 +1,260 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "tls": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "existingSecret": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          },
+          "required": [
+            "enabled"
+          ],
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "existingSecret"
+            ]
+          }
+        },
+        "logFormat": {
+          "enum": [
+            "json",
+            "text"
+          ]
+        },
+        "logLevel": {
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ]
+        },
+        "policySource": {
+          "enum": [
+            "local"
+          ]
+        },
+        "requestMappings": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "BodyToContext",
+              "DoelbindingToPrincipal",
+              "RvvaToPrincipal"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "pipPullConfig": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "sources": {
+              "type": "array"
+            }
+          },
+          "additionalProperties": false
+        },
+        "authorizationDecisionLog": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "stdout",
+                "postgresql"
+              ]
+            },
+            "serviceName": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          },
+          "required": [
+            "type",
+            "serviceName"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "type": {
+                    "const": "postgresql"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "postgresql": {
+                    "type": "object",
+                    "properties": {
+                      "hostname": {
+                        "$ref": "#/definitions/nonEmptyString",
+                        "format": "hostname"
+                      },
+                      "database": {
+                        "$ref": "#/definitions/nonEmptyString"
+                      },
+                      "existingSecret": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "hostnameKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "databaseKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "usernameKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          },
+                          "passwordKey": {
+                            "$ref": "#/definitions/nonEmptyString"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "hostnameKey",
+                          "databaseKey",
+                          "usernameKey",
+                          "passwordKey"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "existingSecret"
+                    ]
+                  }
+                },
+                "required": [
+                  "postgresql"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "tls",
+        "logFormat",
+        "logLevel",
+        "policySource",
+        "authorizationDecisionLog"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "policySource": {
+                "const": "local"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "policyLanguage": {
+                "enum": [
+                  "cedar",
+                  "openfga",
+                  "rego"
+                ]
+              },
+              "policies": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/nonEmptyString"
+                }
+              },
+              "policiesExistingConfigMap": {
+                "$ref": "#/definitions/nonEmptyString"
+              },
+              "policyAttributes": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z_]*$"
+                },
+                "additionalProperties": true
+              },
+              "policyEntities": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/policyEntity"
+                      }
+                    },
+                    {
+                      "$ref": "#/definitions/policyEntity"
+                    },
+                    {
+                      "$ref": "#/definitions/nonEmptyString"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "policyLanguage"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "required": [
+    "config"
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policyEntity": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "type": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "parents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
