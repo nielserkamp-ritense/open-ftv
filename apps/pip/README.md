@@ -76,7 +76,7 @@ log:   # options for the application-log.
   source: true|false            # Flag to record the source location of the message in the log (default true).
 
 persist:   # this is where the PIP stores attributes, entities and relations; see the section "About persistence" below for examples.
-  type: "<type>"                # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
+  type: "<type>"                # Type of persistence backend; supported are "etcd", "consul" and "postgres" (no default).
   addresses: "<addresses>"      # One or more addresses of persistence services (no default).
   base: "<prefix>"              # Prefix to use for policy keys in the persistence backend (no default).
   timeout: "<duration>"         # Connection timeout for the persistence backend (no default).

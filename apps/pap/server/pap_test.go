@@ -48,7 +48,7 @@ func TestNewPAP(t *testing.T) {
 			},
 		},
 		{
-			name:     "no type",
+			name:     "no storage type",
 			language: "cedar",
 			persist:  config2.Persist{},
 			wantErr:  true,

@@ -337,7 +337,7 @@ These match the corresponding options in a configuration file.
 --adl-migrate-steps=<number>              # Number of steps to migrate. A negative number means to migrate down. When not given, --migrate-steps is used.
 
 # this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
---persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
+--persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul" and "postgres" (no default).
 --persist-addresses=<addresses>           # One or more addresses of persistence services (no default).
 --persist-timeout=<prefix>                # Prefix to use for policy keys in the persistence backend (no default).
 --persist-timeout=<duration>              # Connection timeout for the persistence backend (no default).
@@ -570,8 +570,8 @@ The following storage backends are currently supported:
 - ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
 
 A persistence backend must be configured explicitly; there is no default. If ```persist.type``` is
-left unset or set to an unsupported value, the service fails to start with a clear error instead of
-silently falling back to non-persistent, in-memory storage.
+left unset or set to an unsupported value, the CLI validates this at startup and exits with a clear
+error instead of silently falling back to non-persistent, in-memory storage.
 
 For proper persistence, please configure the use of ```PostgreSQL```.
 

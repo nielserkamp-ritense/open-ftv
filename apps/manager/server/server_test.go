@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
@@ -47,7 +46,7 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -67,37 +66,35 @@ func TestServe(t *testing.T) {
 	})
 }
 
-// TestServe_FailNoPersistence asserts a config with no persistence backend panics at startup,
+// TestServe_WithoutPersistence asserts a config with no persistence backend panics at startup,
 // since initRoutes has no other way to abort construction.
-func TestServe_FailNoPersistence(t *testing.T) {
+func TestServe_WithoutPersistence(t *testing.T) {
 	t.Parallel()
 
-	t.Run("fail no persistence", func(t *testing.T) {
-		defer func() {
-			require.NotNil(t, recover())
-		}()
+	defer func() {
+		require.NotNil(t, recover())
+	}()
 
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	logger := slog.New(h)
 
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         21001,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
+	cfg := &config.Config{
+		ServerApp: config2.ServerApp{
+			Server: config2.Server{
+				Host:         "127.0.0.1",
+				Port:         21001,
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 10 * time.Second,
+				IdleTimeout:  300 * time.Second,
+				MaxBody:      64536,
 			},
-			PAP: config2.PAP{Language: "cedar"},
-		}
+		},
+		PAP: config2.PAP{Language: "cedar"},
+	}
 
-		_ = server.NewExternal(cfg, logger)
+	_ = NewExternal(cfg, logger)
 
-		require.Fail(t, "should never reach here")
-	})
+	require.Fail(t, "should never reach here, because we expect server.NewExternal to panic")
 }
 
 func TestErrorHandler(t *testing.T) {
@@ -130,7 +127,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -190,7 +187,7 @@ func TestNewExternal_Logging(t *testing.T) {
 			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 		require.NotNil(t, s)
 
 		assert.GreaterOrEqual(t, h.Count(), 4)
