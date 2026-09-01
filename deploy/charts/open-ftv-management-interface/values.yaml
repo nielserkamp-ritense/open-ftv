@@ -11,6 +11,10 @@ fullnameOverride: ""
 
 config:
   managerURL: /
+  maxLogoSize: 102400
+  oidc:
+    authority: ""
+    clientId: openftv
 
 serviceAccount:
   create: true
@@ -51,7 +55,7 @@ httpRoute:
   enabled: false
   annotations: {}
   parentRefs: []
-  # hostnames: []
+  hostnames: []
   # filters: []
   managerServiceName: open-ftv-manager
   managerServicePort: 80

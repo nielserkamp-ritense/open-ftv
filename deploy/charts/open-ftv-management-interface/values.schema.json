@@ -8,10 +8,31 @@
         "managerURL": {
           "type": "string",
           "format": "url"
+        },
+        "maxLogoSize": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "authority": {
+              "type": "string"
+            },
+            "clientId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "authority",
+            "clientId"
+          ]
         }
       },
       "required": [
-        "managerURL"
+        "managerURL",
+        "maxLogoSize",
+        "oidc"
       ]
     },
     "ingress": {
@@ -44,6 +65,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 65535
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
         }
       },
       "required": [
@@ -56,10 +83,14 @@
         "properties": {
           "parentRefs": {
             "minItems": 1
+          },
+          "hostnames": {
+            "minItems": 1
           }
         },
         "required": [
           "parentRefs",
+          "hostnames",
           "managerServiceName",
           "managerServicePort"
         ]

@@ -66,6 +66,9 @@
     },
     "management-interface": {
       "$ref": "#/definitions/objectWithEnabled"
+    },
+    "keycloak": {
+      "$ref": "#/definitions/objectWithEnabled"
     }
   },
   "additionalProperties": false,

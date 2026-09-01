@@ -20,3 +20,8 @@ dependencies:
     repository: file://../open-ftv-management-interface
     alias: management-interface
     condition: management-interface.enabled
+  - name: open-ftv-keycloak
+    version: "*-0"
+    repository: file://../open-ftv-keycloak
+    alias: keycloak
+    condition: keycloak.enabled

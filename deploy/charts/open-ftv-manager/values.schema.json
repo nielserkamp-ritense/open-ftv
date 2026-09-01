@@ -118,6 +118,26 @@
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "issuer": {
+              "type": "string"
+            },
+            "jwksUrl": {
+              "type": "string"
+            },
+            "audience": {
+              "type": "string"
+            },
+            "rolesClaim": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "jwksUrl"
+          ]
         }
       },
       "required": [
@@ -125,7 +145,8 @@
         "logLevel",
         "authorizationDecisionLog",
         "corsOrigins",
-        "corsHeaders"
+        "corsHeaders",
+        "oidc"
       ]
     }
   },
