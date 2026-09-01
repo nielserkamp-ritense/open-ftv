@@ -8,10 +8,31 @@
         "managerURL": {
           "type": "string",
           "format": "url"
+        },
+        "maxLogoSize": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "authority": {
+              "type": "string"
+            },
+            "clientId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "authority",
+            "clientId"
+          ]
         }
       },
       "required": [
-        "managerURL"
+        "managerURL",
+        "maxLogoSize",
+        "oidc"
       ]
     },
     "ingress": {

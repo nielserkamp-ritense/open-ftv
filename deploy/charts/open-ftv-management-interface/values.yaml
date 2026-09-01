@@ -11,6 +11,10 @@ fullnameOverride: ""
 
 config:
   managerURL: /
+  maxLogoSize: 102400
+  oidc:
+    authority: ""
+    clientId: openftv
 
 serviceAccount:
   create: true

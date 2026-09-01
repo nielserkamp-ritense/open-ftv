@@ -49,6 +49,12 @@ spec:
               value: {{ .Values.config.managerURL | quote }}
             - name: VITE_PIP_BASE_URL
               value: {{ .Values.config.managerURL | quote }}
+            - name: VITE_OIDC_AUTHORITY
+              value: {{ .Values.config.oidc.authority | quote }}
+            - name: VITE_OIDC_CLIENT_ID
+              value: {{ .Values.config.oidc.clientId | quote }}
+            - name: MANAGER_MAX_LOGO_SIZE
+              value: {{ .Values.config.maxLogoSize | quote }}
           ports:
             - name: http
               containerPort: 8080
