@@ -29,6 +29,15 @@ config:
   corsOrigins: []
   corsHeaders: []
 
+  # Leave jwksUrl empty to run without token validation. It is the on/off
+  # switch: empty means bearer tokens are not validated and yield no principal.
+  # Independent of the bundled keycloak subchart -- point these at any provider.
+  oidc:
+    issuer: ""
+    jwksUrl: ""
+    audience: ""
+    rolesClaim: roles
+
 serviceAccount:
   create: true
   automount: true

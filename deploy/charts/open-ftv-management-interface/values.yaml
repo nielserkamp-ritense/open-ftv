@@ -55,7 +55,7 @@ httpRoute:
   enabled: false
   annotations: {}
   parentRefs: []
-  # hostnames: []
+  hostnames: []
   # filters: []
   managerServiceName: open-ftv-manager
   managerServicePort: 80

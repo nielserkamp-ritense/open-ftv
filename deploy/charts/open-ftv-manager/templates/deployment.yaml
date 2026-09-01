@@ -61,6 +61,17 @@ spec:
               value: {{ .Values.config.logLevel }}
             - name: MANAGER_PERSIST_TYPE
               value: memory
+            {{- $oidc := .Values.config.oidc }}
+            {{- if $oidc.jwksUrl }}
+            - name: MANAGER_OIDC_ISSUER
+              value: {{ $oidc.issuer | quote }}
+            - name: MANAGER_OIDC_JWKS_URL
+              value: {{ tpl $oidc.jwksUrl . | quote }}
+            - name: MANAGER_OIDC_AUDIENCE
+              value: {{ $oidc.audience | quote }}
+            - name: MANAGER_OIDC_ROLES_CLAIM
+              value: {{ $oidc.rolesClaim | quote }}
+            {{- end }}
           {{- with .Values.config.authorizationDecisionLog }}
             - name: MANAGER_ADL_TYPE
               value: {{ .type }}

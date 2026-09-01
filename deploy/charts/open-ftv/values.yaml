@@ -27,3 +27,7 @@ manager:
 management-interface:
   enabled: false
   nameOverride: management-interface
+
+keycloak:
+  enabled: false
+  nameOverride: keycloak
