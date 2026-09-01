@@ -24,7 +24,7 @@ require (
 	github.com/kvtools/etcdv3 v1.0.3
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/lib/pq v1.12.3
-	github.com/mattn/go-sqlite3 v1.14.48
+	github.com/mattn/go-sqlite3 v1.14.50
 	github.com/open-policy-agent/opa v1.18.2
 	github.com/openfga/api/proto v0.0.0-20260619182052-dd87be81488e
 	github.com/openfga/language/pkg/go v0.3.1
