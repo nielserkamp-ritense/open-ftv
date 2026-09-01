@@ -63,9 +63,9 @@ spec:
           webOrigins:
             - https://open-ftv.simulatie.datastelsel.nl
           users:
-            adminPassword: y0yhDpkN5TiKQsQwTxYzPClWd8nq
-            authorPassword: BtEpMAXhDFwqA7NxDLrq7Ze8rKnW
-            auditorPassword: Dq8FPlO6B81XpYTYhXvmTjc7Fb9R
+            adminPassword: password
+            authorPassword: password
+            auditorPassword: password
       httpRoute:
         enabled: true
         parentRefs:
