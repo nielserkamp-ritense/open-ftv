@@ -155,3 +155,11 @@ Check the deployed images:
 ```shell
 kubectl get pods -n fds-tenant-ictu-open-ftv -o jsonpath='{..image}'
 ```
+
+##### Accounts
+
+| Username       | Password   | Role      |
+| -------------- | ---------- | --------- |
+| `admin-user`   | `password` | `admin`   |
+| `author-user`  | `password` | `author`  |
+| `auditor-user` | `password` | `auditor` |
