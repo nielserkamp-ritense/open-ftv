@@ -18,8 +18,6 @@ var (
 )
 
 const (
-	// AppName defines the name and version of this application.
-	AppName   = "OpenFTV Manager 2.0"
 	envPrefix = "MANAGER_"
 	cfg1      = "/etc/manager/default.conf"
 	cfg2      = "./etc/manager.yaml"
@@ -37,7 +35,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 			[]config.Option{
 				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
-				config.AppName(AppName),
 			},
 			opts...,
 		),
