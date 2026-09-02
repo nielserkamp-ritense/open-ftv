@@ -65,8 +65,6 @@ func TestNewService_Serve(t *testing.T) {
 	})
 }
 
-// TestNewService_FailUnsupportedLanguage asserts a config with no policy language panics at
-// startup, since initMainRoutes has no other way to abort construction.
 func TestNewService_FailUnsupportedLanguage(t *testing.T) {
 	t.Parallel()
 
@@ -88,6 +86,9 @@ func TestNewService_FailUnsupportedLanguage(t *testing.T) {
 					IdleTimeout:  300 * time.Second,
 					MaxBody:      64536,
 				},
+			},
+			PAP: config2.PAP{
+				Language: "",
 			},
 		}
 
