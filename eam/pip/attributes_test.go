@@ -141,9 +141,12 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 
 			p.ReplaceAllAttributes(tc.list, identity.NewSystemPrincipal())
 
-			assert.Equal(t, tc.want, eh.inserts)
+			// ReplaceAllAttributes fires one bulk AttributesReplaced event, not a per-item
+			// Added/Replaced/Removed event per attribute (see its doc comment for why).
+			assert.Zero(t, eh.inserts)
 			assert.Zero(t, eh.updates)
-			assert.Equal(t, 3, eh.deletes)
+			assert.Zero(t, eh.deletes)
+			assert.Equal(t, 1, eh.replaces)
 
 			var count int
 			p.IterateAttributes(func(*models.Attribute) {
@@ -155,9 +158,10 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 }
 
 type myAttributeSink struct {
-	inserts int
-	updates int
-	deletes int
+	inserts  int
+	updates  int
+	deletes  int
+	replaces int
 }
 
 func (s *myAttributeSink) Handle(t models.EventType, _ string) {
@@ -168,6 +172,8 @@ func (s *myAttributeSink) Handle(t models.EventType, _ string) {
 		s.updates++
 	case models.AttributeRemoved:
 		s.deletes++
+	case models.AttributesReplaced:
+		s.replaces++
 	default:
 	}
 }

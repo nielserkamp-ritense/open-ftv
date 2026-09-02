@@ -73,7 +73,7 @@ func (b *SelfAuthzControllerBuilder) Build() (pdp.Controller, *pip.PIP, error) {
 		}
 	}
 
-	ip, err := b.pipCfg.NewSelfAuthzPIP(b.ctx, b.logger, b.language)
+	ip, err := b.pipCfg.NewSelfAuthzPIP(b.ctx, b.logger)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
@@ -18,11 +17,9 @@ type PIP struct {
 
 // NewSelfAuthzPIP instantiates a new PIP using the given configuration.
 //
-// This builds a self-authorization PIP loaded from local (bundled) attribute/entity files, if
-// any: the files are the source of truth, so an in-memory KV store is used as its runtime
-// index. This is not a durable persistence backend and must not be used for customer-managed
-// attribute/entity data.
-func (p *PIP) NewSelfAuthzPIP(ctx context.Context, logger *slog.Logger, language models.Language) (*pip.PIP, error) {
+// This builds a self-authorization PIP loaded from local attribute/entity files.
+// The files are the source of truth. An in-memory KV store is used as its runtime index.
+func (p *PIP) NewSelfAuthzPIP(ctx context.Context, logger *slog.Logger) (*pip.PIP, error) {
 	opts := []pip.Option{
 		pip.WithKeyValueDB(memory.New(), ""),
 		pip.WithFileStore(p.Store, p.StoreRecurse),

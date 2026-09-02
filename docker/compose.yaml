@@ -327,7 +327,7 @@ services:
       VITE_OIDC_CLIENT_ID: "openftv"
       MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
-      - "8082:80"
+      - "8082:8080"
     depends_on:
       rvig-manager:
         condition: service_healthy
@@ -477,7 +477,7 @@ services:
         VITE_OIDC_CLIENT_ID: "openftv"
         MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
-      - "8084:80"
+      - "8084:8080"
     depends_on:
       rdw-manager:
         condition: service_healthy

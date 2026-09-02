@@ -14,6 +14,7 @@ import (
 	"github.com/goccy/go-json"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
 
@@ -75,6 +76,16 @@ func (c *Config) Access(kong *pdk.PDK) {
 
 	parc := c.pep.PARCFromRequest(&req, func(uid string) (*models.Entity, uint64, error) { return nil, 0, nil })
 
+	// Uses the consumer key-auth resolved as the principal, if present, carrying its Kong tags.
+	if consumer, _ := kong.Client.GetConsumer(); consumer.Id != "" {
+		attrs := models.NewAttributeSet()
+		if len(consumer.Tags) > 0 {
+			attrs.AddAttributeKV("tags", consumer.Tags)
+		}
+
+		parc.Principal = models.NewEntity(pep.PrincipalApp, consumer.Username, attrs)
+	}
+
 	authBody := authzen.EvaluationRequest{
 		Subject: authzen.Entity{
 			Type:       parc.Principal.Type(),
@@ -134,7 +145,14 @@ func (c *Config) Access(kong *pdk.PDK) {
 
 	if !authResp.Decision {
 		_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access denied: %v", authResp))
-		kong.Response.Exit(http.StatusForbidden, nil, nil)
+
+		reason, _ := authResp.Context.ReasonUser["en"].(string)
+		if reason == "" {
+			reason = "not authorized"
+		}
+
+		body, _ := json.Marshal(map[string]any{"title": "Forbidden", "status": http.StatusForbidden, "detail": reason})
+		kong.Response.Exit(http.StatusForbidden, body, map[string][]string{"Content-Type": {"application/json"}})
 
 		return
 	}

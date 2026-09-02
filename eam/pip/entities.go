@@ -149,17 +149,23 @@ func (p *PIP) removeEntity(uid string, user identity.Principal) (*models.Entity,
 func (p *PIP) ReplaceAllEntities(list *models.EntitySet, user identity.Principal) {
 	// remove all existing entities.
 	p.IterateEntities(func(a *models.Entity) {
-		_, _ = p.removeEntity(a.UID(), user)
+		if e2, ix, err := p.entityDB.ReadEntity(p.ctx, a.Type(), a.ID()); err == nil {
+			_, _ = p.entityDB.DeleteEntity(p.ctx, user, e2, ix)
+		}
 	})
 
 	// add all given entities.
 	if list != nil {
 		list.IterateEntities(func(e *models.Entity) {
-			_, _ = p.AddEntityWithUser(e, user)
+			_, _ = p.entityDB.CreateEntity(p.ctx, user, e)
 		})
 	}
 
 	p.MergeEntities(p.dynamicData.entities)
+
+	if p.eventSinks != nil {
+		p.sendEvent(models.EntitiesReplaced, "")
+	}
 }
 
 // IterateEntities calls the given closure for all entities in the PIP.

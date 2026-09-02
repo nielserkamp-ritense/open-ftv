@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -77,7 +76,8 @@ pip:
 			t.Parallel()
 
 			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0644)
+			err := os.WriteFile(file, []byte(tc.data), 0o600)
+			require.NoError(t, err)
 
 			cfg := &PIP{}
 
@@ -115,7 +115,7 @@ func TestPIP_NewSelfAuthzPIP(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p2, err := p1.NewSelfAuthzPIP(context.Background(), logger, models.CEDAR)
+		p2, err := p1.NewSelfAuthzPIP(context.Background(), logger)
 		require.NoError(t, err)
 		require.NotNil(t, p2)
 	})

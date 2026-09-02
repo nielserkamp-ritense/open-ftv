@@ -163,25 +163,29 @@ func (p *PIP) removeAttribute(key string, user identity.Principal) (*models.Attr
 // ReplaceAllAttributes replaces all attributes with the new list.
 //
 // If an empty list is given, this function effectively clears all attributes from the PIP.
+//
+// See ReplaceAllEntities: skips per-item events, fires one AttributesReplaced event at the end.
 func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user identity.Principal) {
-	// delete all existing attributes.
-	keys := make([]string, 0)
+	// delete all existing attributes, without firing an event per deletion.
 	p.IterateAttributes(func(a *models.Attribute) {
-		keys = append(keys, a.Key())
+		if prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, a.Key()); err == nil {
+			_, _ = p.attributeDB.DeleteAttribute(p.ctx, user, prev, ix)
+		}
 	})
 
-	for i := range keys {
-		_, _ = p.removeAttribute(keys[i], user)
-	}
-
 	if list != nil {
-		// add all given attributes.
+		// add all given attributes, without firing an event per addition - every attribute is a
+		// fresh create at this point, since the store was just cleared above.
 		list.IterateAttributes(func(a *models.Attribute) {
-			_, _ = p.AddAttributeWithUser(a, user)
+			_, _ = p.attributeDB.CreateAttribute(p.ctx, user, a)
 		})
 	}
 
 	p.MergeAttributes(p.dynamicData.attributes)
+
+	if p.eventSinks != nil {
+		p.sendEvent(models.AttributesReplaced, "")
+	}
 }
 
 // IterateAttributes calls the given closure for all attributes in the PIP.
