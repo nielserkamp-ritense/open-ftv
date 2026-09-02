@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewBase(t *testing.T) {
@@ -48,10 +49,12 @@ func TestNewBase(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			ap := pap.New(nil, logger)
+			ap, err := pap.New(t.Context(), logger, pap.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, ap)
 
-			ip := pip.New(nil, logger)
+			ip, err := pip.New(t.Context(), logger, pip.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, ip)
 
 			ep := pep.New(nil, logger)

@@ -11,6 +11,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestPIP_Attributes(t *testing.T) {
@@ -22,7 +23,8 @@ func TestPIP_Attributes(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(context.Background(), logger)
+		p, err := New(context.Background(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		a1, err1 := p.AddAttributeKV("hello", "world")
@@ -121,7 +123,8 @@ func TestPIP_ReplaceAllAttributes(t *testing.T) {
 			h := util.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			p := New(ctx, logger)
+			p, err := New(ctx, logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			eh := &myAttributeSink{}

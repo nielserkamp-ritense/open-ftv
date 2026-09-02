@@ -1,32 +1,41 @@
-package opa_embedded
+//go:build integration
+
+package cerbos_api
 
 import (
 	"bytes"
-	"context"
 	"log/slog"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/open-policy-agent/opa/hooks"
-	"github.com/open-policy-agent/opa/sdk"
-	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	pap2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
+// TestController_Handle requires a live Cerbos server (it asserts c2.info, which needs a real
+// server-info RPC to succeed) so it only runs with `go test -tags=integration`.
 func TestController_Handle(t *testing.T) {
-	t.Parallel()
+	p1 := `{
+ "apiVersion": "api.cerbos.dev/v1",
+ "rolePolicy": {
+  "role": "admin",
+  "scopePermissions": "SCOPE_PERMISSIONS_REQUIRE_PARENTAL_CONSENT_FOR_ALLOWS",
+  "rules": [
+   { "resource": "service:https://inway-fsc-nlx-inway:443/brp-personen", "allowActions": ["POST"]}
+  ]
+ }
+}`
 
-	p1 := "package authz\ndefault allow = false"
+	addr := getAddress()
 
 	testCases := []struct {
 		name       string
@@ -43,85 +52,78 @@ func TestController_Handle(t *testing.T) {
 		{
 			name:       "add - not found",
 			event1:     models.PolicyAdded,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
 		},
 		{
 			name:       "add - new key",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 		},
 		{
 			name:       "add - duplicate",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyAdded,
-			key2:       "rego/p1",
+			key2:       "cerbos/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "add & replace",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "rego/p1",
+			key2:       "cerbos/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
 			name:       "replace - not found",
 			event1:     models.PolicyReplaced,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "failed to get policy",
 		},
 		{
 			name:       "replace - new key",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyReplaced,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 		},
 		{
 			name:       "replace - duplicate",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyReplaced,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyReplaced,
-			key2:       "rego/p1",
+			key2:       "cerbos/p1",
 			wantLog2:   1,
 			logPrefix2: "policy added/replaced",
 		},
 		{
-			name:       "remove - not found",
-			event1:     models.PolicyRemoved,
-			key1:       "rego/p1",
-			wantLog1:   1,
-			logPrefix1: "failed to remove policy",
-		},
-		{
 			name:       "remove - found",
-			policies:   map[string]string{"rego/p1": p1},
+			policies:   map[string]string{"cerbos/p1": p1},
 			event1:     models.PolicyAdded,
-			key1:       "rego/p1",
+			key1:       "cerbos/p1",
 			wantLog1:   1,
 			logPrefix1: "policy added/replaced",
 			event2:     models.PolicyRemoved,
-			key2:       "rego/p1",
+			key2:       "cerbos/p1",
 			wantLog2:   1,
 			logPrefix2: "policy removed",
 		},
@@ -129,26 +131,11 @@ func TestController_Handle(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			mem := inmem.New()
-
-			engine, err := sdk.New(context.Background(), sdk.Options{
-				RegoVersion:   RegoVersion,
-				ID:            "opa-controller",
-				Config:        bytes.NewReader([]byte(cfg)),
-				ConsoleLogger: &wrappedLogger{logger: logger},
-				Hooks:         hooks.Hooks{},
-				Store:         mem,
-			})
+			p, err := pap.New(nil, logger, pap.WithKeyValueDB(memory.New(), ""))
 			require.NoError(t, err)
-
-			p, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory.New(), ""))
-			require.NoError(t, err)
-
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")
@@ -161,14 +148,21 @@ func TestController_Handle(t *testing.T) {
 				require.NoError(t, err2)
 			}
 
-			c := &controller{
-				Base: pdp.NewBase(pdp.WithNameVersion("x", "v1"), pdp.WithLogger(logger), pdp.WithPAP(p)),
-				pdp:  engine,
-				mem:  mem,
-			}
+			c := NewController(
+				Config{Addr1: addr, Addr2: addr, User: adminUser, Pswd: adminPswd},
+				pdp.WithLogger(logger),
+				pdp.WithPAP(p),
+			)
+
+			c2, ok := c.(*controller)
+			require.True(t, ok)
+			require.NotNil(t, c2)
+			require.NotNilf(t, c2.engine, h.Log())
+			require.NotNilf(t, c2.admin, h.Log())
+			require.NotNilf(t, c2.info, h.Log())
 
 			h.Clear()
-			c.Handle(tc.event1, tc.key1)
+			c2.Handle(tc.event1, tc.key1)
 
 			assert.Equal(t, tc.wantLog1, h.Count())
 
@@ -176,7 +170,7 @@ func TestController_Handle(t *testing.T) {
 				var i int
 				h.Iterate(func(_ time.Time, msg string, _ slog.Level) {
 					if i == 0 {
-						assert.Equal(t, tc.logPrefix1, msg)
+						assert.Equalf(t, tc.logPrefix1, msg, h.Log())
 					}
 					i++
 				})
@@ -184,7 +178,7 @@ func TestController_Handle(t *testing.T) {
 
 			if tc.event2 > 0 {
 				h.Clear()
-				c.Handle(tc.event2, tc.key2)
+				c2.Handle(tc.event2, tc.key2)
 
 				assert.Equal(t, tc.wantLog2, h.Count())
 
@@ -192,7 +186,7 @@ func TestController_Handle(t *testing.T) {
 					var i int
 					h.Iterate(func(_ time.Time, msg string, _ slog.Level) {
 						if i == 0 {
-							assert.Equal(t, tc.logPrefix2, msg)
+							assert.Equalf(t, tc.logPrefix2, msg, h.Log())
 						}
 						i++
 					})

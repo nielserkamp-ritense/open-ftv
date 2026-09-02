@@ -31,5 +31,5 @@ func (s *Services) newPIP() (*pip.PIP, error) {
 		}
 	}
 
-	return pip.New(s.ctx, s.logger, opts...), nil
+	return pip.New(s.ctx, s.logger, opts...)
 }

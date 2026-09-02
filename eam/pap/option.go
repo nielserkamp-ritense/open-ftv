@@ -23,8 +23,6 @@ func WithLanguage(language string) Option {
 }
 
 // WithKeyValueDB connects the PAP to a persistent KV backend.
-//
-// By default, a PAP is created with an in-memory key-value cache.
 func WithKeyValueDB(store store.Store, basePath string) Option {
 	return func(p *PAP) {
 		if p.kvStore != nil {

@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pap/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -66,10 +65,14 @@ func TestNewService_Serve(t *testing.T) {
 	})
 }
 
-func TestNewService_FailPDP(t *testing.T) {
+func TestNewService_FailUnsupportedLanguage(t *testing.T) {
 	t.Parallel()
 
-	t.Run("fail PDP", func(t *testing.T) {
+	t.Run("fail unsupported language", func(t *testing.T) {
+		defer func() {
+			require.NotNil(t, recover())
+		}()
+
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
@@ -84,16 +87,14 @@ func TestNewService_FailPDP(t *testing.T) {
 					MaxBody:      64536,
 				},
 			},
+			PAP: config2.PAP{
+				Language: "",
+			},
 		}
-
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
 
 		_ = NewService(cfg, logger)
 
-		require.True(t, false) // should never trigger
+		require.Fail(t, "should never reach here")
 	})
 }
 
@@ -117,6 +118,13 @@ func TestNewService_ErrorHandler(t *testing.T) {
 			},
 			PAP: config2.PAP{
 				Language: "cedar",
+			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
 			},
 		}
 

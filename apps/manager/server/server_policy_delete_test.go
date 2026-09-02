@@ -1,6 +1,6 @@
 //go:build integration
 
-package server_test
+package server
 
 import (
 	"log/slog"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -20,7 +19,7 @@ func Test_NewServer_Delete_Policy(t *testing.T) {
 
 	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	srv := server.NewExternal(cnf, lgr)
+	srv := NewExternal(cnf, lgr)
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	const policyData = "permit (\n    principal,\n    action,\n    resource\n);\n"

@@ -26,6 +26,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	otel "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestAuthHandler_AuthZEN1(t *testing.T) {
@@ -43,10 +44,12 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, ip)
 
-		ap := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, ap)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -95,10 +98,12 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, ip)
 
-		ap := pap.New(ctx, logger, pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/unittest/opa", true))
+		ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/unittest/opa", true))
+		require.NoError(t, err)
 		require.NotNil(t, ap)
 
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -147,10 +152,12 @@ func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, ip)
 
-		ap := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, ap)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -197,10 +204,12 @@ func TestAuthHandler_AuthZEN_Fail2(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -247,10 +256,12 @@ func TestAuthHandler_AuthZEN_Fail3(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -299,10 +310,12 @@ func TestAuthHandler_AuthZEN_Fail4(t *testing.T) {
 
 		ep := pep.New(ctx, logger)
 
-		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, ip)
 
-		ap := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, ap)
 
 		controller := cedar_embedded.NewController(pdp.WithPEP(ep), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
@@ -547,8 +560,10 @@ func TestAuthHandler_Evaluation_BodyEmbeddedTraceParentFallback(t *testing.T) {
 
 	dummy := slog.New(slog2.NewDummyHandler(slog.LevelError))
 	ep := pep.New(ctx, dummy)
-	ip := pip.New(ctx, dummy, pip.WithFileStore("../../../testdata/pip", true))
-	ap := pap.New(ctx, dummy, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+	ip, err := pip.New(ctx, dummy, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+	require.NoError(t, err)
+	ap, err := pap.New(ctx, dummy, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/unittest/cedar", true))
+	require.NoError(t, err)
 	controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(dummy))
 
 	auth := NewAuthHandlerZEN(dummy, adl.New(decisionLogger), controller, "http://localhost/v1")

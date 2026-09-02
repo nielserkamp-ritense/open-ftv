@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
@@ -47,7 +46,7 @@ func TestServe(t *testing.T) {
 			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -67,35 +66,33 @@ func TestServe(t *testing.T) {
 	})
 }
 
-func TestServe_FailPDP(t *testing.T) {
-	t.Run("fail PDP", func(t *testing.T) {
-		t.Parallel()
+func TestServe_WithoutPersistence(t *testing.T) {
+	t.Parallel()
 
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
+	defer func() {
+		require.NotNil(t, recover())
+	}()
 
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         21001,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	logger := slog.New(h)
+
+	cfg := &config.Config{
+		ServerApp: config2.ServerApp{
+			Server: config2.Server{
+				Host:         "127.0.0.1",
+				Port:         21001,
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 10 * time.Second,
+				IdleTimeout:  300 * time.Second,
+				MaxBody:      64536,
 			},
-		}
+		},
+		PAP: config2.PAP{Language: "cedar"},
+	}
 
-		defer func() {
-			e := recover()
-			require.NotNil(t, e)
-		}()
+	_ = NewExternal(cfg, logger)
 
-		_ = server.NewExternal(cfg, logger)
-
-		require.True(t, false) // should never trigger
-	})
+	require.Fail(t, "should never reach here, because we expect server.NewExternal to panic")
 }
 
 func TestErrorHandler(t *testing.T) {
@@ -119,9 +116,16 @@ func TestErrorHandler(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
+			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -172,9 +176,16 @@ func TestNewExternal_Logging(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
+			Persist: config2.Persist{
+				Type:      "postgres",
+				PgURL:     "postgres://127.0.0.1:5432/myDB",
+				PgTable:   "myTable",
+				PgMaxLife: 60 * time.Second,
+				PgMaxConn: 10,
+			},
 		}
 
-		s := server.NewExternal(cfg, logger)
+		s := NewExternal(cfg, logger)
 		require.NotNil(t, s)
 
 		assert.GreaterOrEqual(t, h.Count(), 4)

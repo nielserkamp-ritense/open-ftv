@@ -22,6 +22,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNew(t *testing.T) {
@@ -33,7 +34,8 @@ func TestNew(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	log := slog.New(h)
 
-	p := pip.New(ctx, log, pip.WithFileStore("../../testdata/pip", false))
+	p, err := pip.New(ctx, log, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../testdata/pip", false))
+	require.NoError(t, err)
 
 	p2 := pep.New(ctx, log)
 	p3 := cedar_embedded.NewController(pdp.WithLogger(log))
@@ -97,8 +99,10 @@ func TestAuthorize(t *testing.T) {
 	log := slog.New(h)
 
 	ep := pep.New(ctx, log)
-	ip := pip.New(ctx, log, pip.WithFileStore("../../testdata/unittest/auth", true))
-	ap := pap.New(ctx, log, pap.WithLanguage("cedar"), pap.WithFileStore("../../testdata/unittest/auth/policies", true))
+	ip, err := pip.New(ctx, log, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../testdata/unittest/auth", true))
+	require.NoError(t, err)
+	ap, err := pap.New(ctx, log, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../testdata/unittest/auth/policies", true))
+	require.NoError(t, err)
 	dp := cedar_embedded.NewController(pdp.WithLogger(log), pdp.WithContext(ctx), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithPEP(ep))
 
 	authenticator := authentication.NewBCrypt(authentication.WithLogger(log), authentication.WithEntityGetter(ip.GetEntity))

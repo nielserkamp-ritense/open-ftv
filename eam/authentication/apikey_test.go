@@ -9,6 +9,7 @@ import (
 
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestBCrypt_AuthenticateApiKey(t *testing.T) {
@@ -18,7 +19,8 @@ func TestBCrypt_AuthenticateApiKey(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelDebug)
 	log := slog.New(h)
 
-	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/unittest/auth", true))
+	p, err := pip2.New(ctx, log, pip2.WithKeyValueDB(memory.New(), ""), pip2.WithFileStore("../../testdata/unittest/auth", true))
+	require.NoError(t, err)
 
 	testCases := []struct {
 		name    string
