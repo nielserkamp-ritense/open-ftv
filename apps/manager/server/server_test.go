@@ -66,8 +66,6 @@ func TestServe(t *testing.T) {
 	})
 }
 
-// TestServe_WithoutPersistence asserts a config with no persistence backend panics at startup,
-// since initRoutes has no other way to abort construction.
 func TestServe_WithoutPersistence(t *testing.T) {
 	t.Parallel()
 

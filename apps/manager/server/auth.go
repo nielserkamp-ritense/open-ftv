@@ -7,12 +7,8 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	cedar_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
-	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	opa_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
-	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
@@ -25,7 +21,7 @@ type AuthHandler interface {
 }
 
 func (s *Services) newAuth() AuthHandler {
-	controller, p1, err := s.newController()
+	controller, p1, err := s.newSelfAuthzController()
 	if controller == nil {
 		s.logger.Error("failed to initialize EAM controller", "error", err)
 		return nil
@@ -60,7 +56,7 @@ func (s *Services) newAuth() AuthHandler {
 	}
 }
 
-func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
+func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 	// Secured mode (fail-closed) requires OIDC: without a validated token no principal is
 	// derived, so fail-closed would deny every request. Fail fast with a clear error rather
 	// than booting a manager that silently rejects everything.
@@ -84,30 +80,10 @@ func (s *Services) newController() (pdp.Controller, *pip.PIP, error) {
 		pepOpts = append(pepOpts, opt)
 	}
 
-	ep := pep.New(s.ctx, s.logger, pepOpts...)
-
-	ip, err := s.cfg.NewSelfAuthzPIP(s.ctx, s.logger, s.l)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Share the single, already-initialized PAP (postgres-backed when configured)
-	// so the embedded PDP enforces from the same policy store the UI manages.
-	options := []pdp.Option{pdp.WithContext(s.ctx), pdp.WithLogger(s.logger), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(s.pap)}
-
-	switch s.l {
-	case models.CEDAR:
-		return cedar_embedded.NewController(options...), ip, nil
-	case models.REGO:
-		return opa_embedded.NewController(options...), ip, nil
-	case models.OPENFGA:
-		return openfga_embedded.NewController(options...), ip, nil
-	case models.CERBOS:
-		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Address, Addr2: s.cfg.AdminAddress, CA: s.cfg.CA, User: s.cfg.User, Pswd: s.cfg.Pswd}
-		return cerbos_api.NewController(cerbosCFG, options...), ip, nil
-	default:
-		return nil, nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.Language)
-	}
+	return config.BuildSelfAuthzController(s.ctx, s.logger, s.l, &s.cfg.PIP, &s.cfg.Cerbos).
+		WithPAP(s.pap).
+		WithOptions(pdp.WithPEP(pep.New(s.ctx, s.logger, pepOpts...))).
+		Build()
 }
 
 // Controller returns the PDP controller.
