@@ -59,7 +59,6 @@ func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized := *c
 	sanitized.Persist = *sanitized.Persist.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
-	logger.Info("configuration loaded successfully", "config", sanitized)
 	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
