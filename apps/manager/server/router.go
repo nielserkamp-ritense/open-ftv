@@ -218,8 +218,6 @@ func (s *Services) initDeployments(group fiber.Router) {
 }
 
 func (s *Services) initADL(group fiber.Router) {
-	cfg := s.cfg.DecisionLog
-
 	var (
 		searcher search.Searcher
 	)
@@ -228,20 +226,20 @@ func (s *Services) initADL(group fiber.Router) {
 	// PDP alongside it (in-app deployment) would otherwise never see the schema created,
 	// and with a PDP alongside it startup order would decide whether the log works.
 	// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
-	err := decisions.Migrate("*embed*", cfg.PgURL, 0, true, s.logger)
+	err := decisions.Migrate("*embed*", s.cfg.ADLDatabaseURL, 0, true, s.logger)
 	if err != nil {
 		s.logger.Error("failed to migrate the Authorization Decision Log database", "error", err)
 		panic("failed to migrate the Authorization Decision Log database: " + err.Error())
 	}
 
-	searcher, err = searchPG.New(s.ctx, cfg.PgURL, nil, time.Minute*5, 100)
+	searcher, err = searchPG.New(s.ctx, s.cfg.ADLDatabaseURL, nil, time.Minute*5, 100)
 	if err != nil {
 		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err)
 		panic("failed to initialize Authorization Decision Log search API: " + err.Error())
 	}
 
 	adl := handle.NewADLHandler(s.logger, searcher, s.auth.Authorizer())
-	s.logger.Info("adl initialized", "type", cfg.Type)
+	s.logger.Info("adl initialized")
 
 	grp2 := group.Group(handle.PathADL)
 	grp2.Get(handle.PathEntries, adl.Search)

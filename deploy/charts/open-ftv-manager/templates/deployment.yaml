@@ -71,13 +71,7 @@ spec:
             - name: MANAGER_OIDC_ROLES_CLAIM
               value: {{ $oidc.rolesClaim | quote }}
             {{- end }}
-          {{- with .Values.config.authorizationDecisionLog }}
-            - name: MANAGER_ADL_TYPE
-              value: {{ .type }}
-            - name: MANAGER_ADL_SERVICE_NAME
-              value: {{ .serviceName }}
-            {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
-          {{- end }}
+            {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .Values.config.authorizationDecisionLog.postgresql | nindent 12 }}
           ports:
             - name: http
               containerPort: 8080

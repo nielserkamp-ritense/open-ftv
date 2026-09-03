@@ -72,7 +72,7 @@ type Config struct {
 	config2.Authentication
 	config2.Authorization
 	config2.Bundle
-	config2.DecisionLog
 	config2.OIDC
-	DatabaseURL string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the Manager's own database (policies, attributes, entities and settings)"`
+	DatabaseURL    string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the Manager's own database (policies, attributes, entities and settings)"`
+	ADLDatabaseURL string `json:"-" yaml:"log.decisions.postgresql.url,omitempty" env:"ADL_PG_URL" flag:"adl-pg-url" desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
 }

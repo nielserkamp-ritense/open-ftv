@@ -26,10 +26,8 @@ config:
       usernameKey: username
       passwordKey: password
 
-  # The authorization decision log, read by the manager. Always PostgreSQL.
+  # The authorization decision log written by the PDP, read by the manager.
   authorizationDecisionLog:
-    type: postgresql
-    serviceName: openftv-manager
     postgresql:
       # hostname: ""
       # database: ""

@@ -26,8 +26,6 @@ spec:
     manager:
       enabled: true
       config:
-        authorizationDecisionLog:
-          type: postgresql
         corsOrigins:
           - https://open-ftv.simulatie.datastelsel.nl
         oidc:

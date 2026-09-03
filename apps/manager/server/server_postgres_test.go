@@ -56,10 +56,8 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 		PAP: config2.PAP{
 			Language: "CEDAR",
 		},
-		DecisionLog: config2.DecisionLog{
-			PgURL: withDatabase(baseURL, dbNameADL),
-		},
-		DatabaseURL: withDatabase(baseURL, dbName),
+		DatabaseURL:    withDatabase(baseURL, dbName),
+		ADLDatabaseURL: withDatabase(baseURL, dbNameADL),
 	}
 }
 

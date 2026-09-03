@@ -25,19 +25,11 @@
         "authorizationDecisionLog": {
           "type": "object",
           "properties": {
-            "type": {
-              "const": "postgresql"
-            },
-            "serviceName": {
-              "$ref": "#/definitions/nonEmptyString"
-            },
             "postgresql": {
               "$ref": "#/definitions/postgresqlDatabase"
             }
           },
           "required": [
-            "type",
-            "serviceName",
             "postgresql"
           ]
         },

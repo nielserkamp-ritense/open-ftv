@@ -16,6 +16,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if cfg.ADLDatabaseURL == "" {
+		logger.Error("a Postgres URI for the Authorization Decision Log is required to start the Manager: set MANAGER_ADL_PG_URL or --adl-pg-url")
+		os.Exit(1)
+	}
+
 	srv := server.NewExternal(cfg, logger)
 	srv.Serve()
 }

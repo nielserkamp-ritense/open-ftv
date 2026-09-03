@@ -94,17 +94,9 @@ log:   # options for the application-log.
   format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
-  decisions:   # options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
-    type: "<type>"              # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
+  decisions:   # the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
     postgresql:
-      url: "<url>"              # URL of the Postgres backend holding the ADL (no default).
-      connection:
-        ttl: "<duration>"       # Timeout for closing inactive Postgres connections (default "5m").
-        max: <number>           # Maximum number of connections to the Postgres backend (default 100).
-    migrate:   # accepted for compatibility with the PDP, but not honoured: the Manager always migrates the ADL from the embedded scripts (see "Database migrations" below).
-      source: "<source>"
-      auto: true|false
-      steps: <number>
+      url: "<url>"              # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 database:   # this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
   url: "<url>"                  # URL of the Postgres database (required, no default). Migrated automatically at startup.
@@ -195,14 +187,8 @@ MANAGER_LOG_SOURCE=true|false                   # Flag to record the source loca
 # this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
 MANAGER_DATABASE_URL=<url>                      # URL of the Postgres database (required, no default). Migrated automatically at startup.
 
-# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
+# the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
 MANAGER_ADL_PG_URL=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
-MANAGER_ADL_TYPE=<type>                         # Accepted for compatibility with the PDP, but not honoured: the Manager always reads a "postgresql" ADL.
-MANAGER_ADL_PG_MAX_LIFE=<duration>              # Accepted but not honoured (always "5m").
-MANAGER_ADL_PG_MAX_CONN=<number>                # Accepted but not honoured (always 100).
-MANAGER_ADL_MIGRATE_SOURCE=<source>             # Accepted but not honoured: the ADL is always migrated from the embedded scripts.
-MANAGER_ADL_MIGRATE_AUTO=true|false             # Accepted but not honoured: the ADL is always migrated up to the highest level.
-MANAGER_ADL_MIGRATE_STEPS=<number>              # Accepted but not honoured.
 
 # options used during the authentication stage of a user interface request.
 MANAGER_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -286,14 +272,8 @@ These match the corresponding options in a configuration file.
 # this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
 --database-url=<url>                      # URL of the Postgres database (required, no default). Migrated automatically at startup.
 
-# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
+# the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
 --adl-pg-url=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
---adl-type=<type>                         # Accepted for compatibility with the PDP, but not honoured: the Manager always reads a "postgresql" ADL.
---adl-pg-max-life=<duration>              # Accepted but not honoured (always "5m").
---adl-pg-max-conn=<number>                # Accepted but not honoured (always 100).
---adl-migrate-source=<source>             # Accepted but not honoured: the ADL is always migrated from the embedded scripts.
---adl-migrate-auto=true|false             # Accepted but not honoured: the ADL is always migrated up to the highest level.
---adl-migrate-steps=<number>              # Accepted but not honoured.
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -529,9 +509,9 @@ works in deployments without a separate PDP; see
 
 There is nothing to configure. The `migrate.*` options, `MANAGER_MIGRATE_*` variables and
 `--migrate-*` flags (including `--migrate-and-exit`) no longer exist for the Manager: the flags are
-rejected as unknown flags, and the variables are silently ignored. The ADL-specific
-`--adl-migrate-*`, `--adl-type`, `--adl-pg-max-life` and `--adl-pg-max-conn` options are still
-accepted, because the configuration is shared with the PDP, but the Manager does not honour them.
+rejected as unknown flags, and the variables are silently ignored. The same goes for the PDP's
+other decision-log options (`--adl-type`, `--adl-migrate-*`, `--adl-pg-max-*`, and so on): the
+Manager's only ADL option is the database URL.
 
 ### Bundle management
 
