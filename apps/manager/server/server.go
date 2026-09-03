@@ -5,8 +5,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
-
-	"github.com/kvtools/valkeyrie/store"
+	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
@@ -21,7 +20,11 @@ import (
 
 // NewExternal initializes the HTTP(S) services (implemented with fiber & fasthttp).
 func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
-	s := &Services{cfg: cfg, logger: logger, chk: handle.NewChecks()}
+	s := &Services{
+		cfg:    cfg,
+		logger: logger,
+		chk:    handle.NewChecks(),
+	}
 
 	// we're good to go once the service is running.
 	s.chk.SetHealth(true)
@@ -47,6 +50,16 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 	if cfg.CA != "" {
 		opts = append(opts, server.WithMutualTLS())
 	}
+
+	const fiveMinutes = time.Minute * 5
+
+	postgresDB, err := postgresql.New(context.Background(), s.cfg.DatabaseURL, fiveMinutes, 100)
+	if err != nil {
+		s.logger.Error("failed to create persistence store", "error", err)
+		panic("failed to create persistence store: " + err.Error())
+	}
+
+	s.db = postgresDB
 
 	s.main = eam_fiber.New(logger, s.initRoutes, opts...)
 
@@ -128,7 +141,6 @@ type Services struct {
 	health        server.Service
 	auth          AuthHandler
 	bundleManager *bundles.Manager
-	store         store.Store
 	db            *postgresql.Postgres
 	pap           *pap.PAP
 	pip           *pip.PIP

@@ -15,6 +15,7 @@ pdp:
     # policyLanguage: ""
     authorizationDecisionLog: &authorizationDecisionLog
       postgresql:
+        database: openftv_adl
         existingSecret:
           name: open-ftv-postgresql-app
 
@@ -22,6 +23,10 @@ manager:
   enabled: false
   nameOverride: manager
   config:
+    database:
+      database: openftv
+      existingSecret:
+        name: open-ftv-postgresql-app
     authorizationDecisionLog: *authorizationDecisionLog
 
 management-interface:

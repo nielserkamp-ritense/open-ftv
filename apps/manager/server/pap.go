@@ -4,10 +4,9 @@ import (
 	"fmt"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-// NewPAP instantiates a vanilla PAP with an optional persistent storage backend.
+// NewPAP instantiates a vanilla PAP
 func (s *Services) newPAP() (*pap.PAP, error) {
 	// Always make the seed file store known so LoadFiles can populate an empty
 	// (or freshly migrated) backend from the bundled cedar policy files.
@@ -18,20 +17,8 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 		pap.WithLanguage(s.l.Language()),
 	}
 
-	switch {
-	case s.db != nil:
-		opts = append(opts, pap.WithPgPool(s.db))
-	case s.store != nil:
-		base := fmt.Sprintf("%s%s%s", convert.ForceSuffix(s.cfg.Base, pap.PathSeparator), "policies", pap.PathSeparator)
-		opts = append(opts, pap.WithKeyValueDB(s.store, base))
-	}
-
-	if s.cfg.Source != "" {
-		switch {
-		case s.db != nil:
-			opts = append(opts, pap.WithMigration(s.cfg.Source, s.cfg.Persist.PgURL, s.cfg.Auto, s.cfg.Steps))
-		}
-	}
+	opts = append(opts, pap.WithPgPool(s.db))
+	opts = append(opts, pap.WithMigration("*embed*", s.cfg.DatabaseURL, true, 0))
 
 	_ = s.cfg.FixTags()
 
@@ -40,7 +27,8 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 		return nil, err
 	}
 
-	if err = p.Migrate(); err != nil {
+	err = p.Migrate()
+	if err != nil {
 		return nil, fmt.Errorf("pap: migration failed: %w", err)
 	}
 

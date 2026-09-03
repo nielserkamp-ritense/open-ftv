@@ -57,7 +57,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
 	sanitized := *c
-	sanitized.Persist = *sanitized.Persist.Sanitized()
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
@@ -69,12 +68,11 @@ type Config struct {
 	config2.HealthServer
 	config2.PAP
 	config2.PIP
-	config2.Persist
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
 	config2.Bundle
-	config2.Migration
 	config2.DecisionLog
 	config2.OIDC
+	DatabaseURL string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the Manager's own database (policies, attributes, entities and settings)"`
 }

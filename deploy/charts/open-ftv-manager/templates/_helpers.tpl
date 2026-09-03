@@ -103,6 +103,46 @@ Environment variable items when using a Postgresql database for authorization de
 {{- end }}
 
 {{/*
+Environment variable items for the Postgresql database holding the manager's own data
+(policies, attributes, entities and settings)
+*/}}
+{{- define "open-ftv-manager.databasePostgresql" -}}
+{{- $postgresql := . -}}
+{{- with .existingSecret -}}
+- name: X_MANAGER_DB_HOSTNAME
+  {{- if $postgresql.hostname }}
+  value: {{ $postgresql.hostname }}
+  {{- else }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ .name }}
+      key: {{ .hostnameKey }}
+  {{- end }}
+- name: X_MANAGER_DB_DATABASE
+  {{- if $postgresql.database }}
+  value: {{ $postgresql.database }}
+  {{- else }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ .name }}
+      key: {{ .databaseKey }}
+  {{- end }}
+- name: X_MANAGER_DB_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .name }}
+      key: {{ .usernameKey }}
+- name: X_MANAGER_DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .name }}
+      key: {{ .passwordKey }}
+- name: MANAGER_DATABASE_URL
+  value: {{ printf "postgresql://$(X_MANAGER_DB_USERNAME):$(X_MANAGER_DB_PASSWORD)@$(X_MANAGER_DB_HOSTNAME):%d/$(X_MANAGER_DB_DATABASE)" 5432 }}
+{{- end }}
+{{- end }}
+
+{{/*
 CORS origins
 */}}
 {{- define "open-ftv-manager.corsOrigins" -}}

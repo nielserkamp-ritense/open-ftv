@@ -13,14 +13,28 @@ config:
   logFormat: json
   logLevel: info
 
+  # The manager's own database: policies, attributes, entities and settings.
+  # Migrated by the manager itself at startup.
+  database:
+    # hostname: ""
+    # database: ""
+    existingSecret:
+      # The `<cluster>-app` secret CloudNativePG creates for the cluster's application user.
+      name: open-ftv-postgresql-app
+      hostnameKey: host
+      databaseKey: dbname
+      usernameKey: username
+      passwordKey: password
+
+  # The authorization decision log, read by the manager. Always PostgreSQL.
   authorizationDecisionLog:
-    type: stdout
+    type: postgresql
     serviceName: openftv-manager
     postgresql:
       # hostname: ""
       # database: ""
       existingSecret:
-        # name: ""
+        name: open-ftv-postgresql-app
         hostnameKey: host
         databaseKey: dbname
         usernameKey: username

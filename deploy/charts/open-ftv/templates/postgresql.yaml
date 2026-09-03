@@ -1,7 +1,9 @@
 {{- $fullname := include "open-ftv.fullname" . -}}
 {{- $clusterName := include "open-ftv.postgresqlClusterName" . -}}
+{{- $pdpNeedsPostgresql := eq .Values.pdp.config.authorizationDecisionLog.type "postgresql" -}}
 
-{{- if eq .Values.pdp.config.authorizationDecisionLog.type "postgresql" -}}
+{{/* The manager always needs PostgreSQL: its own database and the authorization decision log. */}}
+{{- if or $pdpNeedsPostgresql .Values.manager.enabled -}}
 
 {{- if not .Values.postgresql.existingCluster -}}
 apiVersion: postgresql.cnpg.io/v1
@@ -27,7 +29,14 @@ spec:
   enablePDB: {{ gt .Values.postgresql.instances 1.0 }}
 {{- end }}
 
-{{- with .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
+{{/* The authorization decision log, shared by the PDP and the manager. */}}
+{{- $adlDatabase := "" }}
+{{- if $pdpNeedsPostgresql }}
+{{- $adlDatabase = .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
+{{- else }}
+{{- $adlDatabase = .Values.manager.config.authorizationDecisionLog.postgresql.database }}
+{{- end }}
+{{- with $adlDatabase }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
@@ -42,5 +51,25 @@ spec:
   name: {{ . }}
   owner: {{ $.Values.postgresql.databaseOwner }}
   databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
+{{- end }}
+
+{{/* The manager's own database: policies, attributes, entities and settings. */}}
+{{- if .Values.manager.enabled }}
+{{- with .Values.manager.config.database.database }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ $fullname }}-manager
+  labels:
+    {{- include "open-ftv.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  cluster:
+    name: {{ $clusterName }}
+  name: {{ . }}
+  owner: {{ $.Values.postgresql.databaseOwner }}
+  databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
+{{- end }}
 {{- end }}
 {{- end }}

@@ -4,11 +4,11 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
@@ -29,7 +29,7 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `make postgres-up`): %v", baseURL, err)
+		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
@@ -43,20 +43,23 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
+	dbNameADL := fmt.Sprintf("%s_adl", dbName)
+	if _, err = admin.Exec(ctx, "DROP DATABASE IF EXISTS "+dbNameADL+" WITH (FORCE)"); err != nil {
+		t.Fatalf("failed to drop existing test database %q: %v", dbNameADL, err)
+	}
+
+	if _, err = admin.Exec(ctx, "CREATE DATABASE "+dbNameADL); err != nil {
+		t.Fatalf("failed to create test database %q: %v", dbNameADL, err)
+	}
+
 	return &config.Config{
 		PAP: config2.PAP{
 			Language: "CEDAR",
 		},
-		Persist: config2.Persist{
-			Type:      "postgres",
-			PgURL:     withDatabase(baseURL, dbName),
-			PgMaxLife: time.Minute,
-			PgMaxConn: 10,
+		DecisionLog: config2.DecisionLog{
+			PgURL: withDatabase(baseURL, dbNameADL),
 		},
-		Migration: config2.Migration{
-			Source: "*embed*",
-			Auto:   true,
-		},
+		DatabaseURL: withDatabase(baseURL, dbName),
 	}
 }
 

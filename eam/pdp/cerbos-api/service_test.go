@@ -11,5 +11,5 @@ func getAddress() string {
 	if s := os.Getenv("CERBOS_ADDRESS"); s != "" {
 		return s
 	}
-	return "dns:localhost:6693"
+	return "dns:localhost:3593"
 }

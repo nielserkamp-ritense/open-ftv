@@ -1,4 +1,4 @@
-name: openftv-unit-tests-postgres
+name: openftv-integration-tests
 
 services:
   postgres:
@@ -29,6 +29,17 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2s
+    restart: on-failure
+
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:0.46.0
+    container_name: openftv-cerbos
+    ports:
+      - "127.0.0.1:3593:3593"
+      - "127.0.0.1:3592:3592"
+    command: ["server", "--config=/conf/service_no_tls.yaml"]
+    volumes:
+      - ./../testdata/unittest/cerbos/conf:/conf:ro
     restart: on-failure
 
 volumes:

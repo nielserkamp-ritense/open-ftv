@@ -11,13 +11,11 @@ import (
 func main() {
 	cfg, logger := config.New()
 
-	if err := cfg.Validate(); err != nil {
-		logger.Error("invalid persistence configuration", "error", err)
+	if cfg.DatabaseURL == "" {
+		logger.Error("a Postgres URI is required to start the Manager: set MANAGER_DATABASE_URL or --database-url")
 		os.Exit(1)
 	}
 
 	srv := server.NewExternal(cfg, logger)
-	if !cfg.ExitAfter {
-		srv.Serve()
-	}
+	srv.Serve()
 }
