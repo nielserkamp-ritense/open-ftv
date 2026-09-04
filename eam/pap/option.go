@@ -45,13 +45,6 @@ func WithPgPool(pool *postgresql.Postgres) Option {
 	}
 }
 
-// WithPolicyDB connects the PAP to a PostgreSQL backend for managing policies.
-func WithPolicyDB(db *PolicyDB) Option {
-	return func(p *PAP) {
-		p.policyDB = db
-	}
-}
-
 // WithMigration sets the URL of the database that Migrate() brings up to the latest level with the
 // migration scripts embedded in the binary.
 func WithMigration(db string) Option {

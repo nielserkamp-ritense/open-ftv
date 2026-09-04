@@ -67,10 +67,7 @@ services:
       - "9100:9443"
       - "8100:8080"
     environment:
-#      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
       - MANAGER_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
-#      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-#      - MANAGER_MIGRATE_SOURCE=*embed*
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -81,7 +78,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-#      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
     depends_on:
       vlierdam-db:
@@ -255,10 +251,7 @@ services:
       - "9120:9443"
       - "8120:8080"
     environment:
-#      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
       - MANAGER_DATABASE_URL=postgres://user:password@rvig-db:5432/openftv?sslmode=disable
-#      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-#      - MANAGER_MIGRATE_SOURCE=*embed*
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -269,7 +262,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-#      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@rvig-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rvig-db:
@@ -408,10 +400,7 @@ services:
       - "9140:9443"
       - "8140:8080"
     environment:
-#      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
       - MANAGER_DATABASE_URL=postgres://user:password@rdw-db:5432/openftv?sslmode=disable
-#      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-#      - MANAGER_MIGRATE_SOURCE=*embed*
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -422,7 +411,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-#      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@rdw-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rdw-db:

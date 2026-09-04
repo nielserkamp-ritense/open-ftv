@@ -69,39 +69,6 @@ func TestPolicyFromValues_Fail(t *testing.T) {
 	})
 }
 
-func TestNewPostgresDB(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name    string
-		dsn     string
-		maxLife time.Duration
-		maxConn int32
-		wantErr bool
-	}{
-		{name: "bad dsn", dsn: "hello world", maxLife: 10 * time.Minute, maxConn: 5, wantErr: true},
-		{name: "good dsn", dsn: "postgres://localhost:5432/myDB?sslmode=disable", maxLife: 10 * time.Minute, maxConn: 5},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			got, err := NewPolicyDB(ctx, tc.dsn, tc.maxLife, tc.maxConn)
-			if tc.wantErr {
-				require.Error(t, err)
-				require.Nil(t, got)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, got)
-			}
-		})
-	}
-}
-
 func TestNewPostgresWithPool(t *testing.T) {
 	t.Parallel()
 
@@ -450,14 +417,11 @@ func newMockPG(t *testing.T, ctx context.Context, dsn string, maxLife time.Durat
 	require.NoError(t, err)
 	require.NotNil(t, mock)
 
-	got, err2 := NewPolicyDB(ctx, dsn, maxLife, maxConn)
-	require.NoError(t, err2)
-	require.NotNil(t, got)
-
-	got.p, err = postgresql.NewWithPool(ctx, dsn, maxLife, maxConn, mock)
+	pool, err := postgresql.NewWithPool(ctx, dsn, maxLife, maxConn, mock)
 	require.NoError(t, err)
-	require.NotNil(t, got.p)
+	require.NotNil(t, pool)
 
+	got := NewPolicyDBWithPool(pool)
 	got.now = func() time.Time { return now }
 	return mock, got
 }

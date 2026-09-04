@@ -14,15 +14,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewPostgresDB instantiates a new bundle deployment persistence manager with a PostgreSQL database as backend.
-func NewPostgresDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*PostgresDB, error) {
-	db, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &PostgresDB{db: db}, nil
-}
-
 // NewPostgresDBWithPool instantiates a new bundle deployment persistence manager with the given PostgreSQL connection pool.
 func NewPostgresDBWithPool(db *postgresql.Postgres) *PostgresDB {
 	return &PostgresDB{db: db}

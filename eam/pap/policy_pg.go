@@ -15,17 +15,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewPolicyDB instantiates a new PostgreSQL database connection for managing policies.
-//
-// The given context is used to signal a clean shutdown of the connection pool.
-func NewPolicyDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*PolicyDB, error) {
-	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &PolicyDB{p: p, now: time.Now}, nil
-}
-
 // NewPolicyDBWithPool instantiates a new PostgreSQL database connection for managing policies using the given connection pool.
 func NewPolicyDBWithPool(pool *postgresql.Postgres) *PolicyDB {
 	return &PolicyDB{p: pool, now: time.Now}
