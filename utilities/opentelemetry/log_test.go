@@ -2,22 +2,16 @@ package opentelemetry
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/attribute"
-
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 func TestNew(t *testing.T) {
-	h := slog2.NewDummyHandler(slog.LevelDebug)
-	sl := slog.New(h)
-
 	testCases := []struct {
 		name    string
 		service string
@@ -26,12 +20,8 @@ func TestNew(t *testing.T) {
 	}{
 		{name: "empty", wantErr: true},
 		{name: "no exporter", service: "fsc-authz", wantErr: true},
-		{name: "bad file", service: "fsc-authz", opts: []Option{WithFile(nil, true)}, wantErr: true},
-		{name: "bad slog", service: "fsc-authz", opts: []Option{WithSLog(nil, "yoyo")}, wantErr: true},
-		{name: "stdout", service: "fsc-authz", opts: []Option{WithFile(os.Stdout, true)}},
-		{name: "stderr", service: "fsc-authz", opts: []Option{WithFile(os.Stderr, false)}},
-		{name: "valid slog", service: "fsc-authz", opts: []Option{WithSLog(sl, "hello world")}},
-		{name: "valid url", service: "fsc-authz", opts: []Option{WithOT("localhost:12345", true), WithBatchTimeout(time.Second)}},
+		{name: "bad exporter", service: "fsc-authz", opts: []Option{WithExporter(nil)}, wantErr: true},
+		{name: "valid exporter", service: "fsc-authz", opts: []Option{WithExporter(tracetest.NewInMemoryExporter()), WithBatchTimeout(time.Second)}},
 	}
 
 	for _, tc := range testCases {
@@ -60,10 +50,9 @@ func TestNew(t *testing.T) {
 
 func TestLogger_StartSpan(t *testing.T) {
 	t.Run("start span", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelDebug)
-		sl := slog.New(h)
+		exporter := tracetest.NewInMemoryExporter()
 
-		l, err := New(nil, "fsc-authz", WithSLog(sl, "log"))
+		l, err := New(nil, "fsc-authz", WithExporter(exporter), WithBatchTimeout(10*time.Millisecond))
 		require.NoError(t, err)
 		require.NotNil(t, l)
 
@@ -75,6 +64,8 @@ func TestLogger_StartSpan(t *testing.T) {
 		span.End()
 
 		time.Sleep(50 * time.Millisecond)
+
+		assert.Len(t, exporter.GetSpans(), 1)
 
 		err = l.Shutdown(ctx)
 		require.NoError(t, err)

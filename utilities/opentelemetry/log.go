@@ -27,8 +27,7 @@ type Logger interface {
 //
 // The given service name is mandatory.
 //
-// Use at most one of WithOT, WithFile, WithSLog or WithExporter to set up the exporter to use.
-// Failing to do so will result in an error.
+// Use WithExporter to set up the exporter to use. Failing to do so will result in an error.
 //
 // The returned Logger does not use the global variables of OpenTelemetry.
 // So it is safe to use multiple instances of Logger if the need arises.
@@ -66,7 +65,7 @@ func New(ctx context.Context, service string, opts ...Option) (*Exporter, error)
 		// for ADL records, which per Logius ADL §3.2.2 MUST be produced regardless of the sampled bit.
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 	)
-	e.tracer = e.tp.Tracer(e.service, e.opts...)
+	e.tracer = e.tp.Tracer(e.service)
 
 	return e, nil
 }
@@ -112,7 +111,6 @@ type Exporter struct {
 	exporter sdktrace.SpanExporter
 	err      error
 	timeout  time.Duration
-	opts     []trace.TracerOption
 	tp       *sdktrace.TracerProvider
 	tracer   trace.Tracer
 	mutex    sync.Mutex

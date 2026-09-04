@@ -3,8 +3,6 @@ package decisions
 import (
 	"context"
 	"encoding/hex"
-	"log/slog"
-	"os"
 	"testing"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 // slowExporter wraps a real exporter but sleeps first, so a caller that returns before delay has
@@ -41,7 +38,7 @@ func TestNew(t *testing.T) {
 	}{
 		{name: "no service name", wantErr: true},
 		{name: "no exporter", service: "test1", wantErr: true},
-		{name: "good", service: "test2", opts: []opentelemetry.Option{opentelemetry.WithFile(os.Stdout, true)}},
+		{name: "good", service: "test2", opts: []opentelemetry.Option{opentelemetry.WithExporter(tracetest.NewInMemoryExporter())}},
 	}
 
 	for _, tc := range testCases {
@@ -171,13 +168,12 @@ func TestLogger_Decision(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			logger := slog.New(h)
+			exporter := tracetest.NewInMemoryExporter()
 
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			got, err := New(ctx, "openftv", opentelemetry.WithSLog(logger, "openftv"), opentelemetry.WithBatchTimeout(10*time.Millisecond))
+			got, err := New(ctx, "openftv", opentelemetry.WithExporter(exporter), opentelemetry.WithBatchTimeout(10*time.Millisecond))
 			require.NoError(t, err)
 			require.NotNil(t, got)
 
@@ -190,12 +186,12 @@ func TestLogger_Decision(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			if !tc.wantErr {
+				assert.Len(t, exporter.GetSpans(), 1)
+			}
+
 			err = got.Shutdown(ctx)
 			require.NoError(t, err)
-
-			if !tc.wantErr {
-				assert.Equal(t, 1, h.Count())
-			}
 		})
 	}
 }
