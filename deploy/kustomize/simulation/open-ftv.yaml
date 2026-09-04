@@ -19,10 +19,6 @@ spec:
     kind: OCIRepository
     name: open-ftv
   values:
-    pdp:
-      config:
-        authorizationDecisionLog:
-          type: postgresql
     manager:
       enabled: true
       config:

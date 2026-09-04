@@ -102,32 +102,10 @@ log:   # options for the application-log.
   format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
-  decisions:   # options for the Authorization Decision Log (ADL).
-    type: "<type>"              # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
-    service: "<service>"        # ADL service name.
-    timeout: "<duration>"       # ADL batch timeout (default 5s).
+  decisions:   # the Authorization Decision Log (ADL): every decision the PDP makes; see the section "Decision log" below.
+    service: "<service>"        # Name of this service in the ADL (required, no default).
     postgresql:
-      url: "<url>"              # URL of a Postgres backend to store the ADL (no default).
-      connection:
-        ttl: "<duration>"       # Timeout for closing inactive Postgres connections (default "5m").
-        max: <number>           # Maximum number of connections to the Postgres backend (default 100).
-    otel:
-      url: "<url>"              # URL of an OpenTelemetry collector for ADL. 
-      insecure: true|false      # allow insecure OpenTelemetry connection.
-    file:
-      prettyPrint: true|false   # Flag to force "pretty printing" on stdout/stderr types.
-    slog:
-      message: "<msg>"          # ADL log message for slog type.
-    migrate:   # options for migrating the ADL database; these take precedence over the general `migrate` options below.
-      source: "<source>"        # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
-      auto: true|false          # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
-      steps: <number>           # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
-
-migrate:    # options for migrating an ADL database.
-  source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
-  auto: true|false              # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
-  steps: <number>               # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
-  exitAfter: true|false         # A `true` value shuts down the app after the migration.
+      url: "<url>"              # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 policies:   # policies used for authorizing user interface requests.
   language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
@@ -199,22 +177,9 @@ PDP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supp
 PDP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 PDP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# options for the Authorization Decision Log (ADL).
-PDP_ADL_TYPE=<type>                         # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
-PDP_ADL_SERVICE=<service>                   # ADL service name.
-PDP_ADL_TIMEOUT=<duration>                  # ADL batch timeout (default 5s).
-PDP_ADL_PG_URL=<url>                        # URL of a Postgres backend to store the ADL (no default).
-PDP_ADL_PG_MAX_LIFE=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
-PDP_ADL_PG_MAX_CONN=<number>                # Maximum number of connections to the Postgres backend (default 100).
-PDP_ADL_OTEL_URL=<url>                      # URL of an OpenTelemetry collector for ADL. 
-PDP_ADL_OTEL_INSECURE=true|false            # allow insecure OpenTelemetry connection.
-PDP_ADL_PRETTY_PRINT=true|false             # Flag to force "pretty printing" on stdout/stderr types.
-PDP_ADL_SLOG_MESSAGE=<msg>                  # ADL log message for slog type.
-
-# options for migrating the ADL database; these take precedence over the general PDP_MIGRATE_* options.
-PDP_ADL_MIGRATE_SOURCE=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
-PDP_ADL_MIGRATE_AUTO=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
-PDP_ADL_MIGRATE_STEPS=<number>              # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
+# the Authorization Decision Log (ADL): every decision the PDP makes; see the section "Decision log" below.
+PDP_ADL_SERVICE_NAME=<service>              # Name of this service in the ADL (required, no default).
+PDP_ADL_PG_URL=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 # policies used for authorizing user interface requests.
 PDP_POLICIES_LANGUAGE=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
@@ -259,17 +224,9 @@ These match the corresponding options in a configuration file.
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# options for the Authorization Decision Log (ADL).
---adl-type=<type>                         # Type of ADL; supported are "postgresql", "opentelemetry", "stdout", "stderr", "slog".
---adl-service=<service>                   # ADL service name.
---adl-timeout=<duration>                  # ADL batch timeout (default 5s).
---adl-pg-url=<url>                        # URL of a Postgres backend to store the ADL (no default).
---adl-pg-max-life=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
---adl-pg-max-conn=<number>                # Maximum number of connections to the Postgres backend (default 100).
---adl-otel-url=<url>                      # URL of an OpenTelemetry collector for ADL. 
---adl-otel-insecure=true|false            # allow insecure OpenTelemetry connection.
---adl-pretty-print=true|false             # Flag to force "pretty printing" on stdout/stderr types.
---adl-slog-message=<msg>                  # ADL log message for slog type.
+# the Authorization Decision Log (ADL): every decision the PDP makes; see the section "Decision log" below.
+--adl-service=<service>                   # Name of this service in the ADL (required, no default).
+--adl-pg-url=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 # policies used for authorizing user interface requests.
 --policies-language=<language>            # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").

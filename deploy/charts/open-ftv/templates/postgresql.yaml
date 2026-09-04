@@ -1,10 +1,8 @@
 {{- $fullname := include "open-ftv.fullname" . -}}
 {{- $clusterName := include "open-ftv.postgresqlClusterName" . -}}
-{{- $pdpNeedsPostgresql := eq .Values.pdp.config.authorizationDecisionLog.type "postgresql" -}}
 
-{{/* The manager always needs PostgreSQL: its own database and the authorization decision log. */}}
-{{- if or $pdpNeedsPostgresql .Values.manager.enabled -}}
-
+{{/* PostgreSQL is always needed: the PDP writes the authorization decision log to it, and the
+     manager also has its own database. */}}
 {{- if not .Values.postgresql.existingCluster -}}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -29,14 +27,8 @@ spec:
   enablePDB: {{ gt .Values.postgresql.instances 1.0 }}
 {{- end }}
 
-{{/* The authorization decision log, shared by the PDP and the manager. */}}
-{{- $adlDatabase := "" }}
-{{- if $pdpNeedsPostgresql }}
-{{- $adlDatabase = .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
-{{- else }}
-{{- $adlDatabase = .Values.manager.config.authorizationDecisionLog.postgresql.database }}
-{{- end }}
-{{- with $adlDatabase }}
+{{/* The authorization decision log, written by the PDP and read by the manager. */}}
+{{- with .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
@@ -70,6 +62,5 @@ spec:
   name: {{ . }}
   owner: {{ $.Values.postgresql.databaseOwner }}
   databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
-{{- end }}
 {{- end }}
 {{- end }}

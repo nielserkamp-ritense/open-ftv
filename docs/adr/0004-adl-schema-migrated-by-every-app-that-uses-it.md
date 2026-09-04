@@ -59,3 +59,10 @@ against the same database is safe.
   init failures in `initRoutes`. The accepted cost: an ADL database outage takes policy
   administration down with it, rather than silently serving a management plane that cannot
   produce its audit trail.
+
+## Update (2026-09)
+
+The Manager and the PDP now require PostgreSQL and migrate the ADL unconditionally at
+startup from the embedded scripts. The `ADL_MIGRATE_*` and `MIGRATE_*` options described
+under *Consequences* no longer exist; the decision itself (every app that uses the ADL
+migrates it) stands.

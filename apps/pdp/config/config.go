@@ -18,8 +18,6 @@ var (
 )
 
 const (
-	// AppName defines the name and version of this application.
-	AppName   = "OpenFTV PDP 2.0"
 	envPrefix = "PDP_"
 	cfg1      = "/etc/pdp/config.yaml"
 	cfg2      = "./etc/pdp.yaml"
@@ -37,7 +35,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 			[]config.Option{
 				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
-				config.AppName(AppName),
 			},
 			opts...,
 		),
@@ -59,12 +56,8 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
-	logger.Info(AppName)
-
 	sanitized := *c
 	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
-	sanitized.DecisionLog = *sanitized.DecisionLog.Sanitized()
-	logger.Info("configuration loaded successfully", "config", sanitized)
 	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
@@ -79,6 +72,6 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
-	config2.DecisionLog
-	config2.Migration
+	ADLService     string `json:"adlService,omitempty" yaml:"log.decisions.service,omitempty"        env:"ADL_SERVICE_NAME" flag:"adl-service" desc:"Name of this service in the Authorization Decision Log"`
+	ADLDatabaseURL string `json:"-"                    yaml:"log.decisions.postgresql.url,omitempty" env:"ADL_PG_URL"       flag:"adl-pg-url"  desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
 }

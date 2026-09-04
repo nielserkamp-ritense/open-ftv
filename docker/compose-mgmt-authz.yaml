@@ -59,11 +59,8 @@ services:
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies/cedar
       - PDP_POLICIES_STORE_RECURSE=true
-      - PDP_ADL_TYPE=postgresql
       - PDP_ADL_SERVICE_NAME=manager
       - PDP_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       mgmt-db:
         condition: service_healthy

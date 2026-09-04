@@ -105,11 +105,8 @@ services:
       - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=rego                                      # policy language.
       - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml          # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql                                         # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true                                           # ADL migrations.
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       vlierdam-manager:
         condition: service_healthy

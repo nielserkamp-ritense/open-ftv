@@ -64,7 +64,8 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Environment variable items when using a Postgresql database for authorization decision log
+Environment variable items for the Postgresql database holding the authorization decision log
+(required: the PDP writes every decision to it and migrates it at startup)
 */}}
 {{- define "open-ftv-pdp.authorizationDecisionLogPostgresql" -}}
 {{- $postgresql := . -}}

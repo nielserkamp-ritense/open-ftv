@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
@@ -33,6 +32,10 @@ import (
 // record content and receiving-side trace context, not the gateway's propagation half.
 
 const defaultADLTestPostgresURL = "postgres://user:password@localhost:5432/openftv?sslmode=disable"
+
+// defaultADLTestDatabaseURL is the ADL database of docker/compose-integration-tests.yaml, for
+// tests that only need a working decision log and do not create a database of their own.
+const defaultADLTestDatabaseURL = "postgres://user:password@localhost:5432/openftv_adl?sslmode=disable"
 
 const goodEvaluationItem = `"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_update","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}`
 
@@ -68,18 +71,10 @@ func newADLTestConfig(t *testing.T) (*config.Config, string) {
 	dsn := withADLDatabase(baseURL, dbName)
 
 	cfg := &config.Config{
-		PAP: config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},
-		PIP: config2.PIP{Store: "../../../testdata/pip", StoreRecurse: true},
-		DecisionLog: config2.DecisionLog{
-			Type:          "postgresql",
-			Service:       "adl-compliance-test",
-			Timeout:       2 * time.Second,
-			PgURL:         dsn,
-			PgMaxLife:     time.Minute,
-			PgMaxConn:     5,
-			MigrateSource: "*embed*",
-			MigrateAuto:   true,
-		},
+		PAP:            config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},
+		PIP:            config2.PIP{Store: "../../../testdata/pip", StoreRecurse: true},
+		ADLService:     "adl-compliance-test",
+		ADLDatabaseURL: dsn,
 	}
 
 	return cfg, dsn
