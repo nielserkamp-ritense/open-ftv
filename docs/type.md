@@ -8,7 +8,7 @@ Standaard access-control rollen (XACML / AuthZEN), zoals OpenFTV ze gebruikt.
 |---|---|---|---|
 | **PEP** | Policy **Enforcement** Point | Onderschept de request, bouwt de autorisatievraag (PARC: principal / action / resource / context), vraagt de PDP om een oordeel en **handhaaft** dat (doorlaten of `403`). | `eam/pep` — valideert het JWT, mapt token → principal + rollen, bouwt de PARC. Draait in de gateway-plugin (Kong) én in-app in de `manager`. |
 | **PDP** | Policy **Decision** Point | Neemt de **beslissing** (`permit` / `deny`) door de PARC tegen de policies te evalueren. Handhaaft zelf niets. | `eam/pdp/cedar-embedded` — de embedded Cedar-engine die `permit` / `deny` teruggeeft. |
-| **PAP** | Policy **Administration** Point | **Beheert** de policies: aanmaken, bewerken, opslaan, versioneren, uitleveren. De bron van de regels. | `eam/pap` — de policy-store (file-store vs. postgres). De UI ("Beleidsregels") praat hiermee. |
+| **PAP** | Policy **Administration** Point | **Beheert** de policies: aanmaken, bewerken, opslaan, versioneren, uitleveren. De bron van de regels. | `eam/pap` — de policy-store (postgres). De UI ("Beleidsregels") praat hiermee. |
 | **PIP** | Policy **Information** Point | Levert **extra attributen / context** die de PDP nodig heeft maar niet in de request zitten (rollen, resource-status, eigenaarschap, …). | `eam/pip` — de entity-/attribuut-store (`PIP_STORE`). |
 
 ## Flow

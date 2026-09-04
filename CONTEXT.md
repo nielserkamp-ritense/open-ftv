@@ -48,7 +48,7 @@ _Avoid_: permission, grant, right.
 **Policy**:
 A rule (Cedar, in the embedded-PDP deployment) that the PDP evaluates to permit or deny a
 request. Policies are administered in the PAP; the backing store (postgres, which the
-Manager requires) is the source of truth and UI edits win over the bundled seed files.
+Manager and the PAP require) is the source of truth and UI edits win over the bundled seed files.
 _Avoid_: rule (when you mean a Policy), permission.
 
 **Seed policy**:
