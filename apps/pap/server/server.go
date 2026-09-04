@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pap/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
@@ -13,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // NewService initializes the HTTP(S) services (implemented with fiber & fasthttp).
@@ -27,6 +29,14 @@ func NewService(cfg *config.Config, logger *slog.Logger) *Services {
 	s.chk.SetHealth(true)
 	s.chk.SetAlive(true)
 	s.chk.SetReady(true)
+
+	postgresDB, err := postgresql.New(context.Background(), cfg.DatabaseURL, 5*time.Minute, 100)
+	if err != nil {
+		logger.Error("failed to connect the postgres database", "error", err)
+		panic("failed to connect the postgres database: " + err.Error())
+	}
+
+	s.db = postgresDB
 
 	opts := []server.Option{
 		server.WithDefaults(),
@@ -126,5 +136,6 @@ type Services struct {
 	auth          AuthHandler
 	bundleManager *bundles.Manager
 	pap           *pap.PAP
+	db            *postgresql.Postgres
 	chk           *handle.Checks
 }
