@@ -226,7 +226,7 @@ func (s *Services) initADL(group fiber.Router) {
 	// PDP alongside it (in-app deployment) would otherwise never see the schema created,
 	// and with a PDP alongside it startup order would decide whether the log works.
 	// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
-	err := decisions.Migrate("*embed*", s.cfg.ADLDatabaseURL, 0, true, s.logger)
+	err := decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger)
 	if err != nil {
 		s.logger.Error("failed to migrate the Authorization Decision Log database", "error", err)
 		panic("failed to migrate the Authorization Decision Log database: " + err.Error())

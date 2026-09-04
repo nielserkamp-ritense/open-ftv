@@ -17,7 +17,7 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 	}
 
 	opts = append(opts, pap.WithPgPool(db))
-	opts = append(opts, pap.WithMigration("*embed*", s.cfg.DatabaseURL, true, 0))
+	opts = append(opts, pap.WithMigration(s.cfg.DatabaseURL))
 
 	_ = s.cfg.FixTags()
 

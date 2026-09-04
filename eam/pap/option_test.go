@@ -125,13 +125,10 @@ func TestWithMigration(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration("/file", "/db", true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration("/db"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		assert.Equal(t, "/file", p.migrateSource)
 		assert.Equal(t, "/db", p.migrateDB)
-		assert.True(t, p.migrateAuto)
-		assert.Equal(t, 3, p.migrateSteps)
 	})
 }

@@ -50,7 +50,7 @@ func (s *attributeStore) CreateAttribute(ctx context.Context, _ identity.Princip
 
 // ReadAttribute implements the AttributePersister interface.
 func (s *attributeStore) ReadAttribute(ctx context.Context, id string) (*models.Attribute, uint64, error) {
-	key := s.bugFix(s.makeKey(id))
+	key := s.makeKey(id)
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -136,7 +136,7 @@ func (s *attributeStore) DeleteAttribute(ctx context.Context, _ identity.Princip
 
 // ListAttributes implements the AttributePersister interface.
 func (s *attributeStore) ListAttributes(ctx context.Context) ([]*models.Attribute, error) {
-	key := s.bugFix(s.basePath)
+	key := s.basePath
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()

@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/goccy/go-json"
-	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -60,7 +59,7 @@ func (s *KeyValueDB) CreatePolicy(ctx context.Context, _ identity.Principal, p *
 
 // ReadPolicy retrieves a policy from the store.
 func (s *KeyValueDB) ReadPolicy(ctx context.Context, id string) (*models.Policy, uint64, error) {
-	key := s.bugFix(s.makeKey(id))
+	key := s.makeKey(id)
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -146,7 +145,7 @@ func (s *KeyValueDB) DeletePolicy(ctx context.Context, _ identity.Principal, pre
 
 // ListPolicies returns all policies from the store.
 func (s *KeyValueDB) ListPolicies(ctx context.Context, language string) ([]*models.Policy, error) {
-	key := s.bugFix(s.basePath)
+	key := s.basePath
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -200,14 +199,6 @@ func (s *KeyValueDB) failure(op, id string, err error, mustFind bool) error {
 		return fmt.Errorf("policy '%s' not found", id)
 	}
 	return fmt.Errorf("policy '%s' already exists", id)
-}
-
-func (s *KeyValueDB) bugFix(in string) string {
-	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
-	if _, ok := s.client.(*etcdv3.Store); ok {
-		return "/" + in
-	}
-	return in
 }
 
 var (

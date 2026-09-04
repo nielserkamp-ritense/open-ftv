@@ -86,7 +86,7 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 	dsn := withDatabase(baseURL, dbName)
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
-	require.NoError(t, Migrate("*embed*", dsn, 0, true, logger))
+	require.NoError(t, Migrate(dsn, logger))
 
 	l, err := NewWithPostgreSQL(ctx, "adl-idempotency-test", dsn, nil, time.Minute, 5, opentelemetry.WithBatchTimeout(2*time.Second))
 	require.NoError(t, err)

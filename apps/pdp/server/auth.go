@@ -122,5 +122,5 @@ func adlInstanceID() string {
 // the latest level from the embedded scripts. Every app that uses the ADL migrates it; see
 // docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
 func (s *Services) checkMigrations() error {
-	return decisions.Migrate("*embed*", s.cfg.ADLDatabaseURL, 0, true, s.logger)
+	return decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger)
 }

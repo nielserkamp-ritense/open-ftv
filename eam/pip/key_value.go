@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 )
 
@@ -19,14 +18,6 @@ type kvWrapper struct {
 
 func (w *kvWrapper) makeKey(key string) string {
 	return fmt.Sprintf("%s%s", w.basePath, key)
-}
-
-func (w *kvWrapper) bugFix(in string) string {
-	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
-	if _, ok := w.client.(*etcdv3.Store); ok {
-		return "/" + in
-	}
-	return in
 }
 
 var (

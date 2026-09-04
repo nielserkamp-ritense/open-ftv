@@ -20,11 +20,8 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/kvtools/consul v1.0.2
-	github.com/kvtools/etcdv3 v1.0.3
 	github.com/kvtools/valkeyrie v1.0.0
 	github.com/lib/pq v1.12.3
-	github.com/mattn/go-sqlite3 v1.14.50
 	github.com/open-policy-agent/opa v1.18.2
 	github.com/openfga/api/proto v0.0.0-20260619182052-dd87be81488e
 	github.com/openfga/language/pkg/go v0.3.1
@@ -59,7 +56,6 @@ require (
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
-	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.24.4 // indirect
 	github.com/bytecodealliance/wasmtime-go/v44 v44.0.0 // indirect
@@ -69,17 +65,13 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
-	github.com/coreos/go-semver v0.3.1 // indirect
-	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
 	github.com/deiu/gon3 v0.0.0-20241212124032-93153c038193 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
-	github.com/fatih/color v1.19.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -88,22 +80,14 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/cel-go v0.30.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
-	github.com/hashicorp/consul/api v1.14.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-hclog v1.6.3 // indirect
-	github.com/hashicorp/go-immutable-radix v1.3.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
-	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
-	github.com/hashicorp/serf v0.9.7 // indirect
 	github.com/huandu/go-clone v1.7.3 // indirect
 	github.com/huandu/go-sqlbuilder v1.41.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
@@ -126,11 +110,8 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/natefinch/wrap v0.2.0 // indirect
-	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.7.2 // indirect
 	github.com/oasdiff/yaml v0.1.1 // indirect
 	github.com/oasdiff/yaml3 v0.0.14 // indirect
@@ -143,7 +124,6 @@ require (
 	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
-	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/rs/xid v1.6.0 // indirect
@@ -173,9 +153,6 @@ require (
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.4 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.6.4 // indirect
-	go.etcd.io/etcd/client/v3 v3.6.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
@@ -200,10 +177,6 @@ require (
 	k8s.io/apimachinery v0.36.2 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
-	modernc.org/libc v1.72.3 // indirect
-	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.52.0 // indirect
 	oras.land/oras-go/v2 v2.6.1 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )

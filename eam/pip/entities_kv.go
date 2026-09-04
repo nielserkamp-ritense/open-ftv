@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/goccy/go-json"
-	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -53,7 +52,7 @@ func (s *entityStore) CreateEntity(ctx context.Context, _ identity.Principal, e 
 
 // ReadEntity implements the EntityPersister interface.
 func (s *entityStore) ReadEntity(ctx context.Context, ns, id string) (*models.Entity, uint64, error) {
-	key := s.bugFix(s.makeKey(models.EntityUID(ns, id)))
+	key := s.makeKey(models.EntityUID(ns, id))
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -139,7 +138,7 @@ func (s *entityStore) DeleteEntity(ctx context.Context, _ identity.Principal, pr
 
 // ListEntities implements the EntityPersister interface.
 func (s *entityStore) ListEntities(ctx context.Context) ([]*models.Entity, error) {
-	key := s.bugFix(s.basePath)
+	key := s.basePath
 
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -253,14 +252,6 @@ func (s *entityStore) failure(op, id string, err error, mustFind bool) error {
 		return fmt.Errorf("entity '%s' not found", id)
 	}
 	return fmt.Errorf("entity '%s' already exists", id)
-}
-
-func (s *entityStore) bugFix(in string) string {
-	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
-	if _, ok := s.client.(*etcdv3.Store); ok {
-		return "/" + in
-	}
-	return in
 }
 
 type entityStore struct {
