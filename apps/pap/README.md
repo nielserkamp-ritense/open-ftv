@@ -485,7 +485,7 @@ PAP_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disab
 Earlier versions of the PAP supported in-memory, etcd and Consul storage through the
 `persist.*` options, `PAP_PERSIST_*` variables and `--persist-*` flags. These no longer exist
 for the PAP: the `--persist-*` flags are rejected as unknown flags, and `PAP_PERSIST_*`
-variables are silently ignored. (The PIP app still accepts them.)
+variables are silently ignored.
 
 ### Database migrations
 

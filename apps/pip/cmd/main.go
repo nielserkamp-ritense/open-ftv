@@ -11,10 +11,11 @@ import (
 func main() {
 	cfg, logger := config.New()
 
-	if err := cfg.Validate(); err != nil {
-		logger.Error("invalid persistence configuration", "error", err)
+	if cfg.DatabaseURL == "" {
+		logger.Error("a Postgres URI is required to start the PIP: set PIP_DATABASE_URL or --database-url")
 		os.Exit(1)
 	}
 
-	server.NewServices(cfg, logger).Serve()
+	srv := server.NewServices(cfg, logger)
+	srv.Serve()
 }

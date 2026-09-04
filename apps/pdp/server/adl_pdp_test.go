@@ -46,7 +46,7 @@ const goodSubject = `{` + goodEvaluationItem + `}`
 func newADLTestConfig(t *testing.T) (*config.Config, string) {
 	t.Helper()
 
-	baseURL := os.Getenv("MANAGER_TEST_POSTGRES_URL")
+	baseURL := os.Getenv("PDP_TEST_POSTGRES_URL")
 	if baseURL == "" {
 		baseURL = defaultADLTestPostgresURL
 	}

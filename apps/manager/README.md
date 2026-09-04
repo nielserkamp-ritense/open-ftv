@@ -497,7 +497,7 @@ MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode
 Earlier versions of the Manager supported in-memory, etcd and Consul storage through the
 `persist.*` options, `MANAGER_PERSIST_*` variables and `--persist-*` flags. These no longer exist
 for the Manager: the `--persist-*` flags are rejected as unknown flags, and `MANAGER_PERSIST_*`
-variables are silently ignored. (The PIP app still accepts them.)
+variables are silently ignored.
 
 ### Database migrations
 

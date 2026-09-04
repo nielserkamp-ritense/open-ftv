@@ -3,7 +3,7 @@ package server
 
 import (
 	"log/slog"
-	"strings"
+	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
@@ -73,15 +73,13 @@ type authHandler struct {
 // every create and update here would fail on a foreign-key violation. It opens its own pool
 // because the PIP store is built after the authorizer.
 func (s *Services) principalRecorder() []authorization.Option {
-	if !strings.EqualFold(s.cfg.Persist.Type, "postgres") {
-		return nil
-	}
-
-	db, err := postgresql.New(s.ctx, s.cfg.PgURL, s.cfg.PgMaxLife, s.cfg.PgMaxConn)
+	db, err := postgresql.New(s.ctx, s.cfg.DatabaseURL, 5*time.Minute, 100)
 	if err != nil {
 		s.logger.Error("failed to connect the principal store; writes will fail on the created_by foreign key", "error", err)
 		return nil
 	}
 
-	return []authorization.Option{authorization.WithPrincipalRecorder(principals.NewDBWithPool(db))}
+	return []authorization.Option{
+		authorization.WithPrincipalRecorder(principals.NewDBWithPool(db)),
+	}
 }

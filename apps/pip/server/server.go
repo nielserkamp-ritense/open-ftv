@@ -27,7 +27,6 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 	opts := []server.Option{
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
-		server.WithAppName(config.AppName),
 		server.WithSvcName("main"),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
@@ -52,7 +51,6 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 		s.initHealthRoutes,
 		server.WithDefaults(),
 		server.WithHostPort(cfg.HealthHost, cfg.HealthPort),
-		server.WithAppName(config.AppName),
 		server.WithSvcName("health"),
 		server.WithTimeouts(cfg.HealthRead, cfg.HealthWrite, cfg.HealthIdle),
 		server.WithMaxBody(cfg.HealthMaxBody),
