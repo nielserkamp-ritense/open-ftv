@@ -56,27 +56,53 @@ func (b *Base) processPolicies(bundle *bundles.Bundle) error {
 	return b.PAP.ReplaceAll(list, bundleUser)
 }
 
+// processAttributes upserts the bundle's attributes into the PIP, and removes only the
+// attributes the previous bundle added that are no longer present in this one. Attributes owned
+// by other PIP sources (a local file store, a pull-config) are never touched.
 func (b *Base) processAttributes(bundle *bundles.Bundle) {
-	list := models.NewAttributeSet()
+	newKeys := make(map[string]struct{}, len(bundle.Attributes))
+
 	for _, a := range bundle.Attributes {
-		list.AddAttributeKVWithType(a.Key, a.Value, a.Type)
+		attr := models.NewAttributeWithType(a.Key, a.Value, a.Type)
+		_, _ = b.PIP.AddAttributeWithUser(attr, bundleUser)
+
+		newKeys[a.Key] = struct{}{}
 	}
 
-	b.PIP.ReplaceAllAttributes(list, bundleUser)
+	for key := range b.bundleAttrKeys {
+		if _, keep := newKeys[key]; !keep {
+			_, _ = b.PIP.RemoveAttribute(key, bundleUser)
+		}
+	}
+
+	b.bundleAttrKeys = newKeys
 }
 
+// processEntities upserts the bundle's entities into the PIP, and removes only the entities the
+// previous bundle added that are no longer present in this one. Entities owned by other PIP
+// sources (a local file store, a pull-config) are never touched.
 func (b *Base) processEntities(bundle *bundles.Bundle) {
-	list := models.NewEntitySet()
+	newUIDs := make(map[string]struct{}, len(bundle.Entities))
+
 	for _, e := range bundle.Entities {
 		attr := models.NewAttributeSet()
 		for _, a := range e.Attributes {
 			attr.AddAttributeKVWithType(a.Key, a.Value, a.Type)
 		}
 
-		_, _ = list.AddEntity(models.NewEntity(e.Type, e.Id, attr))
+		entity := models.NewEntity(e.Type, e.Id, attr)
+		_, _ = b.PIP.AddEntityWithUser(entity, bundleUser)
+
+		newUIDs[entity.UID()] = struct{}{}
 	}
 
-	b.PIP.ReplaceAllEntities(list, bundleUser)
+	for uid := range b.bundleEntityUIDs {
+		if _, keep := newUIDs[uid]; !keep {
+			_, _ = b.PIP.RemoveEntity(uid, bundleUser)
+		}
+	}
+
+	b.bundleEntityUIDs = newUIDs
 }
 
 func (b *Base) processRelations(_ *bundles.Bundle) {

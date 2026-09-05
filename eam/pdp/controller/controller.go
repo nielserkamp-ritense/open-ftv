@@ -52,8 +52,10 @@ type Base struct {
 	BundleVersion uint64
 	Self          Evaluator
 	// hidden fields
-	fullName string
-	mappers  []mapping.Mapper
+	fullName         string
+	mappers          []mapping.Mapper
+	bundleAttrKeys   map[string]struct{} // keys owned by the last-applied bundle.
+	bundleEntityUIDs map[string]struct{} // UIDs owned by the last-applied bundle.
 }
 
 // NewBase instantiates a new controller base.

@@ -12,7 +12,7 @@ import (
 //
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
-	return p.addAttributeWithUser(in, identity.NewSystemPrincipal())
+	return p.AddAttributeWithUser(in, identity.NewSystemPrincipal())
 }
 
 // AddDynamicAttribute adds/replaces the given attribute in the PIP.
@@ -22,7 +22,7 @@ func (p *PIP) AddAttribute(in *models.Attribute) (*models.Attribute, error) {
 // If the given attribute exists, it is updated, otherwise created.
 func (p *PIP) AddDynamicAttribute(in *models.Attribute) (*models.Attribute, error) {
 	p.dynamicData.addAttribute(in)
-	return p.addAttributeWithUser(in, identity.NewSystemPrincipal())
+	return p.AddAttributeWithUser(in, identity.NewSystemPrincipal())
 }
 
 // AddAttributeFromOAS adds/replaces an attribute in the PIP based on the given OAS model.
@@ -33,10 +33,14 @@ func (p *PIP) AddDynamicAttribute(in *models.Attribute) (*models.Attribute, erro
 func (p *PIP) AddAttributeFromOAS(in *oas.Attribute, user identity.Principal) (*models.Attribute, error) {
 	a := models.NewAttributeFromOAS(in)
 	p.dynamicData.addAttribute(a)
-	return p.addAttributeWithUser(a, user)
+
+	return p.AddAttributeWithUser(a, user)
 }
 
-func (p *PIP) addAttributeWithUser(in *models.Attribute, user identity.Principal) (*models.Attribute, error) {
+// AddAttributeWithUser adds/replaces the given attribute in the PIP, attributed to user.
+//
+// If the given attribute exists, it is updated, otherwise created.
+func (p *PIP) AddAttributeWithUser(in *models.Attribute, user identity.Principal) (*models.Attribute, error) { //nolint:gocritic // identity.Principal is passed by value throughout eam/pip; matches AddEntityWithUser.
 	prev, ix, err := p.attributeDB.ReadAttribute(p.ctx, in.Key())
 	if err != nil || prev == nil {
 		if _, err = p.attributeDB.CreateAttribute(p.ctx, user, in); err == nil && p.eventSinks != nil {
@@ -135,7 +139,7 @@ func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user ident
 
 	if (prev.Status() == models.StatusConcept && status == models.StatusAccepted) ||
 		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
-		return p.addAttributeWithUser(prev.WithStatus(status), user)
+		return p.AddAttributeWithUser(prev.WithStatus(status), user)
 	}
 	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
 }
@@ -173,7 +177,7 @@ func (p *PIP) ReplaceAllAttributes(list *models.AttributeSet, user identity.Prin
 	if list != nil {
 		// add all given attributes.
 		list.IterateAttributes(func(a *models.Attribute) {
-			_, _ = p.addAttributeWithUser(a, user)
+			_, _ = p.AddAttributeWithUser(a, user)
 		})
 	}
 
@@ -193,7 +197,7 @@ func (p *PIP) IterateAttributes(f models.AttributeIterator) {
 func (p *PIP) MergeAttributes(in ...*models.AttributeSet) {
 	for _, set := range in {
 		set.IterateAttributes(func(attr *models.Attribute) {
-			_, _ = p.addAttributeWithUser(attr, identity.NewSystemPrincipal())
+			_, _ = p.AddAttributeWithUser(attr, identity.NewSystemPrincipal())
 		})
 	}
 }

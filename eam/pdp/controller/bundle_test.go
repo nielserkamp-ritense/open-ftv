@@ -28,15 +28,6 @@ func TestBase_NewBundle(t *testing.T) {
 	p2, _ := models.NewPolicyFromData("p2", "cedar", "", "", bytes.NewBufferString("allow=true"))
 	p3, _ := models.NewPolicyFromData("p3", "cedar", "", "", bytes.NewBufferString("allow=true"))
 
-	a1 := models.NewOriginalAttribute("a1", 123, "123", "xsd:integer")
-	a2 := models.NewOriginalAttribute("a2", "hello world", "hello world", "xsd:string")
-	a3 := models.NewOriginalAttribute("a3", true, "1", "xsd:boolean")
-	setA := models.NewAttributeSet(a1, a2, a3)
-
-	e1 := models.NewEntity("user", "alice", models.NewAttributeSet(a1))
-	e2 := models.NewEntity("user", "bob", models.NewAttributeSet(a3, a2))
-	setE := models.NewEntitySet(e2, e1)
-
 	testCases := []struct {
 		name   string
 		bundle *bundles.Bundle
@@ -123,9 +114,6 @@ func TestBase_NewBundle(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, ip1)
 
-			ip1.MergeAttributes(setA)
-			ip1.MergeEntities(setE)
-
 			m := &Base{
 				Ctx:           ctx,
 				Logger:        logger,
@@ -185,6 +173,167 @@ func TestBase_NewBundle(t *testing.T) {
 			assert.Equal(t, len(tc.bundle.Entities), count)
 		})
 	}
+}
+
+// TestBase_NewBundle_preservesOtherPIPSources verifies that applying a bundle never touches
+// attributes/entities owned by other PIP sources (e.g. a local file store or a pull-config) -
+// only attributes/entities the bundle itself provides are added or updated.
+func TestBase_NewBundle_preservesOtherPIPSources(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+
+	ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
+
+	ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	// data owned by other PIP sources (e.g. a local file store / pull-config), not by any bundle.
+	_, err = ip.AddAttribute(models.NewOriginalAttribute("a1", "original", "original", "xsd:string"))
+	require.NoError(t, err)
+	_, err = ip.AddAttribute(models.NewOriginalAttribute("a2", "original", "original", "xsd:string"))
+	require.NoError(t, err)
+	_, err = ip.AddEntity(models.NewEntity("user", "alice", models.NewAttributeSet()))
+	require.NoError(t, err)
+	_, err = ip.AddEntity(models.NewEntity("user", "bob", models.NewAttributeSet()))
+	require.NoError(t, err)
+
+	m := &Base{Ctx: ctx, Logger: logger, PAP: ap, PIP: ip, AuthMutex: &sync.RWMutex{}}
+
+	bundle := &bundles.Bundle{
+		Version: 1,
+		Attributes: map[string]*attributes.Attribute{
+			// "a2" also exists outside the bundle: the bundle's write should update it in place.
+			"a2": {Key: "a2", Type: "xsd:string", Value: "from bundle"},
+			"a4": {Key: "a4", Type: "xsd:string", Value: "hello mars"},
+		},
+		Entities: map[string]*attributes.Entity{
+			"e4": {Type: "resource", Id: "book4"},
+		},
+	}
+
+	_, err = m.NewBundle(bundle)
+	require.NoError(t, err)
+
+	a1, _, err := ip.GetAttribute("a1")
+	require.NoError(t, err)
+	assert.Equal(t, "original", a1.Value()) // untouched by the bundle.
+
+	a2, _, err := ip.GetAttribute("a2")
+	require.NoError(t, err)
+	assert.Equal(t, "from bundle", a2.Value()) // updated by the bundle.
+
+	a4, _, err := ip.GetAttribute("a4")
+	require.NoError(t, err)
+	assert.Equal(t, "hello mars", a4.Value()) // added by the bundle.
+
+	alice, _, err := ip.GetEntity("user::alice")
+	require.NoError(t, err)
+	assert.NotNil(t, alice) // untouched by the bundle.
+
+	bob, _, err := ip.GetEntity("user::bob")
+	require.NoError(t, err)
+	assert.NotNil(t, bob) // untouched by the bundle.
+
+	book4, _, err := ip.GetEntity("resource::book4")
+	require.NoError(t, err)
+	assert.NotNil(t, book4) // added by the bundle.
+
+	var attrCount, entityCount int
+
+	ip.IterateAttributes(func(*models.Attribute) { attrCount++ })
+	ip.IterateEntities(func(*models.Entity) { entityCount++ })
+	assert.Equal(t, 3, attrCount)   // a1, a2, a4.
+	assert.Equal(t, 3, entityCount) // alice, bob, book4.
+}
+
+// TestBase_NewBundle_prunesOnlyPreviousBundleData verifies that when a bundle stops carrying an attribute/entity it
+// previously carried, that record is removed. Data owned by other PIP sources (never part of any bundle) survives
+// across repeated bundle applications.
+func TestBase_NewBundle_prunesOnlyPreviousBundleData(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+
+	ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
+
+	ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	// data owned by other PIP sources, never part of any bundle.
+	_, err = ip.AddAttribute(models.NewAttribute("local", "kept"))
+	require.NoError(t, err)
+	_, err = ip.AddEntity(models.NewEntity("user", "alice", models.NewAttributeSet()))
+	require.NoError(t, err)
+
+	m := &Base{Ctx: ctx, Logger: logger, PAP: ap, PIP: ip, AuthMutex: &sync.RWMutex{}}
+
+	_, err = m.NewBundle(&bundles.Bundle{
+		Version: 1,
+		Attributes: map[string]*attributes.Attribute{
+			"b1": {Key: "b1", Type: "xsd:string", Value: "one"},
+			"b2": {Key: "b2", Type: "xsd:string", Value: "two"},
+		},
+		Entities: map[string]*attributes.Entity{
+			"r1": {Type: "resource", Id: "r1"},
+			"r2": {Type: "resource", Id: "r2"},
+		},
+	})
+	require.NoError(t, err)
+
+	// second bundle drops "b1"/"r1" and adds "b3"/"r3".
+	_, err = m.NewBundle(&bundles.Bundle{
+		Version: 2,
+		Attributes: map[string]*attributes.Attribute{
+			"b2": {Key: "b2", Type: "xsd:string", Value: "two"},
+			"b3": {Key: "b3", Type: "xsd:string", Value: "three"},
+		},
+		Entities: map[string]*attributes.Entity{
+			"r2": {Type: "resource", Id: "r2"},
+			"r3": {Type: "resource", Id: "r3"},
+		},
+	})
+	require.NoError(t, err)
+
+	b1, _, err := ip.GetAttribute("b1")
+	require.NoError(t, err)
+	assert.Nil(t, b1) // pruned: no longer in the latest bundle.
+
+	b2, _, err := ip.GetAttribute("b2")
+	require.NoError(t, err)
+	assert.NotNil(t, b2) // kept: still in the latest bundle.
+
+	b3, _, err := ip.GetAttribute("b3")
+	require.NoError(t, err)
+	assert.NotNil(t, b3) // added by the latest bundle.
+
+	local, _, err := ip.GetAttribute("local")
+	require.NoError(t, err)
+	assert.NotNil(t, local) // never touched: not bundle-owned.
+
+	r1, _, err := ip.GetEntity("resource::r1")
+	require.NoError(t, err)
+	assert.Nil(t, r1) // pruned: no longer in the latest bundle.
+
+	r2, _, err := ip.GetEntity("resource::r2")
+	require.NoError(t, err)
+	assert.NotNil(t, r2) // kept: still in the latest bundle.
+
+	r3, _, err := ip.GetEntity("resource::r3")
+	require.NoError(t, err)
+	assert.NotNil(t, r3) // added by the latest bundle.
+
+	alice, _, err := ip.GetEntity("user::alice")
+	require.NoError(t, err)
+	assert.NotNil(t, alice) // never touched: not bundle-owned.
 }
 
 func TestBase_NewBundle_wireBundleFromAddPolicy(t *testing.T) {
