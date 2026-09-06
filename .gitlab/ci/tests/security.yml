@@ -35,7 +35,7 @@ npm_security_check:
 
 go_security_check:
   stage: Security
-  image: golang:1.26.5-alpine # matches go.mod
+  image: golang:1.26.7-alpine # matches go.mod
   variables:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
   before_script:
@@ -146,7 +146,7 @@ go_security_check:
 # Generates a CycloneDX SBOM for the Go dependency tree and checks its licenses against the EUPL allowlist.
 go_cyclonedx_sbom:
   stage: Security
-  image: golang:1.26.5-bookworm
+  image: golang:1.26.7-bookworm
   variables:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
     SBOM_FILE: gl-sbom-go.cdx.json
