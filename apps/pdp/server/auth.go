@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -25,31 +26,31 @@ type authHandler struct {
 	authorizer authorization.Authorizer    // UI & bundle authorization.
 }
 
-func (s *Services) newAuth(basePath string) *authHandler {
+func (s *Services) newAuth(basePath string) (*authHandler, error) {
 	decisionLog, err := s.newADL()
 	if err != nil {
-		s.logger.Error("failed to initialize authorization decision log", "error", err)
-		return nil
+		return nil, fmt.Errorf("failed to initialize authorization decision log: %w", err)
 	}
 
 	var controller pdp.Controller
-	if controller, err = s.newSelfAuthzController(decisionLog); err != nil || controller == nil {
-		s.logger.Error("failed to initialize pdp controller", "error", err)
-		return nil
+	if controller, err = s.newSelfAuthzController(decisionLog); err != nil {
+		return nil, fmt.Errorf("failed to initialize pdp controller: %w", err)
+	}
+
+	if controller == nil {
+		return nil, errors.New("failed to initialize pdp controller: no controller")
 	}
 
 	// var authenticator authentication.Authenticator
 	// if authenticator, err = s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
 	// 	return controller.GetPIP().GetEntity(uid)
 	// }); err != nil {
-	// 	s.logger.Error("failed to initialize authenticator", "error", err)
-	// 	return nil
+	// 	return nil, fmt.Errorf("failed to initialize authenticator: %w", err)
 	// }
 
 	var authorizer authorization.Authorizer
 	if authorizer, err = s.cfg.NewAuthorizer(controller, nil); err != nil {
-		s.logger.Error("failed to initialize authorizer", "error", err)
-		return nil
+		return nil, fmt.Errorf("failed to initialize authorizer: %w", err)
 	}
 
 	var prefix string
@@ -68,7 +69,7 @@ func (s *Services) newAuth(basePath string) *authHandler {
 		controller: controller,
 		zen:        zen,
 		authorizer: authorizer,
-	}
+	}, nil
 }
 
 func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller, error) {

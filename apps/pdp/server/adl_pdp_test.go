@@ -128,8 +128,9 @@ func newADLTestApp(t *testing.T, cfg *config.Config) *fiber.App {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s := &Services{ctx: context.Background(), cfg: cfg, logger: logger, l: models.LanguageFromString(cfg.Language)}
 
-	auth := s.newAuth("")
-	require.NotNil(t, auth, "failed to build auth handler (see logger output)")
+	auth, err := s.newAuth("")
+	require.NoError(t, err, "failed to build auth handler")
+	require.NotNil(t, auth)
 
 	app := fiber.New()
 	app.Post("/authzen/v1/evaluation", auth.zen.Evaluation)

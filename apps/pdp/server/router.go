@@ -14,11 +14,14 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.Language)
 
-	s.auth = s.newAuth(handle.PathAuthZEN + handle.PathV1)
-	if s.auth == nil {
-		s.logger.Error("failed to initialize authorization handler")
-		panic("failed to initialize authorization handler")
+	auth, err := s.newAuth(handle.PathAuthZEN + handle.PathV1)
+	if err != nil {
+		// initMainRoutes has no way to return an error, so an unusable handler has to abort startup.
+		s.logger.Error("failed to initialize authorization handler", "error", err)
+		panic("failed to initialize authorization handler: " + err.Error())
 	}
+
+	s.auth = auth
 
 	s.initAuth(svc)
 }

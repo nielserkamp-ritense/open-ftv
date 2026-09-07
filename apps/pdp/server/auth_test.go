@@ -33,7 +33,8 @@ func TestNew(t *testing.T) {
 
 	s := &Services{ctx: context.Background(), cfg: cfg, logger: logger, l: models.LanguageFromString(cfg.Language)}
 
-	auth := s.newAuth("")
+	auth, err := s.newAuth("")
+	require.NoError(t, err)
 	require.NotNil(t, auth)
 	require.NotNil(t, auth.controller)
 
