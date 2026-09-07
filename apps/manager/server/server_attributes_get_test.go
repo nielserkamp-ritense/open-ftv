@@ -1,6 +1,6 @@
 //go:build integration
 
-package server_test
+package server
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
@@ -21,7 +20,7 @@ func Test_Get_Attributes(t *testing.T) {
 
 	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	srv := server.NewExternal(cnf, lgr)
+	srv := NewExternal(cnf, lgr)
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	t.Run("no_data", func(t *testing.T) {

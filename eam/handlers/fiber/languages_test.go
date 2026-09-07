@@ -20,6 +20,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewLanguagesHandler(t *testing.T) {
@@ -32,7 +33,8 @@ func TestNewLanguagesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p := pap.New(ctx, logger)
+		p, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		lh := NewLanguagesHandler(logger, p, nil)
@@ -68,7 +70,8 @@ func TestLanguagesHandler_GetLanguages(t *testing.T) {
 		pool, err2 := postgresql.NewWithPool(ctx, "postgres://localhost:5432/table", time.Minute, 3, db)
 		require.NoError(t, err2)
 
-		p := pap.New(ctx, logger, pap.WithPgPool(pool))
+		p, err := pap.New(ctx, logger, pap.WithPgPool(pool))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		ph := NewLanguagesHandler(logger, p, auth)

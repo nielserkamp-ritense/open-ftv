@@ -1,0 +1,73 @@
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "26.0"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+config:
+  # Defaults to https://<first httpRoute hostname>. Set it only when there is no
+  # HTTPRoute, or when Keycloak is reached on a different host than it is routed on.
+  hostname: ""
+  adminHostname: ""
+  adminUsername: admin
+  adminPassword: admin
+  adminExistingSecret: ""
+  javaOptsHeap: "-XX:MaxHeapFreeRatio=50 -XX:MaxRAMPercentage=65"
+  realm:
+    name: openftv
+    clientId: openftv
+    redirectUris:
+      - "http://localhost:8090/*"
+    webOrigins:
+      - "http://localhost:8090"
+    users:
+      adminPassword: password
+      authorPassword: password
+      auditorPassword: password
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  port: 80
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  # filters: []
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -59,7 +59,6 @@ services:
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
       - MANAGER_ADL_TYPE=postgresql               # ADL.
-      - MANAGER_ADL_SERVICE_NAME=vlierdam
       - MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
     depends_on:
       vlierdam-db:
@@ -74,25 +73,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2s
-
-  vlierdam-keycloak:
-    image: quay.io/keycloak/keycloak:26.0
-    container_name: openftv-vlierdam-keycloak
-    command: ["start-dev", "--import-realm"]
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-    ports:
-      - "8089:8080"
-    volumes:
-      - ./../testdata/apps/gemeente-vlierdam/keycloak:/opt/keycloak/data/import
-    networks:
-      - openftv
-    healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo ok"]
-      interval: 5s
-      timeout: 5s
-      retries: 40
 
   vlierdam-outway:
     build:
@@ -141,6 +121,41 @@ services:
         condition: service_healthy
     volumes:
       - ./../testdata/apps/gemeente-vlierdam/pdp1:/tmp/data
+    networks:
+      - openftv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 4s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  vlierdam-pdp2:
+    build:
+      context: ../
+      dockerfile: ./apps/pdp/Dockerfile
+    container_name: openftv-vlierdam-pdp2
+    ports:
+      - "9005:8443"
+      - "9105:9443"
+      - "8105:8080"
+    environment:
+      - PDP_BUNDLE_MANAGER=http://vlierdam-manager:9443/v1/bundle/pdp2  # bundle retrieval.
+      - PDP_BUNDLE_ENCODING=gzip
+      - PDP_BUNDLE_TIMEOUT=30s
+      - PDP_BUNDLE_RETRIES=5
+      - PDP_POLICIES_LANGUAGE=rego                                            # policy language.
+      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml                # runtime data retrieval.
+      - PDP_ADL_TYPE=postgresql                                               # ADL.
+      - PDP_ADL_SERVICE_NAME=vlierdam
+      - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
+      - PDP_MIGRATE_AUTO=true                                                 # ADL migrations.
+      - PDP_MIGRATE_SOURCE=*embed*
+    depends_on:
+      vlierdam-manager:
+        condition: service_healthy
+    volumes:
+      - ./../testdata/apps/gemeente-vlierdam/pdp2:/tmp/data
     networks:
       - openftv
     healthcheck:
@@ -229,7 +244,6 @@ services:
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
       - MANAGER_ADL_TYPE=postgresql               # ADL.
-      - MANAGER_ADL_SERVICE_NAME=vlierdam
       - MANAGER_ADL_PG_URL=postgres://user:password@rvig-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rvig-db:
@@ -260,8 +274,6 @@ services:
       KONG_PLUGINS: "openftv,bundled"
     depends_on:
       rvig-pdp1:
-        condition: service_healthy
-      vlierdam-keycloak:
         condition: service_healthy
     volumes:
       - ./../testdata/apps/rvig/kong:/tmp/conf
@@ -315,7 +327,7 @@ services:
       VITE_OIDC_CLIENT_ID: "openftv"
       MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
-      - "8082:80"
+      - "8082:8080"
     depends_on:
       rvig-manager:
         condition: service_healthy
@@ -382,7 +394,6 @@ services:
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
       - MANAGER_ADL_TYPE=postgresql               # ADL.
-      - MANAGER_ADL_SERVICE_NAME=vlierdam
       - MANAGER_ADL_PG_URL=postgres://user:password@rdw-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rdw-db:
@@ -413,8 +424,6 @@ services:
       KONG_PLUGINS: "openftv,bundled"
     depends_on:
       rdw-pdp1:
-        condition: service_healthy
-      vlierdam-keycloak:
         condition: service_healthy
     volumes:
       - ./../testdata/apps/rdw/kong:/tmp/conf
@@ -468,7 +477,7 @@ services:
         VITE_OIDC_CLIENT_ID: "openftv"
         MANAGER_MAX_LOGO_SIZE: "102400"
     ports:
-      - "8084:80"
+      - "8084:8080"
     depends_on:
       rdw-manager:
         condition: service_healthy

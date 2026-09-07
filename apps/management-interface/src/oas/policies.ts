@@ -131,94 +131,6 @@ export interface paths {
         patch: operations["status-policy"];
         trace?: never;
     };
-    "/policy/{id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve policy versions.
-         * @description Retrieve all previous versions of a policy.
-         */
-        get: operations["get-policy-versions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/policy/{id}/version/{version}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-                /**
-                 * @description Specific version of a policy.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve specific policy version.
-         * @description Retrieve a specific version of a policy.
-         */
-        get: operations["get-policy-version"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/policy/{id}/version/{version}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-                /**
-                 * @description Specific version of a policy.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restore previous policy.
-         * @description Restore a specific version of a policy.
-         */
-        post: operations["post-policy-version"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -415,8 +327,6 @@ export interface components {
             audit: components["schemas"]["ObjectAudit"];
             /** @description Audit log for the policy. */
             auditLog?: components["schemas"]["AuditEntry"][];
-            /** @description Previous version numbers of the policy. */
-            versions?: number[];
             /** @description Usage data for the policy. */
             usageData?: components["schemas"]["UsageData"][];
         };
@@ -432,49 +342,6 @@ export interface components {
              * @example concept
              */
             status: string;
-        };
-        PolicyVersions: components["schemas"]["PolicyVersion"][];
-        /** @description The content of a specific version of a policy. */
-        PolicyVersion: {
-            /**
-             * @description The version number of the policy.
-             * @example 1
-             */
-            version: number;
-            /**
-             * @description The unique identifier of the policy (UUID).
-             * @example e8fce68e-beb6-494f-b6c1-9b0f8f6cac56
-             */
-            id: string;
-            /**
-             * @description The language of the policy.
-             *     The value is case-insensitive.
-             *     The value is considered as one of the tags of the policy.
-             *
-             *     Supported values:
-             *     - "opa/rego"; alternatives: "opa", "rego", "opa-rego".
-             *     - "cedar".
-             *     - "cerbos/cel"; alternatives: "cerbos", "cel", "cerbos-cel".
-             *     - "openfga"; alternative: "open-fga".
-             *
-             *     Verify with the languages endpoint.
-             * @example cedar
-             */
-            language: string;
-            /**
-             * @description Content of the policy. Required when the policy is stored internally.
-             * @example permit (
-             *       principal == doelbinding::"subsidies",
-             *       action == action::"POST",
-             *       resource is service
-             *     )
-             *     when {
-             *       principal has brpPersonen &&
-             *       resource.code == "BRP"
-             *     };
-             */
-            data?: string;
-            metadata: components["schemas"]["Metadata"];
         };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
@@ -551,34 +418,6 @@ export interface components {
             };
             content: {
                 "application/json": components["schemas"]["Policy"];
-            };
-        };
-        /** @description Policy versions found. */
-        VersionsResponse: {
-            headers: {
-                /**
-                 * @description Full version number of the API.
-                 * @example 1.0.0
-                 */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["PolicyVersions"];
-            };
-        };
-        /** @description Policy version found. */
-        VersionResponse: {
-            headers: {
-                /**
-                 * @description Full version number of the API.
-                 * @example 1.0.0
-                 */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["PolicyVersion"];
             };
         };
         /** @description Bad request. */
@@ -672,11 +511,6 @@ export interface components {
          * @example b4911124-e92a-482f-80b4-eb02383378ae
          */
         PolicyID: string;
-        /**
-         * @description Specific version of a policy.
-         * @example 1
-         */
-        Version: number;
         /**
          * @description Force upsert during a put/post operation.
          * @example true
@@ -888,85 +722,6 @@ export interface operations {
             403: components["responses"]["AccessDenied"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-policy-versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["VersionsResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-policy-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-                /**
-                 * @description Specific version of a policy.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["VersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "post-policy-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Unique identifier of a policy (UUID).
-                 * @example b4911124-e92a-482f-80b4-eb02383378ae
-                 */
-                id: components["parameters"]["PolicyID"];
-                /**
-                 * @description Specific version of a policy.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["VersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
         };
     };
 }

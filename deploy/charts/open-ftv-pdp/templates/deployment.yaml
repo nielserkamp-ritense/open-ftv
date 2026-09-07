@@ -1,0 +1,221 @@
+{{- $fullname := include "open-ftv-pdp.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}
+  labels:
+    {{- include "open-ftv-pdp.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-ftv-pdp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    {{- if eq .Values.config.policySource "local" }}
+      {{- if not .Values.config.policiesExistingConfigMap }}
+        checksum/policies: {{ include (print $.Template.BasePath "/configmap-policies.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if .Values.config.policyAttributes }}
+        checksum/policy-attributes: {{ include (print $.Template.BasePath "/configmap-policy-attributes.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if .Values.config.policyEntities }}
+        checksum/policy-entities: {{ include (print $.Template.BasePath "/configmap-policy-entities.yaml") . | sha256sum }}
+      {{- end }}
+    {{- end }}
+      {{- if .Values.config.pipPullConfig }}
+        checksum/pip-pull-config: {{ include (print $.Template.BasePath "/configmap-pip-pull-config.yaml") . | sha256sum }}
+      {{- end }}
+      labels:
+        {{- include "open-ftv-pdp.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "open-ftv-pdp.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- if eq .Values.config.authorizationDecisionLog.type "postgresql" }}
+      initContainers:
+        - name: migrate
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PDP_LOG_FORMAT
+              value: {{ .Values.config.logFormat }}
+            - name: PDP_LOG_LEVEL
+              value: {{ .Values.config.logLevel }}
+            - name: PDP_MIGRATE_SOURCE
+              value: "*embed*"
+            - name: PDP_MIGRATE_AUTO
+              value: "true"
+            - name: PDP_MIGRATE_AND_EXIT
+              value: "true"
+          {{- with .Values.config.authorizationDecisionLog }}
+            - name: PDP_ADL_TYPE
+              value: {{ .type }}
+            - name: PDP_ADL_SERVICE_NAME
+              value: {{ .serviceName }}
+            {{- include "open-ftv-pdp.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
+          {{- end }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PDP_HOST
+              value: "0.0.0.0"
+            {{- $pdpPort := .Values.config.tls.enabled | ternary 8443 8080 }}
+            - name: PDP_PORT
+              value: {{ $pdpPort | quote }}
+          {{- if .Values.config.tls.enabled }}
+            - name: PDP_TLA_CA
+              value: /var/run/secrets/open-ftv/pdp/ca.crt
+            - name: PDP_TLS_CERT
+              value: /var/run/secrets/open-ftv/pdp/tls.crt
+            - name: PDP_TLS_KEY
+              value: /var/run/secrets/open-ftv/pdp/tls.key
+           {{- end }}
+            - name: PDP_HEALTH_PORT
+              value: "8081"
+            - name: PDP_LOG_TARGET
+              value: stdout
+            - name: PDP_LOG_FORMAT
+              value: {{ .Values.config.logFormat }}
+            - name: PDP_LOG_LEVEL
+              value: {{ .Values.config.logLevel }}
+          {{- if eq .Values.config.policySource "local" }}
+            - name: PDP_POLICIES_LANGUAGE
+              value: {{ .Values.config.policyLanguage }}
+            - name: PDP_POLICIES_STORE
+              value: /etc/open-ftv/pdp/policies
+            {{- if or .Values.config.policyAttributes .Values.config.policyEntities }}
+            - name: PDP_PIP_STORE
+              value: /etc/open-ftv/pdp
+            {{- end }}
+          {{- end }}
+          {{- if .Values.config.pipPullConfig }}
+            - name: PDP_PIP_PULL_CONFIGS
+              value: /etc/open-ftv/pdp/pip-pull-config.yaml
+          {{- end }}
+          {{- with  .Values.config.requestMappings }}
+            - name: PDP_REQUEST_MAPPINGS
+              value: {{ join "," . }}
+          {{- end }}
+          {{- with .Values.config.authorizationDecisionLog }}
+            - name: PDP_ADL_TYPE
+              value: {{ .type }}
+            - name: PDP_ADL_SERVICE_NAME
+              value: {{ .serviceName }}
+            {{- if eq .type "postgresql" }}
+            {{- include "open-ftv-pdp.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $pdpPort }}
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: health
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.config.tls.enabled }}
+            - name: certificates
+              mountPath: /var/run/secrets/open-ftv/pdp
+              readOnly: true
+          {{- end }}
+          {{- if eq .Values.config.policySource "local" }}
+            - name: policies
+              mountPath: /etc/open-ftv/pdp/policies
+              readOnly: true
+            {{- if .Values.config.policyAttributes }}
+            - name: policy-attributes
+              mountPath: /etc/open-ftv/pdp/attributes
+              readOnly: true
+            {{- end }}
+            {{- if .Values.config.policyEntities }}
+            - name: policy-entities
+              mountPath: /etc/open-ftv/pdp/entities
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          {{- if .Values.config.pipPullConfig }}
+            - name: pip-pull-config
+              mountPath: /etc/open-ftv/pdp/pip-pull-config.yaml
+              subPath: pip-pull-config.yaml
+              readOnly: true
+          {{- end }}
+      volumes:
+      {{- if .Values.config.tls.enabled }}
+        - name: certificates
+          secret:
+            secretName: {{ .Values.config.tls.existingSecret }}
+            defaultMode: 0640
+      {{- end }}
+      {{- if eq .Values.config.policySource "local" }}
+        - name: policies
+          configMap:
+            name: {{ default (printf "%s-policies" $fullname) .Values.config.policiesExistingConfigMap }}
+        {{- if .Values.config.policyAttributes }}
+        - name: policy-attributes
+          configMap:
+            name: {{ $fullname }}-policy-attributes
+        {{- end }}
+        {{- if .Values.config.policyEntities }}
+        - name: policy-entities
+          configMap:
+            name: {{ $fullname }}-policy-entities
+        {{- end }}
+      {{- end }}
+      {{- if .Values.config.pipPullConfig }}
+        - name: pip-pull-config
+          configMap:
+            name: {{ $fullname }}-pip-pull-config
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -413,10 +413,15 @@ components:
       type: object
       description: Specifies a particular reason.
       properties:
+        id:
+          type: string
+          description: Identifies the reason for this response, within the scope of this response.
         reason_admin:
           $ref: "#/components/schemas/ReasonField"
         reason_user:
           $ref: "#/components/schemas/ReasonField"
+      required:
+        - id
 
     EvaluationObject:
       type: object

@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"log/slog"
@@ -9,22 +9,40 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
-	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
+	eam_fiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 )
 
-func Test_HealthEndpoints(t *testing.T) {
-	cnf := &config.Config{
-		PAP: config2.PAP{
-			Language: "CEDAR",
-		},
-	}
+// newHealthOnlyService builds only the health service.
+// Health checks never touch the PAP/PIP, so this skips the main/bundle services and the persistence backend
+// they'd otherwise require.
+func newHealthOnlyService(cnf *config.Config, logger *slog.Logger) server.Service {
+	s := &Services{cfg: cnf, logger: logger, chk: handle.NewChecks()}
+	s.chk.SetHealth(true)
+	s.chk.SetAlive(true)
+	s.chk.SetReady(true)
 
+	return eam_fiber.New(
+		logger,
+		s.initHealthRoutes,
+		server.WithDefaults(),
+		server.WithHostPort(cnf.HealthHost, cnf.HealthPort),
+		server.WithAppName(config.AppName),
+		server.WithSvcName("health"),
+		server.WithTimeouts(cnf.HealthRead, cnf.HealthWrite, cnf.HealthIdle),
+		server.WithMaxBody(cnf.HealthMaxBody),
+		server.WithRecovery(),
+		server.WithSecurity(),
+		server.WithCORS(cnf.HealthOrigins, cnf.HealthHeaders),
+	)
+}
+
+func Test_HealthEndpoints(t *testing.T) {
+	cnf := &config.Config{}
 	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	srv := server.NewExternal(cnf, lgr)
-	healthService := srv.GetHealthService()
-	healthFiberApp := healthService.GetFiberApp()
+	healthFiberApp := newHealthOnlyService(cnf, lgr).GetFiberApp()
 
 	testCases := map[string]struct {
 		URL                string

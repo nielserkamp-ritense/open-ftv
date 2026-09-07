@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv
+namespace: fds-tenant-ictu-open-ftv
+
+resources:
+  - open-ftv.yaml

@@ -6,17 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	cedar_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
-	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
-	opa_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
-	openfga_embedded "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/openfga-embedded"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 )
 
@@ -40,7 +37,7 @@ func (s *Services) newAuth(basePath string) *authHandler {
 	}
 
 	var controller pdp.Controller
-	if controller, err = s.newController(decisionLog); err != nil || controller == nil {
+	if controller, err = s.newSelfAuthzController(decisionLog); err != nil || controller == nil {
 		s.logger.Error("failed to initialize pdp controller", "error", err)
 		return nil
 	}
@@ -78,41 +75,13 @@ func (s *Services) newAuth(basePath string) *authHandler {
 	}
 }
 
-func (s *Services) newController(decisionLog *adl.ADL) (pdp.Controller, error) {
-	ep := pep.New(s.ctx, s.logger)
+func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller, error) {
+	controller, _, err := config.BuildSelfAuthzController(s.ctx, s.logger, s.l, &s.cfg.PIP, &s.cfg.Cerbos).
+		WithBundledPAP(&s.cfg.PAP).
+		WithOptions(pdp.WithADL(decisionLog)).
+		Build()
 
-	ip, err := s.cfg.NewPIP(s.ctx, s.logger, s.l)
-	if err != nil {
-		return nil, err
-	}
-
-	ap, err2 := s.cfg.NewPAP(s.ctx, s.logger)
-	if err2 != nil {
-		return nil, err2
-	}
-
-	options := []pdp.Option{
-		pdp.WithContext(s.ctx),
-		pdp.WithLogger(s.logger),
-		pdp.WithPEP(ep),
-		pdp.WithPIP(ip),
-		pdp.WithPAP(ap),
-		pdp.WithADL(decisionLog),
-	}
-
-	switch s.l {
-	case models.CEDAR:
-		return cedar_embedded.NewController(options...), nil
-	case models.REGO:
-		return opa_embedded.NewController(options...), nil
-	case models.OPENFGA:
-		return openfga_embedded.NewController(options...), nil
-	case models.CERBOS:
-		cerbosCFG := cerbos_api.Config{Addr1: s.cfg.Address, Addr2: s.cfg.AdminAddress, CA: s.cfg.CA, User: s.cfg.User, Pswd: s.cfg.Pswd}
-		return cerbos_api.NewController(cerbosCFG, options...), nil
-	default:
-		return nil, fmt.Errorf("unsupported policy language '%s'", s.cfg.Language)
-	}
+	return controller, err
 }
 
 func (s *Services) newADL(lt string) (*adl.ADL, error) {
@@ -154,9 +123,25 @@ func (s *Services) newADL(lt string) (*adl.ADL, error) {
 		return nil, err
 	}
 
-	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc)
+	instanceID := adlInstanceID()
 
-	return adl.New(logger), nil
+	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc, "instance", instanceID)
+	s.decisionLog = adl.New(logger, adl.WithResource(map[string]any{
+		"organization": svc,
+		"instanceId":   instanceID,
+	}))
+
+	return s.decisionLog, nil
+}
+
+// adlInstanceID returns a "pdp-" prefixed identifier for this process: the host/pod name if
+// available, otherwise a random ID.
+func adlInstanceID() string {
+	if hostname, err := os.Hostname(); err == nil && hostname != "" {
+		return "pdp-" + hostname
+	}
+
+	return "pdp-" + uuid.New().String()
 }
 
 // checkMigrations migrates the ADL database, which is the only database this app has.

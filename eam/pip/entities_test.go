@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestPIP_Entities(t *testing.T) {
@@ -19,7 +20,8 @@ func TestPIP_Entities(t *testing.T) {
 		h := util.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		_, _ = p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))
@@ -102,7 +104,8 @@ func TestPIP_ReplaceAllEntities(t *testing.T) {
 			h := util.NewDummyHandler(slog.LevelInfo)
 			logger := slog.New(h)
 
-			p := New(nil, logger)
+			p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			_, _ = p.AddEntity(models.NewEntity("x", "y", models.NewAttributeSet()))

@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestValidPath(t *testing.T) {
@@ -102,7 +103,8 @@ func TestNew(t *testing.T) {
 			h := util.NewDummyHandler(tc.level)
 			logger := slog.New(h)
 
-			p1 := New(nil, logger, WithFileStore(tc.path, tc.recurse))
+			p1, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithFileStore(tc.path, tc.recurse))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
 			assert.Equal(t, tc.wantLog, h.Count())

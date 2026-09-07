@@ -21,41 +21,17 @@ func TestNew(t *testing.T) {
 		name     string
 		cfg      *config.Config
 		wantFail bool
-		wantLog  int
 	}{
 		{
-			name:     "unsupported policy language",
-			cfg:      &config.Config{PAP: config2.PAP{Language: "ai-magic", Store: "../../../testdata/unittest/ai"}},
-			wantFail: true,
-			wantLog:  3,
-		},
-		{
-			name:    "Cedar",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: "../../../testdata/unittest/cedar"}},
-			wantLog: 4,
-		},
-		{
-			name:    "Cerbos",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "Cerbos", Store: "../../../testdata/unittest/cerbos"}},
-			wantLog: 4,
-		},
-		{
-			name:    "OpenFGA",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "OpenFGA", Store: "../../../testdata/unittest/openfga"}},
-			wantLog: 4,
-		},
-		{
-			name:    "OPA/Rego",
-			cfg:     &config.Config{PAP: config2.PAP{Language: "opa", Store: "../../../testdata/unittest/rego"}},
-			wantLog: 3,
+			name: "Cedar",
+			cfg:  &config.Config{PAP: config2.PAP{Language: "CEDAR"}},
 		},
 		{
 			// Fail-closed (secured) mode requires OIDC; without a JWKS URL the manager
 			// must refuse to initialize rather than boot and deny every request.
 			name:     "fail-closed without OIDC fails",
-			cfg:      &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: "../../../testdata/unittest/cedar"}, Authorization: config2.Authorization{FailClosedOnEmpty: true}},
+			cfg:      &config.Config{PAP: config2.PAP{Language: "CEDAR"}, Authorization: config2.Authorization{FailClosedOnEmpty: true}},
 			wantFail: true,
-			wantLog:  1,
 		},
 	}
 
@@ -63,23 +39,26 @@ func TestNew(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			logger := slog.New(h)
+			logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
 
 			s := &Services{ctx: context.Background(), logger: logger, cfg: tc.cfg}
 			s.l = models.LanguageFromString(tc.cfg.Language)
-			// Mirror the router: newAuth consumes the shared PAP, which must exist first.
-			s.pap, _ = s.newPAP()
+
+			ap, err := s.cfg.NewSelfAuthzPAP(s.ctx, s.logger)
+			require.NoError(t, err)
+
+			s.pap = ap
 
 			auth := s.newAuth()
 			if tc.wantFail {
 				require.Nil(t, auth)
-				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
-			} else {
-				require.NotNil(t, auth)
-				assert.GreaterOrEqual(t, h.Count(), tc.wantLog)
-				assert.NotNil(t, auth.Controller())
+
+				return
 			}
+
+			require.NotNil(t, auth)
+			require.NotNil(t, auth.Controller())
+			assert.Same(t, ap, auth.Controller().GetPAP())
 		})
 	}
 }

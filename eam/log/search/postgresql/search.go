@@ -3,8 +3,9 @@ package postgresql
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
+	"math"
+	"strings"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -71,7 +72,7 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 	var params []any
 
 	sql.WriteString("SELECT ")
-	sql.WriteString("id,created,request_type,policies,request,response,information,engine,trace_id,span_id")
+	sql.WriteString("id,timestamp,request_type,policies,body,attributes,information,engine,trace_id,span_id,parent_span_id,event_name,status,resource")
 	sql.WriteString(" FROM decision")
 
 	sql.WriteString(" WHERE")
@@ -80,8 +81,9 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 		sql.WriteString(" id=$1")
 		params = append(params, criteria.ID)
 	} else {
-		sql.WriteString(" created>=$1 AND created<=$2")
-		params = append(params, criteria.From, criteria.To)
+		sql.WriteString(" timestamp>=$1 AND timestamp<=$2")
+
+		params = append(params, criteria.From.UnixMilli(), criteria.To.UnixMilli())
 
 		switch len(criteria.RequestTypes) {
 		case 0:
@@ -90,7 +92,7 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 			sql.WriteString(fmt.Sprintf(" AND request_type=$%d", len(params)+1))
 			params = append(params, criteria.RequestTypes[0])
 		default: // more than 1
-			sql.WriteString(" AND request_type IN [")
+			sql.WriteString(" AND request_type IN (")
 			for i := range criteria.RequestTypes {
 				if i > 0 {
 					sql.WriteByte(',')
@@ -98,7 +100,8 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 				sql.WriteString(fmt.Sprintf("$%d", len(params)+1))
 				params = append(params, criteria.RequestTypes[i])
 			}
-			sql.WriteByte(']')
+
+			sql.WriteByte(')')
 		}
 
 		switch len(criteria.Bundles) {
@@ -108,7 +111,7 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 			sql.WriteString(fmt.Sprintf(" AND policies=$%d", len(params)+1))
 			params = append(params, criteria.Bundles[0])
 		default: // more than 1
-			sql.WriteString(" AND policies IN [")
+			sql.WriteString(" AND policies IN (")
 			for i := range criteria.Bundles {
 				if i > 0 {
 					sql.WriteByte(',')
@@ -116,20 +119,21 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 				sql.WriteString(fmt.Sprintf("$%d", len(params)+1))
 				params = append(params, criteria.Bundles[i])
 			}
-			sql.WriteByte(']')
+
+			sql.WriteByte(')')
 		}
 
-		if b := criteria.GetTraceID(); b != nil {
+		if criteria.TraceId != "" {
 			sql.WriteString(fmt.Sprintf(" AND trace_id=$%d", len(params)+1))
-			params = append(params, b)
+			params = append(params, strings.ToLower(criteria.TraceId))
 		}
 
-		if b := criteria.GetSpanID(); b != nil {
+		if criteria.SpanId != "" {
 			sql.WriteString(fmt.Sprintf(" AND span_id=$%d", len(params)+1))
-			params = append(params, b)
+			params = append(params, strings.ToLower(criteria.SpanId))
 		}
 
-		sql.WriteString(" ORDER BY created DESC")
+		sql.WriteString(" ORDER BY timestamp DESC")
 
 		if !needMatching {
 			sql.WriteString(fmt.Sprintf(" LIMIT $%d", len(params)+1))
@@ -140,33 +144,44 @@ func buildQuery(criteria *search.Criteria, needMatching bool) (string, []any) {
 	return sql.String(), params
 }
 
+// authRequestTypeFromValue safely narrows the request_type column value into
+// an AuthRequestType, guarding against the uint8 conversion overflowing.
+func authRequestTypeFromValue(v any) decisions.AuthRequestType {
+	n := convert.AnyToInt64(v)
+	if n < 0 || n > math.MaxUint8 {
+		return 0
+	}
+
+	return decisions.AuthRequestType(n)
+}
+
 func criteriaMatch(criteria *search.Criteria, values []any) bool {
-	rt := decisions.AuthRequestType(convert.AnyToUint64(values[2]))
+	rt := authRequestTypeFromValue(values[2])
 
 	switch rt {
 	case decisions.EvaluationEndpoint:
-		b := anyToJSON(values[4])
+		b := requestJSONFromBody(values[4])
 		req := new(authzen.EvaluationRequest)
 		if err := json.Unmarshal(b, req); err == nil {
 			return evaluationMatch(criteria, req)
 		}
 
 	case decisions.EvaluationsEndpoint:
-		b := anyToJSON(values[4])
+		b := requestJSONFromBody(values[4])
 		req := new(authzen.EvaluationsRequest)
 		if err := json.Unmarshal(b, req); err == nil {
 			return evaluationsMatch(criteria, req)
 		}
 
 	case decisions.SearchSubjectEndpoint, decisions.SearchResourceEndpoint:
-		b := anyToJSON(values[4])
+		b := requestJSONFromBody(values[4])
 		req := new(authzen.SearchRequest)
 		if err := json.Unmarshal(b, req); err == nil {
 			return searchMatch(criteria, req)
 		}
 
 	case decisions.SearchActionEndpoint:
-		b := anyToJSON(values[4])
+		b := requestJSONFromBody(values[4])
 		req := new(authzen.SearchActionRequest)
 		if err := json.Unmarshal(b, req); err == nil {
 			return searchActionMatch(criteria, req)
@@ -212,18 +227,30 @@ func sarMatch(criteria *search.Criteria, subject, resource *authzen.Entity, acti
 }
 
 func buildLogRecord(values []any) oas.AuthlogEntry {
+	timestamp := convert.AnyToInt64(values[1])
+	request, response := decisions.RequestResponseFromBody(values[4])
 	return oas.AuthlogEntry{
-		Id:          convert.AnyToInt64(values[0]),
-		Created:     convert.AnyToDateTime(values[1]).Format(time.RFC3339),
-		RequestType: decisions.AuthRequestType(convert.AnyToInt64(values[2])).String(),
-		Policies:    convert.AnyToString(values[3]),
-		Request:     anyToMap(values[4]),
-		Response:    anyToMap(values[5]),
-		Information: anyToMap(values[6]),
-		Engine:      anyToMap(values[7]),
-		TraceId:     anyToHex(values[8]),
-		SpanId:      anyToHex(values[9]),
+		Id:           convert.AnyToInt64(values[0]),
+		Created:      time.UnixMilli(timestamp).UTC().Format(time.RFC3339),
+		Timestamp:    timestamp,
+		RequestType:  authRequestTypeFromValue(values[2]).String(),
+		Policies:     convert.AnyToString(values[3]),
+		Request:      request,
+		Response:     response,
+		Information:  anyToMap(values[6]),
+		Engine:       anyToMap(values[7]),
+		TraceId:      anyToHex(values[8]),
+		SpanId:       anyToHex(values[9]),
+		ParentSpanId: anyToHex(values[10]),
+		EventName:    convert.AnyToString(values[11]),
+		Status:       oas.AuthlogEntryStatus(convert.AnyToString(values[12])),
+		Resource:     anyToMap(values[13]),
 	}
+}
+
+func requestJSONFromBody(body any) []byte {
+	request, _ := decisions.RequestResponseFromBody(body)
+	return anyToJSON(request)
 }
 
 func anyToMap(in any) map[string]any {
@@ -234,10 +261,14 @@ func anyToMap(in any) map[string]any {
 }
 
 func anyToHex(in any) string {
-	if b, ok := in.([]byte); ok {
-		return hex.EncodeToString(b)
+	switch v := in.(type) {
+	case string:
+		return strings.ToLower(v)
+	case []byte:
+		return strings.ToLower(string(v))
+	default:
+		return ""
 	}
-	return ""
 }
 
 func anyToJSON(in any) []byte {

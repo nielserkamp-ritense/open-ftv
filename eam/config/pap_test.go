@@ -168,7 +168,7 @@ func TestPAP_Tags(t *testing.T) {
 	}
 }
 
-func TestPAP_NewPAP(t *testing.T) {
+func TestPAP_NewSelfAuthzPAP(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new pap", func(t *testing.T) {
@@ -181,7 +181,7 @@ func TestPAP_NewPAP(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p2, err := p1.NewPAP(context.Background(), logger)
+		p2, err := p1.NewSelfAuthzPAP(context.Background(), logger)
 		require.NoError(t, err)
 		require.NotNil(t, p2)
 	})

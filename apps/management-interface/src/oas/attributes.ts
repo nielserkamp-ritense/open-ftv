@@ -91,85 +91,6 @@ export interface paths {
         patch: operations["status-attribute"];
         trace?: never;
     };
-    "/attribute/{key}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve attribute versions.
-         * @description Retrieve all previous versions of an attribute.
-         */
-        get: operations["get-attribute-versions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/attribute/{key}/version/{version}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve specific attribute version.
-         * @description Retrieve a specific version of an attribute.
-         */
-        get: operations["get-attribute-version"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/attribute/{key}/version/{version}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restore previous attribute.
-         * @description Restore a specific version of an attribute.
-         */
-        post: operations["post-attribute-version"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/entities": {
         parameters: {
             query?: never;
@@ -261,91 +182,6 @@ export interface paths {
         patch: operations["status-entity"];
         trace?: never;
     };
-    "/entity/{type}/{id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve entity versions.
-         * @description Retrieve all previous versions of an entity.
-         */
-        get: operations["get-entity-versions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/entity/{type}/{id}/version/{version}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve specific entity version.
-         * @description Retrieve a specific version of an entity.
-         */
-        get: operations["get-entity-version"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/entity/{type}/{id}/version/{version}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restore previous entity.
-         * @description Restore a specific version of an entity.
-         */
-        post: operations["post-entity-version"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/relations": {
         parameters: {
             query?: never;
@@ -431,85 +267,6 @@ export interface paths {
          * @description Modify the status of an existing relation.
          */
         patch: operations["status-relation"];
-        trace?: never;
-    };
-    "/relation/{id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve relation versions.
-         * @description Retrieve all previous versions of a relation.
-         */
-        get: operations["get-relation-versions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/relation/{id}/version/{version}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Retrieve specific relation version.
-         * @description Retrieve a specific version of a relation.
-         */
-        get: operations["get-relation-version"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/relation/{id}/version/{version}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restore previous relation.
-         * @description Restore a specific version of a relation.
-         */
-        post: operations["post-relation-version"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
 }
@@ -672,44 +429,6 @@ export interface components {
              */
             status: string;
         };
-        AttributeVersions: components["schemas"]["AttributeVersion"][];
-        /** @description The content of a specific version of an attribute (key/value pair). */
-        AttributeVersion: {
-            /**
-             * @description The version number of the attribute.
-             * @example 1
-             */
-            version: number;
-            /**
-             * @description The unique key of the attribute.
-             * @example gemeentecode
-             */
-            key: string;
-            /**
-             * @description The value of the attribute.
-             * @example 0123
-             */
-            value: unknown;
-            /**
-             * @description The optional type of a value. By default a value is stored as-is (e.g., JSON type).
-             *
-             *     The following codes for type are supported:
-             *     "*string*", "*integer*", "*float*", "*boolean*", "*date*", "*time*", "*timestamp*".
-             *     Optionally, the type can be specified as one of the standard XSD types (e.g. "*xsd:byte*").
-             *
-             *     An *integer* value (of any size) is stored as a 64-bit signed or unsigned integer.
-             *
-             *     A *float* value is stored with double precision.
-             *
-             *     A *boolean* value can be *true* (case-insensitive) or *1* to represent a true state,
-             *     or any other value to represent a false state.
-             *
-             *     A *date*, *time* or *timestamp* value should adhere to the format as described in RFC3339.
-             *     If it cannot be decoded according to RFC3339, a 400 response status code will be returned.
-             */
-            type?: string;
-            metadata: components["schemas"]["Metadata"];
-        };
         Entities: components["schemas"]["Entity"][];
         /**
          * @description The content of an entity.
@@ -758,28 +477,6 @@ export interface components {
              * @example concept
              */
             status: string;
-        };
-        EntityVersions: components["schemas"]["EntityVersion"][];
-        /** @description The content of a specific version of an entity. */
-        EntityVersion: {
-            /**
-             * @description The version number of the entity.
-             * @example 1
-             */
-            version: number;
-            /**
-             * @description The type of entity.
-             * @example user
-             */
-            type: string;
-            /**
-             * @description The identification of the entity.
-             * @example alice
-             */
-            id: string;
-            /** @description Optional attributes of the entity. */
-            attributes?: components["schemas"]["Attribute"][];
-            metadata: components["schemas"]["Metadata"];
         };
         Relations: components["schemas"]["Relation"][];
         /**
@@ -845,48 +542,6 @@ export interface components {
              */
             status: string;
         };
-        RelationVersions: components["schemas"]["RelationVersion"][];
-        /** @description The content of a specific version of a relation. */
-        RelationVersion: {
-            /**
-             * @description The version number of the relation.
-             * @example 1
-             */
-            version: number;
-            /**
-             * @description The unique identifier of the relation (UUID).
-             * @example f1e40dfa-7e2a-4767-81a7-65f790d3bbcd
-             */
-            id: string;
-            /**
-             * @description The type of subject of the relation.
-             * @example user
-             */
-            subjectType: string;
-            /**
-             * @description The identifier of the subject of the relation.
-             * @example alice
-             */
-            subjectId: string;
-            /**
-             * @description The type of relation.
-             * @example managerOf
-             */
-            relation: string;
-            /**
-             * @description The type of object of the relation.
-             * @example user
-             */
-            objectType: string;
-            /**
-             * @description The identifier of the object of the relation.
-             * @example bob
-             */
-            objectId: string;
-            /** @description Optional attributes of the relation. */
-            attributes?: components["schemas"]["Attribute"][];
-            metadata: components["schemas"]["Metadata"];
-        };
         /** @description The response for an error (as defined by RFC9457). */
         Error: {
             /**
@@ -930,28 +585,6 @@ export interface components {
                 "application/json": components["schemas"]["Attribute"];
             };
         };
-        /** @description Attribute versions found. */
-        AttributeVersionsResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["AttributeVersions"];
-            };
-        };
-        /** @description Attribute version found. */
-        AttributeVersionResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["AttributeVersion"];
-            };
-        };
         /** @description Entities found. */
         EntitiesResponse: {
             headers: {
@@ -974,28 +607,6 @@ export interface components {
                 "application/json": components["schemas"]["Entity"];
             };
         };
-        /** @description Entity versions found. */
-        EntityVersionsResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["EntityVersions"];
-            };
-        };
-        /** @description Entity version found. */
-        EntityVersionResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["EntityVersion"];
-            };
-        };
         /** @description Relations found. */
         RelationsResponse: {
             headers: {
@@ -1016,28 +627,6 @@ export interface components {
             };
             content: {
                 "application/json": components["schemas"]["Relation"];
-            };
-        };
-        /** @description Relation versions found. */
-        RelationVersionsResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["RelationVersions"];
-            };
-        };
-        /** @description Relation version found. */
-        RelationVersionResponse: {
-            headers: {
-                /** @description Full version number of the API. */
-                "API-Version"?: string;
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["RelationVersion"];
             };
         };
         /** @description Bad request. */
@@ -1116,11 +705,6 @@ export interface components {
         EntityID: string;
         /** @description Unique identifier of a relation (UUID). */
         RelationID: string;
-        /**
-         * @description Specific version of an object.
-         * @example 1
-         */
-        Version: number;
         /** @description Force upsert during a put/post operation. */
         ForceUpsert: boolean;
         /** @description Ignore missing data during a delete operation. */
@@ -1271,76 +855,6 @@ export interface operations {
             403: components["responses"]["AccessDenied"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-attribute-versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["AttributeVersionsResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-attribute-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["AttributeVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "post-attribute-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique key of an attribute. */
-                key: components["parameters"]["AttributeKey"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["AttributeVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
         };
     };
     "get-entities": {
@@ -1494,82 +1008,6 @@ export interface operations {
             500: components["responses"]["UnexpectedError"];
         };
     };
-    "get-entity-versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["EntityVersionsResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-entity-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["EntityVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "post-entity-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Type of entity. */
-                type: components["parameters"]["EntityType"];
-                /** @description ID of an entity. */
-                id: components["parameters"]["EntityID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["EntityVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
     "get-relations": {
         parameters: {
             query?: never;
@@ -1709,76 +1147,6 @@ export interface operations {
             403: components["responses"]["AccessDenied"];
             404: components["responses"]["NotFound"];
             500: components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-relation-versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["RelationVersionsResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "get-relation-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["RelationVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
-        };
-    };
-    "post-relation-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique identifier of a relation (UUID). */
-                id: components["parameters"]["RelationID"];
-                /**
-                 * @description Specific version of an object.
-                 * @example 1
-                 */
-                version: components["parameters"]["Version"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: components["responses"]["RelationVersionResponse"];
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["NotAuthorized"];
-            403: components["responses"]["AccessDenied"];
-            404: components["responses"]["NotFound"];
-            "5XX": components["responses"]["UnexpectedError"];
         };
     };
 }

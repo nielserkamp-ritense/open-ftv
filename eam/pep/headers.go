@@ -48,8 +48,6 @@ func (c *collector) processHeaders() {
 				c.parc.Principal.Attributes().AddAttributeKV(models.AttrDeviceID, first)
 			case models.HeaderTraceParent:
 				attrs.AddAttributeKV(models.AttrTraceParent, first)
-			case models.HeaderTraceState:
-				attrs.AddAttributeKV(models.AttrTraceState, first)
 			case "new-uri":
 				c.newURI = first
 			default:

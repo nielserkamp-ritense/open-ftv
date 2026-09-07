@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/deiu/rdf2go"
 
@@ -57,11 +56,6 @@ func loadURI(g *rdf2go.Graph, uri string) error {
 	return fmt.Errorf("could not fetch graph from %s - HTTP %d", uri, r.StatusCode)
 }
 
-const httpTimeout = 10 * time.Second
-
-var client = func() *http.Client {
-	c := rdf2go.NewHttpClient(true)
-	c.Timeout = httpTimeout
-
-	return c
-}()
+var (
+	client = rdf2go.NewHttpClient(true)
+)

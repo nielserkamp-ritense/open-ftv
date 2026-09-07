@@ -7,6 +7,27 @@ import (
 	apierrors "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
 )
 
+// Defines values for AuthlogEntryStatus.
+const (
+	Error AuthlogEntryStatus = "Error"
+	Ok    AuthlogEntryStatus = "Ok"
+	Unset AuthlogEntryStatus = "Unset"
+)
+
+// Valid indicates whether the value is a known member of the AuthlogEntryStatus enum.
+func (e AuthlogEntryStatus) Valid() bool {
+	switch e {
+	case Error:
+		return true
+	case Ok:
+		return true
+	case Unset:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthlogEntries A set of Authorization Decision Log entries.
 type AuthlogEntries = []AuthlogEntry
 
@@ -18,30 +39,48 @@ type AuthlogEntry struct {
 	// Engine Details of the PDP engine.
 	Engine map[string]interface{} `json:"engine,omitempty"`
 
+	// EventName Logius ADL event_name.
+	EventName string `json:"eventName,omitempty"`
+
 	// Id Unique identifier.
 	Id int64 `json:"id,omitempty"`
 
 	// Information Information (attributes) used during the authorization process.
 	Information map[string]interface{} `json:"information,omitempty"`
 
+	// ParentSpanId Logius ADL parent span identifier (W3C Trace Context format), when this record is a child span.
+	ParentSpanId string `json:"parentSpanId,omitempty"`
+
 	// Policies Unique identifier of the policy bundle used during the authorization process.
 	Policies string `json:"policies,omitempty"`
 
-	// Request AuthZEN request.
+	// Request Logius ADL body (adl.core.request); AuthZEN request.
 	Request map[string]interface{} `json:"request,omitempty"`
 
 	// RequestType Type of AuthZEN request.
 	RequestType string `json:"requestType,omitempty"`
 
-	// Response AuthZEN response.
+	// Resource Logius ADL resource; identifies the producer of the log record.
+	Resource map[string]interface{} `json:"resource,omitempty"`
+
+	// Response Logius ADL body (adl.core.response); AuthZEN response.
 	Response map[string]interface{} `json:"response,omitempty"`
 
-	// SpanId W3C span identifier from the authorization request.
+	// SpanId Logius ADL span identifier (W3C Trace Context format).
 	SpanId string `json:"spanId,omitempty"`
 
-	// TraceId W3C trace identifier from the authorization request.
+	// Status Logius ADL evaluation status.
+	Status AuthlogEntryStatus `json:"status,omitempty"`
+
+	// Timestamp Logius ADL timestamp; milliseconds since Unix epoch when the decision was made.
+	Timestamp int64 `json:"timestamp,omitempty"`
+
+	// TraceId Logius ADL trace identifier (W3C Trace Context format).
 	TraceId string `json:"traceId,omitempty"`
 }
+
+// AuthlogEntryStatus Logius ADL evaluation status.
+type AuthlogEntryStatus string
 
 // ActionName defines model for ActionName.
 type ActionName = string
@@ -150,12 +189,12 @@ type GetAdlEntriesParams struct {
 	// Duplicate values are not allowed.
 	Policies Policies `form:"policies,omitempty" json:"policies,omitempty"`
 
-	// TraceId Filter entries with a matching W3C trace identifier.
+	// TraceId Filter entries with a matching Logius ADL trace identifier (W3C Trace Context format).
 	//
 	// Must be exactly 32 characters in hexadecimal.
 	TraceId TraceId `form:"traceId,omitempty" json:"traceId,omitempty"`
 
-	// SpanId Filter entries with a matching W3C span identifier.
+	// SpanId Filter entries with a matching Logius ADL span identifier (W3C Trace Context format).
 	//
 	// Must be exactly 16 characters in hexadecimal.
 	SpanId SpanId `form:"spanId,omitempty" json:"spanId,omitempty"`

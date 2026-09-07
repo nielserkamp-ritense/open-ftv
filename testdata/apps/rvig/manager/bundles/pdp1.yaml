@@ -1,12 +1,12 @@
 ---
 id: "pdp1"
 title: "Outway deployment bundle (pdp1)"
-language: "cedar"
+language: "rego"
 tags: ["inway"]
 policies: true
 data: true
 version: true
 targets:
-  - uri: "http://rvig-pdp1:9443"
+  - uri: "http://rvig-pdp1:9443/v1/bundle"
     apikey: ""
     encoding: "bzip2"

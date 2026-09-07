@@ -23,7 +23,8 @@ func TestWithLanguage(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(nil, logger, WithLanguage("Cedar"))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithLanguage("Cedar"))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.Equal(t, "Cedar", p.language)
@@ -41,7 +42,8 @@ func TestWithKeyValueDB(t *testing.T) {
 
 		s := memory.New()
 
-		p := New(nil, logger, WithKeyValueDB(s, ""))
+		p, err := New(t.Context(), logger, WithKeyValueDB(s, ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.Equal(t, s, p.kvStore)
@@ -63,7 +65,8 @@ func TestWithPgPool(t *testing.T) {
 		pool, err := postgresql.New(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
 		require.NoError(t, err)
 
-		p := New(nil, logger, WithPgPool(pool))
+		p, err := New(t.Context(), logger, WithPgPool(pool))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.Nil(t, p.kvStore)
@@ -85,7 +88,8 @@ func TestWithPolicyDB(t *testing.T) {
 		db, err := NewPolicyDB(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
 		require.NoError(t, err)
 
-		p := New(nil, logger, WithPolicyDB(db))
+		p, err := New(t.Context(), logger, WithPolicyDB(db))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.Nil(t, p.kvStore)
@@ -102,7 +106,8 @@ func TestWithFileStore(t *testing.T) {
 
 		path := "../../testdata/policies/opa"
 
-		p := New(nil, logger, WithFileStore(path, true))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithFileStore(path, true))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		path2, err := filepath.Abs(path)
@@ -120,7 +125,8 @@ func TestWithMigration(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(nil, logger, WithMigration("/file", "/db", true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration("/file", "/db", true, 3))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		assert.Equal(t, "/file", p.migrateSource)

@@ -16,14 +16,16 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
 	s.l = models.LanguageFromString(s.cfg.Language)
 
-	s.auth = s.newAuth()
-	if s.auth == nil {
-		panic("failed to initialize authorization handler")
-	}
-
 	var err error
 	if s.pap, err = s.newPAP(); err != nil {
-		panic("failed to initialize PAP handler")
+		s.logger.Error("failed to initialize PAP handler", "error", err)
+		panic("failed to initialize PAP handler: " + err.Error())
+	}
+
+	s.auth = s.newAuth()
+	if s.auth == nil {
+		s.logger.Error("failed to initialize authorization handler")
+		panic("failed to initialize authorization handler")
 	}
 
 	v1 := svc.Group(handle.PathV1)

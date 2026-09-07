@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestAuthentication_NewAuthenticator(t *testing.T) {
@@ -20,7 +21,8 @@ func TestAuthentication_NewAuthenticator(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p2 := pip.New(ctx, logger)
+		p2, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 
 		a1 := &Authentication{Type: "bcrypt"}
 		a2, err := a1.NewAuthenticator(ctx, logger, p2.GetEntity)
@@ -38,7 +40,8 @@ func TestAuthentication_NewAuthenticator_Unknown(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p2 := pip.New(ctx, logger)
+		p2, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 
 		a1 := &Authentication{Type: "oopsie"}
 		a2, err := a1.NewAuthenticator(ctx, logger, p2.GetEntity)

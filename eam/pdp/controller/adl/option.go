@@ -23,3 +23,12 @@ func WithEngine(engine map[string]any) Option {
 		l.engine = engine
 	}
 }
+
+// WithResource sets the Logius ADL resource, identifying the producer of the
+// log record (the system, application, or environment in which the PDP
+// evaluated the authorization decision).
+func WithResource(resource map[string]any) Option {
+	return func(l *ADL) {
+		l.resource = resource
+	}
+}

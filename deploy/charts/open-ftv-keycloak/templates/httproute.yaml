@@ -1,0 +1,38 @@
+{{- if .Values.httpRoute.enabled -}}
+{{- $fullname := include "open-ftv-keycloak.fullname" . -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullname }}
+  labels:
+    {{- include "open-ftv-keycloak.labels" . | nindent 4 }}
+  {{- with .Values.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml .Values.httpRoute.parentRefs | nindent 4 }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /realms/{{ .Values.config.realm.name }}
+        - path:
+            type: PathPrefix
+            value: /resources
+      {{- with .Values.httpRoute.filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ $fullname }}
+          port: {{ .Values.service.port }}
+          weight: 1
+{{- end }}

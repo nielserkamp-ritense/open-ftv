@@ -1,0 +1,91 @@
+{{- $realm := .Values.config.realm -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "open-ftv-keycloak.fullname" . }}-realm
+  labels:
+    {{- include "open-ftv-keycloak.labels" . | nindent 4 }}
+data:
+  realm-{{ $realm.name }}.json: |-
+    {
+      "realm": {{ $realm.name | quote }},
+      "enabled": true,
+      "roles": {
+        "realm": [
+          { "name": "admin" },
+          { "name": "author" },
+          { "name": "auditor" },
+          { "name": "user" }
+        ]
+      },
+      "clients": [
+        {
+          "clientId": {{ $realm.clientId | quote }},
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": false,
+          "standardFlowEnabled": true,
+          "redirectUris": {{ toJson $realm.redirectUris }},
+          "webOrigins": {{ toJson $realm.webOrigins }},
+          "attributes": {
+            "pkce.code.challenge.method": "S256"
+          },
+          "protocolMappers": [
+            {
+              "name": "roles",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-realm-role-mapper",
+              "config": {
+                "claim.name": "roles",
+                "jsonType.label": "String",
+                "multivalued": "true",
+                "access.token.claim": "true",
+                "id.token.claim": "false",
+                "userinfo.token.claim": "false"
+              }
+            },
+            {
+              "name": {{ printf "%s-audience" $realm.clientId | quote }},
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-audience-mapper",
+              "config": {
+                "included.client.audience": {{ $realm.clientId | quote }},
+                "access.token.claim": "true"
+              }
+            }
+          ]
+        }
+      ],
+      "users": [
+        {
+          "username": "admin-user",
+          "enabled": true,
+          "emailVerified": true,
+          "email": "admin-user@openftv.local",
+          "firstName": "Admin",
+          "lastName": "User",
+          "credentials": [{ "type": "password", "value": {{ $realm.users.adminPassword | quote }}, "temporary": false }],
+          "realmRoles": ["admin"]
+        },
+        {
+          "username": "author-user",
+          "enabled": true,
+          "emailVerified": true,
+          "email": "author-user@openftv.local",
+          "firstName": "Author",
+          "lastName": "User",
+          "credentials": [{ "type": "password", "value": {{ $realm.users.authorPassword | quote }}, "temporary": false }],
+          "realmRoles": ["author"]
+        },
+        {
+          "username": "auditor-user",
+          "enabled": true,
+          "emailVerified": true,
+          "email": "auditor-user@openftv.local",
+          "firstName": "Auditor",
+          "lastName": "User",
+          "credentials": [{ "type": "password", "value": {{ $realm.users.auditorPassword | quote }}, "temporary": false }],
+          "realmRoles": ["auditor"]
+        }
+      ]
+    }

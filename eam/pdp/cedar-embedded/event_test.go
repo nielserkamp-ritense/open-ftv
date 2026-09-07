@@ -17,6 +17,7 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestController_Handle(t *testing.T) {
@@ -144,7 +145,8 @@ func TestController_Handle(t *testing.T) {
 			engine := cedar.NewPolicySet()
 			require.NotNil(t, engine)
 
-			p := pap2.New(nil, logger)
+			p, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")

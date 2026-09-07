@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "tag": {
+          "$ref": "#/definitions/nonEmptyString"
+        }
+      },
+      "required": [
+        "repository",
+        "tag"
+      ]
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "adminHostname": {
+          "type": "string"
+        },
+        "adminUsername": {
+          "type": "string"
+        },
+        "adminPassword": {
+          "type": "string"
+        },
+        "adminExistingSecret": {
+          "type": "string"
+        },
+        "javaOptsHeap": {
+          "type": "string"
+        },
+        "realm": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[-._a-zA-Z0-9]+$"
+            },
+            "clientId": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "redirectUris": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/nonEmptyString"
+              }
+            },
+            "webOrigins": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/nonEmptyString"
+              }
+            },
+            "users": {
+              "type": "object",
+              "properties": {
+                "adminPassword": {
+                  "$ref": "#/definitions/nonEmptyString"
+                },
+                "authorPassword": {
+                  "$ref": "#/definitions/nonEmptyString"
+                },
+                "auditorPassword": {
+                  "$ref": "#/definitions/nonEmptyString"
+                }
+              },
+              "required": [
+                "adminPassword",
+                "authorPassword",
+                "auditorPassword"
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "clientId",
+            "redirectUris",
+            "webOrigins",
+            "users"
+          ]
+        }
+      },
+      "required": [
+        "realm"
+      ],
+      "if": {
+        "properties": {
+          "adminExistingSecret": {
+            "enum": [
+              ""
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "adminUsername": {
+            "$ref": "#/definitions/nonEmptyString"
+          },
+          "adminPassword": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        },
+        "required": [
+          "adminUsername",
+          "adminPassword"
+        ]
+      }
+    },
+    "httpRoute": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "if": {
+        "$ref": "#/definitions/ifEnabledTrue"
+      },
+      "then": {
+        "properties": {
+          "parentRefs": {
+            "minItems": 1
+          },
+          "hostnames": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "parentRefs",
+          "hostnames"
+        ]
+      }
+    }
+  },
+  "required": [
+    "image",
+    "config",
+    "httpRoute"
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ifEnabledTrue": {
+      "properties": {
+        "enabled": {
+          "const": true
+        }
+      }
+    }
+  }
+}

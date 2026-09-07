@@ -428,6 +428,28 @@ func TestRequest_HTTPRequest(t *testing.T) {
 	}
 }
 
+func TestRequest_HTTPRequest_TraceParent(t *testing.T) {
+	t.Parallel()
+
+	p := &Request{Name: "request", Method: "GET", URI: "http://localhost:9900/v1/attributes"}
+
+	req1, err := p.HTTPRequest(context.Background(), nil)
+	require.NoError(t, err)
+
+	tc1, ok := models.ParseTraceParent(req1.Header.Get(models.HeaderTraceParent))
+	require.True(t, ok)
+
+	// Each call is a distinct outgoing operation and MUST get its own trace, not a shared/reused span.
+	req2, err := p.HTTPRequest(context.Background(), nil)
+	require.NoError(t, err)
+
+	tc2, ok := models.ParseTraceParent(req2.Header.Get(models.HeaderTraceParent))
+	require.True(t, ok)
+
+	assert.NotEqual(t, tc1.TraceID, tc2.TraceID)
+	assert.NotEqual(t, tc1.SpanID, tc2.SpanID)
+}
+
 func getAttributeKey(_ string) any { return 25 }
 
 func getAttributeID(_ string) any { return 123 }

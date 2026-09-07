@@ -20,10 +20,19 @@ var seedNamespace = uuid.NewSHA1(uuid.NameSpaceURL, []byte("openftv-mgmt-authz-p
 
 var seedUser = identity.NewSeedPrincipal()
 
-// seedAuthzPolicies seeds the bundled cedar authorization policies (admin/author/auditor/…)
-// into the PAP store with deterministic UUID ids, so the manager's embedded PDP enforces
-// them AND they are visible/editable in the UI (the postgres policy table requires UUID
-// ids, so the filename-keyed seed files cannot be loaded directly).
+// seedLanguageByExt maps a policy file's extension to the language string
+// expected by models.NewPolicyFromData. Only languages actually authored as
+// seed files in this repo need an entry here.
+var seedLanguageByExt = map[string]string{
+	".cedar": "cedar",
+	".rego":  "rego",
+}
+
+// seedAuthzPolicies seeds the bundled authorization policies (admin/author/auditor/…,
+// one file per seedLanguageByExt entry) into the PAP store with deterministic UUID ids,
+// so the manager's embedded PDP enforces them AND they are visible/editable in the UI
+// (the postgres policy table requires UUID ids, so the filename-keyed seed files cannot
+// be loaded directly).
 //
 // Seeding is decided per file, not per store: a file whose id is absent is inserted, a file
 // whose id is present is left alone, and a file whose id was present once and has since been
@@ -32,8 +41,8 @@ var seedUser = identity.NewSeedPrincipal()
 // the operator has touched. See docs/adr/0006-management-plane-authorization-model.md.
 //
 // Telling "never seeded" from "seeded and then deleted" needs the audit trail, which only
-// the postgres store keeps. Any other store (memory, etcd, consul) is seeded only while it
-// is empty, as before: a file a later release adds does not reach such a store, but a file
+// the postgres store keeps. Any other store (etcd, consul) is seeded only while it is
+// empty, as before: a file a later release adds does not reach such a store, but a file
 // the operator deleted never comes back either.
 func (s *Services) seedAuthzPolicies() {
 	if s.pap == nil {
@@ -62,17 +71,22 @@ func (s *Services) seedAuthzPolicies() {
 	}
 
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".cedar") {
+		if e.IsDir() {
 			continue
 		}
 
-		s.seedPolicyFile(filepath.Join(dir, e.Name()))
+		language, ok := seedLanguageByExt[filepath.Ext(e.Name())]
+		if !ok {
+			continue
+		}
+
+		s.seedPolicyFile(filepath.Join(dir, e.Name()), language)
 	}
 }
 
 // seedPolicyFile inserts one seed file into the store, unless the store has seen it before.
-func (s *Services) seedPolicyFile(cedarPath string) {
-	name := filepath.Base(cedarPath)
+func (s *Services) seedPolicyFile(policyPath, language string) {
+	name := filepath.Base(policyPath)
 	id := uuid.NewSHA1(seedNamespace, []byte(name)).String()
 
 	if seeded, err := s.alreadySeeded(id); err != nil {
@@ -83,24 +97,24 @@ func (s *Services) seedPolicyFile(cedarPath string) {
 		return
 	}
 
-	content, err := os.ReadFile(cedarPath)
+	content, err := os.ReadFile(policyPath)
 	if err != nil {
 		s.logger.Error("seed: cannot read policy file", "file", name, "err", err)
 		return
 	}
 
-	pol, err := models.NewPolicyFromData(id, "cedar", "", "", bytes.NewReader(content))
+	pol, err := models.NewPolicyFromData(id, language, "", "", bytes.NewReader(content))
 	if err != nil {
 		s.logger.Error("seed: cannot build policy", "file", name, "err", err)
 		return
 	}
 
 	// The policy store has a UNIQUE(language, title) index (policy_ix1); without a
-	// distinct title every seeded cedar policy collides and only the first is stored,
-	// leaving the role policies missing. Use the file's base name as a stable title.
+	// distinct title every seeded policy collides with same-language siblings and only
+	// the first is stored. Use the file's base name as a stable title.
 	pol = pol.WithTitle(strings.TrimSuffix(name, filepath.Ext(name)))
 
-	if tags := readSeedMetaTags(cedarPath); len(tags) > 0 {
+	if tags := readSeedMetaTags(policyPath); len(tags) > 0 {
 		pol = pol.WithTags(tags...)
 	}
 
@@ -132,10 +146,10 @@ func (s *Services) alreadySeeded(id string) (bool, error) {
 	return len(audit) > 0, nil
 }
 
-func readSeedMetaTags(cedarPath string) []string {
+func readSeedMetaTags(policyPath string) []string {
 	for _, metaPath := range []string{
-		strings.TrimSuffix(cedarPath, filepath.Ext(cedarPath)) + ".meta",
-		cedarPath + ".meta",
+		strings.TrimSuffix(policyPath, filepath.Ext(policyPath)) + ".meta",
+		policyPath + ".meta",
 	} {
 		data, err := os.ReadFile(metaPath)
 		if err != nil {

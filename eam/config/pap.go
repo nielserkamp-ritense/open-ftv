@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 // PAP contains the configuration variables for a generic PAP.
@@ -24,9 +25,13 @@ type PAP struct {
 	tags []*policies.Tag
 }
 
-// NewPAP instantiates a new PAP using the given configuration.
-func (p *PAP) NewPAP(ctx context.Context, logger *slog.Logger) (*pap.PAP, error) {
-	return pap.New(ctx, logger, pap.WithLanguage(p.Language), pap.WithFileStore(p.Store, p.StoreRecurse)), nil
+// NewSelfAuthzPAP instantiates a new PAP using the given configuration.
+//
+// This builds a self-authorization PAP loaded from local (bundled) policy files: the files are the source of truth,
+// so an in-memory KV store is used as its runtime index. This is not a durable persistence backend and must not be
+// used for customer-managed policy data.
+func (p *PAP) NewSelfAuthzPAP(ctx context.Context, logger *slog.Logger) (*pap.PAP, error) {
+	return pap.New(ctx, logger, pap.WithLanguage(p.Language), pap.WithKeyValueDB(memory.New(), ""), pap.WithFileStore(p.Store, p.StoreRecurse))
 }
 
 // Tags returns the list of configured tags.

@@ -10,6 +10,11 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
+const (
+	reasonNotAuthorized = "not authorized"
+	attrKeyDiagnostic   = "diagnostic"
+)
+
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, error) {
 	var logger *slog.Logger
@@ -25,6 +30,7 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 	started := time.Now()
 	decision, diagnostic := cedar.Authorize(c.pdp, entities, req2)
 	duration := time.Since(started)
+	reason := c.reasonFromDiagnostic(diagnostic)
 
 	c.AuthMutex.RUnlock()
 
@@ -32,14 +38,19 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 		if logger != nil {
 			logger.Debug("authorization granted", "pdp elapsed", duration.String())
 		}
-		return &models.Response{Allowed: true}, nil
+
+		return &models.Response{Allowed: true, Message: reason}, nil
 	}
 
 	if logger != nil {
-		logger.Warn("authorization not granted", "diagnostic", diagnostic, "pdp elapsed", duration.String())
+		logger.Warn("authorization not granted", attrKeyDiagnostic, diagnostic, "pdp elapsed", duration.String())
 	}
 
-	return &models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}}, nil
+	if reason == "" {
+		reason = reasonNotAuthorized
+	}
+
+	return &models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}}, nil
 }
 
 // Batch implements the Controller interface.
@@ -61,21 +72,28 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 		started := time.Now()
 		decision, diagnostic := cedar.Authorize(c.pdp, entities, r2)
 		duration := time.Since(started)
+		reason := c.reasonFromDiagnostic(diagnostic)
 
 		if decision {
 			if logger != nil {
 				logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
 			}
-			out = append(out, models.Response{Allowed: true})
+
+			out = append(out, models.Response{Allowed: true, Message: reason})
 
 			if req.Semantics == models.PermitOnFirstPermit {
 				break
 			}
 		} else {
 			if logger != nil {
-				logger.Warn("authorization not granted", "item#", i+1, "diagnostic", diagnostic, "pdp elapsed", duration.String())
+				logger.Warn("authorization not granted", "item#", i+1, attrKeyDiagnostic, diagnostic, "pdp elapsed", duration.String())
 			}
-			out = append(out, models.Response{Allowed: false, Message: "not authorized", Attributes: map[string]any{"diagnostic": diagnostic}})
+
+			if reason == "" {
+				reason = reasonNotAuthorized
+			}
+
+			out = append(out, models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}})
 
 			if req.Semantics == models.DenyOnFirstDeny {
 				break
@@ -142,4 +160,18 @@ func (c *controller) buildCedarRequest(parc *models.PARC) (cedar.Request, cedar.
 		Resource:  cedar.NewEntityUID(cedar.EntityType(parc.Resource.Type()), cedar.String(parc.Resource.ID())),
 		Context:   cedar.NewRecord(ca),
 	}, entities
+}
+
+// reasonFromDiagnostic returns the "reason" annotation of the first policy that contributed to
+// the decision, or "" if none of them carry that annotation.
+func (c *controller) reasonFromDiagnostic(diagnostic cedar.Diagnostic) string {
+	for _, r := range diagnostic.Reasons {
+		if p := c.pdp.Get(r.PolicyID); p != nil {
+			if reason, ok := p.Annotations()["reason"]; ok {
+				return string(reason)
+			}
+		}
+	}
+
+	return ""
 }

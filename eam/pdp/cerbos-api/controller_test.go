@@ -1,28 +1,22 @@
 package cerbos_api
 
 import (
-	"context"
 	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
+// TestNewController covers the cases that don't need a live Cerbos server. The good_engine
+// cases (which do) live in TestNewController_GoodEngine, gated behind the integration tag.
 func TestNewController(t *testing.T) {
 	t.Parallel()
 
 	addr := getAddress()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	dummy := slog2.NewDummyHandler(slog.LevelInfo)
-	p := pap.New(ctx, slog.New(dummy), pap.WithLanguage("cerbos"), pap.WithFileStore("../../../testdata/policies/cerbos", true))
 
 	testCases := []struct {
 		name      string
@@ -72,29 +66,6 @@ func TestNewController(t *testing.T) {
 			wantSvc1:  true,
 			wantSvc2:  true,
 			wantCount: 2,
-		},
-		{
-			name:      "good engine - without PAP",
-			addr1:     addr,
-			addr2:     addr,
-			user:      "cerbos",
-			pswd:      "cerbos",
-			wantSvc1:  true,
-			wantSvc2:  true,
-			wantInfo:  true,
-			wantCount: 1,
-		},
-		{
-			name:      "good engine - with PAP",
-			addr1:     addr,
-			addr2:     addr,
-			user:      "cerbos",
-			pswd:      "cerbos",
-			opts:      []pdp.Option{pdp.WithPAP(p)},
-			wantSvc1:  true,
-			wantSvc2:  true,
-			wantInfo:  true,
-			wantCount: 9,
 		},
 	}
 

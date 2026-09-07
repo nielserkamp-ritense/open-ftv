@@ -1,4 +1,9 @@
 // Package memory implements a memory-mapped Valkeyrie KV-store.
+//
+// This is not a persistence backend: data lives only in process memory and is lost on restart.
+// Outside of tests, it is only appropriate as a runtime index over data whose actual source of
+// truth lives elsewhere (e.g. bundled files reloaded at startup) — never for customer-managed
+// data. See config.PAP.NewSelfAuthzPAP and config.PIP.NewSelfAuthzPIP for the sanctioned use.
 package memory
 
 import (

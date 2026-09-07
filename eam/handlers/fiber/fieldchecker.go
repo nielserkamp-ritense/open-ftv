@@ -5,9 +5,14 @@ import (
 	"fmt"
 )
 
+// checkIssue is a field-check failure, a stable code clients can look up, plus its message.
 type checkIssue struct {
 	code string
 	msg  string
+}
+
+func (i *checkIssue) Error() string {
+	return i.msg
 }
 
 type fieldChecker struct {
@@ -33,7 +38,7 @@ func (f *fieldChecker) firstCode() string {
 		return ""
 	}
 
-	if e, ok := f.errs[0].(*checkErr); ok {
+	if e, ok := f.errs[0].(*checkIssue); ok {
 		return e.code
 	}
 
@@ -56,7 +61,7 @@ func (f *fieldChecker) addCode(code, msg string) {
 		msg = fmt.Sprintf("%s %s", f.prefix, msg)
 	}
 
-	f.errs = append(f.errs, &checkErr{code: code, msg: msg})
+	f.errs = append(f.errs, &checkIssue{code: code, msg: msg})
 }
 
 func (f *fieldChecker) checkIdentifiers(id1 string, id2 *string, issue checkIssue) *fieldChecker {
@@ -69,14 +74,4 @@ func (f *fieldChecker) checkIdentifiers(id1 string, id2 *string, issue checkIssu
 	}
 
 	return f
-}
-
-// checkErr is a field-check failure that carries an optional stable Code alongside its message.
-type checkErr struct {
-	code string
-	msg  string
-}
-
-func (e *checkErr) Error() string {
-	return e.msg
 }

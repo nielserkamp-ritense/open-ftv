@@ -16,11 +16,13 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 
 	s.auth = s.newAuth()
 	if s.auth == nil {
+		s.logger.Error("failed to initialize authorization handler")
 		panic("failed to initialize authorization handler")
 	}
 
 	var err error
 	if s.pip, err = s.newPIP(); err != nil {
+		s.logger.Error("failed to initialize PIP handler", "error", err)
 		panic("failed to initialize PIP handler: " + err.Error())
 	}
 

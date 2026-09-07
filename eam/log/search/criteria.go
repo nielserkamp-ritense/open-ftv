@@ -16,6 +16,8 @@ const (
 	maxStringLen = 100
 	maxBundles   = 10
 	maxPeriod    = 7 * 24 * time.Hour
+	traceIDBytes = 16 // W3C trace-id: 16 bytes (32 hex characters).
+	spanIDBytes  = 8  // W3C span-id: 8 bytes (16 hex characters).
 )
 
 // Criteria contains the parameter to use for a search.
@@ -37,9 +39,6 @@ type Criteria struct {
 	ActionName   string                      // not more than 100 characters.
 	ResourceType string                      // not more than 100 characters.
 	ResourceId   string                      // not more than 100 characters.
-	// hidden fields.
-	traceID []byte
-	spanID  []byte
 }
 
 // Test checks if the criteria are valid.
@@ -54,6 +53,14 @@ func (c *Criteria) Test() error {
 			errs = append(errs, fmt.Errorf("id search is mutually exclusive with period selection: %s, %s, %s", c.From.String(), c.To.String(), c.Recent.String()))
 		}
 	} else {
+		if c.TraceId != "" && c.From.IsZero() && c.To.IsZero() && c.Recent == 0 {
+			// The +1s on To (and so on From, exactly 5 years before it) is a
+			// buffer against the "less than 5 years ago" check below calling
+			// time.Now() again a moment later: without it, that later call
+			// would occasionally push From just past the 5-year cutoff.
+			c.To = time.Now().UTC().Add(time.Second)
+			c.From = c.To.AddDate(-5, 0, 0)
+		}
 		if c.To.IsZero() {
 			c.To = time.Now().UTC().Add(time.Second)
 		}
@@ -70,7 +77,7 @@ func (c *Criteria) Test() error {
 			errs = append(errs, errors.New("from timestamp must be filled"))
 		case c.From.Before(time.Now().AddDate(-5, 0, 0)):
 			errs = append(errs, errors.New("selection period must be less than 5 years ago"))
-		case c.From.Add(maxPeriod).Before(c.To):
+		case c.From.Add(maxPeriod).Before(c.To) && c.TraceId == "":
 			errs = append(errs, fmt.Errorf("selection period cannot be larger than %s", maxPeriod.String()))
 		}
 	}
@@ -103,19 +110,23 @@ func (c *Criteria) Test() error {
 	}
 
 	if c.TraceId != "" {
-		if c.traceID, err = hex.DecodeString(c.TraceId); err != nil {
-			errs = append(errs, fmt.Errorf("failed to parse trace id: %w", err))
+		traceID, decErr := hex.DecodeString(c.TraceId)
+		if decErr != nil {
+			errs = append(errs, fmt.Errorf("failed to parse trace id: %w", decErr))
 		}
-		if len(c.traceID) != 16 {
+
+		if len(traceID) != traceIDBytes {
 			errs = append(errs, fmt.Errorf("trace id must be 16 bytes (32 hex characters) long"))
 		}
 	}
 
 	if c.SpanId != "" {
-		if c.spanID, err = hex.DecodeString(c.SpanId); err != nil {
-			errs = append(errs, fmt.Errorf("failed to parse span id: %w", err))
+		spanID, decErr := hex.DecodeString(c.SpanId)
+		if decErr != nil {
+			errs = append(errs, fmt.Errorf("failed to parse span id: %w", decErr))
 		}
-		if len(c.spanID) != 8 {
+
+		if len(spanID) != spanIDBytes {
 			errs = append(errs, fmt.Errorf("span id must be 8 bytes (16 hex characters) long"))
 		}
 	}
@@ -149,14 +160,4 @@ func (c *Criteria) Test() error {
 		return &ParameterError{msg: err.Error()}
 	}
 	return nil
-}
-
-// GetTraceID returns the 16-byte binary representation of the trace_id parameter.
-func (c *Criteria) GetTraceID() []byte {
-	return c.traceID
-}
-
-// GetSpanID returns the 8-byte binary representation of the span_id parameter.
-func (c *Criteria) GetSpanID() []byte {
-	return c.spanID
 }

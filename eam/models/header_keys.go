@@ -11,6 +11,7 @@ const (
 	HeaderDeviceID         = "device-id"
 	HeaderDoelbinding      = "doelbinding"
 	HeaderFSCAuthorization = "fsc-authorization"
+	HeaderFSCTransactionID = "fsc-transaction-id" // https://gitdocumentatie.logius.nl/publicatie/fsc/logging/1.1.0/
 	HeaderForwarded        = "forwarded"
 	HeaderGrondslag        = "grondslag"
 	HeaderObsoleteCoreUser = "x-dpl-core-user"

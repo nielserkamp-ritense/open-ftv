@@ -87,26 +87,24 @@ export function lookupErrorMessage(err: unknown): string {
     return DEFAULT_ERROR_MESSAGE
 }
 
-// errorCodeFrom extracts the backend's error code from a failed API request, if present.
-export function errorCodeFrom(err: unknown): string | undefined {
+// responseDataField extracts a single field of a given type from a failed API request's response body, if present.
+function responseDataField<T>(err: unknown, key: string, typeOf: 'string' | 'number'): T | undefined {
     if (typeof err !== 'object' || err === null || !('response' in err)) {
         return undefined
     }
 
-    const response = (err as { response?: { data?: { code?: unknown } } }).response
-    const code = response?.data?.code
+    const response = (err as { response?: { data?: Record<string, unknown> } }).response
+    const value = response?.data?.[key]
 
-    return typeof code === 'string' ? code : undefined
+    return typeof value === typeOf ? (value as T) : undefined
+}
+
+// errorCodeFrom extracts the backend's error code from a failed API request, if present.
+export function errorCodeFrom(err: unknown): string | undefined {
+    return responseDataField<string>(err, 'code', 'string')
 }
 
 // errorStatusFrom extracts the backend's HTTP status from a failed API request, if present.
 export function errorStatusFrom(err: unknown): number | undefined {
-    if (typeof err !== 'object' || err === null || !('response' in err)) {
-        return undefined
-    }
-
-    const response = (err as { response?: { data?: { status?: unknown } } }).response
-    const status = response?.data?.status
-
-    return typeof status === 'number' ? status : undefined
+    return responseDataField<number>(err, 'status', 'number')
 }

@@ -12,6 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	util "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 // testAttributeDB is an AttributePersister test double returning canned data.
@@ -82,7 +83,8 @@ func TestPIP_UpdateAttributeStatus(t *testing.T) {
 				db.prev = models.NewAttribute("k1", "v1").WithStatus(tc.prevStatus)
 			}
 
-			p := New(context.Background(), slog.New(util.NewDummyHandler(slog.LevelInfo)))
+			p, err := New(context.Background(), slog.New(util.NewDummyHandler(slog.LevelInfo)), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			p.attributeDB = db
 
 			got, err := p.UpdateAttributeStatus("k1", tc.newStatus, user)

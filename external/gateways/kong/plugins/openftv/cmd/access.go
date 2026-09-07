@@ -14,6 +14,7 @@ import (
 	"github.com/goccy/go-json"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 )
 
@@ -27,7 +28,7 @@ func (c *Config) Access(kong *pdk.PDK) {
 	defer func() {
 		if e := recover(); e != nil {
 			_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access error: %v", e))
-			kong.Response.ExitStatus(http.StatusInternalServerError)
+			kong.Response.Exit(http.StatusInternalServerError, nil, nil)
 		}
 	}()
 
@@ -39,6 +40,23 @@ func (c *Config) Access(kong *pdk.PDK) {
 	query, _ := kong.Request.GetRawQuery()
 	headers, _ := kong.Request.GetHeaders(1000)
 	body, _ := kong.Request.GetRawBody()
+
+	// Resolved once so every outgoing hop for this request (the PDP call, and the forwarded call to the
+	// upstream service) shares the same trace_id — resolving independently per hop would otherwise mint a
+	// separate, unrelated trace_id on each hop whenever the incoming request carried none.
+	incomingTraceParent := models.FirstHeader(headers, models.HeaderTraceParent)
+	baseTraceParent := models.ResolveTraceParent(incomingTraceParent)
+	traceState := models.ResolveTraceState(incomingTraceParent, models.FirstHeader(headers, models.HeaderTraceState))
+	fscTransactionID := models.FirstHeader(headers, models.HeaderFSCTransactionID)
+
+	upstream := upstreamTrace{
+		traceParent:      models.ResolveOutgoingTraceParent(baseTraceParent),
+		traceState:       traceState,
+		fscTransactionID: fscTransactionID,
+	}
+
+	traceParent := models.ResolveOutgoingTraceParent(baseTraceParent)
+	models.SetHeader(headers, models.HeaderTraceParent, traceParent)
 
 	uri = &url.URL{
 		Scheme:   scheme,
@@ -57,6 +75,16 @@ func (c *Config) Access(kong *pdk.PDK) {
 	}
 
 	parc := c.pep.PARCFromRequest(&req, func(uid string) (*models.Entity, uint64, error) { return nil, 0, nil })
+
+	// Uses the consumer key-auth resolved as the principal, if present, carrying its Kong tags.
+	if consumer, _ := kong.Client.GetConsumer(); consumer.Id != "" {
+		attrs := models.NewAttributeSet()
+		if len(consumer.Tags) > 0 {
+			attrs.AddAttributeKV("tags", consumer.Tags)
+		}
+
+		parc.Principal = models.NewEntity(pep.PrincipalApp, consumer.Username, attrs)
+	}
 
 	authBody := authzen.EvaluationRequest{
 		Subject: authzen.Entity{
@@ -91,6 +119,16 @@ func (c *Config) Access(kong *pdk.PDK) {
 		return
 	}
 
+	authReq.Header.Set(models.HeaderTraceParent, traceParent)
+
+	if traceState != "" {
+		authReq.Header.Set(models.HeaderTraceState, traceState)
+	}
+
+	if fscTransactionID != "" {
+		authReq.Header.Set(models.HeaderFSCTransactionID, fscTransactionID)
+	}
+
 	resp, err3 := http.DefaultClient.Do(authReq)
 	if err3 != nil {
 		c.reportError(kong, err3)
@@ -107,11 +145,53 @@ func (c *Config) Access(kong *pdk.PDK) {
 
 	if !authResp.Decision {
 		_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access denied: %v", authResp))
-		kong.Response.ExitStatus(http.StatusForbidden)
+
+		reason, _ := authResp.Context.ReasonUser["en"].(string)
+		if reason == "" {
+			reason = "not authorized"
+		}
+
+		body, _ := json.Marshal(map[string]any{"title": "Forbidden", "status": http.StatusForbidden, "detail": reason})
+		kong.Response.Exit(http.StatusForbidden, body, map[string][]string{"Content-Type": {"application/json"}})
+
+		return
 	}
+
+	if err = setUpstreamTrace(kong, upstream); err != nil {
+		c.reportError(kong, err)
+	}
+}
+
+// upstreamTrace is the trace context applied, via kong.ServiceRequest, to the request Kong forwards to the
+// protected service.
+type upstreamTrace struct {
+	traceParent      string
+	traceState       string
+	fscTransactionID string
+}
+
+func setUpstreamTrace(kong *pdk.PDK, tc upstreamTrace) error {
+	if err := kong.ServiceRequest.SetHeader(models.HeaderTraceParent, tc.traceParent); err != nil {
+		return err
+	}
+
+	// Must actively clear, not skip: Kong forwards a client header unchanged unless told otherwise.
+	if tc.traceState != "" {
+		if err := kong.ServiceRequest.SetHeader(models.HeaderTraceState, tc.traceState); err != nil {
+			return err
+		}
+	} else if err := kong.ServiceRequest.ClearHeader(models.HeaderTraceState); err != nil {
+		return err
+	}
+
+	if tc.fscTransactionID != "" {
+		return kong.ServiceRequest.SetHeader(models.HeaderFSCTransactionID, tc.fscTransactionID)
+	}
+
+	return nil
 }
 
 func (c *Config) reportError(kong *pdk.PDK, err error) {
 	_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access error: %v", err))
-	kong.Response.ExitStatus(http.StatusInternalServerError)
+	kong.Response.Exit(http.StatusInternalServerError, nil, nil)
 }

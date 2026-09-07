@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewBase(t *testing.T) {
@@ -18,7 +19,8 @@ func TestNewBase(t *testing.T) {
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	p := pip2.New(ctx, log, pip2.WithFileStore("../../testdata/pip/users", false))
+	p, err := pip2.New(ctx, log, pip2.WithKeyValueDB(memory.New(), ""), pip2.WithFileStore("../../testdata/pip/users", false))
+	require.NoError(t, err)
 
 	testCases := []struct {
 		name    string

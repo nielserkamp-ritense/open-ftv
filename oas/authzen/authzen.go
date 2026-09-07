@@ -155,6 +155,9 @@ type ReasonField = map[string]interface{}
 
 // ReasonObject Specifies a particular reason.
 type ReasonObject struct {
+	// Id Identifies the reason for this response, within the scope of this response.
+	Id string `json:"id"`
+
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
 	ReasonAdmin ReasonField `json:"reason_admin,omitempty"`
 

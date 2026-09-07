@@ -14,22 +14,54 @@ const (
 	SearchResourceEndpoint
 )
 
+// unknownRequestTypeName is returned by String for a request type with no entry in requestTypeInfos.
+const unknownRequestTypeName = "???"
+
+// JSON names and Logius ADL event names for each request type.
+const (
+	nameEvaluation     = "evaluation"
+	nameEvaluations    = "evaluations"
+	nameSearchSubject  = "search_subject"
+	nameSearchAction   = "search_action"
+	nameSearchResource = "search_resource"
+
+	eventNameAccessEvaluation  = "adl.access_evaluation"
+	eventNameAccessEvaluations = "adl.access_evaluations"
+	eventNameSearchSubject     = "adl.search_subject"
+	eventNameSearchAction      = "adl.search_action"
+	eventNameSearchResource    = "adl.search_resource"
+)
+
+// requestTypeInfo pairs a request type's JSON name with its Logius ADL event_name in one table.
+type requestTypeInfo struct {
+	name      string
+	eventName string
+}
+
+var requestTypeInfos = map[AuthRequestType]requestTypeInfo{
+	EvaluationEndpoint:     {name: nameEvaluation, eventName: eventNameAccessEvaluation},
+	EvaluationsEndpoint:    {name: nameEvaluations, eventName: eventNameAccessEvaluations},
+	SearchSubjectEndpoint:  {name: nameSearchSubject, eventName: eventNameSearchSubject},
+	SearchActionEndpoint:   {name: nameSearchAction, eventName: eventNameSearchAction},
+	SearchResourceEndpoint: {name: nameSearchResource, eventName: eventNameSearchResource},
+}
+
+var requestTypeByName = func() map[string]AuthRequestType {
+	m := make(map[string]AuthRequestType, len(requestTypeInfos))
+	for t, info := range requestTypeInfos {
+		m[info.name] = t
+	}
+
+	return m
+}()
+
 // String implements the Stringer interface.
 func (t AuthRequestType) String() string {
-	switch t {
-	case EvaluationEndpoint:
-		return "evaluation"
-	case EvaluationsEndpoint:
-		return "evaluations"
-	case SearchSubjectEndpoint:
-		return "search_subject"
-	case SearchActionEndpoint:
-		return "search_action"
-	case SearchResourceEndpoint:
-		return "search_resource"
-	default:
-		return "???"
+	if info, ok := requestTypeInfos[t]; ok {
+		return info.name
 	}
+
+	return unknownRequestTypeName
 }
 
 // MarshalJSON implements the json.Marshaler interface.
@@ -37,12 +69,9 @@ func (t AuthRequestType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
 }
 
-var translate = map[string]AuthRequestType{
-	"evaluation":      EvaluationEndpoint,
-	"evaluations":     EvaluationsEndpoint,
-	"search_subject":  SearchSubjectEndpoint,
-	"search_action":   SearchActionEndpoint,
-	"search_resource": SearchResourceEndpoint,
+// EventName returns the Logius ADL event_name for the request type.
+func (t AuthRequestType) EventName() string {
+	return requestTypeInfos[t].eventName
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
@@ -54,8 +83,9 @@ func (t *AuthRequestType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if t2, ok := translate[s]; ok {
+	if t2, ok := requestTypeByName[s]; ok {
 		*t = t2
 	}
+
 	return nil
 }

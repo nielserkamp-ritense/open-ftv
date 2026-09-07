@@ -94,6 +94,8 @@ func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttributeValue)
 		httpReq.Header.Set(key, r.Headers[key])
 	}
 
+	httpReq.Header.Set(models.HeaderTraceParent, models.ResolveOutgoingTraceParent(httpReq.Header.Get(models.HeaderTraceParent)))
+
 	if body != nil {
 		httpReq.Header.Set("Content-Type", r.ContentType)
 		httpReq.Header.Set("Content-Length", strconv.Itoa(bodyLen))

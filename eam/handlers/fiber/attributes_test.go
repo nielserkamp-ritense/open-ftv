@@ -24,6 +24,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestNewAttributesHandler(t *testing.T) {
@@ -36,10 +37,12 @@ func TestNewAttributesHandler(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -60,10 +63,12 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/policies/opa", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/policies/opa", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -93,7 +98,8 @@ func TestAttributesHandler_GetAttributes(t *testing.T) {
 		require.NotNil(t, b)
 
 		var list []*attributes.Attribute
-		err := json.Unmarshal(b, &list)
+
+		err = json.Unmarshal(b, &list)
 		require.NoError(t, err)
 		assert.Equal(t, 1, len(list))
 	})
@@ -109,10 +115,12 @@ func TestAttributesHandler_GetAttributes_Empty(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelDebug)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/non_existing_folder", true))
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/non_existing_folder", true))
+		require.NoError(t, err)
 		require.NotNil(t, p1)
 
-		p2 := pap.New(ctx, logger, pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/policies/opa", true))
+		p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/policies/opa", true))
+		require.NoError(t, err)
 		require.NotNil(t, p2)
 
 		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -164,10 +172,12 @@ func TestAttributesHandler_GetAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -244,10 +254,12 @@ func TestAttributesHandler_PostAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/unittest/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/unittest/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -326,10 +338,12 @@ func TestAttributesHandler_PutAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/unittest/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/unittest/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))
@@ -394,10 +408,12 @@ func TestAttributesHandler_DeleteAttribute(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/unittest/pip", true))
+			p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/unittest/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap.New(ctx, logger, pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			p2, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"), pap.WithFileStore("../../../testdata/policies/cedar", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := cedar_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))

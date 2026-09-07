@@ -1,0 +1,5 @@
+id: "laadpaal-aanvragen"
+language: "cedar"
+metadata:
+  description: "Scenario 1 (Testcase 1): wie mag een laadpaal aanvragen"
+  tags: ["rvig", "rdw"]

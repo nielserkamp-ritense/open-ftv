@@ -22,6 +22,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/opa-embedded"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestFormatRequest(t *testing.T) {
@@ -73,10 +74,12 @@ func TestFormatRequest(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p1 := pip2.New(ctx, logger, pip2.WithFileStore("../../../testdata/pip", true))
+			p1, err := pip2.New(ctx, logger, pip2.WithKeyValueDB(memory.New(), ""), pip2.WithFileStore("../../../testdata/pip", true))
+			require.NoError(t, err)
 			require.NotNil(t, p1)
 
-			p2 := pap2.New(ctx, logger, pap2.WithLanguage("rego"), pap2.WithFileStore("../../../testdata/policies/opa", true))
+			p2, err := pap2.New(ctx, logger, pap2.WithKeyValueDB(memory.New(), ""), pap2.WithLanguage("rego"), pap2.WithFileStore("../../../testdata/policies/opa", true))
+			require.NoError(t, err)
 			require.NotNil(t, p2)
 
 			controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPIP(p1), pdp.WithPAP(p2), pdp.WithLogger(logger))

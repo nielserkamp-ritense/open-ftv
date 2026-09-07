@@ -16,6 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	pip2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestController_Authorize(t *testing.T) {
@@ -83,10 +84,12 @@ func TestController_Authorize(t *testing.T) {
 
 			ep := pep.New(nil, logger)
 
-			ip := pip2.New(nil, logger, pip2.WithFileStore(tc.store1, tc.recurse1))
+			ip, err := pip2.New(t.Context(), logger, pip2.WithKeyValueDB(memory.New(), ""), pip2.WithFileStore(tc.store1, tc.recurse1))
+			require.NoError(t, err)
 			require.NotNil(t, ip)
 
-			ap := pap2.New(nil, logger, pap2.WithLanguage("openfga"), pap2.WithFileStore(tc.store2, tc.recurse2))
+			ap, err := pap2.New(t.Context(), logger, pap2.WithKeyValueDB(memory.New(), ""), pap2.WithLanguage("openfga"), pap2.WithFileStore(tc.store2, tc.recurse2))
+			require.NoError(t, err)
 			require.NotNil(t, ap)
 
 			c := NewController(pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))

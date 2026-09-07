@@ -1,0 +1,46 @@
+{{- $fullname := include "open-ftv.fullname" . -}}
+{{- $clusterName := include "open-ftv.postgresqlClusterName" . -}}
+
+{{- if eq .Values.pdp.config.authorizationDecisionLog.type "postgresql" -}}
+
+{{- if not .Values.postgresql.existingCluster -}}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $clusterName }}
+  labels:
+    {{- include "open-ftv.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  inheritedMetadata:
+    labels:
+      app.kubernetes.io/part-of: open-ftv
+      app.kubernetes.io/component: database
+  instances: {{ .Values.postgresql.instances }}
+  storage:
+    size: {{ .Values.postgresql.storageSize }}
+  bootstrap:
+    initdb:
+      owner: {{ .Values.postgresql.databaseOwner }}
+  monitoring:
+    disableDefaultQueries: true
+  enablePDB: {{ gt .Values.postgresql.instances 1.0 }}
+{{- end }}
+
+{{- with .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ $fullname }}-adl
+  labels:
+    {{- include "open-ftv.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  cluster:
+    name: {{ $clusterName }}
+  name: {{ . }}
+  owner: {{ $.Values.postgresql.databaseOwner }}
+  databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
+{{- end }}
+{{- end }}

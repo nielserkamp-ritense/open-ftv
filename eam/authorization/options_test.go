@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
@@ -13,6 +14,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestOptions(t *testing.T) {
@@ -24,7 +26,8 @@ func TestOptions(t *testing.T) {
 	h := slog2.NewDummyHandler(slog.LevelError)
 	log := slog.New(h)
 
-	p1 := pip.New(ctx, log, pip.WithFileStore("../../testdata/pip/users", false))
+	p1, err := pip.New(ctx, log, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../testdata/pip/users", false))
+	require.NoError(t, err)
 	p2 := pep.New(ctx, log)
 	p3 := cedar_embedded.NewController(pdp.WithLogger(log))
 

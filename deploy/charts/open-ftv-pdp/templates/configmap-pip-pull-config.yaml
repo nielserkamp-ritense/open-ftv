@@ -1,0 +1,11 @@
+{{- if .Values.config.pipPullConfig -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "open-ftv-pdp.fullname" . }}-pip-pull-config
+  labels:
+    {{- include "open-ftv-pdp.labels" . | nindent 4 }}
+data:
+  pip-pull-config.yaml: |
+    {{- toYaml .Values.config.pipPullConfig | nindent 4 }}
+{{- end }}

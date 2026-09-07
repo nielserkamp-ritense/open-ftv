@@ -38,6 +38,7 @@ routes:
   methods: ~
   paths:
     - /v1/haalcentraal/api/brp/personen
+    - /v1/meta/datasource/brp
   protocols:
   - http
   - https
@@ -90,3 +91,7 @@ plugins:
       - PUT
       - PATCH
       - POST
+    headers:
+      - Content-Type
+      - X-Api-Key
+      - Doelbinding

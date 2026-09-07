@@ -16,6 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 // TestAuthorization_FailClosedOnEmpty verifies that an empty policy store allows all
@@ -26,13 +27,18 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 	build := func(failClosed bool) authorization2.Authorizer {
 		ctx := context.Background()
 		logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-		p1 := pip.New(ctx, logger)
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
+
+		ap1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), "")) // empty store
+		require.NoError(t, err)
+
 		c := cedar_embedded.NewController(
 			pdp.WithContext(ctx),
 			pdp.WithLogger(logger),
 			pdp.WithPEP(pep.New(ctx, logger)),
 			pdp.WithPIP(p1),
-			pdp.WithPAP(pap.New(ctx, logger)), // empty store
+			pdp.WithPAP(ap1),
 		)
 		a := &Authorization{FailClosedOnEmpty: failClosed}
 		az, err := a.NewAuthorizer(c, nil)
@@ -71,14 +77,18 @@ func TestAuthorization_NewAuthorizer(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p1 := pip.New(ctx, logger)
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
+
+		ap1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 
 		c := cedar_embedded.NewController(
 			pdp.WithContext(ctx),
 			pdp.WithLogger(logger),
 			pdp.WithPEP(pep.New(ctx, logger)),
 			pdp.WithPIP(p1),
-			pdp.WithPAP(pap.New(ctx, logger)),
+			pdp.WithPAP(ap1),
 		)
 
 		a1 := &Authentication{Type: "bcrypt"}
@@ -102,12 +112,18 @@ func TestAuthorization_NewAuthorizer_Fail(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
+		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
+
+		ap1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
+
 		c := cedar_embedded.NewController(
 			pdp.WithContext(ctx),
 			pdp.WithLogger(logger),
 			pdp.WithPEP(pep.New(ctx, logger)),
-			pdp.WithPIP(pip.New(ctx, logger)),
-			pdp.WithPAP(pap.New(ctx, logger)),
+			pdp.WithPIP(p1),
+			pdp.WithPAP(ap1),
 		)
 
 		a1 := &Authorization{Authenticate: true}

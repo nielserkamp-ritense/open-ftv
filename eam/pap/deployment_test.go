@@ -12,6 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 func TestPAP_NewDeployment(t *testing.T) {
@@ -26,7 +27,8 @@ func TestPAP_NewDeployment(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
@@ -53,7 +55,8 @@ func TestPAP_LastDeployment(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
@@ -83,7 +86,8 @@ func TestPAP_RestartDeployment(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
@@ -119,13 +123,14 @@ func TestPAP_ReadDeployment(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))
 		require.NotNil(t, m)
 
-		_, err := p.NewDeployment("v4", "merry easter", m, identity.NewSystemPrincipal())
+		_, err = p.NewDeployment("v4", "merry easter", m, identity.NewSystemPrincipal())
 		require.NoError(t, err)
 
 		d2, err2 := p.ReadDeployment(1)
@@ -152,7 +157,8 @@ func TestPAP_ListDeployments(t *testing.T) {
 		h := slog2.NewDummyHandler(0)
 		logger := slog.New(h)
 
-		p := New(nil, logger)
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		m := bundles.NewManager(ctx, logger, bundles.WithConfig("../../testdata/unittests/bundles/test1", false))

@@ -8,7 +8,10 @@ import (
 )
 
 // Manager represents the interface to manage external sources.
-type Manager interface{}
+type Manager interface {
+	// Stop cancels the manager's context, terminating its scheduler goroutine.
+	Stop()
+}
 
 // ManagerParams defines the parameters to instantiate a new external sources manager.
 type ManagerParams struct {
@@ -58,4 +61,9 @@ type manager struct {
 	getAttribute models.GetAttributeValue
 	addEntity    models.AddEntity
 	addRelation  models.AddRelation
+}
+
+// Stop cancels the manager's context, terminating its scheduler goroutine.
+func (m *manager) Stop() {
+	m.cancel()
 }

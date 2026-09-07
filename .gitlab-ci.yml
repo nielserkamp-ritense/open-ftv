@@ -1,21 +1,11 @@
-variables:
-  pattern_prerelease_tag: '/^v\d*\.\d*\.\d*-rc\.\d*$/'
-  pattern_release_tag: '/^v\d*\.\d*\.\d*$/'
-
 stages:
   - Version
-  - Linter
   - Security
-  - UnitTests
+  - Tests
   - Build
-  - Release
   - Manifest
-  - deploy
-#  - Redeploy
-#  - E2E tests
-#  - Tools
-#  - external
-#  - On Failure
+  - Charts
+  - Deploy
 
 include:
   - ".gitlab/ci/**.yml"

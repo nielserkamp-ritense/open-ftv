@@ -11,7 +11,17 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/migrate"
 )
 
-func (p *PAP) migration() (err error) {
+// migrationConfigured reports whether Source, DB, and either Auto or a nonzero Steps are set.
+func (p *PAP) migrationConfigured() bool {
+	return p.migrateSource != "" && p.migrateDB != "" && (p.migrateAuto || p.migrateSteps != 0)
+}
+
+// Migrate runs the database migration configured via WithMigration.
+func (p *PAP) Migrate() (err error) {
+	if !p.migrationConfigured() {
+		return nil
+	}
+
 	if p.migrateAuto {
 		p.migrateSteps = 0
 	}

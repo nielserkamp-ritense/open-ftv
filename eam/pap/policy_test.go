@@ -18,6 +18,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
 var testUser = identity.NewPrincipal(identity.KindUser, "test")
@@ -48,7 +49,8 @@ func TestPAP_Add(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.AddEventSink(e)
@@ -119,7 +121,8 @@ func TestPAP_Replace(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.AddEventSink(e)
@@ -192,7 +195,8 @@ func TestPAP_Remove(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.AddEventSink(e)
@@ -253,7 +257,8 @@ func TestPAP_List(t *testing.T) {
 
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
@@ -301,7 +306,8 @@ func TestPAP_Iterate(t *testing.T) {
 
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			for i := range tc.cached {
@@ -363,12 +369,13 @@ func TestPAP_ReplaceAll(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelInfo)
 			e := &eventCounter{}
 
-			p := New(nil, slog.New(h))
+			p, err := New(t.Context(), slog.New(h), WithKeyValueDB(memory.New(), ""))
+			require.NoError(t, err)
 			require.NotNil(t, p)
 
 			p.AddEventSink(e)
 
-			_, err := p.Create(p1, testUser)
+			_, err = p.Create(p1, testUser)
 			require.NoError(t, err)
 			_, err = p.Create(p2, testUser)
 			require.NoError(t, err)
@@ -426,7 +433,8 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 
 		mock, db := newMockPG(t, ctx, "postgres://localhost:5432/myDB", time.Minute, 3, now)
 
-		p := New(ctx, logger, WithPolicyDB(db))
+		p, err := New(ctx, logger, WithPolicyDB(db))
+		require.NoError(t, err)
 		require.NotNil(t, p)
 
 		p.AddEventSink(e)

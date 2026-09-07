@@ -5,3 +5,5 @@ cover.html
 .DS_Store
 node_modules/
 .claude/
+deploy/charts/*/charts/
+deploy/charts/*/Chart.lock
