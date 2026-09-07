@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1 - build
-FROM golang:1.26.5-alpine AS golang_builder
+FROM golang:1.26.7-alpine AS golang_builder
 
 ARG GIT_TAG_NAME
 ARG GIT_COMMIT_HASH
