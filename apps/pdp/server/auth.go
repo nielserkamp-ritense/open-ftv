@@ -82,7 +82,10 @@ func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller,
 
 func (s *Services) newADL() (*adl.ADL, error) {
 	svc := s.cfg.ADLService
-	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(time.Second * 5)}
+
+	const otelTimeout = time.Second * 5
+
+	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(otelTimeout)}
 
 	// The ADL schema is owned by eam/log/decisions, not by an app: every app that uses the ADL
 	// migrates it. See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.

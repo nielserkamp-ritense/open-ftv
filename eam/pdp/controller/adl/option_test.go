@@ -48,6 +48,7 @@ func TestOptions(t *testing.T) {
 			t.Parallel()
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
+
 			logger, err := decisions.New(ctx, "test", opentelemetry.WithExporter(tracetest.NewInMemoryExporter()))
 			require.NoError(t, err)
 			require.NotNil(t, logger)

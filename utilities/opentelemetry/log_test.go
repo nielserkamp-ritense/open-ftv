@@ -26,7 +26,7 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			l, err := New(nil, tc.service, tc.opts...)
+			l, err := New(t.Context(), tc.service, tc.opts...)
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Nil(t, l)
@@ -52,7 +52,7 @@ func TestLogger_StartSpan(t *testing.T) {
 	t.Run("start span", func(t *testing.T) {
 		exporter := tracetest.NewInMemoryExporter()
 
-		l, err := New(nil, "fsc-authz", WithExporter(exporter), WithBatchTimeout(10*time.Millisecond))
+		l, err := New(t.Context(), "fsc-authz", WithExporter(exporter), WithBatchTimeout(10*time.Millisecond))
 		require.NoError(t, err)
 		require.NotNil(t, l)
 
