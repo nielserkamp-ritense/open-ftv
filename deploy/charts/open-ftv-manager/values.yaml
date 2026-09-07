@@ -26,11 +26,14 @@ config:
       usernameKey: username
       passwordKey: password
 
-  # The authorization decision log written by the PDP, read by the manager.
+  # The authorization decision log written by the PDP, read by the manager. It MUST be a
+  # different database from `config.database` above: both are migrated with golang-migrate,
+  # which keeps its version in a `schema_migrations` table -- one database for both schemas
+  # makes the two migration runs clobber each other's version.
   authorizationDecisionLog:
     postgresql:
       # hostname: ""
-      # database: ""
+      database: openftv_adl
       existingSecret:
         name: open-ftv-postgresql-app
         hostnameKey: host

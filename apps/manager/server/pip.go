@@ -5,9 +5,5 @@ import (
 )
 
 func (s *Services) newPIP() (*pip.PIP, error) {
-	var opts []pip.Option
-
-	opts = append(opts, pip.WithPostgresDB(pip.NewPostgresWithPool(s.db)))
-
-	return pip.New(s.ctx, s.logger, opts...)
+	return pip.New(s.ctx, s.logger, pip.WithPostgresDB(pip.NewPostgresWithPool(s.db)))
 }

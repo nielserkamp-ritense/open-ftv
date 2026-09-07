@@ -33,17 +33,16 @@ import (
 
 const defaultADLTestPostgresURL = "postgres://user:password@localhost:5432/openftv?sslmode=disable"
 
-// defaultADLTestDatabaseURL is the ADL database of docker/compose-integration-tests.yaml, for
-// tests that only need a working decision log and do not create a database of their own.
-const defaultADLTestDatabaseURL = "postgres://user:password@localhost:5432/openftv_adl?sslmode=disable"
-
 const goodEvaluationItem = `"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_update","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}`
 
 const goodSubject = `{` + goodEvaluationItem + `}`
 
-// newADLTestConfig returns a PDP config wired to a fresh, isolated Postgres-backed ADL for one test, and
-// the DSN of that database for direct verification queries.
-func newADLTestConfig(t *testing.T) (*config.Config, string) {
+// newADLTestDatabaseURL creates an empty database for the calling test and returns its URL. The PDP
+// migrates the Authorization Decision Log schema into it itself, at startup.
+//
+// It skips the test when no Postgres is reachable, so the suite still runs without one; point
+// PDP_TEST_POSTGRES_URL at a server whose credentials differ from the compose file's.
+func newADLTestDatabaseURL(t *testing.T) string {
 	t.Helper()
 
 	baseURL := os.Getenv("PDP_TEST_POSTGRES_URL")
@@ -68,7 +67,15 @@ func newADLTestConfig(t *testing.T) (*config.Config, string) {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
-	dsn := withADLDatabase(baseURL, dbName)
+	return withADLDatabase(baseURL, dbName)
+}
+
+// newADLTestConfig returns a PDP config wired to a fresh, isolated Postgres-backed ADL for one test, and
+// the DSN of that database for direct verification queries.
+func newADLTestConfig(t *testing.T) (*config.Config, string) {
+	t.Helper()
+
+	dsn := newADLTestDatabaseURL(t)
 
 	cfg := &config.Config{
 		PAP:            config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},

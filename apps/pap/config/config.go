@@ -57,8 +57,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
-	sanitized := *c
-	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
 	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 

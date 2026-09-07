@@ -38,7 +38,7 @@ func TestNewService_Serve(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
-			DatabaseURL: "postgres://user:password@localhost:5432/openftv?sslmode=disable",
+			DatabaseURL: newTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)
@@ -115,7 +115,7 @@ func TestNewService_ErrorHandler(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
-			DatabaseURL: "postgres://user:password@localhost:5432/openftv?sslmode=disable",
+			DatabaseURL: newTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)

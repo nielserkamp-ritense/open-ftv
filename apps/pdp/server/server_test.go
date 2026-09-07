@@ -39,7 +39,7 @@ func TestServe(t *testing.T) {
 			},
 			PAP:            config2.PAP{Language: "cedar"},
 			ADLService:     "pdp-test",
-			ADLDatabaseURL: defaultADLTestDatabaseURL,
+			ADLDatabaseURL: newADLTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)
@@ -114,7 +114,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 			PAP:            config2.PAP{Language: "cedar"},
 			ADLService:     "pdp-test",
-			ADLDatabaseURL: defaultADLTestDatabaseURL,
+			ADLDatabaseURL: newADLTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)

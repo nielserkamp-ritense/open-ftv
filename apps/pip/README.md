@@ -383,7 +383,9 @@ However, for brevity, we will only include the YAML layout above, as a JSON or T
 
 The PIP requires PostgreSQL. It is configured with a single option:
 `database.url` / `PIP_DATABASE_URL` / `--database-url`. The PIP exits at startup when the
-option is missing or the database is unreachable.
+option is missing. It does *not* verify that the database is reachable: unlike the Manager and
+the PAP the PIP runs no migration at startup, and the connection pool connects lazily, so a
+PIP pointed at an unreachable or wrong database starts up healthy and fails every request.
 
 ```shell
 PIP_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable

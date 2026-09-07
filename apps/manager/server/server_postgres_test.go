@@ -4,7 +4,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -16,6 +15,8 @@ import (
 )
 
 const defaultTestPostgresURL = "postgres://user:password@localhost:5432/openftv?sslmode=disable"
+
+const adlSuffix = "_adl"
 
 func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 	t.Helper()
@@ -43,7 +44,7 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
-	dbNameADL := fmt.Sprintf("%s_adl", dbName)
+	dbNameADL := dbName + adlSuffix
 	if _, err = admin.Exec(ctx, "DROP DATABASE IF EXISTS "+dbNameADL+" WITH (FORCE)"); err != nil {
 		t.Fatalf("failed to drop existing test database %q: %v", dbNameADL, err)
 	}
@@ -72,8 +73,11 @@ func composeDatabaseNameFromTestName(t *testing.T, name string) string {
 
 	// via https://stackoverflow.com/a/27865772/363448
 	const maxLengthDatabaseName = 63 // Postgres identifier length limit.
-	if len(db) > maxLengthDatabaseName {
-		t.Fatalf("database name too long (%d > %d characters): %q", len(db), maxLengthDatabaseName, db)
+
+	// newManagerConfigWithPostgres derives the ADL database name by appending adlSuffix, and
+	// Postgres silently truncates an over-long identifier: leave room for it here.
+	if len(db)+len(adlSuffix) > maxLengthDatabaseName {
+		t.Fatalf("database name too long (%d > %d characters): %q", len(db)+len(adlSuffix), maxLengthDatabaseName, db+adlSuffix)
 	}
 
 	return db

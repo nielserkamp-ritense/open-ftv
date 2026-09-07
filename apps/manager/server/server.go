@@ -18,6 +18,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
+// Connection pool settings for the Postgres databases this app uses.
+const (
+	DBMaxConnLifetime = 5 * time.Minute
+	DBMaxConnections  = 100
+)
+
 // NewExternal initializes the HTTP(S) services (implemented with fiber & fasthttp).
 func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 	s := &Services{
@@ -51,10 +57,12 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 		opts = append(opts, server.WithMutualTLS())
 	}
 
-	const fiveMinutes = time.Minute * 5
+	dbCtx, dbCancel := context.WithCancel(context.Background())
+	s.dbCancel = dbCancel
 
-	postgresDB, err := postgresql.New(context.Background(), s.cfg.DatabaseURL, fiveMinutes, 100)
+	postgresDB, err := postgresql.New(dbCtx, s.cfg.DatabaseURL, DBMaxConnLifetime, DBMaxConnections)
 	if err != nil {
+		dbCancel()
 		s.logger.Error("failed to create persistence store", "error", err)
 		panic("failed to create persistence store: " + err.Error())
 	}
@@ -128,6 +136,10 @@ func (s *Services) Shutdown() {
 	if s.cfg.BundlePath != "" {
 		s.bundles.Shutdown()
 	}
+
+	if s.dbCancel != nil {
+		s.dbCancel() // closes the connection pool.
+	}
 }
 
 // Services contains the details of the HTTP(S) services.
@@ -142,6 +154,7 @@ type Services struct {
 	auth          AuthHandler
 	bundleManager *bundles.Manager
 	db            *postgresql.Postgres
+	dbCancel      context.CancelFunc
 	pap           *pap.PAP
 	pip           *pip.PIP
 	chk           *handle.Checks

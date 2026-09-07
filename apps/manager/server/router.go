@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
-	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
@@ -24,13 +23,11 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.l = models.LanguageFromString(s.cfg.Language)
 
 	// initialize the PAP before the PIP, so database migrations happen before all else.
-	pap, err := s.newPAP()
-	if err != nil {
+	var err error
+	if s.pap, err = s.newPAP(); err != nil {
 		s.logger.Error("failed to initialize PAP", "error", err)
 		panic("failed to initialize PAP: " + err.Error())
 	}
-
-	s.pap = pap
 
 	// seed the bundled cedar authorization policies into the (postgres) store with UUID ids
 	// on an empty store, so they are enforced AND visible/editable in the UI. MUST run before
@@ -218,10 +215,6 @@ func (s *Services) initDeployments(group fiber.Router) {
 }
 
 func (s *Services) initADL(group fiber.Router) {
-	var (
-		searcher search.Searcher
-	)
-
 	// The ADL schema is owned by eam/log/decisions, not by an app: a manager without a
 	// PDP alongside it (in-app deployment) would otherwise never see the schema created,
 	// and with a PDP alongside it startup order would decide whether the log works.
@@ -232,7 +225,7 @@ func (s *Services) initADL(group fiber.Router) {
 		panic("failed to migrate the Authorization Decision Log database: " + err.Error())
 	}
 
-	searcher, err = searchPG.New(s.ctx, s.cfg.ADLDatabaseURL, nil, time.Minute*5, 100)
+	searcher, err := searchPG.New(s.ctx, s.cfg.ADLDatabaseURL, nil, DBMaxConnLifetime, DBMaxConnections)
 	if err != nil {
 		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err)
 		panic("failed to initialize Authorization Decision Log search API: " + err.Error())

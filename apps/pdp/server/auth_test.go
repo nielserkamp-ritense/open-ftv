@@ -26,7 +26,7 @@ func TestNew(t *testing.T) {
 	cfg := &config.Config{
 		PAP:            config2.PAP{Language: "CEDAR"},
 		ADLService:     "pdp-test",
-		ADLDatabaseURL: defaultADLTestDatabaseURL,
+		ADLDatabaseURL: newADLTestDatabaseURL(t),
 	}
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))

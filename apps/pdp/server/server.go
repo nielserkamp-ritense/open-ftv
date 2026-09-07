@@ -19,6 +19,12 @@ import (
 // decisionLogShutdownTimeout bounds how long Serve waits for queued decisions to flush on shutdown.
 const decisionLogShutdownTimeout = 10 * time.Second
 
+// Connection pool settings for the Authorization Decision Log database.
+const (
+	DBMaxConnLifetime = 5 * time.Minute
+	DBMaxConnections  = 100
+)
+
 // NewService initializes the HTTP service (implemented with fiber & fasthttp).
 func NewService(cfg *config.Config, logger *slog.Logger) *Services {
 	s := &Services{cfg: cfg, logger: logger, chk: handle.NewChecks()}

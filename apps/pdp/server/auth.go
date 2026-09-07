@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -27,8 +26,6 @@ type authHandler struct {
 }
 
 func (s *Services) newAuth(basePath string) *authHandler {
-	var err error
-
 	decisionLog, err := s.newADL()
 	if err != nil {
 		s.logger.Error("failed to initialize authorization decision log", "error", err)
@@ -87,12 +84,13 @@ func (s *Services) newADL() (*adl.ADL, error) {
 	svc := s.cfg.ADLService
 	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(time.Second * 5)}
 
-	err := s.checkMigrations()
-	if err != nil {
-		return nil, errors.Join(errors.New("failed to migrate the authorization decision log"), err)
+	// The ADL schema is owned by eam/log/decisions, not by an app: every app that uses the ADL
+	// migrates it. See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
+	if err := decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger); err != nil {
+		return nil, fmt.Errorf("failed to migrate the authorization decision log: %w", err)
 	}
 
-	logger, err := decisions.NewWithPostgreSQL(s.ctx, svc, s.cfg.ADLDatabaseURL, nil, 5*time.Minute, 100, opts...)
+	logger, err := decisions.NewWithPostgreSQL(s.ctx, svc, s.cfg.ADLDatabaseURL, nil, DBMaxConnLifetime, DBMaxConnections, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect the authorization decision log: %w", err)
 	}
@@ -116,11 +114,4 @@ func adlInstanceID() string {
 	}
 
 	return "pdp-" + uuid.New().String()
-}
-
-// checkMigrations migrates the ADL database, which is the only database this app has, up to
-// the latest level from the embedded scripts. Every app that uses the ADL migrates it; see
-// docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
-func (s *Services) checkMigrations() error {
-	return decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger)
 }
