@@ -54,10 +54,12 @@ func TestSeedAuthzPolicies_readsMetaTags(t *testing.T) {
 	require.True(t, got.HasTag("rdw"))
 }
 
-// TestSeedAuthzPolicies_noAuditTrail_seedsOnlyEmptyStore guards the fallback for stores
-// without an audit trail: such a store cannot tell "never seeded" from "seeded and deleted",
-// so it is seeded only while empty. The per-file rule itself is proven against postgres in
-// seed_postgres_test.go.
+// TestSeedAuthzPolicies_noAuditTrail_seedsOnlyEmptyStore guards the fallback for the
+// key-value stores (etcd, consul). Those return an empty audit log for every id, so they
+// cannot tell "never seeded" from "seeded and then deleted by the operator": seeding per file
+// there would bring every deleted policy back on each restart. Such a store is therefore
+// seeded only while it is empty, as before. The per-file rule itself is proven against
+// postgres in seed_postgres_test.go.
 func TestSeedAuthzPolicies_noAuditTrail_seedsOnlyEmptyStore(t *testing.T) {
 	t.Parallel()
 
@@ -97,7 +99,9 @@ func TestSeedAuthzPolicies_noAuditTrail_seedsOnlyEmptyStore(t *testing.T) {
 }
 
 // TestSeedAuthzPolicies_leavesPresentRowUntouched guards "UI wins": a row that is present
-// keeps its content even when the seed file on disk has changed since.
+// keeps its content even when the seed file on disk has changed since. It calls the per-file
+// helper directly, because seedAuthzPolicies on a populated key-value store takes the
+// empty-store exit before alreadySeeded is ever consulted.
 func TestSeedAuthzPolicies_leavesPresentRowUntouched(t *testing.T) {
 	t.Parallel()
 
@@ -117,7 +121,7 @@ func TestSeedAuthzPolicies_leavesPresentRowUntouched(t *testing.T) {
 		cfg:    &config.Config{PAP: config2.PAP{Language: "CEDAR", Store: dir}},
 	}
 
-	s.seedAuthzPolicies()
+	s.seedPolicyFile(file, "cedar")
 
 	// the operator edits the row in the UI; meanwhile a release changes the file on disk.
 	id := uuid.NewSHA1(seedNamespace, []byte("rule.cedar")).String()
@@ -134,7 +138,7 @@ func TestSeedAuthzPolicies_leavesPresentRowUntouched(t *testing.T) {
 
 	require.NoError(t, os.WriteFile(file, []byte("forbid(principal, action, resource);"), 0o600))
 
-	s.seedAuthzPolicies()
+	s.seedPolicyFile(file, "cedar")
 
 	got, _, err := ap.Read(id)
 	require.NoError(t, err)

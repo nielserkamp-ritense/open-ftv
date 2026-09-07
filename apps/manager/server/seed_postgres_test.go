@@ -60,9 +60,14 @@ func TestSeedAuthzPolicies_UniqueTitles(t *testing.T) {
 	require.Error(t, err, "policy_ix1 should reject a duplicate (language, title) pair")
 }
 
-// Test_Seed_PerFile_AcrossRestarts proves the two halves of per-file seeding against a real
-// store: a seed file the operator deleted is not brought back by a restart, and a seed file
-// that a later release adds does reach the already seeded store.
+// Test_Seed_PerFile_AcrossRestarts proves per-file seeding against a real store, across a
+// restart: a seed file the operator deleted is not brought back, a seed file the operator
+// never touched keeps its content, and a seed file that a later release adds does reach the
+// already seeded store.
+//
+// The rule is language-agnostic (every extension in seedLanguageByExt is seeded the same
+// way); the files are cedar only because the test config runs the manager with cedar as its
+// PAP language.
 func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -70,24 +75,36 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 	dir := t.TempDir()
 	cnf.PAP.Store = dir
 
-	const permitAll = "permit (\n    principal,\n    action,\n    resource\n);\n"
+	const (
+		permitAll = "permit (\n    principal,\n    action,\n    resource\n);\n"
+		forbidAll = "forbid (\n    principal,\n    action,\n    resource\n);\n"
+	)
 
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "first.cedar"), []byte(permitAll), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "deleted.cedar"), []byte(permitAll), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "kept.cedar"), []byte(permitAll), 0o600))
 
-	firstID := uuid.NewSHA1(seedNamespace, []byte("first.cedar")).String()
-	secondID := uuid.NewSHA1(seedNamespace, []byte("second.cedar")).String()
+	deletedID := uuid.NewSHA1(seedNamespace, []byte("deleted.cedar")).String()
+	keptID := uuid.NewSHA1(seedNamespace, []byte("kept.cedar")).String()
+	addedID := uuid.NewSHA1(seedNamespace, []byte("added.cedar")).String()
 
-	// release 1 seeds first.cedar; the operator then deletes it on purpose.
+	// release 1 seeds deleted.cedar and kept.cedar; the operator then deletes the first on purpose.
 	app1 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusOK, getPolicy(t, app1, firstID).StatusCode, "first.cedar must be seeded on an empty store")
-	require.Equal(t, http.StatusOK, deletePolicy(t, app1, firstID).StatusCode)
+	require.Equal(t, http.StatusOK, getPolicy(t, app1, deletedID).StatusCode, "deleted.cedar must be seeded on an empty store")
+	require.Equal(t, http.StatusOK, getPolicy(t, app1, keptID).StatusCode, "kept.cedar must be seeded on an empty store")
+	require.Equal(t, http.StatusOK, deletePolicy(t, app1, deletedID).StatusCode)
 
-	// release 2 ships second.cedar as well and the manager restarts against the same store.
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "second.cedar"), []byte(permitAll), 0o600))
+	// release 2 ships added.cedar as well and changes kept.cedar on disk; the manager restarts
+	// against the same store.
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "added.cedar"), []byte(permitAll), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "kept.cedar"), []byte(forbidAll), 0o600))
 
 	app2 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusNotFound, getPolicy(t, app2, firstID).StatusCode, "a seed file the operator deleted must not come back")
-	require.Equal(t, http.StatusOK, getPolicy(t, app2, secondID).StatusCode, "a seed file added by a later release must reach the populated store")
+	require.Equal(t, http.StatusNotFound, getPolicy(t, app2, deletedID).StatusCode, "a seed file the operator deleted must not come back")
+	require.Equal(t, http.StatusOK, getPolicy(t, app2, addedID).StatusCode, "a seed file added by a later release must reach the populated store")
+
+	res := getPolicy(t, app2, keptID)
+	require.Equal(t, http.StatusOK, res.StatusCode, "a seed file the operator left alone must still be there")
+	require.Equal(t, permitAll, decodePolicy(t, res).Data, "a present row is the source of truth; a changed seed file must not overwrite it")
 }
