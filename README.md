@@ -143,17 +143,29 @@ Helm chart versions are bare SemVer, while container images carry a `v` prefix.
 
 #### Simulatieomgeving
 
-The latest `main` pre-release is deployed automatically by Flux.
+There are two independent deployments running on the Simulatieomgeving, each deployed automatically by Flux.
+
+The latest `main` **pre-release**:
 
 - Management interface: https://open-ftv.simulatie.datastelsel.nl
 - Namespace: `fds-tenant-ictu-open-ftv`
-- [Cluster access](https://gitlab.com/datastelsel.nl/federatief/simulation/simulation/#access-to-k8s-cluster)
+- Manifests: `deploy/kustomize/simulation-pre-release`
 - [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
+
+The latest tagged **release**:
+
+- Management interface: https://open-ftv-vlierdam.simulatie.datastelsel.nl
+- Namespace: `fds-organization-vlierdam`
+- Manifests: `deploy/kustomize/simulation-release`
+- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/vlierdam)
+
+[Cluster access](https://gitlab.com/datastelsel.nl/federatief/simulation/simulation/#access-to-k8s-cluster)
 
 Check the deployed images:
 
 ```shell
 kubectl get pods -n fds-tenant-ictu-open-ftv -o jsonpath='{..image}'
+kubectl get pods -n fds-organization-vlierdam -o jsonpath='{..image}'
 ```
 
 ##### Accounts
