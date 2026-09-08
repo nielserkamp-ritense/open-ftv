@@ -170,9 +170,9 @@ The latest `main` **pre-release**:
 The latest tagged **release**:
 
 - Management interface: https://open-ftv-vlierdam.simulatie.datastelsel.nl
-- Namespace: `fds-organization-vlierdam`
+- Namespace: `fds-organization-gemeente-vlierdam`
 - Manifests: `deploy/kustomize/simulation-release`
-- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/vlierdam)
+- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
 
 [Cluster access](https://gitlab.com/datastelsel.nl/federatief/simulation/simulation/#access-to-k8s-cluster)
 
@@ -180,7 +180,7 @@ Check the deployed images:
 
 ```shell
 kubectl get pods -n fds-tenant-ictu-open-ftv -o jsonpath='{..image}'
-kubectl get pods -n fds-organization-vlierdam -o jsonpath='{..image}'
+kubectl get pods -n fds-organization-gemeente-vlierdam -o jsonpath='{..image}'
 ```
 
 ##### Accounts
