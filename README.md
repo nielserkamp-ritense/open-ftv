@@ -135,11 +135,26 @@ Everything is published under `registry.gitlab.com/digilab.overheid.nl/ecosystem
 images and `.../open-ftv/charts/<chart>` for Helm charts.
 
 Commits on the `main` branch publish a SemVer *pre-release*, `<next-version>-<branch>.<commits since the last tag>`. 
-For example chart `0.0.2-main.16` and image `v0.0.2-main.16`.
+For example chart `0.1.1-main.16` and image `v0.1.1-main.16`.
 
-Tags publish the tag itself, for example chart `0.0.2` and image `v0.0.2`, and additionally move `latest`.
+Tags publish the tag itself, for example chart `0.1.1` and image `v0.1.1`, and additionally move `latest`.
 
 Helm chart versions are bare SemVer, while container images carry a `v` prefix.
+
+##### Creating a release
+
+OpenFTV is pre-1.0, so a breaking change bumps the *minor* and everything else the *patch*.
+
+A release can be made by creating an annotated git tag by hand.
+
+```shell
+git tag -a v0.2.0 -m "- Align ADL with Logius Level 1
+- Add Keycloak to the OpenFTV Helm charts"
+git push origin v0.2.0
+```
+
+The pre-release version on `main` always assumes a *patch* bump, so it is numbered
+`0.2.1-main.<n>` even when the next release will be `0.3.0`. That is expected.
 
 #### Simulatieomgeving
 
