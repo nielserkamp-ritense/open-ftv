@@ -1,6 +1,6 @@
 //go:build integration
 
-package server_test
+package server
 
 import (
 	"bytes"
@@ -20,7 +20,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/require"
 
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/server"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
@@ -105,7 +104,7 @@ func Test_Policy_RoleMatrix(t *testing.T) {
 	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}
 
 	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	app := server.NewExternal(cnf, lgr).GetMainService().GetFiberApp()
+	app := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
 	author, auditor, admin := ip.token(t, "author-user", "author"), ip.token(t, "auditor-user", "auditor"), ip.token(t, "admin-user", "admin")
 
