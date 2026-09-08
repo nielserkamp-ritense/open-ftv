@@ -516,3 +516,26 @@ func (e *eventCounter) Handle(t models.EventType, _ string) {
 	default:
 	}
 }
+
+// RestoreVersion answers a missing policy or version with an error, never a panic: the stores
+// report either as nil rather than as an error.
+func TestPAP_RestoreVersion_missingIsAnError(t *testing.T) {
+	t.Parallel()
+
+	p, err := New(t.Context(), slog.New(slog2.NewDummyHandler(slog.LevelInfo)), WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	pol, err := models.NewPolicyFromOAS(&policies.Policy{Id: "p1", Language: "cedar"}, strings.NewReader("permit(principal, action, resource);"))
+	require.NoError(t, err)
+
+	_, err = p.Create(pol, testUser)
+	require.NoError(t, err)
+
+	out, err := p.RestoreVersion("p1", 999, testUser)
+	require.Error(t, err)
+	assert.Nil(t, out)
+
+	out, err = p.RestoreVersion("absent", 1, testUser)
+	require.Error(t, err)
+	assert.Nil(t, out)
+}

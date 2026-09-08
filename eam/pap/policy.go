@@ -58,6 +58,11 @@ func (p *PAP) RestoreVersion(id string, version int, user identity.Principal) (*
 		return nil, err2
 	}
 
+	// The stores report a missing policy or version as nil, not as an error.
+	if pol == nil || polOld == nil {
+		return nil, fmt.Errorf("restore policy %s version %d: not found", id, version)
+	}
+
 	pol = pol.RestoreFrom(polOld)
 	return p.Update(pol, lastIndex, pol, user)
 }
