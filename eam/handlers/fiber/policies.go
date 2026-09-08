@@ -210,12 +210,12 @@ func (h *policiesHandler) PostPolicy(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	p2, err := h.buildPolicy(p)
+	p2, resolve, err := h.buildPolicy(p)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	p2, err = h.svc.Create(req.UserContext(), h.caller(req), p2, req.QueryBool("forceUpsert"))
+	p2, err = h.svc.Create(req.UserContext(), h.caller(req), p2, resolve, req.QueryBool("forceUpsert"))
 	if err != nil {
 		return h.fail(req, err)
 	}
@@ -237,12 +237,12 @@ func (h *policiesHandler) PutPolicy(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	p2, err := h.buildPolicy(p)
+	p2, resolve, err := h.buildPolicy(p)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	p2, err = h.svc.Update(req.UserContext(), h.caller(req), p2, req.QueryBool("forceUpsert"))
+	p2, err = h.svc.Update(req.UserContext(), h.caller(req), p2, resolve, req.QueryBool("forceUpsert"))
 	if err != nil {
 		return h.fail(req, err)
 	}
@@ -375,17 +375,33 @@ func (h *policiesHandler) checkBodyStatus(req *fiber.Ctx, id string) (*oas.Polic
 	return &p, "", nil
 }
 
-// buildPolicy resolves a policy from either its inline data or the uri it points at.
-func (h *policiesHandler) buildPolicy(p *oas.Policy) (*models.Policy, error) {
+// buildPolicy turns the submitted policy into the shape the service decides on. Inline data
+// completes it here; content at a uri is left to the returned Resolver, which the service runs
+// only once the caller is permitted, so a denied caller cannot make the manager fetch.
+func (h *policiesHandler) buildPolicy(p *oas.Policy) (*models.Policy, management.Resolver, error) {
 	if p.Metadata.Url == "" {
 		if p.Data == "" {
-			return nil, errPolUrlContent
+			return nil, nil, errPolUrlContent
 		}
 
-		return models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
+		pol, err := models.NewPolicyFromOAS(p, bytes.NewBufferString(p.Data))
+
+		return pol, nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), policyFetchTimeout)
+	shape, err := models.NewPolicyFromOAS(p, &bytes.Buffer{})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return shape, func(ctx context.Context) (*models.Policy, error) {
+		return h.fetchPolicy(ctx, p)
+	}, nil
+}
+
+// fetchPolicy resolves a policy from the uri it points at.
+func (h *policiesHandler) fetchPolicy(ctx context.Context, p *oas.Policy) (*models.Policy, error) {
+	ctx, cancel := context.WithTimeout(ctx, policyFetchTimeout)
 	defer cancel()
 
 	fetch, err := http.NewRequestWithContext(ctx, fiber.MethodGet, p.Metadata.Url, http.NoBody)
@@ -410,7 +426,7 @@ func (h *policiesHandler) fail(req *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, authorization.ErrForbidden):
 		return auth.Forbidden(req, err, h.logger)
-	case errors.Is(err, management.ErrInvalidTransition):
+	case errors.Is(err, management.ErrInvalidTransition), errors.Is(err, management.ErrContent):
 		return h.error(req, fiber.StatusBadRequest, err)
 	case errors.Is(err, management.ErrNotFound):
 		return h.error(req, fiber.StatusNotFound, errPolNotFound)

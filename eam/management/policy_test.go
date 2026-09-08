@@ -2,10 +2,12 @@ package management
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"strings"
 	"testing"
 
+	"github.com/kvtools/valkeyrie/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -102,7 +104,7 @@ func TestPolicyService_Create_decidesCreateWithTheIncomingProperties(t *testing.
 	d := &recorder{}
 	svc, store := newPolicyService(t, d)
 
-	out, err := svc.Create(context.Background(), author(), policy(t, "p1", "laadpalen"), false)
+	out, err := svc.Create(context.Background(), author(), policy(t, "p1", "laadpalen"), nil, false)
 	require.NoError(t, err)
 	require.NotNil(t, out)
 
@@ -127,7 +129,7 @@ func TestPolicyService_Create_appCallerIsAttributedToTheSystem(t *testing.T) {
 
 	app := &authorization.RequestPrincipal{Principal: identity.NewPrincipal(identity.KindApp, "s3cret-key")}
 
-	_, err := svc.Create(context.Background(), app, policy(t, "p1"), false)
+	_, err := svc.Create(context.Background(), app, policy(t, "p1"), nil, false)
 	require.NoError(t, err)
 
 	assert.Equal(t, identity.KindApp, d.caller.Kind, "the PDP sees the app, so `principal is app` rules apply")
@@ -144,15 +146,15 @@ func TestPolicyService_Create_existingIsConflictAfterTheDecision(t *testing.T) {
 	d := &recorder{}
 	svc, _ := newPolicyService(t, d)
 
-	_, err := svc.Create(context.Background(), author(), policy(t, "p2"), false)
+	_, err := svc.Create(context.Background(), author(), policy(t, "p2"), nil, false)
 	require.NoError(t, err)
 
-	_, err = svc.Create(context.Background(), author(), policy(t, "p2"), false)
+	_, err = svc.Create(context.Background(), author(), policy(t, "p2"), nil, false)
 	require.ErrorIs(t, err, ErrExists)
 	assert.Equal(t, 2, d.calls)
 
 	// forceUpsert turns the create into an update of the stored object.
-	_, err = svc.Create(context.Background(), author(), policy(t, "p2"), true)
+	_, err = svc.Create(context.Background(), author(), policy(t, "p2"), nil, true)
 	require.NoError(t, err)
 	assert.Equal(t, models.ActionUpdate, d.action)
 }
@@ -163,12 +165,12 @@ func TestPolicyService_Update_missingIsNotFoundAfterTheDecision(t *testing.T) {
 	d := &recorder{}
 	svc, _ := newPolicyService(t, d)
 
-	_, err := svc.Update(context.Background(), author(), policy(t, "p1"), false)
+	_, err := svc.Update(context.Background(), author(), policy(t, "p1"), nil, false)
 	require.ErrorIs(t, err, ErrNotFound)
 	assert.Equal(t, models.ActionUpdate, d.action)
 
 	// forceUpsert turns the update into a create.
-	_, err = svc.Update(context.Background(), author(), policy(t, "p1"), true)
+	_, err = svc.Update(context.Background(), author(), policy(t, "p1"), nil, true)
 	require.NoError(t, err)
 	assert.Equal(t, models.ActionCreate, d.action)
 }
@@ -179,7 +181,7 @@ func TestPolicyService_SetStatus_isAcceptOrDeploy(t *testing.T) {
 	d := &recorder{}
 	svc, _ := newPolicyService(t, d)
 
-	_, err := svc.Create(context.Background(), author(), policy(t, "p1"), false)
+	_, err := svc.Create(context.Background(), author(), policy(t, "p1"), nil, false)
 	require.NoError(t, err)
 
 	// The decision is what this test pins. The deprecated in-memory store refuses the status
@@ -212,7 +214,7 @@ func TestPolicyService_SetStatus_invalidTransitionIsTyped(t *testing.T) {
 	d := &recorder{}
 	svc, _ := newPolicyService(t, d)
 
-	_, err := svc.Create(context.Background(), author(), policy(t, "p1"), false)
+	_, err := svc.Create(context.Background(), author(), policy(t, "p1"), nil, false)
 	require.NoError(t, err)
 
 	// concept -> deployed is only reachable through a deployment.
@@ -251,4 +253,121 @@ func TestPolicyService_nilDeciderPermits(t *testing.T) {
 
 	_, err = svc.List(context.Background(), authorization.SystemRequestPrincipal())
 	require.NoError(t, err)
+}
+
+// A store that fails to read is still decided, and a denied caller gets the denial: the
+// store's state and error text reach permitted callers only.
+func TestPolicyService_readFailureIsDecidedBeforeItIsReported(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
+	store, err := pap.New(context.Background(), logger, pap.WithKeyValueDB(&failingStore{Store: memory.New()}, ""), pap.WithLanguage("cedar"))
+	require.NoError(t, err)
+
+	t.Run("denied caller sees the denial", func(t *testing.T) {
+		d := &recorder{deny: true}
+		svc := NewPolicyService(logger, store, d)
+
+		_, err := svc.Get(context.Background(), author(), "p1")
+		require.ErrorIs(t, err, authorization.ErrForbidden)
+		assert.Equal(t, models.ActionRead, d.action)
+		assert.Equal(t, "policy::p1", d.resource.UID())
+		assert.Nil(t, d.resource.Attributes().GetAttributeValue(models.AttrStatus), "an unread object contributes its id only")
+
+		_, err = svc.Delete(context.Background(), author(), "p1", false)
+		require.ErrorIs(t, err, authorization.ErrForbidden)
+		assert.Equal(t, models.ActionDelete, d.action)
+	})
+
+	t.Run("permitted caller sees the store error", func(t *testing.T) {
+		d := &recorder{}
+		svc := NewPolicyService(logger, store, d)
+
+		_, err := svc.Get(context.Background(), author(), "p1")
+		require.ErrorIs(t, err, errStoreDown)
+		assert.Equal(t, 1, d.calls)
+	})
+}
+
+// The uri a policy points at is fetched only once the caller is permitted.
+func TestPolicyService_Create_resolvesContentAfterTheDecision(t *testing.T) {
+	t.Parallel()
+
+	t.Run("denied", func(t *testing.T) {
+		t.Parallel()
+
+		d := &recorder{deny: true}
+		svc, _ := newPolicyService(t, d)
+
+		fetched := false
+		resolve := func(context.Context) (*models.Policy, error) {
+			fetched = true
+			return policy(t, "p1"), nil
+		}
+
+		_, err := svc.Create(context.Background(), author(), policy(t, "p1"), resolve, false)
+		require.ErrorIs(t, err, authorization.ErrForbidden)
+		assert.False(t, fetched, "a denied caller must not make the manager fetch")
+	})
+
+	t.Run("permitted", func(t *testing.T) {
+		t.Parallel()
+
+		d := &recorder{}
+		svc, store := newPolicyService(t, d)
+
+		resolve := func(context.Context) (*models.Policy, error) {
+			return policy(t, "p1").WithTitle("fetched"), nil
+		}
+
+		out, err := svc.Create(context.Background(), author(), policy(t, "p1"), resolve, false)
+		require.NoError(t, err)
+		assert.Equal(t, "fetched", out.ToOAS(false).Metadata.Title)
+
+		stored, _, err := store.Read("p1")
+		require.NoError(t, err)
+		assert.Equal(t, "fetched", stored.ToOAS(false).Metadata.Title)
+	})
+
+	t.Run("unresolvable", func(t *testing.T) {
+		t.Parallel()
+
+		d := &recorder{}
+		svc, store := newPolicyService(t, d)
+
+		resolve := func(context.Context) (*models.Policy, error) { return nil, errors.New("connection refused") }
+
+		_, err := svc.Update(context.Background(), author(), policy(t, "p1"), resolve, true)
+		require.ErrorIs(t, err, ErrContent)
+
+		stored, _, err := store.Read("p1")
+		require.NoError(t, err)
+		assert.Nil(t, stored, "nothing is stored when the content cannot be resolved")
+	})
+}
+
+// A restore of a version the store does not hold is ErrNotFound, not a panic.
+func TestPolicyService_Restore_missingVersionIsNotFound(t *testing.T) {
+	t.Parallel()
+
+	d := &recorder{}
+	svc, _ := newPolicyService(t, d)
+
+	_, err := svc.Create(context.Background(), author(), policy(t, "p1"), nil, false)
+	require.NoError(t, err)
+
+	_, err = svc.Restore(context.Background(), author(), "p1", 999)
+	require.ErrorIs(t, err, ErrNotFound)
+	assert.Equal(t, models.ActionRestore, d.action, "the decision is made before the version is looked up")
+}
+
+var errStoreDown = errors.New("store down")
+
+// failingStore is a key-value store whose reads fail.
+type failingStore struct {
+	store.Store
+}
+
+func (f *failingStore) Get(context.Context, string, *store.ReadOptions) (*store.KVPair, error) {
+	return nil, errStoreDown
 }

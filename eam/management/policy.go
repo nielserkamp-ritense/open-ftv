@@ -21,7 +21,14 @@ var (
 	ErrExists = errors.New("already exists")
 	// ErrInvalidTransition reports a status change the policy's life cycle does not allow.
 	ErrInvalidTransition = errors.New("invalid status transition")
+	// ErrContent reports that the content of a submitted policy could not be resolved.
+	ErrContent = errors.New("policy content")
 )
+
+// Resolver completes a submitted policy once the caller is permitted, typically by fetching
+// content that lives at a uri. It runs after the decision and nowhere earlier, so a denied
+// caller cannot make the manager fetch anything. A nil Resolver means the policy is complete.
+type Resolver func(ctx context.Context) (*models.Policy, error)
 
 // PolicyService administers policies: every operation is one decision followed by one store call.
 type PolicyService struct {
@@ -54,7 +61,7 @@ func (s *PolicyService) List(ctx context.Context, caller *authorization.RequestP
 
 // Get returns one policy with its audit log and deployment usage.
 func (s *PolicyService) Get(ctx context.Context, caller *authorization.RequestPrincipal, id string) (*PolicyDetails, error) {
-	prev, _, err := s.store.Read(id)
+	prev, _, err := s.load(ctx, caller, models.ActionRead, id)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +89,7 @@ func (s *PolicyService) Get(ctx context.Context, caller *authorization.RequestPr
 
 // Versions returns the version history of a policy; empty when the policy has none.
 func (s *PolicyService) Versions(ctx context.Context, caller *authorization.RequestPrincipal, id string) (oas.PolicyVersions, error) {
-	prev, _, err := s.store.Read(id)
+	prev, _, err := s.load(ctx, caller, models.ActionRead, id)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +103,7 @@ func (s *PolicyService) Versions(ctx context.Context, caller *authorization.Requ
 
 // Version returns one version of a policy.
 func (s *PolicyService) Version(ctx context.Context, caller *authorization.RequestPrincipal, id string, version int) (*oas.PolicyVersion, error) {
-	prev, _, err := s.store.Read(id)
+	prev, _, err := s.load(ctx, caller, models.ActionRead, id)
 	if err != nil {
 		return nil, err
 	}
@@ -118,9 +125,10 @@ func (s *PolicyService) Version(ctx context.Context, caller *authorization.Reque
 }
 
 // Create adds a new policy. With forceUpsert an existing policy is updated instead, which is
-// then decided as an update; without it an existing id is ErrExists.
-func (s *PolicyService) Create(ctx context.Context, caller *authorization.RequestPrincipal, p *models.Policy, forceUpsert bool) (*models.Policy, error) {
-	prev, lastIndex, err := s.store.Read(p.ID())
+// then decided as an update; without it an existing id is ErrExists. p carries the properties
+// the decision needs; resolve, when given, completes it afterwards.
+func (s *PolicyService) Create(ctx context.Context, caller *authorization.RequestPrincipal, p *models.Policy, resolve Resolver, forceUpsert bool) (*models.Policy, error) {
+	prev, lastIndex, err := s.load(ctx, caller, models.ActionCreate, p.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +136,10 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 	switch {
 	case prev == nil:
 		if err := s.decide(ctx, caller, models.ActionCreate, policyResource(p.ID(), p)); err != nil {
+			return nil, err
+		}
+
+		if p, err = s.resolve(ctx, p, resolve); err != nil {
 			return nil, err
 		}
 
@@ -145,14 +157,19 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
+		if p, err = s.resolve(ctx, p, resolve); err != nil {
+			return nil, err
+		}
+
 		return s.store.Update(prev, lastIndex, p, caller.Attribution())
 	}
 }
 
 // Update replaces an existing policy. With forceUpsert a missing policy is created instead,
-// which is then decided as a create; without it a missing id is ErrNotFound.
-func (s *PolicyService) Update(ctx context.Context, caller *authorization.RequestPrincipal, p *models.Policy, forceUpsert bool) (*models.Policy, error) {
-	prev, lastIndex, err := s.store.Read(p.ID())
+// which is then decided as a create; without it a missing id is ErrNotFound. p carries the
+// properties the decision needs; resolve, when given, completes it afterwards.
+func (s *PolicyService) Update(ctx context.Context, caller *authorization.RequestPrincipal, p *models.Policy, resolve Resolver, forceUpsert bool) (*models.Policy, error) {
+	prev, lastIndex, err := s.load(ctx, caller, models.ActionUpdate, p.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +177,10 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 	switch {
 	case prev != nil:
 		if err := s.decide(ctx, caller, models.ActionUpdate, policyResource(p.ID(), prev)); err != nil {
+			return nil, err
+		}
+
+		if p, err = s.resolve(ctx, p, resolve); err != nil {
 			return nil, err
 		}
 
@@ -177,6 +198,10 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
+		if p, err = s.resolve(ctx, p, resolve); err != nil {
+			return nil, err
+		}
+
 		return s.store.Create(p, caller.Attribution())
 	}
 }
@@ -184,7 +209,7 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 // SetStatus moves a policy to the given status: to accepted is the `accept` action, to
 // deployed the `deploy` action, back to concept the `revert` action.
 func (s *PolicyService) SetStatus(ctx context.Context, caller *authorization.RequestPrincipal, id string, status models.Status) (*models.Policy, error) {
-	prev, lastIndex, err := s.store.Read(id)
+	prev, lastIndex, err := s.load(ctx, caller, statusAction(status), id)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +232,7 @@ func (s *PolicyService) SetStatus(ctx context.Context, caller *authorization.Req
 
 // Restore makes an older version the current concept of the policy.
 func (s *PolicyService) Restore(ctx context.Context, caller *authorization.RequestPrincipal, id string, version int) (*models.Policy, error) {
-	prev, _, err := s.store.Read(id)
+	prev, _, err := s.load(ctx, caller, models.ActionRestore, id)
 	if err != nil {
 		return nil, err
 	}
@@ -220,13 +245,24 @@ func (s *PolicyService) Restore(ctx context.Context, caller *authorization.Reque
 		return nil, ErrNotFound
 	}
 
+	// The version is looked up before the restore: the store reports a missing one as nil,
+	// and would otherwise restore from nothing.
+	old, err := s.store.ReadVersion(id, version)
+	if err != nil {
+		return nil, err
+	}
+
+	if old == nil {
+		return nil, ErrNotFound
+	}
+
 	return s.store.RestoreVersion(id, version, caller.Attribution())
 }
 
 // Delete removes a policy. With ignoreMissing a missing id yields an empty policy carrying
 // the id, so the call is idempotent; without it a missing id is ErrNotFound.
 func (s *PolicyService) Delete(ctx context.Context, caller *authorization.RequestPrincipal, id string, ignoreMissing bool) (*models.Policy, error) {
-	prev, lastIndex, err := s.store.Read(id)
+	prev, lastIndex, err := s.load(ctx, caller, models.ActionDelete, id)
 	if err != nil {
 		return nil, err
 	}
@@ -243,6 +279,37 @@ func (s *PolicyService) Delete(ctx context.Context, caller *authorization.Reques
 	default:
 		return nil, ErrNotFound
 	}
+}
+
+// load reads the object an operation acts on. A read that fails is still decided, on the
+// id-only resource, and the decision is reported first: a caller the PDP denies gets the
+// denial and never the store's error, so the store's state and its error text reach permitted
+// callers only.
+func (s *PolicyService) load(ctx context.Context, caller *authorization.RequestPrincipal, action, id string) (*models.Policy, uint64, error) {
+	prev, lastIndex, err := s.store.Read(id)
+	if err == nil {
+		return prev, lastIndex, nil
+	}
+
+	if derr := s.decide(ctx, caller, action, policyResource(id, nil)); derr != nil {
+		return nil, 0, derr
+	}
+
+	return nil, 0, err
+}
+
+// resolve completes p through resolve, once the caller is permitted.
+func (s *PolicyService) resolve(ctx context.Context, p *models.Policy, resolve Resolver) (*models.Policy, error) {
+	if resolve == nil {
+		return p, nil
+	}
+
+	out, err := resolve(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrContent, err)
+	}
+
+	return out, nil
 }
 
 // decide asks the PDP; without a decider every operation is permitted.

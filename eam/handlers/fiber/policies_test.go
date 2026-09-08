@@ -417,10 +417,11 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 
 		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
 
-		pol, err := h.buildPolicy(&policies.Policy{Language: "cedar"})
+		pol, resolve, err := h.buildPolicy(&policies.Policy{Language: "cedar"})
 
 		require.ErrorIs(t, err, errPolUrlContent)
 		assert.Nil(t, pol)
+		assert.Nil(t, resolve)
 	})
 
 	t.Run("inline data", func(t *testing.T) {
@@ -428,10 +429,12 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 
 		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
 
-		pol, err := h.buildPolicy(&policies.Policy{Language: "cedar", Data: cedar})
+		pol, resolve, err := h.buildPolicy(&policies.Policy{Language: "cedar", Data: cedar})
 
 		require.NoError(t, err)
 		assert.NotNil(t, pol)
+		assert.Nil(t, resolve, "inline data needs no fetch")
+		assert.Equal(t, cedar, pol.ContentString())
 	})
 
 	t.Run("url", func(t *testing.T) {
@@ -439,7 +442,9 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 
 		h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
 
+		fetched := 0
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			fetched++
 			_, _ = w.Write([]byte(cedar))
 		}))
 		defer srv.Close()
@@ -447,10 +452,18 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 		p := &policies.Policy{Language: "cedar"}
 		p.Metadata.Url = srv.URL
 
-		pol, err := h.buildPolicy(p)
+		shape, resolve, err := h.buildPolicy(p)
 
 		require.NoError(t, err)
-		assert.NotNil(t, pol)
+		require.NotNil(t, shape)
+		require.NotNil(t, resolve)
+		assert.Equal(t, 0, fetched, "the uri is not fetched before the decision")
+		assert.Empty(t, shape.ContentString())
+
+		pol, err := resolve(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, 1, fetched)
+		assert.Equal(t, cedar, pol.ContentString())
 	})
 
 	t.Run("unreachable url", func(t *testing.T) {
@@ -466,7 +479,10 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 		p := &policies.Policy{Language: "cedar"}
 		p.Metadata.Url = srv.URL
 
-		pol, err := h.buildPolicy(p)
+		_, resolve, err := h.buildPolicy(p)
+		require.NoError(t, err)
+
+		pol, err := resolve(context.Background())
 
 		require.Error(t, err)
 		assert.Nil(t, pol)
