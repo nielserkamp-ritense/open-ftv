@@ -24,6 +24,18 @@ func (p *RequestPrincipal) Label() string {
 	return p.String()
 }
 
+// Attribution is the Principal a store records as the author of a change (ADR 0004). Only an
+// authenticated user is attributed by name; an app is identified by its API key, a secret that
+// must not land in an audit column, and it has no principal row to satisfy the created_by
+// foreign key, so an app and every other kind are attributed to the system principal.
+func (p *RequestPrincipal) Attribution() identity.Principal {
+	if p.IsAuthenticatedUser() {
+		return p.Principal
+	}
+
+	return identity.NewSystemPrincipal()
+}
+
 // SystemRequestPrincipal is the RequestPrincipal for the manager's own actions, and the
 // fallback when no caller was identified.
 func SystemRequestPrincipal() *RequestPrincipal {

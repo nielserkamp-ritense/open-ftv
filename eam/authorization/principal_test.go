@@ -121,3 +121,17 @@ func TestAuth_recordPrincipal_NoStoreConfigured(t *testing.T) {
 	// Without postgres there is no principal table, and no foreign key that a write could violate.
 	assert.NoError(t, a.recordPrincipal(isSafeMethod(http.MethodPost), &identity.Principal{Kind: identity.KindUser, ID: "sub-123"}))
 }
+
+func TestRequestPrincipal_Attribution(t *testing.T) {
+	t.Parallel()
+
+	user := &RequestPrincipal{Principal: identity.NewPrincipal(identity.KindUser, "alice"), Roles: []string{"author"}}
+	assert.Equal(t, identity.NewPrincipal(identity.KindUser, "alice"), user.Attribution())
+
+	// An app is identified by its API key: a secret, and never a principal row.
+	app := &RequestPrincipal{Principal: identity.NewPrincipal(identity.KindApp, "s3cret-key")}
+	assert.Equal(t, identity.NewSystemPrincipal(), app.Attribution())
+
+	assert.Equal(t, identity.NewSystemPrincipal(), SystemRequestPrincipal().Attribution())
+	assert.Equal(t, identity.NewSystemPrincipal(), (&RequestPrincipal{Principal: identity.NewUnknownPrincipal()}).Attribution())
+}

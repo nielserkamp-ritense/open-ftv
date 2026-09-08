@@ -20,14 +20,15 @@ import (
 // recorder is a decider that records the question and answers as told.
 type recorder struct {
 	deny     bool
+	caller   *authorization.RequestPrincipal
 	action   string
 	resource *models.Entity
 	calls    int
 }
 
-func (r *recorder) Decide(_ context.Context, _ *authorization.RequestPrincipal, action string, resource *models.Entity) error {
+func (r *recorder) Decide(_ context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
 	r.calls++
-	r.action, r.resource = action, resource
+	r.caller, r.action, r.resource = caller, action, resource
 
 	if r.deny {
 		return authorization.ErrForbidden
@@ -110,6 +111,27 @@ func TestPolicyService_Create_decidesCreateWithTheIncomingProperties(t *testing.
 	assert.Equal(t, "concept", d.resource.Attributes().GetAttributeValue(models.AttrStatus))
 	assert.Equal(t, []string{"laadpalen"}, d.resource.Attributes().GetAttributeValue(models.AttrTags))
 	assert.Equal(t, "cedar", d.resource.Attributes().GetAttributeValue(models.AttrLanguage))
+
+	stored, _, err := store.Read("p1")
+	require.NoError(t, err)
+	require.NotNil(t, stored)
+}
+
+// An app caller is decided as itself (so `principal is app` rules apply) but attributed to the
+// system principal: its id is the API key, and no principal row exists for it.
+func TestPolicyService_Create_appCallerIsAttributedToTheSystem(t *testing.T) {
+	t.Parallel()
+
+	d := &recorder{}
+	svc, store := newPolicyService(t, d)
+
+	app := &authorization.RequestPrincipal{Principal: identity.NewPrincipal(identity.KindApp, "s3cret-key")}
+
+	_, err := svc.Create(context.Background(), app, policy(t, "p1"), false)
+	require.NoError(t, err)
+
+	assert.Equal(t, identity.KindApp, d.caller.Kind, "the PDP sees the app, so `principal is app` rules apply")
+	assert.Equal(t, identity.NewSystemPrincipal(), d.caller.Attribution(), "the store never sees the API key")
 
 	stored, _, err := store.Read("p1")
 	require.NoError(t, err)

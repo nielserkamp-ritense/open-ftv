@@ -131,7 +131,7 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.Create(p, caller.Principal)
+		return s.store.Create(p, caller.Attribution())
 
 	case !forceUpsert:
 		if err := s.decide(ctx, caller, models.ActionCreate, policyResource(p.ID(), prev)); err != nil {
@@ -145,7 +145,7 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.Update(prev, lastIndex, p, caller.Principal)
+		return s.store.Update(prev, lastIndex, p, caller.Attribution())
 	}
 }
 
@@ -163,7 +163,7 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.Update(prev, lastIndex, p, caller.Principal)
+		return s.store.Update(prev, lastIndex, p, caller.Attribution())
 
 	case !forceUpsert:
 		if err := s.decide(ctx, caller, models.ActionUpdate, policyResource(p.ID(), nil)); err != nil {
@@ -177,7 +177,7 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.Create(p, caller.Principal)
+		return s.store.Create(p, caller.Attribution())
 	}
 }
 
@@ -197,7 +197,7 @@ func (s *PolicyService) SetStatus(ctx context.Context, caller *authorization.Req
 		return nil, ErrNotFound
 	}
 
-	out, err := s.store.UpdateStatus(prev, lastIndex, status, caller.Principal)
+	out, err := s.store.UpdateStatus(prev, lastIndex, status, caller.Attribution())
 	if errors.Is(err, pap.ErrInvalidStatusChange) {
 		return nil, fmt.Errorf("%w: %w", ErrInvalidTransition, err)
 	}
@@ -220,7 +220,7 @@ func (s *PolicyService) Restore(ctx context.Context, caller *authorization.Reque
 		return nil, ErrNotFound
 	}
 
-	return s.store.RestoreVersion(id, version, caller.Principal)
+	return s.store.RestoreVersion(id, version, caller.Attribution())
 }
 
 // Delete removes a policy. With ignoreMissing a missing id yields an empty policy carrying
@@ -237,7 +237,7 @@ func (s *PolicyService) Delete(ctx context.Context, caller *authorization.Reques
 
 	switch {
 	case prev != nil:
-		return s.store.Delete(prev, lastIndex, caller.Principal)
+		return s.store.Delete(prev, lastIndex, caller.Attribution())
 	case ignoreMissing:
 		return models.NewPolicyFromData(id, "", "", "", &bytes.Buffer{})
 	default:
