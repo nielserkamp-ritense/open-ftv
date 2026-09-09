@@ -39,6 +39,7 @@ export const PAP_BASE_URL = getEnvVar('VITE_PAP_BASE_URL', 'http://localhost:808
 export const PIP_BASE_URL = getEnvVar('VITE_PIP_BASE_URL', 'http://localhost:8080');
 export const OIDC_AUTHORITY = getEnvVar('VITE_OIDC_AUTHORITY', 'http://localhost:8088/realms/openftv');
 export const OIDC_CLIENT_ID = getEnvVar('VITE_OIDC_CLIENT_ID', 'openftv');
+export const APP_VERSION = getEnvVar('VITE_APP_VERSION', 'dev');
 
 const DEFAULT_MAX_LOGO_BYTES = 100 * 1024;
 

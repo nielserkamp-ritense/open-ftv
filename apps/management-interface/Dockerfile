@@ -19,6 +19,8 @@ RUN npm run build
 # Production stage
 FROM docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 
+ENV VITE_APP_VERSION=""
+
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY --from=builder /app/util/default.conf.template /etc/nginx/templates/default.conf.template
