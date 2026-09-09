@@ -1,4 +1,4 @@
-version-testing:
+version-pre-release:
   stage: Version
   image: alpine:3.22
   variables:

@@ -1,4 +1,4 @@
-deploy-testing:
+deploy-pre-release:
   stage: Deploy
   image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
   script:
