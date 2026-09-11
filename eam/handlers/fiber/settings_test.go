@@ -59,7 +59,7 @@ func (s *stubSettings) UpdateSettings(_ context.Context, _ identity.Principal, i
 
 type denyAuthorizer struct{}
 
-func (denyAuthorizer) Authorize(*authorization.Request) (*models.Response, identity.Principal, error) {
+func (denyAuthorizer) AuthorizeRequest(*authorization.Request) (*models.Response, identity.Principal, error) {
 	return &models.Response{Allowed: false}, identity.Principal{}, nil
 }
 
@@ -67,11 +67,11 @@ func (denyAuthorizer) Identify(*authorization.Request) (*authorization.RequestPr
 	return authorization.SystemRequestPrincipal(), nil
 }
 
-func (denyAuthorizer) Decide(context.Context, *authorization.RequestPrincipal, string, *models.Entity) error {
+func (denyAuthorizer) Authorize(context.Context, *authorization.RequestPrincipal, string, *models.Entity) error {
 	return authorization.ErrForbidden
 }
 
-func settingsAuth(t *testing.T) authorization.Authorizer {
+func settingsAuth(t *testing.T) authorization.RequestAuthorizer {
 	t.Helper()
 
 	auth := authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy()))

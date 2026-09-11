@@ -25,12 +25,12 @@ type BundlesHandler struct {
 	pap        *pap.PAP
 	manager    *bundles.Manager
 	cfg        []*bundles.Config
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }
 
 // NewBundlesHandler instantiates a bundle deployment handler.
-func NewBundlesHandler(logger *slog.Logger, store *pap.PAP, manager *bundles.Manager, authorizer authorization.Authorizer, opts ...HandlerOption) *BundlesHandler {
+func NewBundlesHandler(logger *slog.Logger, store *pap.PAP, manager *bundles.Manager, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *BundlesHandler {
 	return &BundlesHandler{logger: logger, pap: store, manager: manager, cfg: manager.Bundles(), authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 

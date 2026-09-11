@@ -39,21 +39,25 @@ type PrincipalRecorder interface {
 	Upsert(ctx context.Context, p *identity.Principal) error
 }
 
-// Authorizer represents the interface for authorizing local API requests.
-// For instance, to protect a PAP or PIP against unauthorized access of their CRUD endpoints.
-type Authorizer interface {
-	// Authorize decides an HTTP request as a whole: the PEP derives action and resource from
-	// the request. This is the request-path shape; the management plane moves to Identify and
-	// Decide, handler by handler (ADR 0006).
-	Authorize(req *Request) (*models.Response, identity.Principal, error)
-	// Identify validates the caller once, without deciding anything.
+// RequestAuthorizer is the request-path authorizer: it authorizes an HTTP request as a whole,
+// with the PEP deriving action and resource from the request. It also carries the management
+// plane's Identify and Authorize, which replace AuthorizeRequest handler by handler (ADR 0006).
+//
+// Deprecated: AuthorizeRequest goes away once every handler decides through Identify and
+// Authorizer.Authorize. New code depends on Authorizer.
+type RequestAuthorizer interface {
+	Authorizer
+	// AuthorizeRequest authorizes an HTTP request as a whole: the PEP derives action and
+	// resource from the request.
+	//
+	// Deprecated: use Identify followed by Authorize.
+	AuthorizeRequest(req *Request) (*models.Response, identity.Principal, error)
+	// Identify validates the caller once, without authorizing anything.
 	Identify(req *Request) (*RequestPrincipal, error)
-	// Decide answers the management plane's question for an identified caller.
-	Decide(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error
 }
 
 // New instantiates a new authorization handler.
-func New(opts ...Option) Authorizer {
+func New(opts ...Option) RequestAuthorizer {
 	// initialize with default context, logger and empty entity set.
 	a := &auth{
 		ctx:    context.Background(),
@@ -83,8 +87,8 @@ type Request struct {
 	Body    []byte
 }
 
-// Authorize implements the Authorizer interface.
-func (a *auth) Authorize(req *Request) (resp *models.Response, principal identity.Principal, err error) {
+// AuthorizeRequest implements the RequestAuthorizer interface.
+func (a *auth) AuthorizeRequest(req *Request) (resp *models.Response, principal identity.Principal, err error) {
 	principal = identity.NewUnknownPrincipal()
 
 	r := &models.Request{

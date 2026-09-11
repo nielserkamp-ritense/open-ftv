@@ -12,7 +12,7 @@ import (
 )
 
 // NewLanguagesHandler instantiates a policy language handler.
-func NewLanguagesHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) *LanguagesHandler {
+func NewLanguagesHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *LanguagesHandler {
 	return &LanguagesHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
@@ -45,6 +45,6 @@ func (h *LanguagesHandler) error(req *fiber.Ctx, status int, err error) error {
 type LanguagesHandler struct {
 	logger     *slog.Logger
 	pap        *pap.PAP
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }

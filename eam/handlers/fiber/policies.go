@@ -108,7 +108,7 @@ type policiesHandler struct {
 
 // NewPoliciesHandler instantiates a policy handler. Every operation is decided by the policy
 // service through the authorizer; a nil authorizer permits everything.
-func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) PoliciesHandler {
+func NewPoliciesHandler(logger *slog.Logger, cache *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) PoliciesHandler {
 	return &policiesHandler{
 		logger:            logger,
 		svc:               management.NewPolicyService(logger, cache, authorizer),

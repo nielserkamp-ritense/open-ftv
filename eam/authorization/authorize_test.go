@@ -62,50 +62,50 @@ func TestManagementPARC_carriesOnlyDecisionInput(t *testing.T) {
 	assert.Nil(t, parc.Context.GetAttribute(models.AttrJWT))
 }
 
-func TestDecide_noAuthPermitsAndRecords(t *testing.T) {
+func TestAuthorize_noAuthPermitsAndRecords(t *testing.T) {
 	t.Parallel()
 
 	rec := &upsertStub{}
 	a := New(WithLogger(slog.New(slog2.NewDummyHandler(slog.LevelDebug))), NoAuth(), WithPrincipalRecorder(rec)).(*auth)
 	resource := models.NewEntity(models.EntityTypePolicy, "p1", models.NewAttributeSet())
 
-	require.NoError(t, a.Decide(context.Background(), alice(), models.ActionUpdate, resource))
+	require.NoError(t, a.Authorize(context.Background(), alice(), models.ActionUpdate, resource))
 	require.Len(t, rec.seen, 1)
 	assert.Equal(t, "alice", rec.seen[0].ID)
 }
 
-func TestDecide_withoutPDPFailsClosed(t *testing.T) {
+func TestAuthorize_withoutPDPFailsClosed(t *testing.T) {
 	t.Parallel()
 
 	rec := &upsertStub{}
 	a := New(WithLogger(slog.New(slog2.NewDummyHandler(slog.LevelDebug))), WithPrincipalRecorder(rec)).(*auth)
 	resource := models.NewEntity(models.EntityTypePolicy, "p1", models.NewAttributeSet())
 
-	err := a.Decide(context.Background(), alice(), models.ActionRead, resource)
+	err := a.Authorize(context.Background(), alice(), models.ActionRead, resource)
 	require.ErrorIs(t, err, ErrForbidden)
 	assert.Empty(t, rec.seen, "a denied caller leaves no personal data behind")
 }
 
-func TestDecide_recordFailureIsFatalOnlyForWrites(t *testing.T) {
+func TestAuthorize_recordFailureIsFatalOnlyForWrites(t *testing.T) {
 	t.Parallel()
 
 	rec := &upsertStub{fail: errors.New("database is read-only")}
 	a := New(WithLogger(slog.New(slog2.NewDummyHandler(slog.LevelDebug))), NoAuth(), WithPrincipalRecorder(rec)).(*auth)
 	resource := models.NewEntity(models.EntityTypePolicy, "p1", models.NewAttributeSet())
 
-	require.NoError(t, a.Decide(context.Background(), alice(), models.ActionRead, resource), "a read must not depend on the principal row")
+	require.NoError(t, a.Authorize(context.Background(), alice(), models.ActionRead, resource), "a read must not depend on the principal row")
 
-	err := a.Decide(context.Background(), alice(), models.ActionUpdate, resource)
+	err := a.Authorize(context.Background(), alice(), models.ActionUpdate, resource)
 
 	var notRecorded *ErrPrincipalNotRecorded
 	require.ErrorAs(t, err, &notRecorded)
 }
 
-func TestDecide_requiresAResource(t *testing.T) {
+func TestAuthorize_requiresAResource(t *testing.T) {
 	t.Parallel()
 
 	a := New(WithLogger(slog.New(slog2.NewDummyHandler(slog.LevelDebug))), NoAuth()).(*auth)
-	require.Error(t, a.Decide(context.Background(), alice(), models.ActionRead, nil))
+	require.Error(t, a.Authorize(context.Background(), alice(), models.ActionRead, nil))
 }
 
 // denyPDP answers every question with a reasoned denial.
@@ -123,14 +123,14 @@ func (denyPDP) Authorize(string, *models.PARC) (*models.Response, error) {
 
 // A denial is logged with what the PDP said, at the default level, so an operator can tell
 // a guard rule from a missing role without redeploying at Debug.
-func TestDecide_deniedLogsTheReason(t *testing.T) {
+func TestAuthorize_deniedLogsTheReason(t *testing.T) {
 	t.Parallel()
 
 	h := slog2.NewDummyHandler(slog.LevelInfo)
 	a := New(WithLogger(slog.New(h)), WithPDP(denyPDP{})).(*auth)
 	resource := models.NewEntity(models.EntityTypePolicy, "p1", models.NewAttributeSet())
 
-	err := a.Decide(context.Background(), alice(), models.ActionUpdate, resource)
+	err := a.Authorize(context.Background(), alice(), models.ActionUpdate, resource)
 	require.ErrorIs(t, err, ErrForbidden)
 
 	log := h.Log()

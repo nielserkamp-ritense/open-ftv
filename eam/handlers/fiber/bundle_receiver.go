@@ -22,11 +22,11 @@ import (
 type BundleReceiverHandler struct {
 	logger     *slog.Logger
 	ctl        pdp.Controller
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 }
 
 // NewBundleReceiverHandler instantiates a bundle receiver handler.
-func NewBundleReceiverHandler(logger *slog.Logger, ctl pdp.Controller, authorizer authorization.Authorizer) *BundleReceiverHandler {
+func NewBundleReceiverHandler(logger *slog.Logger, ctl pdp.Controller, authorizer authorization.RequestAuthorizer) *BundleReceiverHandler {
 	return &BundleReceiverHandler{logger: logger, ctl: ctl, authorizer: authorizer}
 }
 

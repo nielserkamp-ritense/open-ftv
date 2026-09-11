@@ -42,12 +42,12 @@ type AttributesHandler interface {
 type attributesHandler struct {
 	logger     *slog.Logger
 	cache      *pip.PIP
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }
 
 // NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) AttributesHandler {
+func NewAttributesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) AttributesHandler {
 	return &attributesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 

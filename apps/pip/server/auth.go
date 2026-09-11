@@ -15,7 +15,7 @@ import (
 // AuthHandler represents the interface for handling authorization requests.
 type AuthHandler interface {
 	Controller() pdp.Controller
-	Authorizer() authorization.Authorizer
+	Authorizer() authorization.RequestAuthorizer
 }
 
 func (s *Services) newAuth() AuthHandler {
@@ -55,13 +55,13 @@ func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 func (h *authHandler) Controller() pdp.Controller { return h.controller }
 
 // Authorizer returns the authorizer.
-func (h *authHandler) Authorizer() authorization.Authorizer { return h.authorizer }
+func (h *authHandler) Authorizer() authorization.RequestAuthorizer { return h.authorizer }
 
 type authHandler struct {
 	logger        *slog.Logger
 	controller    pdp.Controller
 	authenticator authentication.Authenticator
-	authorizer    authorization.Authorizer
+	authorizer    authorization.RequestAuthorizer
 }
 
 // principalRecorder returns the principal store on the shared connection pool.

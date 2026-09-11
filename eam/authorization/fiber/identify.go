@@ -16,7 +16,7 @@ import (
 // A caller that fails authentication is answered with 401 here; a request without any
 // credentials passes as the system principal and is denied by the PDP later, so that
 // fail-open deployments keep working.
-func Identify(a authorization.Authorizer, log *slog.Logger) fiber.Handler {
+func Identify(a authorization.RequestAuthorizer, log *slog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		req := FormatRequest(c)
 		req.Body = nil // identity never depends on the body.

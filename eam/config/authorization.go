@@ -21,7 +21,7 @@ type Authorization struct {
 // NewAuthorizer instantiates a new authorizer using the given configuration.
 // NewAuthorizer builds an authorizer. The extra options let a caller add concerns this shared
 // constructor should not know about, such as the manager passing its principal store.
-func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator, extra ...authorization2.Option) (authorization2.Authorizer, error) {
+func (a *Authorization) NewAuthorizer(controller pdp.Controller, authenticator authentication.Authenticator, extra ...authorization2.Option) (authorization2.RequestAuthorizer, error) {
 	opts := []authorization2.Option{
 		authorization2.WithContext(controller.GetContext()),
 		authorization2.WithLogger(controller.GetLogger()),

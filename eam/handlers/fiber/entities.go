@@ -44,12 +44,12 @@ type EntitiesHandler interface {
 type entitiesHandler struct {
 	logger     *slog.Logger
 	cache      *pip.PIP
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }
 
 // NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.Authorizer, opts ...HandlerOption) EntitiesHandler {
+func NewEntitiesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) EntitiesHandler {
 	return &entitiesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 

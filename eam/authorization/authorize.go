@@ -14,19 +14,19 @@ import (
 // ErrForbidden reports that the PDP did not permit the action on the resource.
 var ErrForbidden = errors.New("forbidden")
 
-// Decider is the management plane's authorization question: may this caller perform this
+// Authorizer is the management plane's authorization question: may this caller perform this
 // action on this resource? Implemented by the authorizer; declared separately so a service
 // depends on the question alone.
-type Decider interface {
-	Decide(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error
+type Authorizer interface {
+	Authorize(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error
 }
 
-// Decide asks the PDP once whether caller may perform action on resource, and records the
+// Authorize asks the PDP once whether caller may perform action on resource, and records the
 // caller when it may (ADR 0004). It returns nil when permitted, ErrForbidden when not, and
 // ErrPrincipalNotRecorded when a permitted non-read caller could not be recorded.
-func (a *auth) Decide(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error {
+func (a *auth) Authorize(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error {
 	if resource == nil {
-		return fmt.Errorf("decide: resource is required")
+		return fmt.Errorf("authorize: resource is required")
 	}
 
 	uid := uuid.New()

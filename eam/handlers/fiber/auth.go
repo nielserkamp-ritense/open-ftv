@@ -12,12 +12,12 @@ import (
 
 // authorizeRequest authorizes req and resolves the caller's Principal,
 // falling back to the system sentinel when no authorizer is configured.
-func authorizeRequest(authorizer authorization.Authorizer, req *fiber.Ctx, logger *slog.Logger) (identity.Principal, error) {
+func authorizeRequest(authorizer authorization.RequestAuthorizer, req *fiber.Ctx, logger *slog.Logger) (identity.Principal, error) {
 	if authorizer == nil {
 		return identity.NewSystemPrincipal(), nil
 	}
 
-	resp, principal, err := authorizer.Authorize(auth.FormatRequest(req))
+	resp, principal, err := authorizer.AuthorizeRequest(auth.FormatRequest(req))
 
 	return auth.Check(req, resp, principal, err, logger)
 }

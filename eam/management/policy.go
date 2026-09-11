@@ -34,7 +34,7 @@ type Resolver func(ctx context.Context) (*models.Policy, error)
 type PolicyService struct {
 	logger  *slog.Logger
 	store   *pap.PAP
-	decider authorization.Decider
+	authorizer authorization.Authorizer
 }
 
 // PolicyDetails is a policy with the history the detail view shows next to it.
@@ -44,15 +44,15 @@ type PolicyDetails struct {
 	UsageData []oas.UsageData
 }
 
-// NewPolicyService instantiates the policy service. A nil decider permits everything, for
+// NewPolicyService instantiates the policy service. A nil authorizer permits everything, for
 // deployments and tests that run without authorization.
-func NewPolicyService(logger *slog.Logger, store *pap.PAP, decider authorization.Decider) *PolicyService {
-	return &PolicyService{logger: logger, store: store, decider: decider}
+func NewPolicyService(logger *slog.Logger, store *pap.PAP, authorizer authorization.Authorizer) *PolicyService {
+	return &PolicyService{logger: logger, store: store, authorizer: authorizer}
 }
 
 // List returns every policy the store holds.
 func (s *PolicyService) List(ctx context.Context, caller *authorization.RequestPrincipal) ([]*models.Policy, error) {
-	if err := s.decide(ctx, caller, models.ActionRead, policyCollection()); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionRead, policyCollection()); err != nil {
 		return nil, err
 	}
 
@@ -66,7 +66,7 @@ func (s *PolicyService) Get(ctx context.Context, caller *authorization.RequestPr
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -94,7 +94,7 @@ func (s *PolicyService) Versions(ctx context.Context, caller *authorization.Requ
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func (s *PolicyService) Version(ctx context.Context, caller *authorization.Reque
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionRead, policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -135,7 +135,7 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 
 	switch {
 	case prev == nil:
-		if err := s.decide(ctx, caller, models.ActionCreate, policyResource(p.ID(), p)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionCreate, policyResource(p.ID(), p)); err != nil {
 			return nil, err
 		}
 
@@ -146,14 +146,14 @@ func (s *PolicyService) Create(ctx context.Context, caller *authorization.Reques
 		return s.store.Create(p, caller.Attribution())
 
 	case !forceUpsert:
-		if err := s.decide(ctx, caller, models.ActionCreate, policyResource(p.ID(), prev)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionCreate, policyResource(p.ID(), prev)); err != nil {
 			return nil, err
 		}
 
 		return nil, ErrExists
 
 	default:
-		if err := s.decide(ctx, caller, models.ActionUpdate, policyResource(p.ID(), prev)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionUpdate, policyResource(p.ID(), prev)); err != nil {
 			return nil, err
 		}
 
@@ -176,7 +176,7 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 
 	switch {
 	case prev != nil:
-		if err := s.decide(ctx, caller, models.ActionUpdate, policyResource(p.ID(), prev)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionUpdate, policyResource(p.ID(), prev)); err != nil {
 			return nil, err
 		}
 
@@ -187,14 +187,14 @@ func (s *PolicyService) Update(ctx context.Context, caller *authorization.Reques
 		return s.store.Update(prev, lastIndex, p, caller.Attribution())
 
 	case !forceUpsert:
-		if err := s.decide(ctx, caller, models.ActionUpdate, policyResource(p.ID(), nil)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionUpdate, policyResource(p.ID(), nil)); err != nil {
 			return nil, err
 		}
 
 		return nil, ErrNotFound
 
 	default:
-		if err := s.decide(ctx, caller, models.ActionCreate, policyResource(p.ID(), p)); err != nil {
+		if err := s.authorize(ctx, caller, models.ActionCreate, policyResource(p.ID(), p)); err != nil {
 			return nil, err
 		}
 
@@ -214,7 +214,7 @@ func (s *PolicyService) SetStatus(ctx context.Context, caller *authorization.Req
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, statusAction(status), policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, statusAction(status), policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -237,7 +237,7 @@ func (s *PolicyService) Restore(ctx context.Context, caller *authorization.Reque
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, models.ActionRestore, policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionRestore, policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -267,7 +267,7 @@ func (s *PolicyService) Delete(ctx context.Context, caller *authorization.Reques
 		return nil, err
 	}
 
-	if err := s.decide(ctx, caller, models.ActionDelete, policyResource(id, prev)); err != nil {
+	if err := s.authorize(ctx, caller, models.ActionDelete, policyResource(id, prev)); err != nil {
 		return nil, err
 	}
 
@@ -291,7 +291,7 @@ func (s *PolicyService) load(ctx context.Context, caller *authorization.RequestP
 		return prev, lastIndex, nil
 	}
 
-	if derr := s.decide(ctx, caller, action, policyResource(id, nil)); derr != nil {
+	if derr := s.authorize(ctx, caller, action, policyResource(id, nil)); derr != nil {
 		return nil, 0, derr
 	}
 
@@ -312,13 +312,13 @@ func (s *PolicyService) resolve(ctx context.Context, p *models.Policy, resolve R
 	return out, nil
 }
 
-// decide asks the PDP; without a decider every operation is permitted.
-func (s *PolicyService) decide(ctx context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
-	if s.decider == nil {
+// authorize asks the PDP; without an authorizer every operation is permitted.
+func (s *PolicyService) authorize(ctx context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
+	if s.authorizer == nil {
 		return nil
 	}
 
-	return s.decider.Decide(ctx, caller, action, resource)
+	return s.authorizer.Authorize(ctx, caller, action, resource)
 }
 
 // statusAction names the action a status change is decided as.

@@ -19,7 +19,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-// recorder is a decider that records the question and answers as told.
+// recorder is an authorizer that records the question and answers as told.
 type recorder struct {
 	deny     bool
 	caller   *authorization.RequestPrincipal
@@ -28,7 +28,7 @@ type recorder struct {
 	calls    int
 }
 
-func (r *recorder) Decide(_ context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
+func (r *recorder) Authorize(_ context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
 	r.calls++
 	r.caller, r.action, r.resource = caller, action, resource
 
@@ -242,7 +242,7 @@ func TestPolicyService_Delete_decidesDeleteAndHonoursIgnoreMissing(t *testing.T)
 	require.ErrorIs(t, err, authorization.ErrForbidden, "ignoreMissing never bypasses the decision")
 }
 
-func TestPolicyService_nilDeciderPermits(t *testing.T) {
+func TestPolicyService_nilAuthorizerPermits(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))

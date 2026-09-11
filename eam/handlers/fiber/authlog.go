@@ -25,7 +25,7 @@ type ADLHandler interface {
 }
 
 // NewADLHandler instantiates an authorisation log handler.
-func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorization.Authorizer) ADLHandler {
+func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorization.RequestAuthorizer) ADLHandler {
 	return &adlHandler{logger: logger, search: s, authorizer: authorizer}
 }
 
@@ -137,5 +137,5 @@ func (h *adlHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
 type adlHandler struct {
 	logger     *slog.Logger
 	search     search.Searcher
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 }

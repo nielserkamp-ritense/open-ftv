@@ -24,7 +24,7 @@ import (
 func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 	t.Parallel()
 
-	build := func(failClosed bool) authorization2.Authorizer {
+	build := func(failClosed bool) authorization2.RequestAuthorizer {
 		ctx := context.Background()
 		logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
 		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
@@ -54,7 +54,7 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 	t.Run("fail open (default) allows when store empty", func(t *testing.T) {
 		t.Parallel()
 
-		resp, _, err := build(false).Authorize(req)
+		resp, _, err := build(false).AuthorizeRequest(req)
 		require.NoError(t, err)
 		require.True(t, resp.Allowed)
 	})
@@ -62,7 +62,7 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 	t.Run("fail closed denies when store empty", func(t *testing.T) {
 		t.Parallel()
 
-		resp, _, err := build(true).Authorize(req)
+		resp, _, err := build(true).AuthorizeRequest(req)
 		require.NoError(t, err)
 		require.False(t, resp.Allowed)
 	})

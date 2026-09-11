@@ -229,7 +229,7 @@ func TestAuthorize(t *testing.T) {
 			uid := uuid.New()
 			tc.req.UID = &uid
 
-			got, gotPrincipal, err2 := a.Authorize(tc.req)
+			got, gotPrincipal, err2 := a.AuthorizeRequest(tc.req)
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, got)
@@ -282,7 +282,7 @@ func TestAuthorize_JWTPrincipal(t *testing.T) {
 	u, _ := url.Parse("https://openftv.nl/v1/policy/123")
 	uid := uuid.New()
 
-	resp, principal, err3 := a.Authorize(&Request{
+	resp, principal, err3 := a.AuthorizeRequest(&Request{
 		UID:    &uid,
 		URL:    u,
 		Method: "PUT",

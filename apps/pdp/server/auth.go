@@ -23,7 +23,7 @@ type authHandler struct {
 	logger     *slog.Logger                // application logger.
 	controller pdp.Controller              // generic PDP controller.
 	zen        *handlers.AuthZENAuthorizer // AuthZEN API.
-	authorizer authorization.Authorizer    // UI & bundle authorization.
+	authorizer authorization.RequestAuthorizer    // UI & bundle authorization.
 }
 
 func (s *Services) newAuth(basePath string) (*authHandler, error) {
@@ -48,7 +48,7 @@ func (s *Services) newAuth(basePath string) (*authHandler, error) {
 	// 	return nil, fmt.Errorf("failed to initialize authenticator: %w", err)
 	// }
 
-	var authorizer authorization.Authorizer
+	var authorizer authorization.RequestAuthorizer
 	if authorizer, err = s.cfg.NewAuthorizer(controller, nil); err != nil {
 		return nil, fmt.Errorf("failed to initialize authorizer: %w", err)
 	}

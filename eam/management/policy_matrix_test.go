@@ -20,9 +20,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-// managerDecider is the real chain: the authorizer's Decide over the embedded Cedar PDP
+// managerAuthorizer is the real chain: the authorizer's Authorize over the embedded Cedar PDP
 // loaded with the manager's shipped policies.
-func managerDecider(t *testing.T) authorization.Decider {
+func managerAuthorizer(t *testing.T) authorization.Authorizer {
 	t.Helper()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
@@ -80,7 +80,7 @@ func storedPolicy(status string) *models.Entity {
 func TestPolicyMatrix(t *testing.T) {
 	t.Parallel()
 
-	d := managerDecider(t)
+	d := managerAuthorizer(t)
 	concept, accepted := storedPolicy("concept"), storedPolicy("accepted")
 	collection := models.NewEntity(models.EntityTypePolicy, models.ResourceCollection, models.NewAttributeSet())
 
@@ -143,7 +143,7 @@ func TestPolicyMatrix(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := d.Decide(context.Background(), tc.caller, tc.action, tc.resource)
+			err := d.Authorize(context.Background(), tc.caller, tc.action, tc.resource)
 
 			if tc.want {
 				require.NoError(t, err)

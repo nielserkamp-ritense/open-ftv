@@ -26,12 +26,12 @@ var (
 type TagsHandler struct {
 	logger     *slog.Logger
 	pap        *pap.PAP
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }
 
 // NewTagsHandler instantiates a tag handler.
-func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.Authorizer, opts ...HandlerOption) *TagsHandler {
+func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *TagsHandler {
 	return &TagsHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 

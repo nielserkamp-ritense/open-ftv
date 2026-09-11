@@ -37,12 +37,12 @@ var (
 type SettingsHandler struct {
 	logger     *slog.Logger
 	store      settings.SettingsPersister
-	authorizer authorization.Authorizer
+	authorizer authorization.RequestAuthorizer
 	principalResolver
 }
 
 // NewSettingsHandler instantiates a settings handler.
-func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.Authorizer, opts ...HandlerOption) *SettingsHandler {
+func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *SettingsHandler {
 	return &SettingsHandler{logger: logger, store: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
 }
 
