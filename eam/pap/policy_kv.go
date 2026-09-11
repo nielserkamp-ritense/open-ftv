@@ -192,6 +192,9 @@ func (s *KeyValueDB) unmarshal(id string, kv *store.KVPair) (*models.Policy, err
 }
 
 func (s *KeyValueDB) failure(op, id string, err error, mustFind bool) error {
+	if errors.Is(err, store.ErrKeyModified) {
+		return fmt.Errorf("%w: failed to %s policy '%s': %w", ErrPolicyConcurrency, op, id, err)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to %s policy '%s': %w", op, id, err)
 	}

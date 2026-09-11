@@ -77,6 +77,10 @@ func (p *PAP) Update(prev *models.Policy, lastIndex uint64, in *models.Policy, u
 	return
 }
 
+// ErrPolicyConcurrency reports that the policy changed between the caller's read and its
+// write, so the write was refused. The caller re-reads and decides again.
+var ErrPolicyConcurrency = errors.New("policy was modified by another request")
+
 // ErrInvalidStatusChange reports a status change the policy life cycle does not allow:
 // concept -> accepted -> concept, and deployed only through a deployment.
 var ErrInvalidStatusChange = errors.New("invalid status change")

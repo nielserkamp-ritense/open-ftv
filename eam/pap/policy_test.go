@@ -539,3 +539,39 @@ func TestPAP_RestoreVersion_missingIsAnError(t *testing.T) {
 	require.Error(t, err)
 	assert.Nil(t, out)
 }
+
+// A write with a stale index is refused as ErrPolicyConcurrency, on every backend.
+func TestPAP_staleIndexIsConcurrency(t *testing.T) {
+	t.Parallel()
+
+	p, err := New(t.Context(), slog.New(slog2.NewDummyHandler(slog.LevelInfo)), WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	pol, err := models.NewPolicyFromOAS(&policies.Policy{Id: "p1", Language: "cedar"}, strings.NewReader("permit(principal, action, resource);"))
+	require.NoError(t, err)
+
+	_, err = p.Create(pol, testUser)
+	require.NoError(t, err)
+
+	prev, stale, err := p.Read("p1")
+	require.NoError(t, err)
+
+	// Someone else writes first, from the same read.
+	theirs, err := models.NewPolicyFromOAS(&policies.Policy{Id: "p1", Language: "cedar"}, strings.NewReader("permit(principal, action, resource);"))
+	require.NoError(t, err)
+
+	_, err = p.Update(prev, stale, theirs.WithTitle("theirs"), testUser)
+	require.NoError(t, err)
+
+	ours, err := models.NewPolicyFromOAS(&policies.Policy{Id: "p1", Language: "cedar"}, strings.NewReader("permit(principal, action, resource);"))
+	require.NoError(t, err)
+
+	_, err = p.Update(prev, stale, ours.WithTitle("ours"), testUser)
+	require.ErrorIs(t, err, ErrPolicyConcurrency)
+
+	_, err = p.UpdateStatus(prev, stale, models.StatusAccepted, testUser)
+	require.ErrorIs(t, err, ErrPolicyConcurrency)
+
+	_, err = p.Delete(prev, stale, testUser)
+	require.ErrorIs(t, err, ErrPolicyConcurrency)
+}
