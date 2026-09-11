@@ -3,6 +3,7 @@ package fiber
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -19,6 +20,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -487,4 +489,93 @@ func TestPoliciesHandler_buildPolicy(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, pol)
 	})
+}
+
+// fail maps every outcome of the policy service to its status code.
+func TestPoliciesHandler_fail(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		err  error
+		want int
+	}{
+		{name: "forbidden", err: authorization.ErrForbidden, want: fiber.StatusForbidden},
+		{name: "not found", err: management.ErrNotFound, want: fiber.StatusNotFound},
+		{name: "exists", err: management.ErrExists, want: fiber.StatusConflict},
+		{name: "concurrent change", err: fmt.Errorf("%w: update failed; count=0", pap.ErrPolicyConcurrency), want: fiber.StatusConflict},
+		{name: "invalid transition", err: fmt.Errorf("%w: from concept to deployed", management.ErrInvalidTransition), want: fiber.StatusBadRequest},
+		{name: "unresolvable content", err: fmt.Errorf("%w: connection refused", management.ErrContent), want: fiber.StatusBadRequest},
+		{name: "anything else", err: errors.New("database is on fire"), want: fiber.StatusInternalServerError},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+			app := fiber.New()
+			app.Get("/x", func(c *fiber.Ctx) error { return h.fail(c, tc.err) })
+
+			resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/x", http.NoBody))
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tc.want, resp.StatusCode)
+		})
+	}
+}
+
+// A status body without a status is refused: an absent status must not fall through to the
+// default status and be decided as a revert.
+func TestPoliciesHandler_checkBodyStatus(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name    string
+		body    string
+		wantErr *checkIssue
+	}{
+		{name: "accepted", body: `{"id":"p1","status":"accepted"}`},
+		{name: "concept", body: `{"id":"p1","status":"concept"}`},
+		{name: "missing", body: `{"id":"p1"}`, wantErr: &errStatusRequired},
+		{name: "empty", body: `{"id":"p1","status":""}`, wantErr: &errStatusRequired},
+		{name: "unknown", body: `{"id":"p1","status":"bogus"}`, wantErr: &errStatusInvalid},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h := &policiesHandler{logger: slog.New(slog2.NewDummyHandler(slog.LevelDebug))}
+
+			var (
+				code string
+				err  error
+			)
+
+			app := fiber.New()
+			app.Patch("/x", func(c *fiber.Ctx) error {
+				_, code, err = h.checkBodyStatus(c, "p1")
+				return nil
+			})
+
+			req := httptest.NewRequest(http.MethodPatch, "/x", strings.NewReader(tc.body))
+			req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+
+			resp, err2 := app.Test(req)
+			require.NoError(t, err2)
+			defer resp.Body.Close()
+
+			if tc.wantErr == nil {
+				require.NoError(t, err)
+				return
+			}
+
+			require.Error(t, err)
+			assert.Equal(t, tc.wantErr.code, code)
+			assert.Contains(t, err.Error(), tc.wantErr.msg)
+		})
+	}
 }

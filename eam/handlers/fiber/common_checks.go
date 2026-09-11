@@ -24,6 +24,7 @@ const (
 var (
 	errStatusTooLong     = checkIssue{code: "E95005", msg: "status too long (max 40 characters)"}
 	errStatusInvalid     = checkIssue{code: "E95010", msg: "invalid status code"}
+	errStatusRequired    = checkIssue{code: "E95012", msg: "status required"}
 	errTitleTooLong      = checkIssue{code: "E95015", msg: "title too long (max 80 characters)"}
 	errAttrTypeTooLong   = checkIssue{code: "E95020", msg: "attribute type too long (max 40 characters)"}
 	errEntityTypeTooLong = checkIssue{code: "E95025", msg: "entity type too long (max 80 characters)"}
@@ -43,6 +44,17 @@ func (f *fieldChecker) checkStatus(status string) *fieldChecker {
 	}
 
 	return f
+}
+
+// requireStatus is checkStatus for a body whose only purpose is the status: an absent one is
+// refused rather than ignored, so an incomplete body cannot map to the default status.
+func (f *fieldChecker) requireStatus(status string) *fieldChecker {
+	if status == "" {
+		f.addIssue(errStatusRequired)
+		return f
+	}
+
+	return f.checkStatus(status)
 }
 
 func (f *fieldChecker) checkTitle(title string) *fieldChecker {

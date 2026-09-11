@@ -38,6 +38,7 @@ const policyFetchTimeout = 10 * time.Second
 var (
 	errPolNotFound     = errors.New("policy not found")
 	errPolExists       = errors.New("policy already exists")
+	errPolConcurrency  = errors.New("policy was modified by another request")
 	errPolKeyError     = fmt.Errorf("policy id must be filled and less or equal %d characters", maxPolicyKeyLength)
 	errPolVersionError = errors.New("policy version must be filled and positive")
 	errPolUrlContent   = errors.New("policy data or url required")
@@ -366,7 +367,7 @@ func (h *policiesHandler) checkBodyStatus(req *fiber.Ctx, id string) (*oas.Polic
 
 	chk := newFieldChecker().
 		checkIdentifiers(id, &p.Id, errPolicyIDMismatch).
-		checkStatus(p.Status)
+		requireStatus(p.Status)
 
 	if chk.checkFailed() {
 		return nil, chk.firstCode(), chk.error()
@@ -420,8 +421,9 @@ func (h *policiesHandler) fetchPolicy(ctx context.Context, p *oas.Policy) (*mode
 }
 
 // fail answers a failed service call: a denial is 403 regardless of whether the object
-// exists, the life cycle's refusal 400, the store's own outcomes 404 or 409, and anything
-// else (including a permitted caller that could not be recorded) 500.
+// exists, the life cycle's refusal and unresolvable content 400, a missing object 404, an
+// existing one or a concurrent change 409, and anything else (including a permitted caller
+// that could not be recorded) 500.
 func (h *policiesHandler) fail(req *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, authorization.ErrForbidden):
@@ -432,6 +434,8 @@ func (h *policiesHandler) fail(req *fiber.Ctx, err error) error {
 		return h.error(req, fiber.StatusNotFound, errPolNotFound)
 	case errors.Is(err, management.ErrExists):
 		return h.error(req, fiber.StatusConflict, errPolExists)
+	case errors.Is(err, pap.ErrPolicyConcurrency):
+		return h.error(req, fiber.StatusConflict, errPolConcurrency)
 	default:
 		return h.error(req, fiber.StatusInternalServerError, err)
 	}
