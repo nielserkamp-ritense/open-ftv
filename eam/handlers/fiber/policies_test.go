@@ -496,9 +496,10 @@ func TestPoliciesHandler_fail(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name string
-		err  error
-		want int
+		name       string
+		err        error
+		want       int
+		wantDetail string // when set, the body's detail must be exactly this: a 500 never carries its cause.
 	}{
 		{name: "forbidden", err: authorization.ErrForbidden, want: fiber.StatusForbidden},
 		{name: "not found", err: management.ErrNotFound, want: fiber.StatusNotFound},
@@ -506,7 +507,8 @@ func TestPoliciesHandler_fail(t *testing.T) {
 		{name: "concurrent change", err: fmt.Errorf("%w: update failed; count=0", pap.ErrPolicyConcurrency), want: fiber.StatusConflict},
 		{name: "invalid transition", err: fmt.Errorf("%w: from concept to deployed", management.ErrInvalidTransition), want: fiber.StatusBadRequest},
 		{name: "unresolvable content", err: fmt.Errorf("%w: connection refused", management.ErrContent), want: fiber.StatusBadRequest},
-		{name: "anything else", err: errors.New("database is on fire"), want: fiber.StatusInternalServerError},
+		{name: "principal not recorded", err: &authorization.ErrPrincipalNotRecorded{Err: errors.New("pgx: host db-1 constraint principal_pkey")}, want: fiber.StatusInternalServerError, wantDetail: errPolNotRecorded.Error()},
+		{name: "anything else", err: errors.New("database is on fire"), want: fiber.StatusInternalServerError, wantDetail: errPolInternal.Error()},
 	}
 
 	for _, tc := range testCases {
@@ -524,6 +526,18 @@ func TestPoliciesHandler_fail(t *testing.T) {
 			defer resp.Body.Close()
 
 			assert.Equal(t, tc.want, resp.StatusCode)
+
+			if tc.wantDetail != "" {
+				b, err := io.ReadAll(resp.Body)
+				require.NoError(t, err)
+
+				var body struct {
+					Detail string `json:"detail"`
+				}
+				require.NoError(t, json.Unmarshal(b, &body))
+				assert.Equal(t, tc.wantDetail, body.Detail)
+				assert.NotContains(t, string(b), tc.err.Error())
+			}
 		})
 	}
 }
