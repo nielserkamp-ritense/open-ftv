@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -105,4 +106,36 @@ func TestDecide_requiresAResource(t *testing.T) {
 
 	a := New(WithLogger(slog.New(slog2.NewDummyHandler(slog.LevelDebug))), NoAuth()).(*auth)
 	require.Error(t, a.Decide(context.Background(), alice(), models.ActionRead, nil))
+}
+
+// denyPDP answers every question with a reasoned denial.
+type denyPDP struct {
+	pdp.Controller
+}
+
+func (denyPDP) Authorize(string, *models.PARC) (*models.Response, error) {
+	return &models.Response{
+		Allowed:    false,
+		Message:    "no permit matched",
+		Attributes: map[string]any{"diagnostic": "forbid: policy_accepted_guard"},
+	}, nil
+}
+
+// A denial is logged with what the PDP said, at the default level, so an operator can tell
+// a guard rule from a missing role without redeploying at Debug.
+func TestDecide_deniedLogsTheReason(t *testing.T) {
+	t.Parallel()
+
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	a := New(WithLogger(slog.New(h)), WithPDP(denyPDP{})).(*auth)
+	resource := models.NewEntity(models.EntityTypePolicy, "p1", models.NewAttributeSet())
+
+	err := a.Decide(context.Background(), alice(), models.ActionUpdate, resource)
+	require.ErrorIs(t, err, ErrForbidden)
+
+	log := h.Log()
+	assert.Contains(t, log, "WARN: authorization denied")
+	assert.Contains(t, log, "reason=no permit matched")
+	assert.Contains(t, log, "diagnostic=forbid: policy_accepted_guard")
+	assert.Contains(t, log, "action=update")
 }

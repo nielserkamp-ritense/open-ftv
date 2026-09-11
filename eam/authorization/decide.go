@@ -34,9 +34,11 @@ func (a *auth) Decide(ctx context.Context, caller *RequestPrincipal, action stri
 
 	allowed := a.noAuth
 
+	var resp *models.Response
+
 	if !allowed && a.pdp != nil {
-		resp, err := a.pdp.Authorize(uid.String(), parc)
-		if err != nil {
+		var err error
+		if resp, err = a.pdp.Authorize(uid.String(), parc); err != nil {
 			return err
 		}
 
@@ -44,7 +46,10 @@ func (a *auth) Decide(ctx context.Context, caller *RequestPrincipal, action stri
 	}
 
 	if !allowed {
-		a.log.Warn("authorization denied", "uid", uid.String(), "principal", caller.Label(), "action", action, "resource", resource.UID())
+		// The PDP's reason and diagnostic name the policies that decided, which is what an
+		// operator needs to tell a guard rule from a missing role; they are kept at the
+		// default log level.
+		a.log.Warn("authorization denied", append([]any{"uid", uid.String(), "principal", caller.Label(), "action", action, "resource", resource.UID()}, denialDetails(resp)...)...)
 		return ErrForbidden
 	}
 
@@ -53,6 +58,20 @@ func (a *auth) Decide(ctx context.Context, caller *RequestPrincipal, action stri
 	}
 
 	return a.recordPrincipal(action == models.ActionRead, &caller.Principal)
+}
+
+// denialDetails renders what the PDP said about a denial, for the log.
+func denialDetails(resp *models.Response) []any {
+	if resp == nil {
+		return []any{"reason", "no response from the PDP"}
+	}
+
+	out := []any{"reason", resp.Message}
+	if d, ok := resp.Attributes["diagnostic"]; ok {
+		out = append(out, "diagnostic", d)
+	}
+
+	return out
 }
 
 // ManagementPARC builds the PDP request of the management plane (ADR 0006): the caller as

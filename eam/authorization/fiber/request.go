@@ -47,9 +47,12 @@ func Check(req *fiber.Ctx, resp *models.Response, principal identity.Principal, 
 		return principal, unauthenticated(req, err, log)
 
 	case err != nil || resp == nil || !resp.Allowed:
-		log.Debug("authorization response", "path", req.Path(), "authResponse", resp)
+		// The response carries the PDP's reason and diagnostic; an operator needs them to
+		// explain a 403, so they are logged at the level a denial is.
+		msg := "authorization failed" // 403
+		log.Error(msg, "path", req.Path(), "authResponse", resp, "err", err)
 
-		return principal, Forbidden(req, err, log)
+		return principal, fiber.NewError(fiber.StatusForbidden, msg)
 
 	default:
 		return principal, nil
