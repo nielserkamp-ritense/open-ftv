@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kvtools/valkeyrie/store"
+	kvstore "github.com/kvtools/valkeyrie/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -365,9 +365,9 @@ var errStoreDown = errors.New("store down")
 
 // failingStore is a key-value store whose reads fail.
 type failingStore struct {
-	store.Store
+	kvstore.Store
 }
 
-func (f *failingStore) Get(context.Context, string, *store.ReadOptions) (*store.KVPair, error) {
+func (f *failingStore) Get(context.Context, string, *kvstore.ReadOptions) (*kvstore.KVPair, error) {
 	return nil, errStoreDown
 }

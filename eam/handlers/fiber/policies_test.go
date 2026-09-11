@@ -520,6 +520,7 @@ func TestPoliciesHandler_fail(t *testing.T) {
 
 			resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/x", http.NoBody))
 			require.NoError(t, err)
+
 			defer resp.Body.Close()
 
 			assert.Equal(t, tc.want, resp.StatusCode)
@@ -566,6 +567,7 @@ func TestPoliciesHandler_checkBodyStatus(t *testing.T) {
 
 			resp, err2 := app.Test(req)
 			require.NoError(t, err2)
+
 			defer resp.Body.Close()
 
 			if tc.wantErr == nil {

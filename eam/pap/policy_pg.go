@@ -191,6 +191,7 @@ func (db *PolicyDB) UpdatePolicy(ctx context.Context, user identity.Principal, p
 		if err != nil {
 			return nil, err
 		}
+
 		return nil, fmt.Errorf("%w: update failed; count=%d", ErrPolicyConcurrency, count)
 	}
 
@@ -206,6 +207,7 @@ func (db *PolicyDB) DeletePolicy(ctx context.Context, user identity.Principal, p
 		if err != nil {
 			return nil, err
 		}
+
 		return nil, fmt.Errorf("%w: delete failed; count=%d", ErrPolicyConcurrency, count)
 	}
 	return prev, nil
