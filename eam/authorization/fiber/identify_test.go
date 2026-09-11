@@ -108,3 +108,50 @@ func TestIdentify_noCredentialsIsTheSystem(t *testing.T) {
 	require.Equal(t, fiber.StatusNoContent, res.StatusCode)
 	assert.Equal(t, identity.KindSystem, caller.Kind)
 }
+
+// A bearer token the PEP refuses is a failed authentication: 401 with a Bearer challenge, and
+// the handler is never reached. Without this the caller fell through as the system principal
+// and got a 403 it could not tell from "not permitted".
+func TestIdentify_rejectedBearerIsUnauthenticated(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	ep := pep.New(ctx, logger, pep.WithJWT(pep.JWTConfig{
+		Keyfunc:  func(*jwt.Token) (any, error) { return &key.PublicKey, nil },
+		Issuer:   "https://idp.test",
+		Audience: "openftv",
+	}))
+	a := authorization.New(authorization.WithContext(ctx), authorization.WithLogger(logger), authorization.WithPEP(ep), authorization.NoAuth())
+
+	reached := false
+
+	app := fiber.New()
+	app.Get("/v1/policies", Identify(a, logger), func(c *fiber.Ctx) error {
+		reached = true
+
+		return c.SendStatus(fiber.StatusNoContent)
+	})
+
+	expired, err := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss": "https://idp.test", "aud": "openftv", "sub": "alice",
+		"exp": time.Now().Add(-time.Hour).Unix(),
+	}).SignedString(key)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/policies", http.NoBody)
+	req.Header.Set(fiber.HeaderAuthorization, "Bearer "+expired)
+
+	res, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer res.Body.Close()
+
+	assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+	assert.Contains(t, res.Header.Get(fiber.HeaderWWWAuthenticate), "Bearer")
+	assert.False(t, reached)
+}

@@ -250,3 +250,26 @@ func TestProcessBearerNotConfigured(t *testing.T) {
 	assert.Equal(t, PrincipalInvalid, c.parc.Principal.ID())
 	assert.GreaterOrEqual(t, h.Count(), 1)
 }
+
+// A refused bearer token leaves its refusal in the context, so the identity boundary can tell
+// a bad token from a request without credentials.
+func TestProcessBearerRecordsTheRejection(t *testing.T) {
+	t.Parallel()
+	_, kf := testKey(t)
+	other, _ := testKey(t)
+	c, _ := newCollector(kf)
+
+	c.processAuth("Bearer " + signRS256(t, other, jwt.MapClaims{
+		"iss": "https://idp.test", "aud": "openftv", "sub": "mallory",
+		"exp": time.Now().Add(time.Hour).Unix(),
+	}))
+
+	got, _ := c.parc.Context.GetAttributeValue(models.AttrJWT).(map[string]any)
+	require.NotNil(t, got)
+	assert.Equal(t, false, got[models.AttrValid])
+	assert.NotEmpty(t, got[AttrError])
+
+	// No token at all leaves no trace.
+	c2, _ := newCollector(kf)
+	assert.Nil(t, c2.parc.Context.GetAttributeValue(models.AttrJWT))
+}

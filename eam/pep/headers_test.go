@@ -3,6 +3,7 @@ package pep
 import (
 	"io"
 	"log/slog"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -175,10 +176,19 @@ func TestProcessHeaders(t *testing.T) {
 				assert.Nil(t, a.GetAttributeValue(models.AttrContentType))
 			}
 
-			if tc.wantAuth {
-				assert.NotNil(t, a.GetAttributeValue(models.AttrJWT))
-			} else {
-				assert.Nil(t, a.GetAttributeValue(models.AttrJWT))
+			// A valid token records its claims; a refused one records its refusal (valid: false),
+			// so the identity boundary can answer 401; no token leaves nothing.
+			jwtAttr, _ := a.GetAttributeValue(models.AttrJWT).(map[string]any)
+
+			switch {
+			case tc.wantAuth:
+				require.NotNil(t, jwtAttr)
+				assert.Equal(t, true, jwtAttr[models.AttrValid])
+			case bearerPresented(tc.headers):
+				require.NotNil(t, jwtAttr)
+				assert.Equal(t, false, jwtAttr[models.AttrValid])
+			default:
+				assert.Nil(t, jwtAttr)
 			}
 
 			if tc.wantFSC {
@@ -314,4 +324,15 @@ func TestProcessActivityID(t *testing.T) {
 			assert.Equal(t, tc.want, c.parc.Context.GetAttributeValue(models.AttrDoelbinding))
 		})
 	}
+}
+
+// bearerPresented reports whether the headers carry a bearer token.
+func bearerPresented(headers map[string][]string) bool {
+	for _, v := range headers[models.HeaderAuthorization] {
+		if strings.HasPrefix(v, "Bearer ") {
+			return true
+		}
+	}
+
+	return false
 }

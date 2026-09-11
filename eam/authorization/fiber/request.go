@@ -70,7 +70,10 @@ func Forbidden(req *fiber.Ctx, err error, log *slog.Logger) error {
 // unauthenticated answers a failed authentication with 401, offering Basic where that is the
 // scheme the caller may still use.
 func unauthenticated(req *fiber.Ctx, err error, log *slog.Logger) error {
-	if !strings.Contains(err.Error(), "api-key") {
+	switch {
+	case strings.Contains(err.Error(), "bearer token"):
+		req.Set(fiber.HeaderWWWAuthenticate, `Bearer realm=OpenFTV, error="invalid_token"`)
+	case !strings.Contains(err.Error(), "api-key"):
 		req.Set(fiber.HeaderWWWAuthenticate, "Basic realm=OpenFTV")
 	}
 

@@ -1,8 +1,12 @@
 package authorization
 
 import (
+	"fmt"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
@@ -20,11 +24,30 @@ func (a *auth) Identify(req *Request) (*RequestPrincipal, error) {
 		Body:    req.Body,
 	}, a.getter)
 
+	if err := rejectedBearer(parc); err != nil {
+		return SystemRequestPrincipal(), err
+	}
+
 	if err := a.authenticate(parc); err != nil {
 		return SystemRequestPrincipal(), err
 	}
 
 	return principalFrom(parc), nil
+}
+
+// rejectedBearer reports a bearer token the PEP refused. A refused token is a failed
+// authentication, never a request without credentials, so it is answered before the PDP.
+func rejectedBearer(parc *models.PARC) error {
+	jwt, _ := parc.Context.GetAttributeValue(models.AttrJWT).(map[string]any)
+	if jwt == nil {
+		return nil
+	}
+
+	if valid, _ := jwt[models.AttrValid].(bool); valid {
+		return nil
+	}
+
+	return authentication.Unauthenticated(fmt.Errorf("bearer token rejected: %v", jwt[pep.AttrError]))
 }
 
 // authenticate checks the credentials the PEP collected, when an authenticator is configured.

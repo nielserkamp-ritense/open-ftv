@@ -2,6 +2,7 @@ package pep
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,9 +22,15 @@ func (c *collector) processAuth(auth string) {
 	}
 }
 
+// AttrError is the key under which a rejected bearer token carries the reason for the rejection
+// in the jwt context attribute, next to AttrValid = false.
+const AttrError = "error"
+
 func (c *collector) processBearer(bearer string) {
 	if c.jwt == nil || c.jwt.Keyfunc == nil {
 		c.logger.Warn("bearer token received but JWT validation is not configured")
+		c.rejectBearer("jwt validation is not configured")
+
 		return
 	}
 
@@ -38,12 +45,16 @@ func (c *collector) processBearer(bearer string) {
 	token, err := jwt.Parse(bearer, c.jwt.Keyfunc, opts...)
 	if err != nil || !token.Valid {
 		c.logger.Error("failed to validate jwt token", "error", err)
+		c.rejectBearer(fmt.Sprint(err))
+
 		return
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		c.logger.Warn("jwt token without claims", "jwt", token)
+		c.rejectBearer("token without claims")
+
 		return
 	}
 
@@ -57,6 +68,15 @@ func (c *collector) processBearer(bearer string) {
 	})
 
 	c.mapJWTPrincipal(claims)
+}
+
+// rejectBearer records that a bearer token was presented and refused, so the caller is not
+// mistaken for one without credentials: the identity boundary answers 401, not 403.
+func (c *collector) rejectBearer(reason string) {
+	c.parc.Context.AddAttributeKV(models.AttrJWT, map[string]any{
+		models.AttrValid: false,
+		AttrError:        reason,
+	})
 }
 
 func (c *collector) processBasic(basic string) {
