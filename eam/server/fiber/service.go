@@ -33,6 +33,9 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.Option) server.S
 
 	signal.Notify(s.intChan, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 
+	// BodyLimit is deliberately not set (SCRUM-99): the request body size is capped by
+	// Fiber's built-in 4 MiB default, and a stricter limit belongs at the API gateway
+	// or reverse proxy in front of the service.
 	s.svc = fiber.New(fiber.Config{
 		AppName:               s.AppName,
 		CaseSensitive:         true,
