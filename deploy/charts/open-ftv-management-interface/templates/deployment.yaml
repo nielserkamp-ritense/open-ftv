@@ -55,6 +55,8 @@ spec:
               value: {{ .Values.config.oidc.clientId | quote }}
             - name: MANAGER_MAX_LOGO_SIZE
               value: {{ .Values.config.maxLogoSize | quote }}
+            - name: VITE_APP_VERSION
+              value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
           ports:
             - name: http
               containerPort: 8080

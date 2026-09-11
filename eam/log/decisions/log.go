@@ -13,7 +13,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql/pool"
 )
 
-// New instantiates a new OpenTelemetry logger for the Authorization Decision Log.
+// New instantiates a new OpenTelemetry logger for the Authorization Decision Log with the exporter given
+// via opentelemetry.WithExporter. Production code uses NewWithPostgreSQL; New is the seam for tests.
 func New(ctx context.Context, service string, opts ...opentelemetry.Option) (*Logger, error) {
 	ot, err := opentelemetry.New(ctx, service, opts...)
 	if err != nil {
@@ -55,8 +56,7 @@ func (l *Logger) Decision(ctx context.Context, d *Decision) error {
 
 	// The span to be created normally gets a random trace/span ID from the OpenTelemetry SDK.
 	// Logius ADL §3.4 demands the decision's own trace_id/span_id to become that span's real ID, otherwise,
-	// when the log is shipped over OTLP (PDP_DECISIONLOG_TYPE=otel), tracing tools won't recognize it as part of
-	// the same trace. ContextWithSpanIDs makes the next StartSpan call use these IDs instead of random ones.
+	// when the log is exported to a tracing tool, it won't recognize the record as part of the same trace. ContextWithSpanIDs makes the next StartSpan call use these IDs instead of random ones.
 	ctx = opentelemetry.ContextWithSpanIDs(ctx, d.TraceID, d.SpanID)
 	ctx = opentelemetry.ContextWithParentSpan(ctx, d.TraceID, d.ParentSpanID)
 

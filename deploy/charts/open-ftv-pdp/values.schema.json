@@ -76,79 +76,16 @@
         "authorizationDecisionLog": {
           "type": "object",
           "properties": {
-            "type": {
-              "enum": [
-                "stdout",
-                "postgresql"
-              ]
-            },
             "serviceName": {
               "$ref": "#/definitions/nonEmptyString"
+            },
+            "postgresql": {
+              "$ref": "#/definitions/postgresqlDatabase"
             }
           },
           "required": [
-            "type",
-            "serviceName"
-          ],
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "type": {
-                    "const": "postgresql"
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "postgresql": {
-                    "type": "object",
-                    "properties": {
-                      "hostname": {
-                        "$ref": "#/definitions/nonEmptyString",
-                        "format": "hostname"
-                      },
-                      "database": {
-                        "$ref": "#/definitions/nonEmptyString"
-                      },
-                      "existingSecret": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "$ref": "#/definitions/nonEmptyString"
-                          },
-                          "hostnameKey": {
-                            "$ref": "#/definitions/nonEmptyString"
-                          },
-                          "databaseKey": {
-                            "$ref": "#/definitions/nonEmptyString"
-                          },
-                          "usernameKey": {
-                            "$ref": "#/definitions/nonEmptyString"
-                          },
-                          "passwordKey": {
-                            "$ref": "#/definitions/nonEmptyString"
-                          }
-                        },
-                        "required": [
-                          "name",
-                          "hostnameKey",
-                          "databaseKey",
-                          "usernameKey",
-                          "passwordKey"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "existingSecret"
-                    ]
-                  }
-                },
-                "required": [
-                  "postgresql"
-                ]
-              }
-            }
+            "serviceName",
+            "postgresql"
           ]
         }
       },
@@ -229,6 +166,48 @@
     "nonEmptyString": {
       "type": "string",
       "minLength": 1
+    },
+    "postgresqlDatabase": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "$ref": "#/definitions/nonEmptyString",
+          "format": "hostname"
+        },
+        "database": {
+          "$ref": "#/definitions/nonEmptyString"
+        },
+        "existingSecret": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "hostnameKey": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "databaseKey": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "usernameKey": {
+              "$ref": "#/definitions/nonEmptyString"
+            },
+            "passwordKey": {
+              "$ref": "#/definitions/nonEmptyString"
+            }
+          },
+          "required": [
+            "name",
+            "hostnameKey",
+            "databaseKey",
+            "usernameKey",
+            "passwordKey"
+          ]
+        }
+      },
+      "required": [
+        "existingSecret"
+      ]
     },
     "policyEntity": {
       "type": "object",

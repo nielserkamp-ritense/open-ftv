@@ -16,7 +16,7 @@ import (
 )
 
 // ErrNoPersistence is returned by New when no persistence backend was configured via
-// WithPgPool(), WithKeyValueDB(), or WithPolicyDB().
+// WithPgPool() or WithKeyValueDB().
 var ErrNoPersistence = errors.New("pap: no persistence backend configured")
 
 // logArgsCapacity is the pre-allocated size of the slog argument slice built in logInitialized.
@@ -39,10 +39,7 @@ type PAP struct {
 	policyDeletes map[string]struct{}
 	bundleDB      bundles.Persister
 	kvStore       store.Store
-	migrateSource string
 	migrateDB     string
-	migrateAuto   bool
-	migrateSteps  int
 	eventSinks    []models.EventSink
 	eventMutex    sync.RWMutex
 	deployMutex   sync.RWMutex
@@ -52,11 +49,11 @@ type PAP struct {
 //
 // The optional context can be used to signal an orderly shutdown.
 //
-// A PAP requires a persistence backend: use WithPgPool(), WithKeyValueDB(), or WithPolicyDB() to connect one.
+// A PAP requires a persistence backend: use WithPgPool() or WithKeyValueDB() to connect one.
 // Without one, New returns ErrNoPersistence.
 // WithFileStore() additionally loads policies from local files into whichever backend is configured.
-// WithMigration() configures a database migration but does not run it — New only wires dependencies;
-// call Migrate() explicitly once New succeeds.
+// WithMigration() configures the database to migrate but does not run the migration — New only wires
+// dependencies; call Migrate() explicitly once New succeeds.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) (_ *PAP, err error) {
 	if ctx == nil {
 		ctx = context.Background()

@@ -70,7 +70,7 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/postgres.yaml up -d`): %v", baseURL, err)
+		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
@@ -86,7 +86,7 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 	dsn := withDatabase(baseURL, dbName)
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
-	require.NoError(t, Migrate("*embed*", dsn, 0, true, logger))
+	require.NoError(t, Migrate(dsn, logger))
 
 	l, err := NewWithPostgreSQL(ctx, "adl-idempotency-test", dsn, nil, time.Minute, 5, opentelemetry.WithBatchTimeout(2*time.Second))
 	require.NoError(t, err)

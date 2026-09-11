@@ -1,3 +1,5 @@
+//go:build integration
+
 package server
 
 import (
@@ -35,7 +37,9 @@ func TestServe(t *testing.T) {
 					MaxBody:      64536,
 				},
 			},
-			PAP: config2.PAP{Language: "cedar"},
+			PAP:            config2.PAP{Language: "cedar"},
+			ADLService:     "pdp-test",
+			ADLDatabaseURL: newADLTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)
@@ -108,7 +112,9 @@ func TestErrorHandler(t *testing.T) {
 					MaxBody:      64536,
 				},
 			},
-			PAP: config2.PAP{Language: "cedar"},
+			PAP:            config2.PAP{Language: "cedar"},
+			ADLService:     "pdp-test",
+			ADLDatabaseURL: newADLTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)

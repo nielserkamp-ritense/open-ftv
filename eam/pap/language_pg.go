@@ -11,17 +11,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
-// NewLanguageDB instantiates a new PostgreSQL database connection for managing policy languages.
-//
-// The given context is used to signal a clean shutdown of the connection pool.
-func NewLanguageDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*LanguageDB, error) {
-	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &LanguageDB{p: p, now: time.Now}, nil
-}
-
 // NewLanguageDBWithPool instantiates a new PostgreSQL database connection for managing policy languages using the given connection pool.
 func NewLanguageDBWithPool(pool *postgresql.Postgres) *LanguageDB {
 	return &LanguageDB{p: pool, now: time.Now}

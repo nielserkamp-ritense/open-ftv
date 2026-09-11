@@ -7,3 +7,4 @@ node_modules/
 .claude/
 deploy/charts/*/charts/
 deploy/charts/*/Chart.lock
+.debugger

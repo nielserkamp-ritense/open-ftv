@@ -24,10 +24,7 @@ services:
       dockerfile: ./apps/manager/Dockerfile
     container_name: openftv-mgmt-manager
     environment:
-      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
-      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@mgmt-db:5432/openftv?sslmode=disable
-      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-      - MANAGER_MIGRATE_SOURCE=*embed*
+      - MANAGER_DATABASE_URL=postgres://user:password@mgmt-db:5432/openftv?sslmode=disable # policies, attributes and entities; migrated at startup.
       - MANAGER_POLICIES_LANGUAGE=rego            # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -38,7 +35,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
     depends_on:
       mgmt-db:
@@ -63,11 +59,8 @@ services:
       - PDP_POLICIES_LANGUAGE=cedar
       - PDP_POLICIES_STORE=/tmp/data/policies/cedar
       - PDP_POLICIES_STORE_RECURSE=true
-      - PDP_ADL_TYPE=postgresql
       - PDP_ADL_SERVICE_NAME=manager
       - PDP_ADL_PG_URL=postgres://user:password@mgmt-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       mgmt-db:
         condition: service_healthy

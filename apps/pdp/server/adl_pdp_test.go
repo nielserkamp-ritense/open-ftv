@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
@@ -38,12 +37,15 @@ const goodEvaluationItem = `"subject":{"type":"doelbinding","id":"subsidies"},"a
 
 const goodSubject = `{` + goodEvaluationItem + `}`
 
-// newADLTestConfig returns a PDP config wired to a fresh, isolated Postgres-backed ADL for one test, and
-// the DSN of that database for direct verification queries.
-func newADLTestConfig(t *testing.T) (*config.Config, string) {
+// newADLTestDatabaseURL creates an empty database for the calling test and returns its URL. The PDP
+// migrates the Authorization Decision Log schema into it itself, at startup.
+//
+// It skips the test when no Postgres is reachable, so the suite still runs without one; point
+// PDP_TEST_POSTGRES_URL at a server whose credentials differ from the compose file's.
+func newADLTestDatabaseURL(t *testing.T) string {
 	t.Helper()
 
-	baseURL := os.Getenv("MANAGER_TEST_POSTGRES_URL")
+	baseURL := os.Getenv("PDP_TEST_POSTGRES_URL")
 	if baseURL == "" {
 		baseURL = defaultADLTestPostgresURL
 	}
@@ -52,7 +54,7 @@ func newADLTestConfig(t *testing.T) (*config.Config, string) {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/postgres.yaml up -d`): %v", baseURL, err)
+		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
@@ -65,21 +67,21 @@ func newADLTestConfig(t *testing.T) (*config.Config, string) {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
-	dsn := withADLDatabase(baseURL, dbName)
+	return withADLDatabase(baseURL, dbName)
+}
+
+// newADLTestConfig returns a PDP config wired to a fresh, isolated Postgres-backed ADL for one test, and
+// the DSN of that database for direct verification queries.
+func newADLTestConfig(t *testing.T) (*config.Config, string) {
+	t.Helper()
+
+	dsn := newADLTestDatabaseURL(t)
 
 	cfg := &config.Config{
-		PAP: config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},
-		PIP: config2.PIP{Store: "../../../testdata/pip", StoreRecurse: true},
-		DecisionLog: config2.DecisionLog{
-			Type:          "postgresql",
-			Service:       "adl-compliance-test",
-			Timeout:       2 * time.Second,
-			PgURL:         dsn,
-			PgMaxLife:     time.Minute,
-			PgMaxConn:     5,
-			MigrateSource: "*embed*",
-			MigrateAuto:   true,
-		},
+		PAP:            config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},
+		PIP:            config2.PIP{Store: "../../../testdata/pip", StoreRecurse: true},
+		ADLService:     "adl-compliance-test",
+		ADLDatabaseURL: dsn,
 	}
 
 	return cfg, dsn
@@ -126,8 +128,9 @@ func newADLTestApp(t *testing.T, cfg *config.Config) *fiber.App {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	s := &Services{ctx: context.Background(), cfg: cfg, logger: logger, l: models.LanguageFromString(cfg.Language)}
 
-	auth := s.newAuth("")
-	require.NotNil(t, auth, "failed to build auth handler (see logger output)")
+	auth, err := s.newAuth("")
+	require.NoError(t, err, "failed to build auth handler")
+	require.NotNil(t, auth)
 
 	app := fiber.New()
 	app.Post("/authzen/v1/evaluation", auth.zen.Evaluation)

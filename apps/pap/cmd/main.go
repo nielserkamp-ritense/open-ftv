@@ -14,10 +14,11 @@ import (
 func main() {
 	cfg, logger := config.New()
 
-	if err := cfg.Validate(); err != nil {
-		logger.Error("invalid persistence configuration", "error", err)
+	if cfg.DatabaseURL == "" {
+		logger.Error("a Postgres URI is required to start the PAP: set PAP_DATABASE_URL or --database-url")
 		os.Exit(1)
 	}
 
-	server.NewService(cfg, logger).Serve()
+	srv := server.NewService(cfg, logger)
+	srv.Serve()
 }

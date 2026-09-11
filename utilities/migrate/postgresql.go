@@ -8,25 +8,10 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/lib/pq"
 )
-
-// Postgres migrates a PostgreSQL database up or down by the given number of steps.
-//
-// If steps == 0, the function will migrate up to the highest level.
-//
-// The function uses the migration scripts located by *source* (file system)
-// and *database* as the URL for the database connection.
-func Postgres(src, database string, steps int, logger *slog.Logger) error {
-	m, err := migrate.New(src, database)
-	if err != nil {
-		return err
-	}
-	return doPostgres(m, steps, logger)
-}
 
 // PostgresEmbedded migrates a PostgreSQL database up or down by the given number of steps.
 //

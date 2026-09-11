@@ -67,10 +67,7 @@ services:
       - "9100:9443"
       - "8100:8080"
     environment:
-      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
-      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
-      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-      - MANAGER_MIGRATE_SOURCE=*embed*
+      - MANAGER_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -81,7 +78,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
     depends_on:
       vlierdam-db:
@@ -136,11 +132,8 @@ services:
       - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=cedar                                     # policy language.
       - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml          # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql                                         # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true                                           # ADL migrations.
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -172,11 +165,8 @@ services:
       - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=rego                                            # policy language.
       - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml                # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql                                               # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true                                                 # ADL migrations.
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       vlierdam-manager:
         condition: service_healthy
@@ -261,10 +251,7 @@ services:
       - "9120:9443"
       - "8120:8080"
     environment:
-      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
-      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@rvig-db:5432/openftv?sslmode=disable
-      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-      - MANAGER_MIGRATE_SOURCE=*embed*
+      - MANAGER_DATABASE_URL=postgres://user:password@rvig-db:5432/openftv?sslmode=disable
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -275,7 +262,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@rvig-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rvig-db:
@@ -328,15 +314,10 @@ services:
       - PDP_BUNDLE_ENCODING=gzip
       - PDP_BUNDLE_TIMEOUT=30s
       - PDP_BUNDLE_RETRIES=5
-      - PDP_POLICIES_LANGUAGE=rego                                  # policy language.
-      - PDP_PIP_STORE=/tmp/data/data                                # local (design-time) data used by policies.
-      - PDP_PIP_STORE_RECURSE=true
-      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml      # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql                                     # ADL.
+      - PDP_POLICIES_LANGUAGE=cedar                                 # policy language.
+#      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml      # runtime data retrieval.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@rvig-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true                                       # ADL migrations.
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       rvig-manager:
         condition: service_healthy
@@ -419,10 +400,7 @@ services:
       - "9140:9443"
       - "8140:8080"
     environment:
-      - MANAGER_PERSIST_TYPE=postgres             # persistent storage for the managed policies and data.
-      - MANAGER_PERSIST_POSTGRES_URL=postgres://user:password@rdw-db:5432/openftv?sslmode=disable
-      - MANAGER_MIGRATE_AUTO=true                 # migration setup for the persistent storage.
-      - MANAGER_MIGRATE_SOURCE=*embed*
+      - MANAGER_DATABASE_URL=postgres://user:password@rdw-db:5432/openftv?sslmode=disable
       - MANAGER_POLICIES_LANGUAGE=cedar           # default policy language.
       - MANAGER_POLICIES_STORE=/tmp/data/policies # local policies to evaluate access by the management-interface.
       - MANAGER_POLICIES_STORE_RECURSE=true
@@ -433,7 +411,6 @@ services:
       - MANAGER_BUNDLE_CONFIGS=/tmp/data/bundles  # bundle management for PDPs.
       - MANAGER_BUNDLE_RECURSE=true
       - MANAGER_BUNDLE_SEND_TIMEOUT=60s
-      - MANAGER_ADL_TYPE=postgresql               # ADL.
       - MANAGER_ADL_PG_URL=postgres://user:password@rdw-db:5432/openftv_adl?sslmode=disable
     depends_on:
       rdw-db:
@@ -488,11 +465,8 @@ services:
       - PDP_BUNDLE_RETRIES=5
       - PDP_POLICIES_LANGUAGE=cedar                                # policy language.
 #      - PDP_PIP_PULL_CONFIGS=/tmp/data/pull-config/config.yaml     # runtime data retrieval.
-      - PDP_ADL_TYPE=postgresql                                    # ADL.
       - PDP_ADL_SERVICE_NAME=vlierdam
       - PDP_ADL_PG_URL=postgres://user:password@rdw-db:5432/openftv_adl?sslmode=disable
-      - PDP_MIGRATE_AUTO=true                                      # ADL migrations.
-      - PDP_MIGRATE_SOURCE=*embed*
     depends_on:
       rdw-manager:
         condition: service_healthy

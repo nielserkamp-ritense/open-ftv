@@ -1,3 +1,5 @@
+//go:build integration
+
 package server
 
 import (
@@ -23,27 +25,14 @@ func TestServe(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         21000,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
-			},
-			PAP: config2.PAP{
-				Language: "cedar",
-			},
-			Persist: config2.Persist{
-				Type:      "postgres",
-				PgURL:     "postgres://127.0.0.1:5432/myDB",
-				PgTable:   "myTable",
-				PgMaxLife: 60 * time.Second,
-				PgMaxConn: 10,
-			},
+		cfg := newManagerConfigWithPostgres(t)
+		cfg.Server = config2.Server{
+			Host:         "127.0.0.1",
+			Port:         21000,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  300 * time.Second,
+			MaxBody:      64536,
 		}
 
 		s := NewExternal(cfg, logger)
@@ -66,63 +55,21 @@ func TestServe(t *testing.T) {
 	})
 }
 
-func TestServe_WithoutPersistence(t *testing.T) {
+func TestErrorHandler(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		require.NotNil(t, recover())
-	}()
-
-	h := slog2.NewDummyHandler(slog.LevelInfo)
-	logger := slog.New(h)
-
-	cfg := &config.Config{
-		ServerApp: config2.ServerApp{
-			Server: config2.Server{
-				Host:         "127.0.0.1",
-				Port:         21001,
-				ReadTimeout:  10 * time.Second,
-				WriteTimeout: 10 * time.Second,
-				IdleTimeout:  300 * time.Second,
-				MaxBody:      64536,
-			},
-		},
-		PAP: config2.PAP{Language: "cedar"},
-	}
-
-	_ = NewExternal(cfg, logger)
-
-	require.Fail(t, "should never reach here, because we expect server.NewExternal to panic")
-}
-
-func TestErrorHandler(t *testing.T) {
 	t.Run("error handler", func(t *testing.T) {
-		t.Parallel()
-
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         21002,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
-			},
-			PAP: config2.PAP{
-				Language: "cedar",
-			},
-			Persist: config2.Persist{
-				Type:      "postgres",
-				PgURL:     "postgres://127.0.0.1:5432/myDB",
-				PgTable:   "myTable",
-				PgMaxLife: 60 * time.Second,
-				PgMaxConn: 10,
-			},
+		cfg := newManagerConfigWithPostgres(t)
+		cfg.Server = config2.Server{
+			Host:         "127.0.0.1",
+			Port:         21002,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  300 * time.Second,
+			MaxBody:      64536,
 		}
 
 		s := NewExternal(cfg, logger)
@@ -141,6 +88,9 @@ func TestErrorHandler(t *testing.T) {
 			resp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d", cfg.Host, cfg.Port))
 			require.NoError(t, err)
 			require.NotNil(t, resp)
+
+			defer resp.Body.Close()
+
 			assert.Equal(t, 404, resp.StatusCode)
 
 			time.Sleep(10 * time.Millisecond)
@@ -152,42 +102,5 @@ func TestErrorHandler(t *testing.T) {
 		wg.Wait()
 
 		assert.GreaterOrEqual(t, h.Count(), 9)
-	})
-}
-
-func TestNewExternal_Logging(t *testing.T) {
-	t.Run("basic logging smoke test", func(t *testing.T) {
-		t.Parallel()
-
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		cfg := &config.Config{
-			ServerApp: config2.ServerApp{
-				Server: config2.Server{
-					Host:         "127.0.0.1",
-					Port:         21003,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
-				},
-			},
-			PAP: config2.PAP{
-				Language: "cedar",
-			},
-			Persist: config2.Persist{
-				Type:      "postgres",
-				PgURL:     "postgres://127.0.0.1:5432/myDB",
-				PgTable:   "myTable",
-				PgMaxLife: 60 * time.Second,
-				PgMaxConn: 10,
-			},
-		}
-
-		s := NewExternal(cfg, logger)
-		require.NotNil(t, s)
-
-		assert.GreaterOrEqual(t, h.Count(), 4)
 	})
 }

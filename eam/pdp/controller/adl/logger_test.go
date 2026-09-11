@@ -2,20 +2,18 @@ package adl
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/authzen"
 	otel "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func TestADL_Evaluation(t *testing.T) {
@@ -72,10 +70,9 @@ func TestADL_Evaluation(t *testing.T) {
 				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			l1 := slog.New(h)
+			exporter := tracetest.NewInMemoryExporter()
 
-			l2, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+			l2, err := decisions.New(ctx, "test", otel.WithExporter(exporter), otel.WithBatchTimeout(10*time.Millisecond))
 			require.NoError(t, err)
 			require.NotNil(t, l2)
 
@@ -87,10 +84,10 @@ func TestADL_Evaluation(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			assert.Len(t, exporter.GetSpans(), 1)
+
 			err = l2.Shutdown(ctx)
 			require.NoError(t, err)
-
-			assert.Equal(t, 1, h.Count())
 		})
 	}
 }
@@ -101,10 +98,9 @@ func TestADL_Evaluation_Error(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	h := slog2.NewDummyHandler(slog.LevelDebug)
-	l1 := slog.New(h)
+	exporter := tracetest.NewInMemoryExporter()
 
-	l2, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+	l2, err := decisions.New(ctx, "test", otel.WithExporter(exporter), otel.WithBatchTimeout(10*time.Millisecond))
 	require.NoError(t, err)
 	require.NotNil(t, l2)
 
@@ -119,10 +115,10 @@ func TestADL_Evaluation_Error(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 
+	assert.Len(t, exporter.GetSpans(), 1)
+
 	err = l2.Shutdown(ctx)
 	require.NoError(t, err)
-
-	assert.Equal(t, 1, h.Count())
 }
 
 func TestADL_Evaluations(t *testing.T) {
@@ -179,10 +175,9 @@ func TestADL_Evaluations(t *testing.T) {
 				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			l1 := slog.New(h)
+			exporter := tracetest.NewInMemoryExporter()
 
-			l2, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+			l2, err := decisions.New(ctx, "test", otel.WithExporter(exporter), otel.WithBatchTimeout(10*time.Millisecond))
 			require.NoError(t, err)
 			require.NotNil(t, l2)
 
@@ -194,10 +189,10 @@ func TestADL_Evaluations(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			assert.Len(t, exporter.GetSpans(), 1)
+
 			err = l2.Shutdown(ctx)
 			require.NoError(t, err)
-
-			assert.Equal(t, 1, h.Count())
 		})
 	}
 }
@@ -256,10 +251,9 @@ func TestADL_SearchSubject(t *testing.T) {
 				ctx = context.WithValue(ctx, models.AttrSpanID, tc.spanID)
 			}
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			l1 := slog.New(h)
+			exporter := tracetest.NewInMemoryExporter()
 
-			l2, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+			l2, err := decisions.New(ctx, "test", otel.WithExporter(exporter), otel.WithBatchTimeout(10*time.Millisecond))
 			require.NoError(t, err)
 			require.NotNil(t, l2)
 
@@ -271,10 +265,10 @@ func TestADL_SearchSubject(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
+			assert.Len(t, exporter.GetSpans(), 1)
+
 			err = l2.Shutdown(ctx)
 			require.NoError(t, err)
-
-			assert.Equal(t, 1, h.Count())
 		})
 	}
 }
@@ -299,7 +293,7 @@ func TestADL_NewBundle(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			logger, err := decisions.New(ctx, "test", otel.WithFile(os.Stdout, true))
+			logger, err := decisions.New(ctx, "test", otel.WithExporter(tracetest.NewInMemoryExporter()))
 			require.NoError(t, err)
 			require.NotNil(t, logger)
 
@@ -334,7 +328,7 @@ func TestADL_NewInfo(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			logger, err := decisions.New(ctx, "test", otel.WithFile(os.Stdout, true))
+			logger, err := decisions.New(ctx, "test", otel.WithExporter(tracetest.NewInMemoryExporter()))
 			require.NoError(t, err)
 			require.NotNil(t, logger)
 
@@ -372,7 +366,7 @@ func TestADL_NewEngine(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			logger, err := decisions.New(ctx, "test", otel.WithFile(os.Stdout, true))
+			logger, err := decisions.New(ctx, "test", otel.WithExporter(tracetest.NewInMemoryExporter()))
 			require.NoError(t, err)
 			require.NotNil(t, logger)
 

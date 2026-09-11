@@ -17,7 +17,7 @@ It supports the following interfaces:
 
 See the [README](../../README.md) in the top-level folder.
 
-Also see the notes about persistence at the end of this README.
+Also see the notes about the databases at the end of this README: the Manager requires PostgreSQL.
 
 ## Docker images
 
@@ -94,42 +94,12 @@ log:   # options for the application-log.
   format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
-  decisions:   # options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
-    type: "<type>"              # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
+  decisions:   # the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
     postgresql:
-      url: "<url>"              # URL of the Postgres backend holding the ADL (no default).
-      connection:
-        ttl: "<duration>"       # Timeout for closing inactive Postgres connections (default "5m").
-        max: <number>           # Maximum number of connections to the Postgres backend (default 100).
-    migrate:   # options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
-      source: "<source>"        # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
-      auto: true|false          # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, the `migrate.auto` setting below is used.
-      steps: <number>           # Number of steps to migrate. A negative number means to migrate down. When not given, the `migrate.steps` setting below is used.
+      url: "<url>"              # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
-persist:   # this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
-  type: "<type>"                # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
-  addresses: "<addresses>"      # One or more addresses of persistence services (no default).
-  base: "<prefix>"              # Prefix to use for policy keys in the persistence backend (no default).
-  timeout: "<duration>"         # Connection timeout for the persistence backend (no default).
-  etcd:                         # ** DEPRECATED **
-    sync: "<duration>"          # Synchronization period for an ETCD backend (no default).
-    user: "<user>"              # User-id to authenticate with an ETCD backend (no default).
-    password: "<password>"      # Password to authenticate with an ETCD backend (no default).
-  consul:                       # ** DEPRECATED **
-    token: "<token>"            # Token to authenticate with a Consul backend (no default).
-    namespace: "<namespace>"    # Namespace to use with a Consul backend (no default).
-  postgres:
-    url: "<url>"                # URL to connect and authenticate to a Postgres backend (no default).
-    table: "<name>"             # Name of the table to use with a Postgres backend (no default).
-    connection:
-      ttl: "<duration>"         # Timeout for closing inactive Postgres connections (default "5m").
-      max: <number>             # Maximum number of connections to the Postgres backend (default 100).
-
-migrate:    # options for migrating a persistence database.
-  source: "<source>"            # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
-  auto: true|false              # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
-  steps: <number>               # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
-  exitAfter: true|false         # A `true` value shuts down the app after the migration.
+database:   # this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
+  url: "<url>"                  # URL of the Postgres database (required, no default). Migrated automatically at startup.
 
 authentication:   # options used during the authentication stage of a user interface request.
   type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
@@ -214,37 +184,11 @@ MANAGER_LOG_FORMAT=<encoding>                   # Type of encoding for the log; 
 MANAGER_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 MANAGER_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
-MANAGER_ADL_TYPE=<type>                         # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
-MANAGER_ADL_PG_URL=<url>                        # URL of the Postgres backend holding the ADL (no default).
-MANAGER_ADL_PG_MAX_LIFE=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
-MANAGER_ADL_PG_MAX_CONN=<number>                # Maximum number of connections to the Postgres backend (default 100).
+# this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
+MANAGER_DATABASE_URL=<url>                      # URL of the Postgres database (required, no default). Migrated automatically at startup.
 
-# options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
-MANAGER_ADL_MIGRATE_SOURCE=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
-MANAGER_ADL_MIGRATE_AUTO=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, MANAGER_MIGRATE_AUTO is used.
-MANAGER_ADL_MIGRATE_STEPS=<number>              # Number of steps to migrate. A negative number means to migrate down. When not given, MANAGER_MIGRATE_STEPS is used.
-
-# this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
-MANAGER_PERSIST_TYPE=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
-MANAGER_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
-MANAGER_PERSIST_PREFIX=<prefix>                 # Prefix to use for policy keys in the persistence backend (no default).
-MANAGER_PERSIST_TIMEOUT=<duration>              # Connection timeout for the persistence backend (no default).
-MANAGER_PERSIST_ETCD_SYNC=<duration>            # ** DEPRECATED ** Synchronization period for an ETCD backend (no default).
-MANAGER_PERSIST_ETCD_USER=<user>                # ** DEPRECATED ** User-id to authenticate with an ETCD backend (no default).
-MANAGER_PERSIST_ETCD_PASSWORD=<password>        # ** DEPRECATED ** Password to authenticate with an ETCD backend (no default).
-MANAGER_PERSIST_CONSUL_TOKEN=<token>            # ** DEPRECATED ** Token to authenticate with a Consul backend (no default).
-MANAGER_PERSIST_CONSUL_NAMESPACE=<namespace>    # ** DEPRECATED ** Namespace to use with a Consul backend (no default).
-MANAGER_PERSIST_POSTGRES_URL=<url>              # URL to connect and authenticate to a Postgres backend (no default).
-MANAGER_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Postgres backend (no default).
-MANAGER_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
-MANAGER_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
-
-# options for migration of a persistence database.
-MANAGER_MIGRATE_SOURCE="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
-MANAGER_MIGRATE_AUTO=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
-MANAGER_MIGRATE_STEPS=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
-MANAGER_MIGRATE_AND_EXIT=true|false             # A `true` value shuts down the app after the migration.
+# the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
+MANAGER_ADL_PG_URL=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 # options used during the authentication stage of a user interface request.
 MANAGER_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -325,37 +269,11 @@ These match the corresponding options in a configuration file.
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# options for reading the Authorization Decision Log (ADL), shown in the user interface as "Logboek".
---adl-type=<type>                         # Type of ADL; the Manager only reads a "postgresql" ADL (no default).
---adl-pg-url=<url>                        # URL of the Postgres backend holding the ADL (no default).
---adl-pg-max-life=<duration>              # Timeout for closing inactive Postgres connections (default "5m").
---adl-pg-max-conn=<number>                # Maximum number of connections to the Postgres backend (default 100).
+# this is where the Manager stores policies, attributes, entities, relations and settings; see the section "About the databases" below.
+--database-url=<url>                      # URL of the Postgres database (required, no default). Migrated automatically at startup.
 
-# options for migrating the ADL database. The Manager creates the ADL schema when it is missing, so the log also works in deployments without a separate PDP.
---adl-migrate-source=<source>             # Source of the ADL migration scripts (default "*EMBED*", the embedded ADL scripts). An empty value switches migration of the ADL off.
---adl-migrate-auto=true|false             # A `true` value turns on migration, and attempts to migrate up to the highest level. When not given, --migrate-auto is used.
---adl-migrate-steps=<number>              # Number of steps to migrate. A negative number means to migrate down. When not given, --migrate-steps is used.
-
-# this is where the Manager stores policies, attributes, entities and relations; see the section "About persistence" below for examples.
---persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul" and "postgres" (no default).
---persist-addresses=<addresses>           # One or more addresses of persistence services (no default).
---persist-timeout=<prefix>                # Prefix to use for policy keys in the persistence backend (no default).
---persist-timeout=<duration>              # Connection timeout for the persistence backend (no default).
---persist-etcd-sync=<duration>            # ** DEPRECATED ** Synchronization period for an ETCD backend (no default).
---persist-etcd-user=<user>                # ** DEPRECATED ** User-id to authenticate with an ETCD backend (no default).
---persist-etcd-password=<password>        # ** DEPRECATED ** Password to authenticate with an ETCD backend (no default).
---persist-consul-token=<token>            # ** DEPRECATED ** Token to authenticate with a Consul backend (no default).
---persist-consul-namespace=<namespace>    # ** DEPRECATED ** Namespace to use with a Consul backend (no default).
---persist-postgres-url=<url>              # URL to connect and authenticate to a Postgres backend (no default).
---persist-postgres-table=<name>           # Name of the table to use with a Postgres backend (no default).
---persist-postgres-conn-ttl=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
---persist-postgres-conn-max=<number>      # Maximum number of connections to the Postgres backend (default 100).
-
-# options for migration of a persistence database.
---migrate-source="<source>"               # Source of the migration scripts. Use "*EMBED*" to use the default embedded migration scripts.
---migrate-auto=true|false                 # A `true` value turns on migration, and attempts to migrate up to the highest level. Mutually exclusive with the `steps` parameter.
---migrate-steps=<number>                  # Number of steps to migrate. A negative number means to migrate down, Mutually exclusive with the `auto` parameter.
---migrate-and-exit=true|false             # A `true` value shuts down the app after the migration.
+# the Authorization Decision Log (ADL), written by the PDP and shown in the user interface as "Logboek".
+--adl-pg-url=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -557,61 +475,43 @@ If the ```schedule``` rule is defined, the request will be executed according to
 Note that pull configurations may also be encoded in JSON or TOML format.
 However, for brevity, we will only include the YAML layout above, as a JSON or TOML layout can be inferred from it.
 
-### About persistence
+### About the databases
 
-Attributes, entities and relations are persisted in an SQL database or key-value store.
+The Manager requires PostgreSQL. It needs two databases, and it creates and migrates the
+schema of both itself at startup, so the databases only have to exist and be reachable:
 
-Key-value store support is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
-Note that key-value support is deprecated. Please use the SQL database option.
+| database | option | holds |
+|---|---|---|
+| the Manager's own database | `database.url` / `MANAGER_DATABASE_URL` / `--database-url` | policies, attributes, entities, relations and settings |
+| the Authorization Decision Log (ADL) | `log.decisions.postgresql.url` / `MANAGER_ADL_PG_URL` / `--adl-pg-url` | authorization decisions written by the PDP, read by the Manager ("Logboek") |
 
-The following storage backends are currently supported:
-- ```PostgreSQL```: using the pgpool & pgx libraries. ** RECOMMENDED **
-- ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
-- ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
+Both are required; the Manager exits at startup when one of them is missing or unreachable.
+The docker compose files in this repository are the worked example: one PostgreSQL instance
+with two databases, created by `scripts/init-db.sql`.
 
-A persistence backend must be configured explicitly; there is no default. If ```persist.type``` is
-left unset or set to an unsupported value, the CLI validates this at startup and exits with a clear
-error instead of silently falling back to non-persistent, in-memory storage.
-
-For proper persistence, please configure the use of ```PostgreSQL```.
-
-Example of a PostgreSQL configuration:
-```yaml
-persist:
-  type: "PostgreSQL"
-  postgres:
-    url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
-    table: "ftv"
-    connection:
-      ttl: "120s"
-      max: 20
+```shell
+MANAGER_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
+MANAGER_ADL_PG_URL=postgres://user:password@vlierdam-db:5432/openftv_adl?sslmode=disable
 ```
 
-Note that the *type* parameter is case-insensitive.
-
-For SQL databases (such as PostgreSQL) you previously had to make sure the database and table existed using initialization scripts.
-In the new version (2025/08/14), you can use the built-in database migrations (see below).
+Earlier versions of the Manager supported in-memory, etcd and Consul storage through the
+`persist.*` options, `MANAGER_PERSIST_*` variables and `--persist-*` flags. These no longer exist
+for the Manager: the `--persist-*` flags are rejected as unknown flags, and `MANAGER_PERSIST_*`
+variables are silently ignored.
 
 ### Database migrations
 
-When using an SQL database for persistence (such as PostgreSQL),
-the Manager service allows you to perform database migrations, either automatically or manually.
+Both databases are migrated automatically, every time the Manager starts, from the migration
+scripts embedded in the binary: `migrations/postgresql` for the Manager's own database and
+`eam/log/decisions/migrations` for the ADL. The Manager migrates the ADL as well so the log also
+works in deployments without a separate PDP; see
+[ADR 0004](../../docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md).
 
-The target database must have a valid URL in the persistence configuration.
-ALl other parameters are defined in the migration configuration.
-
-The ```source``` defines where the migration scripts are located.
-THis should be a disk folder or an embedded file system.
-
-The ```auto``` and ```steps``` parameter indicate how to perform the migration.
-- ```auto``` takes precedence; the value ```true``` indicates the migration must be performed to the highest possible level.
-- ```steps``` can be used to manually fine-tune the migration. A positive number indicates the number of levels to migrate upwards.
-  A negative number indicates the number of levels to migrate downwards.
-
-If ```auto == false && steps == 0```, no migration takes place.
-
-The ```exitAfter``` parameter can be set to ```true``` (default is ```false```) to make the app shut down after the migration.
-This can be useful if you want to use an initialization container for just the migrations.
+There is nothing to configure. The `migrate.*` options, `MANAGER_MIGRATE_*` variables and
+`--migrate-*` flags (including `--migrate-and-exit`) no longer exist for the Manager: the flags are
+rejected as unknown flags, and the variables are silently ignored. The same goes for the PDP's
+other decision-log options (`--adl-type`, `--adl-migrate-*`, `--adl-pg-max-*`, and so on): the
+Manager's only ADL option is the database URL.
 
 ### Bundle management
 
@@ -690,20 +590,21 @@ If logging options cause errors, these are printed using the standard Golang log
 
 ## Running the tests
 
-There are unit tests that depends on a PostgreSQL database. How to run them:
+There are integration tests that depend on external services: a PostgreSQL database and a
+Cerbos server. Both are started by a single Docker Compose file:
 
 ```shell
-cd docker
-docker compose -f postgres.yml up
+docker compose -f docker/compose-integration-tests.yaml up -d
 ```
 
 ```shell
-cd ../apps/manager
+cd apps/manager
 go test ./... -tags=integration
 ```
 
-The tests connect to the Postgres instance from the Docker Compose file by default.
-You can override the Postgres URL using the environment variable `MANAGER_TEST_POSTGRES_URL`.
+The tests connect to the services from the Docker Compose file by default.
+You can override their addresses using the environment variables `MANAGER_TEST_POSTGRES_URL`
+and `CERBOS_ADDRESS`.
 
 ## License
 

@@ -45,26 +45,11 @@ func WithPgPool(pool *postgresql.Postgres) Option {
 	}
 }
 
-// WithPolicyDB connects the PAP to a PostgreSQL backend for managing policies.
-func WithPolicyDB(db *PolicyDB) Option {
+// WithMigration sets the URL of the database that Migrate() brings up to the latest level with the
+// migration scripts embedded in the binary.
+func WithMigration(db string) Option {
 	return func(p *PAP) {
-		p.policyDB = db
-	}
-}
-
-// WithMigration initializes database migrations.
-//
-// *source* defines the location of the migration scripts.
-// *db* is the URL used to open the database.
-//
-// If *auto* is set to true, the migration handler will upgrade the database to the highest level.
-// Otherwise, it will use the given *steps* to determine if it needs to migrate the database up (positive number) or down (negative number).
-func WithMigration(source, db string, auto bool, steps int) Option {
-	return func(p *PAP) {
-		p.migrateSource = source
 		p.migrateDB = db
-		p.migrateAuto = auto
-		p.migrateSteps = steps
 	}
 }
 

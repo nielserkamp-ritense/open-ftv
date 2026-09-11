@@ -67,10 +67,9 @@ func TestAuthProcess_LogDecision(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			h := slog2.NewDummyHandler(slog.LevelDebug)
-			l1 := slog.New(h)
+			exporter := tracetest.NewInMemoryExporter()
 
-			logger, err := decisions.New(ctx, "test", otel.WithSLog(l1, "msg"), otel.WithBatchTimeout(10*time.Millisecond))
+			logger, err := decisions.New(ctx, "test", otel.WithExporter(exporter), otel.WithBatchTimeout(10*time.Millisecond))
 			require.NoError(t, err)
 
 			p := &authProcess{
@@ -88,12 +87,12 @@ func TestAuthProcess_LogDecision(t *testing.T) {
 
 			time.Sleep(50 * time.Millisecond)
 
-			err = logger.Shutdown(ctx)
-			require.NoError(t, err)
-
 			// Exactly one ADL record either way. The Logius spec says a completed decision and a failed evaluation
 			// attempt each MUST produce exactly one log record.
-			assert.Equal(t, 1, h.Count())
+			assert.Len(t, exporter.GetSpans(), 1)
+
+			err = logger.Shutdown(ctx)
+			require.NoError(t, err)
 		})
 	}
 }

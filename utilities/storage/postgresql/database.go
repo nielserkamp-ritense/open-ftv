@@ -26,7 +26,12 @@ func New(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) 
 
 // NewWithPool instantiates a new PostgreSQL database handler with the given connection pool.
 func NewWithPool(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32, p pool.Pooler) (*Postgres, error) {
-	db := &Postgres{dsn: dsn, maxLife: maxLife, maxConn: maxConn, pool: p}
+	db := &Postgres{
+		dsn:     dsn,
+		maxLife: maxLife,
+		maxConn: maxConn,
+		pool:    p,
+	}
 
 	go db.background(ctx) // waits for context to be done, and closes the pool.
 

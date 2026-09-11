@@ -29,14 +29,16 @@ config:
 
   requestMappings: []
 
+  # The authorization decision log. The PDP requires PostgreSQL for it and migrates
+  # the database itself at startup.
   authorizationDecisionLog:
-    type: stdout
     serviceName: openftv-pdp
     postgresql:
       # hostname: ""
       # database: ""
       existingSecret:
-        # name: ""
+        # The `<cluster>-app` secret CloudNativePG creates for the cluster's application user.
+        name: open-ftv-postgresql-app
         hostnameKey: host
         databaseKey: dbname
         usernameKey: username

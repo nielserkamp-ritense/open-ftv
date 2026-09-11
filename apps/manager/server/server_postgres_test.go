@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
@@ -16,6 +15,8 @@ import (
 )
 
 const defaultTestPostgresURL = "postgres://user:password@localhost:5432/openftv?sslmode=disable"
+
+const adlSuffix = "_adl"
 
 func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 	t.Helper()
@@ -29,7 +30,7 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `make postgres-up`): %v", baseURL, err)
+		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
@@ -43,20 +44,21 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
+	dbNameADL := dbName + adlSuffix
+	if _, err = admin.Exec(ctx, "DROP DATABASE IF EXISTS "+dbNameADL+" WITH (FORCE)"); err != nil {
+		t.Fatalf("failed to drop existing test database %q: %v", dbNameADL, err)
+	}
+
+	if _, err = admin.Exec(ctx, "CREATE DATABASE "+dbNameADL); err != nil {
+		t.Fatalf("failed to create test database %q: %v", dbNameADL, err)
+	}
+
 	return &config.Config{
 		PAP: config2.PAP{
 			Language: "CEDAR",
 		},
-		Persist: config2.Persist{
-			Type:      "postgres",
-			PgURL:     withDatabase(baseURL, dbName),
-			PgMaxLife: time.Minute,
-			PgMaxConn: 10,
-		},
-		Migration: config2.Migration{
-			Source: "*embed*",
-			Auto:   true,
-		},
+		DatabaseURL:    withDatabase(baseURL, dbName),
+		ADLDatabaseURL: withDatabase(baseURL, dbNameADL),
 	}
 }
 
@@ -71,8 +73,11 @@ func composeDatabaseNameFromTestName(t *testing.T, name string) string {
 
 	// via https://stackoverflow.com/a/27865772/363448
 	const maxLengthDatabaseName = 63 // Postgres identifier length limit.
-	if len(db) > maxLengthDatabaseName {
-		t.Fatalf("database name too long (%d > %d characters): %q", len(db), maxLengthDatabaseName, db)
+
+	// newManagerConfigWithPostgres derives the ADL database name by appending adlSuffix, and
+	// Postgres silently truncates an over-long identifier: leave room for it here.
+	if len(db)+len(adlSuffix) > maxLengthDatabaseName {
+		t.Fatalf("database name too long (%d > %d characters): %q", len(db)+len(adlSuffix), maxLengthDatabaseName, db+adlSuffix)
 	}
 
 	return db

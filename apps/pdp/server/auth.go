@@ -1,10 +1,11 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -25,35 +26,31 @@ type authHandler struct {
 	authorizer authorization.Authorizer    // UI & bundle authorization.
 }
 
-func (s *Services) newAuth(basePath string) *authHandler {
-	var err error
-
-	var decisionLog *adl.ADL
-	if lt := s.cfg.DecisionLog.Type; lt != "" {
-		if decisionLog, err = s.newADL(lt); err != nil || decisionLog == nil {
-			s.logger.Error("failed to initialize authorization decision log", "error", err)
-			return nil
-		}
+func (s *Services) newAuth(basePath string) (*authHandler, error) {
+	decisionLog, err := s.newADL()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize authorization decision log: %w", err)
 	}
 
 	var controller pdp.Controller
-	if controller, err = s.newSelfAuthzController(decisionLog); err != nil || controller == nil {
-		s.logger.Error("failed to initialize pdp controller", "error", err)
-		return nil
+	if controller, err = s.newSelfAuthzController(decisionLog); err != nil {
+		return nil, fmt.Errorf("failed to initialize pdp controller: %w", err)
+	}
+
+	if controller == nil {
+		return nil, errors.New("failed to initialize pdp controller: no controller")
 	}
 
 	// var authenticator authentication.Authenticator
 	// if authenticator, err = s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
 	// 	return controller.GetPIP().GetEntity(uid)
 	// }); err != nil {
-	// 	s.logger.Error("failed to initialize authenticator", "error", err)
-	// 	return nil
+	// 	return nil, fmt.Errorf("failed to initialize authenticator: %w", err)
 	// }
 
 	var authorizer authorization.Authorizer
 	if authorizer, err = s.cfg.NewAuthorizer(controller, nil); err != nil {
-		s.logger.Error("failed to initialize authorizer", "error", err)
-		return nil
+		return nil, fmt.Errorf("failed to initialize authorizer: %w", err)
 	}
 
 	var prefix string
@@ -72,7 +69,7 @@ func (s *Services) newAuth(basePath string) *authHandler {
 		controller: controller,
 		zen:        zen,
 		authorizer: authorizer,
-	}
+	}, nil
 }
 
 func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller, error) {
@@ -84,48 +81,27 @@ func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller,
 	return controller, err
 }
 
-func (s *Services) newADL(lt string) (*adl.ADL, error) {
-	cfg := s.cfg.DecisionLog
-	svc := cfg.Service
-	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(cfg.Timeout)}
+func (s *Services) newADL() (*adl.ADL, error) {
+	svc := s.cfg.ADLService
 
-	var pg bool
+	const otelTimeout = time.Second * 5
 
-	switch strings.ToLower(lt) {
-	case "pg", "postgres", "postgresql":
-		pg = true
-	case "ot", "otel", "opentelemetry":
-		opts = append(opts, opentelemetry.WithOT(cfg.OtelURL, cfg.OtelInsecure))
-	case "slog":
-		opts = append(opts, opentelemetry.WithSLog(s.logger, cfg.SlogMsg))
-	case "stdout":
-		opts = append(opts, opentelemetry.WithFile(os.Stdout, cfg.Pretty))
-	case "stderr":
-		opts = append(opts, opentelemetry.WithFile(os.Stderr, cfg.Pretty))
-	default:
-		return nil, fmt.Errorf("unsupported decision log type '%s'", cfg.Type)
+	opts := []opentelemetry.Option{opentelemetry.WithBatchTimeout(otelTimeout)}
+
+	// The ADL schema is owned by eam/log/decisions, not by an app: every app that uses the ADL
+	// migrates it. See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
+	if err := decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger); err != nil {
+		return nil, fmt.Errorf("failed to migrate the authorization decision log: %w", err)
 	}
 
-	var (
-		logger *decisions.Logger
-		err    error
-	)
-
-	if pg {
-		if err = s.checkMigrations(); err == nil {
-			logger, err = decisions.NewWithPostgreSQL(s.ctx, svc, cfg.PgURL, nil, cfg.PgMaxLife, cfg.PgMaxConn, opts...)
-		}
-	} else {
-		logger, err = decisions.New(s.ctx, svc, opts...)
-	}
-
+	logger, err := decisions.NewWithPostgreSQL(s.ctx, svc, s.cfg.ADLDatabaseURL, nil, DBMaxConnLifetime, DBMaxConnections, opts...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect the authorization decision log: %w", err)
 	}
 
 	instanceID := adlInstanceID()
 
-	s.logger.Info("authorization decision log initialized", "type", lt, "service", svc, "instance", instanceID)
+	s.logger.Info("authorization decision log initialized", "type", "postgres", "service", svc, "instance", instanceID)
 	s.decisionLog = adl.New(logger, adl.WithResource(map[string]any{
 		"organization": svc,
 		"instanceId":   instanceID,
@@ -142,28 +118,4 @@ func adlInstanceID() string {
 	}
 
 	return "pdp-" + uuid.New().String()
-}
-
-// checkMigrations migrates the ADL database, which is the only database this app has.
-//
-// The ADL-specific settings (PDP_ADL_MIGRATE_*) take precedence; when they are not given the
-// general migration settings (PDP_MIGRATE_*) are used, which is how this app has always been
-// configured. See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
-func (s *Services) checkMigrations() error {
-	adlCfg, cfg := s.cfg.DecisionLog, s.cfg.Migration
-
-	// An explicit ADL source wins; on the default (embedded scripts) the general source is
-	// used, so a PDP configured with PDP_MIGRATE_SOURCE=file://... keeps working unchanged.
-	// An explicitly emptied ADL source switches migration off.
-	source := adlCfg.MigrateSource
-	if strings.EqualFold(source, "*embed*") && cfg.Source != "" {
-		source = cfg.Source
-	}
-
-	steps := adlCfg.MigrateSteps
-	if steps == 0 {
-		steps = cfg.Steps
-	}
-
-	return decisions.Migrate(source, adlCfg.PgURL, steps, adlCfg.MigrateAuto || cfg.Auto, s.logger)
 }

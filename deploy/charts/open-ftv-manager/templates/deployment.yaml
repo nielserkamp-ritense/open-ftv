@@ -59,8 +59,7 @@ spec:
               value: {{ .Values.config.logFormat }}
             - name: MANAGER_LOG_LEVEL
               value: {{ .Values.config.logLevel }}
-            - name: MANAGER_PERSIST_TYPE
-              value: memory
+            {{- include "open-ftv-manager.databasePostgresql" .Values.config.database | nindent 12 }}
             {{- $oidc := .Values.config.oidc }}
             {{- if $oidc.jwksUrl }}
             - name: MANAGER_OIDC_ISSUER
@@ -72,15 +71,7 @@ spec:
             - name: MANAGER_OIDC_ROLES_CLAIM
               value: {{ $oidc.rolesClaim | quote }}
             {{- end }}
-          {{- with .Values.config.authorizationDecisionLog }}
-            - name: MANAGER_ADL_TYPE
-              value: {{ .type }}
-            - name: MANAGER_ADL_SERVICE_NAME
-              value: {{ .serviceName }}
-            {{- if eq .type "postgresql" }}
-            {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
-            {{- end }}
-          {{- end }}
+            {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .Values.config.authorizationDecisionLog.postgresql | nindent 12 }}
           ports:
             - name: http
               containerPort: 8080

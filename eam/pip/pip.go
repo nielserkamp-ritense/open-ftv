@@ -53,8 +53,7 @@ type PIP struct {
 
 // New instantiates a new Policy Information Point.
 //
-// A PIP requires a persistence backend: use WithKeyValueDB() or WithPostgresDB() to connect one. Without
-// one, New returns ErrNoPersistence. WithFileStore() additionally loads attributes and entities from local
+// A PIP requires a persistence backend. Without one, New returns ErrNoPersistence. WithFileStore() additionally loads attributes and entities from local
 // files into whichever backend is configured.
 func New(ctx context.Context, logger *slog.Logger, options ...Option) (_ *PIP, err error) {
 	if ctx == nil {

@@ -1,8 +1,8 @@
 {{- $fullname := include "open-ftv.fullname" . -}}
 {{- $clusterName := include "open-ftv.postgresqlClusterName" . -}}
 
-{{- if eq .Values.pdp.config.authorizationDecisionLog.type "postgresql" -}}
-
+{{/* PostgreSQL is always needed: the PDP writes the authorization decision log to it, and the
+     manager also has its own database. */}}
 {{- if not .Values.postgresql.existingCluster -}}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -27,12 +27,32 @@ spec:
   enablePDB: {{ gt .Values.postgresql.instances 1.0 }}
 {{- end }}
 
+{{/* The authorization decision log, written by the PDP and read by the manager. */}}
 {{- with .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: {{ $fullname }}-adl
+  labels:
+    {{- include "open-ftv.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  cluster:
+    name: {{ $clusterName }}
+  name: {{ . }}
+  owner: {{ $.Values.postgresql.databaseOwner }}
+  databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
+{{- end }}
+
+{{/* The manager's own database: policies, attributes, entities and settings. */}}
+{{- if .Values.manager.enabled }}
+{{- with .Values.manager.config.database.database }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ $fullname }}-manager
   labels:
     {{- include "open-ftv.labels" $ | nindent 4 }}
     app.kubernetes.io/component: database

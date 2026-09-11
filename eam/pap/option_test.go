@@ -75,28 +75,6 @@ func TestWithPgPool(t *testing.T) {
 	})
 }
 
-func TestWithPolicyDB(t *testing.T) {
-	t.Parallel()
-
-	t.Run("with policy DB", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		db, err := NewPolicyDB(ctx, "postgres://localhost:5432/myDB", time.Minute, 3)
-		require.NoError(t, err)
-
-		p, err := New(t.Context(), logger, WithPolicyDB(db))
-		require.NoError(t, err)
-		require.NotNil(t, p)
-
-		assert.Nil(t, p.kvStore)
-		assert.Equal(t, db, p.policyDB)
-	})
-}
-
 func TestWithFileStore(t *testing.T) {
 	t.Parallel()
 
@@ -125,13 +103,10 @@ func TestWithMigration(t *testing.T) {
 		h := slog2.NewDummyHandler(slog.LevelInfo)
 		logger := slog.New(h)
 
-		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration("/file", "/db", true, 3))
+		p, err := New(t.Context(), logger, WithKeyValueDB(memory.New(), ""), WithMigration("/db"))
 		require.NoError(t, err)
 		require.NotNil(t, p)
 
-		assert.Equal(t, "/file", p.migrateSource)
 		assert.Equal(t, "/db", p.migrateDB)
-		assert.True(t, p.migrateAuto)
-		assert.Equal(t, 3, p.migrateSteps)
 	})
 }

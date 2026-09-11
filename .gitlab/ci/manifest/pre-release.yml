@@ -1,4 +1,4 @@
-manifest-testing:
+manifest-pre-release:
   stage: Manifest
   image:
     name: mplatform/manifest-tool:alpine-v2.2.2@sha256:566f66687564e125c43bb86e2d035ad9b7fb4449f38814535b691d1a7f8d20db

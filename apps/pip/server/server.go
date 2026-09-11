@@ -5,6 +5,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pip/config"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
@@ -12,6 +13,13 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
+)
+
+// Connection pool settings for the Postgres database this app uses.
+const (
+	DBMaxConnLifetime = 5 * time.Minute
+	DBMaxConnections  = 100
 )
 
 // NewServices initializes the HTTP(S) services (implemented with fiber & fasthttp).
@@ -23,11 +31,22 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 	s.chk.SetAlive(true)
 	s.chk.SetReady(true)
 
+	dbCtx, dbCancel := context.WithCancel(context.Background())
+	s.dbCancel = dbCancel
+
+	postgresDB, err := postgresql.New(dbCtx, cfg.DatabaseURL, DBMaxConnLifetime, DBMaxConnections)
+	if err != nil {
+		dbCancel()
+		logger.Error("failed to connect the postgres database", "error", err)
+		panic("failed to connect the postgres database: " + err.Error())
+	}
+
+	s.db = postgresDB
+
 	// main service
 	opts := []server.Option{
 		server.WithDefaults(),
 		server.WithHostPort(cfg.Host, cfg.Port),
-		server.WithAppName(config.AppName),
 		server.WithSvcName("main"),
 		server.WithTimeouts(cfg.ReadTimeout, cfg.WriteTimeout, cfg.IdleTimeout),
 		server.WithMaxBody(cfg.MaxBody),
@@ -52,7 +71,6 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 		s.initHealthRoutes,
 		server.WithDefaults(),
 		server.WithHostPort(cfg.HealthHost, cfg.HealthPort),
-		server.WithAppName(config.AppName),
 		server.WithSvcName("health"),
 		server.WithTimeouts(cfg.HealthRead, cfg.HealthWrite, cfg.HealthIdle),
 		server.WithMaxBody(cfg.HealthMaxBody),
@@ -79,17 +97,23 @@ func (s *Services) Serve() {
 func (s *Services) Shutdown() {
 	s.main.Shutdown()
 	s.health.Shutdown()
+
+	if s.dbCancel != nil {
+		s.dbCancel() // closes the connection pool.
+	}
 }
 
 // Services contains the details of the HTTP(S) services.
 type Services struct {
-	ctx    context.Context
-	logger *slog.Logger
-	cfg    *config.Config
-	l      models.Language
-	main   server.Service
-	health server.Service
-	auth   AuthHandler
-	pip    *pip.PIP
-	chk    *handle.Checks
+	ctx      context.Context
+	logger   *slog.Logger
+	cfg      *config.Config
+	l        models.Language
+	main     server.Service
+	health   server.Service
+	auth     AuthHandler
+	pip      *pip.PIP
+	db       *postgresql.Postgres
+	dbCancel context.CancelFunc
+	chk      *handle.Checks
 }

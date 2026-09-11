@@ -5,6 +5,7 @@ import {createRootRoute, Outlet} from '@tanstack/react-router'
 import {TanStackRouterDevtools} from '@tanstack/react-router-devtools'
 import {Header} from "@/components/ui/header.tsx";
 import { menuItems } from "@/config/menu";
+import { APP_VERSION } from "@/config/env";
 import { Suspense } from 'react';
 import {useAuth} from "react-oidc-context";
 
@@ -56,6 +57,7 @@ const RootComponent = () => {
                   {top.map(renderItem)}
                   <SidebarSpacer/>
                   {bottom.map(renderItem)}
+                  <div className="px-2 text-xs/6 text-zinc-500 dark:text-zinc-400">Versie {APP_VERSION}</div>
                   </SidebarSection>
                 </SidebarBody>
               </Sidebar>

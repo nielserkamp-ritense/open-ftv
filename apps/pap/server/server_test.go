@@ -1,3 +1,5 @@
+//go:build integration
+
 package server
 
 import (
@@ -36,13 +38,7 @@ func TestNewService_Serve(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
-			Persist: config2.Persist{
-				Type:      "postgres",
-				PgURL:     "postgres://127.0.0.1:5432/myDB",
-				PgTable:   "myTable",
-				PgMaxLife: 60 * time.Second,
-				PgMaxConn: 10,
-			},
+			DatabaseURL: newTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)
@@ -119,13 +115,7 @@ func TestNewService_ErrorHandler(t *testing.T) {
 			PAP: config2.PAP{
 				Language: "cedar",
 			},
-			Persist: config2.Persist{
-				Type:      "postgres",
-				PgURL:     "postgres://127.0.0.1:5432/myDB",
-				PgTable:   "myTable",
-				PgMaxLife: 60 * time.Second,
-				PgMaxConn: 10,
-			},
+			DatabaseURL: newTestDatabaseURL(t),
 		}
 
 		s := NewService(cfg, logger)

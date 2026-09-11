@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/goccy/go-json"
-	"github.com/kvtools/etcdv3"
 	"github.com/kvtools/valkeyrie/store"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -249,14 +248,6 @@ func (s *KeyValueDB) unmarshalDeployment(kv *store.KVPair) (*Deployment, error) 
 		return nil, err
 	}
 	return deploy, nil
-}
-
-func (s *KeyValueDB) bugFix(in string) string {
-	// the Valkeyrie/etcdv3 implementation sometimes removes a leading slash character from the key.
-	if _, ok := s.client.(*etcdv3.Store); ok {
-		return "/" + in
-	}
-	return in
 }
 
 var (

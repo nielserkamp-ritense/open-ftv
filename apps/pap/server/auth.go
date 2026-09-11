@@ -3,7 +3,6 @@ package server
 
 import (
 	"log/slog"
-	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
@@ -11,7 +10,6 @@ import (
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -69,22 +67,17 @@ type authHandler struct {
 	authorizer    authorization.Authorizer
 }
 
-// principalRecorder returns the principal store when this app is postgres-backed.
+// principalRecorder returns the principal store on the shared connection pool.
 //
 // The standalone PAP writes created_by/updated_by into the same schema the manager uses, where
 // migration 00014 makes those columns foreign keys to principal. Without recording the caller,
-// every create and update here would fail on a foreign-key violation. It opens its own pool
-// because pap.PAP does not expose the pool it holds internally.
+// every create and update here would fail on a foreign-key violation.
 func (s *Services) principalRecorder() []authorization.Option {
-	if !strings.EqualFold(s.cfg.Persist.Type, "postgres") {
+	if s.db == nil {
 		return nil
 	}
 
-	db, err := postgresql.New(s.ctx, s.cfg.PgURL, s.cfg.PgMaxLife, s.cfg.PgMaxConn)
-	if err != nil {
-		s.logger.Error("failed to connect the principal store; writes will fail on the created_by foreign key", "error", err)
-		return nil
+	return []authorization.Option{
+		authorization.WithPrincipalRecorder(principals.NewDBWithPool(s.db)),
 	}
-
-	return []authorization.Option{authorization.WithPrincipalRecorder(principals.NewDBWithPool(db))}
 }

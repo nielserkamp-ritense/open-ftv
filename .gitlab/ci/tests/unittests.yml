@@ -30,6 +30,9 @@ Golang:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
     CERBOS_ADDRESS: "cerbos:3593"
     MANAGER_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
+    PAP_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
+    PIP_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
+    PDP_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
   needs: []
   before_script:
     - mkdir -p .go-cache

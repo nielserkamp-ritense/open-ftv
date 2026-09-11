@@ -29,16 +29,16 @@ spec:
         authorizationDecisionLog:
           type: postgresql
         corsOrigins:
-          - https://open-ftv.simulatie.datastelsel.nl
+          - https://open-ftv-vlierdam.simulatie.datastelsel.nl
         oidc:
-          issuer: https://keycloak.simulatie.datastelsel.nl/realms/openftv
+          issuer: https://keycloak-vlierdam.simulatie.datastelsel.nl/realms/openftv
           jwksUrl: http://{{ .Release.Name }}-keycloak/realms/openftv/protocol/openid-connect/certs
           audience: openftv
     management-interface:
       enabled: true
       config:
         oidc:
-          authority: https://keycloak.simulatie.datastelsel.nl/realms/openftv
+          authority: https://keycloak-vlierdam.simulatie.datastelsel.nl/realms/openftv
           clientId: openftv
       httpRoute:
         enabled: true
@@ -49,19 +49,19 @@ spec:
             namespace: fds-public
             sectionName: https
         hostnames:
-          - open-ftv.simulatie.datastelsel.nl
+          - open-ftv-vlierdam.simulatie.datastelsel.nl
     keycloak:
       enabled: true
       config:
         # Reach the admin console with: kubectl port-forward svc/open-ftv-keycloak 8080:80
         adminHostname: http://localhost:8080
         adminUsername: admin
-        adminPassword: rS75MSriX685rzkUonPrZLxTsE39
+        adminPassword: Yh6Auje4BeWT3luyfpzkw0ojHCeL
         realm:
           redirectUris:
-            - https://open-ftv.simulatie.datastelsel.nl/*
+            - https://open-ftv-vlierdam.simulatie.datastelsel.nl/*
           webOrigins:
-            - https://open-ftv.simulatie.datastelsel.nl
+            - https://open-ftv-vlierdam.simulatie.datastelsel.nl
           users:
             adminPassword: password
             authorPassword: password
@@ -75,4 +75,4 @@ spec:
             namespace: fds-public
             sectionName: https
         hostnames:
-          - keycloak.simulatie.datastelsel.nl
+          - keycloak-vlierdam.simulatie.datastelsel.nl

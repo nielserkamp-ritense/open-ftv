@@ -13,14 +13,29 @@ config:
   logFormat: json
   logLevel: info
 
+  # The manager's own database: policies, attributes, entities and settings.
+  # Migrated by the manager itself at startup.
+  database:
+    # hostname: ""
+    # database: ""
+    existingSecret:
+      # The `<cluster>-app` secret CloudNativePG creates for the cluster's application user.
+      name: open-ftv-postgresql-app
+      hostnameKey: host
+      databaseKey: dbname
+      usernameKey: username
+      passwordKey: password
+
+  # The authorization decision log written by the PDP, read by the manager. It MUST be a
+  # different database from `config.database` above: both are migrated with golang-migrate,
+  # which keeps its version in a `schema_migrations` table -- one database for both schemas
+  # makes the two migration runs clobber each other's version.
   authorizationDecisionLog:
-    type: stdout
-    serviceName: openftv-manager
     postgresql:
       # hostname: ""
-      # database: ""
+      database: openftv_adl
       existingSecret:
-        # name: ""
+        name: open-ftv-postgresql-app
         hostnameKey: host
         databaseKey: dbname
         usernameKey: username

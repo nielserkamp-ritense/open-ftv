@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,41 +10,20 @@ import (
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
 
 // initRoutes sets up the routing table for HTTP requests.
 func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 	s.ctx = ctx
+
 	s.l = models.LanguageFromString(s.cfg.Language)
 
-	var isPG bool
-
-	switch strings.ToLower(s.cfg.Persist.Type) {
-	case "pg", "postgres", "postgresql":
-		isPG = true
-	}
-
-	var err error
-
-	switch {
-	case isPG:
-		s.db, err = postgresql.New(s.ctx, s.cfg.Persist.PgURL, s.cfg.Persist.PgMaxLife, s.cfg.Persist.PgMaxConn)
-	case s.cfg.Persist.Type != "":
-		s.store, err = s.cfg.NewStore(ctx)
-	}
-
-	if err != nil {
-		s.logger.Error("failed to create persistence store", "error", err)
-		panic("failed to create persistence store: " + err.Error())
-	}
-
 	// initialize the PAP before the PIP, so database migrations happen before all else.
+	var err error
 	if s.pap, err = s.newPAP(); err != nil {
 		s.logger.Error("failed to initialize PAP", "error", err)
 		panic("failed to initialize PAP: " + err.Error())
@@ -84,13 +62,8 @@ func (s *Services) initRoutes(ctx context.Context, svc *fiber.App) {
 }
 
 // principalOption gives a handler the principal store, so attribution ids in its responses are
-// resolved to names. It is empty when the manager runs without postgres, in which case responses
-// carry ids only.
+// resolved to names.
 func (s *Services) principalOption() []handle.HandlerOption {
-	if s.db == nil {
-		return nil
-	}
-
 	return []handle.HandlerOption{handle.WithPrincipals(principals.NewDBWithPool(s.db))}
 }
 
@@ -121,11 +94,9 @@ func (s *Services) initTags(group fiber.Router) {
 }
 
 func (s *Services) initSettings(group fiber.Router) {
-	if s.db == nil {
-		return
-	}
+	settingsDB := settings.NewSettingsDBWithPool(s.db)
 
-	apis := handle.NewSettingsHandler(s.logger, settings.NewSettingsDBWithPool(s.db), s.auth.Authorizer(), s.principalOption()...)
+	apis := handle.NewSettingsHandler(s.logger, settingsDB, s.auth.Authorizer(), s.principalOption()...)
 
 	group.Get(handle.PathSettings, apis.GetSettings).
 		Put(handle.PathSettings, apis.PutSettings)
@@ -244,61 +215,27 @@ func (s *Services) initDeployments(group fiber.Router) {
 }
 
 func (s *Services) initADL(group fiber.Router) {
-	cfg := s.cfg.DecisionLog
-
-	var (
-		searcher search.Searcher
-		err      error
-	)
-
-	switch strings.ToLower(cfg.Type) {
-	case "pg", "postgres", "postgresql":
-		// The ADL schema is owned by eam/log/decisions, not by an app: a manager without a
-		// PDP alongside it (in-app deployment) would otherwise never see the schema created,
-		// and with a PDP alongside it startup order would decide whether the log works.
-		// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
-		if err = decisions.Migrate(cfg.MigrateSource, cfg.PgURL, s.adlMigrateSteps(), s.adlMigrateAuto(), s.logger); err != nil {
-			s.logger.Error("failed to migrate the Authorization Decision Log database", "error", err)
-			panic("failed to migrate the Authorization Decision Log database: " + err.Error())
-		}
-
-		searcher, err = searchPG.New(s.ctx, cfg.PgURL, nil, cfg.PgMaxLife, cfg.PgMaxConn)
-	default:
-		return
+	// The ADL schema is owned by eam/log/decisions, not by an app: a manager without a
+	// PDP alongside it (in-app deployment) would otherwise never see the schema created,
+	// and with a PDP alongside it startup order would decide whether the log works.
+	// See docs/adr/0004-adl-schema-migrated-by-every-app-that-uses-it.md.
+	err := decisions.Migrate(s.cfg.ADLDatabaseURL, s.logger)
+	if err != nil {
+		s.logger.Error("failed to migrate the Authorization Decision Log database", "error", err)
+		panic("failed to migrate the Authorization Decision Log database: " + err.Error())
 	}
 
+	searcher, err := searchPG.New(s.ctx, s.cfg.ADLDatabaseURL, nil, DBMaxConnLifetime, DBMaxConnections)
 	if err != nil {
 		s.logger.Error("failed to initialize Authorization Decision Log search API", "error", err)
 		panic("failed to initialize Authorization Decision Log search API: " + err.Error())
 	}
 
 	adl := handle.NewADLHandler(s.logger, searcher, s.auth.Authorizer())
-	s.logger.Info("adl initialized", "type", cfg.Type)
+	s.logger.Info("adl initialized")
 
 	grp2 := group.Group(handle.PathADL)
 	grp2.Get(handle.PathEntries, adl.Search)
-}
-
-// adlMigrateAuto reports whether the ADL must be migrated up to the latest level, falling back
-// to the manager's general migration settings when the ADL-specific setting is not given.
-func (s *Services) adlMigrateAuto() bool {
-	// MigrateAuto is the ADL setting (ADL_MIGRATE_AUTO), Auto the general one (MIGRATE_AUTO).
-	return s.cfg.MigrateAuto || s.cfg.Auto
-}
-
-// adlMigrateSteps returns the number of ADL migration steps, falling back to the manager's
-// general migration settings when the ADL-specific setting is not given.
-//
-// NOTE: only the number of steps and the auto flag are inherited, never the source:
-// MANAGER_MIGRATE_SOURCE locates the scripts of the manager's OWN database, which must never
-// be applied to the ADL database. ADL_MIGRATE_SOURCE defaults to the embedded ADL scripts.
-func (s *Services) adlMigrateSteps() int {
-	// MigrateSteps is the ADL setting (ADL_MIGRATE_STEPS), Steps the general one (MIGRATE_STEPS).
-	if steps := s.cfg.MigrateSteps; steps != 0 {
-		return steps
-	}
-
-	return s.cfg.Steps
 }
 
 // initBundleRoutes sets up the routing table for bundle retrieval requests.

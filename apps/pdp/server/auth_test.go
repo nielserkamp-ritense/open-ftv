@@ -1,3 +1,5 @@
+//go:build integration
+
 package server
 
 import (
@@ -21,13 +23,18 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	cfg := &config.Config{PAP: config2.PAP{Language: "CEDAR"}}
+	cfg := &config.Config{
+		PAP:            config2.PAP{Language: "CEDAR"},
+		ADLService:     "pdp-test",
+		ADLDatabaseURL: newADLTestDatabaseURL(t),
+	}
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
 
 	s := &Services{ctx: context.Background(), cfg: cfg, logger: logger, l: models.LanguageFromString(cfg.Language)}
 
-	auth := s.newAuth("")
+	auth, err := s.newAuth("")
+	require.NoError(t, err)
 	require.NotNil(t, auth)
 	require.NotNil(t, auth.controller)
 

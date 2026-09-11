@@ -49,10 +49,14 @@ Lint Helm charts:
     - apk --no-cache add yq kustomize
   script:
     - helm dependency update deploy/charts/open-ftv
-    - yq 'select(.kind == "HelmRelease") | .spec.values' deploy/kustomize/simulation/open-ftv.yaml > simulation-values.yaml
     - helm lint deploy/charts/*
     - helm template open-ftv deploy/charts/open-ftv
-    # Check the chart against the values the Simulatieomgeving actually deploys.
-    - helm lint deploy/charts/open-ftv --values simulation-values.yaml
-    - helm template open-ftv deploy/charts/open-ftv --values simulation-values.yaml
-    - kustomize build deploy/kustomize/simulation
+    - |-
+      for OVERLAY in deploy/kustomize/*/; do
+        OVERLAY="${OVERLAY%/}"
+        echo "checking ${OVERLAY}"
+        yq 'select(.kind == "HelmRelease") | .spec.values' "${OVERLAY}/open-ftv.yaml" > overlay-values.yaml
+        helm lint deploy/charts/open-ftv --values overlay-values.yaml
+        helm template open-ftv deploy/charts/open-ftv --values overlay-values.yaml
+        kustomize build "${OVERLAY}"
+      done

@@ -433,9 +433,11 @@ func TestPAP_WithPostgresDB(t *testing.T) {
 
 		mock, db := newMockPG(t, ctx, "postgres://localhost:5432/myDB", time.Minute, 3, now)
 
-		p, err := New(ctx, logger, WithPolicyDB(db))
+		p, err := New(ctx, logger, WithPgPool(db.p))
 		require.NoError(t, err)
 		require.NotNil(t, p)
+
+		p.policyDB = db // the PolicyDB with the mocked clock, so audit timestamps match the expectations.
 
 		p.AddEventSink(e)
 

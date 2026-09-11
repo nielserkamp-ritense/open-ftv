@@ -2,11 +2,11 @@ package adl
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
@@ -48,7 +48,8 @@ func TestOptions(t *testing.T) {
 			t.Parallel()
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			logger, err := decisions.New(ctx, "test", opentelemetry.WithFile(os.Stdout, true))
+
+			logger, err := decisions.New(ctx, "test", opentelemetry.WithExporter(tracetest.NewInMemoryExporter()))
 			require.NoError(t, err)
 			require.NotNil(t, logger)
 			got := New(logger, tc.opts...)

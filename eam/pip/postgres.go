@@ -1,22 +1,10 @@
 package pip
 
 import (
-	"context"
 	"time"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
 )
-
-// NewPostgresDB instantiates a new PostgreSQL database connection handler.
-//
-// The given context is used to signal a clean shutdown of the connection pool.
-func NewPostgresDB(ctx context.Context, dsn string, maxLife time.Duration, maxConn int32) (*PostgresDB, error) {
-	p, err := postgresql.New(ctx, dsn, maxLife, maxConn)
-	if err != nil {
-		return nil, err
-	}
-	return &PostgresDB{p: p, now: time.Now}, nil
-}
 
 // NewPostgresWithPool instantiates a new PostgreSQL database connection handler using the given connection pool.
 func NewPostgresWithPool(pool *postgresql.Postgres) *PostgresDB {

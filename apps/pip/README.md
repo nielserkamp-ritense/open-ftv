@@ -13,7 +13,7 @@ It supports the following interfaces:
 
 See the [README](../../README.md) in the top-level folder.
 
-Also see the notes about persistence at the end of this README.
+Also see the notes about the database at the end of this README: the PIP requires PostgreSQL.
 
 ## Docker images
 
@@ -75,24 +75,8 @@ log:   # options for the application-log.
   level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
   source: true|false            # Flag to record the source location of the message in the log (default true).
 
-persist:   # this is where the PIP stores attributes, entities and relations; see the section "About persistence" below for examples.
-  type: "<type>"                # Type of persistence backend; supported are "etcd", "consul" and "postgres" (no default).
-  addresses: "<addresses>"      # One or more addresses of persistence services (no default).
-  base: "<prefix>"              # Prefix to use for policy keys in the persistence backend (no default).
-  timeout: "<duration>"         # Connection timeout for the persistence backend (no default).
-  etcd:
-    sync: "<duration>"          # Synchronization period for an ETCD backend (no default).
-    user: "<user>"              # User-id to authenticate with an ETCD backend (no default).
-    password: "<password>"      # Password to authenticate with an ETCD backend (no default).
-  consul:
-    token: "<token>"            # Token to authenticate with a Consul backend (no default).
-    namespace: "<namespace>"    # Namespace to use with a Consul backend (no default).
-  postgres:
-    url: "<url>"                # URL to connect and authenticate to a Postgres backend (no default).
-    table: "<name>"             # Name of the table to use with a Postgres backend (no default).
-    connection:
-      ttl: "<duration>"         # Timeout for closing inactive Postgres connections (default "5m").
-      max: <number>             # Maximum number of connections to the Postgres backend (default 100).
+database:   # this is where the PIP stores attributes, entities and relations; see the section "About the database" below.
+  url: "<url>"                  # URL of the Postgres database (required, no default).
 
 authentication:   # options used during the authentication stage of a user interface request.
   type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
@@ -157,20 +141,8 @@ PIP_LOG_FORMAT=<encoding>                   # Type of encoding for the log; supp
 PIP_LOG_LEVEL=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 PIP_LOG_SOURCE=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# this is where the PIP stores policies; see the section "About persistence" below for examples.
-PIP_PERSIST_TYPE=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
-PIP_PERSIST_ADDRESSES=<addresses>           # One or more addresses of persistence services (no default).
-PIP_PERSIST_PREFIX=<prefix>                 # Prefix to use for policy keys in the persistence backend (no default).
-PIP_PERSIST_TIMEOUT=<duration>              # Connection timeout for the persistence backend (no default).
-PIP_PERSIST_ETCD_SYNC=<duration>            # Synchronization period for an ETCD backend (no default).
-PIP_PERSIST_ETCD_USER=<user>                # User-id to authenticate with an ETCD backend (no default).
-PIP_PERSIST_ETCD_PASSWORD=<password>        # Password to authenticate with an ETCD backend (no default).
-PIP_PERSIST_CONSUL_TOKEN=<token>            # Token to authenticate with a Consul backend (no default).
-PIP_PERSIST_CONSUL_NAMESPACE=<namespace>    # Namespace to use with a Consul backend (no default).
-PIP_PERSIST_POSTGRES_URL=<url>              # URL to connect and authenticate to a Postgres backend (no default).
-PIP_PERSIST_POSTGRES_TABLE=<name>           # Name of the table to use with a Postgres backend (no default).
-PIP_PERSIST_POSTGRES_CONN_TTL=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
-PIP_PERSIST_POSTGRES_CONN_MAX=<number>      # Maximum number of connections to the Postgres backend (default 100).
+# this is where the PIP stores attributes, entities and relations; see the section "About the database" below.
+PIP_DATABASE_URL=<url>                      # URL of the Postgres database (required, no default).
 
 # options used during the authentication stage of a user interface request.
 PIP_AUTHENTICATION_TYPE=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -231,20 +203,8 @@ These match the corresponding options in a configuration file.
 --log-level=<verbosity>                   # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
-# this is where the PIP stores policies; see the section "About persistence" below for examples.
---persist-type=<type>                     # Type of persistence backend; supported are "etcd", "consul", "postgres" (no default).
---persist-addresses=<addresses>           # One or more addresses of persistence services (no default).
---persist-timeout=<prefix>                # Prefix to use for policy keys in the persistence backend (no default).
---persist-timeout=<duration>              # Connection timeout for the persistence backend (no default).
---persist-etcd-sync=<duration>            # Synchronization period for an ETCD backend (no default).
---persist-etcd-user=<user>                # User-id to authenticate with an ETCD backend (no default).
---persist-etcd-password=<password>        # Password to authenticate with an ETCD backend (no default).
---persist-consul-token=<token>            # Token to authenticate with a Consul backend (no default).
---persist-consul-namespace=<namespace>    # Namespace to use with a Consul backend (no default).
---persist-postgres-url=<url>              # URL to connect and authenticate to a Postgres backend (no default).
---persist-postgres-table=<name>           # Name of the table to use with a Postgres backend (no default).
---persist-postgres-conn-ttl=<duration>    # Timeout for closing inactive Postgres connections (default "5m").
---persist-postgres-conn-max=<number>      # Maximum number of connections to the Postgres backend (default 100).
+# this is where the PIP stores attributes, entities and relations; see the section "About the database" below.
+--database-url=<url>                      # URL of the Postgres database (required, no default).
 
 # options used during the authentication stage of a user interface request.
 --authentication-type=<type>              # Type of authentication to perform on users (default "bcrypt").
@@ -419,40 +379,26 @@ If the ```schedule``` rule is defined, the request will be executed according to
 Note that pull configurations may also be encoded in JSON or TOML format.
 However, for brevity, we will only include the YAML layout above, as a JSON or TOML layout can be inferred from it.
 
-### About persistence
+### About the database
 
-Attributes, entities and relations are persisted in an SQL database or key-value store.
+The PIP requires PostgreSQL. It is configured with a single option:
+`database.url` / `PIP_DATABASE_URL` / `--database-url`. The PIP exits at startup when the
+option is missing. It does *not* verify that the database is reachable: unlike the Manager and
+the PAP the PIP runs no migration at startup, and the connection pool connects lazily, so a
+PIP pointed at an unreachable or wrong database starts up healthy and fails every request.
 
-Key-value store support is handled with the [Golang Valkeyrie library](https://github.com/kvtools/valkeyrie).
-Note that key-value support is deprecated. Please use the SQL database option.
-
-The following storage backends are currently supported:
-- ```PostgreSQL```: using a custom-built Valkeyrie interface. ** RECOMMENDED **
-- ```etcd```: using the standard Valkeyrie implementation. ** DEPRECATED **
-- ```Consul```: using the standard Valkeyrie implementation. ** DEPRECATED **
-
-A persistence backend must be configured explicitly; there is no default. If ```persist.type``` is
-left unset or set to an unsupported value, the service fails to start with a clear error instead of
-silently falling back to non-persistent, in-memory storage.
-
-For proper persistence, please configure the use of ```PostgreSQL```.
-
-Example of a Postgres configuration:
-```yaml
-persist:
-  type: "PostgreSQL"
-  postgres:
-    url: "postgres://postgres:******@postgres1:5432/open_ftv?sslmode=disable"
-    table: "data"
-    connection:
-      ttl: "120s"
-      max: 20
+```shell
+PIP_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
 ```
 
-Note that the *type* parameter is case-insensitive.
+The PIP does not migrate the database itself: the schema is created and migrated by the
+Manager or the PAP, which use the same database (`migrations/postgresql`). Run one of those
+against the database before starting a standalone PIP.
 
-For SQL databases (such as PostgreSQL) you previously had to make sure the database and table existed using initialization scripts.
-In the new version (2025/08/14), you can use the built-in database migrations (use a separate PAP or Manager service for this).
+Earlier versions of the PIP supported in-memory, etcd and Consul storage through the
+`persist.*` options, `PIP_PERSIST_*` variables and `--persist-*` flags. These no longer exist
+for the PIP: the `--persist-*` flags are rejected as unknown flags, and `PIP_PERSIST_*`
+variables are silently ignored.
 
 ## Application log
 
@@ -469,6 +415,24 @@ Various configuration options can be used to:
 Options for logging are processed first at startup.
 This means the log is ready before any other options are checked and possible errors are printed in the log.
 If logging options cause errors, these are printed using the standard Golang log mechanism.
+
+## Running the tests
+
+There are integration tests that depend on external services: a PostgreSQL database and a
+Cerbos server. Both are started by a single Docker Compose file:
+
+```shell
+docker compose -f docker/compose-integration-tests.yaml up -d
+```
+
+```shell
+cd apps/pip
+go test ./... -tags=integration
+```
+
+The tests connect to the services from the Docker Compose file by default. Each test creates
+and migrates its own database. You can override the Postgres URL using the environment
+variable `PIP_TEST_POSTGRES_URL`.
 
 ## License
 

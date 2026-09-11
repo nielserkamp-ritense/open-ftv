@@ -18,8 +18,6 @@ var (
 )
 
 const (
-	// AppName defines the name and version of this application.
-	AppName   = "OpenFTV PIP 2.0"
 	envPrefix = "PIP_"
 	cfg1      = "/etc/pip/default.conf"
 	cfg2      = "./etc/pip.yaml"
@@ -37,7 +35,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 			[]config.Option{
 				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
-				config.AppName(AppName),
 			},
 			opts...,
 		),
@@ -55,12 +52,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 
 // LogSanitized implements the config.Printer interface.
 func (c *Config) LogSanitized(logger *slog.Logger) {
-	logger.Info(AppName)
-
-	sanitized := *c
-	sanitized.Persist = *sanitized.Persist.Sanitized()
-	sanitized.Cerbos = *sanitized.Cerbos.Sanitized()
-	logger.Info("configuration loaded successfully", "config", sanitized)
 	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
 
@@ -70,8 +61,8 @@ type Config struct {
 	config2.HealthServer
 	config2.PAP
 	config2.PIP
-	config2.Persist
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
+	DatabaseURL string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the database holding the attributes, entities and relations"`
 }
