@@ -34,7 +34,6 @@ func TestServe(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 			PAP:            config2.PAP{Language: "cedar"},
@@ -83,7 +82,6 @@ func TestServe_FailUnsupportedLanguage(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 		}
@@ -109,7 +107,6 @@ func TestErrorHandler(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 			PAP:            config2.PAP{Language: "cedar"},

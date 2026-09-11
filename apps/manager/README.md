@@ -28,6 +28,9 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 
 The service supports various configuration options.
 
+The service does not expose a request body size limit. Fiber's built-in limit of 4 MiB applies; enforce a stricter
+limit at the API gateway or reverse proxy in front of the service.
+
 Options are read and processed in the following order:
 1. Configuration files.
 2. Environment variables.
@@ -56,7 +59,6 @@ svc:   # options for the main API endpoints.
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
     idle: "<duration>"          # The read timeout for API requests (default "300s").
-  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -72,7 +74,6 @@ internal:   # options for the internal API endpoints (bundle retrieval with PDP)
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
     idle: "<duration>"          # The read timeout for API requests (default "300s").
-  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -84,7 +85,6 @@ health:   # options for the liveness & readiness API endpoints.
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
     idle: "<duration>"          # The read timeout for API requests (default "300s").
-  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -151,7 +151,6 @@ MANAGER_TLS_KEY=<key-file>                      # TLS private key to use with th
 MANAGER_READ_TIMEOUT=<duration>                 # The read timeout for API requests (default "30s").
 MANAGER_WRITE_TIMEOUT=<duration>                # The read timeout for API requests (default "30s").
 MANAGER_IDLE_TIMEOUT=<duration>                 # The read timeout for API requests (default "300s").
-MANAGER_MAX_BODY_SIZE=<size>                    # Maximum allowed size in bytes of a request body (default 137560).
 MANAGER_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 MANAGER_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
@@ -164,7 +163,6 @@ MANAGER_INTERNAL_KEY=<key-file>                 # TLS private key to use with th
 MANAGER_INTERNAL_READ=<duration>                # The read timeout for API requests (default "30s").
 MANAGER_INTERNAL_WRITE=<duration>               # The read timeout for API requests (default "30s").
 MANAGER_INTERNAL_IDLE=<duration>                # The read timeout for API requests (default "300s").
-MANAGER_INTERNAL_MAX_BODY=<size>                # Maximum allowed size of a request body (default 65536).
 MANAGER_INTERNAL_ORIGINS=<origins>              # CORS origins (default "*").
 MANAGER_INTERNAL_HEADERS=<headers>              # CORS headers (default "*").
 
@@ -174,7 +172,6 @@ MANAGER_HEALTH_PORT=<port>                      # Port the service should listen
 MANAGER_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
 MANAGER_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
 MANAGER_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
-MANAGER_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
 MANAGER_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
 MANAGER_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
 
@@ -236,7 +233,6 @@ These match the corresponding options in a configuration file.
 --read-timeout=<duration>                 # the read timeout for API requests (default "30s").
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
---max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
 
@@ -249,7 +245,6 @@ These match the corresponding options in a configuration file.
 --internal-read=<duration>                # the read timeout for API requests (default "30s").
 --internal-write=<duration>               # the read timeout for API requests (default "30s").
 --internal-idle=<duration>                # the read timeout for API requests (default "300s").
---internal-max-body=<size>                # maximum allowed size of a request body (default 65536).
 --internal-origins=<origins>              # CORS origins (default "*").
 --internal-headers=<headers>              # CORS headers (default "*").
 
@@ -259,7 +254,6 @@ These match the corresponding options in a configuration file.
 --health-read=<duration>                  # the read timeout for API requests (default "30s").
 --health-write=<duration>                 # the read timeout for API requests (default "30s").
 --health-idle=<duration>                  # the read timeout for API requests (default "300s").
---health-max-body=<size>                  # maximum allowed size of a request body (default 65536).
 --health-origins=<origins>                # CORS origins (default "*").
 --health-headers=<headers>                # CORS headers (default "*").
 

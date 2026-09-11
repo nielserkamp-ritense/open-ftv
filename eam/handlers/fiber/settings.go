@@ -107,7 +107,6 @@ func (h *SettingsHandler) checkBody(req *fiber.Ctx) (*oas.Settings, string, erro
 		return nil, codeBadRequest, err
 	}
 
-	// Request body size is enforced by Fiber BodyLimit (MANAGER_MAX_BODY_SIZE).
 	chk := newFieldChecker().
 		checkHeaderTitle(s.HeaderTitle).
 		checkHeaderColor(s.HeaderColor).

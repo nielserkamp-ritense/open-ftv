@@ -21,14 +21,13 @@ func TestServe(t *testing.T) {
 		logger := slog.New(h)
 
 		cfg := &config.Config{
-			Host:         "127.0.0.1",
+			Host: "127.0.0.1",
 			// Distinct from other server test packages: go test ./... runs
 			// packages in parallel, and a shared fixed port collides.
 			Port:         20110,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
-			MaxBody:      256,
 		}
 
 		s := NewService(cfg, logger)
@@ -64,7 +63,6 @@ func TestErrorHandler(t *testing.T) {
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
-			MaxBody:      64536,
 		}
 
 		s := NewService(cfg, logger)

@@ -30,7 +30,6 @@ func newHealthOnlyService(cnf *config.Config, logger *slog.Logger) server.Servic
 		server.WithHostPort(cnf.HealthHost, cnf.HealthPort),
 		server.WithSvcName("health"),
 		server.WithTimeouts(cnf.HealthRead, cnf.HealthWrite, cnf.HealthIdle),
-		server.WithMaxBody(cnf.HealthMaxBody),
 		server.WithRecovery(),
 		server.WithSecurity(),
 		server.WithCORS(cnf.HealthOrigins, cnf.HealthHeaders),

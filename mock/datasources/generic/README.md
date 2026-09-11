@@ -72,6 +72,9 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 
 The service supports various configuration options.
 
+The service does not expose a request body size limit. Fiber's built-in limit of 4 MiB applies; enforce a stricter
+limit at the API gateway or reverse proxy in front of the service.
+
 Options are read and processed in the following order:
 1. Configuration files.
 2. Environment variables.
@@ -100,7 +103,6 @@ svc:   # options for the API endpoint server.
     read: "<duration>"          # the read timeout for API requests (default "30s").
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
-  maxBody: <size>               # maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -130,7 +132,6 @@ GEN_DS_TLS_KEY=<key-file>                      # TLS private key to use with the
 GEN_DS_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
 GEN_DS_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
 GEN_DS_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
-GEN_DS_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 GEN_DS_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 GEN_DS_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
@@ -159,7 +160,6 @@ These match the corresponding options in a configuration file.
 --read-timeout=<duration>                 # the read timeout for API requests (default "30s").
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
---max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
 

@@ -6,7 +6,6 @@ import "time"
 type Config struct {
 	MutualTLS     bool          // turn on mTLS mode.
 	Port          uint16        // server port to listen on.
-	MaxBody       int           // maximum size of request bodies.
 	AppName       string        // application name.
 	SvcName       string        // service name.
 	Host          string        // host address to listen on.
@@ -27,11 +26,9 @@ type Config struct {
 // host&port          : 0.0.0.0:8080.
 // read/write timeouts: 10 seconds.
 // idle timeout       : 5 minutes.
-// max request body   : 65536 bytes.
 func (c *Config) LoadDefaults() {
 	c.Host = "0.0.0.0"
 	c.Port = 8080
-	c.MaxBody = 65536
 	c.ReadTimeout = time.Second * 10
 	c.WriteTimeout = time.Second * 10
 	c.IdleTimeout = time.Minute * 5

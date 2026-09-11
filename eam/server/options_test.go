@@ -16,7 +16,6 @@ func TestConfig_LoadDefaults(t *testing.T) {
 
 		assert.Equal(t, "0.0.0.0", c.Host)
 		assert.Equal(t, uint16(8080), c.Port)
-		assert.Equal(t, 65536, c.MaxBody)
 		assert.Equal(t, 10*time.Second, c.ReadTimeout)
 		assert.Equal(t, 10*time.Second, c.WriteTimeout)
 		assert.Equal(t, 5*time.Minute, c.IdleTimeout)
@@ -33,7 +32,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 		wantHost     string
 		wantPort     uint16
 		wantName     string
-		wantMax      int
 		wantCA       string
 		wantCert     string
 		wantKey      string
@@ -67,11 +65,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 			name:     "app name",
 			opts:     []Option{WithAppName("My Fantastic App")},
 			wantName: "My Fantastic App",
-		},
-		{
-			name:    "max body",
-			opts:    []Option{WithMaxBody(12345)},
-			wantMax: 12345,
 		},
 		{
 			name:     "tls",
@@ -109,7 +102,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 				WithMutualTLS(),
 				WithHostPort("localhost", 8080),
 				WithAppName("My Fantastic App"),
-				WithMaxBody(12345),
 				WithTLS("file1", "file2", "file3"),
 				WithTimeouts(time.Second*4, time.Second*8, time.Minute*9),
 				WithRecovery(),
@@ -120,7 +112,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 			wantHost:     "localhost",
 			wantPort:     8080,
 			wantName:     "My Fantastic App",
-			wantMax:      12345,
 			wantCA:       "file1",
 			wantCert:     "file2",
 			wantKey:      "file3",
@@ -137,7 +128,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 			opts:      []Option{WithDefaults()},
 			wantHost:  "0.0.0.0",
 			wantPort:  8080,
-			wantMax:   65536,
 			wantRead:  10 * time.Second,
 			wantWrite: 10 * time.Second,
 			wantIdle:  5 * time.Minute,
@@ -155,7 +145,6 @@ func TestConfig_LoadOptions(t *testing.T) {
 			assert.Equal(t, tc.wantHost, c.Host)
 			assert.Equal(t, tc.wantPort, c.Port)
 			assert.Equal(t, tc.wantName, c.AppName)
-			assert.Equal(t, tc.wantMax, c.MaxBody)
 			assert.Equal(t, tc.wantRead, c.ReadTimeout)
 			assert.Equal(t, tc.wantWrite, c.WriteTimeout)
 			assert.Equal(t, tc.wantIdle, c.IdleTimeout)

@@ -18,26 +18,23 @@ func TestServer(t *testing.T) {
 svc:
   host: "127.0.0.1"
   port: "x"
-  maxBody: 1111
 `
 
 	const goodCfg = `
 svc:
   host: "127.0.0.1"
   port: 8080
-  maxBody: 2048
 `
 	dir := t.TempDir()
 
 	testCases := []struct {
-		name        string
-		file        string
-		data        string
-		args        []string
-		wantErr     bool
-		wantHost    string
-		wantPort    uint16
-		wantMaxBody int
+		name     string
+		file     string
+		data     string
+		args     []string
+		wantErr  bool
+		wantHost string
+		wantPort uint16
 	}{
 		{
 			name:    "bad input",
@@ -46,20 +43,18 @@ svc:
 			wantErr: true,
 		},
 		{
-			name:        "bad port",
-			file:        "server2.yaml",
-			data:        badPort,
-			wantHost:    "127.0.0.1",
-			wantPort:    0,
-			wantMaxBody: 1111,
+			name:     "bad port",
+			file:     "server2.yaml",
+			data:     badPort,
+			wantHost: "127.0.0.1",
+			wantPort: 0,
 		},
 		{
-			name:        "good file",
-			file:        "server3.yaml",
-			data:        goodCfg,
-			wantHost:    "127.0.0.1",
-			wantPort:    8080,
-			wantMaxBody: 2048,
+			name:     "good file",
+			file:     "server3.yaml",
+			data:     goodCfg,
+			wantHost: "127.0.0.1",
+			wantPort: 8080,
 		},
 	}
 
@@ -87,7 +82,6 @@ svc:
 				require.NoError(t, err)
 				assert.Equal(t, tc.wantHost, cfg.Host)
 				assert.Equal(t, tc.wantPort, cfg.Port)
-				assert.Equal(t, tc.wantMaxBody, cfg.MaxBody)
 			}
 		})
 	}

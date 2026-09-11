@@ -32,7 +32,6 @@ func TestNewService_Serve(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 			PAP: config2.PAP{
@@ -80,7 +79,6 @@ func TestNewService_FailUnsupportedLanguage(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 			PAP: config2.PAP{
@@ -109,7 +107,6 @@ func TestNewService_ErrorHandler(t *testing.T) {
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  300 * time.Second,
-					MaxBody:      64536,
 				},
 			},
 			PAP: config2.PAP{

@@ -36,6 +36,9 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 
 The service supports various configuration options.
 
+The service does not expose a request body size limit. Fiber's built-in limit of 4 MiB applies; enforce a stricter
+limit at the API gateway or reverse proxy in front of the service.
+
 Options are read and processed in the following order:
 1. Configuration files.
 2. Environment variables.
@@ -64,7 +67,6 @@ svc:   # options for the main API endpoints (AuthZEN, push endpoints).
     read: "<duration>"          # the read timeout for API requests (default "30s").
     write: "<duration>"         # the read timeout for API requests (default "30s").
     idle: "<duration>"          # the read timeout for API requests (default "300s").
-  maxBody: <size>               # maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -80,7 +82,6 @@ internal:   # options for the internal API endpoints (bundle push with Manager).
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
     idle: "<duration>"          # The read timeout for API requests (default "300s").
-  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -92,7 +93,6 @@ health:   # options for the liveness & readiness API endpoints.
     read: "<duration>"          # The read timeout for API requests (default "30s").
     write: "<duration>"         # The read timeout for API requests (default "30s").
     idle: "<duration>"          # The read timeout for API requests (default "300s").
-  maxBody: <size>               # Maximum allowed size of a request body (default 65536).
   cors:
     origins: "<origins>"        # CORS origins (default "*").
     headers: "<headers>"        # CORS headers (default "*").
@@ -144,7 +144,6 @@ PDP_TLS_KEY=<key-file>                      # TLS private key to use with the se
 PDP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
 PDP_WRITE_TIMEOUT=<duration>                # the read timeout for API requests (default "30s").
 PDP_IDLE_TIMEOUT=<duration>                 # the read timeout for API requests (default "300s").
-PDP_MAX_BODY_SIZE=<size>                    # maximum allowed size of a request body (default 65536).
 PDP_CORS_ORIGINS=<origins>                  # CORS origins (default "*").
 PDP_CORS_HEADERS=<headers>                  # CORS headers (default "*").
 
@@ -157,7 +156,6 @@ PDP_INTERNAL_KEY=<key-file>                 # TLS private key to use with the se
 PDP_INTERNAL_READ=<duration>                # The read timeout for API requests (default "30s").
 PDP_INTERNAL_WRITE=<duration>               # The read timeout for API requests (default "30s").
 PDP_INTERNAL_IDLE=<duration>                # The read timeout for API requests (default "300s").
-PDP_INTERNAL_MAX_BODY=<size>                # Maximum allowed size of a request body (default 65536).
 PDP_INTERNAL_ORIGINS=<origins>              # CORS origins (default "*").
 PDP_INTERNAL_HEADERS=<headers>              # CORS headers (default "*").
 
@@ -167,7 +165,6 @@ PDP_HEALTH_PORT=<port>                      # Port the service should listen on 
 PDP_HEALTH_READ=<duration>                  # The read timeout for API requests (default "30s").
 PDP_HEALTH_WRITE=<duration>                 # The read timeout for API requests (default "30s").
 PDP_HEALTH_IDLE=<duration>                  # The read timeout for API requests (default "300s").
-PDP_HEALTH_MAX_BODY=<size>                  # Maximum allowed size of a request body (default 65536).
 PDP_HEALTH_ORIGINS=<origins>                # CORS origins (default "*").
 PDP_HEALTH_HEADERS=<headers>                # CORS headers (default "*").
 
@@ -214,7 +211,6 @@ These match the corresponding options in a configuration file.
 --read-timeout=<duration>                 # the read timeout for API requests (default "30s").
 --write-timeout=<duration>                # the read timeout for API requests (default "30s").
 --idle-timeout=<duration>                 # the read timeout for API requests (default "300s").
---max-body=<size>                         # maximum allowed size of a request body (default 65536).
 --cors-origins=<origins>                  # CORS origins (default "*").
 --cors-headers=<headers>                  # CORS headers (default "*").
 

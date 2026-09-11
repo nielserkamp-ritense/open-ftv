@@ -39,7 +39,6 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.Option) server.S
 		DisableDefaultDate:    true,
 		DisableStartupMessage: true,
 		RequestMethods:        fiber.DefaultMethods,
-		BodyLimit:             s.MaxBody,
 		ReadTimeout:           s.ReadTimeout,
 		WriteTimeout:          s.WriteTimeout,
 		IdleTimeout:           s.IdleTimeout,

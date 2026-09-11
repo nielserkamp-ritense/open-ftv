@@ -45,13 +45,6 @@ func WithTimeouts(read, write, idle time.Duration) Option {
 	}
 }
 
-// WithMaxBody sets the maximum size of request bodies for the service.
-func WithMaxBody(maxBody int) Option {
-	return func(c *Config) {
-		c.MaxBody = maxBody
-	}
-}
-
 // WithTLS sets TLS parameters for the service.
 func WithTLS(caFile, certFile, keyFile string) Option {
 	return func(c *Config) {

@@ -32,7 +32,6 @@ func TestServe(t *testing.T) {
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
-			MaxBody:      64536,
 		}
 
 		s := NewExternal(cfg, logger)
@@ -69,7 +68,6 @@ func TestErrorHandler(t *testing.T) {
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  300 * time.Second,
-			MaxBody:      64536,
 		}
 
 		s := NewExternal(cfg, logger)

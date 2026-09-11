@@ -20,7 +20,6 @@ type Config struct {
 	ReadTimeout  time.Duration `yaml:"svc.timeout.read,omitempty" env:"READ_TIMEOUT" flag:"read-timeout" default:"30s" desc:"ReadEntity timeout for API requests"`
 	WriteTimeout time.Duration `yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
 	IdleTimeout  time.Duration `yaml:"svc.timeout.idle,omitempty" env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
-	MaxBody      int           `yaml:"svc.maxBody,omitempty" env:"MAX_BODY_SIZE" flag:"max-body" default:"65536" desc:"Maximum size of request body"`
 	LogOutput    string        `yaml:"log.output,omitempty" env:"LOG_OUTPUT" flag:"log-output" default:"stdout" desc:"File for writing log data"`
 	LogFormat    string        `yaml:"log.format,omitempty" env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
 	LogLevel     string        `yaml:"log.level,omitempty" env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`

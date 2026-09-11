@@ -15,7 +15,6 @@ var goodCfg = `
 svc:
   host: "127.0.0.1"
   port: 8080
-  maxBody: 2048
 log:
   format: "text"
   level: "warn"
@@ -27,7 +26,6 @@ var badLogger = `
 svc:
   host: "127.0.0.1"
   port: 8080
-  maxBody: 2048
 log:
   format: "json"
   level: "debug"
@@ -38,16 +36,15 @@ func TestNew(t *testing.T) {
 	dir := t.TempDir()
 
 	testCases := []struct {
-		name        string
-		file        string
-		data        string
-		wantErr     bool
-		wantHost    string
-		wantPort    uint16
-		wantMaxBody int
-		wantLogFmt  string
-		wantLogLvl  string
-		wantLogOut  string
+		name       string
+		file       string
+		data       string
+		wantErr    bool
+		wantHost   string
+		wantPort   uint16
+		wantLogFmt string
+		wantLogLvl string
+		wantLogOut string
 	}{
 		{
 			name:    "bad input",
@@ -62,15 +59,14 @@ func TestNew(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:        "good file",
-			file:        "cfg3.yaml",
-			data:        goodCfg,
-			wantHost:    "127.0.0.1",
-			wantPort:    8080,
-			wantMaxBody: 2048,
-			wantLogFmt:  "text",
-			wantLogLvl:  "warn",
-			wantLogOut:  "STDOUT",
+			name:       "good file",
+			file:       "cfg3.yaml",
+			data:       goodCfg,
+			wantHost:   "127.0.0.1",
+			wantPort:   8080,
+			wantLogFmt: "text",
+			wantLogLvl: "warn",
+			wantLogOut: "STDOUT",
 		},
 	}
 
@@ -91,7 +87,6 @@ func TestNew(t *testing.T) {
 
 				assert.Equal(t, tc.wantHost, c.Host)
 				assert.Equal(t, tc.wantPort, c.Port)
-				assert.Equal(t, tc.wantMaxBody, c.MaxBody)
 				assert.Equal(t, tc.wantLogFmt, c.LogFormat)
 				assert.Equal(t, tc.wantLogLvl, c.LogLevel)
 				assert.Equal(t, tc.wantLogOut, c.LogOutput)

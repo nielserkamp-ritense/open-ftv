@@ -15,7 +15,6 @@ type Server struct {
 	ReadTimeout  time.Duration `json:"mainReadTimeout"       yaml:"svc.timeout.read,omitempty"  env:"READ_TIMEOUT"  flag:"read-timeout"     desc:"Read timeout for API requests (default 30s)"       default:"30s"`
 	WriteTimeout time.Duration `json:"mainWriteTimeout"      yaml:"svc.timeout.write,omitempty" env:"WRITE_TIMEOUT" flag:"write-timeout"    desc:"Write timeout for API requests (default 30s)"      default:"30s"`
 	IdleTimeout  time.Duration `json:"mainIdleTimeout"       yaml:"svc.timeout.idle,omitempty"  env:"IDLE_TIMEOUT"  flag:"idle-timeout"     desc:"Idle timeout for API requests (default 300s)"      default:"300s"`
-	MaxBody      int           `json:"mainMaxBody"           yaml:"svc.maxBody,omitempty"       env:"MAX_BODY_SIZE" flag:"max-body"         desc:"Maximum size of request body (default 137560)"     default:"137560"`
 }
 
 // InternalServer contains the configuration variables for an internal HTTP(S) service.
@@ -31,7 +30,6 @@ type InternalServer struct {
 	InternalRead    time.Duration `json:"internalReadTimeout"      yaml:"svc.internal.timeout.read,omitempty"  env:"INTERNAL_READ"     flag:"internal-read"     desc:"Read timeout for internal service (default 30s)"        default:"30s"`
 	InternalWrite   time.Duration `json:"internalWriteTimeout"     yaml:"svc.internal.timeout.write,omitempty" env:"INTERNAL_WRITE"    flag:"internal-write"    desc:"Write timeout for internal service (default 30s)"       default:"30s"`
 	InternalIdle    time.Duration `json:"internalIdleTimeout"      yaml:"svc.internal.timeout.idle,omitempty"  env:"INTERNAL_IDLE"     flag:"internal-idle"     desc:"Idle timeout for internal service (default 300s)"       default:"300s"`
-	InternalMaxBody int           `json:"internalMaxBody"          yaml:"svc.internal.maxBody,omitempty"       env:"INTERNAL_MAX_BODY" flag:"internal-max-body" desc:"Maximum body size for internal service (default 65536)" default:"65536"`
 }
 
 // HealthServer contains the configuration variables for a liveness&readiness HTTP service.
@@ -43,5 +41,4 @@ type HealthServer struct {
 	HealthRead    time.Duration `json:"healthReadTimeout"    yaml:"svc.health.timeout.read,omitempty"  env:"HEALTH_READ"     flag:"health-read"     desc:"Read timeout for health service (default 30s)"        default:"30s"`
 	HealthWrite   time.Duration `json:"healthWriteTimeout"   yaml:"svc.health.timeout.write,omitempty" env:"HEALTH_WRITE"    flag:"health-write"    desc:"Write timeout for health service (default 30s)"       default:"30s"`
 	HealthIdle    time.Duration `json:"healthIdleTimeout"    yaml:"svc.health.timeout.idle,omitempty"  env:"HEALTH_IDLE"     flag:"health-idle"     desc:"Idle timeout for health service (default 300s)"       default:"300s"`
-	HealthMaxBody int           `json:"healthMaxBody"        yaml:"svc.health.maxBody,omitempty"       env:"HEALTH_MAX_BODY" flag:"health-max-body" desc:"Maximum body size for health service (default 65536)" default:"256"`
 }
