@@ -28,10 +28,6 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 
 The service supports various configuration options.
 
-The service does not expose a request body size limit. Fiber's built-in limit of 4 MiB applies; enforce a stricter
-limit at the API gateway or reverse proxy in front of the service. The former `maxBody` options, `*_MAX_BODY*`
-environment variables and `--*max-body` flags are no longer recognized.
-
 Options are read and processed in the following order:
 1. Configuration files.
 2. Environment variables.
