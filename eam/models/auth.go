@@ -65,6 +65,7 @@ type Response struct {
 	NewBody    []byte              `json:"newBody,omitempty"`
 	NewHeaders map[string][]string `json:"newHeaders,omitempty"`
 	Attributes map[string]any      `json:"attributes,omitempty"`
+	Context    map[string]any      `json:"context,omitempty"`
 	PolicyKey  string              `json:"policyKey,omitempty"`
 	PolicyHash string              `json:"policyHash,omitempty"`
 }

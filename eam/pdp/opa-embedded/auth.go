@@ -36,16 +36,19 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 	c.AuthMutex.RUnlock()
 
 	var reason string
+	var policyCtx map[string]any
 
 	if err != nil {
 		logger.Error("authorization failed", "err", err, "pdp elapsed", duration.String())
 	} else {
 		if m, ok := decision.Result.(map[string]any); ok {
+			policyCtx = policyContext(m)
+
 			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 				if debug {
 					logger.Debug("authorization granted", "pdp elapsed", duration.String())
 				}
-				resp = &models.Response{Allowed: true}
+				resp = &models.Response{Allowed: true, Context: policyCtx}
 				return
 			}
 
@@ -59,7 +62,7 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 		}
 	}
 
-	resp = &models.Response{Allowed: false, Message: reason}
+	resp = &models.Response{Allowed: false, Message: reason, Context: policyCtx}
 	return
 }
 
@@ -85,16 +88,19 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 		duration := time.Since(started)
 
 		var reason string
+		var policyCtx map[string]any
 
 		if err != nil {
 			logger.Error("authorization failed", "item#", i+1, "err", err, "pdp elapsed", duration.String())
 		} else {
 			if m, ok := decision.Result.(map[string]any); ok {
+				policyCtx = policyContext(m)
+
 				if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 					if debug {
 						c.Logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
 					}
-					out = append(out, models.Response{Allowed: true})
+					out = append(out, models.Response{Allowed: true, Context: policyCtx})
 
 					if req.Semantics == models.PermitOnFirstPermit {
 						break
@@ -113,7 +119,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 			logger.Warn("authorization not granted", "item#", i+1, "pdp elapsed", duration.String())
 		}
 
-		out = append(out, models.Response{Allowed: false, Message: reason})
+		out = append(out, models.Response{Allowed: false, Message: reason, Context: policyCtx})
 
 		if req.Semantics == models.DenyOnFirstDeny {
 			break
@@ -123,6 +129,17 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 	c.AuthMutex.RUnlock()
 
 	return out, nil
+}
+
+// policyContext returns the constraints a policy published beside its decision, taken from a
+// single `context` object in the decision package. Anything else is ignored.
+func policyContext(m map[string]any) map[string]any {
+	obj, ok := m["context"].(map[string]any)
+	if !ok || len(obj) == 0 {
+		return nil
+	}
+
+	return obj
 }
 
 func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.DecisionOptions {

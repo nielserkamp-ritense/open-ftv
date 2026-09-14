@@ -4,6 +4,9 @@
 package authzen
 
 import (
+	"encoding/json"
+	"fmt"
+
 	apierrors "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
 )
 
@@ -35,6 +38,14 @@ type ErrorResponse = apierrors.ErrorResponse
 // EvaluationDecision Evaluation decision model.
 type EvaluationDecision struct {
 	// Context Specifies a particular reason.
+	//
+	// Besides the properties below, the object carries the constraints the policy published beside
+	// its decision, as free-form key/value pairs. The PDP passes them through verbatim and never
+	// interprets them: their shape is a contract between the policy author and the caller. Callers
+	// use them to narrow a query that the boolean decision on its own cannot express.
+	//
+	// Only the Rego controller fills these in, from a `context` rule in the decision package. The
+	// other policy languages have no way to publish JSON alongside a decision, and always omit them.
 	Context ReasonObject `json:"context,omitempty"`
 
 	// Decision true if the request is authorized.
@@ -154,15 +165,24 @@ type PageResponse struct {
 type ReasonField = map[string]interface{}
 
 // ReasonObject Specifies a particular reason.
+//
+// Besides the properties below, the object carries the constraints the policy published beside
+// its decision, as free-form key/value pairs. The PDP passes them through verbatim and never
+// interprets them: their shape is a contract between the policy author and the caller. Callers
+// use them to narrow a query that the boolean decision on its own cannot express.
+//
+// Only the Rego controller fills these in, from a `context` rule in the decision package. The
+// other policy languages have no way to publish JSON alongside a decision, and always omit them.
 type ReasonObject struct {
 	// Id Identifies the reason for this response, within the scope of this response.
 	Id string `json:"id"`
 
 	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
-	ReasonAdmin ReasonField `json:"reason_admin,omitempty"`
+	ReasonAdmin map[string]interface{} `json:"reason_admin,omitempty"`
 
 	// ReasonUser Map of one or more reasons, with a language-identifier as the key.
-	ReasonUser ReasonField `json:"reason_user,omitempty"`
+	ReasonUser           map[string]interface{} `json:"reason_user,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // SearchActionObject Search action object model.
@@ -351,3 +371,99 @@ type ResourceSearchJSONRequestBody = SearchObject
 
 // SubjectSearchJSONRequestBody defines body for SubjectSearch for application/json ContentType.
 type SubjectSearchJSONRequestBody = SearchObject
+
+// Getter for additional properties for ReasonObject. Returns the specified
+// element and whether it was found
+func (a ReasonObject) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ReasonObject
+func (a *ReasonObject) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ReasonObject to handle AdditionalProperties
+func (a *ReasonObject) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["id"]; found {
+		err = json.Unmarshal(raw, &a.Id)
+		if err != nil {
+			return fmt.Errorf("error reading 'id': %w", err)
+		}
+		delete(object, "id")
+	}
+
+	if raw, found := object["reason_admin"]; found {
+		err = json.Unmarshal(raw, &a.ReasonAdmin)
+		if err != nil {
+			return fmt.Errorf("error reading 'reason_admin': %w", err)
+		}
+		delete(object, "reason_admin")
+	}
+
+	if raw, found := object["reason_user"]; found {
+		err = json.Unmarshal(raw, &a.ReasonUser)
+		if err != nil {
+			return fmt.Errorf("error reading 'reason_user': %w", err)
+		}
+		delete(object, "reason_user")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ReasonObject to handle AdditionalProperties
+func (a ReasonObject) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["id"], err = json.Marshal(a.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'id': %w", err)
+	}
+
+	if a.ReasonAdmin != nil {
+		object["reason_admin"], err = json.Marshal(a.ReasonAdmin)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'reason_admin': %w", err)
+		}
+	}
+
+	if a.ReasonUser != nil {
+		object["reason_user"], err = json.Marshal(a.ReasonUser)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'reason_user': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}

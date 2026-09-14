@@ -411,15 +411,31 @@ components:
 
     ReasonObject:
       type: object
-      description: Specifies a particular reason.
+      description: |
+        Specifies a particular reason.
+
+        Besides the properties below, the object carries the constraints the policy published beside
+        its decision, as free-form key/value pairs. The PDP passes them through verbatim and never
+        interprets them: their shape is a contract between the policy author and the caller. Callers
+        use them to narrow a query that the boolean decision on its own cannot express.
+
+        Only the Rego controller fills these in, from a `context` rule in the decision package. The
+        other policy languages have no way to publish JSON alongside a decision, and always omit them.
+      additionalProperties: true
       properties:
         id:
           type: string
           description: Identifies the reason for this response, within the scope of this response.
+        # x-go-type keeps these two a plain Go map. Since this object carries free-form properties,
+        # oapi-codegen writes a custom marshaller for it, and that marshaller only nil-checks (and
+        # thus omits) fields typed as a map or slice - a named alias would end up on every response
+        # as "reason_admin": null.
         reason_admin:
           $ref: "#/components/schemas/ReasonField"
+          x-go-type: map[string]interface{}
         reason_user:
           $ref: "#/components/schemas/ReasonField"
+          x-go-type: map[string]interface{}
       required:
         - id
 

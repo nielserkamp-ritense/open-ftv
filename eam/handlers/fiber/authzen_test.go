@@ -3,6 +3,7 @@ package fiber
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -130,6 +131,98 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 		assert.Equal(t, out, string(data))
 		assert.GreaterOrEqual(t, 11, h.Count())
 	})
+}
+
+func TestAuthHandler_AuthZEN3(t *testing.T) {
+	t.Parallel()
+
+	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
+	out := `{"context":{"id":"ok","organisation_id":"12345","reason_user":{"en":"ok"},"scope":["read"]},"decision":true}`
+
+	t.Run("authzen handler, policy context spread across the context object", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		logger := slog.New(h)
+
+		ep := pep.New(ctx, logger)
+
+		ip := pip.New(ctx, logger, pip.WithFileStore("../../../testdata/pip", true))
+		require.NotNil(t, ip)
+
+		ap := pap.New(ctx, logger, pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/unittest/opa3", true))
+		require.NotNil(t, ap)
+
+		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
+		require.NotNil(t, auth)
+
+		app := fiber.New()
+		app.Post("/v1/authzen", auth.Evaluation)
+
+		buf := bytes.NewReader([]byte(in))
+
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/authzen", buf)
+
+		resp, err3 := app.Test(req, -1)
+		require.NoError(t, err3)
+		require.NotNil(t, resp)
+
+		defer resp.Body.Close()
+
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		data, err4 := io.ReadAll(resp.Body)
+		require.NoError(t, err4)
+		require.NotNil(t, data)
+
+		assert.Equal(t, out, string(data))
+	})
+}
+
+func TestReasonContext(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		resp models.Response
+		want string
+	}{
+		{
+			name: "no context",
+			resp: models.Response{Allowed: true},
+			want: `{"id":"ok","reason_user":{"en":"ok"}}`,
+		},
+		{
+			name: "context spread across the context object",
+			resp: models.Response{Allowed: true, Context: map[string]any{"organisation_id": "12345", "scope": []any{"read"}}},
+			want: `{"id":"ok","organisation_id":"12345","reason_user":{"en":"ok"},"scope":["read"]}`,
+		},
+		{
+			name: "context on a denied decision",
+			resp: models.Response{Context: map[string]any{"organisation_id": "12345"}},
+			want: `{"id":"not-authorized","organisation_id":"12345","reason_user":{"en":"not authorized"}}`,
+		},
+		{
+			name: "context cannot shadow the AuthZEN properties",
+			resp: models.Response{Allowed: true, Context: map[string]any{"id": "spoofed", "reason_user": map[string]any{"en": "spoofed"}, "reason_admin": "spoofed"}},
+			want: `{"id":"ok","reason_user":{"en":"ok"}}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := json.Marshal(reasonContext(&tc.resp))
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
 }
 
 func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {

@@ -77,6 +77,51 @@ func TestController_Authorize(t *testing.T) {
 			wantLog: 4,
 			want:    models.Response{Allowed: true},
 		},
+		{
+			name:     "bad request, policy publishes a context",
+			store1:   "../../../testdata/pip",
+			recurse1: true,
+			store2:   "../../../testdata/unittest/opa3",
+			recurse2: true,
+			req: models.Request{
+				UID:         &uid,
+				URL:         u1,
+				Method:      "GET",
+				RequestTime: &now,
+				Headers: map[string][]string{
+					"doelbinding": {"subsidies"},
+				},
+				Body: []byte(""),
+			},
+			wantLog: 4,
+			want: models.Response{
+				Message: "not authorized",
+				Context: map[string]any{"organisation_id": "12345", "scope": []any{"read"}},
+			},
+		},
+		{
+			name:     "good request, policy publishes a context",
+			store1:   "../../../testdata/pip",
+			recurse1: true,
+			store2:   "../../../testdata/unittest/opa3",
+			recurse2: true,
+			req: models.Request{
+				UID:         &uid,
+				URL:         u2,
+				Method:      "POST",
+				RequestTime: &now,
+				Headers: map[string][]string{
+					"doelbinding":  {"subsidies"},
+					"Content-Type": {"application/json"},
+				},
+				Body: b1,
+			},
+			wantLog: 4,
+			want: models.Response{
+				Allowed: true,
+				Context: map[string]any{"organisation_id": "12345", "scope": []any{"read"}},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

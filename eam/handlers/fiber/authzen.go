@@ -196,8 +196,9 @@ func fixDomain(prefix string) string {
 }
 
 // reasonContext builds the AuthZEN response's context object: "id" set from the decision outcome,
-// and the human-readable reason in reason_user, falling back to a fixed message when the
-// controller didn't supply one.
+// the human-readable reason in reason_user, falling back to a fixed message when the controller
+// didn't supply one, and the context the policy published spread across the object as siblings of
+// the AuthZEN-defined properties.
 func reasonContext(resp *models.Response) oas.ReasonObject {
 	id, msg := "ok", resp.Message
 
@@ -211,5 +212,32 @@ func reasonContext(resp *models.Response) oas.ReasonObject {
 		msg = "ok"
 	}
 
-	return oas.ReasonObject{Id: id, ReasonUser: oas.ReasonField{"en": msg}}
+	return oas.ReasonObject{Id: id, ReasonUser: oas.ReasonField{"en": msg}, AdditionalProperties: contextProperties(resp.Context)}
+}
+
+// contextProperties turns the context a policy published into the response context's free-form
+// properties, dropping any key that would shadow an AuthZEN-defined one: the context object
+// marshals its free-form keys last, so a policy could otherwise overwrite the reason id or the
+// reason fields.
+func contextProperties(props map[string]any) map[string]any {
+	if len(props) == 0 {
+		return nil
+	}
+
+	out := make(map[string]any, len(props))
+
+	for k, v := range props {
+		switch k {
+		case "id", "reason_admin", "reason_user":
+			continue
+		default:
+			out[k] = v
+		}
+	}
+
+	if len(out) == 0 {
+		return nil
+	}
+
+	return out
 }
