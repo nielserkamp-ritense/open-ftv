@@ -32,8 +32,8 @@ type Resolver func(ctx context.Context) (*models.Policy, error)
 
 // PolicyService administers policies: every operation is one decision followed by one store call.
 type PolicyService struct {
-	logger  *slog.Logger
-	store   *pap.PAP
+	logger     *slog.Logger
+	store      *pap.PAP
 	authorizer authorization.Authorizer
 }
 

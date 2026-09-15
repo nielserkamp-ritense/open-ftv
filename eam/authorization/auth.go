@@ -43,14 +43,12 @@ type PrincipalRecorder interface {
 // with the PEP deriving action and resource from the request. It also carries the management
 // plane's Identify and Authorize, which replace AuthorizeRequest handler by handler (ADR 0006).
 //
-// Deprecated: AuthorizeRequest goes away once every handler decides through Identify and
-// Authorizer.Authorize. New code depends on Authorizer.
+// AuthorizeRequest goes away once every handler decides through Identify and
+// Authorizer.Authorize; new code depends on Authorizer.
 type RequestAuthorizer interface {
 	Authorizer
 	// AuthorizeRequest authorizes an HTTP request as a whole: the PEP derives action and
-	// resource from the request.
-	//
-	// Deprecated: use Identify followed by Authorize.
+	// resource from the request. To be replaced by Identify followed by Authorize.
 	AuthorizeRequest(req *Request) (*models.Response, identity.Principal, error)
 	// Identify validates the caller once, without authorizing anything.
 	Identify(req *Request) (*RequestPrincipal, error)

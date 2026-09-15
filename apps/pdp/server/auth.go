@@ -20,10 +20,10 @@ import (
 
 // authHandler implements the interface for handling authorization requests.
 type authHandler struct {
-	logger     *slog.Logger                // application logger.
-	controller pdp.Controller              // generic PDP controller.
-	zen        *handlers.AuthZENAuthorizer // AuthZEN API.
-	authorizer authorization.RequestAuthorizer    // UI & bundle authorization.
+	logger     *slog.Logger                    // application logger.
+	controller pdp.Controller                  // generic PDP controller.
+	zen        *handlers.AuthZENAuthorizer     // AuthZEN API.
+	authorizer authorization.RequestAuthorizer // UI & bundle authorization.
 }
 
 func (s *Services) newAuth(basePath string) (*authHandler, error) {
