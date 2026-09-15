@@ -16,8 +16,6 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ec
 # Stage 2 - run
 FROM alpine:3.24
 
-RUN apk add --no-cache curl
-
 COPY --from=golang_builder /build/manager /
 
 # Run the binary when starting the container

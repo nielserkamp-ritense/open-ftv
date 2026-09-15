@@ -28,7 +28,7 @@ services:
     volumes:
       - ./../testdata/apps/envoy-test/pdp:/tmp/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/livez"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/livez"]
       interval: 4s
       timeout: 10s
       retries: 5

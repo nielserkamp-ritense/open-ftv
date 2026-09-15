@@ -64,7 +64,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -117,7 +117,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -149,7 +149,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -239,7 +239,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -292,7 +292,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -382,7 +382,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5
@@ -435,7 +435,7 @@ services:
     networks:
       - openftv
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
       interval: 4s
       timeout: 10s
       retries: 5

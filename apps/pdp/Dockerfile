@@ -19,8 +19,6 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 # Stage 2 - run
 FROM alpine:3.24
 
-RUN apk add --no-cache curl
-
 COPY --from=golang_builder /build/pdp /
 
 # Run the binary when starting the container
