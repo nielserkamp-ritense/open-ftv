@@ -10,8 +10,6 @@ defaultLdflags:
 builds:
   - id: pip
     main: ./apps/pip/cmd
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pip/config.GitTag={{.Env.GIT_TAG_NAME}}
@@ -19,8 +17,6 @@ builds:
 
   - id: pap
     main: ./apps/pap/cmd
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pap/config.GitTag={{.Env.GIT_TAG_NAME}}
@@ -28,8 +24,6 @@ builds:
 
   - id: pdp
     main: ./apps/pdp/cmd
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/config.GitTag={{.Env.GIT_TAG_NAME}}
@@ -37,8 +31,6 @@ builds:
 
   - id: manager
     main: ./apps/manager/cmd
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config.GitTag={{.Env.GIT_TAG_NAME}}
@@ -46,8 +38,6 @@ builds:
 
   - id: management-interface
     main: ./apps/management-interface/cmd
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/management-interface/config.GitTag={{.Env.GIT_TAG_NAME}}

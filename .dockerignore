@@ -6,6 +6,7 @@ docs/
 e2e/
 testdata/
 **/node_modules
+apps/management-interface/web/dist
 cover.out
 cover.html
 .go-cache
