@@ -106,6 +106,28 @@ func TestStaticAssets(t *testing.T) {
 	}
 }
 
+func TestStaticAssetsRevalidate(t *testing.T) {
+	t.Parallel()
+
+	app := newMainApp(t, nil)
+
+	resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/assets/app.js", http.NoBody))
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+
+	tag := resp.Header.Get(fiber.HeaderETag)
+	require.NotEmpty(t, tag)
+
+	req := httptest.NewRequest(fiber.MethodGet, "/assets/app.js", http.NoBody)
+	req.Header.Set(fiber.HeaderIfNoneMatch, tag)
+
+	resp, err = app.Test(req)
+	require.NoError(t, err)
+	require.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, fiber.StatusNotModified, resp.StatusCode)
+}
+
 func TestNewServiceRequiresIndex(t *testing.T) {
 	t.Parallel()
 
