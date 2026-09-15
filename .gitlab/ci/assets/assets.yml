@@ -1,4 +1,4 @@
-assets_management_interface:
+Management interface:
   stage: Assets
   image: node:22.17.1-alpine
   before_script:

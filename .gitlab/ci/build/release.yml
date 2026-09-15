@@ -1,4 +1,4 @@
-build_release_ko:
+Release images:
   extends: .build_ko
   script:
     - printf '%s' "${CI_REGISTRY_PASSWORD}" | ko login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin

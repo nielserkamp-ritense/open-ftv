@@ -1,4 +1,4 @@
-build_branch_ko:
+Build images:
   extends: .build_ko
   script:
     - export GIT_TAG_NAME=${CI_COMMIT_REF_SLUG}
