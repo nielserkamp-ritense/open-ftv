@@ -44,6 +44,14 @@ func (p *Permissions) Allows(caller *RequestPrincipal, action string) bool {
 	}
 }
 
+// Role names the shipped tables know (ADR 0002 claim values; the PAP's local `user`).
+const (
+	RoleAdmin   = "admin"
+	RoleAuthor  = "author"
+	RoleAuditor = "auditor"
+	RoleUser    = "user"
+)
+
 // policyActions are all actions the policy service decides.
 var policyActions = []string{
 	models.ActionRead, models.ActionCreate, models.ActionUpdate, models.ActionDelete,
@@ -56,9 +64,9 @@ var policyActions = []string{
 func ManagerPermissions() *Permissions {
 	return &Permissions{
 		Roles: map[string][]string{
-			"author":  policyActions,
-			"admin":   {models.ActionRead},
-			"auditor": {models.ActionRead},
+			RoleAuthor:  policyActions,
+			RoleAdmin:   {models.ActionRead},
+			RoleAuditor: {models.ActionRead},
 		},
 		App: []string{models.ActionRead},
 	}
@@ -70,8 +78,8 @@ func ManagerPermissions() *Permissions {
 func PAPPermissions() *Permissions {
 	return &Permissions{
 		Roles: map[string][]string{
-			"admin": policyActions,
-			"user":  {models.ActionRead},
+			RoleAdmin: policyActions,
+			RoleUser:  {models.ActionRead},
 		},
 		App: []string{models.ActionRead},
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
@@ -75,6 +76,12 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 	dir := t.TempDir()
 	cnf.PAP.Store = dir
 
+	// The policy routes decide on the caller's role, whatever the store holds; the test reads
+	// and deletes as an author.
+	ip := newIDP(t)
+	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}
+	author := ip.token(t, "author-user", "author")
+
 	const (
 		permitAll = "permit (\n    principal,\n    action,\n    resource\n);\n"
 		forbidAll = "forbid (\n    principal,\n    action,\n    resource\n);\n"
@@ -90,9 +97,9 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 	// release 1 seeds deleted.cedar and kept.cedar; the operator then deletes the first on purpose.
 	app1 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusOK, getPolicy(t, app1, deletedID).StatusCode, "deleted.cedar must be seeded on an empty store")
-	require.Equal(t, http.StatusOK, getPolicy(t, app1, keptID).StatusCode, "kept.cedar must be seeded on an empty store")
-	require.Equal(t, http.StatusOK, deletePolicy(t, app1, deletedID).StatusCode)
+	require.Equal(t, http.StatusOK, call(t, app1, http.MethodGet, "/v1/policy/"+deletedID, author, nil).StatusCode, "deleted.cedar must be seeded on an empty store")
+	require.Equal(t, http.StatusOK, call(t, app1, http.MethodGet, "/v1/policy/"+keptID, author, nil).StatusCode, "kept.cedar must be seeded on an empty store")
+	require.Equal(t, http.StatusOK, call(t, app1, http.MethodDelete, "/v1/policy/"+deletedID, author, nil).StatusCode)
 
 	// release 2 ships added.cedar as well and changes kept.cedar on disk; the manager restarts
 	// against the same store.
@@ -101,10 +108,10 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 
 	app2 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusNotFound, getPolicy(t, app2, deletedID).StatusCode, "a seed file the operator deleted must not come back")
-	require.Equal(t, http.StatusOK, getPolicy(t, app2, addedID).StatusCode, "a seed file added by a later release must reach the populated store")
+	require.Equal(t, http.StatusNotFound, call(t, app2, http.MethodGet, "/v1/policy/"+deletedID, author, nil).StatusCode, "a seed file the operator deleted must not come back")
+	require.Equal(t, http.StatusOK, call(t, app2, http.MethodGet, "/v1/policy/"+addedID, author, nil).StatusCode, "a seed file added by a later release must reach the populated store")
 
-	res := getPolicy(t, app2, keptID)
+	res := call(t, app2, http.MethodGet, "/v1/policy/"+keptID, author, nil)
 	require.Equal(t, http.StatusOK, res.StatusCode, "a seed file the operator left alone must still be there")
 	require.Equal(t, permitAll, decodePolicy(t, res).Data, "a present row is the source of truth; a changed seed file must not overwrite it")
 }
