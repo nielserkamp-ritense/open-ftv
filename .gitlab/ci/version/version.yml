@@ -1,6 +1,6 @@
 version-pre-release:
   stage: Version
-  image: alpine:3.22
+  image: alpine:3.24
   variables:
     GIT_DEPTH: 0 # `git describe` and the commit count need tags and full history.
   script:
@@ -21,7 +21,7 @@ version-pre-release:
 
 version-release:
   stage: Version
-  image: alpine:3.22
+  image: alpine:3.24
   script:
     - printf 'VERSION=%s\nIMAGE_TAG=%s\n' "${CI_COMMIT_TAG#v}" "${CI_COMMIT_TAG}" > version.env
     - cat version.env

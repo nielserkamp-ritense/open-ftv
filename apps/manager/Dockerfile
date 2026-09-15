@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config.GitHash=${GIT_COMMIT_HASH}'" -o /build/manager ./apps/manager/cmd/
 
 # Stage 2 - run
-FROM alpine:3.22
+FROM alpine:3.24
 
 RUN apk add --no-cache curl
 

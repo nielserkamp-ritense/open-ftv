@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     CGO_ENABLED=0 go build -ldflags="-s -w -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/config.GitTag=${GIT_TAG_NAME}' -X 'gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pdp/config.GitHash=${GIT_COMMIT_HASH}'" -o /build/pdp ./apps/pdp/cmd/
 
 # Stage 2 - run
-FROM alpine:3.22
+FROM alpine:3.24
 
 RUN apk add --no-cache curl
 
