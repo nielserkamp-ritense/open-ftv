@@ -2,8 +2,8 @@ stages:
   - Version
   - Security
   - Tests
+  - Assets
   - Build
-  - Manifest
   - Charts
   - Deploy
 
