@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/Kong/go-pdk v0.11.2
-	github.com/MicahParks/keyfunc/v3 v3.8.1
+	github.com/MicahParks/keyfunc/v3 v3.8.2
 	github.com/cedar-policy/cedar-go v1.8.0
 	github.com/cerbos/cerbos-sdk-go v0.4.4
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25
@@ -49,7 +49,7 @@ require (
 	cel.dev/expr v0.25.2 // indirect
 	connectrpc.com/connect v1.20.0 // indirect
 	connectrpc.com/otelconnect v0.9.0 // indirect
-	github.com/MicahParks/jwkset v0.11.1 // indirect
+	github.com/MicahParks/jwkset v0.11.3 // indirect
 	github.com/Yiling-J/theine-go v0.6.2 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
