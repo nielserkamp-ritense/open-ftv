@@ -8,6 +8,10 @@ build_pre-release_ko:
     GOCACHE: ${CI_PROJECT_DIR}/.go-cache/build
   parallel:
     matrix:
+      - APP: pip
+        MAIN: ./apps/pip/cmd
+      - APP: pap
+        MAIN: ./apps/pap/cmd
       - APP: pdp
         MAIN: ./apps/pdp/cmd
       - APP: manager
@@ -16,6 +20,12 @@ build_pre-release_ko:
         MAIN: ./apps/management-interface/cmd
       - APP: mock-ds-generic
         MAIN: ./mock/datasources/generic/cmd
+      - APP: mock-ds-vlierdam
+        MAIN: ./mock/datasources/generic/cmd/vlierdam
+      - APP: mock-ds-rvig
+        MAIN: ./mock/datasources/generic/cmd/rvig
+      - APP: mock-ds-rdw
+        MAIN: ./mock/datasources/generic/cmd/rdw
       - APP: gw-plugin-envoy
         MAIN: ./external/gateways/envoy/plugins/openftv/cmd
   script:
