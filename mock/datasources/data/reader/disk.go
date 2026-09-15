@@ -20,11 +20,40 @@ import (
 
 // LoadFromPath loads all data-space and -source definitions from disk,
 // as well as any data found in the given path or its subdirectories.
+// Paths in the metadata are relative to the given path, or absolute.
 func LoadFromPath(s store.Storage, basePath string) error {
+	abs, err := filepath.Abs(basePath)
+	if err != nil {
+		return err
+	}
+
+	// rooting the file system at the volume keeps metadata paths outside basePath, or absolute ones, reachable.
+	volume := filepath.VolumeName(abs) + string(filepath.Separator)
+
+	rel, err := filepath.Rel(volume, abs)
+	if err != nil {
+		return err
+	}
+
 	p := &pathLoader{
-		basePath: path.Clean(basePath),
+		fsys:     os.DirFS(volume),
+		basePath: filepath.ToSlash(rel),
 		store:    s,
 	}
+
+	return p.run()
+}
+
+// LoadFromFS loads all data-space and -source definitions from the given file system,
+// as well as any data found in its root or subdirectories.
+// Paths in the metadata are relative to the root of the file system.
+func LoadFromFS(s store.Storage, fsys fs.FS) error {
+	p := &pathLoader{
+		fsys:     fsys,
+		basePath: ".",
+		store:    s,
+	}
+
 	return p.run()
 }
 
@@ -41,7 +70,7 @@ func (p *pathLoader) run() error {
 }
 
 func (p *pathLoader) findMeta() (bool, error) {
-	err := filepath.WalkDir(p.basePath, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(p.fsys, p.basePath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}
@@ -64,7 +93,7 @@ func (p *pathLoader) findMeta() (bool, error) {
 }
 
 func (p *pathLoader) loadMeta(path string) error {
-	f, err := os.Open(path)
+	f, err := p.fsys.Open(path)
 	if err != nil {
 		return err
 	}
@@ -107,15 +136,17 @@ func (p *pathLoader) processMeta() error {
 	return nil
 }
 
-func (p *pathLoader) fixPath(path string) string {
-	if strings.HasPrefix(path, "/") {
-		return path
+// fixPath resolves a metadata path against the base path; an absolute path starts at the root of the file system.
+func (p *pathLoader) fixPath(name string) string {
+	if strings.HasPrefix(name, "/") {
+		return strings.TrimPrefix(path.Clean(name), "/")
 	}
-	return filepath.Join(p.basePath, path)
+
+	return path.Join(p.basePath, name)
 }
 
 func (p *pathLoader) loadDataspace(path string) error {
-	f, err := os.Open(path)
+	f, err := p.fsys.Open(path)
 	if err != nil {
 		return fmt.Errorf("dataspace [%s]; %w", path, err)
 	}
@@ -144,7 +175,7 @@ func (p *pathLoader) loadDataspace(path string) error {
 }
 
 func (p *pathLoader) loadDatasource(path string) error {
-	f, err := os.Open(path)
+	f, err := p.fsys.Open(path)
 	if err != nil {
 		return fmt.Errorf("datasource [%s]; %w", path, err)
 	}
@@ -173,7 +204,7 @@ func (p *pathLoader) loadDatasource(path string) error {
 }
 
 func (p *pathLoader) loadEndpoints(path string) error {
-	f, err := os.Open(path)
+	f, err := p.fsys.Open(path)
 	if err != nil {
 		return fmt.Errorf("endpoints [%s]; %w", path, err)
 	}
@@ -204,7 +235,7 @@ func (p *pathLoader) loadEndpoints(path string) error {
 }
 
 func (p *pathLoader) loadTableData(source, table, path string) error {
-	f, err := os.Open(path)
+	f, err := p.fsys.Open(path)
 	if err != nil {
 		return fmt.Errorf("table data [%s]; %w", path, err)
 	}
@@ -245,6 +276,7 @@ func (p *pathLoader) loadTableData(source, table, path string) error {
 }
 
 type pathLoader struct {
+	fsys     fs.FS
 	basePath string
 	store    store.Storage
 	meta     *models.Meta

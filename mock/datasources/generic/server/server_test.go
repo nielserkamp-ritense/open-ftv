@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ func TestServe(t *testing.T) {
 			DataPath: "../../../../testdata/dataspaces/fds",
 		}
 
-		s, err := NewService(cfg, logger)
+		s, err := NewService(cfg, logger, nil)
 		require.NoError(t, err)
 
 		wg := &sync.WaitGroup{}
@@ -75,7 +76,7 @@ func TestErrorHandler(t *testing.T) {
 			DataPath: "../../../../testdata/dataspaces/fds",
 		}
 
-		s, err := NewService(cfg, logger)
+		s, err := NewService(cfg, logger, nil)
 		require.NoError(t, err)
 
 		wg := &sync.WaitGroup{}
@@ -103,5 +104,36 @@ func TestErrorHandler(t *testing.T) {
 		wg.Wait()
 
 		assert.GreaterOrEqual(t, 8, h.Count())
+	})
+}
+
+func TestNewServiceDataspace(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
+	dataspace := os.DirFS("../../../../testdata/apps/rdw/dataspace")
+
+	t.Run("dataspace from the file system", func(t *testing.T) {
+		t.Parallel()
+
+		s, err := NewService(&config.Config{}, logger, dataspace)
+		require.NoError(t, err)
+		assert.NotNil(t, s)
+	})
+
+	t.Run("data path takes precedence", func(t *testing.T) {
+		t.Parallel()
+
+		s, err := NewService(&config.Config{DataPath: "/this/is/never/valid"}, logger, dataspace)
+		require.Error(t, err)
+		assert.Nil(t, s)
+	})
+
+	t.Run("no dataspace", func(t *testing.T) {
+		t.Parallel()
+
+		s, err := NewService(&config.Config{}, logger, nil)
+		require.Error(t, err)
+		assert.Nil(t, s)
 	})
 }

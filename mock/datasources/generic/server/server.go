@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io/fs"
 	"log/slog"
 
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
@@ -13,10 +14,17 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/config"
 )
 
-func NewService(cfg *config.Config, logger *slog.Logger) (server.Service, error) {
+func NewService(cfg *config.Config, logger *slog.Logger, dataspace fs.FS) (server.Service, error) {
 	db := memory.New(nil)
 
-	if err := reader.LoadFromPath(db, cfg.DataPath); err != nil {
+	var err error
+	if cfg.DataPath == "" && dataspace != nil {
+		err = reader.LoadFromFS(db, dataspace)
+	} else {
+		err = reader.LoadFromPath(db, cfg.DataPath)
+	}
+
+	if err != nil {
 		logger.Error("failed to load dataspace definition(s)", "path", cfg.DataPath, "error", err)
 		return nil, err
 	}

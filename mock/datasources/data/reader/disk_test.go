@@ -1,7 +1,10 @@
 package reader
 
 import (
+	"io/fs"
+	"os"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/require"
 
@@ -54,14 +57,55 @@ func TestLoadFromPath(t *testing.T) {
 	}
 }
 
+func TestLoadFromFS(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name    string
+		fsys    fs.FS
+		wantErr bool
+	}{
+		{name: "no metadata", fsys: os.DirFS("../../../../testdata/unittest/data/no-meta"), wantErr: true},
+		{name: "bad metadata", fsys: os.DirFS("../../../../testdata/unittest/data/bad-meta"), wantErr: true},
+		{
+			name:    "missing datasource",
+			fsys:    fstest.MapFS{"metadata.yaml": {Data: []byte("datasource:\n  - brv/schema.yaml\n")}},
+			wantErr: true,
+		},
+		{
+			name:    "absolute path",
+			fsys:    fstest.MapFS{"metadata.yaml": {Data: []byte("datasource:\n  - /brv/schema.yaml\n")}},
+			wantErr: true,
+		},
+		{name: "all good", fsys: os.DirFS("../../../../testdata/apps/rdw/dataspace")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := memory.New(nil)
+			require.NotNil(t, s)
+
+			err := LoadFromFS(s, tc.fsys)
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.True(t, s.TableExists("brv.kenteken"))
+			}
+		})
+	}
+}
+
 func TestLoadMeta_Error(t *testing.T) {
 	t.Parallel()
 
 	t.Run("load meta - error", func(t *testing.T) {
 		t.Parallel()
 
-		p := &pathLoader{}
-		err := p.loadMeta("/this/is/not/a/valid/file")
+		p := &pathLoader{fsys: fstest.MapFS{}}
+		err := p.loadMeta("this/is/not/a/valid/file")
 		require.Error(t, err)
 	})
 }
