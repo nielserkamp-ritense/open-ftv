@@ -1,46 +1,8 @@
 build_pre-release_ko:
-  stage: Build
-  image: golang:1.26.7-alpine
-  variables:
-    # renovate: datasource=go depName=github.com/google/ko
-    KO_VERSION: "v0.19.1"
-    GOMODCACHE: ${CI_PROJECT_DIR}/.go-cache/mod
-    GOCACHE: ${CI_PROJECT_DIR}/.go-cache/build
-  parallel:
-    matrix:
-      - APP: pip
-        MAIN: ./apps/pip/cmd
-      - APP: pap
-        MAIN: ./apps/pap/cmd
-      - APP: pdp
-        MAIN: ./apps/pdp/cmd
-      - APP: manager
-        MAIN: ./apps/manager/cmd
-      - APP: management-interface
-        MAIN: ./apps/management-interface/cmd
-      - APP: mock-ds-generic
-        MAIN: ./mock/datasources/generic/cmd
-      - APP: mock-ds-vlierdam
-        MAIN: ./mock/datasources/generic/cmd/vlierdam
-      - APP: mock-ds-rvig
-        MAIN: ./mock/datasources/generic/cmd/rvig
-      - APP: mock-ds-rdw
-        MAIN: ./mock/datasources/generic/cmd/rdw
-      - APP: gw-plugin-envoy
-        MAIN: ./external/gateways/envoy/plugins/openftv/cmd
+  extends: .build_ko
   script:
-    - go install github.com/google/ko@${KO_VERSION}
     - printf '%s' "${CI_REGISTRY_PASSWORD}" | ko login ${CI_REGISTRY} -u ${CI_REGISTRY_USER} --password-stdin
-    - export KO_DOCKER_REPO=${CI_REGISTRY_IMAGE}/${APP} GIT_TAG_NAME=${IMAGE_TAG} GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+    - export GIT_TAG_NAME=${IMAGE_TAG}
     - ko build --bare --sbom=none --tags ${IMAGE_TAG} ${MAIN}
-  cache:
-    key:
-      prefix: ko
-      files:
-        - go.sum
-    paths:
-      - .go-cache
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
-  tags:
-    - amd64

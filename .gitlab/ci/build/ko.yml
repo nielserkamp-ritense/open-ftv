@@ -1,0 +1,42 @@
+.build_ko:
+  stage: Build
+  image: golang:1.26.7-alpine
+  variables:
+    # renovate: datasource=go depName=github.com/google/ko
+    KO_VERSION: "v0.19.1"
+    GOMODCACHE: ${CI_PROJECT_DIR}/.go-cache/mod
+    GOCACHE: ${CI_PROJECT_DIR}/.go-cache/build
+  parallel:
+    matrix:
+      - APP: pip
+        MAIN: ./apps/pip/cmd
+      - APP: pap
+        MAIN: ./apps/pap/cmd
+      - APP: pdp
+        MAIN: ./apps/pdp/cmd
+      - APP: manager
+        MAIN: ./apps/manager/cmd
+      - APP: management-interface
+        MAIN: ./apps/management-interface/cmd
+      - APP: mock-ds-generic
+        MAIN: ./mock/datasources/generic/cmd
+      - APP: mock-ds-vlierdam
+        MAIN: ./mock/datasources/generic/cmd/vlierdam
+      - APP: mock-ds-rvig
+        MAIN: ./mock/datasources/generic/cmd/rvig
+      - APP: mock-ds-rdw
+        MAIN: ./mock/datasources/generic/cmd/rdw
+      - APP: gw-plugin-envoy
+        MAIN: ./external/gateways/envoy/plugins/openftv/cmd
+  before_script:
+    - go install github.com/google/ko@${KO_VERSION}
+    - export KO_DOCKER_REPO=${CI_REGISTRY_IMAGE}/${APP} GIT_COMMIT_HASH=${CI_COMMIT_SHA}
+  cache:
+    key:
+      prefix: ko
+      files:
+        - go.sum
+    paths:
+      - .go-cache
+  tags:
+    - amd64
