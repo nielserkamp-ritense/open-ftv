@@ -1,5 +1,8 @@
 # Stage 1 - build
-FROM golang:1.26.7-alpine AS golang_builder
+FROM --platform=$BUILDPLATFORM golang:1.26.7-alpine AS golang_builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /build
 
@@ -8,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /build/generic-ds ./mock/datasources/generic/cmd/
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /build/generic-ds ./mock/datasources/generic/cmd/
 
 # Stage 2 - run
 FROM alpine:3.24
