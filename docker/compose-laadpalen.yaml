@@ -52,7 +52,7 @@ services:
     environment:
       - GEN_DS_DATA_PATH=/tmp/data
     volumes:
-      - ./../testdata/apps/gemeente-vlierdam/dataspace:/tmp/data
+      - ./../mock/datasources/dataspaces/vlierdam:/tmp/data
     networks:
       - openftv
 
@@ -236,7 +236,7 @@ services:
     environment:
       - GEN_DS_DATA_PATH=/tmp/data
     volumes:
-      - ./../testdata/apps/rvig/dataspace:/tmp/data
+      - ./../mock/datasources/dataspaces/rvig:/tmp/data
     networks:
       - openftv
 
@@ -385,7 +385,7 @@ services:
     environment:
       - GEN_DS_DATA_PATH=/tmp/data
     volumes:
-      - ./../testdata/apps/rdw/dataspace:/tmp/data
+      - ./../mock/datasources/dataspaces/rdw:/tmp/data
     networks:
       - openftv
 

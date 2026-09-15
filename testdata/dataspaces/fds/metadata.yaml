@@ -1,24 +1,24 @@
 ---
 dataspace: fds.yaml
 datasource:
-  - ../../apps/rvig/dataspace/brp/schema.yaml
+  - ../../../mock/datasources/dataspaces/rvig/brp/schema.yaml
 endpoints:
-  - ../../apps/rvig/dataspace/brp/endpoints.yaml
+  - ../../../mock/datasources/dataspaces/rvig/brp/endpoints.yaml
 sourceData:
   brp:
-    adres: ../../apps/rvig/dataspace/brp/adres.csv
-    afnemer: ../../apps/rvig/dataspace/brp/afnemer.csv
-    contact: ../../apps/rvig/dataspace/brp/contact.csv
-    gezagsverhouding: ../../apps/rvig/dataspace/brp/gezagsverhouding.csv
-    inschrijving: ../../apps/rvig/dataspace/brp/inschrijving.csv
-    kiesrecht: ../../apps/rvig/dataspace/brp/kiesrecht.csv
-    kind: ../../apps/rvig/dataspace/brp/kind.csv
-    nationaliteit: ../../apps/rvig/dataspace/brp/nationaliteit.csv
-    ouder1: ../../apps/rvig/dataspace/brp/ouder1.csv
-    ouder2: ../../apps/rvig/dataspace/brp/ouder2.csv
-    overlijden: ../../apps/rvig/dataspace/brp/overlijden.csv
-    persoon: ../../apps/rvig/dataspace/brp/persoon.csv
-    reisdocument: ../../apps/rvig/dataspace/brp/reisdocument.csv
-    tijdelijk-adres: ../../apps/rvig/dataspace/brp/tijdelijk-adres.csv
-    verbintenis: ../../apps/rvig/dataspace/brp/verbintenis.csv
-    verblijfstitel: ../../apps/rvig/dataspace/brp/verblijfstitel.csv
+    adres: ../../../mock/datasources/dataspaces/rvig/brp/adres.csv
+    afnemer: ../../../mock/datasources/dataspaces/rvig/brp/afnemer.csv
+    contact: ../../../mock/datasources/dataspaces/rvig/brp/contact.csv
+    gezagsverhouding: ../../../mock/datasources/dataspaces/rvig/brp/gezagsverhouding.csv
+    inschrijving: ../../../mock/datasources/dataspaces/rvig/brp/inschrijving.csv
+    kiesrecht: ../../../mock/datasources/dataspaces/rvig/brp/kiesrecht.csv
+    kind: ../../../mock/datasources/dataspaces/rvig/brp/kind.csv
+    nationaliteit: ../../../mock/datasources/dataspaces/rvig/brp/nationaliteit.csv
+    ouder1: ../../../mock/datasources/dataspaces/rvig/brp/ouder1.csv
+    ouder2: ../../../mock/datasources/dataspaces/rvig/brp/ouder2.csv
+    overlijden: ../../../mock/datasources/dataspaces/rvig/brp/overlijden.csv
+    persoon: ../../../mock/datasources/dataspaces/rvig/brp/persoon.csv
+    reisdocument: ../../../mock/datasources/dataspaces/rvig/brp/reisdocument.csv
+    tijdelijk-adres: ../../../mock/datasources/dataspaces/rvig/brp/tijdelijk-adres.csv
+    verbintenis: ../../../mock/datasources/dataspaces/rvig/brp/verbintenis.csv
+    verblijfstitel: ../../../mock/datasources/dataspaces/rvig/brp/verblijfstitel.csv

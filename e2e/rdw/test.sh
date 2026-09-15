@@ -1,7 +1,7 @@
 #!/bin/bash
 
 APP="mock/datasources/generic/cmd/main.go"
-METADATA="testdata/apps/rdw/dataspace"
+METADATA="mock/datasources/dataspaces/rdw"
 PORT=9981
 URL1="http://localhost:${PORT}/healthz"
 URL2="http://localhost:${PORT}/v1/meta/datasource/brv"

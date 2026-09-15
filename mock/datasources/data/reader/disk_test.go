@@ -77,7 +77,7 @@ func TestLoadFromFS(t *testing.T) {
 			fsys:    fstest.MapFS{"metadata.yaml": {Data: []byte("datasource:\n  - /brv/schema.yaml\n")}},
 			wantErr: true,
 		},
-		{name: "all good", fsys: os.DirFS("../../../../testdata/apps/rdw/dataspace")},
+		{name: "all good", fsys: os.DirFS("../../dataspaces/rdw")},
 	}
 
 	for _, tc := range testCases {

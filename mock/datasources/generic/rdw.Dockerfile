@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /build/ge
 FROM alpine:3.24
 
 COPY --from=golang_builder /build/generic-ds /
-COPY ./testdata/apps/rdw/dataspace /opt/dataspace
+COPY ./mock/datasources/dataspaces/rdw /opt/dataspace
 
 ENV GEN_DS_DATA_PATH=/opt/dataspace
 

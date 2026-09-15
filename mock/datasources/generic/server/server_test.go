@@ -111,7 +111,7 @@ func TestNewServiceDataspace(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	dataspace := os.DirFS("../../../../testdata/apps/rdw/dataspace")
+	dataspace := os.DirFS("../../dataspaces/rdw")
 
 	t.Run("dataspace from the file system", func(t *testing.T) {
 		t.Parallel()

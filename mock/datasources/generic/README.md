@@ -43,11 +43,13 @@ From the root-directory run:
 docker build . -f ./mock/datasources/generic/Dockerfile -f mock-ds
 ```
 
-For building an image with a preloaded dataspace configuration, run:
+The images with a preloaded dataspace (`rdw`, `rvig` and `vlierdam`) are built with [ko](https://ko.build) from
+`cmd/XYZ`, which embeds the dataspace in `mock/datasources/dataspaces/XYZ`. A configured data path (`--data` or
+`GEN_DS_DATA_PATH`) takes precedence. To run one without an image:
 ```shell
-docker build . -f ./mock/datasources/generic/XYZ.Dockerfile -f mock-ds-XYZ
+go run ./mock/datasources/generic/cmd/XYZ
 ```
-replacing both occurrences of ```XYZ``` with the name of the dataspace you want preloaded.
+replacing ```XYZ``` with the name of the dataspace you want preloaded.
 
 Run the image like so with local data:
 ```shell
