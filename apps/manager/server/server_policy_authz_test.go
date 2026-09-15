@@ -94,7 +94,7 @@ func call(t *testing.T, app *fiber.App, method, path, bearer string, body any) *
 }
 
 // Test_Policy_RoleMatrix drives the SCRUM-16 matrix for policies through the manager as
-// deployed: secured mode, OIDC, the manager's role table, the shipped policies in postgres.
+// deployed: secured mode, OIDC, the shipped policies seeded into postgres.
 func Test_Policy_RoleMatrix(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	cnf.PAP.Store = "../../../testdata/apps/manager/policies/cedar"
@@ -142,6 +142,11 @@ func Test_Policy_RoleMatrix(t *testing.T) {
 		require.Equal(t, http.StatusOK, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, accepted).StatusCode)
 	})
 
+	t.Run("an accepted policy is not edited in place", func(t *testing.T) {
+		policy.Metadata.Title = "Edited"
+		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy).StatusCode)
+	})
+
 	t.Run("only the author reverts, and an illegal transition is a client error", func(t *testing.T) {
 		concept := oas.PolicyStatus{Id: id, Status: "concept"}
 
@@ -149,8 +154,7 @@ func Test_Policy_RoleMatrix(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, oas.PolicyStatus{Id: id, Status: "deployed"}).StatusCode)
 		require.Equal(t, http.StatusOK, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, concept).StatusCode)
 
-		// back in concept, the author edits.
-		policy.Metadata.Title = "Edited"
+		// back in concept, the author edits again.
 		require.Equal(t, http.StatusOK, call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy).StatusCode)
 	})
 

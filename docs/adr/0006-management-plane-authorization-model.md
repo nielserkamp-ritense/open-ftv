@@ -59,6 +59,8 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   locally seeded users carry the roles `admin` and `user`, so their example policies keep
   those semantics (`admin` everything, `user` and API keys read) in the new model. The
   matrix is the manager's; a standalone PAP is an operator tool, not the management plane.
+  Locally seeded users may carry `roles` as one string rather than a set, so the example
+  policies accept both shapes (`roles == "x" || roles.contains("x")`).
 - **Roles are scoped to a beslispunt by a scoped role string in the existing flat claim**
   (`author:laadpalen`), with one policy per beslispunt. ADR 0002 is unchanged; adding a
   beslispunt-scoped role is IdP configuration plus a policy. A structured claim or a

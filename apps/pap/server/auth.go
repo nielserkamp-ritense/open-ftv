@@ -32,10 +32,7 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	// The management-plane services decide on the PAP's own role table (ADR 0006).
-	opts := append([]authorization.Option{authorization.WithPermissions(authorization.PAPPermissions())}, s.principalRecorder()...)
-
-	authorizer, err3 := authorization.NewForController(controller, authenticator, s.cfg.Authenticate, s.cfg.FailClosedOnEmpty, opts...)
+	authorizer, err3 := authorization.NewForController(controller, authenticator, s.cfg.Authenticate, s.cfg.FailClosedOnEmpty, s.principalRecorder()...)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil

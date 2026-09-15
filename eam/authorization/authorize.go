@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
-// ErrForbidden reports that the caller was not permitted the action on the resource.
+// ErrForbidden reports that the PDP did not permit the action on the resource.
 var ErrForbidden = errors.New("forbidden")
 
 // Authorizer is the management plane's authorization question: may this caller perform this
@@ -20,26 +21,35 @@ type Authorizer interface {
 	Authorize(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error
 }
 
-// Authorize decides once whether caller may perform action on resource, and records the
+// Authorize asks the PDP once whether caller may perform action on resource, and records the
 // caller when it may (ADR 0004). It returns nil when permitted, ErrForbidden when not, and
 // ErrPrincipalNotRecorded when a permitted non-read caller could not be recorded.
-//
-// The decision is the role table given with WithPermissions: without one every caller is
-// denied (fail closed), unless the authorizer runs with NoAuth. The resource is not yet part
-// of the decision; it is carried so the question keeps its shape for the PDP (ADR 0006).
-func (a *auth) Authorize(_ context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error {
+func (a *auth) Authorize(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) error {
 	if resource == nil {
 		return fmt.Errorf("authorize: resource is required")
 	}
 
-	if caller == nil {
-		caller = SystemRequestPrincipal()
+	uid := uuid.New()
+	parc := ManagementPARC(ctx, caller, action, resource)
+
+	allowed := a.noAuth
+
+	var resp *models.Response
+
+	if !allowed && a.pdp != nil {
+		var err error
+		if resp, err = a.pdp.Authorize(uid.String(), parc); err != nil {
+			return err
+		}
+
+		allowed = resp != nil && resp.Allowed
 	}
 
-	uid := uuid.New()
-
-	if !a.noAuth && !a.permissions.Allows(caller, action) {
-		a.log.Warn("authorization denied", "uid", uid.String(), "principal", caller.Label(), "roles", caller.Roles, "action", action, "resource", resource.UID())
+	if !allowed {
+		// The PDP's reason and diagnostic name the policies that decided, which is what an
+		// operator needs to tell a guard rule from a missing role; they are kept at the
+		// default log level.
+		a.log.Warn("authorization denied", append([]any{"uid", uid.String(), "principal", caller.Label(), "action", action, "resource", resource.UID()}, denialDetails(resp)...)...)
 		return ErrForbidden
 	}
 
@@ -48,4 +58,46 @@ func (a *auth) Authorize(_ context.Context, caller *RequestPrincipal, action str
 	}
 
 	return a.recordPrincipal(action == models.ActionRead, &caller.Principal)
+}
+
+// denialDetails renders what the PDP said about a denial, for the log.
+func denialDetails(resp *models.Response) []any {
+	if resp == nil {
+		return []any{"reason", "no response from the PDP"}
+	}
+
+	out := []any{"reason", resp.Message}
+	if d, ok := resp.Attributes["diagnostic"]; ok {
+		out = append(out, "diagnostic", d)
+	}
+
+	return out
+}
+
+// ManagementPARC builds the PDP request of the management plane (ADR 0006): the caller as
+// subject with only its roles, the action as `Action::"<name>"`, the given resource, and a
+// context limited to the time and the trace of the request.
+func ManagementPARC(ctx context.Context, caller *RequestPrincipal, action string, resource *models.Entity) *models.PARC {
+	principal := models.NewEntity(caller.Kind.String(), caller.ID, models.NewAttributeSet())
+	if len(caller.Roles) > 0 {
+		principal.Attributes().AddAttributeKV(models.AttrRoles, caller.Roles)
+	}
+
+	c := models.NewAttributeSet()
+	c.AddAttributeKV(models.AttrTime, time.Now().UTC())
+
+	if t := TraceFromContext(ctx); t.Parent != "" {
+		c.AddAttributeKV(models.AttrTraceParent, t.Parent)
+
+		if t.State != "" {
+			c.AddAttributeKV(models.AttrTraceState, t.State)
+		}
+	}
+
+	return &models.PARC{
+		Principal: principal,
+		Action:    models.NewEntity(models.EntityTypeManagementAction, action, models.NewAttributeSet()),
+		Resource:  resource,
+		Context:   c,
+	}
 }
