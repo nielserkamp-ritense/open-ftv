@@ -10,6 +10,9 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store/memory"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/dataspaces/rdw"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/dataspaces/rvig"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/dataspaces/vlierdam"
 )
 
 func TestLoadFromPath(t *testing.T) {
@@ -57,12 +60,20 @@ func TestLoadFromPath(t *testing.T) {
 	}
 }
 
+func TestLoadFromPath_Empty(t *testing.T) {
+	t.Parallel()
+
+	err := LoadFromPath(memory.New(nil), "")
+	require.ErrorContains(t, err, "no data path given")
+}
+
 func TestLoadFromFS(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		name    string
 		fsys    fs.FS
+		table   string
 		wantErr bool
 	}{
 		{name: "no metadata", fsys: os.DirFS("../../../../testdata/unittest/data/no-meta"), wantErr: true},
@@ -72,12 +83,9 @@ func TestLoadFromFS(t *testing.T) {
 			fsys:    fstest.MapFS{"metadata.yaml": {Data: []byte("datasource:\n  - brv/schema.yaml\n")}},
 			wantErr: true,
 		},
-		{
-			name:    "absolute path",
-			fsys:    fstest.MapFS{"metadata.yaml": {Data: []byte("datasource:\n  - /brv/schema.yaml\n")}},
-			wantErr: true,
-		},
-		{name: "all good", fsys: os.DirFS("../../dataspaces/rdw")},
+		{name: "embedded rdw", fsys: rdw.FS, table: "brv.kenteken"},
+		{name: "embedded rvig", fsys: rvig.FS, table: "brp.persoon"},
+		{name: "embedded vlierdam", fsys: vlierdam.FS, table: "vlierdam.laadpaal"},
 	}
 
 	for _, tc := range testCases {
@@ -92,8 +100,32 @@ func TestLoadFromFS(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.True(t, s.TableExists("brv.kenteken"))
+				require.True(t, s.TableExists(tc.table))
 			}
+		})
+	}
+}
+
+func TestFixPath(t *testing.T) {
+	t.Parallel()
+
+	p := &pathLoader{basePath: "tmp/data"}
+
+	testCases := []struct {
+		name string
+		path string
+		want string
+	}{
+		{name: "relative", path: "brv/schema.yaml", want: "tmp/data/brv/schema.yaml"},
+		{name: "relative outside the base path", path: "../shared/klasse.csv", want: "tmp/shared/klasse.csv"},
+		{name: "absolute starts at the root", path: "/opt/dataspace/../brv/schema.yaml", want: "opt/brv/schema.yaml"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			require.Equal(t, tc.want, p.fixPath(tc.path))
 		})
 	}
 }

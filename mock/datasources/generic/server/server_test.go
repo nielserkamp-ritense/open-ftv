@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/dataspaces/rdw"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
@@ -111,9 +111,9 @@ func TestNewServiceDataspace(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	dataspace := os.DirFS("../../dataspaces/rdw")
+	dataspace := rdw.FS
 
-	t.Run("dataspace from the file system", func(t *testing.T) {
+	t.Run("embedded dataspace", func(t *testing.T) {
 		t.Parallel()
 
 		s, err := NewService(&config.Config{}, logger, dataspace)

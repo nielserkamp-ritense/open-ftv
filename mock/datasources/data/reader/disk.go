@@ -22,6 +22,10 @@ import (
 // as well as any data found in the given path or its subdirectories.
 // Paths in the metadata are relative to the given path, or absolute.
 func LoadFromPath(s store.Storage, basePath string) error {
+	if basePath == "" {
+		return fmt.Errorf("no data path given")
+	}
+
 	abs, err := filepath.Abs(basePath)
 	if err != nil {
 		return err
