@@ -37,7 +37,8 @@ func (s *Services) newAuth() AuthHandler {
 	// the same for their own writes: they share this schema, so created_by there is bound by the
 	// same foreign key (see their principalRecorder). The PDP needs none -- its POST endpoints are
 	// AuthZEN evaluation and the bundle receiver, and its postgres holds only the decision log.
-	var extra []authorization.Option
+	// The management-plane services decide on the SCRUM-16 role matrix (ADR 0006).
+	extra := []authorization.Option{authorization.WithPermissions(authorization.ManagerPermissions())}
 	if s.db != nil {
 		extra = append(extra, authorization.WithPrincipalRecorder(principals.NewDBWithPool(s.db)))
 	}

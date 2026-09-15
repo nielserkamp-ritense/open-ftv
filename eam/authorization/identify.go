@@ -32,7 +32,51 @@ func (a *auth) Identify(req *Request) (*RequestPrincipal, error) {
 		return SystemRequestPrincipal(), err
 	}
 
-	return principalFrom(parc), nil
+	caller := principalFrom(parc)
+	if caller.IsAuthenticatedUser() && len(caller.Roles) == 0 {
+		caller.Roles = a.storedRoles(caller.ID)
+	}
+
+	return caller, nil
+}
+
+// storedRoles reads the roles of a user the entity store holds. A bearer token carries its
+// roles as a claim; a basic-auth user is only a name and a password hash, and its roles live
+// on the stored entity (the PIP), the way the PDP would resolve them.
+func (a *auth) storedRoles(id string) []string {
+	e, _, err := a.getter(identity.KindUser.String() + "::" + id)
+	if err != nil || e == nil {
+		return nil
+	}
+
+	return rolesOf(e.Attributes().GetAttributeValue(models.AttrRoles))
+}
+
+// rolesOf reads a roles attribute, which is a set for token users and may be one string
+// for locally seeded users.
+func rolesOf(v any) []string {
+	switch roles := v.(type) {
+	case []string:
+		return roles
+	case string:
+		if roles == "" {
+			return nil
+		}
+
+		return []string{roles}
+	case []any:
+		out := make([]string, 0, len(roles))
+
+		for i := range roles {
+			if s, ok := roles[i].(string); ok && s != "" {
+				out = append(out, s)
+			}
+		}
+
+		return out
+	default:
+		return nil
+	}
 }
 
 // rejectedBearer reports a bearer token the PEP refused. A refused token is a failed
@@ -81,8 +125,7 @@ func principalFrom(parc *models.PARC) *RequestPrincipal {
 
 	switch {
 	case p.IsAuthenticatedUser():
-		roles, _ := attrs.GetAttributeValue(models.AttrRoles).([]string)
-		return &RequestPrincipal{Principal: p, Roles: roles}
+		return &RequestPrincipal{Principal: p, Roles: rolesOf(attrs.GetAttributeValue(models.AttrRoles))}
 	case p.Kind == identity.KindApp && p.ID != "":
 		return &RequestPrincipal{Principal: p}
 	default:

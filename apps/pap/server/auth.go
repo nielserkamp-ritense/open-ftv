@@ -31,7 +31,10 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator, s.principalRecorder()...)
+	// The management-plane services decide on the PAP's own role table (ADR 0006).
+	opts := append([]authorization.Option{authorization.WithPermissions(authorization.PAPPermissions())}, s.principalRecorder()...)
+
+	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator, opts...)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil

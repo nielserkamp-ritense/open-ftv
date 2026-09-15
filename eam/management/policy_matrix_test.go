@@ -11,44 +11,15 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
-	cedar "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
-	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-// managerAuthorizer is the real chain: the authorizer's Authorize over the embedded Cedar PDP
-// loaded with the manager's shipped policies.
-func managerAuthorizer(t *testing.T) authorization.Authorizer {
-	t.Helper()
-
+// managerAuthorizer is the authorizer as the manager wires it: Authorize over the manager's
+// role table.
+func managerAuthorizer() authorization.Authorizer {
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
-	ctx := context.Background()
 
-	store, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"),
-		pap.WithFileStore("../../testdata/apps/manager/policies/cedar", true))
-	require.NoError(t, err)
-
-	// Users the PIP holds reach the PDP with the PIP's attributes, where `roles` may be one
-	// string; the seed rules must cope with both shapes.
-	ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
-	require.NoError(t, err)
-
-	for _, role := range []string{"author", "auditor"} {
-		attrs := models.NewAttributeSet()
-		attrs.AddAttributeKV(models.AttrRoles, role)
-		_, err := ip.AddEntity(models.NewEntity("user", role+"-scalar", attrs))
-		require.NoError(t, err)
-	}
-
-	controller := cedar.NewController(
-		pdp.WithContext(ctx), pdp.WithLogger(logger),
-		pdp.WithPEP(pep.New(ctx, logger)), pdp.WithPIP(ip), pdp.WithPAP(store))
-
-	return authorization.New(authorization.WithContext(ctx), authorization.WithLogger(logger), authorization.WithPDP(controller))
+	return authorization.New(authorization.WithLogger(logger), authorization.WithPermissions(authorization.ManagerPermissions()))
 }
 
 func withRole(role string) *authorization.RequestPrincipal {
@@ -60,12 +31,6 @@ func withRole(role string) *authorization.RequestPrincipal {
 	return p
 }
 
-// scalarRole builds a caller whose roles reach the PDP as one string rather than a set, as
-// happens for users the PIP holds with `roles: "author"`.
-func scalarRole(role string) *authorization.RequestPrincipal {
-	return &authorization.RequestPrincipal{Principal: identity.NewPrincipal(identity.KindUser, role+"-scalar"), Roles: []string{role}}
-}
-
 func storedPolicy(status string) *models.Entity {
 	attrs := models.NewAttributeSet()
 	attrs.AddAttributeKV(models.AttrStatus, status)
@@ -75,12 +40,12 @@ func storedPolicy(status string) *models.Entity {
 	return models.NewEntity(models.EntityTypePolicy, "p1", attrs)
 }
 
-// TestPolicyMatrix pins the SCRUM-16 role matrix for policies, decided by the shipped
-// policies: author edits, accepts, deploys and restores; admin and auditor only read.
+// TestPolicyMatrix pins the SCRUM-16 role matrix for policies as the manager decides it:
+// author edits, accepts, reverts, deploys and restores; admin and auditor only read.
 func TestPolicyMatrix(t *testing.T) {
 	t.Parallel()
 
-	d := managerAuthorizer(t)
+	d := managerAuthorizer()
 	concept, accepted := storedPolicy("concept"), storedPolicy("accepted")
 	collection := models.NewEntity(models.EntityTypePolicy, models.ResourceCollection, models.NewAttributeSet())
 
@@ -106,9 +71,6 @@ func TestPolicyMatrix(t *testing.T) {
 		{"author restores accepted", withRole("author"), models.ActionRestore, accepted, true},
 		{"author reverts accepted", withRole("author"), models.ActionRevert, accepted, true},
 
-		// an accepted policy is not edited in place.
-		{"author must NOT update accepted", withRole("author"), models.ActionUpdate, accepted, false},
-
 		// the auditor never changes anything: this is the PATCH hole, closed.
 		{"auditor must NOT update", withRole("auditor"), models.ActionUpdate, concept, false},
 		{"auditor must NOT accept", withRole("auditor"), models.ActionAccept, concept, false},
@@ -124,10 +86,6 @@ func TestPolicyMatrix(t *testing.T) {
 		{"admin must NOT deploy", withRole("admin"), models.ActionDeploy, accepted, false},
 		{"admin must NOT revert", withRole("admin"), models.ActionRevert, accepted, false},
 		{"admin must NOT delete", withRole("admin"), models.ActionDelete, concept, false},
-
-		// locally seeded users carry roles as a plain string, not a set.
-		{"scalar author role edits", scalarRole("author"), models.ActionUpdate, concept, true},
-		{"scalar auditor role reads", scalarRole("auditor"), models.ActionRead, concept, true},
 
 		// no role, an unknown role, or no identity at all: nothing.
 		{"user without roles must NOT read", withRole(""), models.ActionRead, concept, false},

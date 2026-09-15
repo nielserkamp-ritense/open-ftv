@@ -168,6 +168,7 @@ type auth struct {
 	getter        models.GetEntity
 	authenticator authentication.Authenticator
 	principals    PrincipalRecorder
+	permissions   *Permissions
 	noAuth        bool
 	debug         bool
 }

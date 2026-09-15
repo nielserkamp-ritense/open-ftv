@@ -63,6 +63,14 @@ func WithPrincipalRecorder(recorder PrincipalRecorder) Option {
 	}
 }
 
+// WithPermissions passes the role table Authorize decides with. Without it every
+// management-plane operation is denied, unless NoAuth is set.
+func WithPermissions(p *Permissions) Option {
+	return func(a *auth) {
+		a.permissions = p
+	}
+}
+
 func NoAuth() Option {
 	return func(a *auth) {
 		a.noAuth = true

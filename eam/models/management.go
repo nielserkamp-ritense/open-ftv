@@ -17,10 +17,6 @@ const (
 	EntityTypeDecision   = "decision"
 )
 
-// EntityTypeManagementAction is the Cedar entity type of a management-plane action
-// (`action == Action::"read"`).
-const EntityTypeManagementAction = "Action"
-
 // ResourceCollection is the resource id that addresses every object of a type, used for
 // collection reads: `policy::"*"` is still `resource is policy`.
 const ResourceCollection = "*"

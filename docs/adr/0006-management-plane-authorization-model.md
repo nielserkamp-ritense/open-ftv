@@ -59,8 +59,6 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   locally seeded users carry the roles `admin` and `user`, so their example policies keep
   those semantics (`admin` everything, `user` and API keys read) in the new model. The
   matrix is the manager's; a standalone PAP is an operator tool, not the management plane.
-  Locally seeded users may carry `roles` as one string rather than a set, so the example
-  policies accept both shapes (`roles == "x" || roles.contains("x")`).
 - **Roles are scoped to a beslispunt by a scoped role string in the existing flat claim**
   (`author:laadpalen`), with one policy per beslispunt. ADR 0002 is unchanged; adding a
   beslispunt-scoped role is IdP configuration plus a policy. A structured claim or a
@@ -86,6 +84,12 @@ and keeps the old rule: it is seeded only while empty. Postgres is the supported
 the management plane, so that limitation costs nothing in practice.
 
 ## Consequences
+
+- The model lands in two steps per resource type. First the service layer with the
+  request-scoped Principal, deciding on a role table in Go (`authorization.Permissions`,
+  the same matrix as above); then the PDP behind the same `Authorize` question, with the
+  example policies written in this vocabulary. Handlers and services do not change between
+  the two steps: only what answers the question does.
 
 - Policies name the product's objects and operations; no policy needs to know a URL. The
   `PATCH` hole closes because a status change is `accept`/`deploy`, never a read.
