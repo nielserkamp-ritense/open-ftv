@@ -1,12 +1,22 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'url'
+import { writeFileSync } from 'fs'
 import { dirname, resolve } from 'path'
 import tanstackRouter from '@tanstack/router-plugin/vite'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+
+// Vite empties web/dist on every build; the committed .gitkeep keeps the Go embed compiling on a clean checkout.
+const keepEmbedPlaceholder: Plugin = {
+  name: 'keep-embed-placeholder',
+  apply: 'build',
+  closeBundle() {
+    writeFileSync(resolve(__dirname, 'web/dist/.gitkeep'), '')
+  },
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,6 +25,7 @@ export default defineConfig({
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
+    keepEmbedPlaceholder,
   ],
   resolve: {
     alias: {
@@ -22,6 +33,8 @@ export default defineConfig({
     },
   },
   build: {
+    // The Go web server embeds the build output from web/dist.
+    outDir: 'web/dist',
     rollupOptions: {
       output: {
         // Vite 8 bundles with Rolldown, which replaces the object form of

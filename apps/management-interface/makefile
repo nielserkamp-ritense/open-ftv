@@ -9,7 +9,7 @@ run: ## run development server
 	@npm run dev
 
 docker: ## build docker image
-	@docker build -t $(PROJECT_NAME):latest-dev .
+	@docker build -f Dockerfile -t $(PROJECT_NAME):latest-dev ../..
 
 docker-run: ## run docker container
-	@docker run -p 8080:80 $(PROJECT_NAME):latest-dev
+	@docker run -p 8080:8080 $(PROJECT_NAME):latest-dev

@@ -7,7 +7,7 @@ import reactDom from 'eslint-plugin-react-dom'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-    {ignores: ['dist']},
+    {ignores: ['web/dist']},
     {
         extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked, ...tseslint.configs.stylisticTypeChecked],
         files: ['**/*.{ts,tsx}'],
