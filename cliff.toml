@@ -1,0 +1,39 @@
+[changelog]
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{% for commit in commits %}
+- {% if commit.breaking %}**Breaking:** {% endif %}{{ commit.message | trim | upper_first }}\
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+postprocessors = [{ pattern = '^\s+', replace = "" }]
+
+[git]
+conventional_commits = true
+commit_preprocessors = [
+    { pattern = '^Revert "(.+)"', replace = "revert: ${1}" },
+]
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+commit_parsers = [
+    { message = "^feat", group = "<!-- 0 -->Features" },
+    { message = "^fix", group = "<!-- 1 -->Bug fixes" },
+    { message = "^perf", group = "<!-- 2 -->Performance" },
+    { message = "^refactor", group = "<!-- 3 -->Refactoring" },
+    { message = "^docs", group = "<!-- 4 -->Documentation" },
+    { message = "^(build|ci)", group = "<!-- 5 -->Build & CI" },
+    { message = "^revert", group = "<!-- 6 -->Reverts" },
+    { message = ".*", group = "<!-- 7 -->Other", skip = true },
+]
+filter_commits = true
+tag_pattern = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+topo_order_commits = true
+sort_commits = "oldest"
+
+# OpenFTV is pre-1.0: a breaking change bumps the minor, everything else the patch.
+[bump]
+breaking_always_bump_major = false
+features_always_bump_minor = false

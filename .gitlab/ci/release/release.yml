@@ -1,0 +1,46 @@
+release:
+  stage: Release
+  image: registry.gitlab.com/gitlab-org/cli:v1.118.0@sha256:3f0a591b3b96c39ac8e28480ee99bb93201b7bcea1fbca7ed50c034098111db2
+  variables:
+    GIT_DEPTH: 0
+    GITLAB_TOKEN: ${RELEASE_TOKEN}
+  dependencies: []
+  before_script:
+    - apk add --no-cache git-cliff
+  script:
+    - git-cliff --unreleased --bump --strip all > release-notes.md
+    - |-
+      if [ ! -s release-notes.md ]; then
+        echo "Nothing to release: no releasable commits since the last tag."
+        exit 1
+      fi
+    - RELEASE_TAG=${RELEASE_TAG:-$(git-cliff --unreleased --bumped-version)}
+    - |-
+      if ! printf '%s' "${RELEASE_TAG}" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+        echo "RELEASE_TAG must look like v1.2.3 to match the tag_pattern in cliff.toml, got '${RELEASE_TAG}'."
+        exit 1
+      fi
+    - |-
+      if git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null; then
+        echo "Tag ${RELEASE_TAG} already exists."
+        exit 1
+      fi
+    - LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+    - |-
+      if [ -n "${LATEST_TAG}" ] && [ "$(printf '%s\n%s\n' "${LATEST_TAG}" "${RELEASE_TAG}" | sort -V | tail -n 1)" != "${RELEASE_TAG}" ]; then
+        echo "RELEASE_TAG ${RELEASE_TAG} must be newer than the latest tag ${LATEST_TAG}."
+        exit 1
+      fi
+    - echo "Releasing ${RELEASE_TAG}"
+    - cat release-notes.md
+    - glab release create "${RELEASE_TAG}"
+      --repo "${CI_PROJECT_PATH}"
+      --ref "${CI_COMMIT_SHA}"
+      --name "${RELEASE_TAG}"
+      --notes-file release-notes.md
+      --tag-message "$(cat release-notes.md)"
+      --no-update
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+      when: manual
+      allow_failure: true

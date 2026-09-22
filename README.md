@@ -141,17 +141,35 @@ Tags publish the tag itself, for example chart `0.1.1` and image `v0.1.1`, and a
 
 Helm chart versions are bare SemVer, while container images carry a `v` prefix.
 
+##### Commit messages
+
+Commits follow [Conventional Commits](https://www.conventionalcommits.org), e.g. `feat: add a Policy editor` or
+`fix: answer a rejected bearer token with 401`. The version bump and the release notes are derived from them, and
+the `Lint commit messages` job checks every commit on a branch. Check your branch locally with
+`npx --package @commitlint/cli --package @commitlint/config-conventional commitlint --from origin/main`.
+
+- `feat` and `fix` end up in the release notes, as do `perf`, `refactor`, `docs`, `build`, `ci` and `revert`. The
+  `Revert "..."` message of `git revert` and GitLab's Revert button counts as a `revert`.
+- `chore`, `style` and `test` are left out, and a range with only those has nothing to release. A breaking one is
+  listed under *Other*.
+- Mark a breaking change with `!` (`feat!: ...`) or with a `BREAKING CHANGE:` footer. Both bump the *minor* while
+  pre-1.0. A footer needs a blank line above it, which `git commit -m "feat: ..." -m "BREAKING CHANGE: ..."` gives
+  you. The linter rejects a footer without that blank line, because the release notes would otherwise drop the
+  commit or miss that it is breaking.
+- Keep the subject lowercase. `feat: Add a thing` is rejected.
+
 ##### Creating a release
 
-OpenFTV is pre-1.0, so a breaking change bumps the *minor* and everything else the *patch*.
+OpenFTV is pre-1.0, so a breaking change bumps the *minor* and everything else the *patch* (see `cliff.toml`).
 
-A release can be made by creating an annotated git tag by hand.
+A release is made by starting the manual `release` job on a `main` pipeline. It derives the version and the release
+notes from the commits since the last tag, creates the annotated tag and the GitLab Release, and the tag pipeline
+publishes it. To release a different version than the computed one, set `RELEASE_TAG` (for example `v0.3.0`) in the
+variables box when starting the job. It must look like `v1.2.3`, must not exist yet and must be newer than the latest
+tag. The job only becomes available once the rest of the pipeline has passed.
 
-```shell
-git tag -a v0.2.0 -m "- Align ADL with Logius Level 1
-- Add Keycloak to the OpenFTV Helm charts"
-git push origin v0.2.0
-```
+The job authenticates with the `RELEASE_TOKEN` CI variable, a project access token (Maintainer, `api` scope), because
+a tag created with the CI job token does not start a pipeline.
 
 The pre-release version on `main` always assumes a *patch* bump, so it is numbered
 `0.2.1-main.<n>` even when the next release will be `0.3.0`. That is expected.

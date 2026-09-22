@@ -6,6 +6,7 @@ stages:
   - Build
   - Charts
   - Deploy
+  - Release
 
 include:
   - ".gitlab/ci/**.yml"
