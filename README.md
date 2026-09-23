@@ -13,7 +13,6 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 - `mock      ` mock services, including the generic mock data-service.
 - `oas       ` OpenAPI specifications for the project.
 - `resources ` various resources; e.g., project icon.
-- `scripts   ` various internal scripts.
 - `testdata  ` files with test data.
 - `utilities*` shared generic utility components.
 

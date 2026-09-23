@@ -389,7 +389,7 @@ schema of both itself at startup, so the databases only have to exist and be rea
 
 Both are required; the Manager exits at startup when one of them is missing or unreachable.
 The docker compose files in this repository are the worked example: one PostgreSQL instance
-with two databases, created by `scripts/init-db.sql`.
+with two databases, created by `docker/scripts/init-db.sql`.
 
 ```shell
 MANAGER_DATABASE_URL=postgres://user:password@vlierdam-db:5432/openftv?sslmode=disable
