@@ -1,7 +1,7 @@
 helm-charts:
   stage: Charts
   image:
-    name: docker.io/alpine/helm:4.2.4@sha256:76c375eed56144c68d6197c55bc5a4552fb42002190b796729901cbab3ae6e51
+    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/alpine/helm:4.2.4@sha256:76c375eed56144c68d6197c55bc5a4552fb42002190b796729901cbab3ae6e51
     entrypoint: [""]
   script:
     - echo "chart version=${VERSION} appVersion=${IMAGE_TAG}"

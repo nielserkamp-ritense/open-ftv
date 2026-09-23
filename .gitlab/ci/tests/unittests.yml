@@ -1,6 +1,6 @@
 Golang:
   stage: Tests
-  image: golang:1.26.7-alpine
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine
   services:
     - name:  ghcr.io/cerbos/cerbos:0.46.0
       alias: cerbos
@@ -11,7 +11,7 @@ Golang:
         - "--set=server.adminAPI.enabled=true"
         - "--set=server.adminAPI.adminCredentials.username=cerbos"
         - "--set=server.adminAPI.adminCredentials.passwordHash=JDJ5JDEwJElmZ0hMTlE4RThvTEpYQTRxNFJDLi5YYkdiU0pzV0xjQ3JEWFBSb2gwaFhYTHBDa3cyMFRPCgo="
-    - name: postgres:15.0-alpine
+    - name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/postgres:15.0-alpine
       alias: postgres
       variables:
         POSTGRES_DB: openftv

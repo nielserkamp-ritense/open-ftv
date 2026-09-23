@@ -1,6 +1,6 @@
 Management interface:
   stage: Assets
-  image: node:22.17.1-alpine
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/node:22.17.1-alpine
   before_script:
     - cd apps/management-interface
   script:

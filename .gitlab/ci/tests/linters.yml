@@ -1,7 +1,7 @@
 Lint OpenAPI specs:
   stage: Tests
   image:
-    name: stoplight/spectral:latest
+    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/stoplight/spectral:latest
     entrypoint: [""]
   script:
     - cd oas
@@ -16,7 +16,7 @@ Lint OpenAPI specs:
 
 Lint Golang:
   stage: Tests
-  image: golangci/golangci-lint:v2.12.2-alpine
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golangci/golangci-lint:v2.12.2-alpine
   variables:
     GOPATH: ${CI_PROJECT_DIR}/.go-cache
     GOLANGCI_LINT_CACHE: ${CI_PROJECT_DIR}/.golangci-cache
@@ -42,7 +42,7 @@ Lint Golang:
 Lint Helm charts:
   stage: Tests
   image:
-    name: docker.io/alpine/helm:4.2.3@sha256:b97ba4f9b27fe7af16ee3d37e6815783c9d4a51289b6240a9024ec471611ae9b
+    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/alpine/helm:4.2.3@sha256:b97ba4f9b27fe7af16ee3d37e6815783c9d4a51289b6240a9024ec471611ae9b
     entrypoint: [""]
   needs: []
   before_script:
@@ -64,7 +64,7 @@ Lint Helm charts:
 Lint commit messages:
   stage: Tests
   image:
-    name: commitlint/commitlint:21.2.3@sha256:33f225c84111a38ebac0c81fa21c488a79709b8a8e04056dfaaf4f80ef20be25
+    name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/commitlint/commitlint:21.2.3@sha256:33f225c84111a38ebac0c81fa21c488a79709b8a8e04056dfaaf4f80ef20be25
     entrypoint: [""]
   variables:
     GIT_DEPTH: 0

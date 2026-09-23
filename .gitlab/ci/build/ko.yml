@@ -1,6 +1,6 @@
 .build_ko:
   stage: Build
-  image: golang:1.26.7-alpine
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine
   variables:
     # renovate: datasource=go depName=github.com/google/ko
     KO_VERSION: "v0.19.1"
@@ -30,6 +30,8 @@
         MAIN: ./external/gateways/envoy/plugins/openftv/cmd
   before_script:
     - go install github.com/google/ko@${KO_VERSION}
+    - printf '%s' "${CI_DEPENDENCY_PROXY_PASSWORD}" | ko login ${CI_DEPENDENCY_PROXY_SERVER} -u ${CI_DEPENDENCY_PROXY_USER} --password-stdin
+    - "export KO_DEFAULTBASEIMAGE=${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/$(sed -n 's/^defaultBaseImage: //p' .ko.yaml)"
     - export KO_DOCKER_REPO=${CI_REGISTRY_IMAGE}/${APP} GIT_COMMIT_HASH=${CI_COMMIT_SHA}
   cache:
     key:
