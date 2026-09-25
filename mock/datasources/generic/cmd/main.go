@@ -1,27 +1,38 @@
 package main
 
 import (
+	"errors"
+	"flag"
+	"fmt"
 	"os"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/generic/server"
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func main() {
-	cfg, logger, err := config.New()
+	cfg, err := config.Load(os.Args[1:], os.LookupEnv)
+	if errors.Is(err, flag.ErrHelp) {
+		return
+	}
+
 	if err != nil {
-		if logger != nil {
-			logger.Error("failed to load configuration", "error", err)
-			os.Exit(1)
-		}
-		panic(err)
+		fmt.Fprintln(os.Stderr, "failed to load configuration:", err)
+		os.Exit(1)
+	}
+
+	logger, err := slog2.Init(cfg.Output, cfg.Format, cfg.Level, cfg.Source)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to initialize logger:", err)
+		os.Exit(1)
 	}
 
 	logger.Info("configuration loaded successfully", "config", cfg)
 
-	srv, err2 := server.NewService(cfg, logger, nil)
-	if err2 != nil {
-		logger.Error("failed to start service", "error", err2)
+	srv, err := server.NewService(cfg, logger, nil)
+	if err != nil {
+		logger.Error("failed to start service", "error", err)
 		os.Exit(1)
 	}
 

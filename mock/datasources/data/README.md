@@ -16,7 +16,7 @@ This Golang module contains the code to load and serve mock data in an extensibl
 ```shell
 git clone https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv.git
 cd open-ftv
-go run mock/datasources/generic/cmd/main.go --data=testdata/dataspaces/fds
+go run mock/datasources/generic/cmd/main.go --data-path=testdata/dataspaces/fds
 ```
 In another shell:
 ```shell

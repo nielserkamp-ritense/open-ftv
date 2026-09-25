@@ -29,7 +29,7 @@ Please create a [Gitlab issue](https://gitlab.com/digilab.overheid.nl/ecosystem/
 ```shell
 git clone https://gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv.git
 cd open-ftv
-go run mock/datasources/generic/cmd/main.go --data=testdata/dataspaces/fds
+go run mock/datasources/generic/cmd/main.go --data-path=testdata/dataspaces/fds
 ```
 In another shell:
 ```shell
@@ -44,7 +44,7 @@ docker build . -f ./mock/datasources/generic/Dockerfile -f mock-ds
 ```
 
 The images with a preloaded dataspace (`rdw`, `rvig` and `vlierdam`) are built with [ko](https://ko.build) from
-`cmd/XYZ`, which embeds the dataspace in `mock/datasources/dataspaces/XYZ`. A configured data path (`--data` or
+`cmd/XYZ`, which embeds the dataspace in `mock/datasources/dataspaces/XYZ`. A configured data path (`--data-path` or
 `GEN_DS_DATA_PATH`) takes precedence. To run one without an image:
 ```shell
 go run ./mock/datasources/generic/cmd/XYZ
@@ -86,9 +86,9 @@ The following is an exhaustive list of all possible environment variables the se
 
 ```text
 # options for the API endpoint server.
-GEN_DS_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+GEN_DS_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 GEN_DS_PORT=<port>                             # port the service should listen on (default 8443).
-GEN_DS_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+GEN_DS_TLS_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 GEN_DS_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 GEN_DS_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
 GEN_DS_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
@@ -113,7 +113,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 
 ```text
 # options for the API endpoint server.
---address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+--host=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -131,7 +131,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
 # options for schema and table data.
---data=<path>                             # Directory where the database-schema and table-data files can be found.
+--data-path=<path>                        # Directory where the database-schema and table-data files can be found.
 ```
 
 ## Application log

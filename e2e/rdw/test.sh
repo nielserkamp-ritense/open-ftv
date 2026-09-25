@@ -20,7 +20,7 @@ finito () {
 mkdir -p ${LOGDIR}
 rm -f ${LOG}
 
-go run ${APP} --port=${PORT} --data=${METADATA} >> ${LOG} 2>&1 &
+go run ${APP} --port=${PORT} --data-path=${METADATA} >> ${LOG} 2>&1 &
 
 STATUS="000"
 until [[ $STATUS != 000 ]]; do

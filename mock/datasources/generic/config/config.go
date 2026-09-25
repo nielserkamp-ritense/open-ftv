@@ -1,50 +1,31 @@
 package config
 
 import (
-	"fmt"
-	"log/slog"
-
-	"gitlab.com/gjuyn/go-config/config"
+	"flag"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
 )
 
 type Config struct {
 	config2.ServerApp
-	DataPath string `env:"DATA_PATH" flag:"data" desc:"Base path for data and metadata"`
+	DataPath string
 }
 
-func New(opts ...config.Option) (*Config, *slog.Logger, error) {
+// Load reads the configuration from the command-line args, falling back to GEN_DS_ environment variables.
+func Load(args []string, lookupEnv func(string) (string, bool)) (*Config, error) {
 	cfg := &Config{}
 
-	// put fixed and custom configuration options in the appropriate order.
-	opts = append(
-		append(
-			[]config.Option{
-				config.EnvironmentPrefix(envPrefix),
-				config.AppName(AppName),
-			},
-			opts...,
-		),
-		config.NoHelpOnError(),
-	)
+	fs := flag.NewFlagSet("generic-datasource", flag.ContinueOnError)
+	cfg.Server.RegisterFlags(fs)
+	cfg.Log.RegisterFlags(fs)
+	fs.StringVar(&cfg.DataPath, "data-path", "", "Base path for data and metadata")
 
-	_ = config.LoadConfig(cfg, opts...)
-
-	logger, err := slog2.Init(cfg.Log.Output, cfg.Log.Format, cfg.Log.Level, cfg.Log.Source)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize logger: %w", err)
+	if err := envflag.Parse(fs, args, "GEN_DS_", lookupEnv); err != nil {
+		return nil, err
 	}
 
-	if err = config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
-		return nil, logger, fmt.Errorf("failed to load configuration: %w", err)
-	}
-
-	return cfg, logger, nil
+	return cfg, nil
 }
 
-const (
-	AppName   = "Generic Datasource 0.1"
-	envPrefix = "GEN_DS_"
-)
+const AppName = "Generic Datasource 0.1"

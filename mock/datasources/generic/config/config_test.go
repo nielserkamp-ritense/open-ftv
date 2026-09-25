@@ -5,60 +5,61 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"gitlab.com/gjuyn/go-config/config"
 )
 
-func TestNew(t *testing.T) {
+func TestLoad(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
-		name       string
-		args       []string
-		wantErr    bool
-		wantHost   string
-		wantPort   uint16
-		wantLogFmt string
-		wantLogLvl string
-		wantLogOut string
+		name         string
+		args         []string
+		env          map[string]string
+		wantErr      bool
+		wantHost     string
+		wantPort     uint16
+		wantLogLvl   string
+		wantDataPath string
 	}{
+		{
+			name:       "defaults",
+			wantHost:   "0.0.0.0",
+			wantPort:   8443,
+			wantLogLvl: "info",
+		},
+		{
+			name:         "env and flags",
+			args:         []string{"--port=8080", "--log-level=warn"},
+			env:          map[string]string{"GEN_DS_HOST": "127.0.0.1", "GEN_DS_DATA_PATH": "/tmp/data", "GEN_DS_LOG_LEVEL": "debug"},
+			wantHost:     "127.0.0.1",
+			wantPort:     8080,
+			wantLogLvl:   "warn",
+			wantDataPath: "/tmp/data",
+		},
 		{
 			name:    "bad port",
 			args:    []string{"--port=x"},
 			wantErr: true,
 		},
-		{
-			name:    "bad log file",
-			args:    []string{"--log-output=/this/is/not/a/valid/path.log"},
-			wantErr: true,
-		},
-		{
-			name:       "good args",
-			args:       []string{"--host=127.0.0.1", "--port=8080", "--log-format=text", "--log-level=warn", "--log-output=STDOUT", "--log-source=true"},
-			wantHost:   "127.0.0.1",
-			wantPort:   8080,
-			wantLogFmt: "text",
-			wantLogLvl: "warn",
-			wantLogOut: "STDOUT",
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			c, l, err2 := New(config.WithArgs(tc.args...))
-			if tc.wantErr {
-				require.Error(t, err2)
-				require.Nil(t, c)
-			} else {
-				require.NoError(t, err2)
-				require.NotNil(t, l)
-				require.NotNil(t, c)
+			t.Parallel()
 
-				assert.Equal(t, tc.wantHost, c.Host)
-				assert.Equal(t, tc.wantPort, c.Port)
-				assert.Equal(t, tc.wantLogFmt, c.Log.Format)
-				assert.Equal(t, tc.wantLogLvl, c.Log.Level)
-				assert.Equal(t, tc.wantLogOut, c.Log.Output)
-				assert.True(t, c.Log.Source)
+			c, err := Load(tc.args, func(name string) (string, bool) {
+				value, ok := tc.env[name]
+				return value, ok
+			})
+			if tc.wantErr {
+				require.Error(t, err)
+				return
 			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantHost, c.Host)
+			assert.Equal(t, tc.wantPort, c.Port)
+			assert.Equal(t, tc.wantLogLvl, c.Level)
+			assert.Equal(t, tc.wantDataPath, c.DataPath)
 		})
 	}
 }
