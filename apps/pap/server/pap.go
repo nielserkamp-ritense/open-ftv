@@ -13,8 +13,6 @@ func (s *Services) newPAP() (*pap.PAP, error) {
 		pap.WithMigration(s.cfg.DatabaseURL),
 	}
 
-	_ = s.cfg.FixTags()
-
 	p, err := pap.New(s.ctx, s.logger, opts...)
 	if err != nil {
 		return nil, err

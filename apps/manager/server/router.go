@@ -13,6 +13,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
 	searchPG "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/search/postgresql"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
 )
@@ -76,8 +77,14 @@ func (s *Services) initLanguages(group fiber.Router) {
 }
 
 func (s *Services) initTags(group fiber.Router) {
-	if tags := s.cfg.Tags(); len(tags) > 0 {
-		if err := s.pap.LoadTags(tags); err != nil {
+	// A missing or unreadable tags path is not fatal: whatever was read before the error is still loaded.
+	tags, err := pap.ReadTagFiles(s.cfg.TagsPath)
+	if err != nil {
+		s.logger.Warn("failed to read tags", "path", s.cfg.TagsPath, "error", err.Error())
+	}
+
+	if len(tags) > 0 {
+		if err = s.pap.LoadTags(tags); err != nil {
 			s.logger.Error("failed to load tags", "error", err.Error())
 		} else {
 			s.logger.Info("tags loaded successfully", "count", len(tags))
