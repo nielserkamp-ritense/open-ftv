@@ -87,25 +87,3 @@ cerbos:
 		})
 	}
 }
-
-func TestCerbos_Sanitized(t *testing.T) {
-	t.Parallel()
-
-	t.Run("sanitize cerbos", func(t *testing.T) {
-		c := &Cerbos{
-			Address:      "adres",
-			AdminAddress: "admin",
-			CA:           "ca",
-			User:         "user",
-			Pswd:         "password",
-		}
-
-		s := c.Sanitized()
-
-		assert.Equal(t, "adres", s.Address)
-		assert.Equal(t, "admin", s.AdminAddress)
-		assert.Equal(t, "ca", s.CA)
-		assert.Empty(t, s.User)
-		assert.Empty(t, s.Pswd)
-	})
-}

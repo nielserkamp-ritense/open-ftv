@@ -8,11 +8,3 @@ type Cerbos struct {
 	User         string `json:"-"                       yaml:"cerbos.admin.user,omitempty" env:"CERBOS_USER" flag:"cerbos-user" desc:"User-id for the Cerbos admin interface"`
 	Pswd         string `json:"-"                       yaml:"cerbos.admin.password,omitempty" env:"CERBOS_PSWD" flag:"cerbos-pswd" desc:"Password for the Cerbos admin interface"`
 }
-
-// Sanitized returns the configuration variables where all sensitive data has been scrubbed.
-func (c *Cerbos) Sanitized() *Cerbos {
-	sanitized := *c
-	sanitized.User = ""
-	sanitized.Pswd = ""
-	return &sanitized
-}
