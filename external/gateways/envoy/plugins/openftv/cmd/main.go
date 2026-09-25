@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
@@ -12,7 +15,19 @@ import (
 )
 
 func main() {
-	c, logger := newConfig()
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+
+	c, err := loadConfig(os.Args[1:], os.LookupEnv)
+	if errors.Is(err, flag.ErrHelp) {
+		return
+	}
+
+	if err != nil {
+		logger.Error("failed to load configuration", "error", err)
+		os.Exit(1)
+	}
+
+	logger.Info("configuration loaded", "config", c)
 
 	address := fmt.Sprintf("%s:%d", c.Host, c.Port)
 

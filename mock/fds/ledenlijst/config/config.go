@@ -1,60 +1,51 @@
 package config
 
 import (
-	"fmt"
-	"log/slog"
+	"flag"
 	"time"
 
-	"gitlab.com/gjuyn/go-config/config"
+	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
+)
 
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+const (
+	defaultPort        = 8090
+	defaultTimeout     = 30 * time.Second
+	defaultIdleTimeout = 300 * time.Second
 )
 
 type Config struct {
-	Host         string        `env:"ADDRESS,HOST" flag:"address,a" default:"0.0.0.0" desc:"Address to use for service"`
-	Port         uint16        `env:"PORT" flag:"port,p" default:"8090" desc:"Port to use for https service"`
-	CA           string        `env:"TLS_CA" flag:"tls-ca,ca" desc:"TLS Certificate authority to use for https service"`
-	Cert         string        `env:"TLS_CERT" flag:"tls-cert,cert" desc:"TLS certificate to use for https service"`
-	Key          string        `env:"TLS_KEY" flag:"tls-key,key" desc:"TLS key authority to use for https service"`
-	ReadTimeout  time.Duration `env:"READ_TIMEOUT" flag:"read-timeout" default:"30s" desc:"ReadEntity timeout for API requests"`
-	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" flag:"write-timeout" default:"30s" desc:"Write timeout for API requests"`
-	IdleTimeout  time.Duration `env:"IDLE_TIMEOUT" flag:"idle-timeout" default:"300s" desc:"Idle timeout for API requests"`
-	LogOutput    string        `env:"LOG_OUTPUT" flag:"log-output" default:"stdout" desc:"File for writing log data"`
-	LogFormat    string        `env:"LOG_FORMAT" flag:"log-format" default:"json" desc:"Format to use when writing log data (json, text)"`
-	LogLevel     string        `env:"LOG_LEVEL" flag:"log-level" default:"info" desc:"Level for writing log data (debug, info, warn, error)"`
-	LogSource    bool          `env:"LOG_SOURCE" flag:"log-source" default:"true" desc:"Include source-location when writing log data"`
+	Host         string
+	Port         uint16
+	CA           string
+	Cert         string
+	Key          string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
+	Log          config2.Log
 }
 
-func New(opts ...config.Option) (*Config, *slog.Logger, error) {
+// Load reads the configuration from the command-line args, falling back to FDS_LEDENLIJST_ environment variables.
+func Load(args []string, lookupEnv func(string) (string, bool)) (*Config, error) {
 	cfg := &Config{}
 
-	// put fixed and custom configuration options in appropriate order.
-	opts = append(
-		append(
-			[]config.Option{
-				config.EnvironmentPrefix(envPrefix),
-				config.AppName(AppName),
-			},
-			opts...,
-		),
-		config.NoHelpOnError(),
-	)
+	fs := flag.NewFlagSet("ledenlijst", flag.ContinueOnError)
+	fs.StringVar(&cfg.Host, "host", "0.0.0.0", "Address to use for service")
+	envflag.Uint16Var(fs, &cfg.Port, "port", defaultPort, "Port to use for https service")
+	fs.StringVar(&cfg.CA, "tls-ca", "", "TLS Certificate authority to use for https service")
+	fs.StringVar(&cfg.Cert, "tls-cert", "", "TLS certificate to use for https service")
+	fs.StringVar(&cfg.Key, "tls-key", "", "TLS key authority to use for https service")
+	fs.DurationVar(&cfg.ReadTimeout, "read-timeout", defaultTimeout, "Read timeout for API requests")
+	fs.DurationVar(&cfg.WriteTimeout, "write-timeout", defaultTimeout, "Write timeout for API requests")
+	fs.DurationVar(&cfg.IdleTimeout, "idle-timeout", defaultIdleTimeout, "Idle timeout for API requests")
+	cfg.Log.RegisterFlags(fs)
 
-	_ = config.LoadConfig(cfg, opts...)
-
-	logger, err := slog2.Init(cfg.LogOutput, cfg.LogFormat, cfg.LogLevel, cfg.LogSource)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize logger: %w", err)
+	if err := envflag.Parse(fs, args, "FDS_LEDENLIJST_", lookupEnv); err != nil {
+		return nil, err
 	}
 
-	if err = config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
-		return nil, logger, fmt.Errorf("failed to load configuration: %w", err)
-	}
-
-	return cfg, logger, nil
+	return cfg, nil
 }
 
-const (
-	AppName   = "FDS Ledenlijst 0.1"
-	envPrefix = "FDS_LEDENLIJST_"
-)
+const AppName = "FDS Ledenlijst 0.1"

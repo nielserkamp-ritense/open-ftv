@@ -1,36 +1,36 @@
 package main
 
 import (
-	"log/slog"
-	"os"
+	"flag"
 	"time"
 
-	"gitlab.com/gjuyn/go-config/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
+)
+
+const (
+	defaultPort       = 3001
+	defaultPDPTimeout = 5 * time.Second
 )
 
 type cfg struct {
-	Host    string        `env:"ADDRESS,HOST" flag:"address,host,a,h" desc:"Address to use for service (default 0.0.0.0)"                              default:"0.0.0.0"`
-	Port    uint16        `env:"PORT"         flag:"port,p"           desc:"Port to use for service (default 3001 )"                                   default:"3001"`
-	PDP     string        `env:"PDP_ADDRESS"  flag:"pdp_address"      desc:"Address of the PDP (default https://localhost:8443/authzen/v1/evaluation)" default:"https://localhost:8443/authzen/v1/evaluation"`
-	Timeout time.Duration `env:"PDP_TIMEOUT"  flag:"pdp_timeout"      desc:"Timeout for accessing the PDP (default 5 seconds)"                         default:"5s"`
+	Host    string
+	Port    uint16
+	PDP     string
+	Timeout time.Duration
 }
 
-func newConfig() (*cfg, *slog.Logger) {
+func loadConfig(args []string, lookupEnv func(string) (string, bool)) (*cfg, error) {
 	c := &cfg{}
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 
-	opts := []config.Option{
-		config.EnvironmentPrefix("ENVOY_AUTHZEN_"),
-		config.AppName("Envoy AuthZEN plugin 1.0"),
-		config.NoHelpOnError(),
+	fs := flag.NewFlagSet("openftv", flag.ContinueOnError)
+	fs.StringVar(&c.Host, "host", "0.0.0.0", "Address to use for service")
+	envflag.Uint16Var(fs, &c.Port, "port", defaultPort, "Port to use for service")
+	fs.StringVar(&c.PDP, "pdp-address", "https://localhost:8443/authzen/v1/evaluation", "Address of the PDP")
+	fs.DurationVar(&c.Timeout, "pdp-timeout", defaultPDPTimeout, "Timeout for accessing the PDP")
+
+	if err := envflag.Parse(fs, args, "ENVOY_AUTHZEN_", lookupEnv); err != nil {
+		return nil, err
 	}
 
-	if err := config.LoadConfig(c, opts...); err != nil {
-		logger.Error("failed to load configuration", "error", err)
-		panic("service halted")
-	}
-
-	logger.Info("configuration loaded", "config", c)
-
-	return c, logger
+	return c, nil
 }
