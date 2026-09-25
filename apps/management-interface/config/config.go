@@ -1,21 +1,18 @@
 package config
 
 import (
-	"log/slog"
+	"flag"
 	"os"
 	"time"
 
-	"gitlab.com/gjuyn/go-config/config"
-
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
 )
 
 var (
 	GitHash = "unknown"
 	GitTag  = "unknown"
 )
-
-const envPrefix = "MANAGEMENT_INTERFACE_"
 
 // runtimeEnvNames are the environment variables the browser app reads from window.__ENV__.
 // They keep their names without the service prefix, so deployments of the former nginx image keep working.
@@ -28,45 +25,57 @@ var runtimeEnvNames = []string{
 	"VITE_APP_VERSION",
 }
 
+const (
+	defaultPort        = 8080
+	defaultHealthPort  = 8081
+	defaultTimeout     = 30 * time.Second
+	defaultIdleTimeout = 300 * time.Second
+)
+
 // Config represents our configuration variables.
 //
 // The ports differ from the shared server configuration: the interface listens on 8080 like the former nginx image,
 // so the health service moves to 8081.
 type Config struct {
-	config2.Log
-	Host         string        `env:"ADDRESS,HOST"  flag:"address,host,a,h" desc:"Address to use for service (default 0.0.0.0)"          default:"0.0.0.0"`
-	Port         uint16        `env:"PORT"          flag:"port,p"           desc:"Port to use for service (default 8080)"                default:"8080"`
-	ReadTimeout  time.Duration `env:"READ_TIMEOUT"  flag:"read-timeout"     desc:"Read timeout for requests (default 30s)"               default:"30s"`
-	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" flag:"write-timeout"    desc:"Write timeout for requests (default 30s)"              default:"30s"`
-	IdleTimeout  time.Duration `env:"IDLE_TIMEOUT"  flag:"idle-timeout"     desc:"Idle timeout for requests (default 300s)"              default:"300s"`
-	HealthHost   string        `env:"HEALTH_HOST"   flag:"health-host"      desc:"Address to use for health service (default main host)"`
-	HealthPort   uint16        `env:"HEALTH_PORT"   flag:"health-port"      desc:"Port to use for health service (default 8081)"         default:"8081"`
-	HealthRead   time.Duration `env:"HEALTH_READ"   flag:"health-read"      desc:"Read timeout for health service (default 30s)"         default:"30s"`
-	HealthWrite  time.Duration `env:"HEALTH_WRITE"  flag:"health-write"     desc:"Write timeout for health service (default 30s)"        default:"30s"`
-	HealthIdle   time.Duration `env:"HEALTH_IDLE"   flag:"health-idle"      desc:"Idle timeout for health service (default 300s)"        default:"300s"`
+	Log          config2.Log
+	Host         string
+	Port         uint16
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
+	HealthHost   string
+	HealthPort   uint16
+	HealthRead   time.Duration
+	HealthWrite  time.Duration
+	HealthIdle   time.Duration
 }
 
-// New instantiates a new configuration from environment variables and command-line flags.
-func New(opts ...config.Option) (*Config, *slog.Logger) {
+// Load reads the configuration from the command-line args, falling back to MANAGEMENT_INTERFACE_ environment variables.
+func Load(args []string, lookupEnv func(string) (string, bool)) (*Config, error) {
 	cfg := &Config{}
 
-	opts = append(
-		append(
-			[]config.Option{
-				config.EnvironmentPrefix(envPrefix),
-			},
-			opts...,
-		),
-		config.NoHelpOnError(),
-	)
+	fs := flag.NewFlagSet("management-interface", flag.ContinueOnError)
+	cfg.Log.RegisterFlags(fs)
+	fs.StringVar(&cfg.Host, "host", "0.0.0.0", "Address to use for service")
+	envflag.Uint16Var(fs, &cfg.Port, "port", defaultPort, "Port to use for service")
+	fs.DurationVar(&cfg.ReadTimeout, "read-timeout", defaultTimeout, "Read timeout for requests")
+	fs.DurationVar(&cfg.WriteTimeout, "write-timeout", defaultTimeout, "Write timeout for requests")
+	fs.DurationVar(&cfg.IdleTimeout, "idle-timeout", defaultIdleTimeout, "Idle timeout for requests")
+	fs.StringVar(&cfg.HealthHost, "health-host", "", "Address to use for health service (default main host)")
+	envflag.Uint16Var(fs, &cfg.HealthPort, "health-port", defaultHealthPort, "Port to use for health service")
+	fs.DurationVar(&cfg.HealthRead, "health-read", defaultTimeout, "Read timeout for health service")
+	fs.DurationVar(&cfg.HealthWrite, "health-write", defaultTimeout, "Write timeout for health service")
+	fs.DurationVar(&cfg.HealthIdle, "health-idle", defaultIdleTimeout, "Idle timeout for health service")
 
-	logger := config2.Load(cfg, &cfg.Log, opts...)
+	if err := envflag.Parse(fs, args, "MANAGEMENT_INTERFACE_", lookupEnv); err != nil {
+		return nil, err
+	}
 
 	if cfg.HealthHost == "" {
 		cfg.HealthHost = cfg.Host
 	}
 
-	return cfg, logger
+	return cfg, nil
 }
 
 func RuntimeEnv() map[string]string {
@@ -76,8 +85,4 @@ func RuntimeEnv() map[string]string {
 	}
 
 	return env
-}
-
-func (c *Config) LogSanitized(logger *slog.Logger) {
-	logger.Info("git version", "hash", GitHash, "tag", GitTag)
 }
