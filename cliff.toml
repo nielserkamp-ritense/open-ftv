@@ -4,6 +4,9 @@ body = """
 ### {{ group | striptags | trim }}
 {% for commit in commits %}
 - {% if commit.breaking %}**Breaking:** {% endif %}{{ commit.message | trim | upper_first }}\
+{% if commit.breaking_description and commit.breaking_description != commit.message %}
+  {{ commit.breaking_description | trim | replace(from="\n", to=" ") }}\
+{% endif %}\
 {% endfor %}
 {% endfor %}
 """
