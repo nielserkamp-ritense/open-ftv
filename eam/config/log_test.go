@@ -1,10 +1,7 @@
 package config
 
 import (
-	"os"
 	"testing"
-
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,27 +11,8 @@ import (
 func TestLog(t *testing.T) {
 	t.Parallel()
 
-	const badSource = `
-log:
-  output: "STDOUT"
-  format: "json"
-  level: "debug"
-  source: "x"
-`
-
-	const goodCfg = `
-log:
-  output: "/logs/mylog.txt"
-  format: "TEXT"
-  level: "info"
-  source: true
-`
-	dir := t.TempDir()
-
 	testCases := []struct {
 		name       string
-		file       string
-		data       string
 		args       []string
 		wantErr    bool
 		wantOutput string
@@ -43,24 +21,13 @@ log:
 		wantSource bool
 	}{
 		{
-			name:    "bad input",
-			file:    "log1.yaml",
-			data:    "%not yaml%",
+			name:    "bad source",
+			args:    []string{"--log-source=x"},
 			wantErr: true,
 		},
 		{
-			name:       "bad source",
-			file:       "log2.yaml",
-			data:       badSource,
-			wantOutput: "STDOUT",
-			wantFormat: "json",
-			wantLevel:  "debug",
-			wantSource: false,
-		},
-		{
-			name:       "good file",
-			file:       "log3.yaml",
-			data:       goodCfg,
+			name:       "good args",
+			args:       []string{"--log-output=/logs/mylog.txt", "--log-format=TEXT", "--log-level=info", "--log-source=true"},
 			wantOutput: "/logs/mylog.txt",
 			wantFormat: "TEXT",
 			wantLevel:  "info",
@@ -72,20 +39,16 @@ log:
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0644)
-
 			cfg := &Log{}
 
 			opts := []config.Option{
-				yaml.FilesYAML(file),
 				config.WithArgs(tc.args...),
 				config.EnvironmentPrefix("CFG_"),
 				config.AppName("test 1.0"),
 				config.NoHelpOnError(),
 			}
 
-			err = config.LoadConfig(cfg, opts...)
+			err := config.LoadConfig(cfg, opts...)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

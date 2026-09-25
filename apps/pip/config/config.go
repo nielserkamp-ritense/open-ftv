@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
@@ -17,14 +16,9 @@ var (
 	GitTag  = "unknown"
 )
 
-const (
-	envPrefix = "PIP_"
-	cfg1      = "/etc/pip/default.conf"
-	cfg2      = "./etc/pip.yaml"
-	cfg3      = "./pip.yaml"
-)
+const envPrefix = "PIP_"
 
-// New instantiates a new configuration from one or more files, environment variables and command-line flags.
+// New instantiates a new configuration from environment variables and command-line flags.
 func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
@@ -33,7 +27,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	opts = append(
 		append(
 			[]config.Option{
-				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
 			},
 			opts...,
@@ -64,5 +57,5 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
-	DatabaseURL string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the database holding the attributes, entities and relations"`
+	DatabaseURL string `env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the database holding the attributes, entities and relations"`
 }

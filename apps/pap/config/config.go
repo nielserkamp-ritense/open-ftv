@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
@@ -17,15 +16,9 @@ var (
 	GitTag  = "unknown"
 )
 
-const (
-	envPrefix = "PAP_"
-	cfg1      = "/etc/pap/default.conf"
-	cfg2      = "./etc/pap.yaml"
-	cfg3      = "./pap.yaml"
-)
+const envPrefix = "PAP_"
 
-// New instantiates a new configuration from one or more config files,
-// environment variables and/or command-line flags.
+// New instantiates a new configuration from environment variables and/or command-line flags.
 func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
@@ -34,7 +27,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	opts = append(
 		append(
 			[]config.Option{
-				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
 			},
 			opts...,
@@ -71,5 +63,5 @@ type Config struct {
 	config2.Authentication
 	config2.Authorization
 	config2.Bundle
-	DatabaseURL string `json:"-" yaml:"database.url,omitempty" env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI"`
+	DatabaseURL string `env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI"`
 }

@@ -16,7 +16,7 @@ type Printer interface {
 	LogSanitized(logger *slog.Logger)
 }
 
-// Load initializes the given configuration from defaults, config files, the environment and the command-line options.
+// Load initializes the given configuration from defaults, the environment and the command-line options.
 //
 // The given configuration parameter must be a pointer to a struct, and log must point to the Log settings inside it:
 // the returned logger is configured according to those settings.

@@ -1,44 +1,18 @@
 package config
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 )
 
-var goodCfg = `
-svc:
-  host: "127.0.0.1"
-  port: 8080
-log:
-  format: "text"
-  level: "warn"
-  output: "STDOUT"
-  source: true
-`
-
-var badLogger = `
-svc:
-  host: "127.0.0.1"
-  port: 8080
-log:
-  format: "json"
-  level: "debug"
-  output: "/this/is/not/a/valid/path.log"
-`
-
 func TestNew(t *testing.T) {
-	dir := t.TempDir()
-
 	testCases := []struct {
 		name       string
-		file       string
-		data       string
+		args       []string
 		wantErr    bool
 		wantHost   string
 		wantPort   uint16
@@ -47,21 +21,18 @@ func TestNew(t *testing.T) {
 		wantLogOut string
 	}{
 		{
-			name:    "bad input",
-			file:    "cfg1.yaml",
-			data:    "%not yaml%",
+			name:    "bad port",
+			args:    []string{"--port=x"},
 			wantErr: true,
 		},
 		{
 			name:    "bad log file",
-			file:    "cfg2.yaml",
-			data:    badLogger,
+			args:    []string{"--log-output=/this/is/not/a/valid/path.log"},
 			wantErr: true,
 		},
 		{
-			name:       "good file",
-			file:       "cfg3.yaml",
-			data:       goodCfg,
+			name:       "good args",
+			args:       []string{"--host=127.0.0.1", "--port=8080", "--log-format=text", "--log-level=warn", "--log-output=STDOUT", "--log-source=true"},
 			wantHost:   "127.0.0.1",
 			wantPort:   8080,
 			wantLogFmt: "text",
@@ -72,11 +43,7 @@ func TestNew(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0644)
-			require.NoError(t, err)
-
-			c, l, err2 := New(config.NoFlags(), yaml.FilesYAML(file))
+			c, l, err2 := New(config.WithArgs(tc.args...))
 			if tc.wantErr {
 				require.Error(t, err2)
 				require.Nil(t, c)

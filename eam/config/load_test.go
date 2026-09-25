@@ -2,13 +2,11 @@ package config
 
 import (
 	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 )
 
 type TestConfig struct {
@@ -23,32 +21,9 @@ func (c *TestConfig) LogSanitized(logger *slog.Logger) {
 func TestLoad(t *testing.T) {
 	t.Parallel()
 
-	var goodCfg = `
-svc:
-  host: "127.0.0.1"
-  port: 8080
-log:
-  format: "text"
-  level: "info"
-  output: "STDOUT"
-  source: true
-`
-
-	var badLogger = `
-svc:
-  host: "127.0.0.1"
-  port: 8080
-log:
-  format: "json"
-  level: "debug"
-  output: "/this/is/not/a/valid/path.log"
-`
-	dir := t.TempDir()
-
 	testCases := []struct {
 		name       string
-		file       string
-		data       string
+		args       []string
 		wantErr    bool
 		wantHost   string
 		wantPort   uint16
@@ -57,21 +32,18 @@ log:
 		wantLogOut string
 	}{
 		{
-			name:    "bad input",
-			file:    "load1.yaml",
-			data:    "%not yaml%",
+			name:    "bad port",
+			args:    []string{"--port=x"},
 			wantErr: true,
 		},
 		{
 			name:    "bad log file",
-			file:    "load2.yaml",
-			data:    badLogger,
+			args:    []string{"--log-output=/this/is/not/a/valid/path.log"},
 			wantErr: true,
 		},
 		{
-			name:       "good file",
-			file:       "load3.yaml",
-			data:       goodCfg,
+			name:       "good args",
+			args:       []string{"--host=127.0.0.1", "--port=8080", "--log-format=text", "--log-level=info", "--log-output=STDOUT", "--log-source=true"},
 			wantHost:   "127.0.0.1",
 			wantPort:   8080,
 			wantLogFmt: "text",
@@ -84,10 +56,6 @@ log:
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0644)
-			require.NoError(t, err)
-
 			defer func() {
 				e := recover()
 				if tc.wantErr {
@@ -99,7 +67,7 @@ log:
 
 			cfg := TestConfig{}
 
-			l := Load(&cfg, &cfg.Log, config.NoFlags(), yaml.FilesYAML(file))
+			l := Load(&cfg, &cfg.Log, config.WithArgs(tc.args...))
 			if tc.wantErr {
 				require.True(t, false) // cannot happen
 			}

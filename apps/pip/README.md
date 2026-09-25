@@ -25,89 +25,14 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 The service supports various configuration options.
 
 Options are read and processed in the following order:
-1. Configuration files.
-2. Environment variables.
-3. Command-line flags.
+1. Environment variables.
+2. Command-line flags.
 
 In case configuration options are defined in multiple places, only the last value will be retained and used.
-
-The service searches for one or more configuration files with **YAML** encoding in the following locations:
-- */etc/pip/default.conf*
-- *./etc/pip.yaml* (relative to the running binary)
-- *./pip.yaml* (relative to the running binary)
-
-### Configuration file (YAML)
-
-The following is an example of a configuration file containing all possible options:
-```yaml
----
-svc:   # options for the main API endpoints.
-  host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8443).
-  tls:
-    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
-    cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
-    key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
-  timeout:
-    read: "<duration>"          # the read timeout for API requests (default "30s").
-    write: "<duration>"         # the read timeout for API requests (default "30s").
-    idle: "<duration>"          # the read timeout for API requests (default "300s").
-  cors:
-    origins: "<origins>"        # CORS origins (default "*").
-    headers: "<headers>"        # CORS headers (default "*").
-
-health:   # options for the liveness & readiness API endpoints.
-  host: "<address>"             # Address the service should listen on (default 'main' address).
-  port: <port>                  # Port the service should listen on (default 8080).
-  timeout:
-    read: "<duration>"          # The read timeout for API requests (default "30s").
-    write: "<duration>"         # The read timeout for API requests (default "30s").
-    idle: "<duration>"          # The read timeout for API requests (default "300s").
-  cors:
-    origins: "<origins>"        # CORS origins (default "*").
-    headers: "<headers>"        # CORS headers (default "*").
-
-log:   # options for the application-log.
-  output: "<destination>"       # File or standard stream for writing the log (default "stdout").
-  format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
-  level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
-  source: true|false            # Flag to record the source location of the message in the log (default true).
-
-database:   # this is where the PIP stores attributes, entities and relations; see the section "About the database" below.
-  url: "<url>"                  # URL of the Postgres database (required, no default).
-
-authentication:   # options used during the authentication stage of a user interface request.
-  type: "<type>"                # Type of authentication to perform on users (default "bcrypt").
-
-authorization:   # options used during the authorization stage of a user interface request.
-  authenticate: true|false      # Flag to force authentication of the user before performing authorization (default false).
-
-policies:   # policies used for authorizing user interface requests.
-  language: "<language>"        # Default policy language for policies; supported are "OPA", "CEDAR", "CERBOS" & "OPENFGA" (default "CEDAR").
-  store:
-    path: "<folder>"            # Location on disk where static policy files can be found (no default).
-    recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for policy files (default false).
-
-pip:   # attributes used for authorizing user interface requests.
-  store:
-    path: "<folder>"         # Location on disk where static attribute files can be found (no default).
-    recurse: true|false         # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
-  pull:   # see the section "Pull configurations" below for more information.
-    configPath: "<file>"        # Location on disk where a "pull configuration" file can be found (no default).
-
-cerbos:   # options for connecting with a cerbos PDP (sidecar) for authorizing a user interface request.
-  address: "<address>"          # Address of the Cerbos API.
-  ca: "<file>"                  # CA certificate to use with the Cerbos APIs.
-  admin:
-    address: "<address>"        # Address of the Cerbos admin API.
-    user: "<user>"              # User-id to authenticate with the Cerbos admin API.
-    password: "<user>"          # User-id to authenticate with the Cerbos admin API.
-```
 
 ### Environment variables
 
 The following is an exhaustive list of all possible environment variables the service will understand.
-These match the corresponding options in a configuration file.
 
 ```text
 # options for the main API endpoints.
@@ -167,7 +92,6 @@ PIP_CERBOS_CA=<file>                        # CA certificate to use with the Cer
 ### Command-line flags
 
 The following is an exhaustive list of all possible command-line flags the service will understand.
-These match the corresponding options in a configuration file.
 
 ```text
 # options for the main API endpoints.

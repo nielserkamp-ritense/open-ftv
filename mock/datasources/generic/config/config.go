@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -13,7 +12,7 @@ import (
 
 type Config struct {
 	config2.ServerApp
-	DataPath string `yaml:"data.path,omitempty" env:"DATA_PATH" flag:"data" desc:"Base path for data and metadata"`
+	DataPath string `env:"DATA_PATH" flag:"data" desc:"Base path for data and metadata"`
 }
 
 func New(opts ...config.Option) (*Config, *slog.Logger, error) {
@@ -23,7 +22,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger, error) {
 	opts = append(
 		append(
 			[]config.Option{
-				yaml.FilesYAML(files...),
 				config.EnvironmentPrefix(envPrefix),
 				config.AppName(AppName),
 			},
@@ -49,9 +47,4 @@ func New(opts ...config.Option) (*Config, *slog.Logger, error) {
 const (
 	AppName   = "Generic Datasource 0.1"
 	envPrefix = "GEN_DS_"
-	cfg1      = "/etc/gen-ds/default.conf"
-	cfg2      = "./etc/gen-ds.yaml"
-	cfg3      = "./gen-ds.yaml"
 )
-
-var files = []string{cfg1, cfg2, cfg3}

@@ -1,10 +1,7 @@
 package config
 
 import (
-	"os"
 	"testing"
-
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,27 +11,8 @@ import (
 func TestPAP(t *testing.T) {
 	t.Parallel()
 
-	const badRecurse = `
-policies:
-  language: "cedar"
-  store: 
-    path: "/etc/cedar"
-    recurse: "x"
-`
-
-	const goodCfg = `
-policies:
-  language: "REGO"
-  store:
-    path: "/etc/opa"
-    recurse: true
-`
-	dir := t.TempDir()
-
 	testCases := []struct {
 		name         string
-		file         string
-		data         string
 		args         []string
 		wantErr      bool
 		wantLanguage string
@@ -42,23 +20,13 @@ policies:
 		wantRecurse  bool
 	}{
 		{
-			name:    "bad input",
-			file:    "pap1.yaml",
-			data:    "%not yaml%",
+			name:    "bad recurse",
+			args:    []string{"--policies-store-recurse=x"},
 			wantErr: true,
 		},
 		{
-			name:         "bad recurse",
-			file:         "pap2.yaml",
-			data:         badRecurse,
-			wantLanguage: "cedar",
-			wantStore:    "/etc/cedar",
-			wantRecurse:  false,
-		},
-		{
-			name:         "good file",
-			file:         "pap3.yaml",
-			data:         goodCfg,
+			name:         "good args",
+			args:         []string{"--policies-language=REGO", "--policies-store=/etc/opa", "--policies-store-recurse=true"},
 			wantLanguage: "REGO",
 			wantStore:    "/etc/opa",
 			wantRecurse:  true,
@@ -69,20 +37,16 @@ policies:
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0644)
-
 			cfg := &PAP{}
 
 			opts := []config.Option{
-				yaml.FilesYAML(file),
 				config.WithArgs(tc.args...),
 				config.EnvironmentPrefix("CFG_"),
 				config.AppName("test 1.0"),
 				config.NoHelpOnError(),
 			}
 
-			err = config.LoadConfig(cfg, opts...)
+			err := config.LoadConfig(cfg, opts...)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

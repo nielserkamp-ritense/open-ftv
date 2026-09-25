@@ -75,51 +75,14 @@ The Gitlab CI/CD is set up to automatically create docker images in the
 The service supports various configuration options.
 
 Options are read and processed in the following order:
-1. Configuration files.
-2. Environment variables.
-3. Command-line flags.
+1. Environment variables.
+2. Command-line flags.
 
 In case configuration options are defined in multiple places, only the last value will be retained and used.
-
-The service searches for one or more configuration files with **YAML** encoding in the following locations:
-- */etc/gen-ds/default.conf*
-- *./etc/gen-ds.yaml* (relative to the running binary)
-- *./gen-ds.yaml* (relative to the running binary)
-
-### Configuration file (YAML)
-
-The following is an example of a configuration file containing all possible options:
-```yaml
----
-svc:   # options for the API endpoint server.
-  host: "<address>"             # address the service should listen on (default "0.0.0.0"; all host addresses).
-  port: <port>                  # port the service should listen on (default 8443).
-  tls:
-    ca: "<certificate-file>"    # CA certificate to use with the service; turns on https support (no default).
-    cert: "<certificate-file>"  # TLS certificate to use with the service; turns on https support (no default).
-    key: "<key-file>"           # TLS private key to use with the service; turns on https support (no default).
-  timeout:
-    read: "<duration>"          # the read timeout for API requests (default "30s").
-    write: "<duration>"         # the read timeout for API requests (default "30s").
-    idle: "<duration>"          # the read timeout for API requests (default "300s").
-  cors:
-    origins: "<origins>"        # CORS origins (default "*").
-    headers: "<headers>"        # CORS headers (default "*").
-
-log:   # options for the application-log.
-  output: "<destination>"       # File or standard stream for writing the log (default "stdout").
-  format: "<encoding>"          # Type of encoding for the log; supported are "text" and "json" (default "json").
-  level: "<verbosity>"          # Verbosity level of the log; supported are "debug", "info", "warn" and "error" (default "info").
-  source: true|false            # Flag to record the source location of the message in the log (default true).
-
-data: # options for schema and table data.
-  path: "<path>"                # Directory where the database-schema and table-data files can be found.
-```
 
 ### Environment variables
 
 The following is an exhaustive list of all possible environment variables the service will understand.
-These match the corresponding options in a configuration file.
 
 ```text
 # options for the API endpoint server.
@@ -147,7 +110,6 @@ GEN_DS_DATA_PATH=<path>                        # Directory where the database-sc
 ### Command-line flags
 
 The following is an exhaustive list of all possible command-line flags the service will understand.
-These match the corresponding options in a configuration file.
 
 ```text
 # options for the API endpoint server.

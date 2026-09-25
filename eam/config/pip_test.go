@@ -1,10 +1,7 @@
 package config
 
 import (
-	"os"
 	"testing"
-
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,29 +11,8 @@ import (
 func TestPIP(t *testing.T) {
 	t.Parallel()
 
-	const badRecurse = `
-pip:
-  store: 
-    path: "/etc/pip"
-    recurse: "x"
-  pull:
-    configPath: "/etc/pip/pull"
-`
-
-	const goodCfg = `
-pip:
-  store:
-    path: "/etc/pip"
-    recurse: true
-  pull:
-    configPath: "/etc/pip/pull"
-`
-	dir := t.TempDir()
-
 	testCases := []struct {
 		name        string
-		file        string
-		data        string
 		args        []string
 		wantErr     bool
 		wantStore   string
@@ -44,23 +20,13 @@ pip:
 		wantPullCfg string
 	}{
 		{
-			name:    "bad input",
-			file:    "pap1.yaml",
-			data:    "%not yaml%",
+			name:    "bad recurse",
+			args:    []string{"--pip-store-recurse=x"},
 			wantErr: true,
 		},
 		{
-			name:        "bad recurse",
-			file:        "pap2.yaml",
-			data:        badRecurse,
-			wantStore:   "/etc/pip",
-			wantRecurse: false,
-			wantPullCfg: "/etc/pip/pull",
-		},
-		{
-			name:        "good file",
-			file:        "pap3.yaml",
-			data:        goodCfg,
+			name:        "good args",
+			args:        []string{"--pip-store=/etc/pip", "--pip-store-recurse=true", "--pip-pull-configs=/etc/pip/pull"},
 			wantStore:   "/etc/pip",
 			wantRecurse: true,
 			wantPullCfg: "/etc/pip/pull",
@@ -71,21 +37,16 @@ pip:
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			file := dir + tc.file
-			err := os.WriteFile(file, []byte(tc.data), 0o600)
-			require.NoError(t, err)
-
 			cfg := &PIP{}
 
 			opts := []config.Option{
-				yaml.FilesYAML(file),
 				config.WithArgs(tc.args...),
 				config.EnvironmentPrefix("CFG_"),
 				config.AppName("test 1.0"),
 				config.NoHelpOnError(),
 			}
 
-			err = config.LoadConfig(cfg, opts...)
+			err := config.LoadConfig(cfg, opts...)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

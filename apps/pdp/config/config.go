@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"gitlab.com/gjuyn/go-config/config"
-	"gitlab.com/gjuyn/go-config/config-ext/yaml"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
@@ -17,14 +16,9 @@ var (
 	GitTag  = "unknown"
 )
 
-const (
-	envPrefix = "PDP_"
-	cfg1      = "/etc/pdp/config.yaml"
-	cfg2      = "./etc/pdp.yaml"
-	cfg3      = "./pdp.yaml"
-)
+const envPrefix = "PDP_"
 
-// New instantiates a new configuration from one or more files, environment variables and command-line flags.
+// New instantiates a new configuration from environment variables and command-line flags.
 func New(opts ...config.Option) (*Config, *slog.Logger) {
 	cfg := &Config{}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
@@ -33,7 +27,6 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 	opts = append(
 		append(
 			[]config.Option{
-				yaml.FilesYAML(cfg1, cfg2, cfg3),
 				config.EnvironmentPrefix(envPrefix),
 			},
 			opts...,
@@ -70,6 +63,6 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
-	ADLService     string `json:"adlService,omitempty" yaml:"log.decisions.service,omitempty"        env:"ADL_SERVICE_NAME" flag:"adl-service" desc:"Name of this service in the Authorization Decision Log"`
-	ADLDatabaseURL string `json:"-"                    yaml:"log.decisions.postgresql.url,omitempty" env:"ADL_PG_URL"       flag:"adl-pg-url"  desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
+	ADLService     string `env:"ADL_SERVICE_NAME" flag:"adl-service" desc:"Name of this service in the Authorization Decision Log"`
+	ADLDatabaseURL string `env:"ADL_PG_URL"       flag:"adl-pg-url"  desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
 }
