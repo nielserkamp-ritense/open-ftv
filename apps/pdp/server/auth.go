@@ -80,7 +80,7 @@ func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller,
 		return nil, err
 	}
 
-	return selfauthz.BuildController(s.ctx, s.logger, s.l, ip, &cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}).
+	return selfauthz.BuildController(s.ctx, s.logger, s.l, ip, (*cerbos_api.Config)(&s.cfg.Cerbos)).
 		WithBundledPAP(s.cfg.PAP.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse).
 		WithOptions(pdp.WithADL(decisionLog)).
 		Build()

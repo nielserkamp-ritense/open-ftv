@@ -53,8 +53,8 @@ func TestCerbos(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tc.wantAddress, cfg.Address)
-				assert.Equal(t, tc.wantAdmin, cfg.AdminAddress)
+				assert.Equal(t, tc.wantAddress, cfg.Addr1)
+				assert.Equal(t, tc.wantAdmin, cfg.Addr2)
 				assert.Equal(t, tc.wantCA, cfg.CA)
 				assert.Equal(t, tc.wantUser, cfg.User)
 				assert.Equal(t, tc.wantPswd, cfg.Pswd)
