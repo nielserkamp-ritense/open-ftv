@@ -87,10 +87,9 @@ func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 		return nil, nil, err
 	}
 
-	controller, err := selfauthz.BuildController(s.ctx, s.logger, s.l, ip, (*cerbos_api.Config)(&s.cfg.Cerbos)).
-		WithPAP(s.pap).
-		WithOptions(pdp.WithPEP(pep.New(s.ctx, s.logger, pepOpts...))).
-		Build()
+	controller, err := selfauthz.NewController(
+		s.ctx, s.logger, s.l, ip, s.pap, (*cerbos_api.Config)(&s.cfg.Cerbos), pdp.WithPEP(pep.New(s.ctx, s.logger, pepOpts...)),
+	)
 
 	return controller, ip, err
 }

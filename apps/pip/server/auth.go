@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
@@ -52,9 +53,12 @@ func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 		return nil, nil, err
 	}
 
-	controller, err := selfauthz.BuildController(s.ctx, s.logger, s.l, ip, (*cerbos_api.Config)(&s.cfg.Cerbos)).
-		WithBundledPAP(s.cfg.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse).
-		Build()
+	ap, err := pap.NewSelfAuthz(s.ctx, s.logger, s.cfg.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	controller, err := selfauthz.NewController(s.ctx, s.logger, s.l, ip, ap, (*cerbos_api.Config)(&s.cfg.Cerbos))
 
 	return controller, ip, err
 }

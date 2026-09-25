@@ -12,6 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
@@ -80,10 +81,12 @@ func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller,
 		return nil, err
 	}
 
-	return selfauthz.BuildController(s.ctx, s.logger, s.l, ip, (*cerbos_api.Config)(&s.cfg.Cerbos)).
-		WithBundledPAP(s.cfg.PAP.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse).
-		WithOptions(pdp.WithADL(decisionLog)).
-		Build()
+	ap, err := pap.NewSelfAuthz(s.ctx, s.logger, s.cfg.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse)
+	if err != nil {
+		return nil, err
+	}
+
+	return selfauthz.NewController(s.ctx, s.logger, s.l, ip, ap, (*cerbos_api.Config)(&s.cfg.Cerbos), pdp.WithADL(decisionLog))
 }
 
 func (s *Services) newADL() (*adl.ADL, error) {

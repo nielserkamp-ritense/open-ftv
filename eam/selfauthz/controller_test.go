@@ -17,7 +17,7 @@ import (
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
-func TestBuildController_Languages(t *testing.T) {
+func TestNewController_Languages(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -63,9 +63,10 @@ func TestBuildController_Languages(t *testing.T) {
 			ip, err := pip.NewSelfAuthz(context.Background(), logger, "../../testdata/unittest/pip2", false, "")
 			require.NoError(t, err)
 
-			controller, err := BuildController(context.Background(), logger, language, ip, &cerbos_api.Config{}).
-				WithBundledPAP(tc.language, tc.store, false).
-				Build()
+			ap, err := pap.NewSelfAuthz(context.Background(), logger, tc.language, tc.store, false)
+			require.NoError(t, err)
+
+			controller, err := NewController(context.Background(), logger, language, ip, ap, &cerbos_api.Config{})
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -81,61 +82,27 @@ func TestBuildController_Languages(t *testing.T) {
 	}
 }
 
-func TestControllerBuilder_Build_NoPAPConfigured(t *testing.T) {
+func TestNewController_NoPAP(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
 
-	controller, err := BuildController(context.Background(), logger, models.CEDAR, newPIP(t, logger), &cerbos_api.Config{}).Build()
+	controller, err := NewController(context.Background(), logger, models.CEDAR, newPIP(t, logger), nil, &cerbos_api.Config{})
 
 	require.NoError(t, err)
 	assert.NotNil(t, controller)
 	assert.Nil(t, controller.GetPAP())
 }
 
-func TestControllerBuilder_WithPAP_OverridesBundled(t *testing.T) {
-	t.Parallel()
-
-	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	live, err := pap.NewSelfAuthz(context.Background(), logger, "cedar", "", false)
-	require.NoError(t, err)
-
-	controller, err := BuildController(context.Background(), logger, models.CEDAR, newPIP(t, logger), &cerbos_api.Config{}).
-		WithBundledPAP("cedar", "../../testdata/unittest/cedar", false).
-		WithPAP(live).
-		Build()
-
-	require.NoError(t, err)
-	assert.Same(t, live, controller.GetPAP())
-}
-
-func TestControllerBuilder_WithBundledPAP_OverridesWithPAP(t *testing.T) {
-	t.Parallel()
-
-	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	live, err := pap.NewSelfAuthz(context.Background(), logger, "cedar", "", false)
-	require.NoError(t, err)
-
-	controller, err := BuildController(context.Background(), logger, models.CEDAR, newPIP(t, logger), &cerbos_api.Config{}).
-		WithPAP(live).
-		WithBundledPAP("cedar", "../../testdata/unittest/cedar", false).
-		Build()
-
-	require.NoError(t, err)
-	assert.NotSame(t, live, controller.GetPAP())
-	assert.NotNil(t, controller.GetPAP())
-}
-
-func TestControllerBuilder_WithOptions_OverridesDefault(t *testing.T) {
+func TestNewController_OptionsOverrideDefault(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
 	customPEP := pep.New(context.Background(), logger)
 
-	controller, err := BuildController(context.Background(), logger, models.CEDAR, newPIP(t, logger), &cerbos_api.Config{}).
-		WithBundledPAP("cedar", "../../testdata/unittest/cedar", false).
-		WithOptions(pdp.WithPEP(customPEP)).
-		Build()
+	controller, err := NewController(
+		context.Background(), logger, models.CEDAR, newPIP(t, logger), nil, &cerbos_api.Config{}, pdp.WithPEP(customPEP),
+	)
 
 	require.NoError(t, err)
 	assert.Same(t, customPEP, controller.GetPEP())
