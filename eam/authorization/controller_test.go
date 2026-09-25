@@ -1,4 +1,4 @@
-package config
+package authorization
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	authorization2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cedar-embedded"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
@@ -19,12 +19,12 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-// TestAuthorization_FailClosedOnEmpty verifies that an empty policy store allows all
-// requests by default (legacy fail-open) but denies them when FailClosedOnEmpty is set.
-func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
+// TestNewForController_FailClosedOnEmpty verifies that an empty policy store allows all
+// requests by default (legacy fail-open) but denies them when failClosedOnEmpty is set.
+func TestNewForController_FailClosedOnEmpty(t *testing.T) {
 	t.Parallel()
 
-	build := func(failClosed bool) authorization2.RequestAuthorizer {
+	build := func(failClosed bool) RequestAuthorizer {
 		ctx := context.Background()
 		logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
 		p1, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
@@ -40,8 +40,7 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 			pdp.WithPIP(p1),
 			pdp.WithPAP(ap1),
 		)
-		a := &Authorization{FailClosedOnEmpty: failClosed}
-		az, err := a.NewAuthorizer(c, nil)
+		az, err := NewForController(c, nil, false, failClosed)
 		require.NoError(t, err)
 		require.NotNil(t, az)
 		return az
@@ -49,7 +48,7 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 
 	uid := uuid.New()
 	u, _ := url.Parse("http://localhost/v1/policies")
-	req := &authorization2.Request{UID: &uid, URL: u, Method: "GET"}
+	req := &Request{UID: &uid, URL: u, Method: "GET"}
 
 	t.Run("fail open (default) allows when store empty", func(t *testing.T) {
 		t.Parallel()
@@ -68,7 +67,7 @@ func TestAuthorization_FailClosedOnEmpty(t *testing.T) {
 	})
 }
 
-func TestAuthorization_NewAuthorizer(t *testing.T) {
+func TestNewForController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new authorization", func(t *testing.T) {
@@ -91,19 +90,17 @@ func TestAuthorization_NewAuthorizer(t *testing.T) {
 			pdp.WithPAP(ap1),
 		)
 
-		a1 := &Authentication{Type: "bcrypt"}
-		a2, err := a1.NewAuthenticator(ctx, logger, p1.GetEntity)
+		a2, err := authentication.New(ctx, logger, "bcrypt", p1.GetEntity)
 		require.NoError(t, err)
 		require.NotNil(t, a2)
 
-		a3 := &Authorization{Authenticate: true}
-		a4, err2 := a3.NewAuthorizer(c, a2)
+		a4, err2 := NewForController(c, a2, true, false)
 		require.NoError(t, err2)
 		require.NotNil(t, a4)
 	})
 }
 
-func TestAuthorization_NewAuthorizer_Fail(t *testing.T) {
+func TestNewForController_Fail(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new authorization fail", func(t *testing.T) {
@@ -126,8 +123,7 @@ func TestAuthorization_NewAuthorizer_Fail(t *testing.T) {
 			pdp.WithPAP(ap1),
 		)
 
-		a1 := &Authorization{Authenticate: true}
-		a2, err2 := a1.NewAuthorizer(c, nil)
+		a2, err2 := NewForController(c, nil, true, false)
 		require.Error(t, err2)
 		require.Nil(t, a2)
 	})

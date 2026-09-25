@@ -26,13 +26,13 @@ func (s *Services) newAuth() AuthHandler {
 		return nil
 	}
 
-	authenticator, err2 := s.cfg.NewAuthenticator(s.ctx, s.logger, p1.GetEntity)
+	authenticator, err2 := authentication.New(s.ctx, s.logger, s.cfg.Type, p1.GetEntity)
 	if err2 != nil {
 		s.logger.Error("failed to initialize authenticator", "error", err2)
 		return nil
 	}
 
-	authorizer, err3 := s.cfg.NewAuthorizer(controller, authenticator, s.principalRecorder()...)
+	authorizer, err3 := authorization.NewForController(controller, authenticator, s.cfg.Authenticate, s.cfg.FailClosedOnEmpty, s.principalRecorder()...)
 	if err3 != nil {
 		s.logger.Error("failed to initialize authorizer", "error", err3)
 		return nil

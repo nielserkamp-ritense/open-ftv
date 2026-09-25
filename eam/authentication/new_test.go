@@ -1,4 +1,4 @@
-package config
+package authentication
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 )
 
-func TestAuthentication_NewAuthenticator(t *testing.T) {
+func TestNew(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new authenticator", func(t *testing.T) {
@@ -24,14 +24,13 @@ func TestAuthentication_NewAuthenticator(t *testing.T) {
 		p2, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
 		require.NoError(t, err)
 
-		a1 := &Authentication{Type: "bcrypt"}
-		a2, err := a1.NewAuthenticator(ctx, logger, p2.GetEntity)
+		a2, err := New(ctx, logger, "bcrypt", p2.GetEntity)
 		require.NoError(t, err)
 		require.NotNil(t, a2)
 	})
 }
 
-func TestAuthentication_NewAuthenticator_Unknown(t *testing.T) {
+func TestNew_Unknown(t *testing.T) {
 	t.Parallel()
 
 	t.Run("new authenticator", func(t *testing.T) {
@@ -43,8 +42,7 @@ func TestAuthentication_NewAuthenticator_Unknown(t *testing.T) {
 		p2, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
 		require.NoError(t, err)
 
-		a1 := &Authentication{Type: "oopsie"}
-		a2, err := a1.NewAuthenticator(ctx, logger, p2.GetEntity)
+		a2, err := New(ctx, logger, "oopsie", p2.GetEntity)
 		require.NoError(t, err)
 		require.Nil(t, a2)
 	})

@@ -44,14 +44,14 @@ func (s *Services) newAuth(basePath string) (*authHandler, error) {
 	}
 
 	// var authenticator authentication.Authenticator
-	// if authenticator, err = s.cfg.Authentication.NewAuthenticator(s.ctx, s.logger, func(uid string) (*models.Entity, uint64, error) {
+	// if authenticator, err = authentication.New(s.ctx, s.logger, s.cfg.Authentication.Type, func(uid string) (*models.Entity, uint64, error) {
 	// 	return controller.GetPIP().GetEntity(uid)
 	// }); err != nil {
 	// 	return nil, fmt.Errorf("failed to initialize authenticator: %w", err)
 	// }
 
 	var authorizer authorization.RequestAuthorizer
-	if authorizer, err = s.cfg.NewAuthorizer(controller, nil); err != nil {
+	if authorizer, err = authorization.NewForController(controller, nil, s.cfg.Authenticate, s.cfg.FailClosedOnEmpty); err != nil {
 		return nil, fmt.Errorf("failed to initialize authorizer: %w", err)
 	}
 
