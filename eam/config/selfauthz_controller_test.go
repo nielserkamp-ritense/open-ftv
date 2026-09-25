@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -91,7 +92,7 @@ func TestSelfAuthzControllerBuilder_WithPAP_OverridesBundled(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	live, err := (&PAP{Language: "cedar"}).NewSelfAuthzPAP(context.Background(), logger)
+	live, err := pap.NewSelfAuthz(context.Background(), logger, "cedar", "", false)
 	require.NoError(t, err)
 
 	controller, _, err := BuildSelfAuthzController(context.Background(), logger, models.CEDAR, &PIP{}, &Cerbos{}).
@@ -107,7 +108,7 @@ func TestSelfAuthzControllerBuilder_WithBundledPAP_OverridesWithPAP(t *testing.T
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelInfo))
-	live, err := (&PAP{Language: "cedar"}).NewSelfAuthzPAP(context.Background(), logger)
+	live, err := pap.NewSelfAuthz(context.Background(), logger, "cedar", "", false)
 	require.NoError(t, err)
 
 	controller, _, err := BuildSelfAuthzController(context.Background(), logger, models.CEDAR, &PIP{}, &Cerbos{}).

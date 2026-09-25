@@ -1,8 +1,6 @@
 package config
 
 import (
-	"context"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -11,8 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
-
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func TestPIP(t *testing.T) {
@@ -100,23 +96,4 @@ pip:
 			}
 		})
 	}
-}
-
-func TestPIP_NewSelfAuthzPIP(t *testing.T) {
-	t.Parallel()
-
-	t.Run("new pip", func(t *testing.T) {
-		p1 := &PIP{
-			Store:        "../../testdata/unittest/pip2",
-			StoreRecurse: false,
-			PullConfigs:  "../../testdata/unittest/pip2/pull",
-		}
-
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		p2, err := p1.NewSelfAuthzPIP(context.Background(), logger)
-		require.NoError(t, err)
-		require.NotNil(t, p2)
-	})
 }

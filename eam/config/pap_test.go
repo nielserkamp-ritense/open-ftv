@@ -1,8 +1,6 @@
 package config
 
 import (
-	"context"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -11,8 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gjuyn/go-config/config"
-
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 func TestPAP(t *testing.T) {
@@ -166,23 +162,4 @@ func TestPAP_Tags(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestPAP_NewSelfAuthzPAP(t *testing.T) {
-	t.Parallel()
-
-	t.Run("new pap", func(t *testing.T) {
-		p1 := &PAP{
-			Language:     "cedar",
-			Store:        "../../testdata/policies",
-			StoreRecurse: false,
-		}
-
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
-
-		p2, err := p1.NewSelfAuthzPAP(context.Background(), logger)
-		require.NoError(t, err)
-		require.NotNil(t, p2)
-	})
 }

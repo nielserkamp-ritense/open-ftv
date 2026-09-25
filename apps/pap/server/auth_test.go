@@ -10,6 +10,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/pap/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
@@ -23,7 +24,7 @@ func TestNew(t *testing.T) {
 	s := &Services{ctx: context.Background(), logger: logger, cfg: cfg}
 	s.l = models.LanguageFromString(cfg.Language)
 
-	ap, err := s.cfg.NewSelfAuthzPAP(s.ctx, s.logger)
+	ap, err := pap.NewSelfAuthz(s.ctx, s.logger, s.cfg.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse)
 	require.NoError(t, err)
 
 	s.pap = ap

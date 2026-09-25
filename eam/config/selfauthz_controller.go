@@ -68,12 +68,12 @@ func (b *SelfAuthzControllerBuilder) Build() (pdp.Controller, *pip.PIP, error) {
 
 	if ap == nil && b.papCfg != nil {
 		var err error
-		if ap, err = b.papCfg.NewSelfAuthzPAP(b.ctx, b.logger); err != nil {
+		if ap, err = pap.NewSelfAuthz(b.ctx, b.logger, b.papCfg.Language, b.papCfg.Store, b.papCfg.StoreRecurse); err != nil {
 			return nil, nil, err
 		}
 	}
 
-	ip, err := b.pipCfg.NewSelfAuthzPIP(b.ctx, b.logger)
+	ip, err := pip.NewSelfAuthz(b.ctx, b.logger, b.pipCfg.Store, b.pipCfg.StoreRecurse, b.pipCfg.PullConfigs)
 	if err != nil {
 		return nil, nil, err
 	}
