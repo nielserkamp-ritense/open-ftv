@@ -42,7 +42,7 @@ func New(opts ...config.Option) (*Config, *slog.Logger) {
 		config.NoHelpOnError(),
 	)
 
-	logger = config2.Load(cfg, opts...)
+	logger = config2.Load(cfg, &cfg.Log, opts...)
 
 	if cfg.InternalHost == "" {
 		cfg.InternalHost = cfg.Host

@@ -99,7 +99,7 @@ log:
 
 			cfg := TestConfig{}
 
-			l := Load(&cfg, config.NoFlags(), yaml.FilesYAML(file))
+			l := Load(&cfg, &cfg.Log, config.NoFlags(), yaml.FilesYAML(file))
 			if tc.wantErr {
 				require.True(t, false) // cannot happen
 			}

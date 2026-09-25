@@ -7,12 +7,9 @@ import (
 	"os"
 
 	"gitlab.com/gjuyn/go-config/config"
-)
 
-// Logger represents the interface to initialize a logger.
-type Logger interface {
-	MakeLogger() (*slog.Logger, error)
-}
+	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
+)
 
 // Printer represents the interface to send a sanitized copy of the configuration to the given logger.
 type Printer interface {
@@ -21,21 +18,11 @@ type Printer interface {
 
 // Load initializes the given configuration from defaults, config files, the environment and the command-line options.
 //
-// The given configuration parameter must be a pointer to a struct.
-//
-// If the given configuration does not support initializing a logger by implementing the Logger interface,
-// this function will return a standard slog.Logger printing in JSON format to STDERR.
-//
-// However, if you embed the Log structure from this module into your configuration structure, e.g.:
-//
-//	type myConfig struct {
-//	  config.Log
-//	}
-//
-// this function will return a standard slog.Logger configured according to the settings in the config.Log structure.
+// The given configuration parameter must be a pointer to a struct, and log must point to the Log settings inside it:
+// the returned logger is configured according to those settings.
 //
 // This function will panic if any of the processing fails.
-func Load(cfg any, opts ...config.Option) *slog.Logger {
+func Load(cfg any, log *Log, opts ...config.Option) *slog.Logger {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
 
 	fail := func(msg string, err error) {
@@ -49,16 +36,14 @@ func Load(cfg any, opts ...config.Option) *slog.Logger {
 	// perform initial loading to prefetch logger variables, ignoring any errors.
 	_ = config.LoadConfig(cfg, opts...)
 
-	if l, ok := cfg.(Logger); ok {
-		// initialize the logger.
-		var err error
-		if logger, err = l.MakeLogger(); err != nil {
-			fail("failed to initialize logger", err)
-		}
+	// initialize the logger.
+	var err error
+	if logger, err = slog2.Init(log.Output, log.Format, log.Level, log.Source); err != nil {
+		fail("failed to initialize logger", err)
 	}
 
 	// perform second loading for error checking!
-	if err := config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
+	if err = config.LoadConfig(cfg, append(opts, config.NoDefaults())...); err != nil {
 		fail("failed to load configuration", err)
 	}
 
