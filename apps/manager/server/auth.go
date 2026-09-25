@@ -71,7 +71,7 @@ func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 
 	if opt == nil {
 		if secured {
-			return nil, nil, fmt.Errorf("OIDC is required in fail-closed mode: set the OIDC_JWKS_URL (MANAGER_OIDC_JWKS_URL) so bearer tokens yield a principal, otherwise all requests are denied")
+			return nil, nil, fmt.Errorf("OIDC is required in fail-closed mode: set MANAGER_OIDC_JWKS_URL or --oidc-jwks-url so bearer tokens yield a principal, otherwise all requests are denied")
 		}
 
 		s.logger.Warn("manager: OIDC not configured; bearer tokens will not be validated and yield no principal")

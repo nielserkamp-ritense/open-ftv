@@ -113,6 +113,12 @@ MANAGER_BUNDLE_RECURSE=true|false               # Flag to indicate the given fol
 MANAGER_BUNDLE_SEND_TIMEOUT=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
 MANAGER_BUNDLE_WORKERS=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
 MANAGER_BUNDLE_STAGE_DELAY=<duration>           # Forced delay between bundle deployment stages (default "0s").
+
+# options for validating bearer tokens (OIDC).
+MANAGER_OIDC_ISSUER=<url>                       # Expected issuer of bearer tokens.
+MANAGER_OIDC_JWKS_URL=<url>                     # URL of the JWKS for validating bearer tokens; required when failing closed.
+MANAGER_OIDC_AUDIENCE=<audience>                # Expected audience of bearer tokens.
+MANAGER_OIDC_ROLES_CLAIM=<claim>                # Claim in bearer tokens holding the roles.
 ```
 
 ### Command-line flags
@@ -194,6 +200,12 @@ The following is an exhaustive list of all possible command-line flags the servi
 --bundle-send-timeout=<duration>          # The read timeout for sending bundles to a PDP (default "1m").
 --bundle-workers=<number>                 # Maximum number of worker threads for sending bundles (default #cpu).
 --bundle-stage-delay=<duration>           # Forced delay between bundle deployment stages (default "0s").
+
+# options for validating bearer tokens (OIDC).
+--oidc-issuer=<url>                       # Expected issuer of bearer tokens.
+--oidc-jwks-url=<url>                     # URL of the JWKS for validating bearer tokens; required when failing closed.
+--oidc-audience=<audience>                # Expected audience of bearer tokens.
+--oidc-roles-claim=<claim>                # Claim in bearer tokens holding the roles.
 ```
 
 ### Authentication & authorization

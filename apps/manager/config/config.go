@@ -2,12 +2,10 @@
 package config
 
 import (
-	"log/slog"
-	"os"
-
-	"gitlab.com/gjuyn/go-config/config"
+	"flag"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
 )
 
 var (
@@ -15,42 +13,6 @@ var (
 	GitHash = "unknown"
 	GitTag  = "unknown"
 )
-
-const envPrefix = "MANAGER_"
-
-// New instantiates a new configuration from environment variables and command-line flags.
-func New(opts ...config.Option) (*Config, *slog.Logger) {
-	cfg := &Config{}
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	// put fixed and custom configuration options in appropriate order.
-	opts = append(
-		append(
-			[]config.Option{
-				config.EnvironmentPrefix(envPrefix),
-			},
-			opts...,
-		),
-		config.NoHelpOnError(),
-	)
-
-	logger = config2.Load(cfg, &cfg.Log, opts...)
-
-	if cfg.InternalHost == "" {
-		cfg.InternalHost = cfg.Host
-	}
-
-	if cfg.HealthHost == "" {
-		cfg.HealthHost = cfg.Host
-	}
-
-	return cfg, logger
-}
-
-// LogSanitized implements the config.Printer interface.
-func (c *Config) LogSanitized(logger *slog.Logger) {
-	logger.Info("git version", "hash", GitHash, "tag", GitTag)
-}
 
 // Config represents the full set of configuration variables.
 type Config struct {
@@ -64,6 +26,40 @@ type Config struct {
 	config2.Authorization
 	config2.Bundle
 	config2.OIDC
-	DatabaseURL    string `env:"DATABASE_URL" flag:"database-url" desc:"Postgres URI of the Manager's own database (policies, attributes, entities and settings)"`
-	ADLDatabaseURL string `env:"ADL_PG_URL" flag:"adl-pg-url" desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
+	DatabaseURL    string
+	ADLDatabaseURL string
+}
+
+// Load reads the configuration from the command-line args, falling back to MANAGER_ environment variables.
+func Load(args []string, lookupEnv func(string) (string, bool)) (*Config, error) {
+	cfg := &Config{}
+
+	fs := flag.NewFlagSet("manager", flag.ContinueOnError)
+	cfg.Server.RegisterFlags(fs)
+	cfg.Log.RegisterFlags(fs)
+	cfg.InternalServer.RegisterFlags(fs)
+	cfg.HealthServer.RegisterFlags(fs)
+	cfg.PAP.RegisterFlags(fs)
+	cfg.PIP.RegisterFlags(fs)
+	cfg.Cerbos.RegisterFlags(fs)
+	cfg.Authentication.RegisterFlags(fs)
+	cfg.Authorization.RegisterFlags(fs)
+	cfg.Bundle.RegisterFlags(fs)
+	cfg.OIDC.RegisterFlags(fs)
+	fs.StringVar(&cfg.DatabaseURL, "database-url", "", "Postgres URI of the Manager's own database (policies, attributes, entities and settings)")
+	fs.StringVar(&cfg.ADLDatabaseURL, "adl-pg-url", "", "Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager")
+
+	if err := envflag.Parse(fs, args, "MANAGER_", lookupEnv); err != nil {
+		return nil, err
+	}
+
+	if cfg.InternalHost == "" {
+		cfg.InternalHost = cfg.Host
+	}
+
+	if cfg.HealthHost == "" {
+		cfg.HealthHost = cfg.Host
+	}
+
+	return cfg, nil
 }
