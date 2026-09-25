@@ -10,11 +10,13 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 	handlers "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/log/decisions"
+	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller/adl"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/selfauthz"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/opentelemetry"
 )
 
@@ -73,12 +75,15 @@ func (s *Services) newAuth(basePath string) (*authHandler, error) {
 }
 
 func (s *Services) newSelfAuthzController(decisionLog *adl.ADL) (pdp.Controller, error) {
-	controller, _, err := config.BuildSelfAuthzController(s.ctx, s.logger, s.l, &s.cfg.PIP, &s.cfg.Cerbos).
-		WithBundledPAP(&s.cfg.PAP).
+	ip, err := pip.NewSelfAuthz(s.ctx, s.logger, s.cfg.PIP.Store, s.cfg.PIP.StoreRecurse, s.cfg.PullConfigs)
+	if err != nil {
+		return nil, err
+	}
+
+	return selfauthz.BuildController(s.ctx, s.logger, s.l, ip, &cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}).
+		WithBundledPAP(s.cfg.PAP.Language, s.cfg.PAP.Store, s.cfg.PAP.StoreRecurse).
 		WithOptions(pdp.WithADL(decisionLog)).
 		Build()
-
-	return controller, err
 }
 
 func (s *Services) newADL() (*adl.ADL, error) {

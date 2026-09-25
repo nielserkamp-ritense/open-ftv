@@ -7,11 +7,12 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	cerbos_api "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/cerbos-api"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/principals"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/selfauthz"
 )
 
 // AuthHandler represents the interface for handling authorization requests.
@@ -81,10 +82,17 @@ func (s *Services) newSelfAuthzController() (pdp.Controller, *pip.PIP, error) {
 		pepOpts = append(pepOpts, opt)
 	}
 
-	return config.BuildSelfAuthzController(s.ctx, s.logger, s.l, &s.cfg.PIP, &s.cfg.Cerbos).
+	ip, err := pip.NewSelfAuthz(s.ctx, s.logger, s.cfg.PIP.Store, s.cfg.PIP.StoreRecurse, s.cfg.PullConfigs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	controller, err := selfauthz.BuildController(s.ctx, s.logger, s.l, ip, &cerbos_api.Config{Addr1: s.cfg.Cerbos.Address, Addr2: s.cfg.Cerbos.AdminAddress, CA: s.cfg.Cerbos.CA, User: s.cfg.Cerbos.User, Pswd: s.cfg.Cerbos.Pswd}).
 		WithPAP(s.pap).
 		WithOptions(pdp.WithPEP(pep.New(s.ctx, s.logger, pepOpts...))).
 		Build()
+
+	return controller, ip, err
 }
 
 // Controller returns the PDP controller.
