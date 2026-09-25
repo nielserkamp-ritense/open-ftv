@@ -114,7 +114,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 
 ```text
 # options for the API endpoint server.
---address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+--host=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -132,7 +132,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 --log-source=true|false                   # Flag to record the source location of the message in the log (default true).
 
 # the Authorization Decision Log (ADL): every decision the PDP makes; see the section "Decision log" below.
---adl-service=<service>                   # Name of this service in the ADL (required, no default).
+--adl-service-name=<service>              # Name of this service in the ADL (required, no default).
 --adl-pg-url=<url>                        # URL of the Postgres database holding the ADL (required, no default). Migrated automatically at startup.
 
 # policies used for authorizing user interface requests.

@@ -2,12 +2,10 @@
 package config
 
 import (
-	"log/slog"
-	"os"
-
-	"gitlab.com/gjuyn/go-config/config"
+	"flag"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/envflag"
 )
 
 var (
@@ -15,42 +13,6 @@ var (
 	GitHash = "unknown"
 	GitTag  = "unknown"
 )
-
-const envPrefix = "PDP_"
-
-// New instantiates a new configuration from environment variables and command-line flags.
-func New(opts ...config.Option) (*Config, *slog.Logger) {
-	cfg := &Config{}
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	// put fixed and custom configuration options in appropriate order.
-	opts = append(
-		append(
-			[]config.Option{
-				config.EnvironmentPrefix(envPrefix),
-			},
-			opts...,
-		),
-		config.NoHelpOnError(),
-	)
-
-	logger = config2.Load(cfg, &cfg.Log, opts...)
-
-	if cfg.InternalHost == "" {
-		cfg.InternalHost = cfg.Host
-	}
-
-	if cfg.HealthHost == "" {
-		cfg.HealthHost = cfg.Host
-	}
-
-	return cfg, logger
-}
-
-// LogSanitized implements the config.Printer interface.
-func (c *Config) LogSanitized(logger *slog.Logger) {
-	logger.Info("git version", "hash", GitHash, "tag", GitTag)
-}
 
 // Config represents our configuration variables.
 type Config struct {
@@ -63,6 +25,39 @@ type Config struct {
 	config2.Cerbos
 	config2.Authentication
 	config2.Authorization
-	ADLService     string `env:"ADL_SERVICE_NAME" flag:"adl-service" desc:"Name of this service in the Authorization Decision Log"`
-	ADLDatabaseURL string `env:"ADL_PG_URL"       flag:"adl-pg-url"  desc:"Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager"`
+	ADLService     string
+	ADLDatabaseURL string
+}
+
+// Load reads the configuration from the command-line args, falling back to PDP_ environment variables.
+func Load(args []string, lookupEnv func(string) (string, bool)) (*Config, error) {
+	cfg := &Config{}
+
+	fs := flag.NewFlagSet("pdp", flag.ContinueOnError)
+	cfg.Server.RegisterFlags(fs)
+	cfg.Log.RegisterFlags(fs)
+	cfg.InternalServer.RegisterFlags(fs)
+	cfg.HealthServer.RegisterFlags(fs)
+	cfg.PDP.RegisterFlags(fs)
+	cfg.PIP.RegisterFlags(fs)
+	cfg.PAP.RegisterFlags(fs)
+	cfg.Cerbos.RegisterFlags(fs)
+	cfg.Authentication.RegisterFlags(fs)
+	cfg.Authorization.RegisterFlags(fs)
+	fs.StringVar(&cfg.ADLService, "adl-service-name", "", "Name of this service in the Authorization Decision Log")
+	fs.StringVar(&cfg.ADLDatabaseURL, "adl-pg-url", "", "Postgres URI of the Authorization Decision Log, written by the PDP and read by the Manager")
+
+	if err := envflag.Parse(fs, args, "PDP_", lookupEnv); err != nil {
+		return nil, err
+	}
+
+	if cfg.InternalHost == "" {
+		cfg.InternalHost = cfg.Host
+	}
+
+	if cfg.HealthHost == "" {
+		cfg.HealthHost = cfg.Host
+	}
+
+	return cfg, nil
 }
