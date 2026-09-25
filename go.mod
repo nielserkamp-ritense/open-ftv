@@ -29,7 +29,6 @@ require (
 	github.com/pashagolub/pgxmock/v4 v4.9.0
 	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/stretchr/testify v1.12.1
-	gitlab.com/gjuyn/go-config v1.2.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0

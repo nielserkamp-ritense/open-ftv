@@ -1,11 +1,12 @@
 package config
 
 import (
+	"flag"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/gjuyn/go-config/config"
 )
 
 func TestCerbos(t *testing.T) {
@@ -43,14 +44,11 @@ func TestCerbos(t *testing.T) {
 
 			cfg := &Cerbos{}
 
-			opts := []config.Option{
-				config.WithArgs(tc.args...),
-				config.EnvironmentPrefix("CFG_"),
-				config.AppName("test 1.0"),
-				config.NoHelpOnError(),
-			}
+			fs := flag.NewFlagSet("test", flag.ContinueOnError)
+			fs.SetOutput(io.Discard)
+			cfg.RegisterFlags(fs)
 
-			err := config.LoadConfig(cfg, opts...)
+			err := fs.Parse(tc.args)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {
