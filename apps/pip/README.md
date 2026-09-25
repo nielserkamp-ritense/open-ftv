@@ -36,7 +36,7 @@ The following is an exhaustive list of all possible environment variables the se
 
 ```text
 # options for the main API endpoints.
-PIP_ADDRESS=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+PIP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PIP_PORT=<port>                             # port the service should listen on (default 8443).
 PIP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PIP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
@@ -95,7 +95,7 @@ The following is an exhaustive list of all possible command-line flags the servi
 
 ```text
 # options for the main API endpoints.
---address=<address>                       # address the service should listen on (default "0.0.0.0"; all host addresses).
+--host=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 --port=<port>                             # port the service should listen on (default 8443).
 --tls-ca=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 --tls-cert=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
