@@ -38,7 +38,7 @@ The following is an exhaustive list of all possible environment variables the se
 # options for the main API endpoints.
 PIP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PIP_PORT=<port>                             # port the service should listen on (default 8443).
-PIP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+PIP_TLS_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PIP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 PIP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
 PIP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
@@ -79,7 +79,7 @@ PIP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given folder 
 # attributes used for authorizing user interface requests.
 PIP_PIP_STORE=<folder>                      # Location on disk where static attribute files can be found (no default).
 PIP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
-PIP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+PIP_PIP_PULL_CONFIGS=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
 PIP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.

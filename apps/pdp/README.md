@@ -50,7 +50,7 @@ The following is an exhaustive list of all possible environment variables the se
 # options for the main API endpoints.
 PDP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PDP_PORT=<port>                             # port the service should listen on (default 8443).
-PDP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+PDP_TLS_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PDP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 PDP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
 PDP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
@@ -98,7 +98,7 @@ PDP_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given directo
 # attributes used for authorizing user interface requests.
 PDP_PIP_STORE=<directory>                   # Location on disk where static attribute files can be found (no default).
 PDP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given directory and its subdirectories must be search recursively for attribute files (default false).
-PDP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+PDP_PIP_PULL_CONFIGS=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
 PDP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.

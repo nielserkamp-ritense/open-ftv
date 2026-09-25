@@ -44,7 +44,7 @@ The following is an exhaustive list of all possible environment variables the se
 # options for the main API endpoints.
 PAP_HOST=<address>                          # address the service should listen on (default "0.0.0.0"; all host addresses).
 PAP_PORT=<port>                             # port the service should listen on (default 8443).
-PAP_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+PAP_TLS_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 PAP_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 PAP_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
 PAP_READ_TIMEOUT=<duration>                 # the read timeout for API requests (default "30s").
@@ -98,7 +98,7 @@ PAP_TAGS_PATH=<folder>                      # Location on disk where static tag 
 # attributes used for authorizing user interface requests.
 PAP_PIP_STORE=<folder>                      # Location on disk where static attribute files can be found (no default).
 PAP_PIP_STORE_RECURSE=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
-PAP_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+PAP_PIP_PULL_CONFIGS=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
 PAP_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.

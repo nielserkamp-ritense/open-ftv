@@ -42,7 +42,7 @@ The following is an exhaustive list of all possible environment variables the se
 # options for the main API endpoints.
 MANAGER_HOST=<address>                          # Address the service should listen on (default "0.0.0.0"; all host addresses).
 MANAGER_PORT=<port>                             # Port the service should listen on (default 8443).
-MANAGER_TLA_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
+MANAGER_TLS_CA=<certificate-file>               # CA certificate to use with the service; turns on https support (no default).
 MANAGER_TLS_CERT=<certificate-file>             # TLS certificate to use with the service; turns on https support (no default).
 MANAGER_TLS_KEY=<key-file>                      # TLS private key to use with the service; turns on https support (no default).
 MANAGER_READ_TIMEOUT=<duration>                 # The read timeout for API requests (default "30s").
@@ -98,7 +98,7 @@ MANAGER_POLICIES_STORE_RECURSE=true|false       # Flag to indicate the given fol
 # attributes for authorizing user interface requests.
 MANAGER_PIP_STORE=<folder>                      # Location on disk where static attribute files can be found (no default).
 MANAGER_PIP_STORE_RECURSE=true|false            # Flag to indicate the given folder and subfolders must be search recursively for attribute files (default false).
-MANAGER_PULL_CONFIGS=<file>                     # Location on disk where a "pull configuration" file can be found (no default).
+MANAGER_PIP_PULL_CONFIGS=<file>                 # Location on disk where a "pull configuration" file can be found (no default).
 
 # options for connecting with a cerbos PDP (sidecar) for authorizing user interface requests.
 MANAGER_CERBOS_ADDRESS=<address>                # Address of the Cerbos API.
