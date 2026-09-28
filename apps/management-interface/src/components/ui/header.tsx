@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useProfile } from '@/auth/useProfile'
-import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, useSettings } from '@/services/settings'
+import { useSettings } from '@/services/settings'
 
 interface HeaderProps {
     onLogoutHandler: () => void;
@@ -9,12 +9,13 @@ interface HeaderProps {
 const menuItemClass = 'w-full flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm/6 text-zinc-950 cursor-pointer hover:bg-blue-500 hover:text-white focus:bg-blue-500 focus:text-white focus:outline-hidden'
 
 export function Header({ onLogoutHandler }: HeaderProps) {
+    // The manager returns its built-in defaults until settings are saved; until they arrive, the header stays blank.
     const { data: settings } = useSettings()
     const { displayName, initials } = useProfile()
 
     return <div
         className="w-full h-[108px] flex items-center justify-between pl-rhc-space-300 pr-rhc-space-500 border-b border-black"
-        style={{ backgroundColor: settings?.headerColor ?? DEFAULT_HEADER_COLOR }}
+        style={{ backgroundColor: settings?.headerColor }}
     >
         <div className="flex items-center gap-4 min-w-0 h-full">
             {settings?.logo && (
@@ -28,9 +29,9 @@ export function Header({ onLogoutHandler }: HeaderProps) {
             )}
             <h1
                 className="font-light text-[22px] leading-[28px] truncate"
-                style={{ color: settings?.titleColor ?? DEFAULT_TITLE_COLOR }}
+                style={{ color: settings?.titleColor }}
             >
-                {settings?.headerTitle ?? DEFAULT_HEADER_TITLE}
+                {settings?.headerTitle}
             </h1>
         </div>
         <div className="relative group">

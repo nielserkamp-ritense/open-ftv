@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { useRef, useState } from 'react'
 import { MANAGER_MAX_LOGO_SIZE } from '@/config/env'
-import { DEFAULT_HEADER_COLOR, DEFAULT_HEADER_TITLE, DEFAULT_TITLE_COLOR, Settings, useSettings, useUpdateSettings } from '@/services/settings'
+import { Settings, useSettings, useUpdateSettings } from '@/services/settings'
 import { useCapabilities } from '@/auth/useCapabilities'
 import { OIDC_AUTHORITY } from '@/config/env'
 import { extractPdpUrls, useBundleConfigurations } from '@/services/bundles'
@@ -62,7 +62,11 @@ function RouteComponent() {
         return <div className="p-4 text-sm text-content-secondary">Laden…</div>
     }
 
-    return <SettingsForm initial={data ?? { headerTitle: DEFAULT_HEADER_TITLE, headerColor: DEFAULT_HEADER_COLOR, titleColor: DEFAULT_TITLE_COLOR }} />
+    if (!data) {
+        return <div className="p-4 text-red-700">Er is een fout opgetreden bij het laden van de instellingen.</div>
+    }
+
+    return <SettingsForm initial={data} />
 }
 
 function SettingsForm({ initial }: { initial: Settings }) {

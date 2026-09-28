@@ -5,10 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // Types for the settings service
 export type Settings = components['schemas']['Settings'];
 
-export const DEFAULT_HEADER_TITLE = 'OpenFTV beheeromgeving';
-export const DEFAULT_HEADER_COLOR = '#F7E8E8';
-export const DEFAULT_TITLE_COLOR = '#000000';
-
 const SETTINGS_QUERY_KEYS = {
   all: ['settings'] as const,
 };
