@@ -37,8 +37,8 @@ const usable = (raw: string | undefined): string | undefined =>
 export const getEnvVar = (key: string, fallback?: string): string =>
   usable(runtimeEnv[key]) ?? usable(buildEnv[key]) ?? fallback ?? '';
 
-export const VITE_API_BASE_URL = getEnvVar('VITE_API_BASE_URL', 'http://localhost:8080');
-export const VITE_VLIERDAM_OUTWAY_URL = getEnvVar('VITE_VLIERDAM_OUTWAY_URL', 'http://localhost:8080');
+export const VITE_API_BASE_URL = getEnvVar('VITE_API_BASE_URL', 'http://localhost:9010');
+export const VITE_VLIERDAM_OUTWAY_URL = getEnvVar('VITE_VLIERDAM_OUTWAY_URL', 'http://localhost:9002');
 export const VITE_BRP_API_KEY = getEnvVar('VITE_BRP_API_KEY', '');
 export const VITE_DOELBINDING = getEnvVar('VITE_DOELBINDING', 'laadpaal-aanvraag');
 export const VITE_DOELBINDING_BRP = getEnvVar('VITE_DOELBINDING_BRP', 'identificatie-en-ingezetenschap');
