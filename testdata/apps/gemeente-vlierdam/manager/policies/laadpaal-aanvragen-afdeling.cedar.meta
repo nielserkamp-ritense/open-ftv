@@ -1,0 +1,6 @@
+---
+id: "laadpaal-aanvragen-afdeling"
+language: "cedar"
+metadata:
+  description: "Scenario 1 (Testcase 1): laadpaal aanvragen vereist afdeling Burgerzaken"
+  tags: ["rvig", "rdw"]

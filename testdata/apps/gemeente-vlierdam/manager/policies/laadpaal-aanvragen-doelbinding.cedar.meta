@@ -1,0 +1,6 @@
+---
+id: "laadpaal-aanvragen-doelbinding"
+language: "cedar"
+metadata:
+  description: "Scenario 1 (Testcase 1): laadpaal aanvragen vereist doelbinding laadpaal-aanvraag"
+  tags: ["rvig", "rdw"]

@@ -1,0 +1,6 @@
+---
+id: "laadpaal-aanvragen-opleiding"
+language: "cedar"
+metadata:
+  description: "Scenario 1 (Testcase 1): laadpaal aanvragen vereist laadpaal-opleiding"
+  tags: ["rvig", "rdw"]

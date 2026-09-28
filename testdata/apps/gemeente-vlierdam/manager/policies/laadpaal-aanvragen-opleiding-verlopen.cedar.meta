@@ -1,0 +1,6 @@
+---
+id: "laadpaal-aanvragen-opleiding-verlopen"
+language: "cedar"
+metadata:
+  description: "Scenario 1 (Testcase 1): laadpaal-opleiding mag niet ouder zijn dan 365 dagen"
+  tags: ["rvig", "rdw"]
