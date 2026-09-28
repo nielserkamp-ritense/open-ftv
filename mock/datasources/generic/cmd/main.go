@@ -28,8 +28,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("configuration loaded successfully", "config", cfg)
-
 	srv, err := server.NewService(cfg, logger, nil)
 	if err != nil {
 		logger.Error("failed to start service", "error", err)

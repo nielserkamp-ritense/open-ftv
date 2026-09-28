@@ -5,7 +5,7 @@ services:
 - id: a28e5042-f33d-44a7-8673-6b082a930a7d
   name: OpenFTV-RvIG-Inway
   enabled: true
-  host: rvig-inway
+  host: rvig-api-gateway
   port: 8000
   protocol: http
   retries: 5
@@ -16,7 +16,7 @@ services:
 - id: 73d5bfc1-cb75-44ac-8e66-5c4e18f8de71
   name: OpenFTV-RDW-inway
   enabled: true
-  host: rdw-inway
+  host: rdw-api-gateway
   port: 8000
   protocol: http
   retries: 5
@@ -68,7 +68,7 @@ plugins:
     - http
     - https
   config:
-    pdp: "http://vlierdam-pdp1:8443/authzen/v1/evaluation"
+    pdp: "http://host.docker.internal:9004/authzen/v1/evaluation"
     timeout: 30000
 
 - id: 548a8fba-d86b-4e60-844d-5814b965b033

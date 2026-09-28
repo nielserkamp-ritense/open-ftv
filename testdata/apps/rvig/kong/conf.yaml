@@ -5,8 +5,8 @@ services:
 - id: 1dbe025c-912b-4361-87c0-af8cb76f21c1
   name: RvIG-Dataspace
   enabled: true
-  host: rvig-dataspace
-  port: 8443
+  host: host.docker.internal
+  port: 9030
   protocol: http
   retries: 5
   connect_timeout: 60000
@@ -69,7 +69,7 @@ plugins:
     - http
     - https
   config:
-    pdp: "http://rvig-pdp1:8443/authzen/v1/evaluation"
+    pdp: "http://host.docker.internal:9024/authzen/v1/evaluation"
     timeout: 30000
 
 - id: 692cc3f7-a449-4e5c-a019-cf0b707604bd

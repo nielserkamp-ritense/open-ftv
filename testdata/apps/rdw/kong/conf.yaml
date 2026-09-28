@@ -5,8 +5,8 @@ services:
 - id: c64a01c8-111f-469c-91a6-c85c9ff13dd1
   name: RDW-Dataspace
   enabled: true
-  host: rdw-dataspace
-  port: 8443
+  host: host.docker.internal
+  port: 9050
   protocol: http
   retries: 5
   connect_timeout: 60000
@@ -40,7 +40,7 @@ plugins:
     - http
     - https
   config:
-    pdp: "http://rdw-pdp1:8443/authzen/v1/evaluation"
+    pdp: "http://host.docker.internal:9044/authzen/v1/evaluation"
     timeout: 30000
 
 - id: d4ca26b6-eb71-4ce5-b163-604553ccca6c

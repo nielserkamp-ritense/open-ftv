@@ -51,52 +51,57 @@ To build and test everything locally, run the following command from the project
 make all
 ```
 
-### Docker Compose
+### Local setup
 
-Docker Compose configurations are available in the `docker` directory to run local versions of OpenFTV.
-These setups include:
-- OpenFTV Manager (Authorization Management: PAP, PIP, tag management, bundle management, database migrations)
-- OpenFTV PDP
-- OpenFTV Management Interface
-- Kong gateway with OpenFTV AuthZEN plugin
-- generic mock data-service
+The local setup runs the Proefopstelling of the Laadpalen application with three organizations: Gemeente Vlierdam,
+RvIG and RDW. It is split in two parts:
 
-#### Extended test setup
+- `docker/compose.yaml` runs the infrastructure: PostgreSQL, and a Kong gateway and Keycloak per organization.
+- `modd.conf` runs the OpenFTV components and the mock data-services on the host, and restarts them when their code
+  changes. The Go services run under [Delve](https://github.com/go-delve/delve), so a debugger can attach to them.
 
-To start a full test-setup with multiple organizations and connecting gateways,
-run the following command from the project root directory:
+Besides the prerequisites above, this needs [modd](https://github.com/cortesi/modd), Delve and Node.js. Run
+`npm install` once in `apps/management-interface`.
+
+Start both from the project root directory, each in its own terminal:
 
 ```shell
 docker compose -f docker/compose.yaml up --build
+modd
 ```
+
 The following services will be available:
 - Gemeente Vlierdam:
-  - Management Interface: http://localhost:8080
+  - Policy Editor: http://localhost:5173
   - Authorization Manager (PAP+PIP): http://localhost:9000
   - Outway (Kong): http://localhost:9002
   - PDP1: http://localhost:9004
+  - PDP2: http://localhost:9005
   - mock dataspace: http://localhost:9010
-  - Postgres: http://localhost:5400 (credentials in compose file)
+  - Keycloak: http://localhost:8088
 - RvIG:
-  - Management Interface: http://localhost:8082
+  - Policy Editor: http://localhost:5174
   - Authorization Manager (PAP+PIP): http://localhost:9020
   - Inway (Kong): http://localhost:9022
   - PDP1: http://localhost:9024
   - mock dataspace: http://localhost:9030
-  - Postgres: http://localhost:5420 (credentials in compose file)
+  - Keycloak: http://localhost:8090
 - RDW:
-  - Management Interface: http://localhost:8084
+  - Policy Editor: http://localhost:5175
   - Authorization Manager (PAP+PIP): http://localhost:9040
   - Inway (Kong): http://localhost:9042
   - PDP1: http://localhost:9044
   - mock dataspace: http://localhost:9050
-  - Postgres: http://localhost:5440 (credentials in compose file)
+  - Keycloak: http://localhost:8100
+- PostgreSQL: localhost:5432 (credentials in `docker/compose.yaml`), with a database per component.
+
+modd does not reload `modd.conf` itself: restart modd after changing it.
 
 #### FAQ
 
-**I get the following error when starting the docker compose containers: database "openftv" does not exist**
+**A component fails to start because its database does not exist**
 
-This sometimes happens when the initialization script did not run properly.
+The databases are created by `docker/scripts/postgres-setup.sh`, which only runs when the postgres volume is empty.
 Try removing the existing postgres volume by running:
 ```shell
 docker compose -f docker/compose.yaml down -v

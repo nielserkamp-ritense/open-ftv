@@ -8,7 +8,7 @@ sources:
       - name: "gebruikers"
         description: "Lijst van gebruikers"
         method: "POST"
-        uri: http://vlierdam-dataspace:8443/v1/gebruiker
+        uri: http://localhost:9010/v1/gebruiker
         parameters:
           - name: "@fields"
             description: Data-minimalization on returned fields.
@@ -42,7 +42,7 @@ sources:
       - name: "activiteiten"
         description: "Lijst van verwerkingsactiviteiten ophalen"
         method: "GET"
-        uri: http://vlierdam-dataspace:8443/v1/rvva
+        uri: http://localhost:9010/v1/rvva
         parameters:
           - name: "@fields"
             description: Data-minimalization on returned fields.
@@ -76,7 +76,7 @@ sources:
       - name: "doelbindingen"
         description: "Lijst doelbindingen ophalen"
         method: "GET"
-        uri: http://vlierdam-dataspace:8443/v1/doelbinding
+        uri: http://localhost:9010/v1/doelbinding
         parameters:
           - name: "@fields"
             description: Data-minimalization on returned fields.

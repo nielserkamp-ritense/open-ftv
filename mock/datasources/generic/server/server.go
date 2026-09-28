@@ -29,7 +29,13 @@ func NewService(cfg *config.Config, logger *slog.Logger, dataspace fs.FS) (serve
 		return nil, err
 	}
 
-	s := &service{ctx: context.Background(), cfg: cfg, logger: logger, db: db, chk: handle.NewChecks()}
+	s := &service{
+		ctx:    context.Background(),
+		cfg:    cfg,
+		logger: logger,
+		db:     db,
+		chk:    handle.NewChecks(),
+	}
 
 	// we're good to go once the service is running.
 	s.chk.SetHealth(true)

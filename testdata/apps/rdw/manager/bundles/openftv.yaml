@@ -7,6 +7,6 @@ policies: true
 data: true
 version: true
 targets:
-  - uri: "http://rvig-manager:9443"
+  - uri: "http://localhost:9120"
     apikey: ""
     encoding: "bzip2"

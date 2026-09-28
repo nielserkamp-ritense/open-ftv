@@ -1,0 +1,6 @@
+---
+id: "brv-access"
+language: "cedar"
+metadata:
+  description: "Doelbinding check for BRV reads."
+  tags: ["inway"]

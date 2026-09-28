@@ -8,7 +8,7 @@ sources:
       - name: "personen"
         description: "Alle personen"
         method: "POST"
-        uri: http://rvig-dataspace:8443/v1/haalcentraal/api/brp/personen
+        uri: http://localhost:9030/v1/haalcentraal/api/brp/personen
         timeout: "10s"
         interval: "5m"
         initialInterval: "1s"
