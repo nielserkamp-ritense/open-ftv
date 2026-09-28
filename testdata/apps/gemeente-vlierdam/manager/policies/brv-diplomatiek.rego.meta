@@ -1,0 +1,6 @@
+---
+id: "brv-diplomatiek"
+language: "rego"
+metadata:
+  description: "Scenario 2: diplomatiek voertuig uit BRV alleen tonen aan afdeling Gemeentesecretaris"
+  tags: ["rvig", "rdw"]

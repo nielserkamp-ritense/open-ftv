@@ -35,17 +35,19 @@ export function useRdwVehiclesByBsn(bsn: string, options?: { enabled?: boolean }
   })
 }
 
-// Convenience hook to fetch vehicles for multiple BSNs at once
-export function useRdwVehiclesForMultipleBsns(bsnList: string[], options?: { enabled?: boolean }) {
+// Convenience hook to fetch vehicles for multiple BSNs at once. Once RDW shares diplomatic vehicles (demo
+// scenario 2), the gateway only shows them to a Gemeentesecretaris, so it needs to know who's asking.
+export function useRdwVehiclesForMultipleBsns(bsnList: string[], gebruiker: string | undefined, options?: { enabled?: boolean }) {
   return useQuery<RdwVehicle[], unknown, RdwVehicle[]>({
-    queryKey: [...queryKeys.rdw.list(), 'multiple', bsnList],
-    enabled: options?.enabled && bsnList.length > 0,
+    queryKey: [...queryKeys.rdw.list(), 'multiple', bsnList, gebruiker],
+    enabled: options?.enabled && bsnList.length > 0 && !!gebruiker,
     queryFn: async () => {
       const results = await Promise.all(
         bsnList.map(async (bsn) => {
           const response = await rdwApiClient.post<RdwVehicle[]>(
             '/v1/voertuigen',
-            { "@filter": "kenteken.bsn=" + bsn }
+            { "@filter": "kenteken.bsn=" + bsn },
+            { headers: { 'Dpl-Core-User': gebruiker! } }
           )
           return response
         })

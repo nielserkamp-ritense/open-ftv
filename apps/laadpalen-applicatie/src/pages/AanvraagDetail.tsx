@@ -180,7 +180,7 @@ const AanvraagDetail = () => {
 
   // RDW query hook - enabled only when check is triggered and brpData is available
   const bsnList = brpData?.map(b => b.bsn).filter(Boolean) || [];
-  const rdwQuery = useRdwVehiclesForMultipleBsns(bsnList, {
+  const rdwQuery = useRdwVehiclesForMultipleBsns(bsnList, currentUser, {
     enabled: enableRdwCheck && bsnList.length > 0
   });
 

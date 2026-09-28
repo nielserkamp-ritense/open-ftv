@@ -229,7 +229,12 @@ const sources: SourceConfig[] = [
     url: VITE_VLIERDAM_OUTWAY_URL,
     client: rdwApiClient,
     datasourceId: "brv",
-    healthChecks: dataspaceChainCheck(rdwApiClient, "/v1/voertuigen", "openftv-rdw-inway", "openftv-rdw-pdp1", "openftv-rdw-dataspace"),
+    healthChecks: dataspaceChainCheck(
+      rdwApiClient, "/v1/voertuigen", "openftv-rdw-inway", "openftv-rdw-pdp1", "openftv-rdw-dataspace",
+      // A non-diplomatic owner: RDW refuses a diplomatic vehicle, or in scenario 2 the outway does without a
+      // Gemeentesecretaris.
+      {"@filter": "kenteken.bsn=999990263"},
+    ),
   },
 ];
 

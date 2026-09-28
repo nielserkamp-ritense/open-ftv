@@ -95,3 +95,40 @@ plugins:
       - Content-Type
       - X-Api-Key
       - Doelbinding
+
+- id: 0f6c1d2e-5b7a-4c83-9e41-2a8d7f3b6c95
+  route: 975b7d92-3305-4f83-94b5-586824c1f2a3
+  name: openftv
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    pdp: "http://host.docker.internal:9005/authzen/v1/evaluation"
+    timeout: 30000
+    evaluate_response: true
+
+- id: 7a3e9b41-c2d8-4f65-8b17-e04c95d2a6f3
+  route: 975b7d92-3305-4f83-94b5-586824c1f2a3
+  name: cors
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    origins:
+      - http://localhost:8000
+      - http://localhost:8080
+      - http://localhost:8443
+    credentials: false
+    preflight_continue: false
+    methods:
+      - GET
+      - HEAD
+      - PUT
+      - PATCH
+      - POST
+    headers:
+      - Content-Type
+      - Doelbinding
+      - Dpl-Core-User
