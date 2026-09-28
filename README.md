@@ -96,6 +96,9 @@ The following services will be available:
   - Keycloak: http://localhost:8100
 - PostgreSQL: localhost:5432 (credentials in `docker/compose.yaml`), with a database per component.
 
+On every start, modd saves each Policy Editor's header title and colors through the settings API (see the end of
+`modd.conf`), replacing changes made on the Instellingen page.
+
 modd does not reload `modd.conf` itself: restart modd after changing it.
 
 #### FAQ
