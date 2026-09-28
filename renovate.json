@@ -1,41 +1,17 @@
 {
   "extends": [
-    "config:base",
+    "security:only-security-updates",
     ":semanticCommits",
     ":semanticCommitTypeAll(build)",
     ":semanticCommitScopeDisabled"
   ],
-  "automergeType": "branch",
-  "automerge": true,
   "dependencyDashboard": false,
-  "gitLabIgnoreApprovals": true,
   "rangeStrategy": "pin",
   "postUpdateOptions": ["gomodTidy"],
-  "gitlabci": {
-    "fileMatch": ["^\\.gitlab\\/ci\\/.*\\.yml$"]
-  },
-  "commitBody": "Issue: open-ftv#18",
-  "packageRules": [
-    {
-      "groupName": "golang",
-      "description": "Upgrade the Go toolchain everywhere in one MR: go.mod directive, mise.toml, Dockerfiles and CI images",
-      "matchDatasources": ["golang-version", "docker"],
-      "matchPackageNames": ["go", "golang"],
-      "rangeStrategy": "bump",
-      "automerge": false,
-      "minimumReleaseAge": "14 days"
-    },
-    {
-      "groupName": "v8.x has been converted to an ES Module which we don't (yet) support",
-      "packageNames": ["replace-in-file"],
-      "managers": ["npm"],
-      "allowedVersions": "7.2.0"
-    }
-  ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["^\\.gitlab\\/ci\\/.*\\.yml$"],
+      "managerFilePatterns": ["/^\\.gitlab\\/ci\\/.*\\.yml$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION: (\"|')(?<currentValue>.*)(\"|')\\s"
       ],
