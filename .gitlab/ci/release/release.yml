@@ -41,6 +41,8 @@ release:
       --tag-message "$(cat release-notes.md)"
       --no-update
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
       when: manual
       allow_failure: true

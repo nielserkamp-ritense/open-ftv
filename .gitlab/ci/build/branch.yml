@@ -4,4 +4,6 @@ Build images:
     - export GIT_TAG_NAME=${CI_COMMIT_REF_SLUG}
     - ko build --bare --sbom=none --push=false ${MAIN}
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH

@@ -22,5 +22,7 @@ helm-charts:
         helm push "${PACKAGE}" "oci://${CI_REGISTRY_IMAGE}/charts"
       done
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'

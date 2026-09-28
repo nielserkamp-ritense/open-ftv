@@ -13,6 +13,8 @@ Lint OpenAPI specs:
     - spectral lint -r .spectral.yml schema/openapi.yaml
     - cd -
   needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
 
 Lint Golang:
   stage: Tests
@@ -26,6 +28,8 @@ Lint Golang:
     - apk --no-cache add jq
     - mkdir -p .go-cache .golangci-cache
   needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
   script:
     - golangci-lint run --new-from-merge-base=origin/main --output.text.path stdout --output.code-climate.path=gl-code-quality-report.json
   cache:
@@ -45,6 +49,8 @@ Lint Helm charts:
     name: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/alpine/helm:4.2.3@sha256:b97ba4f9b27fe7af16ee3d37e6815783c9d4a51289b6240a9024ec471611ae9b
     entrypoint: [""]
   needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
   before_script:
     - apk --no-cache add yq kustomize
   script:
@@ -72,4 +78,6 @@ Lint commit messages:
   script:
     - commitlint --from origin/main --to HEAD --verbose
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH

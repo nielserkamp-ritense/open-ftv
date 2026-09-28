@@ -34,6 +34,8 @@ Golang:
     PIP_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
     PDP_TEST_POSTGRES_URL: "postgres://postgres@postgres:5432/openftv?sslmode=disable"
   needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
   before_script:
     - mkdir -p .go-cache
   script:

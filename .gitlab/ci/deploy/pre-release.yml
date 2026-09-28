@@ -13,4 +13,6 @@ deploy-pre-release:
     name: simulatieomgeving
     url: https://open-ftv.simulatie.datastelsel.nl
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"

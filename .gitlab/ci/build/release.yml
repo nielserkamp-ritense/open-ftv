@@ -5,4 +5,6 @@ Release images:
     - export GIT_TAG_NAME=${IMAGE_TAG}
     - ko build --bare --sbom=none --tags ${IMAGE_TAG},latest ${MAIN}
   rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
