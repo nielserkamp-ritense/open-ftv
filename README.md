@@ -151,8 +151,9 @@ publishes it. To release a different version than the computed one, set `RELEASE
 variables box when starting the job. It must look like `v1.2.3`, must not exist yet and must be newer than the latest
 tag. The job only becomes available once the rest of the pipeline has passed.
 
-The job authenticates with the `RELEASE_TOKEN` CI variable, a project access token (Maintainer, `api` scope), because
-a tag created with the CI job token does not start a pipeline.
+The job authenticates with the `RELEASE_TOKEN` CI variable, because a tag created with the CI job token does not start
+a pipeline. It must be a group access token on the `ecosystem/ftv` group (Maintainer, `api` scope): the tag pipeline
+pulls its images through the group's dependency proxy, which answers "not found" to a project access token's bot.
 
 The pre-release version on `main` always assumes a *patch* bump, so it is numbered
 `0.2.1-main.<n>` even when the next release will be `0.3.0`. That is expected.
