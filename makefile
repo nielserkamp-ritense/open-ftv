@@ -1,8 +1,8 @@
 PKG_LIST := ./...
 
-.PHONY: all tidy dep-up fmt vet lint test bench race cover coverhtml escape oas e2e vlierdam rdw rvig help
+.PHONY: all tidy dep-up fmt vet lint test bench race cover coverhtml escape oas help
 
-all: oas vet lint test vlierdam rdw rvig
+all: oas vet lint test
 
 tidy: ## go mod tidy
 	@go mod tidy
@@ -42,17 +42,6 @@ escape: ## run escape analysis
 
 oas:
 	+$(MAKE) -C ./oas
-
-e2e: vlierdam rdw rvig
-
-vlierdam:
-	@./e2e/gemeente-vlierdam/test.sh
-
-rdw:
-	@./e2e/rdw/test.sh
-
-rvig:
-	@./e2e/rvig/test.sh
 
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

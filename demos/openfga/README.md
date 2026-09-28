@@ -4,16 +4,14 @@ This folder contains the presentation and data used for the OpenFGA demo.
 
 ## Run the OpenFGA playground
 
-Navigate to the `open-ftv` home directory, and run the following command:
+Run the following command:
 ```shell
-docker compose -f docker/openfga-playground.yaml up
+docker run --rm -p 8080:8080 -p 3000:3000 openfga/openfga run
 ```
-
-Wait a little until all services run with this docker compose setup are active.
 
 Now open your browser on http://localhost:3000/playground.
 
-When you are finished with the playground, go back to the command-line and just press <ctrl-c> to shut down docker compose.
+When you are finished with the playground, go back to the command-line and just press <ctrl-c> to stop OpenFGA.
 
 ## Example models & tuples
 
@@ -26,11 +24,4 @@ cd -
 
 Please refresh your browser window if you already opened the playground.
 
-## Cleanup
-
-To clean up your docker environment:
-```shell
-docker compose -f docker/openfga-playground.yaml down
-```
-
-NOTE! this will delete all data.
+OpenFGA keeps its data in memory, so stopping it deletes all data.

@@ -7,7 +7,6 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 - `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.).
 - `demos     ` demo & presentation materials.
 - `docker    ` docker and compose related scripts.
-- `e2e       ` end-2-end scripts.
 - `eam       ` shared generic EAM components.
 - `external  ` OpenFTV plugins for external software products. 
 - `migrations` database migration scripts.
@@ -93,27 +92,6 @@ The following services will be available:
   - PDP1: http://localhost:9044
   - mock dataspace: http://localhost:9050
   - Postgres: http://localhost:5440 (credentials in compose file)
-
-#### Reduced test setup
-
-Alternatively, you can use the following command to run a simple local setup with just gemeente Vlierdam:
-
-```shell
-docker compose -f docker/compose-vlierdam.yaml up --build
-```
-
-With this setup you get a simple test-setup with just the Vlierdam services, 
-without the Kong gateway as it is only needed for external connections.
-
-#### OpenFGA demo
-
-Run:
-
-```shell
-docker compose -f docker/openfga-playground.yaml up --build
-```
-
-And point your browser to http://localhost:3000/playground.
 
 #### FAQ
 
