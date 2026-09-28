@@ -25,11 +25,21 @@ import {useAanvragen} from "@/lib/api/aanvragen";
 import type {Aanvraag} from "@/lib/api/types";
 import {useCurrentUser} from "@/contexts/CurrentUserContext";
 
+// The counts and the filters share these groups, so a filter always shows the aanvragen its count includes.
+const statusGroups: Record<"pending" | "in_behandeling" | "approved" | "rejected", number[]> = {
+  pending: [1],
+  in_behandeling: [2, 3],
+  approved: [4],
+  rejected: [8, 9],
+};
+
+type StatusGroup = keyof typeof statusGroups;
+
 const Behandelaar = () => {
   const navigate = useNavigate();
   const {data: aanvragenData, isLoading, error} = useAanvragen();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | Aanvraag["status"]>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | StatusGroup>("all");
   const {currentUser, setCurrentUser} = useCurrentUser();
 
   const getStatusBadge = (status: Aanvraag["status"]) => {
@@ -65,22 +75,21 @@ const Behandelaar = () => {
     }
   };
 
-  const getStatusCounts = () => {
-    if (!aanvragenData) return {pending: 0, in_behandeling: 0, approved: 0, rejected: 0};
+  const countStatus = (group: StatusGroup) =>
+    aanvragenData?.filter((a) => statusGroups[group].includes(a.status)).length ?? 0;
 
-    return {
-      pending: aanvragenData.filter((a) => a.status === 1).length,
-      in_behandeling: aanvragenData.filter((a) => a.status === 2 || a.status === 3).length,
-      approved: aanvragenData.filter((a) => a.status === 4).length,
-      rejected: aanvragenData.filter((a) => a.status === 8 || a.status === 9).length,
-    };
-  };
+  const getStatusCounts = () => ({
+    pending: countStatus("pending"),
+    in_behandeling: countStatus("in_behandeling"),
+    approved: countStatus("approved"),
+    rejected: countStatus("rejected"),
+  });
 
   const filteredApplications = aanvragenData?.filter((app) => {
     const matchesSearch =
       app.postcode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.huisnummer?.toString().includes(searchTerm);
-    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || statusGroups[statusFilter].includes(app.status);
     return matchesSearch && matchesStatus;
   });
 
@@ -233,26 +242,26 @@ const Behandelaar = () => {
                       Alle ({aanvragenData?.length ?? 0})
                     </Button>
                     <Button
-                      variant={statusFilter === 1 ? "default" : "outline"}
-                      onClick={() => setStatusFilter(1)}
+                      variant={statusFilter === "pending" ? "default" : "outline"}
+                      onClick={() => setStatusFilter("pending")}
                     >
                       Te behandelen ({counts.pending})
                     </Button>
                     <Button
-                      variant={statusFilter == 2 || statusFilter === 3 ? "default" : "outline"}
-                      onClick={() => setStatusFilter(3)}
+                      variant={statusFilter === "in_behandeling" ? "default" : "outline"}
+                      onClick={() => setStatusFilter("in_behandeling")}
                     >
                       In behandeling ({counts.in_behandeling})
                     </Button>
                     <Button
-                      variant={statusFilter === 4 ? "default" : "outline"}
-                      onClick={() => setStatusFilter(4)}
+                      variant={statusFilter === "approved" ? "default" : "outline"}
+                      onClick={() => setStatusFilter("approved")}
                     >
                       Toegewezen ({counts.approved})
                     </Button>
                     <Button
-                      variant={statusFilter === 8 || statusFilter === 9 ? "default" : "outline"}
-                      onClick={() => setStatusFilter(9)}
+                      variant={statusFilter === "rejected" ? "default" : "outline"}
+                      onClick={() => setStatusFilter("rejected")}
                     >
                       Afgewezen ({counts.rejected})
                     </Button>
