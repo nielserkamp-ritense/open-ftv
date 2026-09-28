@@ -108,6 +108,19 @@ plugins:
     timeout: 30000
     evaluate_response: true
 
+# RDW doesn't need to know which Vlierdam employee is asking; only the openftv plugin uses it.
+- id: 5c2b8e17-9d4f-4a36-b0e2-7f1a3c6d9e84
+  route: 975b7d92-3305-4f83-94b5-586824c1f2a3
+  name: request-transformer
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    remove:
+      headers:
+        - Dpl-Core-User
+
 - id: 7a3e9b41-c2d8-4f65-8b17-e04c95d2a6f3
   route: 975b7d92-3305-4f83-94b5-586824c1f2a3
   name: cors

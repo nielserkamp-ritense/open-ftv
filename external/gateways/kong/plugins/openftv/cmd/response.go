@@ -44,6 +44,40 @@ func (c *Config) Response(kong *pdk.PDK) {
 	}
 }
 
+// sharedRequestHeaders keeps the request headers from the access phase for the response evaluation: Kong
+// has only one request, so a plugin running after this one (such as request-transformer removing
+// Dpl-Core-User before it reaches the upstream service) also removes it from what the response phase reads.
+const sharedRequestHeaders = "openftv.request_headers"
+
+const maxRequestHeaders = 1000
+
+func saveRequestHeaders(kong *pdk.PDK, headers map[string][]string) error {
+	b, err := json.Marshal(headers)
+	if err != nil {
+		return err
+	}
+
+	return kong.Ctx.SetShared(sharedRequestHeaders, string(b))
+}
+
+func requestHeaders(kong *pdk.PDK, saved bool) (map[string][]string, error) {
+	if !saved {
+		headers, _ := kong.Request.GetHeaders(maxRequestHeaders)
+		return headers, nil
+	}
+
+	s, err := kong.Ctx.GetSharedString(sharedRequestHeaders)
+	if err != nil {
+		return nil, fmt.Errorf("request headers from the access phase: %w", err)
+	}
+
+	var headers map[string][]string
+
+	err = json.Unmarshal([]byte(s), &headers)
+
+	return headers, err
+}
+
 // decodeResponseBody decodes a JSON body of any shape (a service may well return an array); anything else
 // is passed on as the raw string.
 func decodeResponseBody(raw []byte) any {

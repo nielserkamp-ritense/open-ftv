@@ -48,16 +48,18 @@ func (c *Config) Access(kong *pdk.PDK) {
 // evaluate asks the PDP for a decision on the current request; a non-nil response is added to the context,
 // so the PDP can also decide on what the upstream service returned.
 func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.EvaluationResponse, upstreamTrace, error) {
-	authResp := authzen.EvaluationResponse{}
-
 	method, _ := kong.Request.GetMethod()
 	scheme, _ := kong.Request.GetScheme()
 	host, _ := kong.Request.GetHost()
 	port, _ := kong.Request.GetPort()
 	path, _ := kong.Request.GetPath()
 	query, _ := kong.Request.GetRawQuery()
-	headers, _ := kong.Request.GetHeaders(1000)
 	body, _ := kong.Request.GetRawBody()
+
+	headers, err := requestHeaders(kong, response != nil)
+	if err != nil {
+		return authzen.EvaluationResponse{}, upstreamTrace{}, err
+	}
 
 	// Resolved once so every outgoing hop for this request (the PDP call, and the forwarded call to the
 	// upstream service) shares the same trace_id — resolving independently per hop would otherwise mint a
@@ -75,6 +77,13 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 
 	traceParent := models.ResolveOutgoingTraceParent(baseTraceParent)
 	models.SetHeader(headers, models.HeaderTraceParent, traceParent)
+
+	// Saved with the resolved traceparent, so the response evaluation continues this trace.
+	if response == nil && c.EvaluateResponse {
+		if err := saveRequestHeaders(kong, headers); err != nil {
+			return authzen.EvaluationResponse{}, upstream, err
+		}
+	}
 
 	uri := &url.URL{
 		Scheme:   scheme,
@@ -126,9 +135,20 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 		Context: models.MapFromAttributes(parc.Context),
 	}
 
+	authResp, err := c.askPDP(&authBody, traceParent, traceState, fscTransactionID)
+
+	return authResp, upstream, err
+}
+
+// askPDP sends the evaluation request to the PDP, continuing the request's trace.
+func (c *Config) askPDP(
+	authBody *authzen.EvaluationRequest, traceParent, traceState, fscTransactionID string,
+) (authzen.EvaluationResponse, error) {
+	authResp := authzen.EvaluationResponse{}
+
 	b, err := json.Marshal(authBody)
 	if err != nil {
-		return authResp, upstream, err
+		return authResp, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Timeout)*time.Millisecond)
@@ -136,7 +156,7 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 
 	authReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.PDP, bytes.NewBuffer(b))
 	if err != nil {
-		return authResp, upstream, err
+		return authResp, err
 	}
 
 	authReq.Header.Set(models.HeaderTraceParent, traceParent)
@@ -151,14 +171,14 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 
 	resp, err := http.DefaultClient.Do(authReq)
 	if err != nil {
-		return authResp, upstream, err
+		return authResp, err
 	}
 
 	defer resp.Body.Close()
 
 	err = json.NewDecoder(resp.Body).Decode(&authResp)
 
-	return authResp, upstream, err
+	return authResp, err
 }
 
 func exitForbidden(kong *pdk.PDK, msg string, authResp authzen.EvaluationResponse) {
