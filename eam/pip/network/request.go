@@ -76,7 +76,7 @@ type Request struct {
 	body     io.Reader            // Fully encoded body.
 	bodyLen  int                  // Length of fully encoded body.
 	tls      *transport.TLSConfig // TLS configuration.
-	lastCall time.Time            // timestamp of last active call.
+	lastCall time.Time            // timestamp of the last successful call.
 }
 
 // HTTPRequest returns an HTTP request for retrieving the external data.
@@ -104,8 +104,6 @@ func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttributeValue)
 	if r.ModifiedSince && !r.lastCall.IsZero() {
 		httpReq.Header.Set("If-Modified-Since", r.lastCall.Format(http.TimeFormat))
 	}
-
-	r.lastCall = time.Now().UTC()
 
 	return httpReq, nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"k8s.io/client-go/transport"
 )
@@ -53,6 +54,8 @@ func (r *runner) initClient() bool {
 }
 
 func (r *runner) initRequest() bool {
+	r.started = time.Now().UTC()
+
 	if r.httpReq, r.err = r.req.HTTPRequest(r.ctx, r.manager.getAttribute); r.err != nil {
 		r.logger.Error("failed to build http request", "error", r.err)
 		return false
@@ -68,6 +71,12 @@ func (r *runner) doRequest() {
 
 	defer r.httpResp.Body.Close()
 	r.processResponse()
+
+	// Only a successful call may move If-Modified-Since forward: after a failed one, the next call
+	// would otherwise get a 304 for data it never received.
+	if r.err == nil {
+		r.req.lastCall = r.started
+	}
 }
 
 func (r *runner) processResponse() {
@@ -104,6 +113,7 @@ type runner struct {
 	httpResp   *http.Response
 	data       any
 	err        error
+	started    time.Time
 }
 
 const (

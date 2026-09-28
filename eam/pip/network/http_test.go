@@ -3,6 +3,8 @@ package network
 import (
 	"context"
 	"log/slog"
+	"net/http"
+	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
@@ -438,4 +440,39 @@ entities:
 
 		assert.Equal(t, 3, count)
 	})
+}
+
+func TestManager_Execute_ModifiedSinceOnlyAfterSuccess(t *testing.T) {
+	status := http.StatusInternalServerError
+
+	var ifModifiedSince []string
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ifModifiedSince = append(ifModifiedSince, r.Header.Get("If-Modified-Since"))
+
+		w.WriteHeader(status)
+	}))
+	defer srv.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
+	m := &manager{ctx: ctx, cancel: cancel, logger: logger}
+	req := &Request{Name: "req1", Method: http.MethodGet, URI: srv.URL, Timeout: time.Second, ModifiedSince: true}
+
+	require.Error(t, m.execute(logger, req))
+	assert.True(t, req.lastCall.IsZero(), "a failed call must not count as the last call")
+
+	status = http.StatusNotModified
+
+	require.NoError(t, m.execute(logger, req))
+	assert.False(t, req.lastCall.IsZero())
+
+	require.NoError(t, m.execute(logger, req))
+
+	require.Len(t, ifModifiedSince, 3)
+	assert.Empty(t, ifModifiedSince[0])
+	assert.Empty(t, ifModifiedSince[1], "after a failed first call, the next one must fetch everything")
+	assert.Equal(t, req.lastCall.Format(http.TimeFormat), ifModifiedSince[2])
 }
