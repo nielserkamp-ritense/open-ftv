@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useProfile } from '@/auth/useProfile'
 import { useSettings } from '@/services/settings'
@@ -12,6 +13,13 @@ export function Header({ onLogoutHandler }: HeaderProps) {
     // The manager returns its built-in defaults until settings are saved; until they arrive, the header stays blank.
     const { data: settings } = useSettings()
     const { displayName, initials } = useProfile()
+
+    // Name the browser tab after the organisation, so several management interfaces can be told apart.
+    useEffect(() => {
+        if (settings?.headerTitle) {
+            document.title = settings.headerTitle
+        }
+    }, [settings?.headerTitle])
 
     return <div
         className="w-full h-[108px] flex items-center justify-between pl-rhc-space-300 pr-rhc-space-500 border-b border-black"
