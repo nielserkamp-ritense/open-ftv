@@ -1,38 +1,38 @@
-npm_security_check:
+# The scanners below feed the GitLab vulnerability report and run only in the daily scheduled pipeline on the
+# default branch: the report only tracks default-branch results, and new advisories appear without code changes.
+include:
+  - template: Jobs/Dependency-Scanning.v2.gitlab-ci.yml
+    inputs:
+      stage: Security
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+# Without go.graph the dependency scanner only reads go.mod and loses the dependency paths.
+go_mod_graph:
   stage: Security
-  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/node:22.17.1-alpine
-  before_script:
-    - cd apps/management-interface
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine # matches go.mod
   script:
-    - npm ci
-    - |
-      set +e
-      npm audit --audit-level=high > npm-audit-report.txt 2>&1
-      NPM_AUDIT_EXIT=$?
-      set -e
-      cat npm-audit-report.txt
-      if [ "$NPM_AUDIT_EXIT" -ne 0 ]; then
-        printf '\e[1;31mWARNING: npm audit found HIGH/CRITICAL vulnerabilities, see report above.\e[0m\n'
-      else
-        echo "npm audit: no HIGH/CRITICAL vulnerabilities found."
-      fi
-      exit 0
+    - go mod graph > go.graph
   needs: []
   artifacts:
-    expire_in: 2 weeks
+    expire_in: 1 day
     paths:
-      - apps/management-interface/npm-audit-report.txt
+      - go.graph
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - apps/management-interface/**/*
-          - \.gitlab/ci/tests/security.yml
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+dependency-scanning:
+  needs:
+    - go_mod_graph
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+secret_detection:
+  stage: Security
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# The dependency scanner can't tell whether our code calls a vulnerable Go function; govulncheck can.
 go_security_check:
   stage: Security
   image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine # matches go.mod
@@ -44,18 +44,7 @@ go_security_check:
     - go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
     - export PATH="${GOPATH}/bin:${PATH}"
   script:
-    - |
-      set +e
-      govulncheck ./... > govulncheck-report.txt 2>&1
-      GOVULNCHECK_EXIT=$?
-      set -e
-      cat govulncheck-report.txt
-      if [ "$GOVULNCHECK_EXIT" -ne 0 ]; then
-        printf '\e[1;31mWARNING: govulncheck found vulnerabilities, see report above.\e[0m\n'
-      else
-        echo "govulncheck: no vulnerabilities found."
-      fi
-      exit 0
+    - govulncheck -format sarif ./... > govulncheck.sarif
   needs: []
   cache:
     key: OpenFTV-GoSecurityCheck
@@ -63,28 +52,12 @@ go_security_check:
       - .go-cache
   artifacts:
     expire_in: 2 weeks
+    reports:
+      sarif: govulncheck.sarif
     paths:
-      - govulncheck-report.txt
+      - govulncheck.sarif
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        compare_to: $CI_DEFAULT_BRANCH
-        paths:
-          - go.mod
-          - go.sum
-          - mise.toml
-          - utilities/**/*
-          - oas/**/*
-          - eam/**/*
-          - mock/**/*
-          - apps/**/*
-          - migrations/**/*
-          - external/**/*
-          - go.work
-          - \.gitlab/ci/tests/security.yml
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # Checks a CycloneDX SBOM's declared/detected licenses against a list of licenses known to be compatible with
 # EUPL (either EUPL's own Article 5 "Compatible Licences" appendix, see LICENSE.md, or common permissive licenses that never conflict with it).
