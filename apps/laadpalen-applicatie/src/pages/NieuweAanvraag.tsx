@@ -8,7 +8,7 @@ import {ApplicationForm} from "@/components/ApplicationForm";
 import {ArrowLeft} from "lucide-react";
 import {format} from "date-fns";
 import {nl} from "date-fns/locale";
-import {Aanvraag, useCreateAanvraag, useGebruikers} from "@/lib/api";
+import {useAanvragen, useCreateAanvraag, useGebruikers} from "@/lib/api";
 import {useCurrentUser} from "@/contexts/CurrentUserContext";
 
 interface AuditLogEntry {
@@ -25,7 +25,9 @@ const NieuweAanvraag = () => {
   const navigate = useNavigate();
   const [showAuditLog, setShowAuditLog] = useState(true);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
-  const [applicationId] = useState(() => Math.floor(Math.random() * 10000) + 1);
+  // The API stores an aanvraag under the id the client picks, so take the next free one.
+  const {data: aanvragen} = useAanvragen();
+  const applicationId = Math.max(0, ...(aanvragen ?? []).map((a) => a.id)) + 1;
   const {currentUser, setCurrentUser} = useCurrentUser();
   const createAanvraag = useCreateAanvraag();
   const {data: gebruikers = []} = useGebruikers();
@@ -45,6 +47,17 @@ const NieuweAanvraag = () => {
   };
 
   const handleSubmit = (data: { postcode: string; huisnummer: number; }) => {
+    if (!aanvragen) {
+      addAuditEntry({
+        action: "Aanvraag opslaan mislukt",
+        system: "API",
+        result: "error",
+        details: "De bestaande aanvragen zijn nog niet geladen, probeer het opnieuw",
+        isPublic: true,
+      });
+      return;
+    }
+
     const statusDatum = new Date().toISOString();
 
     createAanvraag.mutate(
