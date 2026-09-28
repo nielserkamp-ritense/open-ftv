@@ -19,7 +19,7 @@ func TestInit(t *testing.T) {
 		wantErr   bool
 		testLevel slog.Level
 		wantLevel bool
-		wantJSON  bool
+		want      slog.Handler
 	}{
 		{
 			name:    "bad file",
@@ -30,14 +30,14 @@ func TestInit(t *testing.T) {
 			name:      "all empty",
 			testLevel: slog.LevelInfo,
 			wantLevel: true,
-			wantJSON:  true,
+			want:      &slog.JSONHandler{},
 		},
 		{
 			name:      "stdout - no fmt - no level",
 			output:    "STDOUT",
 			testLevel: slog.LevelInfo,
 			wantLevel: true,
-			wantJSON:  true,
+			want:      &slog.JSONHandler{},
 		},
 		{
 			name:      "stderr - no fmt - no level",
@@ -46,14 +46,14 @@ func TestInit(t *testing.T) {
 			level:     "",
 			testLevel: slog.LevelInfo,
 			wantLevel: true,
-			wantJSON:  true,
+			want:      &slog.JSONHandler{},
 		},
 		{
 			name:      "stdout - no fmt - warning",
 			output:    "STDOUT",
 			level:     "warning",
 			testLevel: slog.LevelInfo,
-			wantJSON:  true,
+			want:      &slog.JSONHandler{},
 		},
 		{
 			name:      "stdout - text - debug",
@@ -62,6 +62,16 @@ func TestInit(t *testing.T) {
 			level:     "debug",
 			testLevel: slog.LevelInfo,
 			wantLevel: true,
+			want:      &slog.TextHandler{},
+		},
+		{
+			name:      "stdout - console - debug",
+			output:    "STDOUT",
+			format:    "CONSOLE",
+			level:     "DEBUG",
+			testLevel: slog.LevelInfo,
+			wantLevel: true,
+			want:      &ConsoleHandler{},
 		},
 		{
 			name:      "stdout - json - error",
@@ -69,7 +79,7 @@ func TestInit(t *testing.T) {
 			format:    "JSON",
 			level:     "error",
 			testLevel: slog.LevelWarn,
-			wantJSON:  true,
+			want:      &slog.JSONHandler{},
 		},
 	}
 
@@ -88,13 +98,7 @@ func TestInit(t *testing.T) {
 				gotLevel := got.Enabled(nil, tc.testLevel)
 				assert.Equal(t, tc.wantLevel, gotLevel)
 
-				if tc.wantJSON {
-					_, ok := got.Handler().(*slog.JSONHandler)
-					assert.True(t, ok)
-				} else {
-					_, ok := got.Handler().(*slog.TextHandler)
-					assert.True(t, ok)
-				}
+				assert.IsType(t, tc.want, got.Handler())
 			}
 		})
 	}

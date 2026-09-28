@@ -25,6 +25,8 @@ func Init(output, format, level string, source bool) (*slog.Logger, error) {
 	switch strings.ToLower(format) {
 	case "text":
 		h = slog.NewTextHandler(f, &opts)
+	case "console":
+		h = NewConsoleHandler(f, &opts)
 	default:
 		h = slog.NewJSONHandler(f, &opts)
 	}
