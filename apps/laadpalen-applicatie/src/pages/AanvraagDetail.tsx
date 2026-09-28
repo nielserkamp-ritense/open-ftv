@@ -19,13 +19,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {Alert, AlertDescription} from "@/components/ui/alert";
 import {AddressMap} from "@/components/AddressMap";
 import {
@@ -42,7 +35,6 @@ import {
   Loader2,
   Check,
   MapPin,
-  Info,
 } from "lucide-react";
 import {format} from "date-fns";
 import {nl} from "date-fns/locale";
@@ -62,29 +54,6 @@ import {
   getDutchErrorMessage,
   getErrorMessage
 } from "@/lib/api";
-
-interface AuditLogEntry {
-  id: string;
-  timestamp: Date;
-  action: string;
-  system: "BRP" | "BRV" | "GLP" | "FTV" | "FSC" | "FDS" | "LDV" | "LTV" | "Zaaksysteem" | "Ambtenaar";
-  connectionType?: "FSC" | "Internal"; // FSC voor externe systemen, Internal voor gemeentelijk
-  accessControl?: "FTV"; // Voor toegangscontrole
-  logging?: "LDV" | "LTV"; // LDV voor dataverwerking, LTV voor toegangsverlening
-  result: "success" | "error" | "info";
-  details: string;
-  isPublic?: boolean; // true = openbare feedback, false/undefined = technisch
-
-  // AuthZEN specifieke velden (voor FTV toegangscontrole logs)
-  authzenDecision?: "permit" | "deny";
-  authzenReason?: string;
-
-  // Data response velden (voor bronsysteem data logs)
-  dataResponse?: {
-    recordsFound?: number;
-    summary?: string;
-  };
-}
 
 // Mapping voor Vlierdam adressen
 const vlierdamStreets: Record<string, string> = {
@@ -130,7 +99,6 @@ const AanvraagDetail = () => {
   const [isCheckingBRP, setIsCheckingBRP] = useState(false);
   const [isCheckingRDW, setIsCheckingRDW] = useState(false);
   const [isSendingToZaak, setIsSendingToZaak] = useState(false);
-  const [showAuditLog, setShowAuditLog] = useState(true);
   const {currentUser, setCurrentUser} = useCurrentUser();
 
   const [brpData, setBrpData] = useState<BrpPerson[]>(null);
@@ -139,8 +107,6 @@ const AanvraagDetail = () => {
   const [isCheckingLaadpaal, setIsCheckingLaadpaal] = useState(false);
   const [vergunningBeslissing, setVergunningBeslissing] = useState<"goedkeuren" | "afwijzen" | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [isVerzonden, setIsVerzonden] = useState(false);
-  const [selectedLogEntry, setSelectedLogEntry] = useState<AuditLogEntry | null>(null);
   const [enableBrpCheck, setEnableBrpCheck] = useState(false);
   const [enableRdwCheck, setEnableRdwCheck] = useState(false);
   const [enableLaadpalenCheck, setEnableLaadpalenCheck] = useState(false);
@@ -212,14 +178,7 @@ const AanvraagDetail = () => {
       setIsCheckingRDW(true);
     } else if (rdwQuery.isSuccess) {
       setIsCheckingRDW(false);
-      const data = rdwQuery.data;
-      setRdwData(data);
-
-      const elektrischeVoertuigen = data.filter(v => v.klasse === "E")
-
-      const auditDetails = elektrischeVoertuigen.length === 0
-        ? "Geen elektrische voertuigen geregistreerd op naam van bewoner(s)"
-        : `${elektrischeVoertuigen.length} elektrisch voertuig(en) gevonden: ${elektrischeVoertuigen.map(v => `${v.merk} (${v.kenteken})`).join(", ")}`;
+      setRdwData(rdwQuery.data);
     } else if (rdwQuery.isError) {
       setIsCheckingRDW(false);
       console.error("RDW check failed:", rdwQuery.error);
@@ -336,7 +295,6 @@ const AanvraagDetail = () => {
       }
 
       setIsSendingToZaak(false);
-      setIsVerzonden(true);
 
       // Navigate back to behandelaar overview
       navigate("/behandelaar");
@@ -383,7 +341,7 @@ const AanvraagDetail = () => {
   if (!application && (isLoading || isFetching)) {
     return (
       <div className="min-h-screen bg-background">
-        <Header currentUser={currentUser} onUserChange={setCurrentUser} showAuditLog={showAuditLog} onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}/>
+        <Header currentUser={currentUser} onUserChange={setCurrentUser}/>
         <div className="container mx-auto px-4 py-8 text-center">
           <Loader2 className="h-16 w-16 mx-auto text-muted-foreground mb-4 animate-spin"/>
           <h2 className="text-2xl font-bold mb-2">Aanvraag wordt geladen...</h2>
@@ -395,7 +353,7 @@ const AanvraagDetail = () => {
   if (!application) {
     return (
       <div className="min-h-screen bg-background">
-        <Header currentUser={currentUser} onUserChange={setCurrentUser} showAuditLog={showAuditLog} onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}/>
+        <Header currentUser={currentUser} onUserChange={setCurrentUser}/>
         <div className="container mx-auto px-4 py-8 text-center">
           <AlertCircle className="h-16 w-16 mx-auto text-destructive mb-4"/>
           <h2 className="text-2xl font-bold mb-2">Aanvraag niet gevonden</h2>
@@ -413,8 +371,6 @@ const AanvraagDetail = () => {
       <Header
         currentUser={currentUser}
         onUserChange={setCurrentUser}
-        showAuditLog={showAuditLog}
-        onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
@@ -1043,75 +999,6 @@ const AanvraagDetail = () => {
               {/* Reserved space for sticky item */}
               <div className="mb-4 flex-shrink-0">
                 {(() => {
-                  // Als de aanvraag is verzonden, toon de samenvatting
-                  if (isVerzonden && vergunningBeslissing) {
-                    const statusIcon = vergunningBeslissing === "goedkeuren"
-                      ? <CheckCircle2 className="h-5 w-5 text-success"/>
-                      : <XCircle className="h-5 w-5 text-destructive"/>;
-                    const bgColor = vergunningBeslissing === "goedkeuren"
-                      ? "bg-success/10"
-                      : "bg-destructive/10";
-                    const borderColor = vergunningBeslissing === "goedkeuren"
-                      ? "border-success/30"
-                      : "border-destructive/30";
-
-                    return (
-                      <div className={`border ${borderColor} rounded-none p-4 text-sm ${bgColor}`}>
-                        <div className="flex items-start gap-3">
-                          {statusIcon}
-                          <div className="flex-1">
-                            <p className="font-semibold text-foreground">
-                              {vergunningBeslissing === "goedkeuren"
-                                ? "Laadpaalvergunning toegewezen"
-                                : "Laadpaalvergunning afgewezen"}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Voor adres: <span
-                              className="font-medium">{getFullAddress(application.postcode, application.huisnummer)}</span>
-                            </p>
-                            <div className="pt-2 mt-2 border-t border-current/20">
-                              <p className="text-xs font-medium mb-1">Op basis van:</p>
-                              <ul className="text-xs space-y-0.5 list-disc list-inside text-muted-foreground">
-                                {brpData && (
-                                  brpData.some((b) => b.volwassen) ? (
-                                    <li>BRP controle: Meerderjarige bewoner gevonden en ingeschreven</li>
-                                  ) : (
-                                    <li>BRP controle: Geen meerderjarige bewoner gevonden</li>
-                                  )
-                                )}
-                                {rdwData?.some((b: RdwVehicle) => b.klasse === "E") ? (
-                                  <li>RDW controle: Elektrisch voertuig geregistreerd</li>
-                                ) : rdwData ? (
-                                  <li>RDW controle: Geen elektrisch voertuig gevonden</li>
-                                ) : null}
-                                {existingLaadpaalData && !existingLaadpaalData.bestaandeLaadpaal ? (
-                                  <li>Laadpaal controle: Geen bestaande laadpaal op dit adres</li>
-                                ) : existingLaadpaalData && (
-                                  <li>Laadpaal controle: Er bestaat al een laadpaal op dit adres</li>
-                                )}
-                              </ul>
-                            </div>
-                            <div className="pt-2 mt-2 border-t border-current/20">
-                              <p className="text-xs font-medium mb-1">Beslissing genomen door:</p>
-                              <ul className="text-xs space-y-0.5 list-disc list-inside text-muted-foreground">
-                                <li>Bevoegd ambtenaar van de gemeente Vlierdam</li>
-                                <li>
-                                  {isGemeentesecretaris
-                                    ? "Werkzaam als gemeentefunctionaris met verhoogde autorisatie izv inwonende diplomaten"
-                                    : "Werkzaam op de afdeling Openbare ruimte en energievoorziening"
-                                  }
-                                </li>
-                                <li>Gediplomeerd volgens &apos;Laadpalen criterium 2025A&apos;</li>
-                                <li>Binnen kantoortijden</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // Anders toon de normale status
                   const hasElectricVehicle = !!rdwData?.some((b: RdwVehicle) => b.klasse === "E");
                   const noExistingLaadpaal = existingLaadpaalData && !existingLaadpaalData.bestaandeLaadpaal;
                   const allChecksCompleted = brpData && rdwData && existingLaadpaalData;
@@ -1192,257 +1079,6 @@ const AanvraagDetail = () => {
           </div>
         </div>
       </main>
-
-      {/* Technical Log Details Modal */}
-      <Dialog open={!!selectedLogEntry} onOpenChange={() => setSelectedLogEntry(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Technische Log Details</DialogTitle>
-            <DialogDescription>
-              {selectedLogEntry?.authzenDecision
-                ? "Authorization Decision Log volgens NLGov AuthZEN standaard"
-                : "Data Processing Log volgens NLGov LDV standaard"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedLogEntry && (
-            <div className="space-y-4 text-sm">
-              {/* Request/Response Section */}
-              <div className="space-y-2">
-                <h3 className="font-semibold">Verzoek & Beslissing</h3>
-                <div className="grid gap-2 p-3 bg-muted rounded-md">
-                  <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                    <span className="font-medium">Timestamp:</span>
-                    <span className="font-mono text-xs">{selectedLogEntry.timestamp.toISOString()}</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                    <span className="font-medium">Type:</span>
-                    <span>{selectedLogEntry.action}</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                    <span className="font-medium">Resultaat:</span>
-                    <Badge variant={
-                      selectedLogEntry.result === "success" ? "default" :
-                        selectedLogEntry.result === "error" ? "destructive" : "secondary"
-                    } className="w-fit">
-                      {selectedLogEntry.result === "success" ? "Toegestaan" :
-                        selectedLogEntry.result === "error" ? "Geweigerd" : "Informatief"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* System Architecture Section */}
-              <div className="space-y-2">
-                <h3 className="font-semibold">Systeem Architectuur</h3>
-                <div className="grid gap-2 p-3 bg-muted rounded-md">
-                  <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                    <span className="font-medium">
-                      {selectedLogEntry.authzenDecision ? "Toegangssysteem:" : "Bronsysteem:"}
-                    </span>
-                    <Badge variant="default" className="w-fit">{selectedLogEntry.system}</Badge>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                    <span className="font-medium">Bronhouder:</span>
-                    <span className="text-sm">
-                      {selectedLogEntry.system === "BRP" && "RvIG (Rijksdienst voor Identiteitsgegevens)"}
-                      {selectedLogEntry.system === "BRV" && "RDW (Rijksdienst voor het Wegverkeer)"}
-                      {selectedLogEntry.system === "FDS" && "Kadaster"}
-                      {selectedLogEntry.system === "GLP" && "Gemeente Vlierdam"}
-                      {selectedLogEntry.system === "Zaaksysteem" && "Gemeente Vlierdam"}
-                      {selectedLogEntry.system === "FTV" && "Logius"}
-                      {selectedLogEntry.system === "FSC" && "Logius"}
-                      {selectedLogEntry.system === "LDV" && "Gemeente Vlierdam"}
-                      {selectedLogEntry.system === "LTV" && "Logius"}
-                      {selectedLogEntry.system === "Ambtenaar" && "Gemeente Vlierdam"}
-                    </span>
-                  </div>
-                  {selectedLogEntry.connectionType && (
-                    <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                      <span className="font-medium">Verbinding:</span>
-                      <Badge variant={selectedLogEntry.connectionType === "FSC" ? "default" : "secondary"}
-                             className="w-fit">
-                        {selectedLogEntry.connectionType === "FSC"
-                          ? "FSC (Federatief Service Connectiviteit)"
-                          : "Intern Gemeentelijk"}
-                      </Badge>
-                    </div>
-                  )}
-                  {selectedLogEntry.accessControl && (
-                    <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                      <span className="font-medium">Toegangscontrole:</span>
-                      <Badge variant="default" className="w-fit">{selectedLogEntry.accessControl} (Federatief
-                        ToegangsVerlenings Register)</Badge>
-                    </div>
-                  )}
-                  {selectedLogEntry.logging && (
-                    <div className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                      <span className="font-medium">Logging Type:</span>
-                      <Badge variant="secondary" className="w-fit">
-                        {selectedLogEntry.logging === "LDV"
-                          ? "LDV (Logboek DataVerwerkingen)"
-                          : "LTV (Logboek ToegangsVerlening)"}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Trace Context Section */}
-              <div className="space-y-2">
-                <h3 className="font-semibold">Trace Context (W3C)</h3>
-                <div className="grid gap-2 p-3 bg-muted rounded-md font-mono text-xs">
-                  <div className="grid grid-cols-[140px_1fr] gap-2">
-                    <span className="font-sans font-medium">trace_id:</span>
-                    <span className="break-all">{selectedLogEntry.id.split('-').slice(0, 4).join('-')}</span>
-                  </div>
-                  <div className="grid grid-cols-[140px_1fr] gap-2">
-                    <span className="font-sans font-medium">span_id:</span>
-                    <span>{selectedLogEntry.id.split('-')[4]}</span>
-                  </div>
-                  {application?.id && (
-                    <div className="grid grid-cols-[140px_1fr] gap-2">
-                      <span className="font-sans font-medium">transaction_id:</span>
-                      <span>{application.id}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* AuthZEN Request Section - Only for FTV logs */}
-              {selectedLogEntry.authzenDecision && (
-                <>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold">AuthZEN Request</h3>
-                    <div className="p-3 bg-muted rounded-md">
-                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
-{JSON.stringify({
-  subject: {
-    type: "user",
-    id: currentUser,
-    attributes: {
-      role: isGemeentesecretaris ? "gemeentesecretaris" : "ambtenaar",
-      department: "Openbare ruimte en energievoorziening"
-    }
-  },
-  action: {
-    name: selectedLogEntry.action
-  },
-  resource: {
-    type: selectedLogEntry.system,
-    id: application?.id,
-    attributes: {
-      address: `${application?.postcode} ${application?.huisnummer}`
-    }
-  },
-  context: {
-    time: selectedLogEntry.timestamp.toISOString()
-  }
-}, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-
-                  {/* AuthZEN Response Section - Only for FTV logs */}
-                  <div className="space-y-2">
-                    <h3 className="font-semibold">AuthZEN Response</h3>
-                    <div className="p-3 bg-muted rounded-md">
-                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
-{JSON.stringify({
-  decision: selectedLogEntry.authzenDecision,
-  context: {
-    id: selectedLogEntry.id,
-    reason_admin: {
-      nl: selectedLogEntry.authzenReason || selectedLogEntry.details
-    }
-  }
-}, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Data Response Section - Only for bronsysteem logs */}
-              {selectedLogEntry.dataResponse && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Data Response</h3>
-                  <div className="p-3 bg-muted rounded-md">
-                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
-{JSON.stringify({
-  records_found: selectedLogEntry.dataResponse.recordsFound,
-  summary: selectedLogEntry.dataResponse.summary,
-  timestamp: selectedLogEntry.timestamp.toISOString(),
-  trace_id: selectedLogEntry.id.split('-').slice(0, 4).join('-')
-}, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              )}
-
-              {/* Public Details Section */}
-              {selectedLogEntry.isPublic && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Openbare Feedback</h3>
-                  <Alert>
-                    <Info className="h-4 w-4"/>
-                    <AlertDescription>{selectedLogEntry.details}</AlertDescription>
-                  </Alert>
-                </div>
-              )}
-
-              {/* Policy & Information Sources */}
-              <div className="space-y-2">
-                <h3 className="font-semibold">Policy & Information Sources</h3>
-                <div className="grid gap-2 p-3 bg-muted rounded-md">
-                  <div>
-                    <span className="font-medium">Policies:</span>
-                    <div className="mt-1 text-xs font-mono">
-                      {JSON.stringify({
-                        "laadpaal-policy-repo": {
-                          version: "2.1.0",
-                          filter: "laadpalen-criteria-2025A"
-                        }
-                      }, null, 2)}
-                    </div>
-                  </div>
-                  {selectedLogEntry.connectionType === "FSC" && (
-                    <div className="mt-2">
-                      <span className="font-medium">Information Sources:</span>
-                      <div className="mt-1 text-xs font-mono">
-                        {JSON.stringify({
-                          [selectedLogEntry.system.toLowerCase()]: {
-                            endpoint: `https://fsc.overheid.nl/${selectedLogEntry.system.toLowerCase()}/v1`,
-                            span_id: selectedLogEntry.id.split('-')[4]
-                          }
-                        }, null, 2)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Engine Configuration - Only for FTV logs */}
-              {selectedLogEntry.authzenDecision && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Engine Configuratie (PDP)</h3>
-                  <div className="p-3 bg-muted rounded-md font-mono text-xs">
-                    {JSON.stringify({
-                      type: "OPA",
-                      version: "0.68.0",
-                      hostname: "pdp-laadpalen-001.vlierdam.nl",
-                      config: {
-                        decision_log_enabled: true,
-                        bundle_download_interval: "30s"
-                      }
-                    }, null, 2)}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -5,7 +5,6 @@ import type {
   Aanvraag,
   ApiListResponse,
   CreateAanvraagRequest,
-  UpdateAanvraagRequest,
   PatchAanvraagRequest,
 } from './types'
 
@@ -42,20 +41,6 @@ export function useCreateAanvraag() {
   })
 }
 
-export function useUpdateAanvraag() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateAanvraagRequest }) => {
-      return apiClient.put<Aanvraag>(`/v1/aanvraag/${id}`, { id: id, ...data})
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.aanvragen.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.aanvragen.detail(variables.id) })
-    },
-  })
-}
-
 export function usePatchAanvraag() {
   const queryClient = useQueryClient()
 
@@ -66,20 +51,6 @@ export function usePatchAanvraag() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.aanvragen.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.aanvragen.detail(variables.id) })
-    },
-  })
-}
-
-export function useDeleteAanvraag() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      return apiClient.delete<void>(`/v1/aanvraag/${id}`)
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.aanvragen.all })
-      queryClient.removeQueries({ queryKey: queryKeys.aanvragen.detail(id) })
     },
   })
 }

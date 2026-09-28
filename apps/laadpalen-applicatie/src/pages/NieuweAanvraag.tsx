@@ -23,7 +23,6 @@ interface AuditLogEntry {
 
 const NieuweAanvraag = () => {
   const navigate = useNavigate();
-  const [showAuditLog, setShowAuditLog] = useState(true);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   // The API stores an aanvraag under the id the client picks, so take the next free one.
   const {data: aanvragen} = useAanvragen();
@@ -38,12 +37,7 @@ const NieuweAanvraag = () => {
       id: crypto.randomUUID(),
       timestamp: new Date(),
     };
-    setAuditLog((prev) => {
-      const updated = [newEntry, ...prev];
-      // Save to localStorage
-      localStorage.setItem(`auditLog_${applicationId}`, JSON.stringify(updated));
-      return updated;
-    });
+    setAuditLog((prev) => [newEntry, ...prev]);
   };
 
   const handleSubmit = (data: { postcode: string; huisnummer: number; }) => {
@@ -75,22 +69,6 @@ const NieuweAanvraag = () => {
       },
       {
         onSuccess: () => {
-          // Save audit log with initial entry
-          const initialAuditLog = [
-            {
-              id: "1",
-              timestamp: statusDatum,
-              action: "Aanvraag aangemaakt",
-              system: "Zaaksysteem",
-              result: "info" as const,
-              details: "Hij wordt pas ingediend na het versturen naar het zaaksysteem of doorsturen naar een andere ambtenaar",
-              isPublic: false,
-            },
-            ...auditLog
-          ];
-          localStorage.setItem(`auditLog_${applicationId}`, JSON.stringify(initialAuditLog));
-
-          // Navigate to detail screen
           navigate(`/behandelaar/aanvraag/${applicationId}`);
         },
         onError: (error) => {
@@ -112,8 +90,6 @@ const NieuweAanvraag = () => {
       <Header
         currentUser={currentUser}
         onUserChange={setCurrentUser}
-        showAuditLog={showAuditLog}
-        onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
@@ -126,8 +102,8 @@ const NieuweAanvraag = () => {
           Terug naar overzicht
         </Button>
 
-        <div className={`grid ${showAuditLog ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'} gap-6`}>
-          <div className={showAuditLog ? 'lg:col-span-2' : 'max-w-3xl mx-auto w-full'}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <Card className="p-8 shadow-lg">
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -140,7 +116,6 @@ const NieuweAanvraag = () => {
               <ApplicationForm
                 onSubmit={handleSubmit}
                 onAuditLog={addAuditEntry}
-                auditLog={auditLog}
                 currentUser={currentUser}
                 gebruikers={gebruikers}
               />
@@ -152,80 +127,78 @@ const NieuweAanvraag = () => {
             </Card>
           </div>
 
-          {showAuditLog && (
-            <div className="lg:col-span-1">
-              <Card
-                className="p-6 sticky top-6 max-h-[calc(100vh-3rem)] flex flex-col rounded-none bg-transparent border-0">
-                <p className="text-sm text-muted-foreground mb-4 flex-shrink-0">
-                  Chronologisch overzicht van feedback en beslissingen
-                </p>
+          <div className="lg:col-span-1">
+            <Card
+              className="p-6 sticky top-6 max-h-[calc(100vh-3rem)] flex flex-col rounded-none bg-transparent border-0">
+              <p className="text-sm text-muted-foreground mb-4 flex-shrink-0">
+                Chronologisch overzicht van feedback en beslissingen
+              </p>
 
-                {/* Reserved space for sticky item - empty for this page */}
-                <div className="mb-4 flex-shrink-0">
-                  {/* No sticky item on this page */}
-                </div>
+              {/* Reserved space for sticky item - empty for this page */}
+              <div className="mb-4 flex-shrink-0">
+                {/* No sticky item on this page */}
+              </div>
 
-                <div className="space-y-3 overflow-y-auto flex-1 relative pl-8">
-                  {/* Vertical timeline line */}
-                  <div className="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
-                  {auditLog.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      Geen acties gelogd
-                    </p>
-                  ) : (
-                    auditLog.map((entry) => (
-                      <div key={entry.id} className="relative">
-                        {/* Timeline dot */}
-                        <div
-                          className="absolute -left-8 top-3 w-3 h-3 rounded-full bg-primary border-2 border-background z-10"></div>
-                        {/* Connection line */}
-                        <div className="absolute -left-7 top-4 w-6 h-px bg-border"></div>
+              <div className="space-y-3 overflow-y-auto flex-1 relative pl-8">
+                {/* Vertical timeline line */}
+                <div className="absolute left-2 top-0 bottom-0 w-px bg-border"></div>
+                {auditLog.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Geen acties gelogd
+                  </p>
+                ) : (
+                  auditLog.map((entry) => (
+                    <div key={entry.id} className="relative">
+                      {/* Timeline dot */}
+                      <div
+                        className="absolute -left-8 top-3 w-3 h-3 rounded-full bg-primary border-2 border-background z-10"></div>
+                      {/* Connection line */}
+                      <div className="absolute -left-7 top-4 w-6 h-px bg-border"></div>
 
-                        <div
-                          className={`border rounded-none p-3 text-sm ${
-                            entry.isPublic
-                              ? 'border-primary/50 bg-primary/5'
-                              : 'border-border'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className={
-                                  entry.result === "success"
-                                    ? "border-success text-success"
-                                    : entry.result === "error"
-                                      ? "border-destructive text-destructive"
-                                      : "border-muted-foreground text-muted-foreground"
-                                }
-                              >
-                                {entry.system}
+                      <div
+                        className={`border rounded-none p-3 text-sm ${
+                          entry.isPublic
+                            ? 'border-primary/50 bg-primary/5'
+                            : 'border-border'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className={
+                                entry.result === "success"
+                                  ? "border-success text-success"
+                                  : entry.result === "error"
+                                    ? "border-destructive text-destructive"
+                                    : "border-muted-foreground text-muted-foreground"
+                              }
+                            >
+                              {entry.system}
+                            </Badge>
+                            {entry.isPublic && (
+                              <Badge variant="secondary" className="text-xs">
+                                Openbaar
                               </Badge>
-                              {entry.isPublic && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Openbaar
-                                </Badge>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                            {format(entry.timestamp, "HH:mm:ss", {locale: nl})}
-                          </span>
+                            )}
                           </div>
-                          <p className="font-medium text-foreground mb-1">
-                            {entry.action}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {entry.details}
-                          </p>
+                          <span className="text-xs text-muted-foreground">
+                          {format(entry.timestamp, "HH:mm:ss", {locale: nl})}
+                        </span>
                         </div>
+                        <p className="font-medium text-foreground mb-1">
+                          {entry.action}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          {entry.details}
+                        </p>
                       </div>
-                    ))
-                  )}
-                </div>
-              </Card>
-            </div>
-          )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

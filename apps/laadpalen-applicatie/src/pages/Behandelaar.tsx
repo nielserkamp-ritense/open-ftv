@@ -31,7 +31,6 @@ const Behandelaar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | Aanvraag["status"]>("all");
   const {currentUser, setCurrentUser} = useCurrentUser();
-  const [showAuditLog, setShowAuditLog] = useState(true);
 
   const getStatusBadge = (status: Aanvraag["status"]) => {
     switch (status) {
@@ -98,8 +97,6 @@ const Behandelaar = () => {
       <Header
         currentUser={currentUser}
         onUserChange={setCurrentUser}
-        showAuditLog={showAuditLog}
-        onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">

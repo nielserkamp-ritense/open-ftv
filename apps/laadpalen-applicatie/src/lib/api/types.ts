@@ -75,27 +75,11 @@ export interface CreateAanvraagRequest {
     id: number
 }
 
-export interface UpdateAanvraagRequest {
-    [key: string]: unknown
-}
-
 export interface PatchAanvraagRequest {
     [key: string]: unknown
 }
 
-export interface CreateLaadpaalRequest {
-    [key: string]: unknown
-}
-
-export interface UpdateLaadpaalRequest {
-    [key: string]: unknown
-}
-
 // API Response Wrappers
-export interface ApiResponse<T> {
-    data: T
-}
-
 export interface ApiListResponse<T> {
     data: T[]
 }

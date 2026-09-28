@@ -1,4 +1,4 @@
-import { Zap, User, Eye, EyeOff } from "lucide-react";
+import { Zap, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -13,8 +13,6 @@ import { useGebruikers } from "@/lib/api/gebruikers";
 interface HeaderProps {
   currentUser?: string;
   onUserChange?: (user: string) => void;
-  showAuditLog?: boolean;
-  onToggleAuditLog?: () => void;
 }
 
 // Rol mapping gebaseerd op afdeling

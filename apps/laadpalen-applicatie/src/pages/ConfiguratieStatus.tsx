@@ -1,4 +1,3 @@
-import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useQueries, useQuery} from "@tanstack/react-query";
 import {Header} from "@/components/Header";
@@ -239,7 +238,6 @@ const sources: SourceConfig[] = [
 
 const ConfiguratieStatus = () => {
   const navigate = useNavigate();
-  const [showAuditLog, setShowAuditLog] = useState(true);
   const {currentUser, setCurrentUser} = useCurrentUser();
 
   return (
@@ -247,8 +245,6 @@ const ConfiguratieStatus = () => {
       <Header
         currentUser={currentUser}
         onUserChange={setCurrentUser}
-        showAuditLog={showAuditLog}
-        onToggleAuditLog={() => setShowAuditLog(!showAuditLog)}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">

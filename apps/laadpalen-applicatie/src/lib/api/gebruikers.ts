@@ -8,13 +8,11 @@ import type {
 
 // Query Hooks
 
-export function useGebruikers(params?: Record<string, string | number | boolean>) {
+export function useGebruikers() {
   return useQuery({
-    queryKey: queryKeys.gebruikers.list(params),
+    queryKey: queryKeys.gebruikers.list(),
     queryFn: async () => {
-      const response = await apiClient.post<Gebruiker[] | ApiListResponse<Gebruiker>>('/v1/gebruiker', {
-        params,
-      })
+      const response = await apiClient.post<Gebruiker[] | ApiListResponse<Gebruiker>>('/v1/gebruiker', {})
       // Handle both direct array response and wrapped response
       if (Array.isArray(response)) {
         return response

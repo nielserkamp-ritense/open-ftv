@@ -26,15 +26,13 @@ interface AuditLogEntry {
 interface ApplicationFormProps {
   onSubmit: (data: { postcode: string; huisnummer: number }) => void;
   onAuditLog?: (entry: AuditLogEntry) => void;
-  auditLog?: AuditLogEntry[];
   currentUser: string;
   gebruikers: Array<{ naam: string; afdeling: string; "laadpaal-opleiding"?: string }>;
 }
 
-export const ApplicationForm = ({onSubmit, onAuditLog, auditLog = [], currentUser, gebruikers}: ApplicationFormProps) => {
+export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}: ApplicationFormProps) => {
   const [postcode, setPostcode] = useState("");
   const [huisnummer, setHuisnummer] = useState(1);
-  const [huisnummerTouched, setHuisnummerTouched] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [publicFeedback, setPublicFeedback] = useState<{ type: "success" | "error", message: string } | null>(null);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -167,10 +165,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, auditLog = [], currentUse
           id="huisnummer"
           value={huisnummer}
           type="number"
-          onChange={(e) => {
-            setHuisnummer(parseInt(e.target.value));
-            setHuisnummerTouched(true);
-          }}
+          onChange={(e) => setHuisnummer(parseInt(e.target.value))}
           placeholder="123"
           className={`h-12 ${errors.huisnummer ? "border-destructive" : ""}`}
           maxLength={10}

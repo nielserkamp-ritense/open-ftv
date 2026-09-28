@@ -29,19 +29,6 @@ export function useBrpPersons<TData = BrpPerson[]>(
   })
 }
 
-// Convenience hook to fetch a single person by id (e.g., bsn)
-// Uses the useBrpPersons list hook and filters on the frontend via React Query select
-export function useBrpPerson(id?: string) {
-  return useBrpPersons<BrpPerson | undefined>(
-    {
-      enabled: Boolean(id),
-      params: {
-        "@filter": "persoon.bsn=" + id
-      }
-    }
-  )
-}
-
 // Convenience hook to fetch persons by address
 export function useBrpAddress(postcode: string, huisnummer: number, options?: { enabled?: boolean }) {
   return useBrpPersons<BrpPerson[]>(
