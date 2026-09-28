@@ -29,11 +29,13 @@ const isPlaceholder = (s: string): boolean => {
   return /^%[A-Z0-9_]+%$/.test(trimmed) || /^\$\{?[A-Z0-9_]+\}?$/.test(trimmed);
 };
 
-export const getEnvVar = (key: string, fallback?: string): string => {
-  const raw = (runtimeEnv[key] ?? buildEnv[key]);
-  const val = typeof raw === 'string' && raw.trim().length > 0 && !isPlaceholder(raw) ? raw : undefined;
-  return val ?? (fallback ?? '');
-};
+const usable = (raw: string | undefined): string | undefined =>
+  typeof raw === 'string' && raw.trim().length > 0 && !isPlaceholder(raw) ? raw : undefined;
+
+// The web server renders every name, empty when unset, so an empty runtime value must fall through to the
+// build-time one instead of hiding it.
+export const getEnvVar = (key: string, fallback?: string): string =>
+  usable(runtimeEnv[key]) ?? usable(buildEnv[key]) ?? fallback ?? '';
 
 export const VITE_API_BASE_URL = getEnvVar('VITE_API_BASE_URL', 'http://localhost:8080');
 export const VITE_VLIERDAM_OUTWAY_URL = getEnvVar('VITE_VLIERDAM_OUTWAY_URL', 'http://localhost:8080');
