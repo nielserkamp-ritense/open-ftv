@@ -41,9 +41,4 @@ export const queryKeys = {
     details: () => [...queryKeys.gebruikers.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.gebruikers.details(), id] as const,
   },
-  pdp: {
-    all: ['pdp'] as const,
-    diplomaat: (aanvraagId?: string | number, gebruiker?: string, involvesDiplomaticVehicle?: boolean) =>
-      [...queryKeys.pdp.all, 'diplomaat', aanvraagId, gebruiker, involvesDiplomaticVehicle] as const,
-  },
 }

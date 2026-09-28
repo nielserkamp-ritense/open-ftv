@@ -9,8 +9,8 @@ import {Button} from "@/components/ui/button";
 import {ArrowLeft, CheckCircle2, XCircle, Loader2, Database, Users, Car, Info} from "lucide-react";
 import {
   apiClient, brpApiClient, rdwApiClient,
-  vlierdamPdp1Client, vlierdamPdp2Client,
-  evaluateLaadpaalIndienen, evaluateDiplomaatBeslissing,
+  vlierdamPdp1Client,
+  evaluateLaadpaalIndienen,
   ApiError, isApiError, reattributeChainError,
 } from "@/lib/api";
 import {VITE_API_BASE_URL, VITE_VLIERDAM_OUTWAY_URL} from "@/lib/env";
@@ -162,13 +162,12 @@ const SourceCard = ({source}: { source: SourceConfig }) => {
 // only the hop a real laadpalen aanvraag actually touches gets pinged for real - the other
 // segments are shown for context only and never highlighted, since they're never called.
 const vlierdamHealthChecks: HealthCheck[] =
-  vlierdamPdp1Client && vlierdamPdp2Client ? [{
+  vlierdamPdp1Client ? [{
     key: "pdp-outway",
-    segments: [{text: "pdp1/pdp2", source: "openftv-vlierdam-pdp"}, {text: "outway"}],
+    segments: [{text: "pdp1", source: "openftv-vlierdam-pdp"}, {text: "outway"}],
     queryFn: async () => {
       try {
         await evaluateLaadpaalIndienen({gebruiker: "healthcheck", postcode: "0000AA", huisnummer: 0});
-        await evaluateDiplomaatBeslissing({aanvraagId: "healthcheck", gebruiker: "healthcheck", involvesDiplomaticVehicle: false});
       } catch (err) {
         throw isApiError(err) ? new ApiError(err.message, err.status, err.data, "openftv-vlierdam-pdp") : err;
       }

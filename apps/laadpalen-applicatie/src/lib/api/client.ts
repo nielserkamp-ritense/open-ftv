@@ -3,7 +3,7 @@
 import {ApiError} from "@/lib/api/errors.ts";
 import {
   VITE_API_BASE_URL, VITE_VLIERDAM_OUTWAY_URL, VITE_BRP_API_KEY,
-  VITE_VLIERDAM_PDP1_URL, VITE_VLIERDAM_PDP2_URL, VITE_DOELBINDING, VITE_DOELBINDING_BRP, VITE_DOELBINDING_BRV,
+  VITE_VLIERDAM_PDP1_URL, VITE_DOELBINDING, VITE_DOELBINDING_BRP, VITE_DOELBINDING_BRV,
 } from "@/lib/env.ts";
 
 const API_BASE_URL = VITE_API_BASE_URL || 'http://localhost:9010'
@@ -155,8 +155,6 @@ export const rdwApiClient = new ApiClient(VLIERDAM_API_GATEWAY_URL, 'openftv-rdw
 const gatewayClient = (baseURL: string, source: string): ApiClient | null =>
   baseURL ? new ApiClient(baseURL, source) : null
 
-// Vlierdam's own PDP1 (Cedar) - gates who may submit a laadpaal aanvraag (Scenario 1) - and
-// PDP2, dedicated to the laadpalen applicatie (Rego). Both called directly - no inway hop,
-// since they're internal decision points, not a cross-organizational boundary.
+// Vlierdam's own PDP1 (Cedar) - gates who may submit a laadpaal aanvraag (Scenario 1). Called
+// directly - no inway hop, since it's an internal decision point, not a cross-organizational boundary.
 export const vlierdamPdp1Client = gatewayClient(VITE_VLIERDAM_PDP1_URL, 'openftv-vlierdam-pdp1')
-export const vlierdamPdp2Client = gatewayClient(VITE_VLIERDAM_PDP2_URL, 'openftv-vlierdam-pdp2')

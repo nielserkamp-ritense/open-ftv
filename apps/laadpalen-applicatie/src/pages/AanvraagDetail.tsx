@@ -59,7 +59,6 @@ import {
   useLaadpalen,
   usePatchAanvraag,
   useGebruikers,
-  useDiplomaatBeslissing,
   getDutchErrorMessage,
   getErrorMessage
 } from "@/lib/api";
@@ -147,26 +146,20 @@ const AanvraagDetail = () => {
   const [enableLaadpalenCheck, setEnableLaadpalenCheck] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  // Check user role - decided by Vlierdam's own PDP2 (Rego), gated on whether this aanvraag
-  // involves a diplomatic vehicle and the acting employee's afdeling.
+  // Only affects wording: RDW, or in scenario 2 the gateway, already withholds diplomatic vehicles from
+  // everyone else.
   const { data: gebruikersData } = useGebruikers();
   const huidigeGebruiker = gebruikersData?.find(g => g.naam === currentUser);
-  const involvesDiplomaticVehicle = !!rdwData?.some((v: RdwVehicle) => v.diplomatiek);
-  const diplomaatQuery = useDiplomaatBeslissing({
-    aanvraagId: application?.id,
-    gebruiker: currentUser,
-    afdeling: huidigeGebruiker?.afdeling,
-    involvesDiplomaticVehicle,
-    enabled: !!application && !!huidigeGebruiker,
-  });
-  const diplomaatBeslissing = diplomaatQuery.data;
-  const isGemeentesecretaris = diplomaatBeslissing?.decision ?? false;
+  const isGemeentesecretaris = huidigeGebruiker?.afdeling === "Gemeentesecretaris";
 
-  // Fail closed: only an explicit decision:true from pdp2 lifts the block. Still loading or a
-  // failed check must not silently behave as "allowed" - both keep blocking until resolved.
-  const diplomaatCheckPending = involvesDiplomaticVehicle && (diplomaatQuery.isLoading || diplomaatQuery.isFetching);
-  const diplomaatCheckFailed = involvesDiplomaticVehicle && diplomaatQuery.isError;
-  const requiresAdditionalAuthorization = involvesDiplomaticVehicle && diplomaatBeslissing?.decision !== true;
+  // The gateway decides per employee what RDW data they may see, so a result fetched for someone
+  // else must not stay on screen after switching user, nor a decision taken on it.
+  useEffect(() => {
+    setRdwData(null);
+    setEnableRdwCheck(false);
+    setIsCheckingRDW(false);
+    setVergunningBeslissing(null);
+  }, [currentUser]);
 
   // Mutation hook for updating aanvraag
   const updateAanvraagMutation = usePatchAanvraag();
@@ -611,45 +604,42 @@ const AanvraagDetail = () => {
                             </div>
                             {rdwData.filter((b: RdwVehicle) => b.bsn === bewoner.bsn).length > 0 ? (
                               <div className="space-y-3 ml-4">
-                                {rdwData.filter((b: RdwVehicle) => b.bsn === bewoner.bsn).map((voertuig: RdwVehicle, vIndex: number) => {
-                                  const hidden = voertuig.diplomatiek && !isGemeentesecretaris;
-                                  return (
-                                    <div
-                                      key={vIndex}
-                                      className={`border rounded-lg p-3 ${
-                                        voertuig.diplomatiek
-                                          ? 'border-red-500 bg-red-500/5'
-                                          : 'border-border'
-                                      }`}
-                                    >
-                                      {voertuig.diplomatiek && (
-                                        <div className="mb-3 pb-3 border-b border-red-300">
-                                          <Badge className="bg-red-600 text-white">
-                                            ⚠️ GEVOELIG - Diplomatiek Voertuig
-                                          </Badge>
-                                        </div>
-                                      )}
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                          <span className="text-muted-foreground">Kenteken:</span>
-                                          <span className={hidden ? 'ml-2 font-mono blur-sm select-none' : 'ml-2 font-mono'}>
-                                            {voertuig.kenteken}
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">Voertuig:</span>
-                                          <span className="ml-2">{voertuig.merk}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">Uitstootklasse:</span>
-                                          <Badge variant="outline" className="ml-2">
-                                            {voertuig.klasse}
-                                          </Badge>
-                                        </div>
+                                {rdwData.filter((b: RdwVehicle) => b.bsn === bewoner.bsn).map((voertuig: RdwVehicle, vIndex: number) => (
+                                  <div
+                                    key={vIndex}
+                                    className={`border rounded-lg p-3 ${
+                                      voertuig.diplomatiek
+                                        ? 'border-red-500 bg-red-500/5'
+                                        : 'border-border'
+                                    }`}
+                                  >
+                                    {voertuig.diplomatiek && (
+                                      <div className="mb-3 pb-3 border-b border-red-300">
+                                        <Badge className="bg-red-600 text-white">
+                                          ⚠️ GEVOELIG - Diplomatiek Voertuig
+                                        </Badge>
+                                      </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <span className="text-muted-foreground">Kenteken:</span>
+                                        <span className="ml-2 font-mono">
+                                          {voertuig.kenteken}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Voertuig:</span>
+                                        <span className="ml-2">{voertuig.merk}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Uitstootklasse:</span>
+                                        <Badge variant="outline" className="ml-2">
+                                          {voertuig.klasse}
+                                        </Badge>
                                       </div>
                                     </div>
-                                  );
-                                })}
+                                  </div>
+                                ))}
                               </div>
                             ) : (
                               <p className="text-sm text-muted-foreground ml-4">
@@ -704,9 +694,7 @@ const AanvraagDetail = () => {
 
                     return (
                       <>
-                        {elektrischeVoertuigen.map((voertuig: RdwVehicle, index: number) => {
-                          const hidden = voertuig.diplomatiek && !isGemeentesecretaris;
-                          return (
+                        {elektrischeVoertuigen.map((voertuig: RdwVehicle, index: number) => (
                           <div
                             key={index}
                             className={`border rounded-lg p-4 ${
@@ -725,7 +713,7 @@ const AanvraagDetail = () => {
                             <div className="space-y-1">
                               <p className="text-sm font-medium text-foreground">
                                 {voertuig.merk} (
-                                <span className={hidden ? 'font-mono blur-sm select-none' : 'font-mono'}>
+                                <span className="font-mono">
                                   {voertuig.kenteken}
                                 </span>
                                 )
@@ -735,8 +723,7 @@ const AanvraagDetail = () => {
                               </Badge>
                             </div>
                           </div>
-                          );
-                        })}
+                        ))}
                       </>
                     );
                   })()}
@@ -828,177 +815,100 @@ const AanvraagDetail = () => {
               </h2>
 
               <div className="space-y-4">
-                {(() => {
-                  if (diplomaatCheckFailed) {
-                    return (
-                      <div className="bg-destructive/10 border border-destructive/30 rounded p-3 text-sm">
-                        <div className="flex items-start gap-2">
-                          <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0"/>
-                          <div>
-                            <p className="font-medium">{getDutchErrorMessage(diplomaatQuery.error)}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{getErrorMessage(diplomaatQuery.error)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
+                {/* Validatie checks */}
+                <div className="border border-border rounded-lg p-4 space-y-3">
+                  <h3 className="font-semibold text-foreground mb-3">Validatie Status</h3>
 
-                  if (diplomaatCheckPending) {
-                    return (
-                      <div className="border border-border rounded-lg p-4 bg-muted/30">
-                        <div className="flex items-start gap-3">
-                          <Loader2 className="h-5 w-5 text-muted-foreground mt-0.5 animate-spin"/>
-                          <p className="text-sm text-muted-foreground">Autorisatie voor deze aanvraag wordt gecontroleerd...</p>
-                        </div>
-                      </div>
-                    );
-                  }
+                  {/* Check 1: Elektrisch voertuig */}
+                  <div className="flex items-start gap-3">
+                    {!rdwData ? (
+                      <Clock className="h-5 w-5 text-muted-foreground mt-0.5"/>
+                    ) : rdwData.some((b: RdwVehicle) => b.klasse === "E") ? (
+                      <CheckCircle2 className="h-5 w-5 text-success mt-0.5"/>
+                    ) : (
+                      <XCircle className="h-5 w-5 text-destructive mt-0.5"/>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Elektrisch voertuig</p>
+                      <p className="text-xs text-muted-foreground">
+                        {!rdwData
+                          ? "Voer eerst RDW controle uit"
+                          : rdwData.some((b: RdwVehicle) => b.klasse === "E")
+                            ? "Er is een elektrisch voertuig geregistreerd (uitstootklasse E)"
+                            : "Geen elektrisch voertuig geregistreerd"
+                        }
+                      </p>
+                    </div>
+                  </div>
 
-                  if (requiresAdditionalAuthorization) {
-                    return (
-                      <div className="border border-destructive/50 rounded-lg p-4 bg-destructive/5">
-                        <div className="flex items-start gap-3">
-                          <AlertCircle className="h-5 w-5 text-destructive mt-0.5"/>
-                          <div>
-                            <p className="font-semibold text-foreground mb-1">
-                              Er kan niet over deze aanvraag worden besloten
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              De aanvraag moet worden ingediend bij een functionaris met aanvullende autorisatie
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
+                  {/* Check 2: Geen bestaande laadpaal */}
+                  <div className="flex items-start gap-3">
+                    {existingLaadpaalData && !existingLaadpaalData.bestaandeLaadpaal ? (
+                      <CheckCircle2 className="h-5 w-5 text-success mt-0.5"/>
+                    ) : existingLaadpaalData?.bestaandeLaadpaal ? (
+                      <XCircle className="h-5 w-5 text-destructive mt-0.5"/>
+                    ) : (
+                      <Clock className="h-5 w-5 text-muted-foreground mt-0.5"/>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Geen bestaande laadpaal</p>
+                      <p className="text-xs text-muted-foreground">
+                        {!existingLaadpaalData
+                          ? "Voer eerst laadpaal controle uit"
+                          : existingLaadpaalData.bestaandeLaadpaal
+                            ? "Er is al een laadpaal op dit adres"
+                            : "Geen bestaande laadpaal gevonden"
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-                  return (
-                    <>
-                      {/* Validatie checks */}
-                      <div className="border border-border rounded-lg p-4 space-y-3">
-                        <h3 className="font-semibold text-foreground mb-3">Validatie Status</h3>
+                {/* Beslissing knoppen */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Beslissing</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Op basis van de controles, kan deze vergunningaanvraag worden toegekend?
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      variant={vergunningBeslissing === "goedkeuren" ? "default" : "outline"}
+                      className={`flex-1 ${vergunningBeslissing === "goedkeuren" ? "bg-success hover:bg-success/90" : ""}`}
+                      onClick={() => setVergunningBeslissing("goedkeuren")}
+                      disabled={
+                        !rdwData ||
+                        !rdwData.some((b: RdwVehicle) => b.klasse === "E") ||
+                        !existingLaadpaalData ||
+                        existingLaadpaalData.bestaandeLaadpaal
+                      }
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4"/>
+                      Goedkeuren
+                    </Button>
+                    <Button
+                      variant={vergunningBeslissing === "afwijzen" ? "destructive" : "outline"}
+                      className="flex-1"
+                      onClick={() => setVergunningBeslissing("afwijzen")}
+                    >
+                      <XCircle className="mr-2 h-4 w-4"/>
+                      Afwijzen
+                    </Button>
+                  </div>
 
-                        {/* Check 1: Elektrisch voertuig */}
-                        <div className="flex items-start gap-3">
-                          {(() => {
-                            // A diplomatic electric vehicle counts once the current employee is authorized to act on it.
-                            const hasVisibleElectricVehicle = rdwData?.some((b: RdwVehicle) =>
-                              b.klasse === "E" && (!b.diplomatiek || isGemeentesecretaris)
-                            );
-                            const hasUnauthorizedDiplomaticElectric = rdwData?.some((b: RdwVehicle) =>
-                              b.klasse === "E" && b.diplomatiek && !isGemeentesecretaris
-                            );
-
-                            if (!rdwData) {
-                              return <Clock className="h-5 w-5 text-muted-foreground mt-0.5"/>;
-                            }
-                            if (hasVisibleElectricVehicle) {
-                              return <CheckCircle2 className="h-5 w-5 text-success mt-0.5"/>;
-                            }
-                            if (hasUnauthorizedDiplomaticElectric) {
-                              return <AlertCircle className="h-5 w-5 text-warning mt-0.5"/>;
-                            }
-                            return <XCircle className="h-5 w-5 text-destructive mt-0.5"/>;
-                          })()}
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">Elektrisch voertuig</p>
-                            <p className="text-xs text-muted-foreground">
-                              {!rdwData
-                                ? "Voer eerst RDW controle uit"
-                                : (() => {
-                                  const hasVisibleElectricVehicle = rdwData?.some((b: RdwVehicle) =>
-                                    b.klasse === "E" && (!b.diplomatiek || isGemeentesecretaris)
-                                  );
-                                  const hasUnauthorizedDiplomaticElectric = rdwData?.some((b: RdwVehicle) =>
-                                    b.klasse === "E" && b.diplomatiek && !isGemeentesecretaris
-                                  );
-
-                                  if (hasVisibleElectricVehicle) {
-                                    return "Er is een elektrisch voertuig geregistreerd (uitstootklasse E)";
-                                  }
-                                  if (hasUnauthorizedDiplomaticElectric) {
-                                    return "Aanvullende autorisatie vereist voor toegang tot voertuiggegevens";
-                                  }
-                                  return "Geen elektrisch voertuig geregistreerd";
-                                })()
-                              }
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Check 2: Geen bestaande laadpaal */}
-                        <div className="flex items-start gap-3">
-                          {existingLaadpaalData && !existingLaadpaalData.bestaandeLaadpaal ? (
-                            <CheckCircle2 className="h-5 w-5 text-success mt-0.5"/>
-                          ) : existingLaadpaalData?.bestaandeLaadpaal ? (
-                            <XCircle className="h-5 w-5 text-destructive mt-0.5"/>
-                          ) : (
-                            <Clock className="h-5 w-5 text-muted-foreground mt-0.5"/>
-                          )}
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">Geen bestaande laadpaal</p>
-                            <p className="text-xs text-muted-foreground">
-                              {!existingLaadpaalData
-                                ? "Voer eerst laadpaal controle uit"
-                                : existingLaadpaalData.bestaandeLaadpaal
-                                  ? "Er is al een laadpaal op dit adres"
-                                  : "Geen bestaande laadpaal gevonden"
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Beslissing knoppen */}
-                      <div className="space-y-3">
-                        <Label className="text-base font-semibold">Beslissing</Label>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Op basis van de controles, kan deze vergunningaanvraag worden toegekend?
-                        </p>
-                        <div className="flex gap-3">
-                          <Button
-                            variant={vergunningBeslissing === "goedkeuren" ? "default" : "outline"}
-                            className={`flex-1 ${vergunningBeslissing === "goedkeuren" ? "bg-success hover:bg-success/90" : ""}`}
-                            onClick={() => setVergunningBeslissing("goedkeuren")}
-                            disabled={
-                              !rdwData ||
-                              !rdwData?.some((b: RdwVehicle) =>
-                                b.klasse === "E" && (!b.diplomatiek || isGemeentesecretaris)
-                              ) ||
-                              !existingLaadpaalData ||
-                              existingLaadpaalData.bestaandeLaadpaal
-                            }
-                          >
-                            <CheckCircle2 className="mr-2 h-4 w-4"/>
-                            Goedkeuren
-                          </Button>
-                          <Button
-                            variant={vergunningBeslissing === "afwijzen" ? "destructive" : "outline"}
-                            className="flex-1"
-                            onClick={() => setVergunningBeslissing("afwijzen")}
-                          >
-                            <XCircle className="mr-2 h-4 w-4"/>
-                            Afwijzen
-                          </Button>
-                        </div>
-
-                        {vergunningBeslissing && (
-                          <div className={`mt-3 p-3 rounded-lg ${
-                            vergunningBeslissing === "goedkeuren"
-                              ? "bg-success/10 border border-success/30"
-                              : "bg-destructive/10 border border-destructive/30"
-                          }`}>
-                            <p className="text-sm font-medium">
-                              {vergunningBeslissing === "goedkeuren"
-                                ? "✓ Vergunningaanvraag wordt goedgekeurd"
-                                : "✗ Vergunningaanvraag wordt afgewezen"}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  );
-                })()}
+                  {vergunningBeslissing && (
+                    <div className={`mt-3 p-3 rounded-lg ${
+                      vergunningBeslissing === "goedkeuren"
+                        ? "bg-success/10 border border-success/30"
+                        : "bg-destructive/10 border border-destructive/30"
+                    }`}>
+                      <p className="text-sm font-medium">
+                        {vergunningBeslissing === "goedkeuren"
+                          ? "✓ Vergunningaanvraag wordt goedgekeurd"
+                          : "✗ Vergunningaanvraag wordt afgewezen"}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
 
@@ -1041,43 +951,23 @@ const AanvraagDetail = () => {
                     </Alert>
                   )}
 
-                  {(() => {
-                    // Only a confirmed denial hands off to another functionary - while the pdp2
-                    // check is still pending or failed, keep the normal button but disabled,
-                    // rather than presenting an unresolved check as a confirmed denial.
-                    if (requiresAdditionalAuthorization && !diplomaatCheckPending && !diplomaatCheckFailed) {
-                      return (
-                        <Button
-                          onClick={() => {
-                          }}
-                          className="w-full"
-                        >
-                          <Send className="mr-2 h-4 w-4"/>
-                          Indienen aanvraag bij functionaris met aanvullende autorisatie
-                        </Button>
-                      );
-                    }
-
-                    return (
-                      <Button
-                        onClick={handleBehandelingAfronden}
-                        disabled={isSendingToZaak || !vergunningBeslissing || requiresAdditionalAuthorization}
-                        className="w-full"
-                      >
-                        {isSendingToZaak ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                            Verwerken...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="mr-2 h-4 w-4"/>
-                            Behandeling afronden
-                          </>
-                        )}
-                      </Button>
-                    );
-                  })()}
+                  <Button
+                    onClick={handleBehandelingAfronden}
+                    disabled={isSendingToZaak || !vergunningBeslissing}
+                    className="w-full"
+                  >
+                    {isSendingToZaak ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        Verwerken...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4"/>
+                        Behandeling afronden
+                      </>
+                    )}
+                  </Button>
                 </div>
               </Card>
             )}
@@ -1240,20 +1130,7 @@ const AanvraagDetail = () => {
                   let bgColor = "bg-muted/30";
                   let borderColor = "border-border";
 
-                  if (diplomaatCheckFailed) {
-                    statusText = "Autorisatiecontrole mislukt";
-                    statusIcon = <XCircle className="h-5 w-5 text-destructive"/>;
-                    bgColor = "bg-destructive/10";
-                    borderColor = "border-destructive/30";
-                  } else if (diplomaatCheckPending) {
-                    statusText = "Autorisatie wordt gecontroleerd...";
-                    statusIcon = <Loader2 className="h-5 w-5 text-muted-foreground animate-spin"/>;
-                  } else if (requiresAdditionalAuthorization) {
-                    statusText = "Er kan niet over deze aanvraag worden besloten";
-                    statusIcon = <AlertCircle className="h-5 w-5 text-destructive"/>;
-                    bgColor = "bg-destructive/10";
-                    borderColor = "border-destructive/30";
-                  } else if (hasMismatch) {
+                  if (hasMismatch) {
                     statusText = "Gekozen beslissing komt niet overeen met de uitkomst van de controles";
                     statusIcon = <AlertCircle className="h-5 w-5 text-warning"/>;
                     bgColor = "bg-warning/10";
@@ -1283,27 +1160,19 @@ const AanvraagDetail = () => {
                         {statusIcon}
                         <div className="flex-1">
                           <p className="font-semibold text-foreground">{statusText}</p>
-                          {diplomaatCheckFailed && (
-                            <p className="text-xs text-muted-foreground mt-1">{getErrorMessage(diplomaatQuery.error)}</p>
-                          )}
-                          {requiresAdditionalAuthorization && !diplomaatCheckPending && !diplomaatCheckFailed && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              De aanvraag moet worden ingediend bij een functionaris met aanvullende autorisatie
-                            </p>
-                          )}
-                          {!requiresAdditionalAuthorization && hasMismatch && (
+                          {hasMismatch && (
                             <p className="text-xs text-muted-foreground mt-1">
                               De gekozen beslissing komt niet overeen met de controleresultaten. Weet u zeker dat u wilt
                               afwijken?
                             </p>
                           )}
-                          {!requiresAdditionalAuthorization && !hasMismatch && readyToDecide && (
+                          {!hasMismatch && readyToDecide && (
                             <p className="text-xs text-muted-foreground mt-1">
                               Alle informatie is beschikbaar. U kunt nu een beslissing nemen en verzenden naar het
                               zaaksysteem.
                             </p>
                           )}
-                          {!requiresAdditionalAuthorization && !allChecksCompleted && (
+                          {!allChecksCompleted && (
                             <div className="mt-2">
                               <p className="text-xs font-medium mb-1">Nog uit te voeren:</p>
                               <ul className="text-xs space-y-0.5 list-disc list-inside text-muted-foreground">

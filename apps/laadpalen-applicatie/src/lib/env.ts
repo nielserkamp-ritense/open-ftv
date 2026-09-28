@@ -48,4 +48,3 @@ export const VITE_RVIG_BEHEER_URL = getEnvVar('VITE_RVIG_BEHEER_URL', 'http://lo
 export const VITE_RDW_BEHEER_URL = getEnvVar('VITE_RDW_BEHEER_URL', 'http://localhost:5175');
 
 export const VITE_VLIERDAM_PDP1_URL = getEnvVar('VITE_VLIERDAM_PDP1_URL', '');
-export const VITE_VLIERDAM_PDP2_URL = getEnvVar('VITE_VLIERDAM_PDP2_URL', '');

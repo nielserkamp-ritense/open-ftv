@@ -49,8 +49,6 @@ spec:
               value: {{ .Values.config.vlierdamOutwayURL | quote }}
             - name: VITE_VLIERDAM_PDP1_URL
               value: {{ .Values.config.vlierdamPdp1URL | quote }}
-            - name: VITE_VLIERDAM_PDP2_URL
-              value: {{ .Values.config.vlierdamPdp2URL | quote }}
             - name: VITE_BRP_API_KEY
               value: {{ .Values.config.brpApiKey | quote }}
             - name: VITE_DOELBINDING

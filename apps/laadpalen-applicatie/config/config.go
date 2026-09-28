@@ -27,7 +27,6 @@ var runtimeEnvNames = []string{
 	"VITE_RVIG_BEHEER_URL",
 	"VITE_RDW_BEHEER_URL",
 	"VITE_VLIERDAM_PDP1_URL",
-	"VITE_VLIERDAM_PDP2_URL",
 }
 
 const (

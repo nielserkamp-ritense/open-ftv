@@ -14,9 +14,6 @@
         "vlierdamPdp1URL": {
           "type": "string"
         },
-        "vlierdamPdp2URL": {
-          "type": "string"
-        },
         "brpApiKey": {
           "type": "string"
         },
