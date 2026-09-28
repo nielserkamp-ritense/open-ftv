@@ -18,6 +18,8 @@
         MAIN: ./apps/manager/cmd
       - APP: management-interface
         MAIN: ./apps/management-interface/cmd
+      - APP: laadpalen-applicatie
+        MAIN: ./apps/laadpalen-applicatie/cmd
       - APP: mock-ds-generic
         MAIN: ./mock/datasources/generic/cmd
       - APP: mock-ds-vlierdam

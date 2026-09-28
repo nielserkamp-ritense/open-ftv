@@ -23,3 +23,29 @@ Management interface:
     - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
   tags:
     - amd64
+
+Laadpalen applicatie:
+  stage: Assets
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/node:22.17.1-alpine
+  before_script:
+    - cd apps/laadpalen-applicatie
+  script:
+    - npm ci --prefer-offline --cache .npm
+    - npm run build
+  cache:
+    key:
+      prefix: npm
+      files:
+        - apps/laadpalen-applicatie/package-lock.json
+    paths:
+      - apps/laadpalen-applicatie/.npm
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - apps/laadpalen-applicatie/web/dist/
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+    - if: $CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+  tags:
+    - amd64

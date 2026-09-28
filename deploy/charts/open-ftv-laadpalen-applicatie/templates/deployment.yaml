@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "open-ftv-laadpalen-applicatie.fullname" . }}
+  labels:
+    {{- include "open-ftv-laadpalen-applicatie.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "open-ftv-laadpalen-applicatie.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "open-ftv-laadpalen-applicatie.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "open-ftv-laadpalen-applicatie.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: VITE_API_BASE_URL
+              value: {{ .Values.config.apiBaseURL | quote }}
+            - name: VITE_VLIERDAM_OUTWAY_URL
+              value: {{ .Values.config.vlierdamOutwayURL | quote }}
+            - name: VITE_VLIERDAM_PDP1_URL
+              value: {{ .Values.config.vlierdamPdp1URL | quote }}
+            - name: VITE_VLIERDAM_PDP2_URL
+              value: {{ .Values.config.vlierdamPdp2URL | quote }}
+            - name: VITE_BRP_API_KEY
+              value: {{ .Values.config.brpApiKey | quote }}
+            - name: VITE_DOELBINDING
+              value: {{ .Values.config.doelbinding | quote }}
+            - name: VITE_DOELBINDING_BRP
+              value: {{ .Values.config.doelbindingBrp | quote }}
+            - name: VITE_DOELBINDING_BRV
+              value: {{ .Values.config.doelbindingBrv | quote }}
+            - name: VITE_BEHEER_URL
+              value: {{ .Values.config.beheerURL | quote }}
+            - name: VITE_RVIG_BEHEER_URL
+              value: {{ .Values.config.rvigBeheerURL | quote }}
+            - name: VITE_RDW_BEHEER_URL
+              value: {{ .Values.config.rdwBeheerURL | quote }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: health
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

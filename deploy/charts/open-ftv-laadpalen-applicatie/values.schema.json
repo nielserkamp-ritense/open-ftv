@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "config": {
+      "type": "object",
+      "properties": {
+        "apiBaseURL": {
+          "type": "string"
+        },
+        "vlierdamOutwayURL": {
+          "type": "string"
+        },
+        "vlierdamPdp1URL": {
+          "type": "string"
+        },
+        "vlierdamPdp2URL": {
+          "type": "string"
+        },
+        "brpApiKey": {
+          "type": "string"
+        },
+        "doelbinding": {
+          "type": "string"
+        },
+        "doelbindingBrp": {
+          "type": "string"
+        },
+        "doelbindingBrv": {
+          "type": "string"
+        },
+        "beheerURL": {
+          "type": "string"
+        },
+        "rvigBeheerURL": {
+          "type": "string"
+        },
+        "rdwBeheerURL": {
+          "type": "string"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "httpRoute": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "parentRefs": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "hostnames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/nonEmptyString"
+          }
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "if": {
+        "$ref": "#/definitions/ifEnabledTrue"
+      },
+      "then": {
+        "properties": {
+          "parentRefs": {
+            "minItems": 1
+          },
+          "hostnames": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "parentRefs",
+          "hostnames"
+        ]
+      }
+    }
+  },
+  "required": [
+    "config",
+    "ingress",
+    "httpRoute"
+  ],
+  "definitions": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ifEnabledTrue": {
+      "properties": {
+        "enabled": {
+          "const": true
+        }
+      }
+    }
+  }
+}

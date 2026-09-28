@@ -42,3 +42,10 @@ builds:
       - -s -w
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/management-interface/config.GitTag={{.Env.GIT_TAG_NAME}}
       - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/management-interface/config.GitHash={{.Env.GIT_COMMIT_HASH}}
+
+  - id: laadpalen-applicatie
+    main: ./apps/laadpalen-applicatie/cmd
+    ldflags:
+      - -s -w
+      - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/laadpalen-applicatie/config.GitTag={{.Env.GIT_TAG_NAME}}
+      - -X gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/laadpalen-applicatie/config.GitHash={{.Env.GIT_COMMIT_HASH}}

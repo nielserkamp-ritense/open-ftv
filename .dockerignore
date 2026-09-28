@@ -7,6 +7,7 @@ e2e/
 testdata/
 **/node_modules
 apps/management-interface/web/dist
+apps/laadpalen-applicatie/web/dist
 cover.out
 cover.html
 .go-cache

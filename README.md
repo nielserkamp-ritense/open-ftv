@@ -61,7 +61,7 @@ RvIG and RDW. It is split in two parts:
   changes. The Go services run under [Delve](https://github.com/go-delve/delve), so a debugger can attach to them.
 
 Besides the prerequisites above, this needs [modd](https://github.com/cortesi/modd), Delve and Node.js. Run
-`npm install` once in `apps/management-interface`.
+`npm install` once in `apps/management-interface` and `apps/laadpalen-applicatie`.
 
 Start both from the project root directory, each in its own terminal:
 
@@ -72,6 +72,7 @@ modd
 
 The following services will be available:
 - Gemeente Vlierdam:
+  - Laadpalen application: http://localhost:8080
   - Policy Editor: http://localhost:5173
   - Authorization Manager (PAP+PIP): http://localhost:9000
   - Outway (Kong): http://localhost:9002

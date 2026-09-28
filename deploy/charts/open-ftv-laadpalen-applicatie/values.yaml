@@ -1,0 +1,73 @@
+image:
+  repository: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/laadpalen-applicatie
+  # tag: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+# An empty value keeps the value the app was built with.
+config:
+  apiBaseURL: ""
+  vlierdamOutwayURL: ""
+  vlierdamPdp1URL: ""
+  vlierdamPdp2URL: ""
+  brpApiKey: ""
+  doelbinding: ""
+  doelbindingBrp: ""
+  doelbindingBrv: ""
+  beheerURL: ""
+  rvigBeheerURL: ""
+  rdwBeheerURL: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+deploymentAnnotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 65534
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  runAsUser: 65534
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  # filters: []
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
