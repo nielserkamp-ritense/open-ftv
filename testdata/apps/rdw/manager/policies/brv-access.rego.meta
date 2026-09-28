@@ -1,0 +1,6 @@
+---
+id: "brv-access"
+language: "rego"
+metadata:
+  description: "Doelbinding check for BRV reads; diplomatic vehicles are withheld."
+  tags: ["inway"]

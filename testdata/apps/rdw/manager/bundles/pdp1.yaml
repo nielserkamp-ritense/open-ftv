@@ -1,7 +1,7 @@
 ---
 id: "pdp1"
 title: "Outway deployment bundle (pdp1)"
-language: "cedar"
+language: "rego"
 tags: ["inway"]
 policies: true
 data: true

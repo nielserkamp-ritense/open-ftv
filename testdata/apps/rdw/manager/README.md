@@ -1,4 +1,4 @@
-This folder contains the details for the Authorization Manager for RvIG:
+This folder contains the details for the Authorization Manager for RDW:
 
 - `data`        = local attributes/entities for authorizing UX API requests.
 - `policies`    = local policies for authorizing UX API requests.

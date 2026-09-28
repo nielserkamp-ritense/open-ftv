@@ -42,6 +42,7 @@ plugins:
   config:
     pdp: "http://host.docker.internal:9044/authzen/v1/evaluation"
     timeout: 30000
+    evaluate_response: true
 
 - id: d4ca26b6-eb71-4ce5-b163-604553ccca6c
   route: c819e9f5-f417-43bd-9489-871262704cfb
