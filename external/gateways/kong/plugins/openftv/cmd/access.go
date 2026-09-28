@@ -22,9 +22,6 @@ import (
 func (c *Config) Access(kong *pdk.PDK) {
 	c.ensurePEP()
 
-	var method string
-	var uri *url.URL
-
 	defer func() {
 		if e := recover(); e != nil {
 			_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access error: %v", e))
@@ -32,7 +29,28 @@ func (c *Config) Access(kong *pdk.PDK) {
 		}
 	}()
 
-	method, _ = kong.Request.GetMethod()
+	authResp, upstream, err := c.evaluate(kong, nil)
+	if err != nil {
+		c.reportError(kong, err)
+		return
+	}
+
+	if !authResp.Decision {
+		exitForbidden(kong, "access denied", authResp)
+		return
+	}
+
+	if err = setUpstreamTrace(kong, upstream); err != nil {
+		c.reportError(kong, err)
+	}
+}
+
+// evaluate asks the PDP for a decision on the current request; a non-nil response is added to the context,
+// so the PDP can also decide on what the upstream service returned.
+func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.EvaluationResponse, upstreamTrace, error) {
+	authResp := authzen.EvaluationResponse{}
+
+	method, _ := kong.Request.GetMethod()
 	scheme, _ := kong.Request.GetScheme()
 	host, _ := kong.Request.GetHost()
 	port, _ := kong.Request.GetPort()
@@ -58,7 +76,7 @@ func (c *Config) Access(kong *pdk.PDK) {
 	traceParent := models.ResolveOutgoingTraceParent(baseTraceParent)
 	models.SetHeader(headers, models.HeaderTraceParent, traceParent)
 
-	uri = &url.URL{
+	uri := &url.URL{
 		Scheme:   scheme,
 		Host:     net.JoinHostPort(host, strconv.Itoa(port)),
 		Path:     path,
@@ -86,6 +104,10 @@ func (c *Config) Access(kong *pdk.PDK) {
 		parc.Principal = models.NewEntity(pep.PrincipalApp, consumer.Username, attrs)
 	}
 
+	if response != nil {
+		parc.Context.AddAttributeKV(models.AttrResponse, response)
+	}
+
 	authBody := authzen.EvaluationRequest{
 		Subject: authzen.Entity{
 			Type:       parc.Principal.Type(),
@@ -106,17 +128,15 @@ func (c *Config) Access(kong *pdk.PDK) {
 
 	b, err := json.Marshal(authBody)
 	if err != nil {
-		c.reportError(kong, err)
-		return
+		return authResp, upstream, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Timeout)*time.Millisecond)
 	defer cancel()
 
-	authReq, err2 := http.NewRequestWithContext(ctx, http.MethodPost, c.PDP, bytes.NewBuffer(b))
-	if err2 != nil {
-		c.reportError(kong, err2)
-		return
+	authReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.PDP, bytes.NewBuffer(b))
+	if err != nil {
+		return authResp, upstream, err
 	}
 
 	authReq.Header.Set(models.HeaderTraceParent, traceParent)
@@ -129,37 +149,28 @@ func (c *Config) Access(kong *pdk.PDK) {
 		authReq.Header.Set(models.HeaderFSCTransactionID, fscTransactionID)
 	}
 
-	resp, err3 := http.DefaultClient.Do(authReq)
-	if err3 != nil {
-		c.reportError(kong, err3)
-		return
+	resp, err := http.DefaultClient.Do(authReq)
+	if err != nil {
+		return authResp, upstream, err
 	}
 
 	defer resp.Body.Close()
 
-	authResp := authzen.EvaluationResponse{}
-	if err = json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		c.reportError(kong, err)
-		return
+	err = json.NewDecoder(resp.Body).Decode(&authResp)
+
+	return authResp, upstream, err
+}
+
+func exitForbidden(kong *pdk.PDK, msg string, authResp authzen.EvaluationResponse) {
+	_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: %s: %v", msg, authResp))
+
+	reason, _ := authResp.Context.ReasonUser["en"].(string)
+	if reason == "" {
+		reason = "not authorized"
 	}
 
-	if !authResp.Decision {
-		_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access denied: %v", authResp))
-
-		reason, _ := authResp.Context.ReasonUser["en"].(string)
-		if reason == "" {
-			reason = "not authorized"
-		}
-
-		body, _ := json.Marshal(map[string]any{"title": "Forbidden", "status": http.StatusForbidden, "detail": reason})
-		kong.Response.Exit(http.StatusForbidden, body, map[string][]string{"Content-Type": {"application/json"}})
-
-		return
-	}
-
-	if err = setUpstreamTrace(kong, upstream); err != nil {
-		c.reportError(kong, err)
-	}
+	body, _ := json.Marshal(map[string]any{"title": "Forbidden", "status": http.StatusForbidden, "detail": reason})
+	kong.Response.Exit(http.StatusForbidden, body, map[string][]string{"Content-Type": {"application/json"}})
 }
 
 // upstreamTrace is the trace context applied, via kong.ServiceRequest, to the request Kong forwards to the

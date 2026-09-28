@@ -35,6 +35,7 @@ const (
 	AttrQuery                       = "query"
 	AttrRequestTime                 = "request_time"
 	AttrResource                    = "resource"
+	AttrResponse                    = "response"
 	AttrRoles                       = "roles"
 	AttrRvvaID                      = "rvva_id"
 	AttrScheme                      = "scheme"

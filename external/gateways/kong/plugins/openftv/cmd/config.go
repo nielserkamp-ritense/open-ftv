@@ -35,6 +35,8 @@ type Config struct {
 	JWKSURL    string `json:"jwks_url"`
 	Audience   string `json:"audience"`
 	RolesClaim string `json:"roles_claim"`
+	// EvaluateResponse also asks the PDP for a decision on the upstream response.
+	EvaluateResponse bool `json:"evaluate_response"`
 	// hidden fields
 	once sync.Once
 	pep  *pep.PEP
