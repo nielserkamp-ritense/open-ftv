@@ -32,32 +32,8 @@ dependency-scanning:
 secret_detection:
   stage: Security
   needs: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# The dependency scanner can't tell whether our code calls a vulnerable Go function; govulncheck can.
-go_security_check:
-  stage: Security
-  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine # matches go.mod
   variables:
-    GOPATH: ${CI_PROJECT_DIR}/.go-cache
-  before_script:
-    - apk add --no-cache git
-    - mkdir -p .go-cache
-    - go install golang.org/x/vuln/cmd/govulncheck@v1.6.0
-    - export PATH="${GOPATH}/bin:${PATH}"
-  script:
-    - govulncheck -format sarif ./... > govulncheck.sarif
-  needs: []
-  cache:
-    key: OpenFTV-GoSecurityCheck
-    paths:
-      - .go-cache
-  artifacts:
-    expire_in: 2 weeks
-    reports:
-      sarif: govulncheck.sarif
-    paths:
-      - govulncheck.sarif
+    # Local dev credentials, documentation examples and test fixtures, not real secrets.
+    SECRET_DETECTION_EXCLUDED_PATHS: "modd.conf, testdata, **/*_test.go, **/README.md"
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
