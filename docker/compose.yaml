@@ -27,7 +27,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../testdata/apps/gemeente-vlierdam/kong:/tmp/conf
+      - ./../demos/laadpalen/gemeente-vlierdam/kong:/tmp/conf
 
   vlierdam-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -38,7 +38,7 @@ services:
     ports:
       - "8088:8080"
     volumes:
-      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+      - ./keycloak:/opt/keycloak/data/import
 
   rvig-api-gateway:
     build:
@@ -55,7 +55,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../testdata/apps/rvig/kong:/tmp/conf
+      - ./../demos/laadpalen/rvig/kong:/tmp/conf
 
   rvig-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -66,7 +66,7 @@ services:
     ports:
       - "8090:8080"
     volumes:
-      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+      - ./keycloak:/opt/keycloak/data/import
 
   rdw-api-gateway:
     build:
@@ -83,7 +83,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../testdata/apps/rdw/kong:/tmp/conf
+      - ./../demos/laadpalen/rdw/kong:/tmp/conf
 
   rdw-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -94,7 +94,7 @@ services:
     ports:
       - "8100:8080"
     volumes:
-      - ./../testdata/apps/manager/keycloak:/opt/keycloak/data/import
+      - ./keycloak:/opt/keycloak/data/import
 
 volumes:
   postgres-data:
