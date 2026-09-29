@@ -31,6 +31,11 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   policy is not edited in place" forbids `update` on it, and the life cycle's only way
   out of accepted is back to concept; without its own action that transition was
   unauthorizable for every role.
+  *Refined during implementation (SCRUM-144):* the manager's UI settings are one record
+  with no key of their own, so the resource is `setting::"ui"`, read and updated but never
+  created or deleted (the defaults stand in for an unsaved record). A later group of
+  settings gets its own id; `resource is setting` covers them all. A tag carries no
+  properties beyond its id.
 - **The subject is `user` (or `app` for API keys) with id `sub` and the single property
   `roles`.** Display and provenance claims (`preferred_username`, `email`, `iss`) reach the
   stored principal record (ADR 0004) and never the PDP. The context carries only `time`,
@@ -74,7 +79,9 @@ policies, deployments, tags and settings, attributes and entities, then language
 entries. Until the last one has moved, two models coexist in the policy store, so the
 old-model example policies (`resource is service`, `name::"can_*"`) stay in the seed
 directories and each step adds the new-model rules for its type. The final step removes
-the old rules and the verb-derived fallback from the management path.
+the old rules and the verb-derived fallback from the management path. The one exception is
+a path-bound rule that only ever matched a route that has moved: the settings write rule
+went with the settings step (SCRUM-144), because it could match nothing after it.
 
 Seeding is therefore decided **per file**, no longer per store: a seed file whose id is
 absent is inserted, a present row is left alone, and a row that was seeded once and deleted

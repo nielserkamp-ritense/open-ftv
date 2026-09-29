@@ -61,12 +61,15 @@ func (s *Services) initTags(group fiber.Router) {
 
 	apis := handle.NewTagsHandler(s.logger, s.pap, s.auth.Authorizer())
 
+	// the tag routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// tags CRUD.
-	group.Get(handle.PathTags, apis.GetTags).
-		Get(handle.PathTag, apis.GetTag).
-		Put(handle.PathTag, apis.PutTag).
-		Post(handle.PathTag, apis.PostTag).
-		Delete(handle.PathTag, apis.DeleteTag)
+	group.Get(handle.PathTags, identify, apis.GetTags).
+		Get(handle.PathTag, identify, apis.GetTag).
+		Put(handle.PathTag, identify, apis.PutTag).
+		Post(handle.PathTag, identify, apis.PostTag).
+		Delete(handle.PathTag, identify, apis.DeleteTag)
 }
 
 func (s *Services) initPolicies(group fiber.Router) {

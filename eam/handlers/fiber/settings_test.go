@@ -108,7 +108,7 @@ func TestNewSettingsHandler(t *testing.T) {
 	sh := NewSettingsHandler(settingsLogger(), &stubSettings{}, nil)
 	require.NotNil(t, sh)
 	assert.NotNil(t, sh.logger)
-	assert.NotNil(t, sh.store)
+	assert.NotNil(t, sh.svc)
 }
 
 func TestSettingsHandler_GetSettings(t *testing.T) {

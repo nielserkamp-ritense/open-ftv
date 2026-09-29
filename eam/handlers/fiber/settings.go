@@ -1,6 +1,7 @@
 package fiber
 
 import (
+	"errors"
 	"log/slog"
 	"regexp"
 	"unicode/utf8"
@@ -8,7 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/settings"
@@ -31,32 +33,42 @@ var (
 	errTitleColorRequired   = checkIssue{code: "E08025", msg: "title color must be filled"}
 	errTitleColorInvalid    = checkIssue{code: "E08030", msg: "title color must be a hex color code, e.g. #CFCFCF"}
 	errLogoMediaTypeInvalid = checkIssue{code: "E08035", msg: "logo media type must be one of image/png, image/jpeg, image/svg+xml, image/webp"}
+
+	errSettingsInternal    = errors.New("internal error")
+	errSettingsNotRecorded = errors.New("failed to record principal")
 )
 
 // SettingsHandler implements the interface for handling requests about the manager ui settings.
 type SettingsHandler struct {
-	logger     *slog.Logger
-	store      settings.SettingsPersister
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.SettingService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewSettingsHandler instantiates a settings handler.
+// NewSettingsHandler instantiates a settings handler. Every operation is decided by the
+// setting service through the authorizer; a nil authorizer permits everything.
 func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *SettingsHandler {
-	return &SettingsHandler{logger: logger, store: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+	return &SettingsHandler{
+		logger:            logger,
+		svc:               management.NewSettingService(logger, store, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *SettingsHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetSettings retrieves the manager ui settings.
 func (h *SettingsHandler) GetSettings(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, SettingsVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	resp, err2 := h.store.GetSettings(req.Context())
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	resp, err := h.svc.Get(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, resp)
@@ -66,31 +78,34 @@ func (h *SettingsHandler) GetSettings(req *fiber.Ctx) error {
 func (h *SettingsHandler) PutSettings(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, SettingsVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	s, code, err := h.checkBody(req)
 	if err != nil {
 		return h.badRequest(req, code, err)
 	}
 
-	resp, err2 := h.store.UpdateSettings(req.Context(), user, s)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	resp, err := h.svc.Update(req.UserContext(), h.caller(req), s)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, resp)
 }
 
-func (h *SettingsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
-}
+// fail answers a failed service call: a denial is 403, and anything else (including a
+// permitted caller that could not be recorded) 500 without the cause.
+func (h *SettingsHandler) fail(req *fiber.Ctx, err error) error {
+	if errors.Is(err, authorization.ErrForbidden) {
+		return auth.Forbidden(req, err, h.logger)
+	}
 
-func (h *SettingsHandler) error(req *fiber.Ctx, status int, err error) error {
-	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
-	return server.SendMessageResponse(req, status, err.Error())
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
+
+	var notRecorded *authorization.ErrPrincipalNotRecorded
+	if errors.As(err, &notRecorded) {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errSettingsNotRecorded.Error())
+	}
+
+	return server.SendMessageResponse(req, fiber.StatusInternalServerError, errSettingsInternal.Error())
 }
 
 // badRequest logs a warning and returns a 400 with the given validation error's code and message.

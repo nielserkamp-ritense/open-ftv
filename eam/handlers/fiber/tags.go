@@ -7,7 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
@@ -18,59 +19,60 @@ var (
 	errTagExists      = errors.New("tag already exists")
 	errTagConcurrency = errors.New("tag was modified by another request")
 	errTagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
+	errTagInternal    = errors.New("internal error")
+	errTagNotRecorded = errors.New("failed to record principal")
 
 	errTagMismatch = checkIssue{code: "E05005", msg: "tag mismatch"}
 )
 
 // TagsHandler implements the interface for handling requests about policy tags.
 type TagsHandler struct {
-	logger     *slog.Logger
-	pap        *pap.PAP
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.TagService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewTagsHandler instantiates a tag handler.
+// NewTagsHandler instantiates a tag handler. Every operation is decided by the tag service
+// through the authorizer; a nil authorizer permits everything.
 func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *TagsHandler {
-	return &TagsHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+	return &TagsHandler{
+		logger:            logger,
+		svc:               management.NewTagService(logger, store, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *TagsHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetTags retrieves all tags from the PAP.
 func (h *TagsHandler) GetTags(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	list, err := h.svc.List(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	resp, err2 := h.pap.ListTags()
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	return h.respond(req, resp)
+	return h.respond(req, list)
 }
 
 // GetTag retrieves a specific tag from the PAP.
 func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
 	tag, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	t, _, err2 := h.pap.ReadTag(tag)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	if t == nil {
-		return h.error(req, fiber.StatusNotFound, errTagNotFound)
+	t, err := h.svc.Get(req.UserContext(), h.caller(req), tag)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, t)
@@ -80,11 +82,6 @@ func (h *TagsHandler) GetTag(req *fiber.Ctx) error {
 func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	tag, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
@@ -95,20 +92,9 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	prev, lastIndex, err2 := h.pap.ReadTag(tag)
-	switch {
-	case err2 != nil:
-		// no-op
-	case prev != nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusConflict, errTagExists)
-	case prev != nil:
-		t, err2 = h.pap.UpdateTag(prev, lastIndex, t, user)
-	default:
-		t, err2 = h.pap.CreateTag(t, user)
-	}
-
-	if err2 != nil {
-		return h.tagConcurrencyError(req, err2)
+	t, err = h.svc.Create(req.UserContext(), h.caller(req), t, req.QueryBool("forceUpsert"))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req.Status(fiber.StatusCreated), t)
@@ -118,11 +104,6 @@ func (h *TagsHandler) PostTag(req *fiber.Ctx) error {
 func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	tag, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
@@ -133,20 +114,9 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	prev, lastIndex, err2 := h.pap.ReadTag(tag)
-	switch {
-	case err2 != nil:
-		// no-op
-	case prev == nil && !req.QueryBool("forceUpsert"):
-		return h.error(req, fiber.StatusNotFound, errTagNotFound)
-	case prev == nil:
-		t, err2 = h.pap.CreateTag(t, user)
-	default:
-		t, err2 = h.pap.UpdateTag(prev, lastIndex, t, user)
-	}
-
-	if err2 != nil {
-		return h.tagConcurrencyError(req, err2)
+	t, err = h.svc.Update(req.UserContext(), h.caller(req), t, req.QueryBool("forceUpsert"))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, t)
@@ -156,44 +126,48 @@ func (h *TagsHandler) PutTag(req *fiber.Ctx) error {
 func (h *TagsHandler) DeleteTag(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	tag, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	prev, lastIndex, err2 := h.pap.ReadTag(tag)
+	t, err := h.svc.Delete(req.UserContext(), h.caller(req), tag, req.QueryBool("ignoreMissing"))
+	if err != nil {
+		return h.fail(req, err)
+	}
+
+	return h.respond(req, t)
+}
+
+// fail answers a failed service call: a denial is 403 regardless of whether the tag exists, a
+// missing tag 404, an existing one or a concurrent change 409, and anything else (including a
+// permitted caller that could not be recorded) 500 without the cause.
+func (h *TagsHandler) fail(req *fiber.Ctx, err error) error {
 	switch {
-	case err2 != nil:
-		// no-op
-	case prev == nil && !req.QueryBool("ignoreMissing"):
+	case errors.Is(err, authorization.ErrForbidden):
+		return auth.Forbidden(req, err, h.logger)
+	case errors.Is(err, management.ErrNotFound):
 		return h.error(req, fiber.StatusNotFound, errTagNotFound)
-	case prev == nil:
-		prev = &oas.Tag{Id: tag}
-	default:
-		prev, err2 = h.pap.DeleteTag(prev, lastIndex, user)
-	}
-
-	if err2 != nil {
-		return h.tagConcurrencyError(req, err2)
-	}
-
-	return h.respond(req, prev)
-}
-
-func (h *TagsHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
-}
-
-func (h *TagsHandler) tagConcurrencyError(req *fiber.Ctx, err error) error {
-	if errors.Is(err, pap.ErrTagConcurrency) {
+	case errors.Is(err, management.ErrExists):
+		return h.error(req, fiber.StatusConflict, errTagExists)
+	case errors.Is(err, pap.ErrTagConcurrency):
 		return h.error(req, fiber.StatusConflict, errTagConcurrency)
+	default:
+		return h.internal(req, err)
 	}
-	return h.error(req, fiber.StatusInternalServerError, err)
+}
+
+// internal answers a failure the caller cannot act on with 500. The cause is logged and
+// never sent: a store or PDP error names hosts, tables and constraints.
+func (h *TagsHandler) internal(req *fiber.Ctx, err error) error {
+	h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
+
+	var notRecorded *authorization.ErrPrincipalNotRecorded
+	if errors.As(err, &notRecorded) {
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errTagNotRecorded.Error())
+	}
+
+	return server.SendMessageResponse(req, fiber.StatusInternalServerError, errTagInternal.Error())
 }
 
 func (h *TagsHandler) error(req *fiber.Ctx, status int, err error) error {

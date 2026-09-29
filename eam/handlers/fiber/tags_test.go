@@ -98,3 +98,39 @@ func TestTagsHandler_GetPolicies(t *testing.T) {
 		assert.Equal(t, 4, len(list))
 	})
 }
+
+// A denied caller is answered 403 whether or not the tag exists, and the store's answer (here
+// a mock without expectations, so every read fails) never reaches it.
+func TestTagsHandler_Forbidden(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
+
+	db, err := pgxmock.NewPool()
+	require.NoError(t, err)
+
+	pool, err := postgresql.NewWithPool(context.Background(), "postgres://localhost:5432/table", time.Minute, 3, db)
+	require.NoError(t, err)
+
+	p, err := pap.New(context.Background(), logger, pap.WithPgPool(pool))
+	require.NoError(t, err)
+
+	th := NewTagsHandler(logger, p, denyAuthorizer{})
+
+	srv := fiber.New()
+	srv.Get("/v1/tags", th.GetTags).
+		Get("/v1/tag/:tag", th.GetTag).
+		Delete("/v1/tag/:tag", th.DeleteTag)
+
+	for _, path := range []string{"/v1/tags", "/v1/tag/laadpalen"} {
+		resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, path, nil), 60000)
+		require.NoError(t, err)
+		assert.Equal(t, fiber.StatusForbidden, resp.StatusCode, path)
+		resp.Body.Close()
+	}
+
+	resp, err := srv.Test(httptest.NewRequest(fiber.MethodDelete, "/v1/tag/laadpalen", nil), 60000)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusForbidden, resp.StatusCode)
+	resp.Body.Close()
+}
