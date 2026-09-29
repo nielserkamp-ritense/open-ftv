@@ -33,9 +33,6 @@ var (
 	errTitleColorRequired   = checkIssue{code: "E08025", msg: "title color must be filled"}
 	errTitleColorInvalid    = checkIssue{code: "E08030", msg: "title color must be a hex color code, e.g. #CFCFCF"}
 	errLogoMediaTypeInvalid = checkIssue{code: "E08035", msg: "logo media type must be one of image/png, image/jpeg, image/svg+xml, image/webp"}
-
-	errSettingsInternal    = errors.New("internal error")
-	errSettingsNotRecorded = errors.New("failed to record principal")
 )
 
 // SettingsHandler implements the interface for handling requests about the manager ui settings.
@@ -51,7 +48,7 @@ type SettingsHandler struct {
 func NewSettingsHandler(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *SettingsHandler {
 	return &SettingsHandler{
 		logger:            logger,
-		svc:               management.NewSettingService(logger, store, authorizer),
+		svc:               management.NewSettingService(store, authorizer),
 		secured:           authorizer != nil,
 		principalResolver: newPrincipalResolver(logger, opts),
 	}
@@ -98,14 +95,7 @@ func (h *SettingsHandler) fail(req *fiber.Ctx, err error) error {
 		return auth.Forbidden(req, err, h.logger)
 	}
 
-	h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
-
-	var notRecorded *authorization.ErrPrincipalNotRecorded
-	if errors.As(err, &notRecorded) {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errSettingsNotRecorded.Error())
-	}
-
-	return server.SendMessageResponse(req, fiber.StatusInternalServerError, errSettingsInternal.Error())
+	return internalError(req, h.logger, err)
 }
 
 // badRequest logs a warning and returns a 400 with the given validation error's code and message.

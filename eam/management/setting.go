@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
@@ -18,15 +17,14 @@ const SettingUI = "ui"
 // SettingService administers the manager's settings: every operation is one decision
 // followed by one store call.
 type SettingService struct {
-	logger     *slog.Logger
 	store      settings.SettingsPersister
 	authorizer authorization.Authorizer
 }
 
 // NewSettingService instantiates the setting service. A nil authorizer permits everything,
 // for deployments and tests that run without authorization.
-func NewSettingService(logger *slog.Logger, store settings.SettingsPersister, authorizer authorization.Authorizer) *SettingService {
-	return &SettingService{logger: logger, store: store, authorizer: authorizer}
+func NewSettingService(store settings.SettingsPersister, authorizer authorization.Authorizer) *SettingService {
+	return &SettingService{store: store, authorizer: authorizer}
 }
 
 // Get returns the UI settings, or the defaults when nothing has been saved yet.
@@ -50,11 +48,7 @@ func (s *SettingService) Update(ctx context.Context, caller *authorization.Reque
 
 // authorize asks the PDP; without an authorizer every operation is permitted.
 func (s *SettingService) authorize(ctx context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
-	if s.authorizer == nil {
-		return nil
-	}
-
-	return s.authorizer.Authorize(ctx, caller, action, resource)
+	return decide(ctx, s.authorizer, caller, action, resource)
 }
 
 // settingResource is the resource of one settings record. It carries no properties.

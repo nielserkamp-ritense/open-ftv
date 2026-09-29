@@ -507,8 +507,8 @@ func TestPoliciesHandler_fail(t *testing.T) {
 		{name: "concurrent change", err: fmt.Errorf("%w: update failed; count=0", pap.ErrPolicyConcurrency), want: fiber.StatusConflict},
 		{name: "invalid transition", err: fmt.Errorf("%w: from concept to deployed", management.ErrInvalidTransition), want: fiber.StatusBadRequest},
 		{name: "unresolvable content", err: fmt.Errorf("%w: connection refused", management.ErrContent), want: fiber.StatusBadRequest},
-		{name: "principal not recorded", err: &authorization.ErrPrincipalNotRecorded{Err: errors.New("pgx: host db-1 constraint principal_pkey")}, want: fiber.StatusInternalServerError, wantDetail: errPolNotRecorded.Error()},
-		{name: "anything else", err: errors.New("database is on fire"), want: fiber.StatusInternalServerError, wantDetail: errPolInternal.Error()},
+		{name: "principal not recorded", err: &authorization.ErrPrincipalNotRecorded{Err: errors.New("pgx: host db-1 constraint principal_pkey")}, want: fiber.StatusInternalServerError, wantDetail: errPrincipalNotRecorded.Error()},
+		{name: "anything else", err: errors.New("database is on fire"), want: fiber.StatusInternalServerError, wantDetail: errInternal.Error()},
 	}
 
 	for _, tc := range testCases {

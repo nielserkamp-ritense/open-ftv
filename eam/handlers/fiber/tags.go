@@ -19,8 +19,6 @@ var (
 	errTagExists      = errors.New("tag already exists")
 	errTagConcurrency = errors.New("tag was modified by another request")
 	errTagKeyError    = errors.New("tag must be filled and less or equal 40 characters")
-	errTagInternal    = errors.New("internal error")
-	errTagNotRecorded = errors.New("failed to record principal")
 
 	errTagMismatch = checkIssue{code: "E05005", msg: "tag mismatch"}
 )
@@ -34,11 +32,11 @@ type TagsHandler struct {
 }
 
 // NewTagsHandler instantiates a tag handler. Every operation is decided by the tag service
-// through the authorizer; a nil authorizer permits everything.
-func NewTagsHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *TagsHandler {
+// through the authorizer; a nil authorizer permits everything. *pap.PAP is a TagStore.
+func NewTagsHandler(logger *slog.Logger, store management.TagStore, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *TagsHandler {
 	return &TagsHandler{
 		logger:            logger,
-		svc:               management.NewTagService(logger, store, authorizer),
+		svc:               management.NewTagService(store, authorizer),
 		secured:           authorizer != nil,
 		principalResolver: newPrincipalResolver(logger, opts),
 	}
@@ -153,21 +151,8 @@ func (h *TagsHandler) fail(req *fiber.Ctx, err error) error {
 	case errors.Is(err, pap.ErrTagConcurrency):
 		return h.error(req, fiber.StatusConflict, errTagConcurrency)
 	default:
-		return h.internal(req, err)
+		return internalError(req, h.logger, err)
 	}
-}
-
-// internal answers a failure the caller cannot act on with 500. The cause is logged and
-// never sent: a store or PDP error names hosts, tables and constraints.
-func (h *TagsHandler) internal(req *fiber.Ctx, err error) error {
-	h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
-
-	var notRecorded *authorization.ErrPrincipalNotRecorded
-	if errors.As(err, &notRecorded) {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errTagNotRecorded.Error())
-	}
-
-	return server.SendMessageResponse(req, fiber.StatusInternalServerError, errTagInternal.Error())
 }
 
 func (h *TagsHandler) error(req *fiber.Ctx, status int, err error) error {

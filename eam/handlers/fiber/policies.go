@@ -39,8 +39,6 @@ var (
 	errPolNotFound     = errors.New("policy not found")
 	errPolExists       = errors.New("policy already exists")
 	errPolConcurrency  = errors.New("policy was modified by another request")
-	errPolInternal     = errors.New("internal error")
-	errPolNotRecorded  = errors.New("failed to record principal")
 	errPolKeyError     = fmt.Errorf("policy id must be filled and less or equal %d characters", maxPolicyKeyLength)
 	errPolVersionError = errors.New("policy version must be filled and positive")
 	errPolUrlContent   = errors.New("policy data or url required")
@@ -439,21 +437,8 @@ func (h *policiesHandler) fail(req *fiber.Ctx, err error) error {
 	case errors.Is(err, pap.ErrPolicyConcurrency):
 		return h.error(req, fiber.StatusConflict, errPolConcurrency)
 	default:
-		return h.internal(req, err)
+		return internalError(req, h.logger, err)
 	}
-}
-
-// internal answers a failure the caller cannot act on with 500. The cause is logged and
-// never sent: a store or PDP error names hosts, tables and constraints.
-func (h *policiesHandler) internal(req *fiber.Ctx, err error) error {
-	h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
-
-	var notRecorded *authorization.ErrPrincipalNotRecorded
-	if errors.As(err, &notRecorded) {
-		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errPolNotRecorded.Error())
-	}
-
-	return server.SendMessageResponse(req, fiber.StatusInternalServerError, errPolInternal.Error())
 }
 
 func (h *policiesHandler) error(req *fiber.Ctx, status int, err error) error {

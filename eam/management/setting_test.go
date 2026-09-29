@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/settings"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/settings"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 // memSettings is an in-memory settings.SettingsPersister.
@@ -38,7 +36,7 @@ func (m *memSettings) UpdateSettings(_ context.Context, user identity.Principal,
 
 func newSettingService(d *recorder) (*SettingService, *memSettings) {
 	store := &memSettings{}
-	return NewSettingService(slog.New(slog2.NewDummyHandler(slog.LevelDebug)), store, d), store
+	return NewSettingService(store, d), store
 }
 
 func TestSettingService_Get_decidesReadOnTheUISettings(t *testing.T) {
@@ -93,7 +91,7 @@ func TestSettingService_Update_deniedNeverTouchesTheStore(t *testing.T) {
 func TestSettingService_nilAuthorizerPermits(t *testing.T) {
 	t.Parallel()
 
-	svc := NewSettingService(slog.New(slog2.NewDummyHandler(slog.LevelDebug)), &memSettings{}, nil)
+	svc := NewSettingService(&memSettings{}, nil)
 
 	_, err := svc.Update(context.Background(), authorization.SystemRequestPrincipal(), &oas.Settings{HeaderTitle: "ACME"})
 	require.NoError(t, err)

@@ -2,7 +2,6 @@ package management
 
 import (
 	"context"
-	"log/slog"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
@@ -23,15 +22,14 @@ type TagStore interface {
 // TagService administers tags, the labels that name a beslispunt (see CONTEXT.md): every
 // operation is one decision followed by one store call.
 type TagService struct {
-	logger     *slog.Logger
 	store      TagStore
 	authorizer authorization.Authorizer
 }
 
 // NewTagService instantiates the tag service. A nil authorizer permits everything, for
 // deployments and tests that run without authorization.
-func NewTagService(logger *slog.Logger, store TagStore, authorizer authorization.Authorizer) *TagService {
-	return &TagService{logger: logger, store: store, authorizer: authorizer}
+func NewTagService(store TagStore, authorizer authorization.Authorizer) *TagService {
+	return &TagService{store: store, authorizer: authorizer}
 }
 
 // List returns every tag the store holds.
@@ -165,11 +163,7 @@ func (s *TagService) load(ctx context.Context, caller *authorization.RequestPrin
 
 // authorize asks the PDP; without an authorizer every operation is permitted.
 func (s *TagService) authorize(ctx context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
-	if s.authorizer == nil {
-		return nil
-	}
-
-	return s.authorizer.Authorize(ctx, caller, action, resource)
+	return decide(ctx, s.authorizer, caller, action, resource)
 }
 
 // tagCollection is the resource of a collection read.

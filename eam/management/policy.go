@@ -314,11 +314,7 @@ func (s *PolicyService) resolve(ctx context.Context, p *models.Policy, resolve R
 
 // authorize asks the PDP; without an authorizer every operation is permitted.
 func (s *PolicyService) authorize(ctx context.Context, caller *authorization.RequestPrincipal, action string, resource *models.Entity) error {
-	if s.authorizer == nil {
-		return nil
-	}
-
-	return s.authorizer.Authorize(ctx, caller, action, resource)
+	return decide(ctx, s.authorizer, caller, action, resource)
 }
 
 // statusAction names the action a status change is decided as.

@@ -3,7 +3,6 @@ package management
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"sync"
 	"testing"
 
@@ -14,7 +13,6 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
-	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 )
 
 // memTags is an in-memory TagStore: the PAP only keeps tags in postgres.
@@ -83,7 +81,7 @@ func (m *memTags) DeleteTag(prev *oas.Tag, _ uint64, user identity.Principal) (*
 
 func newTagService(d *recorder) (*TagService, *memTags) {
 	store := newMemTags()
-	return NewTagService(slog.New(slog2.NewDummyHandler(slog.LevelDebug)), store, d), store
+	return NewTagService(store, d), store
 }
 
 func admin() *authorization.RequestPrincipal {
@@ -218,7 +216,7 @@ func TestTagService_Delete_deniedNeverTouchesTheStore(t *testing.T) {
 	_, err := svc.Create(context.Background(), admin(), tag("t1"), false)
 	require.NoError(t, err)
 
-	denied := NewTagService(slog.New(slog2.NewDummyHandler(slog.LevelDebug)), store, &recorder{deny: true})
+	denied := NewTagService(store, &recorder{deny: true})
 
 	_, err = denied.Delete(context.Background(), admin(), "t1", false)
 	require.ErrorIs(t, err, authorization.ErrForbidden)
@@ -228,7 +226,7 @@ func TestTagService_Delete_deniedNeverTouchesTheStore(t *testing.T) {
 func TestTagService_nilAuthorizerPermits(t *testing.T) {
 	t.Parallel()
 
-	svc := NewTagService(slog.New(slog2.NewDummyHandler(slog.LevelDebug)), newMemTags(), nil)
+	svc := NewTagService(newMemTags(), nil)
 
 	_, err := svc.Create(context.Background(), authorization.SystemRequestPrincipal(), tag("t1"), false)
 	require.NoError(t, err)

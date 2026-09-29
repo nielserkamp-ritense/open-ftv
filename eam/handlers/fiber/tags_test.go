@@ -2,8 +2,10 @@ package fiber
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -16,6 +18,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
@@ -99,23 +102,21 @@ func TestTagsHandler_GetPolicies(t *testing.T) {
 	})
 }
 
+// failingTags is a management.TagStore whose every read fails, as a store that is down would.
+type failingTags struct{ management.TagStore }
+
+func (failingTags) ReadTag(string) (*policies.Tag, uint64, error) {
+	return nil, 0, errors.New("db down: host pg-1")
+}
+
 // A denied caller is answered 403 whether or not the tag exists, and the store's answer (here
-// a mock without expectations, so every read fails) never reaches it.
+// an error naming a host) never reaches it.
 func TestTagsHandler_Forbidden(t *testing.T) {
 	t.Parallel()
 
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
 
-	db, err := pgxmock.NewPool()
-	require.NoError(t, err)
-
-	pool, err := postgresql.NewWithPool(context.Background(), "postgres://localhost:5432/table", time.Minute, 3, db)
-	require.NoError(t, err)
-
-	p, err := pap.New(context.Background(), logger, pap.WithPgPool(pool))
-	require.NoError(t, err)
-
-	th := NewTagsHandler(logger, p, denyAuthorizer{})
+	th := NewTagsHandler(logger, failingTags{}, denyAuthorizer{})
 
 	srv := fiber.New()
 	srv.Get("/v1/tags", th.GetTags).
@@ -123,13 +124,13 @@ func TestTagsHandler_Forbidden(t *testing.T) {
 		Delete("/v1/tag/:tag", th.DeleteTag)
 
 	for _, path := range []string{"/v1/tags", "/v1/tag/laadpalen"} {
-		resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, path, nil), 60000)
+		resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, path, http.NoBody), 60000)
 		require.NoError(t, err)
 		assert.Equal(t, fiber.StatusForbidden, resp.StatusCode, path)
 		resp.Body.Close()
 	}
 
-	resp, err := srv.Test(httptest.NewRequest(fiber.MethodDelete, "/v1/tag/laadpalen", nil), 60000)
+	resp, err := srv.Test(httptest.NewRequest(fiber.MethodDelete, "/v1/tag/laadpalen", http.NoBody), 60000)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusForbidden, resp.StatusCode)
 	resp.Body.Close()
