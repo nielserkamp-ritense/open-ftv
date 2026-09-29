@@ -99,23 +99,26 @@ func (s *Services) initDeployments(group fiber.Router) {
 	// restart the last interrupted bundle deployment run if needed.
 	time.AfterFunc(5*time.Second, func() { s.pap.RestartDeployment(s.bundleManager) })
 
+	// the deployment routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// deployments CRUD.
-	group.Get(handle.PathStatuses, apis.GetStatuses).
-		Get(handle.PathCompressionTypes, apis.GetCompressTypes).
-		Get(handle.PathConfigs, apis.GetConfigs).
-		Get(handle.PathDeployments, apis.GetDeployments).
-		Get(handle.PathLastDeployment, apis.GetLastDeployment).
-		Get(handle.PathDeploymentID, apis.GetDeployment).
-		Post(handle.PathDeployment, apis.PostDeployment)
+	group.Get(handle.PathStatuses, identify, apis.GetStatuses).
+		Get(handle.PathCompressionTypes, identify, apis.GetCompressTypes).
+		Get(handle.PathConfigs, identify, apis.GetConfigs).
+		Get(handle.PathDeployments, identify, apis.GetDeployments).
+		Get(handle.PathLastDeployment, identify, apis.GetLastDeployment).
+		Get(handle.PathDeploymentID, identify, apis.GetDeployment).
+		Post(handle.PathDeployment, identify, apis.PostDeployment)
 }
 
 // initBundleRoutes sets up the routing table for bundle retrieval requests.
 func (s *Services) initBundleRoutes(_ context.Context, svc *fiber.App) {
 	apis := handle.NewBundlesHandler(s.logger, s.pap, s.bundleManager, s.auth.Authorizer())
 
-	// bundle retrieval for PDPs.
+	// bundle retrieval for PDPs: an app reading the last deployment.
 	v1 := svc.Group(handle.PathV1)
-	v1.Get(handle.PathBundle, apis.GetBundle)
+	v1.Get(handle.PathBundle, authfiber.Identify(s.auth.Authorizer(), s.logger), apis.GetBundle)
 }
 
 // initHealthRoutes sets up the routing table for health requests.

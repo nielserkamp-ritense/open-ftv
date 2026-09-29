@@ -44,7 +44,7 @@ func (s *PostgresDB) Generate(ctx context.Context, title, description, user stri
 			return nil, err2
 		case deploy != nil:
 			if status := deploy.Status(); status < Failed {
-				return nil, fmt.Errorf("deployment %d is still active [%s]", version, status.String())
+				return nil, fmt.Errorf("%w: deployment %d [%s]", ErrDeploymentActive, version, status.String())
 			}
 		}
 	}

@@ -112,7 +112,7 @@ export default function PublicatiesComponent() {
                                 <span>{isPending ? 'Publiceren…' : 'Publiceren'}</span>
                             </Button>
                             {!canPublish && (
-                                <p className="text-sm text-zinc-500 mt-1">Alleen een beheerder (admin) kan publiceren.</p>
+                                <p className="text-sm text-zinc-500 mt-1">Alleen een functioneel beheerder (author) kan publiceren.</p>
                             )}
                         </div>
                     </div>

@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
@@ -19,27 +21,41 @@ import (
 // BundlesVersion is the full semantic API version for the bundle endpoints.
 const BundlesVersion = "1.0.1" // check against oas/bundles/openapi.yaml!
 
+var (
+	errDeploymentNotFound = errors.New("deployment not found")
+	errDeploymentInternal = errors.New("internal error")
+)
+
 // BundlesHandler contains the details for handling requests about bundles and deployments.
 type BundlesHandler struct {
-	logger     *slog.Logger
-	pap        *pap.PAP
-	manager    *bundles.Manager
-	cfg        []*bundles.Config
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.DeploymentService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewBundlesHandler instantiates a bundle deployment handler.
+// NewBundlesHandler instantiates a bundle deployment handler. Every operation is decided by
+// the deployment service through the authorizer; a nil authorizer permits everything.
 func NewBundlesHandler(logger *slog.Logger, store *pap.PAP, manager *bundles.Manager, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *BundlesHandler {
-	return &BundlesHandler{logger: logger, pap: store, manager: manager, cfg: manager.Bundles(), authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+	return &BundlesHandler{
+		logger:            logger,
+		svc:               management.NewDeploymentService(logger, store, manager, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *BundlesHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetStatuses is the endpoint for retrieving the list of bundle status codes.
 func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	if err := h.svc.Describe(req.UserContext(), h.caller(req)); err != nil {
+		return h.fail(req, err)
 	}
 
 	resp := make(oas.Statuses, 0, bundles.StatusCount)
@@ -54,8 +70,8 @@ func (h *BundlesHandler) GetStatuses(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	if err := h.svc.Describe(req.UserContext(), h.caller(req)); err != nil {
+		return h.fail(req, err)
 	}
 
 	resp := make(oas.CompressTypes, 0, bundles.CompressCount)
@@ -70,14 +86,15 @@ func (h *BundlesHandler) GetCompressTypes(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	cfgs, err := h.svc.Configs(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	resp := make(oas.BundleConfigs, len(h.cfg))
+	resp := make(oas.BundleConfigs, len(cfgs))
 
-	for i := range h.cfg {
-		cfg := h.cfg[i]
+	for i := range cfgs {
+		cfg := cfgs[i]
 		cfg2 := oas.BundleConfig{
 			Id:       cfg.ID,
 			Version:  cfg.Version,
@@ -108,13 +125,9 @@ func (h *BundlesHandler) GetConfigs(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	list, err := h.pap.ListDeployments()
+	list, err := h.svc.List(req.UserContext(), h.caller(req))
 	if err != nil {
-		return h.error(req, fiber.StatusInternalServerError, err)
+		return h.fail(req, err)
 	}
 
 	resp := make([]*oas.Deployment, 0, len(list))
@@ -129,22 +142,21 @@ func (h *BundlesHandler) GetDeployments(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	version, err := req.ParamsInt("key")
+	version, err := strconv.ParseUint(req.Params("key"), 10, 64)
 	if err != nil {
+		err = errors.New("deployment version must be a positive number")
+
+		// a malformed version is still answered in decision order: the denial comes first.
+		if derr := h.svc.Describe(req.UserContext(), h.caller(req)); derr != nil {
+			return h.fail(req, derr)
+		}
+
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	if version < 0 {
-		return h.error(req, fiber.StatusBadRequest, errors.New("deployment version must be positive"))
-	}
-
-	resp, err := h.pap.ReadDeployment(uint64(version))
+	resp, err := h.svc.Get(req.UserContext(), h.caller(req), version)
 	if err != nil {
-		return h.error(req, fiber.StatusNotFound, err)
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, resp.ToOAS())
@@ -154,22 +166,9 @@ func (h *BundlesHandler) GetDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	last, err := h.pap.LastDeployment()
+	resp, err := h.svc.Last(req.UserContext(), h.caller(req))
 	if err != nil {
-		return h.error(req, fiber.StatusInternalServerError, err)
-	}
-
-	if last == nil || last.Version() <= 0 {
-		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
-	}
-
-	resp, err := h.pap.ReadDeployment(last.Version())
-	if err != nil {
-		return h.error(req, fiber.StatusInternalServerError, err)
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, resp.ToOAS())
@@ -179,19 +178,19 @@ func (h *BundlesHandler) GetLastDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	var body oas.NewDeploymentBody
-	if err = req.BodyParser(&body); err != nil {
+	if err := req.BodyParser(&body); err != nil {
+		// a malformed body is still answered in decision order: the denial comes first.
+		if derr := h.svc.DecideDeploy(req.UserContext(), h.caller(req)); derr != nil {
+			return h.fail(req, derr)
+		}
+
 		return server.SendProblemResponse(req, fiber.StatusBadRequest, codeBadRequest, err.Error())
 	}
 
-	resp, err := h.pap.NewDeployment(body.Title, body.Description, h.manager, user)
+	resp, err := h.svc.Deploy(req.UserContext(), h.caller(req), body.Title, body.Description)
 	if err != nil {
-		return h.error(req, fiber.StatusBadRequest, err)
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, resp.ToOAS())
@@ -201,27 +200,14 @@ func (h *BundlesHandler) PostDeployment(req *fiber.Ctx) error {
 func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, BundlesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
 	id := req.Params("id")
 	if id == "" {
 		return h.error(req, fiber.StatusBadRequest, errors.New("bundle id required"))
 	}
 
-	last, err := h.pap.LastDeployment()
+	b, err := h.svc.Bundle(req.UserContext(), h.caller(req), id)
 	if err != nil {
-		return h.error(req, fiber.StatusInternalServerError, err)
-	}
-
-	if last == nil || last.Version() <= 0 {
-		return h.error(req, fiber.StatusNotFound, errors.New("last deployment not found"))
-	}
-
-	b, err := h.manager.Get(last, id)
-	if err != nil {
-		return h.error(req, fiber.StatusBadRequest, err)
+		return h.fail(req, err)
 	}
 
 	enc := req.AcceptsEncodings("gz", "gzip", "bzip", "bz2", "bzip2")
@@ -240,8 +226,22 @@ func (h *BundlesHandler) GetBundle(req *fiber.Ctx) error {
 	return req.Send(buf.Bytes())
 }
 
-func (h *BundlesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
+// fail answers a failed service call: a denial is 403 regardless of whether the object
+// exists, a missing deployment 404, an unknown bundle or a deployment refused because the
+// last one still runs 400, and anything else (a store failure, or a permitted caller that
+// could not be recorded) 500 without the cause.
+func (h *BundlesHandler) fail(req *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, authorization.ErrForbidden):
+		return auth.Forbidden(req, err, h.logger)
+	case errors.Is(err, management.ErrNotFound):
+		return h.error(req, fiber.StatusNotFound, errDeploymentNotFound)
+	case errors.Is(err, management.ErrBundle):
+		return h.error(req, fiber.StatusBadRequest, err)
+	default:
+		h.logger.Error("request error", "path", req.Path(), "err", err, "status", fiber.StatusInternalServerError)
+		return server.SendMessageResponse(req, fiber.StatusInternalServerError, errDeploymentInternal.Error())
+	}
 }
 
 func (h *BundlesHandler) error(req *fiber.Ctx, status int, err error) error {

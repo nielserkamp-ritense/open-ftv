@@ -21,14 +21,15 @@ describe('rolesFromToken', () => {
 });
 
 describe('capabilities', () => {
-  it('admin can write and publish', () => {
-    expect(canWrite(['admin'])).toBe(true);
-    expect(canPublish(['admin'])).toBe(true);
-    expect(isReadOnly(['admin'])).toBe(false);
-  });
-  it('author can write but not publish', () => {
+  it('author writes and publishes', () => {
     expect(canWrite(['author'])).toBe(true);
-    expect(canPublish(['author'])).toBe(false);
+    expect(canPublish(['author'])).toBe(true);
+    expect(isReadOnly(['author'])).toBe(false);
+  });
+  it('admin must not write or publish rules', () => {
+    expect(canWrite(['admin'])).toBe(false);
+    expect(canPublish(['admin'])).toBe(false);
+    expect(isReadOnly(['admin'])).toBe(true);
   });
   it('auditor is read-only', () => {
     expect(canWrite(['auditor'])).toBe(false);

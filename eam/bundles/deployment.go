@@ -1,6 +1,7 @@
 package bundles
 
 import (
+	"errors"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -23,6 +24,10 @@ func NewDeployment(version uint64, title, description, user string) *Deployment 
 		updatedBy:   user,
 	}
 }
+
+// ErrDeploymentActive reports that a new deployment was refused because the last one is
+// still running.
+var ErrDeploymentActive = errors.New("deployment is still active")
 
 // Deployment represents the details of a bundle deployment.
 type Deployment struct {

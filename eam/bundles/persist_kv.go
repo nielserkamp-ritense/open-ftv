@@ -46,7 +46,7 @@ func (s *KeyValueDB) Generate(ctx context.Context, title, description, user stri
 		}
 
 		if status := deploy.Status(); status < Failed {
-			return nil, fmt.Errorf("deployment %d is still active [%s]", version, status.String())
+			return nil, fmt.Errorf("%w: deployment %d [%s]", ErrDeploymentActive, version, status.String())
 		}
 	}
 

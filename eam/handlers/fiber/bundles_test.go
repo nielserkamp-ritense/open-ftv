@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
+	authfiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/bundles"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
 	bundles2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/bundles"
@@ -342,4 +343,80 @@ func TestBundlesHandler_GetDeployment(t *testing.T) {
 			}
 		})
 	}
+}
+
+// newDeploymentServer mounts the deployment routes as the manager does, behind Identify, with
+// the given authorizer deciding.
+func newDeploymentServer(t *testing.T, auth authorization.RequestAuthorizer) *fiber.App {
+	t.Helper()
+
+	ctx := context.Background()
+	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
+
+	p1, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	manager := bundles.NewManager(ctx, logger,
+		bundles.WithConfig("../../../testdata/unittest/bundles/test2", true),
+		bundles.WithPolicyHandler(p1),
+	)
+
+	ah := NewBundlesHandler(logger, p1, manager, auth)
+	identify := authfiber.Identify(auth, logger)
+
+	srv := fiber.New()
+	srv.Get("/v1/deployments", identify, ah.GetDeployments).
+		Get("/v1/deployment/last", identify, ah.GetLastDeployment).
+		Get("/v1/deployment/:key", identify, ah.GetDeployment).
+		Post("/v1/deployment", identify, ah.PostDeployment)
+
+	return srv
+}
+
+func status(t *testing.T, srv *fiber.App, method, path, body string) int {
+	t.Helper()
+
+	req := httptest.NewRequest(method, path, bytes.NewBufferString(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := srv.Test(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	return resp.StatusCode
+}
+
+// A caller the PDP denies is answered 403 for every operation, before a not-found and before
+// a validation error, so nothing about the store's state or the request's shape leaks.
+func TestBundlesHandler_deniedCallerGets403BeforeAnythingElse(t *testing.T) {
+	t.Parallel()
+
+	// no PDP and no NoAuth: every decision is a denial; no credentials: the system principal.
+	srv := newDeploymentServer(t, authorization.New(authorization.WithAuthenticator(authentication.NewDummy())))
+
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodGet, "/v1/deployments", ""))
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodGet, "/v1/deployment/last", ""))
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodGet, "/v1/deployment/42", ""), "a missing version is 403, not 404")
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodGet, "/v1/deployment/abc", ""), "a malformed version is 403, not 400")
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodPost, "/v1/deployment", `{"title":"x"}`))
+	assert.Equal(t, fiber.StatusForbidden, status(t, srv, fiber.MethodPost, "/v1/deployment", `not json`), "a malformed body is 403, not 400")
+}
+
+// A permitted caller gets the store's answer: not found while nothing was published, a
+// validation error for a malformed request, and the deployment once published.
+func TestBundlesHandler_permittedCallerGetsTheStoreAnswer(t *testing.T) {
+	t.Parallel()
+
+	srv := newDeploymentServer(t, authorization.New(authorization.NoAuth(), authorization.WithAuthenticator(authentication.NewDummy())))
+
+	assert.Equal(t, fiber.StatusOK, status(t, srv, fiber.MethodGet, "/v1/deployments", ""))
+	assert.Equal(t, fiber.StatusNotFound, status(t, srv, fiber.MethodGet, "/v1/deployment/last", ""))
+	assert.Equal(t, fiber.StatusNotFound, status(t, srv, fiber.MethodGet, "/v1/deployment/42", ""))
+	assert.Equal(t, fiber.StatusBadRequest, status(t, srv, fiber.MethodGet, "/v1/deployment/abc", ""))
+	assert.Equal(t, fiber.StatusBadRequest, status(t, srv, fiber.MethodPost, "/v1/deployment", `not json`))
+
+	assert.Equal(t, fiber.StatusOK, status(t, srv, fiber.MethodPost, "/v1/deployment", `{"title":"Publicatie"}`))
+	assert.Equal(t, fiber.StatusOK, status(t, srv, fiber.MethodGet, "/v1/deployment/last", ""))
+	assert.Equal(t, fiber.StatusOK, status(t, srv, fiber.MethodGet, "/v1/deployment/1", ""))
 }
