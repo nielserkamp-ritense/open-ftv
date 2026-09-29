@@ -5,7 +5,7 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 ## Folder structure
 
 - `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.).
-- `demos     ` demo & presentation materials, including the configuration of the Laadpalen demo.
+- `demo      ` configuration of the Laadpalen demo, per organization.
 - `docker    ` docker and compose related scripts.
 - `eam       ` shared generic EAM components.
 - `external  ` OpenFTV plugins for external software products. 
@@ -61,7 +61,7 @@ RvIG and RDW. It is split in two parts:
   changes. The Go services run under [Delve](https://github.com/go-delve/delve), so a debugger can attach to them.
 
 The demo's configuration per organization (policies, tags, bundles, PDP pull-configs and Kong) is in
-`demos/laadpalen/<organization>`.
+`demo/<organization>`.
 
 Besides the prerequisites above, this needs [modd](https://github.com/cortesi/modd), Delve and Node.js. Run
 `npm install` once in `apps/management-interface` and `apps/laadpalen-applicatie`.

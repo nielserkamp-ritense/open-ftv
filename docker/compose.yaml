@@ -27,7 +27,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../demos/laadpalen/gemeente-vlierdam/kong:/tmp/conf
+      - ./../demo/gemeente-vlierdam/kong:/tmp/conf
 
   vlierdam-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -55,7 +55,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../demos/laadpalen/rvig/kong:/tmp/conf
+      - ./../demo/rvig/kong:/tmp/conf
 
   rvig-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -83,7 +83,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./../demos/laadpalen/rdw/kong:/tmp/conf
+      - ./../demo/rdw/kong:/tmp/conf
 
   rdw-keycloak:
     image: quay.io/keycloak/keycloak:26.0
