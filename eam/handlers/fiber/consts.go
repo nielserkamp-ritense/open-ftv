@@ -5,7 +5,7 @@ const (
 	PathADL               = "/adl"
 	PathAttribute         = "/attribute/:key"
 	PathAttributeRestore  = "/attribute/:key/version/:version/restore"
-	PathAttributeStatus   = "/attribute/:key/Status"
+	PathAttributeStatus   = "/attribute/:key/status"
 	PathAttributeVersion  = "/attribute/:key/version/:version"
 	PathAttributeVersions = "/attribute/:key/versions"
 	PathAttributes        = "/attributes"

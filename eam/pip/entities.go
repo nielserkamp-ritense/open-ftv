@@ -123,7 +123,8 @@ func (p *PIP) UpdateEntityStatus(uid string, status models.Status, user identity
 		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
 		return p.AddEntityWithUser(prev.WithStatus(status), user)
 	}
-	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
+
+	return nil, fmt.Errorf("%w: from %s to %s", ErrInvalidStatusChange, prev.Status().String(), status.String())
 }
 
 // RemoveEntity removes an entity from the PIP.

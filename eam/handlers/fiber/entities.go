@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -42,29 +42,41 @@ type EntitiesHandler interface {
 }
 
 type entitiesHandler struct {
-	logger     *slog.Logger
-	cache      *pip.PIP
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.EntityService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewEntitiesHandler instantiates a policy handler.
-func NewEntitiesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) EntitiesHandler {
-	return &entitiesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+// NewEntitiesHandler instantiates an entity handler. Every operation is decided by the entity
+// service through the authorizer; a nil authorizer permits everything. *pip.PIP is an EntityStore.
+func NewEntitiesHandler(logger *slog.Logger, store management.EntityStore, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) EntitiesHandler {
+	return &entitiesHandler{
+		logger:            logger,
+		svc:               management.NewEntityService(logger, store, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *entitiesHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetEntities implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	list, err := h.svc.List(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	resp := make([]*oas.Entity, 0, 32)
-	h.cache.IterateEntities(func(e *models.Entity) {
-		resp = append(resp, e.ToOAS())
-	})
+	resp := make([]*oas.Entity, len(list))
+	for i := range list {
+		resp[i] = list[i].ToOAS()
+	}
 
 	return h.respond(req, &resp)
 }
@@ -73,59 +85,35 @@ func (h *entitiesHandler) GetEntities(req *fiber.Ctx) error {
 func (h *entitiesHandler) GetEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	uid, err := h.checkUID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	uid := models.EntityUID(ns, id)
-
-	e, _, err2 := h.cache.GetEntity(uid)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	details, err := h.svc.Get(req.UserContext(), h.caller(req), uid)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if e == nil {
-		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
-	}
-
-	out := e.ToOAS()
-
-	if audit, err3 := h.cache.GetAttributeAudit(uid); err3 != nil {
-		h.logger.Warn("failed to read policy audit", "type", ns, "id", id, "err", err3)
-	} else {
-		out.AuditLog = audit
-	}
-
-	if usage, err3 := h.cache.GetAttributeDeployments(uid); err3 != nil {
-		h.logger.Warn("failed to read policy deployments", "type", ns, "id", id, "err", err3)
-	} else {
-		out.UsageData = usage
-	}
+	out := details.Entity.ToOAS()
+	out.AuditLog = details.AuditLog
+	out.UsageData = details.UsageData
 
 	return h.respond(req, out)
 }
 
 // GetEntityVersions implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
-	req.Set(HeaderVersion, AttributesVersion)
+	req.Set(HeaderVersion, EntitiesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	uid, err := h.checkUID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	list, err2 := h.cache.GetEntityVersions(models.EntityUID(ns, id))
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	list, err := h.svc.Versions(req.UserContext(), h.caller(req), uid)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, list)
@@ -133,13 +121,9 @@ func (h *entitiesHandler) GetEntityVersions(req *fiber.Ctx) error {
 
 // GetEntityVersion implements the EntitiesHandler interface.
 func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
-	req.Set(HeaderVersion, AttributesVersion)
+	req.Set(HeaderVersion, EntitiesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	uid, err := h.checkUID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
@@ -149,13 +133,9 @@ func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	e, err2 := h.cache.GetEntityVersion(models.EntityUID(ns, id), version)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	if e == nil {
-		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
+	e, err := h.svc.Version(req.UserContext(), h.caller(req), uid, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, e)
@@ -165,119 +145,73 @@ func (h *entitiesHandler) GetEntityVersion(req *fiber.Ctx) error {
 func (h *entitiesHandler) PostEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	ns, id, err := h.checkTypeAndID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	e1, code, err := h.checkBody(req, ns, id)
+	e, code, err := h.checkBody(req, ns, id)
 	if err != nil {
 		return h.badRequest(req, code, err)
 	}
 
-	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Create(req.UserContext(), h.caller(req), e, req.QueryBool(ParamForceUpsert))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if prev != nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusConflict, errEntityExists)
-	}
-
-	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
-	if err3 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err3)
-	}
-
-	return h.respond(req.Status(fiber.StatusCreated), e2.ToOAS())
+	return h.respond(req.Status(fiber.StatusCreated), out.ToOAS())
 }
 
 // PutEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) PutEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	ns, id, err := h.checkTypeAndID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	e1, code, err := h.checkBody(req, ns, id)
+	e, code, err := h.checkBody(req, ns, id)
 	if err != nil {
 		return h.badRequest(req, code, err)
 	}
 
-	prev, _, err2 := h.cache.GetEntity(models.EntityUID(e1.Type, e1.Id))
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Update(req.UserContext(), h.caller(req), e, req.QueryBool(ParamForceUpsert))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if prev == nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
-	}
-
-	e2, err3 := h.cache.AddEntityFromOAS(e1, user)
-	if err3 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err3)
-	}
-
-	return h.respond(req, e2.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
 // PatchEntityStatus implements the EntitiesHandler interface.
 func (h *entitiesHandler) PatchEntityStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	ns, id, err := h.checkTypeAndID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	e1, code, err := h.checkBodyStatus(req, ns, id)
+	e, code, err := h.checkBodyStatus(req, ns, id)
 	if err != nil {
 		return h.badRequest(req, code, err)
 	}
 
-	uid := models.EntityUID(e1.Type, e1.Id)
-
-	e2, _, err2 := h.cache.GetEntity(uid)
-	if err2 != nil {
-		h.logger.Error("failed to get attribute", "error", err2)
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.SetStatus(req.UserContext(), h.caller(req), models.EntityUID(ns, id), models.StatusFromString(e.Status))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if e2, err2 = h.cache.UpdateEntityStatus(uid, models.StatusFromString(e1.Status), user); err2 != nil {
-		h.logger.Error("failed to save entity status", "error", err2)
-		return h.error(req, fiber.StatusBadRequest, err2)
-	}
-
-	return h.respond(req, e2.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
-// PostEntityRestore implements the AttributesHandler interface.
+// PostEntityRestore implements the EntitiesHandler interface.
 func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	uid, err := h.checkUID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
@@ -287,51 +221,42 @@ func (h *entitiesHandler) PostEntityRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	e, err2 := h.cache.RestoreEntityVersion(models.EntityUID(ns, id), version, user)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Restore(req.UserContext(), h.caller(req), uid, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	return h.respond(req, e)
+	return h.respond(req, out)
 }
 
 // DeleteEntity implements the EntitiesHandler interface.
 func (h *entitiesHandler) DeleteEntity(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, EntitiesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
-	ns, id, err := h.checkUID(req)
+	uid, err := h.checkUID(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	uid := models.EntityUID(ns, id)
-
-	prev, _, err2 := h.cache.GetEntity(uid)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Delete(req.UserContext(), h.caller(req), uid, req.QueryBool(ParamIgnoreMissing))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if prev == nil {
-		if !req.QueryBool(ParamIgnoreMissing) {
-			return h.error(req, fiber.StatusNotFound, errEntityNotFound)
-		} else {
-			return h.respond(req, models.NewEntity(ns, id, models.NewAttributeSet()).ToOAS())
-		}
-	}
-
-	if prev, err2 = h.cache.RemoveEntity(uid, user); err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	return h.respond(req, prev.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
-func (h *entitiesHandler) checkUID(req *fiber.Ctx) (ns, id string, err error) {
+// checkUID validates the type and id in the path and returns them as one UID.
+func (h *entitiesHandler) checkUID(req *fiber.Ctx) (string, error) {
+	ns, id, err := h.checkTypeAndID(req)
+	if err != nil {
+		return "", err
+	}
+
+	return models.EntityUID(ns, id), nil
+}
+
+func (h *entitiesHandler) checkTypeAndID(req *fiber.Ctx) (ns, id string, err error) {
 	ns = req.Params("type")
 	if ns == "" || len(ns) > 80 {
 		return "", "", errEntityTypeError
@@ -392,7 +317,7 @@ func (h *entitiesHandler) checkBodyStatus(req *fiber.Ctx, ns, id string) (*oas.E
 	chk := newFieldChecker().
 		checkIdentifiers(ns, &e.Type, errEntityTypeMismatch).
 		checkIdentifiers(id, &e.Id, errEntityIDMismatch).
-		checkStatus(e.Status)
+		requireStatus(e.Status)
 
 	if chk.checkFailed() {
 		return nil, chk.firstCode(), chk.error()
@@ -401,8 +326,22 @@ func (h *entitiesHandler) checkBodyStatus(req *fiber.Ctx, ns, id string) (*oas.E
 	return &e, "", nil
 }
 
-func (h *entitiesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
+// fail answers a failed service call: a denial is 403 regardless of whether the entity exists,
+// an invalid status transition 400, a missing entity 404, an existing one 409, and anything
+// else (including a permitted caller that could not be recorded) 500 without the cause.
+func (h *entitiesHandler) fail(req *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, authorization.ErrForbidden):
+		return auth.Forbidden(req, err, h.logger)
+	case errors.Is(err, management.ErrInvalidTransition):
+		return h.error(req, fiber.StatusBadRequest, err)
+	case errors.Is(err, management.ErrNotFound):
+		return h.error(req, fiber.StatusNotFound, errEntityNotFound)
+	case errors.Is(err, management.ErrExists):
+		return h.error(req, fiber.StatusConflict, errEntityExists)
+	default:
+		return internalError(req, h.logger, err)
+	}
 }
 
 func (h *entitiesHandler) error(req *fiber.Ctx, status int, err error) error {

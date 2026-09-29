@@ -31,6 +31,12 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   policy is not edited in place" forbids `update` on it, and the life cycle's only way
   out of accepted is back to concept; without its own action that transition was
   unauthorizable for every role.
+  *Refined during implementation (SCRUM-145):* the rule that an accepted object is not edited
+  in place applies to PIP data as it does to policies, because accepted means "what the next
+  deployment ships" for an attribute or entity too. One seed rule (`pip_accepted_guard`)
+  forbids `update` on an accepted attribute or entity; `revert` and `restore` remain the ways
+  out. The UI's in-place edit of an attribute therefore returns 403 once it is accepted, until
+  the UI reverts first (SCRUM-16).
   *Refined during implementation (SCRUM-144):* the manager's UI settings are one record
   with no key of their own, so the resource is `setting::"ui"`, read and updated but never
   created or deleted (the defaults stand in for an unsaved record). A later group of

@@ -141,7 +141,8 @@ func (p *PIP) UpdateAttributeStatus(key string, status models.Status, user ident
 		(prev.Status() == models.StatusAccepted && status == models.StatusConcept) {
 		return p.AddAttributeWithUser(prev.WithStatus(status), user)
 	}
-	return nil, fmt.Errorf("invalid status change from %s to %s", prev.Status().String(), status.String())
+
+	return nil, fmt.Errorf("%w: from %s to %s", ErrInvalidStatusChange, prev.Status().String(), status.String())
 }
 
 // RemoveAttribute removes an attribute from the PIP.

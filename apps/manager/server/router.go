@@ -139,35 +139,41 @@ func (s *Services) initPolicies(group fiber.Router) {
 func (s *Services) initAttributes(group fiber.Router) {
 	apis := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer(), s.principalOption()...)
 
+	// the attribute routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// attributes CRUD.
-	group.Get(handle.PathAttributes, apis.GetAttributes).
-		Get(handle.PathAttribute, apis.GetAttribute).
-		Put(handle.PathAttribute, apis.PutAttribute).
-		Post(handle.PathAttribute, apis.PostAttribute).
-		Patch(handle.PathAttributeStatus, apis.PatchAttributeStatus).
-		Delete(handle.PathAttribute, apis.DeleteAttribute)
+	group.Get(handle.PathAttributes, identify, apis.GetAttributes).
+		Get(handle.PathAttribute, identify, apis.GetAttribute).
+		Put(handle.PathAttribute, identify, apis.PutAttribute).
+		Post(handle.PathAttribute, identify, apis.PostAttribute).
+		Patch(handle.PathAttributeStatus, identify, apis.PatchAttributeStatus).
+		Delete(handle.PathAttribute, identify, apis.DeleteAttribute)
 
 	// attribute versions.
-	group.Get(handle.PathAttributeVersions, apis.GetAttributeVersions).
-		Get(handle.PathAttributeVersion, apis.GetAttributeVersion).
-		Post(handle.PathAttributeRestore, apis.PostAttributeRestore)
+	group.Get(handle.PathAttributeVersions, identify, apis.GetAttributeVersions).
+		Get(handle.PathAttributeVersion, identify, apis.GetAttributeVersion).
+		Post(handle.PathAttributeRestore, identify, apis.PostAttributeRestore)
 }
 
 func (s *Services) initEntities(group fiber.Router) {
 	apis := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer(), s.principalOption()...)
 
+	// the entity routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// entities CRUD.
-	group.Get(handle.PathEntities, apis.GetEntities).
-		Get(handle.PathEntity, apis.GetEntity).
-		Put(handle.PathEntity, apis.PutEntity).
-		Post(handle.PathEntity, apis.PostEntity).
-		Patch(handle.PathEntityStatus, apis.PatchEntityStatus).
-		Delete(handle.PathEntity, apis.DeleteEntity)
+	group.Get(handle.PathEntities, identify, apis.GetEntities).
+		Get(handle.PathEntity, identify, apis.GetEntity).
+		Put(handle.PathEntity, identify, apis.PutEntity).
+		Post(handle.PathEntity, identify, apis.PostEntity).
+		Patch(handle.PathEntityStatus, identify, apis.PatchEntityStatus).
+		Delete(handle.PathEntity, identify, apis.DeleteEntity)
 
 	// entity versions.
-	group.Get(handle.PathEntityVersions, apis.GetEntityVersions).
-		Get(handle.PathEntityVersion, apis.GetEntityVersion).
-		Post(handle.PathEntityRestore, apis.PostEntityRestore)
+	group.Get(handle.PathEntityVersions, identify, apis.GetEntityVersions).
+		Get(handle.PathEntityVersion, identify, apis.GetEntityVersion).
+		Post(handle.PathEntityRestore, identify, apis.PostEntityRestore)
 }
 
 func (s *Services) initRelations(_ fiber.Router) {

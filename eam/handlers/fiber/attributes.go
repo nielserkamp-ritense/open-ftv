@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pip"
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -40,29 +40,42 @@ type AttributesHandler interface {
 }
 
 type attributesHandler struct {
-	logger     *slog.Logger
-	cache      *pip.PIP
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.AttributeService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }
 
-// NewAttributesHandler instantiates a policy handler.
-func NewAttributesHandler(logger *slog.Logger, store *pip.PIP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) AttributesHandler {
-	return &attributesHandler{logger: logger, cache: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+// NewAttributesHandler instantiates an attribute handler. Every operation is decided by the
+// attribute service through the authorizer; a nil authorizer permits everything. *pip.PIP is
+// an AttributeStore.
+func NewAttributesHandler(logger *slog.Logger, store management.AttributeStore, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) AttributesHandler {
+	return &attributesHandler{
+		logger:            logger,
+		svc:               management.NewAttributeService(logger, store, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
+}
+
+// caller is the request-scoped Principal this request runs as.
+func (h *attributesHandler) caller(req *fiber.Ctx) *authorization.RequestPrincipal {
+	return callerOf(req, h.secured, h.logger)
 }
 
 // GetAttributes implements the AttributesHandler interface.
 func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
+	list, err := h.svc.List(req.UserContext(), h.caller(req))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	resp := make([]*oas.Attribute, 0, 32)
-	h.cache.IterateAttributes(func(attr *models.Attribute) {
-		resp = append(resp, attr.ToOAS())
-	})
+	resp := make([]*oas.Attribute, len(list))
+	for i := range list {
+		resp[i] = list[i].ToOAS()
+	}
 
 	return h.respond(req, resp)
 }
@@ -71,37 +84,19 @@ func (h *attributesHandler) GetAttributes(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
 	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	a, _, err2 := h.cache.GetAttribute(key)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	details, err := h.svc.Get(req.UserContext(), h.caller(req), key)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if a == nil {
-		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
-	}
-
-	out := a.ToOAS()
-
-	if audit, err3 := h.cache.GetAttributeAudit(key); err3 != nil {
-		h.logger.Warn("failed to read policy audit", "key", key, "err", err3)
-	} else {
-		out.AuditLog = audit
-	}
-
-	if usage, err3 := h.cache.GetAttributeDeployments(key); err3 != nil {
-		h.logger.Warn("failed to read policy deployments", "key", key, "err", err3)
-	} else {
-		out.UsageData = usage
-	}
+	out := details.Attribute.ToOAS()
+	out.AuditLog = details.AuditLog
+	out.UsageData = details.UsageData
 
 	return h.respond(req, out)
 }
@@ -110,18 +105,14 @@ func (h *attributesHandler) GetAttribute(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	id, err := h.checkKey(req)
+	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	list, err2 := h.cache.GetAttributeVersions(id)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	list, err := h.svc.Versions(req.UserContext(), h.caller(req), key)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, list)
@@ -131,11 +122,7 @@ func (h *attributesHandler) GetAttributeVersions(req *fiber.Ctx) error {
 func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
-
-	id, err := h.checkKey(req)
+	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
@@ -145,13 +132,9 @@ func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	attr, err2 := h.cache.GetAttributeVersion(id, version)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	if attr == nil {
-		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
+	attr, err := h.svc.Version(req.UserContext(), h.caller(req), key, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
 	return h.respond(req, attr)
@@ -161,11 +144,6 @@ func (h *attributesHandler) GetAttributeVersion(req *fiber.Ctx) error {
 func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
@@ -176,31 +154,18 @@ func (h *attributesHandler) PostAttribute(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	a2, _, err2 := h.cache.GetAttribute(a.Key)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Create(req.UserContext(), h.caller(req), a, req.QueryBool(ParamForceUpsert))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if a2 != nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusConflict, errAttrExists)
-	}
-
-	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	return h.respond(req.Status(fiber.StatusCreated), a2.ToOAS())
+	return h.respond(req.Status(fiber.StatusCreated), out.ToOAS())
 }
 
 // PutAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
@@ -211,32 +176,17 @@ func (h *attributesHandler) PutAttribute(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	a2, _, err2 := h.cache.GetAttribute(a.Key)
-	if err2 != nil {
-		h.logger.Error("failed to get attribute", "error", err2)
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Update(req.UserContext(), h.caller(req), a, req.QueryBool(ParamForceUpsert))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if a2 == nil && !req.QueryBool(ParamForceUpsert) {
-		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
-	}
-
-	if a2, err2 = h.cache.AddAttributeFromOAS(a, user); err2 != nil {
-		h.logger.Error("failed to save attribute", "error", err2)
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	return h.respond(req, a2.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
 // PatchAttributeStatus implements the AttributesHandler interface.
 func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
-
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
 
 	key, err := h.checkKey(req)
 	if err != nil {
@@ -248,28 +198,17 @@ func (h *attributesHandler) PatchAttributeStatus(req *fiber.Ctx) error {
 		return h.badRequest(req, code, err)
 	}
 
-	a2, _, err2 := h.cache.GetAttribute(a.Key)
-	if err2 != nil {
-		h.logger.Error("failed to get attribute", "error", err2)
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.SetStatus(req.UserContext(), h.caller(req), key, models.StatusFromString(a.Status))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if a2, err2 = h.cache.UpdateAttributeStatus(a.Key, models.StatusFromString(a.Status), user); err2 != nil {
-		h.logger.Error("failed to save attribute status", "error", err2)
-		return h.error(req, fiber.StatusBadRequest, err2)
-	}
-
-	return h.respond(req, a2.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
 // PostAttributeRestore implements the AttributesHandler interface.
 func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
-
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
 
 	key, err := h.checkKey(req)
 	if err != nil {
@@ -281,42 +220,29 @@ func (h *attributesHandler) PostAttributeRestore(req *fiber.Ctx) error {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	attr, err2 := h.cache.RestoreAttributeVersion(key, version, user)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Restore(req.UserContext(), h.caller(req), key, version)
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	return h.respond(req, attr)
+	return h.respond(req, out)
 }
 
 // DeleteAttribute implements the AttributesHandler interface.
 func (h *attributesHandler) DeleteAttribute(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, AttributesVersion)
 
-	user, err := h.authorize(req)
-	if err != nil {
-		return err
-	}
-
 	key, err := h.checkKey(req)
 	if err != nil {
 		return h.error(req, fiber.StatusBadRequest, err)
 	}
 
-	a2, _, err2 := h.cache.GetAttribute(key)
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+	out, err := h.svc.Delete(req.UserContext(), h.caller(req), key, req.QueryBool(ParamIgnoreMissing))
+	if err != nil {
+		return h.fail(req, err)
 	}
 
-	if a2 == nil && !req.QueryBool(ParamIgnoreMissing) {
-		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
-	}
-
-	if a2, err2 = h.cache.RemoveAttribute(key, user); err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
-	}
-
-	return h.respond(req, a2.ToOAS())
+	return h.respond(req, out.ToOAS())
 }
 
 func (h *attributesHandler) checkKey(req *fiber.Ctx) (string, error) {
@@ -372,7 +298,7 @@ func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.At
 
 	chk := newFieldChecker().
 		checkIdentifiers(key, &a.Key, errAttributeKeyMismatch).
-		checkStatus(a.Status)
+		requireStatus(a.Status)
 
 	if chk.checkFailed() {
 		return nil, chk.firstCode(), chk.error()
@@ -381,8 +307,22 @@ func (h *attributesHandler) checkBodyStatus(req *fiber.Ctx, key string) (*oas.At
 	return &a, "", nil
 }
 
-func (h *attributesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
+// fail answers a failed service call: a denial is 403 regardless of whether the attribute
+// exists, an invalid status transition 400, a missing attribute 404, an existing one 409, and
+// anything else (including a permitted caller that could not be recorded) 500 without the cause.
+func (h *attributesHandler) fail(req *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, authorization.ErrForbidden):
+		return auth.Forbidden(req, err, h.logger)
+	case errors.Is(err, management.ErrInvalidTransition):
+		return h.error(req, fiber.StatusBadRequest, err)
+	case errors.Is(err, management.ErrNotFound):
+		return h.error(req, fiber.StatusNotFound, errAttrNotFound)
+	case errors.Is(err, management.ErrExists):
+		return h.error(req, fiber.StatusConflict, errAttrExists)
+	default:
+		return internalError(req, h.logger, err)
+	}
 }
 
 func (h *attributesHandler) error(req *fiber.Ctx, status int, err error) error {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	authfiber "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
 	handle "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/handlers/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
@@ -35,23 +36,29 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 func (s *Services) initAttributes(group fiber.Router) {
 	attributes := handle.NewAttributesHandler(s.logger, s.pip, s.auth.Authorizer())
 
+	// the attribute routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// attributes CRUD.
-	group.Get(handle.PathAttributes, attributes.GetAttributes).
-		Get(handle.PathAttribute, attributes.GetAttribute).
-		Put(handle.PathAttribute, attributes.PutAttribute).
-		Post(handle.PathAttribute, attributes.PostAttribute).
-		Delete(handle.PathAttribute, attributes.DeleteAttribute)
+	group.Get(handle.PathAttributes, identify, attributes.GetAttributes).
+		Get(handle.PathAttribute, identify, attributes.GetAttribute).
+		Put(handle.PathAttribute, identify, attributes.PutAttribute).
+		Post(handle.PathAttribute, identify, attributes.PostAttribute).
+		Delete(handle.PathAttribute, identify, attributes.DeleteAttribute)
 }
 
 func (s *Services) initEntities(group fiber.Router) {
 	entities := handle.NewEntitiesHandler(s.logger, s.pip, s.auth.Authorizer())
 
+	// the entity routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// entities CRUD.
-	group.Get(handle.PathEntities, entities.GetEntities).
-		Get(handle.PathEntity, entities.GetEntity).
-		Put(handle.PathEntity, entities.PutEntity).
-		Post(handle.PathEntity, entities.PostEntity).
-		Delete(handle.PathEntity, entities.DeleteEntity)
+	group.Get(handle.PathEntities, identify, entities.GetEntities).
+		Get(handle.PathEntity, identify, entities.GetEntity).
+		Put(handle.PathEntity, identify, entities.PutEntity).
+		Post(handle.PathEntity, identify, entities.PostEntity).
+		Delete(handle.PathEntity, identify, entities.DeleteEntity)
 }
 
 // initHealthRoutes sets up the routing table for health requests.
