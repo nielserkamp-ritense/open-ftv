@@ -56,6 +56,11 @@ func TestNewManager(t *testing.T) {
 			recurse: true,
 			want:    []string{"brp", "rdw", "ui"},
 		},
+		{
+			name: "other extension",
+			path: "../../testdata/unittest/bundles/test5",
+			want: []string{"brp"},
+		},
 	}
 
 	for _, tc := range testCases {

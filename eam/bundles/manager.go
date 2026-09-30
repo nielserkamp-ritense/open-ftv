@@ -14,8 +14,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 // NewManager instantiates a new bundle manager.
@@ -94,10 +92,10 @@ func (m *Manager) processEntry(path string, d fs.DirEntry, err error) error {
 		return filepath.SkipDir
 	}
 
-	switch io.SnifFile(path) {
-	case io.MimeTypeYAML:
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".yaml", ".yml":
 		return m.loadYAML(path)
-	case io.MimeTypeJSON:
+	case ".json":
 		return m.loadJSON(path)
 	default:
 		return nil
