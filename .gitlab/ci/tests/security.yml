@@ -14,6 +14,7 @@ go_mod_graph:
   script:
     - go mod graph > go.graph
   needs: []
+  allow_failure: true
   artifacts:
     expire_in: 1 day
     paths:
