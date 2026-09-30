@@ -57,12 +57,13 @@ Lint Helm charts:
     - helm dependency update deploy/charts/open-ftv
     - helm lint deploy/charts/*
     - helm template open-ftv deploy/charts/open-ftv
-    # An overlay can hold several HelmReleases, each on the chart its OCIRepository points at.
+    # An overlay holds several HelmReleases, each on the chart its OCIRepository points at. The
+    # pre-release overlay reads the demo config from demo/, outside the overlay.
     - |-
       for OVERLAY in deploy/kustomize/*/; do
         OVERLAY="${OVERLAY%/}"
         echo "checking ${OVERLAY}"
-        kustomize build "${OVERLAY}" > overlay.yaml
+        kustomize build --load-restrictor LoadRestrictionsNone "${OVERLAY}" > overlay.yaml
         for RELEASE in $(yq --no-doc 'select(.kind == "HelmRelease") | .metadata.name' overlay.yaml); do
           export RELEASE
           SOURCE=$(yq 'select(.kind == "HelmRelease" and .metadata.name == strenv(RELEASE)) | .spec.chartRef.name' overlay.yaml)

@@ -5,4 +5,45 @@ kind: Kustomization
 namespace: fds-tenant-ictu-open-ftv
 
 resources:
-  - open-ftv.yaml
+  - charts.yaml
+  - laadpalen-applicatie.yaml
+  # Gemeente Vlierdam
+  - open-ftv-vlierdam.yaml
+  - vlierdam-dataspace.yaml
+
+# The bundles and PDP pull-configs in demo/ are templates: the deploy job fills in the addresses
+# from addresses.env.
+#
+# The manager and PDP ConfigMaps keep a fixed name: HelmRelease values refer to them by name,
+# which kustomize only rewrites with a nameReference configuration for every such field. Every
+# deploy rolls out new managers and PDPs, so they pick up changes.
+configMapGenerator:
+  - name: open-ftv-vlierdam-manager-policies
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/gemeente-vlierdam/manager/policies/brv-diplomatiek.rego
+      - ../../../demo/gemeente-vlierdam/manager/policies/brv-diplomatiek.rego.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-afdeling.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-afdeling.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-doelbinding.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-doelbinding.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding-verlopen.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding-verlopen.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding.cedar.meta
+  - name: open-ftv-vlierdam-manager-tags
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/gemeente-vlierdam/manager/tags/tags.yaml
+  - name: open-ftv-vlierdam-manager-bundles
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pdp1.yaml=../../../demo/gemeente-vlierdam/manager/bundles/pdp1.yaml.template
+  - name: open-ftv-vlierdam-pdp1-pull-config
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pip-pull-config.yaml=../../../demo/gemeente-vlierdam/pdp1/pull-config/config.yaml.template

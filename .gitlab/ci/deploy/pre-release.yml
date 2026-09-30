@@ -3,7 +3,9 @@ deploy-pre-release:
   image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
   script:
     - export OPEN_FTV_VERSION=${VERSION}
-    - kubectl kustomize deploy/kustomize/simulation-pre-release | flux envsubst --strict > manifests.yaml
+    # The addresses the demo templates in demo/ get in the Simulatieomgeving.
+    - set -a && . deploy/kustomize/simulation-pre-release/addresses.env && set +a
+    - kubectl kustomize --load-restrictor LoadRestrictionsNone deploy/kustomize/simulation-pre-release | flux envsubst --strict > manifests.yaml
     - flux push artifact oci://${CI_REGISTRY_IMAGE}/kustomize/simulation-pre-release:${VERSION}
       --source="${CI_PROJECT_URL}.git"
       --revision="${CI_COMMIT_REF_NAME}@sha1:${CI_COMMIT_SHA}"
@@ -11,7 +13,7 @@ deploy-pre-release:
       --creds="${CI_REGISTRY_USER}:${CI_REGISTRY_PASSWORD}"
   environment:
     name: simulatieomgeving
-    url: https://open-ftv.simulatie.datastelsel.nl
+    url: https://openftv-vlierdam-pre.simulatie.datastelsel.nl
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
