@@ -107,7 +107,7 @@ spec:
           {{- with .Values.config.authorizationDecisionLog }}
             - name: PDP_ADL_SERVICE_NAME
               value: {{ .serviceName }}
-            {{- include "open-ftv-pdp.authorizationDecisionLogPostgresql" .postgresql | nindent 12 }}
+            {{- include "open-ftv-pdp.authorizationDecisionLogPostgresql" (dict "postgresql" .postgresql "root" $) | nindent 12 }}
           {{- end }}
           ports:
             - name: http

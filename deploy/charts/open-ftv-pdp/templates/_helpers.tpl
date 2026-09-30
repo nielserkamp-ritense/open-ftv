@@ -68,15 +68,16 @@ Environment variable items for the Postgresql database holding the authorization
 (required: the PDP writes every decision to it and migrates it at startup)
 */}}
 {{- define "open-ftv-pdp.authorizationDecisionLogPostgresql" -}}
-{{- $postgresql := . -}}
-{{- with .existingSecret -}}
+{{- $root := .root -}}
+{{- $postgresql := .postgresql -}}
+{{- with $postgresql.existingSecret -}}
 - name: X_PDP_ADL_PG_HOSTNAME
   {{- if $postgresql.hostname }}
   value: {{ $postgresql.hostname }}
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .hostnameKey }}
   {{- end }}
 - name: X_PDP_ADL_PG_DATABASE
@@ -85,18 +86,18 @@ Environment variable items for the Postgresql database holding the authorization
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .databaseKey }}
   {{- end }}
 - name: X_PDP_ADL_PG_USERNAME
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .usernameKey }}
 - name: X_PDP_ADL_PG_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: PDP_ADL_PG_URL
   value: {{ printf "postgresql://$(X_PDP_ADL_PG_USERNAME):$(X_PDP_ADL_PG_PASSWORD)@$(X_PDP_ADL_PG_HOSTNAME):%d/$(X_PDP_ADL_PG_DATABASE)" 5432 }}

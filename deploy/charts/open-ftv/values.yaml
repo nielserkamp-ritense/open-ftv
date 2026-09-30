@@ -16,7 +16,7 @@ pdp:
       postgresql:
         database: openftv_adl
         existingSecret:
-          name: open-ftv-postgresql-app
+          name: "{{ .Release.Name }}-postgresql-app"
 
 manager:
   enabled: false
@@ -25,7 +25,7 @@ manager:
     database:
       database: openftv
       existingSecret:
-        name: open-ftv-postgresql-app
+        name: "{{ .Release.Name }}-postgresql-app"
     authorizationDecisionLog: *authorizationDecisionLog
 
 management-interface:

@@ -67,15 +67,16 @@ Create the name of the service account to use
 Environment variable items when using a Postgresql database for authorization decision log
 */}}
 {{- define "open-ftv-manager.authorizationDecisionLogPostgresql" -}}
-{{- $postgresql := . -}}
-{{- with .existingSecret -}}
+{{- $root := .root -}}
+{{- $postgresql := .postgresql -}}
+{{- with $postgresql.existingSecret -}}
 - name: X_MANAGER_ADL_PG_HOSTNAME
   {{- if $postgresql.hostname }}
   value: {{ $postgresql.hostname }}
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .hostnameKey }}
   {{- end }}
 - name: X_MANAGER_ADL_PG_DATABASE
@@ -84,18 +85,18 @@ Environment variable items when using a Postgresql database for authorization de
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .databaseKey }}
   {{- end }}
 - name: X_MANAGER_ADL_PG_USERNAME
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .usernameKey }}
 - name: X_MANAGER_ADL_PG_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: MANAGER_ADL_PG_URL
   value: {{ printf "postgresql://$(X_MANAGER_ADL_PG_USERNAME):$(X_MANAGER_ADL_PG_PASSWORD)@$(X_MANAGER_ADL_PG_HOSTNAME):%d/$(X_MANAGER_ADL_PG_DATABASE)" 5432 }}
@@ -107,15 +108,16 @@ Environment variable items for the Postgresql database holding the manager's own
 (policies, attributes, entities and settings)
 */}}
 {{- define "open-ftv-manager.databasePostgresql" -}}
-{{- $postgresql := . -}}
-{{- with .existingSecret -}}
+{{- $root := .root -}}
+{{- $postgresql := .postgresql -}}
+{{- with $postgresql.existingSecret -}}
 - name: X_MANAGER_DB_HOSTNAME
   {{- if $postgresql.hostname }}
   value: {{ $postgresql.hostname }}
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .hostnameKey }}
   {{- end }}
 - name: X_MANAGER_DB_DATABASE
@@ -124,18 +126,18 @@ Environment variable items for the Postgresql database holding the manager's own
   {{- else }}
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .databaseKey }}
   {{- end }}
 - name: X_MANAGER_DB_USERNAME
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .usernameKey }}
 - name: X_MANAGER_DB_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ .name }}
+      name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: MANAGER_DATABASE_URL
   value: {{ printf "postgresql://$(X_MANAGER_DB_USERNAME):$(X_MANAGER_DB_PASSWORD)@$(X_MANAGER_DB_HOSTNAME):%d/$(X_MANAGER_DB_DATABASE)" 5432 }}
