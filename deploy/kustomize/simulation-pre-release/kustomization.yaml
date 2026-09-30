@@ -7,6 +7,7 @@ namespace: fds-tenant-ictu-open-ftv
 resources:
   - charts.yaml
   - laadpalen-applicatie.yaml
+  - demo-reset.yaml
   # Gemeente Vlierdam
   - open-ftv-vlierdam.yaml
   - open-ftv-vlierdam-pdp2.yaml
@@ -25,10 +26,16 @@ resources:
 # the addresses from addresses.env.
 #
 # The manager and PDP ConfigMaps keep a fixed name: HelmRelease values refer to them by name,
-# which kustomize only rewrites with a nameReference configuration for every such field. Every
-# deploy rolls out new managers and PDPs, so they pick up changes. The Kong ConfigMaps keep
-# their hash suffix, so a changed configuration rolls out a new Kong.
+# which kustomize only rewrites with a nameReference configuration for every such field. The
+# reset Job restarts the managers, and every deploy rolls out new PDPs, so they pick up
+# changes. The Kong ConfigMaps keep their hash suffix, so a changed configuration rolls out a
+# new Kong.
 configMapGenerator:
+  - name: demo-reset-settings
+    files:
+      - vlierdam.json=../../../demo/gemeente-vlierdam/manager/settings.json
+      - brp.json=../../../demo/rvig/manager/settings.json
+      - rdw.json=../../../demo/rdw/manager/settings.json
   - name: open-ftv-vlierdam-manager-policies
     options:
       disableNameSuffixHash: true

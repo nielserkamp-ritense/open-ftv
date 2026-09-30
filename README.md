@@ -185,9 +185,11 @@ The latest `main` **pre-release** runs the Laadpalen demo:
 - Manifests: `deploy/kustomize/simulation-pre-release`
 - [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
 
-The managers start with the demo policies from `demo/`. A new file in `demo/<organization>/manager/policies` also
-needs a line in the overlay's `kustomization.yaml`. The Laadpalen application reaches Vlierdam's mock dataspace,
-outway and PDP1 through `/dataspace`, `/outway` and `/pdp1` on its own host.
+Every pre-release deploy resets the demo: the `demo-reset-<version>` Job empties each manager's database, so edits
+made in the management interfaces are lost, and the managers seed the demo policies from `demo/` again. A new file in
+`demo/<organization>/manager/policies` also needs a line in the overlay's `kustomization.yaml`. The Laadpalen
+application reaches Vlierdam's mock dataspace, outway and PDP1 through `/dataspace`, `/outway` and `/pdp1` on its own
+host.
 
 The overlay reads the demo's bundle configurations, PDP pull-configs and Kong configurations from `demo/`; the
 deploy job fills in their addresses from the overlay's `addresses.env`. A new variable in a template needs a value
@@ -212,7 +214,8 @@ kubectl get pods -n fds-organization-gemeente-vlierdam -o jsonpath='{..image}'
 ##### Header title and colors
 
 Each management interface takes its header title and colors from the settings API. They are in
-`demo/<organization>/manager/settings.json`. After a first deploy, an admin sets them once on its Instellingen page.
+`demo/<organization>/manager/settings.json`. The pre-release reset Job sets them on every deploy. On the release, an
+admin sets them once on its Instellingen page after a first deploy.
 
 ##### Accounts
 
