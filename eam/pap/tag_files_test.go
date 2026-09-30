@@ -1,6 +1,8 @@
 package pap
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,4 +56,19 @@ func TestReadTagFiles(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadTagFilesConfigMapMount(t *testing.T) {
+	t.Parallel()
+
+	// The layout Kubernetes gives a mounted ConfigMap.
+	dir := t.TempDir()
+	require.NoError(t, os.Mkdir(filepath.Join(dir, "..2026_09_30_12_00_00.123456789"), 0o750))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "..2026_09_30_12_00_00.123456789", "tags.yaml"), []byte("- id: ux\n  name: user interface\n"), 0o600))
+	require.NoError(t, os.Symlink("..2026_09_30_12_00_00.123456789", filepath.Join(dir, "..data")))
+	require.NoError(t, os.Symlink(filepath.Join("..data", "tags.yaml"), filepath.Join(dir, "tags.yaml")))
+
+	tags, err := ReadTagFiles(dir)
+	require.NoError(t, err)
+	assert.Len(t, tags, 1)
 }

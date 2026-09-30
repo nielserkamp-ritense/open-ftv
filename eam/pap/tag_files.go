@@ -19,6 +19,7 @@ func ReadTagFiles(path string) ([]*policies.Tag, error) {
 	}
 
 	tags := make([]*policies.Tag, 0)
+	root := path
 
 	err := filepath.WalkDir(path, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -26,6 +27,11 @@ func ReadTagFiles(path string) ([]*policies.Tag, error) {
 		}
 
 		if d.IsDir() {
+			// A mounted ConfigMap keeps its files in a ..<timestamp> directory, linked from the top.
+			if path != root && strings.HasPrefix(d.Name(), "..") {
+				return filepath.SkipDir
+			}
+
 			return nil
 		}
 
