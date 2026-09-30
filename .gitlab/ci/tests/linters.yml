@@ -57,14 +57,23 @@ Lint Helm charts:
     - helm dependency update deploy/charts/open-ftv
     - helm lint deploy/charts/*
     - helm template open-ftv deploy/charts/open-ftv
+    # An overlay can hold several HelmReleases, each on the chart its OCIRepository points at.
     - |-
       for OVERLAY in deploy/kustomize/*/; do
         OVERLAY="${OVERLAY%/}"
         echo "checking ${OVERLAY}"
-        yq 'select(.kind == "HelmRelease") | .spec.values' "${OVERLAY}/open-ftv.yaml" > overlay-values.yaml
-        helm lint deploy/charts/open-ftv --values overlay-values.yaml
-        helm template open-ftv deploy/charts/open-ftv --values overlay-values.yaml
-        kustomize build "${OVERLAY}"
+        kustomize build "${OVERLAY}" > overlay.yaml
+        for RELEASE in $(yq --no-doc 'select(.kind == "HelmRelease") | .metadata.name' overlay.yaml); do
+          export RELEASE
+          SOURCE=$(yq 'select(.kind == "HelmRelease" and .metadata.name == strenv(RELEASE)) | .spec.chartRef.name' overlay.yaml)
+          export SOURCE
+          URL=$(yq 'select(.kind == "OCIRepository" and .metadata.name == strenv(SOURCE)) | .spec.url' overlay.yaml)
+          CHART="deploy/charts/${URL##*/}"
+          echo "checking ${OVERLAY}: ${RELEASE} (${CHART})"
+          yq 'select(.kind == "HelmRelease" and .metadata.name == strenv(RELEASE)) | .spec.values' overlay.yaml > overlay-values.yaml
+          helm lint "${CHART}" --values overlay-values.yaml
+          helm template "${RELEASE}" "${CHART}" --values overlay-values.yaml
+        done
       done
 
 Lint commit messages:
