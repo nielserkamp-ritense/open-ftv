@@ -21,6 +21,7 @@ pdp:
 manager:
   enabled: false
   nameOverride: manager
+  fullnameOverride: "{{ .Release.Name }}-manager"
   config:
     database:
       database: openftv
@@ -31,6 +32,11 @@ manager:
 management-interface:
   enabled: false
   nameOverride: management-interface
+  # The manager's Service, named by manager.fullnameOverride.
+  ingress:
+    managerServiceName: "{{ .Release.Name }}-manager"
+  httpRoute:
+    managerServiceName: "{{ .Release.Name }}-manager"
 
 keycloak:
   enabled: false
