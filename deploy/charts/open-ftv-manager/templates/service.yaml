@@ -13,3 +13,10 @@ spec:
       protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: http
+    {{- if .Values.config.bundlesExistingConfigMap }}
+    # Where the PDPs pull their bundles; the manager only listens here with bundle configs.
+    - name: internal
+      protocol: TCP
+      port: {{ .Values.service.internalPort }}
+      targetPort: internal
+    {{- end }}

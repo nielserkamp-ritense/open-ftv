@@ -53,6 +53,16 @@ config:
     audience: ""
     rolesClaim: roles
 
+  # Existing ConfigMaps, one file per key, that the manager starts with. Leave a name empty
+  # to go without. A key's extension decides whether it is read: .cedar or .rego (each with an
+  # optional .meta) for policies, .yaml, .yml or .json for tags and bundle configurations.
+  # Seed policies are stored once: a policy the store has seen before is never written again,
+  # even after it was edited or deleted.
+  seedPoliciesExistingConfigMap: ""
+  tagsExistingConfigMap: ""
+  # Which PDPs get which policies. PDPs pull their bundle from the internal port at start.
+  bundlesExistingConfigMap: ""
+
 serviceAccount:
   create: true
   automount: true
@@ -79,6 +89,7 @@ securityContext:
 service:
   type: ClusterIP
   port: 80
+  internalPort: 9090
 
 resources: {}
 

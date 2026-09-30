@@ -55,6 +55,15 @@
           },
           "uniqueItems": true
         },
+        "seedPoliciesExistingConfigMap": {
+          "type": "string"
+        },
+        "tagsExistingConfigMap": {
+          "type": "string"
+        },
+        "bundlesExistingConfigMap": {
+          "type": "string"
+        },
         "oidc": {
           "type": "object",
           "properties": {

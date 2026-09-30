@@ -51,6 +51,8 @@ spec:
               value: {{ include "open-ftv-manager.corsOrigins" . }}
             - name: MANAGER_CORS_HEADERS
               value: {{ join "," .Values.config.corsHeaders | quote }}
+            - name: MANAGER_INTERNAL_PORT
+              value: "9090"
             - name: MANAGER_HEALTH_PORT
               value: "8081"
             - name: MANAGER_LOG_TARGET
@@ -72,9 +74,24 @@ spec:
               value: {{ $oidc.rolesClaim | quote }}
             {{- end }}
             {{- include "open-ftv-manager.authorizationDecisionLogPostgresql" .Values.config.authorizationDecisionLog.postgresql | nindent 12 }}
+            {{- if .Values.config.seedPoliciesExistingConfigMap }}
+            - name: MANAGER_POLICIES_STORE
+              value: /etc/open-ftv/manager/policies
+            {{- end }}
+            {{- if .Values.config.tagsExistingConfigMap }}
+            - name: MANAGER_TAGS_PATH
+              value: /etc/open-ftv/manager/tags
+            {{- end }}
+            {{- if .Values.config.bundlesExistingConfigMap }}
+            - name: MANAGER_BUNDLE_CONFIGS
+              value: /etc/open-ftv/manager/bundles
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
+              protocol: TCP
+            - name: internal
+              containerPort: 9090
               protocol: TCP
             - name: health
               containerPort: 8081
@@ -91,6 +108,43 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- $config := .Values.config }}
+          {{- if or $config.seedPoliciesExistingConfigMap $config.tagsExistingConfigMap $config.bundlesExistingConfigMap }}
+          volumeMounts:
+            {{- with $config.seedPoliciesExistingConfigMap }}
+            - name: policies
+              mountPath: /etc/open-ftv/manager/policies
+              readOnly: true
+            {{- end }}
+            {{- with $config.tagsExistingConfigMap }}
+            - name: tags
+              mountPath: /etc/open-ftv/manager/tags
+              readOnly: true
+            {{- end }}
+            {{- with $config.bundlesExistingConfigMap }}
+            - name: bundles
+              mountPath: /etc/open-ftv/manager/bundles
+              readOnly: true
+            {{- end }}
+          {{- end }}
+      {{- if or $config.seedPoliciesExistingConfigMap $config.tagsExistingConfigMap $config.bundlesExistingConfigMap }}
+      volumes:
+        {{- with $config.seedPoliciesExistingConfigMap }}
+        - name: policies
+          configMap:
+            name: {{ . }}
+        {{- end }}
+        {{- with $config.tagsExistingConfigMap }}
+        - name: tags
+          configMap:
+            name: {{ . }}
+        {{- end }}
+        {{- with $config.bundlesExistingConfigMap }}
+        - name: bundles
+          configMap:
+            name: {{ . }}
+        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
