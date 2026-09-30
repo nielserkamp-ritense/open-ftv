@@ -63,7 +63,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
       }
 
       if (!beslissing.decision) {
-        const authorizationReason = beslissing.context?.reason_user?.en ?? "onbekende reden";
+        const authorizationReason = beslissing.context?.reason ?? "onbekende reden";
 
         const feedback = {
           type: "error" as const,

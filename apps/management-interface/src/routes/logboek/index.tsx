@@ -120,10 +120,16 @@ function RouteComponent() {
             headerName: "Reden",
             valueGetter: (params) => {
                 const context = (params.data?.response as unknown as {
-                    context?: { reason_user?: Record<string, string>, reason_admin?: Record<string, string> }
+                    context?: { reason?: unknown, reason_user?: Record<string, string>, reason_admin?: Record<string, string> }
                 } | undefined)?.context;
+                if (typeof context?.reason === "string" && context.reason !== "") {
+                    return context.reason;
+                }
+                // Decisions logged before AuthZEN 1.0 carry the reason in reason_user or reason_admin. The PDP
+                // filled it with "ok" or "not authorized" when the policy gave no reason; those are not reasons.
                 const reasons = context?.reason_user ?? context?.reason_admin;
-                return reasons ? Object.values(reasons)[0] : undefined;
+                const legacy = reasons ? Object.values(reasons)[0] : undefined;
+                return legacy === "ok" || legacy === "not authorized" ? undefined : legacy;
             },
             resizable: false,
             cellStyle: {color: 'var(--color-content-secondary)'}

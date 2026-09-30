@@ -1,6 +1,3 @@
-// Calls to Vlierdam's own PDPs. AuthZEN 1.4 evaluation contract - see gitlab
-// open-ftv-main:oas/authzen/authzen.go for the wire shape this mirrors.
-
 import { vlierdamPdp1Client } from './client'
 import { VITE_DOELBINDING } from '@/lib/env.ts'
 
@@ -20,9 +17,8 @@ interface AuthzenEvaluationRequest {
 interface AuthzenEvaluationResponse {
   decision: boolean
   context?: {
-    id?: string
-    reason_admin?: Record<string, string>
-    reason_user?: Record<string, string>
+    reason?: string
+    [key: string]: unknown
   }
 }
 
