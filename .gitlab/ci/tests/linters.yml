@@ -77,6 +77,31 @@ Lint Helm charts:
         done
       done
 
+# Renders the pre-release manifests like its deploy job, so a template variable in demo/ without
+# a value in the overlay's addresses.env fails here rather than in the deploy on main. It also
+# renders every template with demo/addresses.env alone, as render-demo does locally.
+Render pre-release manifests:
+  stage: Tests
+  image:
+    name: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
+    entrypoint: [""]
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+  script:
+    # In an empty environment, so neither CI variables nor the overlay's addresses stand in for a
+    # missing local one.
+    - |-
+      env -i PATH="${PATH}" sh -ec '
+        set -a && . demo/addresses.env && set +a
+        for template in $(find demo -name "*.template"); do
+          flux envsubst --strict < "${template}" > /dev/null
+        done
+      '
+    - export OPEN_FTV_VERSION=0.0.0
+    - set -a && . deploy/kustomize/simulation-pre-release/addresses.env && set +a
+    - kubectl kustomize --load-restrictor LoadRestrictionsNone deploy/kustomize/simulation-pre-release | flux envsubst --strict > /dev/null
+
 Lint commit messages:
   stage: Tests
   image:
