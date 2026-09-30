@@ -78,6 +78,8 @@ func (m *Manager) load() {
 	if err := filepath.WalkDir(m.path, m.processEntry); err != nil {
 		m.logger.Error("bundle-manager: error loading bundle configurations", "path", m.path, "err", err)
 	}
+
+	m.logger.Info("bundle-manager: bundle configurations loaded", "path", m.path, "count", len(m.bundles))
 }
 
 func (m *Manager) processEntry(path string, d fs.DirEntry, err error) error {
