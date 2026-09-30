@@ -193,14 +193,8 @@ kubectl get pods -n fds-organization-gemeente-vlierdam -o jsonpath='{..image}'
 
 ##### Header title and colors
 
-Each management interface takes its header title and colors from the settings API. After a first deploy, an admin
-sets them once on its Instellingen page:
-
-| Organization      | Header title             | Header color | Title color |
-| ----------------- | ------------------------ | ------------ | ----------- |
-| Gemeente Vlierdam | Vlierdam OpenFTV manager | `#BCF0CA`    | `#000000`   |
-| RvIG              | RvIG OpenFTV manager     | `#D9E8F0`    | `#000000`   |
-| RDW               | RDW OpenFTV manager      | `#F7E8E8`    | `#000000`   |
+Each management interface takes its header title and colors from the settings API. They are in
+`demo/<organization>/manager/settings.json`. After a first deploy, an admin sets them once on its Instellingen page.
 
 ##### Accounts
 
