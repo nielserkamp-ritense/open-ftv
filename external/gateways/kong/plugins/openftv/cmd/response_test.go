@@ -81,7 +81,7 @@ func TestResponse_Denied_ExitsForbiddenWithReason(t *testing.T) {
 			return
 		}
 
-		_, _ = w.Write([]byte(`{"decision":false,"context":{"reason_user":{"en":"diplomatiek voertuig"}}}`))
+		_, _ = w.Write([]byte(`{"decision":false,"context":{"reason":"diplomatiek voertuig"}}`))
 	}))
 	defer pdp.Close()
 

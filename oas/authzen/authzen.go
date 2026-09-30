@@ -34,8 +34,9 @@ type ErrorResponse = apierrors.ErrorResponse
 
 // EvaluationDecision Evaluation decision model.
 type EvaluationDecision struct {
-	// Context Specifies a particular reason.
-	Context ReasonObject `json:"context,omitempty"`
+	// Context Additional information the PEP can use to enforce the decision. It holds only what the
+	// policy returned, and is left out when the policy returned nothing.
+	Context map[string]interface{} `json:"context,omitempty"`
 
 	// Decision true if the request is authorized.
 	Decision bool `json:"decision"`
@@ -148,21 +149,6 @@ type PageResponse struct {
 
 	// Total Total number of results available.
 	Total int `json:"total,omitempty"`
-}
-
-// ReasonField Map of one or more reasons, with a language-identifier as the key.
-type ReasonField = map[string]interface{}
-
-// ReasonObject Specifies a particular reason.
-type ReasonObject struct {
-	// Id Identifies the reason for this response, within the scope of this response.
-	Id string `json:"id"`
-
-	// ReasonAdmin Map of one or more reasons, with a language-identifier as the key.
-	ReasonAdmin ReasonField `json:"reason_admin,omitempty"`
-
-	// ReasonUser Map of one or more reasons, with a language-identifier as the key.
-	ReasonUser ReasonField `json:"reason_user,omitempty"`
 }
 
 // SearchActionObject Search action object model.

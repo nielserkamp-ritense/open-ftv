@@ -16,8 +16,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-// AuthZENVersion is the full semantic API version for the AuthZEN endpoints.
-const AuthZENVersion = "1.4.0"
+const AuthZENVersion = "1.0.0"
 
 // AuthZENAuthorizer represents the interface for handling AuthZEN authorization requests.
 type AuthZENAuthorizer struct {
@@ -193,23 +192,4 @@ func fixPrefix(fc *fiber.Ctx, prefix string) string {
 func fixDomain(prefix string) string {
 	uri, _ := url.Parse(prefix)
 	return fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)
-}
-
-// reasonContext builds the AuthZEN response's context object: "id" set from the decision outcome,
-// and the human-readable reason in reason_user, falling back to a fixed message when the
-// controller didn't supply one.
-func reasonContext(resp *models.Response) oas.ReasonObject {
-	id, msg := "ok", resp.Message
-
-	if !resp.Allowed {
-		id = "not-authorized"
-
-		if msg == "" {
-			msg = "not authorized"
-		}
-	} else if msg == "" {
-		msg = "ok"
-	}
-
-	return oas.ReasonObject{Id: id, ReasonUser: oas.ReasonField{"en": msg}}
 }

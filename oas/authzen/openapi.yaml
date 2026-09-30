@@ -3,8 +3,8 @@ openapi: 3.0.0
 info:
   description: |
     OpenAPI specification for AuthZEN spec.
-    See: https://openid.net/specs/authorization-api-1_0-03.html
-  version: 1.4.0
+    See: https://openid.net/specs/authorization-api-1_0.html
+  version: 1.0.0
   title: AuthZEN
   contact:
     name: G. Juijn
@@ -428,24 +428,6 @@ components:
       required:
         - name
 
-    ReasonField:
-      type: object
-      description: Map of one or more reasons, with a language-identifier as the key.
-
-    ReasonObject:
-      type: object
-      description: Specifies a particular reason.
-      properties:
-        id:
-          type: string
-          description: Identifies the reason for this response, within the scope of this response.
-        reason_admin:
-          $ref: "#/components/schemas/ReasonField"
-        reason_user:
-          $ref: "#/components/schemas/ReasonField"
-      required:
-        - id
-
     EvaluationObject:
       type: object
       description: Evaluation object model.
@@ -472,7 +454,10 @@ components:
           type: boolean
           description: true if the request is authorized.
         context:
-          $ref: "#/components/schemas/ReasonObject"
+          type: object
+          description: |
+            Additional information the PEP can use to enforce the decision. It holds only what the
+            policy returned, and is left out when the policy returned nothing.
       required:
         - decision
 

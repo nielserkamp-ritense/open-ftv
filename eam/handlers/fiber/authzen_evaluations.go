@@ -152,7 +152,7 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 
 		out.Evaluations = append(out.Evaluations, oas.EvaluationDecision{
 			Decision: resp.Allowed,
-			Context:  reasonContext(resp),
+			Context:  resp.Context,
 		})
 	}
 

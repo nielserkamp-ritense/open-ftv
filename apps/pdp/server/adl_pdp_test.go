@@ -472,7 +472,12 @@ func TestADLCompliance_DenialIsNotFailure(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, traceID)
-	require.Contains(t, string(row.Body), `"not-authorized"`, "sanity check: this must genuinely be a denial")
+
+	var body struct {
+		Response map[string]any `json:"adl.core.response"`
+	}
+	require.NoError(t, json.Unmarshal(row.Body, &body))
+	require.Equal(t, false, body.Response["decision"], "sanity check: this must genuinely be a denial")
 	assert.Equal(t, "Ok", row.Status, "§3.3.6: a denial MUST still be Status Ok — Error is reserved for evaluation failures")
 }
 

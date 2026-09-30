@@ -33,7 +33,7 @@ func TestAuthHandler_AuthZEN1(t *testing.T) {
 	t.Parallel()
 
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_update","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"id":"ok","reason_user":{"en":"ok"}},"decision":true}`
+	out := `{"decision":true}`
 
 	t.Run("authzen handler (1)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -87,7 +87,7 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 	t.Parallel()
 
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"id":"ok","reason_user":{"en":"ok"}},"decision":true}`
+	out := `{"decision":true}`
 
 	t.Run("authzen handler (2)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -137,11 +137,65 @@ func TestAuthHandler_AuthZEN2(t *testing.T) {
 	})
 }
 
+func TestAuthHandler_AuthZEN3(t *testing.T) {
+	t.Parallel()
+
+	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"POST"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
+	out := `{"context":{"filter":[{"diplomatiek_kenteken":false}]},"decision":true}`
+
+	t.Run("authzen handler (3), policy context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		h := slog2.NewDummyHandler(slog.LevelDebug)
+		logger := slog.New(h)
+
+		ep := pep.New(ctx, logger)
+
+		ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""), pip.WithFileStore("../../../testdata/pip", true))
+		require.NoError(t, err)
+		require.NotNil(t, ip)
+
+		ap, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("rego"), pap.WithFileStore("../../../testdata/unittest/opa3", true))
+		require.NoError(t, err)
+		require.NotNil(t, ap)
+
+		controller := opa_embedded.NewController(pdp.WithContext(ctx), pdp.WithPEP(ep), pdp.WithPIP(ip), pdp.WithPAP(ap), pdp.WithLogger(logger))
+		require.NotNil(t, controller)
+
+		auth := NewAuthHandlerZEN(logger, nil, controller, "http://localhost/v1")
+		require.NotNil(t, auth)
+
+		app := fiber.New()
+		app.Post("/v1/authzen", auth.Evaluation)
+
+		buf := bytes.NewReader([]byte(in))
+
+		req := httptest.NewRequest(fiber.MethodPost, "/v1/authzen", buf)
+
+		resp, err3 := app.Test(req, -1)
+		require.NoError(t, err3)
+		require.NotNil(t, resp)
+
+		defer resp.Body.Close()
+
+		assert.Equal(t, AuthZENVersion, resp.Header.Get(HeaderVersion))
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		data, err4 := io.ReadAll(resp.Body)
+		require.NoError(t, err4)
+		require.NotNil(t, data)
+
+		assert.Equal(t, out, string(data))
+		assert.GreaterOrEqual(t, h.Count(), 11)
+	})
+}
+
 func TestAuthHandler_AuthZEN_Fail1(t *testing.T) {
 	t.Parallel()
 
 	in := `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"GET"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
-	out := `{"context":{"id":"not-authorized","reason_user":{"en":"not authorized"}},"decision":false}`
+	out := `{"decision":false}`
 
 	t.Run("authzen handler fail (1)", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())

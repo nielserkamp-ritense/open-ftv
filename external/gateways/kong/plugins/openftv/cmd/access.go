@@ -179,7 +179,7 @@ func (c *Config) askPDP(
 func exitForbidden(kong *pdk.PDK, msg string, authResp authzen.EvaluationResponse) {
 	_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: %s: %v", msg, authResp))
 
-	reason, _ := authResp.Context.ReasonUser["en"].(string)
+	reason, _ := authResp.Context["reason"].(string)
 	if reason == "" {
 		reason = "not authorized"
 	}
