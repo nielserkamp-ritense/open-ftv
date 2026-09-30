@@ -1,4 +1,6 @@
 defaultBaseImage: alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
+baseImageOverrides:
+  gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/external/gateways/kong/plugins/openftv: kong:3.9.3@sha256:12972ce1ab6396083e56e7d46fce084836c98cc819344bef44a1f583ec3ab191
 defaultPlatforms:
   - linux/amd64
   - linux/arm64

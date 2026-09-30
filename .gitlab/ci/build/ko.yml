@@ -30,10 +30,13 @@
         MAIN: ./mock/datasources/generic/cmd/rdw
       - APP: gw-plugin-envoy
         MAIN: ./external/gateways/envoy/plugins/openftv/cmd
+      - APP: gw-kong
+        MAIN: ./external/gateways/kong/plugins/openftv
   before_script:
     - go install github.com/google/ko@${KO_VERSION}
     - printf '%s' "${CI_DEPENDENCY_PROXY_PASSWORD}" | ko login ${CI_DEPENDENCY_PROXY_SERVER} -u ${CI_DEPENDENCY_PROXY_USER} --password-stdin
-    - "export KO_DEFAULTBASEIMAGE=${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/$(sed -n 's/^defaultBaseImage: //p' .ko.yaml)"
+    - export KO_CONFIG_PATH=${CI_PROJECT_DIR}/.ko-ci.yaml
+    - 'sed -E "s#: ([^ ]+@sha256:)#: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/\1#" .ko.yaml > ${KO_CONFIG_PATH}'
     - export KO_DOCKER_REPO=${CI_REGISTRY_IMAGE}/${APP} GIT_COMMIT_HASH=${CI_COMMIT_SHA}
   cache:
     key:
