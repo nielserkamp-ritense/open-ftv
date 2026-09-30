@@ -47,7 +47,15 @@
         },
         "policySource": {
           "enum": [
-            "local"
+            "local",
+            "manager"
+          ]
+        },
+        "policyLanguage": {
+          "enum": [
+            "cedar",
+            "openfga",
+            "rego"
           ]
         },
         "requestMappings": {
@@ -94,9 +102,37 @@
         "logFormat",
         "logLevel",
         "policySource",
+        "policyLanguage",
         "authorizationDecisionLog"
       ],
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "policySource": {
+                "const": "manager"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "bundleManager": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "$ref": "#/definitions/nonEmptyString"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            },
+            "required": [
+              "bundleManager"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {
@@ -107,13 +143,6 @@
           },
           "then": {
             "properties": {
-              "policyLanguage": {
-                "enum": [
-                  "cedar",
-                  "openfga",
-                  "rego"
-                ]
-              },
               "policies": {
                 "type": "object",
                 "additionalProperties": {
@@ -150,10 +179,7 @@
                   ]
                 }
               }
-            },
-            "required": [
-              "policyLanguage"
-            ]
+            }
           }
         }
       ]

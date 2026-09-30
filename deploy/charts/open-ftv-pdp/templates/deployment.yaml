@@ -71,6 +71,8 @@ spec:
             - name: PDP_TLS_KEY
               value: /var/run/secrets/open-ftv/pdp/tls.key
            {{- end }}
+            - name: PDP_INTERNAL_PORT
+              value: "9090"
             - name: PDP_HEALTH_PORT
               value: "8081"
             - name: PDP_LOG_TARGET
@@ -79,9 +81,13 @@ spec:
               value: {{ .Values.config.logFormat }}
             - name: PDP_LOG_LEVEL
               value: {{ .Values.config.logLevel }}
-          {{- if eq .Values.config.policySource "local" }}
             - name: PDP_POLICIES_LANGUAGE
               value: {{ .Values.config.policyLanguage }}
+          {{- if eq .Values.config.policySource "manager" }}
+            - name: PDP_BUNDLE_MANAGER
+              value: {{ tpl .Values.config.bundleManager.url . | quote }}
+          {{- end }}
+          {{- if eq .Values.config.policySource "local" }}
             - name: PDP_POLICIES_STORE
               value: /etc/open-ftv/pdp/policies
             {{- if or .Values.config.policyAttributes .Values.config.policyEntities }}
@@ -105,6 +111,9 @@ spec:
           ports:
             - name: http
               containerPort: {{ $pdpPort }}
+              protocol: TCP
+            - name: internal
+              containerPort: 9090
               protocol: TCP
             - name: health
               containerPort: 8081

@@ -16,8 +16,13 @@ config:
   logFormat: json
   logLevel: info
 
+  # local: policies from this chart's ConfigMaps. manager: the PDP pulls its bundle from
+  # bundleManager.url at start, and the manager pushes updates to the internal port.
   policySource: "local"
   policyLanguage: "cedar"
+  bundleManager:
+    # e.g. http://{{ .Release.Name }}-manager:9090/v1/bundle/pdp1
+    url: ""
   policies: {}
   #   filename.ext: |-
   #     ""
@@ -71,6 +76,7 @@ service:
   type: ClusterIP
   httpsPort: 443
   httpPort: 80
+  internalPort: 9090
 
 resources: {}
 

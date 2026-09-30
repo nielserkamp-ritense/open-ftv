@@ -13,3 +13,10 @@ spec:
       protocol: TCP
       port: {{ .Values.config.tls.enabled | ternary .Values.service.httpsPort .Values.service.httpPort }}
       targetPort: http
+    {{- if eq .Values.config.policySource "manager" }}
+    # Where the manager pushes bundle updates; a PDP with local policies takes none.
+    - name: internal
+      protocol: TCP
+      port: {{ .Values.service.internalPort }}
+      targetPort: internal
+    {{- end }}
