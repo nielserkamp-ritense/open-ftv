@@ -23,3 +23,5 @@ has_diplomatic_vehicle if {
 }
 
 reason := "RDW verstrekt geen gegevens over diplomatieke voertuigen" if not allow
+
+context := {"reason": reason} if reason != ""

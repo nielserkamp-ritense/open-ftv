@@ -28,3 +28,5 @@ has_diplomatic_vehicle if {
 is_gemeentesecretaris if data.entities.medewerker[input.context.core_user].afdeling == "Gemeentesecretaris"
 
 reason := "geen toestemming om diplomatiek voertuig in te zien, afdeling is geen Gemeentesecretaris" if not allow
+
+context := {"reason": reason} if reason != ""
