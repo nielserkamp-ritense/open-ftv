@@ -1,13 +1,10 @@
-{{- $fullname := include "open-ftv.fullname" . -}}
-{{- $clusterName := include "open-ftv.postgresqlClusterName" . -}}
-
 {{/* PostgreSQL is always needed: the PDP writes the authorization decision log to it, and the
-     manager also has its own database. */}}
-{{- if not .Values.postgresql.existingCluster -}}
+     manager also has its own database. The subcharts can't include this chart's helpers, so the
+     cluster is always named <release>-postgresql: the secret names in values.yaml rely on it. */}}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: {{ $clusterName }}
+  name: {{ .Release.Name }}-postgresql
   labels:
     {{- include "open-ftv.labels" . | nindent 4 }}
     app.kubernetes.io/component: database
@@ -25,7 +22,6 @@ spec:
   monitoring:
     disableDefaultQueries: true
   enablePDB: {{ gt .Values.postgresql.instances 1.0 }}
-{{- end }}
 
 {{/* The authorization decision log, written by the PDP and read by the manager. */}}
 {{- with .Values.pdp.config.authorizationDecisionLog.postgresql.database }}
@@ -33,13 +29,13 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: {{ $fullname }}-adl
+  name: {{ $.Release.Name }}-adl
   labels:
     {{- include "open-ftv.labels" $ | nindent 4 }}
     app.kubernetes.io/component: database
 spec:
   cluster:
-    name: {{ $clusterName }}
+    name: {{ $.Release.Name }}-postgresql
   name: {{ . }}
   owner: {{ $.Values.postgresql.databaseOwner }}
   databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}
@@ -52,13 +48,13 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: {{ $fullname }}-manager
+  name: {{ $.Release.Name }}-manager
   labels:
     {{- include "open-ftv.labels" $ | nindent 4 }}
     app.kubernetes.io/component: database
 spec:
   cluster:
-    name: {{ $clusterName }}
+    name: {{ $.Release.Name }}-postgresql
   name: {{ . }}
   owner: {{ $.Values.postgresql.databaseOwner }}
   databaseReclaimPolicy: {{ $.Values.postgresql.databaseReclaimPolicy }}

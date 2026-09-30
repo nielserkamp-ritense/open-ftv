@@ -1,8 +1,7 @@
 nameOverride: ""
-fullnameOverride: ""
 
 postgresql:
-  # existingCluster: ""
+  # The cluster is named <release>-postgresql; the existingSecret names below are its app secret.
   instances: 1
   storageSize: 1Gi
   databaseOwner: app

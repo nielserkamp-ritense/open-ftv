@@ -8,15 +8,9 @@
     "nameOverride": {
       "type": "string"
     },
-    "fullnameOverride": {
-      "type": "string"
-    },
     "postgresql": {
       "type": "object",
       "properties": {
-        "existingCluster": {
-          "$ref": "#/definitions/nonEmptyString"
-        },
         "instances": {
           "type": "integer",
           "minimum": 1
@@ -35,27 +29,10 @@
         }
       },
       "required": [
+        "instances",
+        "storageSize",
         "databaseOwner",
         "databaseReclaimPolicy"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "existingCluster"
-          ],
-          "not": {
-            "required": [
-              "instances",
-              "storageSize"
-            ]
-          }
-        },
-        {
-          "required": [
-            "instances",
-            "storageSize"
-          ]
-        }
       ]
     },
     "pdp": {
