@@ -12,6 +12,30 @@ services:
       - ./scripts/postgres-setup.sh:/docker-entrypoint-initdb.d/postgres-setup.sh
     restart: on-failure
 
+  # Fills in the addresses of the demo templates (see demo/addresses.env), each into the file next
+  # to it without .template, with the same command the Simulatieomgeving's deploy uses. A variable
+  # without a value stops it before it overwrites that template's file.
+  render-demo:
+    image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
+    # Root, so it can write next to the templates whoever owns the checkout. Each rendered file
+    # then gets its template's owner; where the file sharing already maps owners (macOS, rootless
+    # Docker) they match, and the chown is skipped.
+    user: root
+    working_dir: /repo
+    entrypoint: [ "sh", "-ec" ]
+    command:
+      - |
+        for template in $$(find demo -name '*.template'); do
+          file="$${template%.template}"
+          rendered=$$(flux envsubst --strict < "$$template")
+          printf '%s\n' "$$rendered" > "$$file"
+          owner=$$(stat -c %u:%g "$$template")
+          [ "$$(stat -c %u:%g "$$file")" = "$$owner" ] || chown "$$owner" "$$file"
+        done
+    env_file: ../demo/addresses.env
+    volumes:
+      - ..:/repo
+
   vlierdam-api-gateway:
     build:
       context: ../
@@ -28,6 +52,9 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./../demo/gemeente-vlierdam/kong:/tmp/conf
+    depends_on:
+      render-demo:
+        condition: service_completed_successfully
 
   vlierdam-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -56,6 +83,9 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./../demo/rvig/kong:/tmp/conf
+    depends_on:
+      render-demo:
+        condition: service_completed_successfully
 
   rvig-keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -84,6 +114,9 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./../demo/rdw/kong:/tmp/conf
+    depends_on:
+      render-demo:
+        condition: service_completed_successfully
 
   rdw-keycloak:
     image: quay.io/keycloak/keycloak:26.0

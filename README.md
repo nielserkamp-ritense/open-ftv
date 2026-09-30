@@ -61,7 +61,12 @@ RvIG and RDW. It is split in two parts:
   changes. The Go services run under [Delve](https://github.com/go-delve/delve), so a debugger can attach to them.
 
 The demo's configuration per organization (policies, tags, bundles, PDP pull-configs and Kong) is in
-`demo/<organization>`.
+`demo/<organization>`. The Kong configs, bundles and PDP pull-configs are templates (`*.template`): their addresses
+are variables, set in `demo/addresses.env`. The `render-demo` service in `docker/compose.yaml` fills each one in into
+the file next to it without `.template`, where the gateways and modd read it; modd runs it first whenever it starts.
+After changing a template or an address, run
+`docker compose -f docker/compose.yaml up -d --force-recreate render-demo vlierdam-api-gateway rvig-api-gateway rdw-api-gateway`
+and restart modd.
 
 Besides the prerequisites above, this needs [modd](https://github.com/cortesi/modd), Delve and Node.js. Run
 `npm install` once in `apps/management-interface` and `apps/laadpalen-applicatie`.

@@ -8,3 +8,7 @@ node_modules/
 deploy/charts/*/charts/
 deploy/charts/*/Chart.lock
 .debugger
+# Filled in from their .template by the render-demo service in docker/compose.yaml.
+/demo/*/kong/conf.yaml
+/demo/*/manager/bundles/*.yaml
+/demo/*/pdp*/pull-config/config.yaml

@@ -1,4 +1,5 @@
 ---
+# A template: its addresses are variables, filled in from demo/addresses.env.
 id: "pdp2"
 title: "Outway deployment bundle (pdp2)"
 language: "rego"
@@ -7,6 +8,6 @@ policies: true
 data: true
 version: true
 targets:
-  - uri: "http://localhost:9105/v1/bundle"
+  - uri: "${VLIERDAM_PDP2_INTERNAL_URL}/v1/bundle"
     apikey: ""
     encoding: "gzip"

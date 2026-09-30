@@ -1,3 +1,4 @@
+# A template: its addresses are variables, filled in from demo/addresses.env.
 _transform: false
 _format_version: '3.0'
 
@@ -5,9 +6,7 @@ services:
 - id: c64a01c8-111f-469c-91a6-c85c9ff13dd1
   name: RDW-Dataspace
   enabled: true
-  host: host.docker.internal
-  port: 9050
-  protocol: http
+  url: ${RDW_DATASPACE_URL}
   retries: 5
   connect_timeout: 60000
   write_timeout: 60000
@@ -40,7 +39,7 @@ plugins:
     - http
     - https
   config:
-    pdp: "http://host.docker.internal:9044/authzen/v1/evaluation"
+    pdp: "${RDW_PDP1_URL}/authzen/v1/evaluation"
     timeout: 30000
     evaluate_response: true
 
