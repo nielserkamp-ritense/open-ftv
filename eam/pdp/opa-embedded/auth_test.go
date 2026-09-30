@@ -78,6 +78,51 @@ func TestController_Authorize(t *testing.T) {
 			wantLog: 4,
 			want:    models.Response{Allowed: true},
 		},
+		{
+			name:     "bad request, policy publishes a reason",
+			store1:   "../../../testdata/pip",
+			recurse1: true,
+			store2:   "../../../testdata/unittest/opa3",
+			recurse2: true,
+			req: models.Request{
+				UID:         &uid,
+				URL:         u1,
+				Method:      "GET",
+				RequestTime: &now,
+				Headers: map[string][]string{
+					"doelbinding": {"subsidies"},
+				},
+				Body: []byte(""),
+			},
+			wantLog: 4,
+			want: models.Response{
+				Message: "alleen POST",
+				Context: map[string]any{"reason": "alleen POST"},
+			},
+		},
+		{
+			name:     "good request, policy publishes a filter",
+			store1:   "../../../testdata/pip",
+			recurse1: true,
+			store2:   "../../../testdata/unittest/opa3",
+			recurse2: true,
+			req: models.Request{
+				UID:         &uid,
+				URL:         u2,
+				Method:      "POST",
+				RequestTime: &now,
+				Headers: map[string][]string{
+					"doelbinding":  {"subsidies"},
+					"Content-Type": {"application/json"},
+				},
+				Body: b1,
+			},
+			wantLog: 4,
+			want: models.Response{
+				Allowed: true,
+				Context: map[string]any{"filter": []any{map[string]any{"diplomatiek_kenteken": false}}},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -122,6 +167,43 @@ func TestController_Authorize(t *testing.T) {
 
 				assert.EqualValues(t, tc.want, *got)
 			}
+		})
+	}
+}
+
+func TestPolicyContext(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name   string
+		result map[string]any
+		want   map[string]any
+	}{
+		{
+			name:   "context rule",
+			result: map[string]any{"allow": false, "reason": "old", "context": map[string]any{"reason": "new"}},
+			want:   map[string]any{"reason": "new"},
+		},
+		{
+			name:   "only a reason rule, as in policies stored before the context rule",
+			result: map[string]any{"allow": false, "reason": "old"},
+			want:   map[string]any{"reason": "old"},
+		},
+		{
+			name:   "empty reason and no context",
+			result: map[string]any{"allow": true, "reason": ""},
+		},
+		{
+			name:   "neither",
+			result: map[string]any{"allow": true},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.want, policyContext(tc.result))
 		})
 	}
 }

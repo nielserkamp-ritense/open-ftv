@@ -74,6 +74,23 @@ func TestController_Authorize(t *testing.T) {
 			wantLog: 3,
 			want:    models.Response{Allowed: true},
 		},
+		{
+			name:     "good request, policy carries a reason",
+			store1:   "../../../testdata/pip",
+			recurse1: true,
+			store2:   "../../../testdata/unittest/cedar2",
+			recurse2: true,
+			req: models.Request{
+				UID:         &uid,
+				URL:         u2,
+				Method:      "POST",
+				RequestTime: &now,
+				Headers:     map[string][]string{"Content-Type": {"application/json"}},
+				Body:        b1,
+			},
+			wantLog: 3,
+			want:    models.Response{Allowed: true, Message: "mag bijwerken", Context: map[string]any{"reason": "mag bijwerken"}},
+		},
 	}
 
 	for _, tc := range testCases {

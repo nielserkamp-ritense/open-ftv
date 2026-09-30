@@ -1,0 +1,7 @@
+id: "subsidies"
+language: "Rego"
+metadata:
+  description: "beleidsregels voor subsidies, met context"
+  rvvaId: "rvva1"
+  url: "https://my.site/pol/x1"
+  tags: ["brp", "subsidies", "rvva"]

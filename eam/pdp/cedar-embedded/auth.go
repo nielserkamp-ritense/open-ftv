@@ -31,6 +31,7 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 	decision, diagnostic := cedar.Authorize(c.pdp, entities, req2)
 	duration := time.Since(started)
 	reason := c.reasonFromDiagnostic(diagnostic)
+	policyCtx := reasonContext(reason)
 
 	c.AuthMutex.RUnlock()
 
@@ -39,7 +40,7 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 			logger.Debug("authorization granted", "pdp elapsed", duration.String())
 		}
 
-		return &models.Response{Allowed: true, Message: reason}, nil
+		return &models.Response{Allowed: true, Message: reason, Context: policyCtx}, nil
 	}
 
 	if logger != nil {
@@ -50,7 +51,7 @@ func (c *controller) Authorize(uid string, req *models.PARC) (*models.Response, 
 		reason = reasonNotAuthorized
 	}
 
-	return &models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}}, nil
+	return &models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}, Context: policyCtx}, nil
 }
 
 // Batch implements the Controller interface.
@@ -73,13 +74,14 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 		decision, diagnostic := cedar.Authorize(c.pdp, entities, r2)
 		duration := time.Since(started)
 		reason := c.reasonFromDiagnostic(diagnostic)
+		policyCtx := reasonContext(reason)
 
 		if decision {
 			if logger != nil {
 				logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
 			}
 
-			out = append(out, models.Response{Allowed: true, Message: reason})
+			out = append(out, models.Response{Allowed: true, Message: reason, Context: policyCtx})
 
 			if req.Semantics == models.PermitOnFirstPermit {
 				break
@@ -93,7 +95,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 				reason = reasonNotAuthorized
 			}
 
-			out = append(out, models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}})
+			out = append(out, models.Response{Allowed: false, Message: reason, Attributes: map[string]any{attrKeyDiagnostic: diagnostic}, Context: policyCtx})
 
 			if req.Semantics == models.DenyOnFirstDeny {
 				break
@@ -160,6 +162,16 @@ func (c *controller) buildCedarRequest(parc *models.PARC) (cedar.Request, cedar.
 		Resource:  cedar.NewEntityUID(cedar.EntityType(parc.Resource.Type()), cedar.String(parc.Resource.ID())),
 		Context:   cedar.NewRecord(ca),
 	}, entities
+}
+
+// reasonContext publishes a policy's @reason annotation as the decision context: an annotation is
+// the only thing a Cedar policy can say beside its decision.
+func reasonContext(reason string) map[string]any {
+	if reason == "" {
+		return nil
+	}
+
+	return map[string]any{"reason": reason}
 }
 
 // reasonFromDiagnostic returns the "reason" annotation of the first policy that contributed to

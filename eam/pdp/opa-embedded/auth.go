@@ -14,6 +14,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
+const reasonKey = "reason"
+
 // Authorize implements the Controller interface.
 func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Response, err error) {
 	logger := c.Logger.With("controller", c.String(), "request-uid", uid)
@@ -35,21 +37,27 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 
 	c.AuthMutex.RUnlock()
 
-	var reason string
+	var (
+		reason    string
+		policyCtx map[string]any
+	)
 
 	if err != nil {
 		logger.Error("authorization failed", "err", err, "pdp elapsed", duration.String())
 	} else {
 		if m, ok := decision.Result.(map[string]any); ok {
+			policyCtx = policyContext(m)
+
 			if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 				if debug {
 					logger.Debug("authorization granted", "pdp elapsed", duration.String())
 				}
-				resp = &models.Response{Allowed: true}
+
+				resp = &models.Response{Allowed: true, Context: policyCtx}
 				return
 			}
 
-			if reason, ok = m["reason"].(string); !ok || reason == "" {
+			if reason, ok = policyCtx[reasonKey].(string); !ok || reason == "" {
 				reason = "not authorized"
 			}
 		}
@@ -59,7 +67,7 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (resp *models.Resp
 		}
 	}
 
-	resp = &models.Response{Allowed: false, Message: reason}
+	resp = &models.Response{Allowed: false, Message: reason, Context: policyCtx}
 	return
 }
 
@@ -84,17 +92,23 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 		decision, err := c.pdp.Decision(context.Background(), opts)
 		duration := time.Since(started)
 
-		var reason string
+		var (
+			reason    string
+			policyCtx map[string]any
+		)
 
 		if err != nil {
 			logger.Error("authorization failed", "item#", i+1, "err", err, "pdp elapsed", duration.String())
 		} else {
 			if m, ok := decision.Result.(map[string]any); ok {
+				policyCtx = policyContext(m)
+
 				if allowed, ok2 := m["allow"].(bool); ok2 && allowed {
 					if debug {
 						c.Logger.Debug("authorization granted", "item#", i+1, "pdp elapsed", duration.String())
 					}
-					out = append(out, models.Response{Allowed: true})
+
+					out = append(out, models.Response{Allowed: true, Context: policyCtx})
 
 					if req.Semantics == models.PermitOnFirstPermit {
 						break
@@ -103,7 +117,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 					}
 				}
 
-				if reason, ok = m["reason"].(string); !ok || reason == "" {
+				if reason, ok = policyCtx[reasonKey].(string); !ok || reason == "" {
 					reason = "not authorized"
 				}
 			}
@@ -113,7 +127,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 			logger.Warn("authorization not granted", "item#", i+1, "pdp elapsed", duration.String())
 		}
 
-		out = append(out, models.Response{Allowed: false, Message: reason})
+		out = append(out, models.Response{Allowed: false, Message: reason, Context: policyCtx})
 
 		if req.Semantics == models.DenyOnFirstDeny {
 			break
@@ -123,6 +137,20 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 	c.AuthMutex.RUnlock()
 
 	return out, nil
+}
+
+// A policy stored before the `context` rule existed only has a `reason` rule, and stored policies are
+// never re-seeded from their files, so that reason is still published, as Cedar does with @reason.
+func policyContext(m map[string]any) map[string]any {
+	if ctx, ok := m["context"].(map[string]any); ok && len(ctx) > 0 {
+		return ctx
+	}
+
+	if reason, ok := m[reasonKey].(string); ok && reason != "" {
+		return map[string]any{reasonKey: reason}
+	}
+
+	return nil
 }
 
 func (c *controller) buildDecisionOptions(uid string, parc *models.PARC) sdk.DecisionOptions {
