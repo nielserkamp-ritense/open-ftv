@@ -49,6 +49,27 @@ func TestAuthHandler_AuthZENEvaluations(t *testing.T) {
 			wantStatus: fiber.StatusOK,
 			want:       `{"evaluations":[{"decision":false}]}`,
 		},
+		{
+			name:       "no evaluations is a single evaluation",
+			store:      "../../../testdata/unittest/opa",
+			in:         allowed,
+			wantStatus: fiber.StatusOK,
+			want:       `{"decision":true}`,
+		},
+		{
+			name:       "empty evaluations is a single evaluation",
+			store:      "../../../testdata/unittest/opa",
+			in:         `{"evaluations":[],"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"GET"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`,
+			wantStatus: fiber.StatusOK,
+			want:       `{"decision":false}`,
+		},
+		{
+			name:       "no evaluations and no subject",
+			store:      "../../../testdata/unittest/opa",
+			in:         `{"action":{"name":"can_read"},"resource":{"type":"service","id":"x"}}`,
+			wantStatus: fiber.StatusBadRequest,
+			want:       `{"detail":"invalid subject","status":400,"title":"Bad Request"}`,
+		},
 	}
 
 	for _, tc := range testCases {

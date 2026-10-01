@@ -282,6 +282,7 @@ components:
       description: |
         The authorizations request has been handled successfully.
         This does not mean the request is authorized, it means that the request has been processed successfully.
+        A request without evaluations is a single evaluation, and gets a single decision back.
       headers:
         API-Version:
           description: Full version number of the API.
@@ -294,7 +295,12 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/EvaluationsDecision"
+            # Our handler only builds EvaluationsDecision: x-go-type keeps that as the Go type, where the
+            # oneOf would generate a union type that needs the oapi-codegen runtime library.
+            x-go-type: EvaluationsDecision
+            oneOf:
+              - $ref: "#/components/schemas/EvaluationsDecision"
+              - $ref: "#/components/schemas/EvaluationDecision"
 
     SearchResponse:
       description: |
@@ -492,8 +498,6 @@ components:
                   - execute_all = default.
                   - deny_on_first_deny = halt processing after first deny.
                   - permit_on_first_permit = halt processing after first allow.
-      required:
-        - evaluations
 
     EvaluationsDecision:
       type: object

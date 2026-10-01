@@ -1,7 +1,6 @@
 package fiber
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -27,10 +26,17 @@ func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
 	p, finish := initAuthProcess(fc, h.logger, h.adl, h.controller)
 	defer finish()
 
-	batch := p.verifyBatchAuthZEN()
+	batch, single := p.verifyBatchAuthZEN()
 	if p.err != nil {
-		p.logger.Error("AuthZEN batch authorization handler failed", "request", batch, "error", p.err)
+		p.logger.Error("AuthZEN batch authorization handler failed", "request", p.authReq, "error", p.err)
 		return server.SendMessageResponse(fc, p.status, p.msg)
+	}
+
+	if single != nil {
+		p.createRequestAuthZEN(single)
+		p.logger.Debug("AuthZEN evaluation request", "request", p.parc)
+
+		return p.authorizeRequestAuthZEN()
 	}
 
 	p.createBatchAuthZEN(batch)
@@ -39,13 +45,21 @@ func (h *AuthZENAuthorizer) Evaluations(fc *fiber.Ctx) error {
 	return p.authorizeBatchAuthZEN()
 }
 
-func (p *authProcess) verifyBatchAuthZEN() *oas.EvaluationsRequest {
+// verifyBatchAuthZEN returns either the batch, or, when it holds no evaluations, the single evaluation
+// its top-level keys describe: AuthZEN 1.0 treats such a request as an Access Evaluation request.
+func (p *authProcess) verifyBatchAuthZEN() (batch *oas.EvaluationsRequest, single *oas.EvaluationRequest) {
 	p.initVerification()
 
 	req := new(oas.EvaluationsRequest)
 	if p.err = p.fc.BodyParser(req); p.err != nil {
 		p.msg = "invalid input data"
-		return nil
+		return nil, nil
+	}
+
+	if len(req.Evaluations) == 0 {
+		single := &oas.EvaluationRequest{Subject: req.Subject, Action: req.Action, Resource: req.Resource, Context: req.Context}
+
+		return nil, p.acceptRequestAuthZEN(single)
 	}
 
 	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
@@ -53,23 +67,19 @@ func (p *authProcess) verifyBatchAuthZEN() *oas.EvaluationsRequest {
 	p.authReq = req
 	applyTraceFallback(p.fc, models.NewAttributeSet(req.Context))
 
-	if len(req.Evaluations) == 0 {
-		p.msg, p.err = "invalid batch request", errors.New("evaluations array must not be empty")
-		return nil
-	}
-
 	for i := range req.Evaluations {
 		e := &req.Evaluations[i]
 		fixDefaults(e, req)
 
 		if !p.checkEvaluationObject(e) {
 			p.msg, p.err = "invalid batch request", fmt.Errorf("evaluation #%d invalid: %w", i, p.err)
-			return nil
+			return nil, nil
 		}
 	}
 
 	p.status = fiber.StatusOK
-	return req
+
+	return req, nil
 }
 
 func fixDefaults(entity *oas.EvaluationObject, req *oas.EvaluationsRequest) {

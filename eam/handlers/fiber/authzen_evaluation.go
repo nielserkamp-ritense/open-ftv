@@ -41,6 +41,10 @@ func (p *authProcess) verifyRequestAuthZEN() *oas.EvaluationRequest {
 		return nil
 	}
 
+	return p.acceptRequestAuthZEN(req)
+}
+
+func (p *authProcess) acceptRequestAuthZEN(req *oas.EvaluationRequest) *oas.EvaluationRequest {
 	// From here on the body is a coherent AuthZEN object, even if it fails the checks below,
 	// then log it (Logius ADL §3.3.6 lists missing attributes as an Error case).
 	p.authReq = req

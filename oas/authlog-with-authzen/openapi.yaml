@@ -470,8 +470,6 @@ components:
                   - execute_all = default.
                   - deny_on_first_deny = halt processing after first deny.
                   - permit_on_first_permit = halt processing after first allow.
-      required:
-        - evaluations
 
     EvaluationsDecision:
       type: object

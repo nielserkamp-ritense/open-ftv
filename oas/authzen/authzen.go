@@ -74,7 +74,7 @@ type EvaluationsObject struct {
 	Context map[string]interface{} `json:"context,omitempty"`
 
 	// Evaluations list of evaluation requests to test.
-	Evaluations []EvaluationObject `json:"evaluations"`
+	Evaluations []EvaluationObject `json:"evaluations,omitempty"`
 
 	// Options Options for the evaluations request.
 	Options struct {
@@ -243,7 +243,7 @@ type BadRequest = ErrorResponse
 // EvaluationResponse Evaluation decision model.
 type EvaluationResponse = EvaluationDecision
 
-// EvaluationsResponse Evaluations decision model.
+// EvaluationsResponse defines model for EvaluationsResponse.
 type EvaluationsResponse = EvaluationsDecision
 
 // MetadataResponse Metadata model.
