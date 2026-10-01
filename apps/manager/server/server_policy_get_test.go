@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -25,8 +26,7 @@ func Test_Get_Policy(t *testing.T) {
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	t.Run("not_found", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodGet, "/v1/policy/22222222-2222-2222-2222-222222222222", nil)
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/22222222-2222-2222-2222-222222222222", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -35,8 +35,7 @@ func Test_Get_Policy(t *testing.T) {
 
 	t.Run("invalid_id", func(t *testing.T) {
 		invalidID := strings.Repeat("x", 41)
-		req, err := http.NewRequest(http.MethodGet, "/v1/policy/"+invalidID, nil)
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+invalidID, nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -60,8 +59,7 @@ func Test_Get_Policy(t *testing.T) {
 		body, err := json.Marshal(policy)
 		require.Nil(t, err)
 
-		postReq, err := http.NewRequest(http.MethodPost, "/v1/policy/11111111-1111-1111-1111-111111111111", bytes.NewReader(body))
-		require.Nil(t, err)
+		postReq := httptest.NewRequest(http.MethodPost, "/v1/policy/11111111-1111-1111-1111-111111111111", bytes.NewReader(body))
 
 		postReq.Header.Set("Content-Type", "application/json")
 
@@ -69,8 +67,7 @@ func Test_Get_Policy(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
-		req, err := http.NewRequest(http.MethodGet, "/v1/policy/11111111-1111-1111-1111-111111111111", nil)
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/11111111-1111-1111-1111-111111111111", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)

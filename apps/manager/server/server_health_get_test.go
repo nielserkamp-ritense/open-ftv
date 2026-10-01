@@ -3,6 +3,7 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -64,8 +65,7 @@ func Test_HealthEndpoints(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			req, err := http.NewRequest(http.MethodGet, tc.URL, http.NoBody)
-			require.Nil(t, err)
+			req := httptest.NewRequest(http.MethodGet, tc.URL, http.NoBody)
 
 			res, err := healthFiberApp.Test(req)
 			require.Nil(t, err)

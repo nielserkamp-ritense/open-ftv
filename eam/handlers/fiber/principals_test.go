@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"strings"
@@ -54,8 +55,7 @@ func respond(t *testing.T, r principalResolver, v any) []byte {
 	app := fiber.New()
 	app.Get("/", func(c *fiber.Ctx) error { return r.respond(c, v) })
 
-	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)
-	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -210,8 +210,7 @@ func TestPrincipalResolver_SkipsLargeByteSlices(t *testing.T) {
 	app := fiber.New()
 	app.Get("/", func(c *fiber.Ctx) error { return newResolver(store).respond(c, settings) })
 
-	req, err := http.NewRequest(http.MethodGet, "/", http.NoBody)
-	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)

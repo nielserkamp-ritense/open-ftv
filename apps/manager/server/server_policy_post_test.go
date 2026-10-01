@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -107,8 +108,7 @@ func Test_Post_Policy(t *testing.T) {
 	})
 
 	t.Run("malformed_json", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodPost, "/v1/policy/77777777-7777-7777-7777-777777777777", bytes.NewReader([]byte("{invalid-json")))
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/v1/policy/77777777-7777-7777-7777-777777777777", bytes.NewReader([]byte("{invalid-json")))
 		req.Header.Set("Content-Type", "application/json")
 
 		res, err := mainFiberApp.Test(req)
@@ -162,8 +162,7 @@ func postPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy oas.Pol
 		url += "?" + query
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
-	require.Nil(t, err)
+	req := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := app.Test(req)
@@ -184,8 +183,7 @@ func mustCreatePolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy
 func getPolicy(t *testing.T, app *fiber.App, id string) *http.Response {
 	t.Helper()
 
-	req, err := http.NewRequest(http.MethodGet, "/v1/policy/"+id, nil)
-	require.Nil(t, err)
+	req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+id, nil)
 
 	res, err := app.Test(req)
 	require.Nil(t, err)

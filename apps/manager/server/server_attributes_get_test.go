@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -24,8 +25,7 @@ func Test_Get_Attributes(t *testing.T) {
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	t.Run("no_data", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodGet, "/v1/attributes", nil)
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -45,8 +45,7 @@ func Test_Get_Attributes(t *testing.T) {
 		body, err := json.Marshal(attribute)
 		require.Nil(t, err)
 
-		postReq, err := http.NewRequest(http.MethodPost, "/v1/attribute/my-first-key", bytes.NewReader(body))
-		require.Nil(t, err)
+		postReq := httptest.NewRequest(http.MethodPost, "/v1/attribute/my-first-key", bytes.NewReader(body))
 
 		postReq.Header.Set("Content-Type", "application/json")
 
@@ -55,8 +54,7 @@ func Test_Get_Attributes(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
-		req, err := http.NewRequest(http.MethodGet, "/v1/attributes", nil)
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)

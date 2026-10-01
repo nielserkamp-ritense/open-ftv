@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -74,8 +75,7 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 			},
 		})
 
-		req, err := http.NewRequest(http.MethodPatch, "/v1/policy/66666666-6666-6666-6666-666666666666/status", bytes.NewReader([]byte("{invalid-json")))
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodPatch, "/v1/policy/66666666-6666-6666-6666-666666666666/status", bytes.NewReader([]byte("{invalid-json")))
 		req.Header.Set("Content-Type", "application/json")
 
 		res, err := mainFiberApp.Test(req)
@@ -126,8 +126,7 @@ func patchPolicyStatus(t *testing.T, app *fiber.App, id string, status oas.Polic
 	body, err := json.Marshal(status)
 	require.Nil(t, err)
 
-	req, err := http.NewRequest(http.MethodPatch, "/v1/policy/"+id+"/status", bytes.NewReader(body))
-	require.Nil(t, err)
+	req := httptest.NewRequest(http.MethodPatch, "/v1/policy/"+id+"/status", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := app.Test(req)

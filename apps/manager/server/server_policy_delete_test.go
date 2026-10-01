@@ -5,6 +5,7 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -77,8 +78,7 @@ func deletePolicyWithQuery(t *testing.T, app *fiber.App, id, query string) *http
 		url += "?" + query
 	}
 
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	require.Nil(t, err)
+	req := httptest.NewRequest(http.MethodDelete, url, nil)
 
 	res, err := app.Test(req)
 	require.Nil(t, err)

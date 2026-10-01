@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -72,8 +73,7 @@ func Test_Put_Policy(t *testing.T) {
 			Metadata: oas.Metadata{Title: "Put malformed base"},
 		})
 
-		req, err := http.NewRequest(http.MethodPut, "/v1/policy/44444444-4444-4444-4444-444444444444", bytes.NewReader([]byte("{invalid-json")))
-		require.Nil(t, err)
+		req := httptest.NewRequest(http.MethodPut, "/v1/policy/44444444-4444-4444-4444-444444444444", bytes.NewReader([]byte("{invalid-json")))
 		req.Header.Set("Content-Type", "application/json")
 
 		res, err := mainFiberApp.Test(req)
@@ -151,8 +151,7 @@ func putPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy oas.Poli
 		url += "?" + query
 	}
 
-	req, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(body))
-	require.Nil(t, err)
+	req := httptest.NewRequest(http.MethodPut, url, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := app.Test(req)
