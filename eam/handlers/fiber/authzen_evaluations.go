@@ -57,7 +57,8 @@ func (p *authProcess) verifyBatchAuthZEN() (batch *oas.EvaluationsRequest, singl
 	}
 
 	if len(req.Evaluations) == 0 {
-		single := &oas.EvaluationRequest{Subject: req.Subject, Action: req.Action, Resource: req.Resource, Context: req.Context}
+		single := new(oas.EvaluationRequest)
+		fixDefaults(single, req)
 
 		return nil, p.acceptRequestAuthZEN(single)
 	}
@@ -91,6 +92,10 @@ func fixDefaults(entity *oas.EvaluationObject, req *oas.EvaluationsRequest) {
 	}
 	if len(entity.Action.Properties) == 0 {
 		entity.Action.Properties = req.Action.Properties
+	}
+
+	if len(entity.Context) == 0 {
+		entity.Context = req.Context
 	}
 }
 

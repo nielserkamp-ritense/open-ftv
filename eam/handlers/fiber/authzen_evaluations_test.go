@@ -70,6 +70,13 @@ func TestAuthHandler_AuthZENEvaluations(t *testing.T) {
 			wantStatus: fiber.StatusBadRequest,
 			want:       `{"detail":"invalid subject","status":400,"title":"Bad Request"}`,
 		},
+		{
+			name:       "top-level context is the default, an own context replaces it",
+			store:      "../../../testdata/unittest/opa4",
+			in:         `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read"},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"},"context":{"zone":"intern"},"evaluations":[{},{"context":{"other":"x"}}]}`,
+			wantStatus: fiber.StatusOK,
+			want:       `{"evaluations":[{"decision":true},{"decision":false}]}`,
+		},
 	}
 
 	for _, tc := range testCases {
