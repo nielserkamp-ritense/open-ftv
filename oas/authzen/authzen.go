@@ -78,14 +78,14 @@ type EvaluationsObject struct {
 
 	// Options Options for the evaluations request.
 	Options struct {
-		// EvaluationSemantics By default, every request in the evaluations array is executed and a response returned in the same array order.
+		// EvaluationsSemantic By default, every request in the evaluations array is executed and a response returned in the same array order.
 		// This is the most common use-case for boxcarring multiple evaluation requests in a single payload.
 		//
 		// To select the desired evaluations semantic, use exactly one of the following values:
 		//   - execute_all = default.
 		//   - deny_on_first_deny = halt processing after first deny.
 		//   - permit_on_first_permit = halt processing after first allow.
-		EvaluationSemantics string `json:"evaluation_semantics,omitempty"`
+		EvaluationsSemantic string `json:"evaluations_semantic,omitempty"`
 	} `json:"options,omitempty"`
 
 	// Resource The entity associated with an authorization request.

@@ -460,7 +460,7 @@ components:
           type: object
           description: Options for the evaluations request.
           properties:
-            evaluation_semantics:
+            evaluations_semantic:
               type: string
               description: |
                 By default, every request in the evaluations array is executed and a response returned in the same array order.

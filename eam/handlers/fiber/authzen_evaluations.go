@@ -99,7 +99,7 @@ func fixDefaultEntity(entity, def *oas.Entity) {
 func (p *authProcess) createBatchAuthZEN(req *oas.EvaluationsRequest) {
 	p.batch = &models.Batch{Items: make([]models.PARC, 0, len(req.Evaluations))}
 
-	switch strings.ToLower(req.Options.EvaluationSemantics) {
+	switch strings.ToLower(req.Options.EvaluationsSemantic) {
 	case "deny_on_first_deny":
 		p.batch.Semantics = models.DenyOnFirstDeny
 	case "permit_on_first_permit":
