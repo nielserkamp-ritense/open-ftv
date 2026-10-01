@@ -21,7 +21,8 @@ const RootComponent = () => {
     return (
       <SidebarItem
         key={`${item.section}-${item.label}`}
-        href={item.href}
+        // A disabled item renders as a button: a router link to '#' resolves to the current page and shows as active.
+        {...(disabled ? {} : { href: item.href })}
         className={'text-rhc-sidenav-link-color '}
         disabled={disabled}
       >

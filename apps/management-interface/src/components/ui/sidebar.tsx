@@ -131,6 +131,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
           className={clsx('cursor-default', classes)}
           data-current={current ? 'true' : undefined}
           ref={ref}
+          disabled={disabled}
         >
           <TouchTarget>{children}</TouchTarget>
         </Headless.Button>
