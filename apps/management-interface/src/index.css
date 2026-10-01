@@ -58,6 +58,9 @@
     --text-rhc-sidenav-link-font-size: 18px;
     --color-rhc-color-feedback-info-default: #007BC7;
     --color-rhc-color-feedback-error-subdued: #F9DFDD;
+    /* RHC warning: donkergeel 500 and 50 */
+    --color-rhc-color-feedback-warning-default: oklch(82.372% 0.1685 78.997);
+    --color-rhc-color-feedback-warning-subdued: oklch(96.925% 0.0348 87.074);
     --font-weight-rhc-sidenav-link-font-weight: 400;
     --color-rhc-sidenav-link-color: #0F172A;
     --color-rhc-sidenav-current-background-color: #D9EBF7;
@@ -107,6 +110,10 @@
 
 .decision-denied {
     background-color: var(--color-rhc-color-feedback-error-subdued);
+}
+
+.decision-error {
+    background-color: var(--color-rhc-color-feedback-warning-subdued);
 }
 
 @theme inline {

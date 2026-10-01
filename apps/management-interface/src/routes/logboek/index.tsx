@@ -1,7 +1,7 @@
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import {Button} from "@/components/ui/button.tsx";
 import Card from "@/components/ui/card.tsx";
-import {IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
+import {IconAlertTriangleFilled, IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
 import {AuthlogEntry, useAuthlogEntries} from "@/services/authlog.ts";
 import type {ColDef, RowClassRules, RowClassParams, RowClickedEvent} from "ag-grid-community";
 import CondensedGrid from "@/components/ui/condensed-grid.tsx";
@@ -9,20 +9,28 @@ import {CustomCellRendererProps} from "ag-grid-react";
 import {useMemo} from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import {formatDateTime} from "@/utilities/datetime.ts";
+import {Decision, entryDecision, entryReason} from "@/services/decision.ts";
 
 export const Route = createFileRoute('/logboek/')({
     component: RouteComponent,
 })
 
-const BeslissingRenderer = (params: CustomCellRendererProps) => {
-    if (params.value) {
-        return <div className={"flex items-center justify-center"}><IconCircleArrowUpFilled
-            color={"var(--color-rhc-color-feedback-info-default)"}
-            className={"mx-auto mt-1.5"}></IconCircleArrowUpFilled></div>
-    } else {
-        return <IconCircleRectangleFilled
-            color={"var(--color-carrotnl-alert-icon-error-color)"}
-            className={"mx-auto mt-1.5"}></IconCircleRectangleFilled>
+const BeslissingRenderer = (params: CustomCellRendererProps<AuthlogEntry, Decision>) => {
+    switch (params.value) {
+        case 'permitted':
+            return <div className={"flex items-center justify-center"}><IconCircleArrowUpFilled
+                color={"var(--color-rhc-color-feedback-info-default)"}
+                className={"mx-auto mt-1.5"}></IconCircleArrowUpFilled></div>
+        case 'denied':
+            return <IconCircleRectangleFilled
+                color={"var(--color-carrotnl-alert-icon-error-color)"}
+                className={"mx-auto mt-1.5"}></IconCircleRectangleFilled>
+        case 'error':
+            return <IconAlertTriangleFilled
+                color={"var(--color-rhc-color-feedback-warning-default)"}
+                className={"mx-auto mt-1.5"}></IconAlertTriangleFilled>
+        default:
+            return null
     }
 };
 
@@ -111,26 +119,14 @@ function RouteComponent() {
         },
         {
             headerName: "Beslissing",
-            valueGetter: (params) => params.data?.response?.decision,
+            valueGetter: (params) => entryDecision(params.data),
             cellRenderer: BeslissingRenderer,
             type: '',
             resizable: true
         },
         {
             headerName: "Reden",
-            valueGetter: (params) => {
-                const context = (params.data?.response as unknown as {
-                    context?: { reason?: unknown, reason_user?: Record<string, string>, reason_admin?: Record<string, string> }
-                } | undefined)?.context;
-                if (typeof context?.reason === "string" && context.reason !== "") {
-                    return context.reason;
-                }
-                // Decisions logged before AuthZEN 1.0 carry the reason in reason_user or reason_admin. The PDP
-                // filled it with "ok" or "not authorized" when the policy gave no reason; those are not reasons.
-                const reasons = context?.reason_user ?? context?.reason_admin;
-                const legacy = reasons ? Object.values(reasons)[0] : undefined;
-                return legacy === "ok" || legacy === "not authorized" ? undefined : legacy;
-            },
+            valueGetter: (params) => entryReason(params.data),
             resizable: false,
             cellStyle: {color: 'var(--color-content-secondary)'}
         }
@@ -138,7 +134,8 @@ function RouteComponent() {
 
     const rowClassRules: RowClassRules<AuthlogEntry> = useMemo(() => {
         return {
-            'decision-denied': (params: RowClassParams<AuthlogEntry>) => params.data?.response?.decision === 'deny'
+            'decision-denied': (params: RowClassParams<AuthlogEntry>) => entryDecision(params.data) === 'denied',
+            'decision-error': (params: RowClassParams<AuthlogEntry>) => entryDecision(params.data) === 'error',
         }
     }, [])
 
