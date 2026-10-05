@@ -40,8 +40,11 @@ func (s *Services) initMainRoutes(ctx context.Context, svc *fiber.App) {
 func (s *Services) initLanguages(group fiber.Router) {
 	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer())
 
+	// the language routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// languages CRUD.
-	group.Get(handle.PathLanguages, apis.GetLanguages)
+	group.Get(handle.PathLanguages, identify, apis.GetLanguages)
 }
 
 func (s *Services) initTags(group fiber.Router) {

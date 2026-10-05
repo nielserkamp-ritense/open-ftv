@@ -1,7 +1,7 @@
 permit (
     principal is user,
     action,
-    resource is service
+    resource is language
 )
 when {
     principal has roles &&

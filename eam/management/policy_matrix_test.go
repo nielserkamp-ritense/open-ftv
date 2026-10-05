@@ -25,11 +25,18 @@ import (
 func managerAuthorizer(t *testing.T) authorization.Authorizer {
 	t.Helper()
 
+	return seedAuthorizer(t, "../../testdata/apps/manager/policies/cedar")
+}
+
+// seedAuthorizer is the same chain over the shipped policies of one seed directory.
+func seedAuthorizer(t *testing.T, dir string) authorization.Authorizer {
+	t.Helper()
+
 	logger := slog.New(slog2.NewDummyHandler(slog.LevelDebug))
 	ctx := context.Background()
 
 	store, err := pap.New(ctx, logger, pap.WithKeyValueDB(memory.New(), ""), pap.WithLanguage("cedar"),
-		pap.WithFileStore("../../testdata/apps/manager/policies/cedar", true))
+		pap.WithFileStore(dir, true))
 	require.NoError(t, err)
 
 	// Users the PIP holds reach the PDP with the PIP's attributes, where `roles` may be one

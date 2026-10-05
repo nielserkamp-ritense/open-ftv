@@ -1,50 +1,47 @@
 package fiber
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/identity"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
-	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
+	auth "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization/fiber"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/management"
 )
 
-// NewLanguagesHandler instantiates a policy language handler.
-func NewLanguagesHandler(logger *slog.Logger, store *pap.PAP, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *LanguagesHandler {
-	return &LanguagesHandler{logger: logger, pap: store, authorizer: authorizer, principalResolver: newPrincipalResolver(logger, opts)}
+// NewLanguagesHandler instantiates a policy language handler. Every operation is decided by
+// the language service through the authorizer; a nil authorizer permits everything.
+func NewLanguagesHandler(logger *slog.Logger, store management.LanguageStore, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *LanguagesHandler {
+	return &LanguagesHandler{
+		logger:            logger,
+		svc:               management.NewLanguageService(store, authorizer),
+		secured:           authorizer != nil,
+		principalResolver: newPrincipalResolver(logger, opts),
+	}
 }
 
 // GetLanguages retrieves the list of supported policy languages.
 func (h *LanguagesHandler) GetLanguages(req *fiber.Ctx) error {
 	req.Set(HeaderVersion, PoliciesVersion)
 
-	if _, err := h.authorize(req); err != nil {
-		return err
-	}
+	resp, err := h.svc.List(req.UserContext(), callerOf(req, h.secured, h.logger))
+	if err != nil {
+		if errors.Is(err, authorization.ErrForbidden) {
+			return auth.Forbidden(req, err, h.logger)
+		}
 
-	resp, err2 := h.pap.ListLanguages()
-	if err2 != nil {
-		return h.error(req, fiber.StatusInternalServerError, err2)
+		return internalError(req, h.logger, err)
 	}
 
 	return h.respond(req, resp)
 }
 
-func (h *LanguagesHandler) authorize(req *fiber.Ctx) (identity.Principal, error) {
-	return authorizeRequest(h.authorizer, req, h.logger)
-}
-
-func (h *LanguagesHandler) error(req *fiber.Ctx, status int, err error) error {
-	h.logger.Error("request error", "path", req.Path(), "err", err, "status", status)
-	return server.SendMessageResponse(req, status, err.Error())
-}
-
 // LanguagesHandler implements the interface for handling requests about policy languages.
 type LanguagesHandler struct {
-	logger     *slog.Logger
-	pap        *pap.PAP
-	authorizer authorization.RequestAuthorizer
+	logger  *slog.Logger
+	svc     *management.LanguageService
+	secured bool // an authorizer decides; the routes must carry the Identify middleware.
 	principalResolver
 }

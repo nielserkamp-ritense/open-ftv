@@ -72,8 +72,11 @@ func (s *Services) principalOption() []handle.HandlerOption {
 func (s *Services) initLanguages(group fiber.Router) {
 	apis := handle.NewLanguagesHandler(s.logger, s.pap, s.auth.Authorizer(), s.principalOption()...)
 
+	// the language routes identify the caller once, up front; the service decides per operation.
+	identify := authfiber.Identify(s.auth.Authorizer(), s.logger)
+
 	// languages CRUD.
-	group.Get(handle.PathLanguages, apis.GetLanguages)
+	group.Get(handle.PathLanguages, identify, apis.GetLanguages)
 }
 
 func (s *Services) initTags(group fiber.Router) {
@@ -261,7 +264,8 @@ func (s *Services) initADL(group fiber.Router) {
 	s.logger.Info("adl initialized")
 
 	grp2 := group.Group(handle.PathADL)
-	grp2.Get(handle.PathEntries, adl.Search)
+	// the ADL routes identify the caller once, up front; the service decides per operation.
+	grp2.Get(handle.PathEntries, authfiber.Identify(s.auth.Authorizer(), s.logger), adl.Search)
 }
 
 // initBundleRoutes sets up the routing table for bundle retrieval requests.

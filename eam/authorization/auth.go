@@ -41,14 +41,15 @@ type PrincipalRecorder interface {
 
 // RequestAuthorizer is the request-path authorizer: it authorizes an HTTP request as a whole,
 // with the PEP deriving action and resource from the request. It also carries the management
-// plane's Identify and Authorize, which replace AuthorizeRequest handler by handler (ADR 0006).
+// plane's Identify and Authorize, which every handler of the manager, the PAP and the PIP
+// decides through (ADR 0006).
 //
-// AuthorizeRequest goes away once every handler decides through Identify and
-// Authorizer.Authorize; new code depends on Authorizer.
+// AuthorizeRequest is left for the PDP's bundle receiver, which is not part of the management
+// plane; new code depends on Authorizer.
 type RequestAuthorizer interface {
 	Authorizer
 	// AuthorizeRequest authorizes an HTTP request as a whole: the PEP derives action and
-	// resource from the request. To be replaced by Identify followed by Authorize.
+	// resource from the request.
 	AuthorizeRequest(req *Request) (*models.Response, identity.Principal, error)
 	// Identify validates the caller once, without authorizing anything.
 	Identify(req *Request) (*RequestPrincipal, error)

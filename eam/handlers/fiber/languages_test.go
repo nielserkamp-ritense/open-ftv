@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authentication"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
+	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/postgresql"
@@ -98,4 +100,23 @@ func TestLanguagesHandler_GetLanguages(t *testing.T) {
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(list), 4)
 	})
+}
+
+func TestLanguagesHandler_GetLanguages_Forbidden(t *testing.T) {
+	t.Parallel()
+
+	logger := settingsLogger()
+
+	p, err := pap.New(t.Context(), logger, pap.WithKeyValueDB(memory.New(), ""))
+	require.NoError(t, err)
+
+	srv := fiber.New(fiber.Config{ErrorHandler: server.ErrorHandler(logger)})
+	srv.Get("/v1/languages", NewLanguagesHandler(logger, p, denyAuthorizer{}).GetLanguages)
+
+	resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, "/v1/languages", http.NoBody), 60000)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	assert.Equal(t, fiber.StatusForbidden, resp.StatusCode)
 }

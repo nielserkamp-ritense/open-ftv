@@ -1,7 +1,7 @@
 permit (
     principal is user,
-    action == name::"can_read",
-    resource is service
+    action == Action::"read",
+    resource is language
 )
 when {
     principal has roles &&
