@@ -130,8 +130,9 @@ func (s *EntityService) Version(ctx context.Context, caller *authorization.Reque
 // Create adds a new entity. With forceUpsert an existing entity is updated instead, which is
 // then decided as an update; without it an existing uid is ErrExists. The decision on a create
 // carries the submitted properties, the decision on an update the stored ones. The status in
-// the body is ignored: a new entity is a concept and an update keeps the stored status, so a
-// status changes through SetStatus only (review, SCRUM-145).
+// the body is ignored: a created or updated entity is stored as concept, as an attribute is,
+// so nothing becomes accepted except through SetStatus and an edit of deployed data starts
+// its next concept (review, SCRUM-145).
 func (s *EntityService) Create(ctx context.Context, caller *authorization.RequestPrincipal, in *oas.Entity, forceUpsert bool) (*models.Entity, error) {
 	uid := models.EntityUID(in.Type, in.Id)
 
@@ -160,7 +161,7 @@ func (s *EntityService) Create(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.AddEntityFromOAS(withStatus(in, prev), caller.Attribution())
+		return s.store.AddEntityFromOAS(asConcept(in), caller.Attribution())
 	}
 }
 
@@ -180,7 +181,7 @@ func (s *EntityService) Update(ctx context.Context, caller *authorization.Reques
 			return nil, err
 		}
 
-		return s.store.AddEntityFromOAS(withStatus(in, prev), caller.Attribution())
+		return s.store.AddEntityFromOAS(asConcept(in), caller.Attribution())
 
 	case !forceUpsert:
 		if err := s.authorize(ctx, caller, models.ActionUpdate, entityResource(uid, nil)); err != nil {
@@ -321,18 +322,10 @@ func submittedEntity(in *oas.Entity) *models.Entity {
 	return pipResource(models.EntityTypeEntity, models.EntityUID(in.Type, in.Id), models.StatusConcept.String(), in.Metadata.Tags)
 }
 
-// asConcept is the submitted entity with the status a new entity gets.
+// asConcept is the submitted entity with the status every write through Create or Update gets.
 func asConcept(in *oas.Entity) *oas.Entity {
 	out := *in
 	out.Status = models.StatusConcept.String()
-
-	return &out
-}
-
-// withStatus is the submitted entity with the status of the stored one it replaces.
-func withStatus(in *oas.Entity, prev *models.Entity) *oas.Entity {
-	out := *in
-	out.Status = prev.StatusName()
 
 	return &out
 }

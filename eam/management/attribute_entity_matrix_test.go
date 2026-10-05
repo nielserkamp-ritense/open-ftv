@@ -15,7 +15,8 @@ import (
 // TestAttributeAndEntityMatrix pins the SCRUM-16 role matrix for PIP data (attributes and
 // entities), decided by the shipped policies: the author creates, updates, deletes, accepts,
 // reverts and restores; every role reads; the admin and the auditor change nothing; an
-// accepted object is not updated in place by anyone.
+// accepted object is not updated in place by anyone, and an edit of deployed data is allowed
+// because it is the only way its next concept starts.
 func TestAttributeAndEntityMatrix(t *testing.T) {
 	t.Parallel()
 
@@ -30,6 +31,8 @@ func TestAttributeAndEntityMatrix(t *testing.T) {
 	entities := entityCollection()
 	eConcept := pipResource(models.EntityTypeEntity, "user::alice", "concept", nil)
 	eAccepted := pipResource(models.EntityTypeEntity, "user::alice", "accepted", nil)
+	deployed := pipResource(models.EntityTypeAttribute, "max-age", "deployed", []string{"laadpalen"})
+	eDeployed := pipResource(models.EntityTypeEntity, "user::alice", "deployed", nil)
 
 	cases := []struct {
 		name     string
@@ -63,9 +66,16 @@ func TestAttributeAndEntityMatrix(t *testing.T) {
 		{"author reverts entity", withRole("author"), models.ActionRevert, eAccepted, true},
 		{"author restores entity", withRole("author"), models.ActionRestore, eAccepted, true},
 
-		// an accepted object is not edited in place: revert or restore it (pip_accepted_guard).
+		// an accepted object is not edited in place: revert it first (pip_accepted_guard).
 		{"author must NOT update accepted attribute", withRole("author"), models.ActionUpdate, accepted, false},
 		{"author must NOT update accepted entity", withRole("author"), models.ActionUpdate, eAccepted, false},
+
+		// deployed data has no way back to concept, so its edit is not caught by the guard; the
+		// roles that may not update still may not.
+		{"author updates deployed attribute", withRole("author"), models.ActionUpdate, deployed, true},
+		{"author updates deployed entity", withRole("author"), models.ActionUpdate, eDeployed, true},
+		{"admin must NOT update deployed attribute", withRole("admin"), models.ActionUpdate, deployed, false},
+		{"auditor must NOT update deployed entity", withRole("auditor"), models.ActionUpdate, eDeployed, false},
 
 		// the systeembeheerder (admin) administers beslispunten and settings, not PIP data:
 		// this is what admin.cedar allowed.

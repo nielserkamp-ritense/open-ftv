@@ -105,7 +105,7 @@ func TestEntityService_Create_existingIsConflictAfterTheDecision(t *testing.T) {
 	assert.Equal(t, models.ActionUpdate, d.action, "forceUpsert on an existing uid is an update")
 }
 
-func TestEntityService_Update_decidesOnTheStoredPropertiesAndKeepsTheStatus(t *testing.T) {
+func TestEntityService_Update_decidesOnTheStoredPropertiesAndStoresAConcept(t *testing.T) {
 	t.Parallel()
 
 	d := &recorder{}
@@ -117,13 +117,14 @@ func TestEntityService_Update_decidesOnTheStoredPropertiesAndKeepsTheStatus(t *t
 	_, err = store.UpdateEntityStatus("user::alice", models.StatusAccepted, identity.NewSystemPrincipal())
 	require.NoError(t, err)
 
-	out, err := svc.Update(context.Background(), author(), entity("concept", "other"), false)
+	// the recorder permits what the shipped guard forbids, so this is the service alone.
+	out, err := svc.Update(context.Background(), author(), entity("accepted", "other"), false)
 	require.NoError(t, err)
 
 	assert.Equal(t, models.ActionUpdate, d.action)
 	assert.Equal(t, "accepted", d.resource.Attributes().GetAttribute(models.AttrStatus).Value(), "the PDP sees the stored status, not the submitted one")
 	assert.Equal(t, []string{"laadpalen"}, d.resource.Attributes().GetAttribute(models.AttrTags).Value())
-	assert.Equal(t, models.StatusAccepted, out.Status(), "an update never changes the status: that is accept or revert")
+	assert.Equal(t, models.StatusConcept, out.Status(), "an edit is a concept whatever the body says: only accept makes it accepted")
 }
 
 func TestEntityService_Update_missingIsNotFoundAfterTheDecision(t *testing.T) {

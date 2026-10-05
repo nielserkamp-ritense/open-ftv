@@ -4,6 +4,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -123,6 +124,36 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 		// The author's entity restore is not asserted: the postgres PIP reads entity versions
 		// from the attribute_version table (SQLSTATE 42703), which predates this test.
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/entity/user/alice/version/1/restore", admin, nil).StatusCode)
+	})
+
+	t.Run("an edit is stored as a concept whatever status the body names", func(t *testing.T) {
+		// Reaching deployed needs a bundle target, which this server has none of; the guard's
+		// answer for deployed data is pinned in eam/management's matrix. What the API adds is
+		// that no write smuggles a status in: only accept makes PIP data accepted.
+		statusOf := func(path string) string {
+			res := call(t, app, http.MethodGet, path, auditor, nil)
+			require.Equal(t, http.StatusOK, res.StatusCode)
+
+			var out struct {
+				Status string `json:"status"`
+			}
+			require.NoError(t, json.NewDecoder(res.Body).Decode(&out))
+
+			return out.Status
+		}
+
+		revert := oas.EntityStatus{Type: "user", Id: "alice", Status: "concept"}
+		require.Equal(t, http.StatusOK, call(t, app, http.MethodPatch, "/v1/entity/user/alice/status", author, revert).StatusCode)
+
+		body := ent
+		body.Status = "deployed"
+		require.Equal(t, http.StatusOK, call(t, app, http.MethodPut, "/v1/entity/user/alice", author, body).StatusCode)
+		require.Equal(t, "concept", statusOf("/v1/entity/user/alice"))
+
+		born := ent
+		born.Id, born.Status = "bob", "accepted"
+		require.Equal(t, http.StatusCreated, call(t, app, http.MethodPost, "/v1/entity/user/bob", author, born).StatusCode)
+		require.Equal(t, "concept", statusOf("/v1/entity/user/bob"))
 	})
 
 	t.Run("only the author deletes", func(t *testing.T) {

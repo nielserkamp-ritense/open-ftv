@@ -33,10 +33,13 @@ policies are written in the words the product uses (SCRUM-15, decided 2026-08-25
   unauthorizable for every role.
   *Refined during implementation (SCRUM-145):* the rule that an accepted object is not edited
   in place applies to PIP data as it does to policies, because accepted means "what the next
-  deployment ships" for an attribute or entity too. One seed rule (`pip_accepted_guard`)
-  forbids `update` on an accepted attribute or entity; `revert` and `restore` remain the ways
-  out. The UI's in-place edit of an attribute therefore returns 403 once it is accepted, until
-  the UI reverts first (SCRUM-16).
+  deployment ships" for an attribute or entity too. One seed rule in the manager
+  (`pip_accepted_guard`) forbids `update` on an accepted attribute or entity; `revert` is the
+  way out. The UI's in-place edit of an attribute therefore returns 403 once it is accepted,
+  until the UI reverts first (SCRUM-16). Unlike the policy guard it does not cover `deployed`:
+  the PIP has no transition from deployed back to concept, so an edit of deployed PIP data is
+  stored as a new concept, and that is how its next version starts. The standalone PIP ships
+  no guard, because it mounts no status, version or restore routes to get out of one.
   *Refined during implementation (SCRUM-144):* the manager's UI settings are one record
   with no key of their own, so the resource is `setting::"ui"`, read and updated but never
   created or deleted (the defaults stand in for an unsaved record). A later group of
