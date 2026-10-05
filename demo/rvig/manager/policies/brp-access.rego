@@ -6,37 +6,18 @@ default allow := false
 
 default reason := ""
 
-consumer_gemeente := data.entities.app[input.subject.id].gemeente
-
 is_brp_request if input.context.http.path == "/v1/haalcentraal/api/brp/personen"
 
 allow if not is_brp_request
 
 has_correct_doelbinding if input.context.doelbinding == "identificatie-en-ingezetenschap"
 
-queried_gemeente := data.entities.burger[bsn].gemeente if {
-	m := regex.find_all_string_submatch_n(`persoon\.bsn=([0-9]+)`, input.context.body["@filter"], 1)[0]
-	bsn := m[1]
-}
-
-queried_gemeente := data.entities.adres[postcode].gemeente if {
-	m := regex.find_all_string_submatch_n(`adres\.postcode=([0-9A-Z]{6})`, input.context.body["@filter"], 1)[0]
-	postcode := m[1]
-}
-
 allow if {
 	is_brp_request
 	has_correct_doelbinding
-	queried_gemeente == consumer_gemeente
 }
 
 reason := "verkeerde doelbinding" if {
 	is_brp_request
 	not has_correct_doelbinding
-}
-
-reason := "inwoner niet van deze gemeente" if {
-	is_brp_request
-	has_correct_doelbinding
-	queried_gemeente != consumer_gemeente
 }

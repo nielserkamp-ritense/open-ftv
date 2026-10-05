@@ -212,12 +212,9 @@ const sources: SourceConfig[] = [
     client: brpApiClient,
     datasourceId: "brp",
     // Real end-to-end ping - client points at the Vlierdam outway, gated by AuthZEN at both
-    // the outway and the RvIG inway (see VITE_VLIERDAM_OUTWAY_URL/VITE_BRP_API_KEY). Needs a real
-    // filter: rvig-pdp1's same-gemeente policy can't resolve an allow/deny reason for a filterless
-    // query, so a bare ping gets denied even though the chain itself is healthy.
+    // the outway and the RvIG inway (see VITE_VLIERDAM_OUTWAY_URL/VITE_BRP_API_KEY).
     healthChecks: dataspaceChainCheck(
       brpApiClient, "/v1/haalcentraal/api/brp/personen", "openftv-rvig-inway", "openftv-rvig-pdp1", "openftv-rvig-dataspace",
-      {"@filter": "adres.postcode=1111AA,adres.huisnummer=1"},
     ),
   },
   {
