@@ -96,6 +96,21 @@ plugins:
       - X-Api-Key
       - Doelbinding
 
+- id: f6dd4246-8186-44e2-a713-22407ffb7469
+  route: 41dd269a-d7fc-4d5e-97bf-a0ab86724d35
+  name: request-transformer
+  enabled: true
+  protocols:
+    - http
+    - https
+  config:
+    remove:
+      headers:
+        - Afnemersindicatie
+    add:
+      headers:
+        - Afnemersindicatie:001.01
+
 - id: 0f6c1d2e-5b7a-4c83-9e41-2a8d7f3b6c95
   route: 975b7d92-3305-4f83-94b5-586824c1f2a3
   name: openftv

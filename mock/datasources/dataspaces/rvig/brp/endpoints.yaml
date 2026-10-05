@@ -8,6 +8,10 @@
   description: HaalCentraal API
   datasource: brp
   table: persoon
+  headerFilters:
+    - header: Afnemersindicatie
+      field: inschrijving.gemeente
+      pattern: '^([0-9]+)\.[0-9]+$'
   joins:
     - type: OptionalParentChild
       source: ouder1
@@ -27,7 +31,7 @@
       source: verbintenis
     - type: OptionalSibling
       source: overlijden
-    - type: OptionalSibling
+    - type: ForcedSibling
       source: inschrijving
     - type: ForcedSibling
       source: adres
