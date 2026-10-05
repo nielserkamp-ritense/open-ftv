@@ -19,6 +19,9 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
+// ADLVersion is the full semantic API version for the authorisation decision log endpoint.
+const ADLVersion = "1.0.0" // check against oas/authlog/openapi.yaml!
+
 // ADLHandler represents the interface for handling search requests on an Authorisation Decision Log.
 type ADLHandler interface {
 	Search(req *fiber.Ctx) error // summary for a resource.
@@ -26,13 +29,13 @@ type ADLHandler interface {
 
 // NewADLHandler instantiates an authorisation log handler. Every search is decided by the
 // decision service through the authorizer; a nil authorizer permits everything.
-func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorization.RequestAuthorizer) ADLHandler {
+func NewADLHandler(logger *slog.Logger, s search.Searcher, authorizer authorization.Authorizer) ADLHandler {
 	return &adlHandler{logger: logger, svc: management.NewDecisionService(s, authorizer), secured: authorizer != nil}
 }
 
 // Search implements the ADLHandler interface.
 func (h *adlHandler) Search(fc *fiber.Ctx) error {
-	fc.Set(HeaderVersion, AttributesVersion)
+	fc.Set(HeaderVersion, ADLVersion)
 
 	caller := callerOf(fc, h.secured, h.logger)
 

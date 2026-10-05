@@ -5,8 +5,7 @@
     "realm": [
       { "name": "admin" },
       { "name": "author" },
-      { "name": "auditor" },
-      { "name": "user" }
+      { "name": "auditor" }
     ]
   },
   "clients": [

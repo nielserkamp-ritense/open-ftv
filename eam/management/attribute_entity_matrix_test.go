@@ -78,7 +78,7 @@ func TestAttributeAndEntityMatrix(t *testing.T) {
 		{"auditor must NOT update deployed entity", withRole("auditor"), models.ActionUpdate, eDeployed, false},
 
 		// the systeembeheerder (admin) administers beslispunten and settings, not PIP data:
-		// this is what admin.cedar allowed.
+		// the old model let an admin do everything.
 		{"admin must NOT create attribute", withRole("admin"), models.ActionCreate, concept, false},
 		{"admin must NOT update attribute", withRole("admin"), models.ActionUpdate, concept, false},
 		{"admin must NOT delete attribute", withRole("admin"), models.ActionDelete, concept, false},

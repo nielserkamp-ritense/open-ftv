@@ -26,7 +26,7 @@ func (s *stubSearcher) Search(_ context.Context, c *search.Criteria) (authlog.Au
 	return authlog.AuthlogEntries{}, nil
 }
 
-func adlStatus(t *testing.T, searcher search.Searcher, authorizer authorization.RequestAuthorizer, query string) int {
+func adlStatus(t *testing.T, searcher search.Searcher, authorizer authorization.Authorizer, query string) int {
 	t.Helper()
 
 	logger := settingsLogger()
@@ -46,7 +46,17 @@ func TestADLHandler_Search(t *testing.T) {
 
 	searcher := &stubSearcher{}
 
-	assert.Equal(t, fiber.StatusOK, adlStatus(t, searcher, settingsAuth(t), "?subjectId=alice&limit=5"))
+	logger := settingsLogger()
+	srv := fiber.New(fiber.Config{ErrorHandler: server.ErrorHandler(logger)})
+	srv.Get("/v1/adl/entries", NewADLHandler(logger, searcher, settingsAuth(t)).Search)
+
+	resp, err := srv.Test(httptest.NewRequest(fiber.MethodGet, "/v1/adl/entries?subjectId=alice&limit=5", http.NoBody), 60000)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	assert.Equal(t, ADLVersion, resp.Header.Get(HeaderVersion), "the log answers with its own API version")
 	require.NotNil(t, searcher.got)
 	assert.Equal(t, "alice", searcher.got.SubjectId)
 	assert.Equal(t, 5, searcher.got.Limit)
@@ -65,9 +75,12 @@ func TestADLHandler_Search_InvalidCriteria(t *testing.T) {
 	t.Parallel()
 
 	for _, query := range []string{"?recent=soon", "?policies=x"} {
-		assert.Equal(t, fiber.StatusBadRequest, adlStatus(t, &stubSearcher{}, settingsAuth(t), query), query)
+		searcher := &stubSearcher{}
+
+		assert.Equal(t, fiber.StatusBadRequest, adlStatus(t, searcher, settingsAuth(t), query), query)
 		// the denial comes before the parse error.
-		assert.Equal(t, fiber.StatusForbidden, adlStatus(t, &stubSearcher{}, denyAuthorizer{}, query), query)
+		assert.Equal(t, fiber.StatusForbidden, adlStatus(t, searcher, denyAuthorizer{}, query), query)
+		assert.Nil(t, searcher.got, "malformed criteria must NOT reach the log: %s", query)
 	}
 }
 

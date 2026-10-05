@@ -47,7 +47,7 @@ func TestTagAndSettingMatrix(t *testing.T) {
 		{"admin deletes tag", withRole("admin"), models.ActionDelete, tag, true},
 		{"admin updates settings", withRole("admin"), models.ActionUpdate, setting, true},
 
-		// the author administers rules, not beslispunten: this is what author.cedar allowed.
+		// the author administers rules, not beslispunten: the old model let an author write both.
 		{"author must NOT create tag", withRole("author"), models.ActionCreate, tag, false},
 		{"author must NOT update tag", withRole("author"), models.ActionUpdate, tag, false},
 		{"author must NOT delete tag", withRole("author"), models.ActionDelete, tag, false},

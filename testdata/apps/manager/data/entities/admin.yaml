@@ -6,4 +6,3 @@
     password: "$2y$05$diCyM.xdT5Du3HXi4I45fuwTjMlt0u1htvgq.AoU2E2vv.fvrbXGu"
     roles:
       - "admin"
-      - "user"

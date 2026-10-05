@@ -5,12 +5,14 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
 
 // Test_LanguageAndDecision_RoleMatrix drives the matrix for the policy languages and the
@@ -20,6 +22,7 @@ import (
 func Test_LanguageAndDecision_RoleMatrix(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	cnf.PAP.Store = "../../../testdata/apps/manager/policies/cedar"
+	cnf.PIP.Store = "../../../testdata/apps/manager/data/entities"
 	cnf.Authorization.FailClosedOnEmpty = true
 
 	ip := newIDP(t)
@@ -50,6 +53,23 @@ func Test_LanguageAndDecision_RoleMatrix(t *testing.T) {
 		user := ip.token(t, "plain-user", "user")
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/languages", user, nil).StatusCode)
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", user, nil).StatusCode)
+	})
+
+	t.Run("an API key reads the languages, not the log", func(t *testing.T) {
+		key := func(path string) int {
+			req := httptest.NewRequest(http.MethodGet, path, http.NoBody)
+			req.Header.Set(models.HeaderAPIKey, "1234567890abcdef") // system1.yaml
+
+			res, err := app.Test(req, 15000)
+			require.NoError(t, err)
+
+			defer res.Body.Close()
+
+			return res.StatusCode
+		}
+
+		require.Equal(t, http.StatusOK, key("/v1/languages"))
+		require.Equal(t, http.StatusForbidden, key("/v1/adl/entries?recent=1h"))
 	})
 
 	t.Run("malformed criteria are a 400 for a reader and a 403 for anyone else", func(t *testing.T) {

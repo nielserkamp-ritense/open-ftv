@@ -92,15 +92,6 @@ the old rules and the verb-derived fallback from the management path. The one ex
 a path-bound rule that only ever matched a route that has moved: the settings write rule
 went with the settings step (SCRUM-144), because it could match nothing after it.
 
-*Completed (SCRUM-146, 2026-10-05):* languages and ADL entries were the last routes to move,
-and the old-model rules are gone from the seed directories of the manager, the PAP and the
-PIP. Two things were decided in that step. An API key reads the languages but not the ADL:
-the old catch-all read rule for apps is not carried over to `decision`, because the only
-known use of a key is a PDP fetching its bundle, and the log says who asked what about whom.
-And `AuthorizeRequest` with its verb-derived actions stays in the code for one caller outside
-the management plane, the PDP's bundle receiver; no handler of the manager, the PAP or the
-PIP reaches it any more.
-
 Seeding is therefore decided **per file**, no longer per store: a seed file whose id is
 absent is inserted, a present row is left alone, and a row that was seeded once and deleted
 by the operator is not brought back (its audit trail, which survives deletion since
@@ -109,6 +100,17 @@ release adds; "UI wins" still holds for every row the operator has touched. A st
 an audit trail (memory, etcd, consul) cannot tell "never seeded" from "seeded and deleted"
 and keeps the old rule: it is seeded only while empty. Postgres is the supported store for
 the management plane, so that limitation costs nothing in practice.
+
+*Completed (SCRUM-146, 2026-10-05):* languages and ADL entries were the last routes to move,
+and the old-model rules are gone from the seed directories of the manager, the PAP and the
+PIP. Two things were decided in that step. An API key reads every type except the ADL: it
+reads what a deployment ships (policies, tags, deployments, attributes, entities) and the
+languages and UI settings, which hold nothing sensitive, because a key belongs to a PDP or
+another machine that consumes that material. The ADL is not such material: it says
+who asked what about whom, so the old catch-all read rule for apps is not carried over to
+`decision`. And `AuthorizeRequest` with its verb-derived actions stays in the code for one
+caller outside the management plane, the PDP's bundle receiver; the handlers this step
+moved take the `Authorizer` question alone, so they cannot reach it.
 
 ## Consequences
 

@@ -44,7 +44,7 @@ func seedAuthorizer(t *testing.T, dir string) authorization.Authorizer {
 	ip, err := pip.New(ctx, logger, pip.WithKeyValueDB(memory.New(), ""))
 	require.NoError(t, err)
 
-	for _, role := range []string{"author", "auditor"} {
+	for _, role := range []string{"admin", "author", "auditor", "user"} {
 		attrs := models.NewAttributeSet()
 		attrs.AddAttributeKV(models.AttrRoles, role)
 		_, err := ip.AddEntity(models.NewEntity("user", role+"-scalar", attrs))

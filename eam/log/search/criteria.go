@@ -104,7 +104,7 @@ func (c *Criteria) Test() error {
 
 		for i := range c.Bundles {
 			if i > 0 && c.Bundles[i] == c.Bundles[i-1] {
-				errs = append(errs, fmt.Errorf("duplicate request type: %d", c.RequestTypes[i]))
+				errs = append(errs, fmt.Errorf("duplicate bundle: %d", c.Bundles[i]))
 			}
 		}
 	}

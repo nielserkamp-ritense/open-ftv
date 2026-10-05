@@ -75,8 +75,7 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 	})
 
 	t.Run("a user-only principal reads no PIP data", func(t *testing.T) {
-		// the manager's examples dropped the user role (ADR 0006); the old user.cedar no longer
-		// matches these routes.
+		// the manager's examples dropped the user role (ADR 0006): no rule grants it a read.
 		user := ip.token(t, "plain-user", "user")
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/attributes", user, nil).StatusCode)
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/entities", user, nil).StatusCode)

@@ -13,7 +13,7 @@ import (
 
 // NewLanguagesHandler instantiates a policy language handler. Every operation is decided by
 // the language service through the authorizer; a nil authorizer permits everything.
-func NewLanguagesHandler(logger *slog.Logger, store management.LanguageStore, authorizer authorization.RequestAuthorizer, opts ...HandlerOption) *LanguagesHandler {
+func NewLanguagesHandler(logger *slog.Logger, store management.LanguageStore, authorizer authorization.Authorizer, opts ...HandlerOption) *LanguagesHandler {
 	return &LanguagesHandler{
 		logger:            logger,
 		svc:               management.NewLanguageService(store, authorizer),

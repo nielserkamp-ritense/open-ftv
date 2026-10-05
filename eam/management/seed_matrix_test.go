@@ -21,25 +21,52 @@ const (
 )
 
 // oldModel matches a rule written in the HTTP-shaped model ADR 0006 replaced: the `service`
-// resource type or a verb-derived `can_*` action. Prose in a comment does not match.
-var oldModel = regexp.MustCompile(`resource\s+is\s+service\b|name::"can_`)
+// resource type, a verb-derived `can_*` action, or a condition on the HTTP request.
+var oldModel = regexp.MustCompile(`\bis\s+service\b|\bservice::|\bcan_(read|create|update|delete)\b|\bcontext\.http\b|\binput\.(request|http)\b`)
+
+// lineComment matches a comment up to the end of its line, in Cedar (`//`) and Rego (`#`).
+// No shipped policy holds either marker inside a string.
+var lineComment = regexp.MustCompile(`(//|#).*`)
 
 // TestSeedPolicies_noOldModelRules guards the end of the rollout (SCRUM-146): no shipped
-// policy of the manager, the PAP or the PIP is written in the old vocabulary any more.
+// policy of the manager, the PAP or the PIP is written in the old vocabulary any more. Every
+// file of a seed directory is read, whatever its language; prose in a comment does not count.
 func TestSeedPolicies_noOldModelRules(t *testing.T) {
 	t.Parallel()
 
 	for _, dir := range []string{"../../testdata/apps/manager/policies/cedar", papSeedDir, pipSeedDir} {
-		files, err := filepath.Glob(filepath.Join(dir, "*.cedar"))
+		files, err := os.ReadDir(dir)
 		require.NoError(t, err)
 		require.NotEmpty(t, files, dir)
 
 		for _, f := range files {
-			b, err := os.ReadFile(f)
+			if f.IsDir() {
+				continue
+			}
+
+			b, err := os.ReadFile(filepath.Join(dir, f.Name()))
 			require.NoError(t, err)
-			assert.Falsef(t, oldModel.Match(b), "%s still matches on the old model", f)
+
+			rules := lineComment.ReplaceAll(b, nil)
+			assert.Falsef(t, oldModel.Match(rules), "%s/%s still decides on the old model", dir, f.Name())
 		}
 	}
+}
+
+func TestOldModel_matchesRulesNotProse(t *testing.T) {
+	t.Parallel()
+
+	for _, rule := range []string{
+		`permit (principal, action, resource is service);`,
+		`permit (principal, action, resource == service::"x");`,
+		`permit (principal, action == name::"can_read", resource);`,
+		`forbid (principal, action, resource) when { context.http.path == "/v1/deployment" };`,
+	} {
+		assert.Truef(t, oldModel.MatchString(rule), "must match: %s", rule)
+	}
+
+	prose := []byte("// replaces the old resource is service rule\npermit (principal, action, resource is tag);")
+	assert.False(t, oldModel.Match(lineComment.ReplaceAll(prose, nil)), "a comment must NOT match")
 }
 
 // TestStandaloneSeedMatrix pins the shipped policies of the standalone PAP and PIP. They keep
@@ -93,6 +120,11 @@ func TestStandaloneSeedMatrix(t *testing.T) {
 
 				check("app reads "+typ, app, models.ActionRead, r, true)
 				check("app must NOT create "+typ, app, models.ActionCreate, r, false)
+
+				// locally seeded users carry roles as a plain string, not a set.
+				check("scalar admin role deletes "+typ, scalarRole("admin"), models.ActionDelete, r, true)
+				check("scalar user role reads "+typ, scalarRole("user"), models.ActionRead, r, true)
+				check("scalar user role must NOT create "+typ, scalarRole("user"), models.ActionCreate, r, false)
 
 				check("unknown role must NOT read "+typ, withRole("visitor"), models.ActionRead, r, false)
 				check("user without roles must NOT read "+typ, withRole(""), models.ActionRead, r, false)
