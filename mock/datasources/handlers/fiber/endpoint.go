@@ -8,6 +8,7 @@ import (
 
 	server "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/server/fiber"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/filtering"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/schema"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/store/memory/models"
@@ -54,6 +55,17 @@ func (h *endpointHandler) handleGet(req *fiber.Ctx) error {
 	reqCtx, err := buildRequestContext(req, h.def.Table)
 	if err != nil {
 		return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+	}
+
+	for _, hf := range h.def.HeaderFilters {
+		value, err2 := hf.Value(req.Get(hf.Header))
+		if err2 != nil {
+			return server.SendMessageResponse(req, fiber.StatusBadRequest, err2.Error())
+		}
+
+		if err = reqCtx.AndFilter(filtering.FilterFromMap(h.def.Table, map[string]any{hf.Field: value})); err != nil {
+			return server.SendMessageResponse(req, fiber.StatusBadRequest, err.Error())
+		}
 	}
 
 	if err = reqCtx.Filter.Prepare(h.def.GetDatasource(), h.def.Joins); err != nil {

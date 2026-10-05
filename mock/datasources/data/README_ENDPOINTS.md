@@ -59,6 +59,29 @@ Example:
 - datasource - *required* - the datasource the endpoint will operate for.
 - table - *required* - the primary table to retrieve data from.
 - joins - *optional* - list of (SQL-like) joins, to enrich the rows from the primary table with additional information.
+- headerFilters - *optional* - list of filters on a value taken from a request header (only for a `type: GET` endpoint that returns a list).
+
+### Header filter definition ###
+
+A header filter returns only the rows where a field equals a value taken from a request header.
+It applies on top of any `@filter` in the request.
+A request without the header, or with a value that doesn't match the pattern, gets a 400.
+
+- header - required - the request header to read.
+- field - required - the field to filter on; qualify it with the table id for a joined table, e.g. `inschrijving.gemeente`.
+- pattern - required - regular expression the header value must match; its first capture group is the value to filter on.
+
+Example: with the definition below, the header `Afnemersindicatie: 001.01` returns only persons with `inschrijving.gemeente` `001`.
+
+```yaml
+  headerFilters:
+    - header: Afnemersindicatie
+      field: inschrijving.gemeente
+      pattern: '^([0-9]+)\.[0-9]+$'
+```
+
+A filter on a `ForcedSibling` join drops the rows without a match.
+On an `OptionalSibling` join it doesn't: the row stays, only without the joined data.
 
 ### Join definition ###
 

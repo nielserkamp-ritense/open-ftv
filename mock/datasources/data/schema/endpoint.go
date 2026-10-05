@@ -27,18 +27,19 @@ import (
 // To just exclude one or more fields, use []string{"*", "!f1", "!f2"}.
 // An excluded field takes precedence over an included field.
 type Endpoint struct {
-	Version     uint8            // major version of the endpoint (e.g. v1, v2, ...).
-	Type        enums.MethodType // the type of call to handle.
-	CalledAs    enums.MethodType // the method the endpoint will be called with.
-	Path        string           // the path (excluding the version) for the endpoint.
-	FullVersion string           // the full version of the endpoint (e.g. 1.0.0, 1.2.1, ...).
-	Description string           // description of the endpoint.
-	Datasource  string           // the datasource the endpoint will access.
-	Table       string           // the primary table within the datasource the endpoint will access.
-	Joins       []*Join          // optional joins tables the endpoint will access.
-	Keys        []string         // optional list of keys used for Read, Create, Update, Patch, Delete.
-	Fields      []string         // the fields within the tables the endpoint will access.
-	Filter      map[string]any   // optional fixed filter for the endpoint.
+	Version       uint8            // major version of the endpoint (e.g. v1, v2, ...).
+	Type          enums.MethodType // the type of call to handle.
+	CalledAs      enums.MethodType // the method the endpoint will be called with.
+	Path          string           // the path (excluding the version) for the endpoint.
+	FullVersion   string           // the full version of the endpoint (e.g. 1.0.0, 1.2.1, ...).
+	Description   string           // description of the endpoint.
+	Datasource    string           // the datasource the endpoint will access.
+	Table         string           // the primary table within the datasource the endpoint will access.
+	Joins         []*Join          // optional joins tables the endpoint will access.
+	Keys          []string         // optional list of keys used for Read, Create, Update, Patch, Delete.
+	Fields        []string         // the fields within the tables the endpoint will access.
+	Filter        map[string]any   // optional fixed filter for the endpoint.
+	HeaderFilters []*HeaderFilter  // optional filters on a value taken from a request header.
 	// hidden fields
 	datasource    *Datasource       // the datasource of the tables.
 	primary       *Table            // primary table in a join.
@@ -76,18 +77,19 @@ func (e *Endpoint) FieldIncluded(fqdn string) bool {
 // MarshalJSON implements the JSON Marshaler interface.
 func (e *Endpoint) MarshalJSON() ([]byte, error) {
 	e2 := encodeEndpoint{
-		Version:     e.Version,
-		Type:        e.Type,
-		CalledAs:    e.CalledAs,
-		Path:        e.Path,
-		FullVersion: e.FullVersion,
-		Description: e.Description,
-		Datasource:  e.Datasource,
-		Table:       e.Table,
-		Joins:       e.Joins,
-		Keys:        e.Keys,
-		Fields:      e.Fields,
-		Filter:      e.Filter,
+		Version:       e.Version,
+		Type:          e.Type,
+		CalledAs:      e.CalledAs,
+		Path:          e.Path,
+		FullVersion:   e.FullVersion,
+		Description:   e.Description,
+		Datasource:    e.Datasource,
+		Table:         e.Table,
+		Joins:         e.Joins,
+		Keys:          e.Keys,
+		Fields:        e.Fields,
+		Filter:        e.Filter,
+		HeaderFilters: e.HeaderFilters,
 	}
 	return json.Marshal(&e2)
 }
@@ -111,6 +113,7 @@ func (e *Endpoint) UnmarshalJSON(b []byte) error {
 	e.Keys = e2.Keys
 	e.Fields = e2.Fields
 	e.Filter = e2.Filter
+	e.HeaderFilters = e2.HeaderFilters
 
 	if e.CalledAs == 0 {
 		e.CalledAs = e2.Type
@@ -122,18 +125,19 @@ func (e *Endpoint) UnmarshalJSON(b []byte) error {
 // MarshalYAML implements the YAML Marshaler interface.
 func (e *Endpoint) MarshalYAML() ([]byte, error) {
 	e2 := encodeEndpoint{
-		Version:     e.Version,
-		Type:        e.Type,
-		CalledAs:    e.CalledAs,
-		Path:        e.Path,
-		FullVersion: e.FullVersion,
-		Description: e.Description,
-		Datasource:  e.Datasource,
-		Table:       e.Table,
-		Joins:       e.Joins,
-		Keys:        e.Keys,
-		Fields:      e.Fields,
-		Filter:      e.Filter,
+		Version:       e.Version,
+		Type:          e.Type,
+		CalledAs:      e.CalledAs,
+		Path:          e.Path,
+		FullVersion:   e.FullVersion,
+		Description:   e.Description,
+		Datasource:    e.Datasource,
+		Table:         e.Table,
+		Joins:         e.Joins,
+		Keys:          e.Keys,
+		Fields:        e.Fields,
+		Filter:        e.Filter,
+		HeaderFilters: e.HeaderFilters,
 	}
 	return yaml.Marshal(&e2)
 }
@@ -157,6 +161,7 @@ func (e *Endpoint) UnmarshalYAML(b []byte) error {
 	e.Keys = e2.Keys
 	e.Fields = e2.Fields
 	e.Filter = e2.Filter
+	e.HeaderFilters = e2.HeaderFilters
 
 	if e.CalledAs == 0 {
 		e.CalledAs = e2.Type
@@ -166,18 +171,19 @@ func (e *Endpoint) UnmarshalYAML(b []byte) error {
 }
 
 type encodeEndpoint struct {
-	Version     uint8            `json:"version" yaml:"version"`
-	Type        enums.MethodType `json:"type" yaml:"type"`
-	CalledAs    enums.MethodType `json:"calledAs" yaml:"calledAs"`
-	Path        string           `json:"path" yaml:"path"`
-	FullVersion string           `json:"fullVersion,omitempty" yaml:"fullVersion,omitempty"`
-	Description string           `json:"description,omitempty" yaml:"description,omitempty"`
-	Datasource  string           `json:"datasource,omitempty" yaml:"datasource,omitempty"`
-	Table       string           `json:"table,omitempty" yaml:"table,omitempty"`
-	Joins       []*Join          `json:"joins,omitempty" yaml:"joins,omitempty"`
-	Keys        []string         `json:"keys,omitempty" yaml:"keys,omitempty"`
-	Fields      []string         `json:"fields,omitempty" yaml:"fields,omitempty"`
-	Filter      map[string]any   `json:"filter,omitempty" yaml:"filter,omitempty"`
+	Version       uint8            `json:"version" yaml:"version"`
+	Type          enums.MethodType `json:"type" yaml:"type"`
+	CalledAs      enums.MethodType `json:"calledAs" yaml:"calledAs"`
+	Path          string           `json:"path" yaml:"path"`
+	FullVersion   string           `json:"fullVersion,omitempty" yaml:"fullVersion,omitempty"`
+	Description   string           `json:"description,omitempty" yaml:"description,omitempty"`
+	Datasource    string           `json:"datasource,omitempty" yaml:"datasource,omitempty"`
+	Table         string           `json:"table,omitempty" yaml:"table,omitempty"`
+	Joins         []*Join          `json:"joins,omitempty" yaml:"joins,omitempty"`
+	Keys          []string         `json:"keys,omitempty" yaml:"keys,omitempty"`
+	Fields        []string         `json:"fields,omitempty" yaml:"fields,omitempty"`
+	Filter        map[string]any   `json:"filter,omitempty" yaml:"filter,omitempty"`
+	HeaderFilters []*HeaderFilter  `json:"headerFilters,omitempty" yaml:"headerFilters,omitempty"`
 }
 
 // Fix (re)sets the parent-child relationships for this object.

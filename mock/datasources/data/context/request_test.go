@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/filtering"
 )
 
 func TestConvertParams(t *testing.T) {
@@ -243,4 +245,45 @@ func TestNew(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRequestContext_AndFilter(t *testing.T) {
+	t.Parallel()
+
+	extra := filtering.FilterFromMap("persoon", map[string]any{"inschrijving.gemeente": "001"})
+
+	testCases := []struct {
+		name       string
+		body       map[string]any
+		wantFilter string
+	}{
+		{
+			name:       "no filter in request",
+			wantFilter: "{allOf:[{allOf:[]} {level=join,join=inschrijving,field=gemeente,compare-type=IsEqual,value=001}]}",
+		},
+		{
+			name:       "filter in request",
+			body:       map[string]any{"@filter": "adres.postcode=1111AA"},
+			wantFilter: "{allOf:[{level=join,join=adres,field=postcode,compare-type=IsEqual,value=1111AA} {level=join,join=inschrijving,field=gemeente,compare-type=IsEqual,value=001}]}",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			reqCtx, err := New(nil, tc.body, "persoon")
+			require.NoError(t, err)
+
+			require.NoError(t, reqCtx.AndFilter(extra))
+			assert.Equal(t, tc.wantFilter, reqCtx.Filter.String())
+		})
+	}
+
+	t.Run("other filterer", func(t *testing.T) {
+		t.Parallel()
+
+		reqCtx := &RequestContext{Filter: &filtering.AllOfFilter{}}
+		require.Error(t, reqCtx.AndFilter(extra))
+	})
 }

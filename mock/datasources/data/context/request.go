@@ -1,6 +1,7 @@
 package context
 
 import (
+	"fmt"
 	"maps"
 	"strings"
 
@@ -89,6 +90,18 @@ func New(query map[string]string, body map[string]any, primary string) (*Request
 		Params:        params,
 		RemainingBody: body,
 	}, nil
+}
+
+// AndFilter narrows the filter down to the rows that also match the given filter.
+func (r *RequestContext) AndFilter(extra *filtering.Filter) error {
+	f, ok := r.Filter.(*filtering.Filter)
+	if !ok {
+		return fmt.Errorf("cannot combine a filter of type %T", r.Filter)
+	}
+
+	r.Filter = &filtering.Filter{AllOfFilter: filtering.AllOfFilter{AllOf: filtering.Filters{f, extra}}}
+
+	return nil
 }
 
 func convertParams(in any) map[string]any {
