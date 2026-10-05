@@ -35,18 +35,10 @@ routes:
 consumers:
 - username: gemeente-vlierdam
   custom_id: vlierdam
-  tags:
-    - government-agency
-# Test-only consumer with a valid key but no government-agency tag, for exercising the actual
-# PDP-level deny path (as opposed to key-auth's authentication-level 401).
-- username: test-non-government-agency
-  custom_id: test-non-government-agency
 
 keyauth_credentials:
 - consumer: gemeente-vlierdam
   key: vlierdam_475f1db8e46d4274010247933058effe0aefcbc2
-- consumer: test-non-government-agency
-  key: test_org_0c4c5511a8cf31ea83680af9e2ee7f5a36b99e73
 
 plugins:
 - id: 54412cbe-a2e6-43a6-9303-ed214123af9e

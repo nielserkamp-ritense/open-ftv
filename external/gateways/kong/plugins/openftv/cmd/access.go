@@ -103,14 +103,9 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 
 	parc := c.pep.PARCFromRequest(&req, func(uid string) (*models.Entity, uint64, error) { return nil, 0, nil })
 
-	// Uses the consumer key-auth resolved as the principal, if present, carrying its Kong tags.
+	// Uses the consumer key-auth resolved as the principal, if present.
 	if consumer, _ := kong.Client.GetConsumer(); consumer.Id != "" {
-		attrs := models.NewAttributeSet()
-		if len(consumer.Tags) > 0 {
-			attrs.AddAttributeKV("tags", consumer.Tags)
-		}
-
-		parc.Principal = models.NewEntity(pep.PrincipalApp, consumer.Username, attrs)
+		parc.Principal = models.NewEntity(pep.PrincipalApp, consumer.Username, models.NewAttributeSet())
 	}
 
 	if response != nil {

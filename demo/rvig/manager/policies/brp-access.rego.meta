@@ -1,5 +1,5 @@
 id: "brp-access"
 language: "rego"
 metadata:
-  description: "Government-agency, doelbinding and same-gemeente residency check for BRP reads."
+  description: "Doelbinding and same-gemeente residency check for BRP reads."
   tags: ["inway"]

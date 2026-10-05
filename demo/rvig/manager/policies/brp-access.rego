@@ -12,8 +12,6 @@ is_brp_request if input.context.http.path == "/v1/haalcentraal/api/brp/personen"
 
 allow if not is_brp_request
 
-is_government_agency if input.subject.attributes.tags[_] == "government-agency"
-
 has_correct_doelbinding if input.context.doelbinding == "identificatie-en-ingezetenschap"
 
 queried_gemeente := data.entities.burger[bsn].gemeente if {
@@ -28,25 +26,17 @@ queried_gemeente := data.entities.adres[postcode].gemeente if {
 
 allow if {
 	is_brp_request
-	is_government_agency
 	has_correct_doelbinding
 	queried_gemeente == consumer_gemeente
 }
 
-reason := "geen overheidsinstantie" if {
-	is_brp_request
-	not is_government_agency
-}
-
 reason := "verkeerde doelbinding" if {
 	is_brp_request
-	is_government_agency
 	not has_correct_doelbinding
 }
 
 reason := "inwoner niet van deze gemeente" if {
 	is_brp_request
-	is_government_agency
 	has_correct_doelbinding
 	queried_gemeente != consumer_gemeente
 }
