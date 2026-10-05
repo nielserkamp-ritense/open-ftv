@@ -94,6 +94,8 @@ func TestAttributeAndEntityMatrix(t *testing.T) {
 		// no role, an unknown role, or no identity at all: nothing.
 		{"user without roles must NOT read attribute", withRole(""), models.ActionRead, concept, false},
 		{"unknown role must NOT read entity", withRole("visitor"), models.ActionRead, eConcept, false},
+		{"user role must NOT read attribute", withRole("user"), models.ActionRead, concept, false},
+		{"user role must NOT read entities", withRole("user"), models.ActionRead, entities, false},
 		{"system must NOT read attribute", authorization.SystemRequestPrincipal(), models.ActionRead, concept, false},
 
 		// an API key reads only.

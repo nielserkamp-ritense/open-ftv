@@ -3,9 +3,12 @@
 package server
 
 import (
+	"bytes"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +29,9 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 	ip := newIDP(t)
 	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}
 
-	lgr := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	// the log is kept: the detail view only warns when its audit or usage query fails.
+	logged := &syncBuffer{}
+	lgr := slog.New(slog.NewTextHandler(io.MultiWriter(os.Stderr, logged), nil))
 	app := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
 	author, auditor, admin := ip.token(t, "author-user", "author"), ip.token(t, "auditor-user", "auditor"), ip.token(t, "admin-user", "admin")
@@ -57,6 +62,23 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/entity/user/alice", admin, ent).StatusCode)
 		require.Equal(t, http.StatusCreated, call(t, app, http.MethodPost, "/v1/entity/user/alice", author, ent).StatusCode)
+	})
+
+	t.Run("the detail view reads its own audit log and usage data", func(t *testing.T) {
+		require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/attribute/max-age", auditor, nil).StatusCode)
+		require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/entity/user/alice", auditor, nil).StatusCode)
+
+		// a failing query is a warning and an empty list, never a failed request: only the log tells.
+		require.NotContains(t, logged.String(), "failed to read attribute")
+		require.NotContains(t, logged.String(), "failed to read entity")
+	})
+
+	t.Run("a user-only principal reads no PIP data", func(t *testing.T) {
+		// the manager's examples dropped the user role (ADR 0006); the old user.cedar no longer
+		// matches these routes.
+		user := ip.token(t, "plain-user", "user")
+		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/attributes", user, nil).StatusCode)
+		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/entities", user, nil).StatusCode)
 	})
 
 	t.Run("a denied caller cannot tell a missing object from an existing one", func(t *testing.T) {
@@ -111,4 +133,24 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/entity/user/alice", admin, nil).StatusCode)
 		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/attribute/max-age", auditor, nil).StatusCode)
 	})
+}
+
+// syncBuffer is a bytes.Buffer the server's goroutines may write to while the test reads it.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.String()
 }

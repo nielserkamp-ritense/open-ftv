@@ -83,7 +83,7 @@ func (db *PostgresDB) ReadEntityDeployments(ctx context.Context, ns, id string) 
  FROM entity_deployment e
  INNER JOIN deployment_bundle b ON b.id=e.bundle_id
  INNER JOIN deployment d ON d.version=b.version
- WHERE e.type=$1 AND a.id=$2
+ WHERE e.type=$1 AND e.id=$2
  ORDER BY b.created DESC
  LIMIT 100`
 

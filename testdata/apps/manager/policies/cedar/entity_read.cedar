@@ -1,4 +1,6 @@
-// Every role reads PIP data (SCRUM-16 matrix: "PIP lezen").
+// The admin, the author and the auditor read PIP data (SCRUM-16 matrix: "PIP lezen"). The
+// `user` role is not among them: the manager's examples dropped it, because `auditor` already
+// means "read everything" (ADR 0006).
 // roles is a set for token users and may be a plain string for locally seeded users.
 permit (
     principal is user,
