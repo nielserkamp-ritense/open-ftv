@@ -1,4 +1,4 @@
-{{- if .Values.config.pipPullConfig -}}
+{{- if and .Values.config.pipPullConfig (not .Values.config.pipPullConfigExistingConfigMap) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -1,4 +1,5 @@
 {{- $fullname := include "open-ftv-pdp.fullname" . -}}
+{{- $pipPullConfig := or .Values.config.pipPullConfig .Values.config.pipPullConfigExistingConfigMap -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +32,7 @@ spec:
         checksum/policy-entities: {{ include (print $.Template.BasePath "/configmap-policy-entities.yaml") . | sha256sum }}
       {{- end }}
     {{- end }}
-      {{- if .Values.config.pipPullConfig }}
+      {{- if and .Values.config.pipPullConfig (not .Values.config.pipPullConfigExistingConfigMap) }}
         checksum/pip-pull-config: {{ include (print $.Template.BasePath "/configmap-pip-pull-config.yaml") . | sha256sum }}
       {{- end }}
       labels:
@@ -95,7 +96,7 @@ spec:
               value: /etc/open-ftv/pdp
             {{- end }}
           {{- end }}
-          {{- if .Values.config.pipPullConfig }}
+          {{- if $pipPullConfig }}
             - name: PDP_PIP_PULL_CONFIGS
               value: /etc/open-ftv/pdp/pip-pull-config.yaml
           {{- end }}
@@ -151,7 +152,7 @@ spec:
               readOnly: true
             {{- end }}
           {{- end }}
-          {{- if .Values.config.pipPullConfig }}
+          {{- if $pipPullConfig }}
             - name: pip-pull-config
               mountPath: /etc/open-ftv/pdp/pip-pull-config.yaml
               subPath: pip-pull-config.yaml
@@ -179,10 +180,10 @@ spec:
             name: {{ $fullname }}-policy-entities
         {{- end }}
       {{- end }}
-      {{- if .Values.config.pipPullConfig }}
+      {{- if $pipPullConfig }}
         - name: pip-pull-config
           configMap:
-            name: {{ $fullname }}-pip-pull-config
+            name: {{ default (printf "%s-pip-pull-config" $fullname) .Values.config.pipPullConfigExistingConfigMap }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

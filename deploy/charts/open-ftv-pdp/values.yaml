@@ -31,6 +31,9 @@ config:
   policyEntities: {}
 
   pipPullConfig: {}
+  # An existing ConfigMap with the pull config under the key pip-pull-config.yaml, instead of
+  # pipPullConfig.
+  # pipPullConfigExistingConfigMap: ""
 
   requestMappings: []
 
