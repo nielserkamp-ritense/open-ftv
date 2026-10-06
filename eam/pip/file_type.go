@@ -54,12 +54,6 @@ func detectType(f io.ReadSeeker, mt string) (ft fileType, mimeType string, data 
 		return detectTypeFromYAML(f)
 	case mime.MimeTypeTOML:
 		return detectTypeFromTOML(f)
-		// case mime.MimeTypeXML:
-		// 	// TODO: ...
-		// case mime.MimeTypeCSV:
-		// 	// TODO: ...
-		// case mime.MimeTypeTabSep:
-		// 	// TODO: ...
 	}
 
 	return
