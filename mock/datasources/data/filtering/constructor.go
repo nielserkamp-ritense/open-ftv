@@ -1,19 +1,21 @@
 package filtering
 
 import (
+	"maps"
 	"regexp"
+	"slices"
 	"strings"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/maps"
 )
 
 // FilterFromQuery returns a filter based on a previously decoded HTTP query string.
 func FilterFromQuery(primary string, query map[string]string) *Filter {
 	c := newConstructor(primary)
 
-	maps.ProcessOrdered(query, func(key string, value string) {
+	for _, key := range slices.Sorted(maps.Keys(query)) {
+		value := query[key]
 		if key == "@filter" {
 			c.addFilter(FilterFromAny(primary, value))
 		} else {
@@ -29,7 +31,7 @@ func FilterFromQuery(primary string, query map[string]string) *Filter {
 				c.addTableKeyValue(parts[0], parts[1], value)
 			}
 		}
-	})
+	}
 
 	return c.normalizedResult()
 }
@@ -38,7 +40,8 @@ func FilterFromQuery(primary string, query map[string]string) *Filter {
 func FilterFromMap(primary string, m map[string]any) *Filter {
 	c := newConstructor(primary)
 
-	maps.ProcessOrdered(m, func(key string, value any) {
+	for _, key := range slices.Sorted(maps.Keys(m)) {
+		value := m[key]
 		if key == "@filter" {
 			c.addFilter(FilterFromAny(primary, convert.AnyToString(value)))
 		} else {
@@ -54,7 +57,7 @@ func FilterFromMap(primary string, m map[string]any) *Filter {
 				c.addTableKeyValue(parts[0], parts[1], value)
 			}
 		}
-	})
+	}
 
 	return c.normalizedResult()
 }

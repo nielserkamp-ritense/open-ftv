@@ -1,7 +1,8 @@
 package schema
 
 import (
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/maps"
+	"maps"
+	"slices"
 )
 
 // Object represents a datasource object; e.g., a datasource table or structured field.
@@ -26,9 +27,9 @@ func (o *Object) GetField(id string) *Field {
 
 // IterateFields iterates over the field definitions in the object and calls the closure for each field.
 func (o *Object) IterateFields(f func(*Field)) {
-	maps.ProcessOrdered(o.fields, func(_ string, v *Field) {
-		f(v)
-	})
+	for _, id := range slices.Sorted(maps.Keys(o.fields)) {
+		f(o.fields[id])
+	}
 }
 
 // Fix (re)sets the parent-child relationships for this object.
