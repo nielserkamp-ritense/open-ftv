@@ -45,7 +45,10 @@ func (s *service) run() {
 	}()
 
 	// first signal performs orderly shutdown.
-	<-s.intChan
+	select {
+	case <-s.intChan:
+	case <-s.stop:
+	}
 
 	if s.shutdown.Load() {
 		// this indicates the server never got started, so there's nothing to shut down!

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -223,7 +224,13 @@ func TestForceAbort(t *testing.T) {
 		go func() {
 			time.Sleep(25 * time.Millisecond)
 			s.Shutdown()
-			s.Shutdown()
+
+			// a second OS signal while stopping forces the stop.
+			select {
+			case s.(*service).intChan <- syscall.SIGQUIT:
+			case <-time.After(time.Second):
+			}
+
 			wg.Done()
 		}()
 
@@ -231,4 +238,26 @@ func TestForceAbort(t *testing.T) {
 
 		assert.GreaterOrEqual(t, h.Count(), 1)
 	})
+}
+
+func TestShutdownTwiceStopsGracefully(t *testing.T) {
+	t.Parallel()
+
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	s := New(slog.New(h), nil, server.WithDefaults(), server.WithHostPort("127.0.0.1", 20006))
+
+	done := make(chan struct{})
+
+	go func() {
+		s.Serve()
+		close(done)
+	}()
+
+	time.Sleep(25 * time.Millisecond)
+	s.Shutdown()
+	s.Shutdown()
+	<-done
+
+	assert.Contains(t, h.Log(), "http service stopped successfully")
+	assert.NotContains(t, h.Log(), "aborted")
 }

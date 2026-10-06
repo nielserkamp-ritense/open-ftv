@@ -27,6 +27,7 @@ func New(logger *slog.Logger, initRoutes Router, opts ...server.Option) server.S
 		cancel:  cancel,
 		logger:  logger,
 		intChan: make(chan os.Signal),
+		stop:    make(chan struct{}),
 	}
 
 	s.LoadOptions(opts...)
@@ -79,14 +80,9 @@ func (s *service) ServeWithWG(wg *sync.WaitGroup) {
 	s.cancel()
 }
 
-// Shutdown stops the HTTP(S) service.
+// Unlike a second OS signal, calling Shutdown again never forces the stop.
 func (s *service) Shutdown() {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	select {
-	case s.intChan <- syscall.SIGQUIT:
-	case <-s.ctx.Done():
-	}
+	s.stopOnce.Do(func() { close(s.stop) })
 }
 
 func (s *service) GetFiberApp() *fiber.App {
@@ -100,6 +96,7 @@ type service struct {
 	logger   *slog.Logger
 	svc      *fiber.App
 	intChan  chan os.Signal
-	mutex    sync.Mutex
+	stop     chan struct{}
+	stopOnce sync.Once
 	shutdown atomic.Bool
 }
