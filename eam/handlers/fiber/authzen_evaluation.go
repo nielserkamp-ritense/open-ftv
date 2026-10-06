@@ -97,6 +97,7 @@ func (p *authProcess) authorizeRequestAuthZEN() error {
 	p.decided = time.Now()
 
 	if p.err != nil {
+		p.status = fiber.StatusInternalServerError
 		p.msg = "AuthZEN evaluation failed"
 		p.logger.Error(p.msg, "request", p.parc, "error", p.err)
 		return server.SendMessageResponse(p.fc, p.status, p.msg)

@@ -155,6 +155,7 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 	p.decided = time.Now()
 
 	if p.err != nil {
+		p.status = fiber.StatusInternalServerError
 		p.msg = "AuthZEN evaluations failed"
 		p.logger.Error(p.msg, "request", p.batch, "error", p.err)
 		return server.SendMessageResponse(p.fc, p.status, p.msg)

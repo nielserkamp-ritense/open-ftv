@@ -444,7 +444,7 @@ func TestADLCompliance_SearchEventNamesAndErrorStatus(t *testing.T) {
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			defer resp.Body.Close()
-			require.Equal(t, http.StatusOK, resp.StatusCode)
+			require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 			row := queryDecisionByTraceID(t, dsn, tc.traceID)
 			assert.Equal(t, tc.eventName, row.EventName)

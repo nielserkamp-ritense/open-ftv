@@ -184,6 +184,7 @@ func (p *authProcess) searchAuthZEN() error {
 	p.decided = time.Now()
 
 	if p.err != nil {
+		p.status = fiber.StatusInternalServerError
 		p.msg = fmt.Sprintf("AuthZEN %s search failed", p.search.String())
 		p.logger.Error(p.msg, "request", p.parc, "error", p.err)
 		return server.SendMessageResponse(p.fc, p.status, p.msg)
