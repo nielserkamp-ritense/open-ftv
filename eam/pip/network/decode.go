@@ -41,7 +41,7 @@ func (r *runner) decodeResponse() {
 	case mime.MimeTypeTOML:
 		r.err = toml.Unmarshal(data, &r.data)
 	case mime.MimeTypeTurtle, mime.MimeTypeJSONLD:
-		r.err = r.decodeRDF(data, ct)
+		r.err = fmt.Errorf("decoding %s responses is not supported", ct)
 	default:
 		r.err = r.decodeJSON(data)
 	}

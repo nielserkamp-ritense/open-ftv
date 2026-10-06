@@ -280,6 +280,20 @@ value = "first code"
 			wantErr: true,
 		},
 		{
+			name:    "turtle",
+			data:    `<urn:a> <urn:b> "c" .`,
+			content: "text/turtle",
+			dec:     &ResponseMapping{},
+			wantErr: true,
+		},
+		{
+			name:    "json-ld",
+			data:    `{"@context": {}, "@id": "urn:a"}`,
+			content: "application/ld+json",
+			dec:     &ResponseMapping{},
+			wantErr: true,
+		},
+		{
 			name:    "bad yaml",
 			data:    "- 6 : - : \000",
 			content: "application/yaml",
