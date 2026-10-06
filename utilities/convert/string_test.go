@@ -7,29 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRemoveHeaderParameters(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name string
-		in   string
-		want string
-	}{
-		{name: "empty"},
-		{name: "no charset", in: "application/xml", want: "application/xml"},
-		{name: "charset", in: "application/xml; charset=utf-8", want: "application/xml"},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := RemoveHeaderParameters(tc.in)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
 func TestAnyToString(t *testing.T) {
 	t.Parallel()
 

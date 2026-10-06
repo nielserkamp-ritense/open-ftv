@@ -8,14 +8,6 @@ import (
 	"github.com/goccy/go-json"
 )
 
-// RemoveHeaderParameters removes any optional parameters from an HTTP header value.
-func RemoveHeaderParameters(in string) string {
-	if i := strings.Index(in, ";"); i >= 0 {
-		return strings.TrimSpace(in[:i])
-	}
-	return in
-}
-
 // AnyToString converts the input to a string.
 //
 // It supports the most commonly used Golang data-types directly.

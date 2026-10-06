@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"strings"
+	"mime"
 
 	"github.com/goccy/go-json"
 
@@ -21,7 +21,7 @@ import (
 //
 // Currently supported content-types are JSON and XML.
 func ParseBody(body []byte, contentType string) (map[string]any, error) {
-	ct := strings.ToLower(convert.RemoveHeaderParameters(contentType))
+	ct, _, _ := mime.ParseMediaType(contentType)
 
 	parser, ok := parsers[ct]
 	if !ok {
