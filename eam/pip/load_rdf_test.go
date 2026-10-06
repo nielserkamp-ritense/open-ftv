@@ -13,7 +13,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/rdf"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
@@ -531,7 +530,7 @@ func TestGetKey(t *testing.T) {
 				graph:  graph,
 			}
 
-			got, err2 := l.getString(tc.sub, rdf.FTVAttributeKey)
+			got, err2 := l.getString(tc.sub, ftvAttributeKey)
 			if tc.wantErr {
 				require.Error(t, err2)
 			} else {

@@ -1,4 +1,4 @@
-package rdf
+package pip
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFromString(t *testing.T) {
+func TestRDFFromString(t *testing.T) {
 	t.Parallel()
 
 	html := "<html><head><title>Hello World</title></head><body>nothing to see here</body></html>"
@@ -34,7 +34,7 @@ func TestFromString(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := FromString(tc.data, tc.t)
+			got, err := rdfFromString(tc.data, tc.t)
 			if tc.wantErr {
 				require.Error(t, err)
 			} else {

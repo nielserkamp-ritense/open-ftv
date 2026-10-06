@@ -9,7 +9,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/rdf"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
@@ -40,7 +39,7 @@ func (l *loader) run() {
 }
 
 func (l *loader) loadEntities() {
-	list := l.graph.All(nil, rdf2go.NewResource(rdf.Type), rdf2go.NewResource(rdf.FTVEntity))
+	list := l.graph.All(nil, rdf2go.NewResource(rdfType), rdf2go.NewResource(ftvEntity))
 	for i := range list {
 		sub := list[i].Subject
 
@@ -51,7 +50,7 @@ func (l *loader) loadEntities() {
 
 		attributes := models.NewAttributeSet()
 
-		attrList := l.graph.All(sub, rdf2go.NewResource(rdf.FTVEntityAttribute), nil)
+		attrList := l.graph.All(sub, rdf2go.NewResource(ftvEntityAttribute), nil)
 		for j := range attrList {
 			k, v, err2 := l.getKeyValue(attrList[j].Object)
 			if err2 != nil {
@@ -66,7 +65,7 @@ func (l *loader) loadEntities() {
 }
 
 func (l *loader) loadAttributes() {
-	list := l.graph.All(nil, rdf2go.NewResource(rdf.Type), rdf2go.NewResource(rdf.FTVAttribute))
+	list := l.graph.All(nil, rdf2go.NewResource(rdfType), rdf2go.NewResource(ftvAttribute))
 	for i := range list {
 		k, v, err := l.getKeyValue(list[i].Subject)
 		if err != nil {
@@ -78,12 +77,12 @@ func (l *loader) loadAttributes() {
 }
 
 func (l *loader) getTypeID(sub rdf2go.Term) (string, string, error) {
-	t, err1 := l.getString(sub, rdf.FTVEntityType)
+	t, err1 := l.getString(sub, ftvEntityType)
 	if err1 != nil {
 		return "", "", err1
 	}
 
-	id, err2 := l.getString(sub, rdf.FTVEntityID)
+	id, err2 := l.getString(sub, ftvEntityID)
 	if err2 != nil {
 		return "", "", err2
 	}
@@ -92,12 +91,12 @@ func (l *loader) getTypeID(sub rdf2go.Term) (string, string, error) {
 }
 
 func (l *loader) getKeyValue(sub rdf2go.Term) (string, any, error) {
-	k, err1 := l.getString(sub, rdf.FTVAttributeKey)
+	k, err1 := l.getString(sub, ftvAttributeKey)
 	if err1 != nil {
 		return "", nil, err1
 	}
 
-	v, err2 := l.getValue(sub, rdf.FTVAttributeValue)
+	v, err2 := l.getValue(sub, ftvAttributeValue)
 	if err2 != nil {
 		return "", nil, err2
 	}
@@ -197,14 +196,14 @@ func (l *loader) convertObject(obj rdf2go.Term) (string, any, error) {
 		return "", v, err
 
 	case *rdf2go.BlankNode, *rdf2go.Resource:
-		k, err1 := l.getString(obj, rdf.FTVAttributeKey)
+		k, err1 := l.getString(obj, ftvAttributeKey)
 		if err1 != nil {
 			return "", nil, err1
 		}
 
-		v, err := l.getValue(obj, rdf.FTVAttributeValue)
+		v, err := l.getValue(obj, ftvAttributeValue)
 		if err != nil {
-			v, err = l.getValue(obj, rdf.FTVEntityAttribute)
+			v, err = l.getValue(obj, ftvEntityAttribute)
 			if err != nil {
 				return k, nil, nil
 			}
@@ -218,9 +217,10 @@ func (l *loader) convertObject(obj rdf2go.Term) (string, any, error) {
 
 func (l *loader) getLiteral(obj *rdf2go.Literal) (any, error) {
 	if d := obj.Datatype; d != nil {
-		return rdf.FromString(obj.Value, d.RawValue())
+		return rdfFromString(obj.Value, d.RawValue())
 	}
-	return rdf.FromString(obj.Value, xsd.URIString)
+
+	return rdfFromString(obj.Value, xsd.URIString)
 }
 
 type loader struct {
