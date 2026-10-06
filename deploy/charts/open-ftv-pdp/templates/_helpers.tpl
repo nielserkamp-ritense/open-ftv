@@ -100,6 +100,6 @@ Environment variable items for the Postgresql database holding the authorization
       name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: PDP_ADL_PG_URL
-  value: {{ printf "postgresql://$(X_PDP_ADL_PG_USERNAME):$(X_PDP_ADL_PG_PASSWORD)@$(X_PDP_ADL_PG_HOSTNAME):%d/$(X_PDP_ADL_PG_DATABASE)" 5432 }}
+  value: {{ printf "postgresql://$(X_PDP_ADL_PG_USERNAME):$(X_PDP_ADL_PG_PASSWORD)@$(X_PDP_ADL_PG_HOSTNAME):%d/$(X_PDP_ADL_PG_DATABASE)?sslmode=%s" 5432 $postgresql.sslMode }}
 {{- end }}
 {{- end }}

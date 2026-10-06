@@ -99,7 +99,7 @@ Environment variable items when using a Postgresql database for authorization de
       name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: MANAGER_ADL_PG_URL
-  value: {{ printf "postgresql://$(X_MANAGER_ADL_PG_USERNAME):$(X_MANAGER_ADL_PG_PASSWORD)@$(X_MANAGER_ADL_PG_HOSTNAME):%d/$(X_MANAGER_ADL_PG_DATABASE)" 5432 }}
+  value: {{ printf "postgresql://$(X_MANAGER_ADL_PG_USERNAME):$(X_MANAGER_ADL_PG_PASSWORD)@$(X_MANAGER_ADL_PG_HOSTNAME):%d/$(X_MANAGER_ADL_PG_DATABASE)?sslmode=%s" 5432 $postgresql.sslMode }}
 {{- end }}
 {{- end }}
 
@@ -140,7 +140,7 @@ Environment variable items for the Postgresql database holding the manager's own
       name: {{ tpl .name $root }}
       key: {{ .passwordKey }}
 - name: MANAGER_DATABASE_URL
-  value: {{ printf "postgresql://$(X_MANAGER_DB_USERNAME):$(X_MANAGER_DB_PASSWORD)@$(X_MANAGER_DB_HOSTNAME):%d/$(X_MANAGER_DB_DATABASE)" 5432 }}
+  value: {{ printf "postgresql://$(X_MANAGER_DB_USERNAME):$(X_MANAGER_DB_PASSWORD)@$(X_MANAGER_DB_HOSTNAME):%d/$(X_MANAGER_DB_DATABASE)?sslmode=%s" 5432 $postgresql.sslMode }}
 {{- end }}
 {{- end }}
 

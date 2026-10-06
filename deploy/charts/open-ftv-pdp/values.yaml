@@ -44,6 +44,8 @@ config:
     postgresql:
       # hostname: ""
       # database: ""
+      # How the connection uses TLS: disable, allow, prefer, require, verify-ca or verify-full.
+      sslMode: require
       existingSecret:
         # The `<cluster>-app` secret CloudNativePG creates for the cluster's application user.
         name: open-ftv-postgresql-app

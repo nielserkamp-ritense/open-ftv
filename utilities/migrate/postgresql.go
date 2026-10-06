@@ -5,12 +5,11 @@ import (
 	"embed"
 	"errors"
 	"log/slog"
+	"net/url"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/lib/pq"
 )
 
 // PostgresEmbedded migrates a PostgreSQL database up or down by the given number of steps.
@@ -20,6 +19,14 @@ import (
 // The function uses the migration scripts embedded in the binary,
 // and *database* as the URL for the database connection.
 func PostgresEmbedded(fs embed.FS, database string, steps int, logger *slog.Logger) error {
+	u, err := url.Parse(database)
+	if err != nil {
+		return err
+	}
+
+	// golang-migrate registers its pgx driver under its own scheme.
+	u.Scheme = "pgx5"
+
 	src := "postgresql"
 
 	d, err := iofs.New(fs, src)
@@ -27,8 +34,7 @@ func PostgresEmbedded(fs embed.FS, database string, steps int, logger *slog.Logg
 		return err
 	}
 
-	var m *migrate.Migrate
-	m, err = migrate.NewWithSourceInstance(src, d, database)
+	m, err := migrate.NewWithSourceInstance(src, d, u.String())
 	if err != nil {
 		return err
 	}

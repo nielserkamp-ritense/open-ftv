@@ -206,6 +206,9 @@
         "database": {
           "$ref": "#/definitions/nonEmptyString"
         },
+        "sslMode": {
+          "enum": ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"]
+        },
         "existingSecret": {
           "type": "object",
           "properties": {
