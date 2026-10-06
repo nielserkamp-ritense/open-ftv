@@ -30,6 +30,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "open-ftv-laadpalen-applicatie.serviceAccountName" . }}
+      # The app reads LAADPALEN_APPLICATIE_ variables, and a Service named laadpalen-applicatie
+      # would make Kubernetes set LAADPALEN_APPLICATIE_PORT=tcp://… in the pod.
+      enableServiceLinks: false
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
