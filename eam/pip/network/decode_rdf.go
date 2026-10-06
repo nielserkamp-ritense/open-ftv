@@ -4,13 +4,11 @@ import (
 	"bytes"
 
 	"github.com/deiu/rdf2go"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
 )
 
 func (r *runner) decodeRDF(data []byte, mime string) error {
-	triples, err := turtle.Load(bytes.NewReader(data), mime)
-	if err != nil {
+	triples := rdf2go.NewGraph("")
+	if err := triples.Parse(bytes.NewReader(data), mime); err != nil {
 		return err
 	}
 	return r.decodeTriples(triples)

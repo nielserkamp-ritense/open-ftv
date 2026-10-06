@@ -9,7 +9,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/xsd"
 )
 
@@ -23,8 +22,8 @@ func (p *PIP) loadRDF(f io.Reader, path, mt string) {
 		mt = mime.MimeTypeTurtle
 	}
 
-	graph, err := turtle.Load(f, mt)
-	if err != nil {
+	graph := rdf2go.NewGraph("")
+	if err := graph.Parse(f, mt); err != nil {
 		p.logger.Error("pip: error decoding RDF file", "path", path, "mimetype", mt, "err", err)
 		return
 	}

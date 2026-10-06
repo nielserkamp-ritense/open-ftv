@@ -15,7 +15,6 @@ import (
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 	slog2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/slog"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/storage/valkeyrie/memory"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/turtle"
 )
 
 func TestLoadRDF(t *testing.T) {
@@ -340,9 +339,8 @@ func TestConvertObject(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			graph, err3 := turtle.Load(f, tc.mt)
-			require.NoError(t, err3)
-			require.NotNil(t, graph)
+			graph := rdf2go.NewGraph("")
+			require.NoError(t, graph.Parse(f, tc.mt))
 
 			l := &loader{
 				path:   tc.path,
@@ -457,9 +455,8 @@ func TestConvertObjects(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			graph, err3 := turtle.Load(f, "text/turtle")
-			require.NoError(t, err3)
-			require.NotNil(t, graph)
+			graph := rdf2go.NewGraph("")
+			require.NoError(t, graph.Parse(f, "text/turtle"))
 
 			l := &loader{
 				path:   tc.path,
@@ -519,9 +516,8 @@ func TestGetKey(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			graph, err3 := turtle.Load(f, "text/turtle")
-			require.NoError(t, err3)
-			require.NotNil(t, graph)
+			graph := rdf2go.NewGraph("")
+			require.NoError(t, graph.Parse(f, "text/turtle"))
 
 			l := &loader{
 				path:   tc.path,
@@ -583,9 +579,8 @@ func TestGetKeyValue(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			graph, err3 := turtle.Load(f, "text/turtle")
-			require.NoError(t, err3)
-			require.NotNil(t, graph)
+			graph := rdf2go.NewGraph("")
+			require.NoError(t, graph.Parse(f, "text/turtle"))
 
 			l := &loader{
 				path:   tc.path,
