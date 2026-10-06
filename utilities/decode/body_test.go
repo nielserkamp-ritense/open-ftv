@@ -1,6 +1,7 @@
 package decode
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -144,6 +145,32 @@ func TestParseBody(t *testing.T) {
 				require.NotNil(t, got)
 				assert.EqualValues(t, tc.want, got)
 			}
+		})
+	}
+}
+
+func TestSniffContentType(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		in   []byte
+		want string
+	}{
+		{name: "nil"},
+		{name: "empty", in: []byte("")},
+		{name: "zeroes", in: []byte(strings.Repeat("0", 4096))},
+		{name: "xml declaration", in: []byte(`<?xml version="1.0" encoding="UTF-8"?>`), want: "application/xml"},
+		{name: "xml element", in: []byte(`<start>hello</start>`), want: "application/xml"},
+		{name: "json object", in: []byte(`{"a":1,"b":true,"c":"x"}`), want: "application/json"},
+		{name: "json array", in: []byte(`["a",1,"b",true,"c","x"]`), want: "application/json"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.want, sniffContentType(tc.in))
 		})
 	}
 }

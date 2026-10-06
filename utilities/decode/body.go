@@ -9,8 +9,6 @@ import (
 	"mime"
 
 	"github.com/goccy/go-json"
-
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
 // ParseBody parses a body blob into a map of key/value pairs.
@@ -25,7 +23,7 @@ func ParseBody(body []byte, contentType string) (map[string]any, error) {
 
 	parser, ok := parsers[ct]
 	if !ok {
-		ct = convert.ContentSniffer(body)
+		ct = sniffContentType(body)
 		parser, ok = parsers[ct]
 	}
 
@@ -35,11 +33,27 @@ func ParseBody(body []byte, contentType string) (map[string]any, error) {
 	return parser(body)
 }
 
+const (
+	contentTypeXML  = "application/xml"
+	contentTypeJSON = "application/json"
+)
+
+func sniffContentType(body []byte) string {
+	switch {
+	case bytes.HasPrefix(body, []byte("<")):
+		return contentTypeXML
+	case bytes.HasPrefix(body, []byte("{")), bytes.HasPrefix(body, []byte("[")):
+		return contentTypeJSON
+	default:
+		return ""
+	}
+}
+
 type bodyParser func(body []byte) (map[string]any, error)
 
 var parsers = map[string]bodyParser{
 	"text/xml":              parseXML,
-	"application/xml":       parseXML,
+	contentTypeXML:          parseXML,
 	"application/soap+xml":  parseXML,
 	"application/atom+xml":  parseXML,
 	"application/rss+xml":   parseXML,
@@ -47,7 +61,7 @@ var parsers = map[string]bodyParser{
 	"application/xhtml+xml": parseXML,
 	"application/xslt+xml":  parseXML,
 	"text/json":             parseJSON,
-	"application/json":      parseJSON,
+	contentTypeJSON:         parseJSON,
 	"application/ld+json":   parseJSON,
 	"application/geo+json":  parseJSON,
 }
