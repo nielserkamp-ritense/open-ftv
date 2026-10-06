@@ -12,8 +12,11 @@ spec:
     fullnameOverride: laadpalen-applicatie
     config:
       apiBaseURL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/dataspace
+      vlierdamOutwayURL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/outway
       vlierdamPdp1URL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/pdp1
       beheerURL: https://openftv-vlierdam-beheer-pre.simulatie.datastelsel.nl
+      rvigBeheerURL: https://openftv-brp-beheer-pre.simulatie.datastelsel.nl
+      rdwBeheerURL: https://openftv-rdw-beheer-pre.simulatie.datastelsel.nl
     httpRoute:
       enabled: true
       parentRefs:
@@ -53,6 +56,20 @@ spec:
       backendRefs:
         - kind: Service
           name: vlierdam-dataspace
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outway
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - kind: Service
+          name: vlierdam-outway
           port: 80
     # Only the evaluation endpoint, for the aanvraag form's scenario 1 check.
     - matches:

@@ -1,0 +1,73 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-ftv-brp
+spec:
+  serviceAccountName: flux-reconciler
+  interval: 35m
+  chartRef:
+    kind: OCIRepository
+    name: open-ftv
+  values:
+    pdp:
+      config:
+        policySource: manager
+        policyLanguage: rego
+        bundleManager:
+          url: http://{{ .Release.Name }}-manager:9090/v1/bundle/pdp1
+        authorizationDecisionLog:
+          serviceName: rvig
+    manager:
+      enabled: true
+      config:
+        corsOrigins:
+          - https://openftv-brp-beheer-pre.simulatie.datastelsel.nl
+        oidc:
+          issuer: https://openftv-brp-keycloak-pre.simulatie.datastelsel.nl/realms/openftv
+          jwksUrl: http://{{ .Release.Name }}-keycloak/realms/openftv/protocol/openid-connect/certs
+          audience: openftv
+        seedPoliciesExistingConfigMap: open-ftv-brp-manager-policies
+        tagsExistingConfigMap: open-ftv-brp-manager-tags
+        bundlesExistingConfigMap: open-ftv-brp-manager-bundles
+    management-interface:
+      enabled: true
+      config:
+        oidc:
+          authority: https://openftv-brp-keycloak-pre.simulatie.datastelsel.nl/realms/openftv
+          clientId: openftv
+      httpRoute:
+        enabled: true
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: default-gateway
+            namespace: fds-public
+            sectionName: https
+        hostnames:
+          - openftv-brp-beheer-pre.simulatie.datastelsel.nl
+    keycloak:
+      enabled: true
+      config:
+        # Reach the admin console with: kubectl port-forward svc/open-ftv-brp-keycloak 8080:80
+        adminHostname: http://localhost:8080
+        adminUsername: admin
+        adminPassword: F9KRwcmmIRmw612MqW6o9MFG4U
+        realm:
+          redirectUris:
+            - https://openftv-brp-beheer-pre.simulatie.datastelsel.nl/*
+          webOrigins:
+            - https://openftv-brp-beheer-pre.simulatie.datastelsel.nl
+          users:
+            adminPassword: password
+            authorPassword: password
+            auditorPassword: password
+      httpRoute:
+        enabled: true
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: default-gateway
+            namespace: fds-public
+            sectionName: https
+        hostnames:
+          - openftv-brp-keycloak-pre.simulatie.datastelsel.nl

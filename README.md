@@ -173,22 +173,25 @@ The pre-release version on `main` always assumes a *patch* bump, so it is number
 
 There are two independent deployments running on the Simulatieomgeving, each deployed automatically by Flux.
 
-The latest `main` **pre-release** runs Gemeente Vlierdam's part of the Laadpalen demo:
+The latest `main` **pre-release** runs the Laadpalen demo:
 
 - Laadpalen application: https://openftv-vlierdam-pre.simulatie.datastelsel.nl
-- Management interface: https://openftv-vlierdam-beheer-pre.simulatie.datastelsel.nl
-- Keycloak: https://openftv-vlierdam-keycloak-pre.simulatie.datastelsel.nl
+- Management interfaces:
+  - Gemeente Vlierdam: https://openftv-vlierdam-beheer-pre.simulatie.datastelsel.nl
+  - RvIG (BRP): https://openftv-brp-beheer-pre.simulatie.datastelsel.nl
+  - RDW: https://openftv-rdw-beheer-pre.simulatie.datastelsel.nl
+- Keycloak: `https://openftv-<vlierdam|brp|rdw>-keycloak-pre.simulatie.datastelsel.nl`
 - Namespace: `fds-tenant-ictu-open-ftv`
 - Manifests: `deploy/kustomize/simulation-pre-release`
 - [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
 
-The manager starts with the demo policies from `demo/`. A new file in `demo/<organization>/manager/policies` also
-needs a line in the overlay's `kustomization.yaml`. The Laadpalen application reaches Vlierdam's mock dataspace and
-PDP1 through `/dataspace` and `/pdp1` on its own host.
+The managers start with the demo policies from `demo/`. A new file in `demo/<organization>/manager/policies` also
+needs a line in the overlay's `kustomization.yaml`. The Laadpalen application reaches Vlierdam's mock dataspace,
+outway and PDP1 through `/dataspace`, `/outway` and `/pdp1` on its own host.
 
-The overlay reads the demo's bundle configurations and PDP pull-configs from `demo/`; the deploy job fills in their
-addresses from the overlay's `addresses.env`. A new variable in a template needs a value there as well as in
-`demo/addresses.env`.
+The overlay reads the demo's bundle configurations, PDP pull-configs and Kong configurations from `demo/`; the
+deploy job fills in their addresses from the overlay's `addresses.env`. A new variable in a template needs a value
+there as well as in `demo/addresses.env`.
 
 The latest tagged **release**:
 
