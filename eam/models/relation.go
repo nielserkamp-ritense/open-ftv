@@ -142,18 +142,3 @@ func (r *Relation) Equals(other *Relation) bool {
 		r.object.Equals(other.object) &&
 		reflect.DeepEqual(r.tags, other.tags)
 }
-
-// RelationToAttribute can be used to convert a relation into an attribute.
-func RelationToAttribute(r *Relation) *Attribute {
-	s := mapFromEntity(r.Subject())
-	p := mapFromEntity(r.Predicate())
-	o := mapFromEntity(r.Object())
-
-	m := map[string]any{
-		"subject":   s,
-		"predicate": p,
-		"object":    o,
-	}
-
-	return NewAttribute(r.UID(), m)
-}

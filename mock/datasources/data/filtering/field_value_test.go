@@ -174,50 +174,6 @@ func TestCompare(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		name   string
-		field  string
-		exists bool
-		values []any
-		want   *FieldValueFilter
-	}{
-		{
-			name:   "in list - primary",
-			field:  "f1",
-			exists: true,
-			values: []any{1, 2, 3, 4},
-			want:   &FieldValueFilter{Level: enums.PrimaryLevel, Field: "f1", Compare: enums.InList, Values: []any{1, 2, 3, 4}},
-		},
-		{
-			name:   "not in list - primary",
-			field:  "f2",
-			values: []any{"yo", "ya", "yi", "yu"},
-			want:   &FieldValueFilter{Level: enums.PrimaryLevel, Field: "f2", Compare: enums.NotInList, Values: []any{"yo", "ya", "yi", "yu"}},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := List(tc.field, tc.exists, tc.values...)
-			require.NotNil(t, got)
-
-			assert.Equal(t, tc.want.Level, got.Level)
-			assert.False(t, got.Insensitive)
-			assert.Empty(t, got.Join)
-			assert.Empty(t, got.Table)
-			assert.Equal(t, tc.want.Field, got.Field)
-			assert.Equal(t, tc.want.Compare, got.Compare)
-			assert.Nil(t, got.Value)
-			assert.EqualValues(t, tc.want.Values, got.Values)
-		})
-	}
-}
-
 func TestFieldValueFilter_Prepare(t *testing.T) {
 	t.Parallel()
 

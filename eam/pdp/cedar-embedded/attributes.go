@@ -2,67 +2,12 @@ package cedar_embedded
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/cedar-policy/cedar-go"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 )
-
-func valueToAny(in cedar.Value) (any, error) {
-	switch t := in.(type) {
-	case nil:
-		return nil, nil
-	case cedar.String:
-		return string(t), nil
-	case cedar.Boolean:
-		return bool(t), nil
-	case cedar.Long:
-		return int64(t), nil
-	case cedar.Decimal:
-		f, _ := strconv.ParseFloat(t.String(), 64)
-		return f, nil
-	case cedar.Datetime:
-		return time.UnixMilli(t.Milliseconds()).UTC(), nil
-	case cedar.Duration:
-		return time.Millisecond * time.Duration(t.ToMilliseconds()), nil
-	case cedar.Set:
-		return setToSlice(t)
-	case cedar.Record:
-		return recordToMap(t)
-	default:
-		return t.String(), fmt.Errorf("unsupported attribute conversion from Cedar; type: [%T]", in)
-	}
-}
-
-func setToSlice(in cedar.Set) ([]any, error) {
-	s := in.Slice()
-	out := make([]any, len(s))
-
-	var err error
-	for i := range s {
-		if out[i], err = valueToAny(s[i]); err != nil {
-			break
-		}
-	}
-
-	return out, err
-}
-
-func recordToMap(in cedar.Record) (map[string]any, error) {
-	m := in.Map()
-	out := make(map[string]any, len(m))
-
-	var err error
-	for k, v := range m {
-		if out[string(k)], err = valueToAny(v); err != nil {
-			break
-		}
-	}
-
-	return out, err
-}
 
 func anyToValue(in any) (cedar.Value, error) {
 	if cv, ok := in.(cedar.Value); ok {

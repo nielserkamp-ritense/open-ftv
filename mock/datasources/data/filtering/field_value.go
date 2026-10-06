@@ -82,17 +82,6 @@ func Compare(field string, cmp enums.CompareType, value any) *FieldValueFilter {
 	}
 }
 
-// List returns a filter based on comparison with a list of values.
-//
-// By default, the filter executes on the primary table.
-// Use the OnTable() or OnJoin() functions to change this behavior.
-func List(field string, exists bool, values ...any) *FieldValueFilter {
-	if exists {
-		return &FieldValueFilter{Level: enums.PrimaryLevel, Field: field, Compare: enums.InList, Values: values}
-	}
-	return &FieldValueFilter{Level: enums.PrimaryLevel, Field: field, Compare: enums.NotInList, Values: values}
-}
-
 // OnTable forces the filter to execute on the given table.
 func (f *FieldValueFilter) OnTable(table string) *FieldValueFilter {
 	f.Table = table
