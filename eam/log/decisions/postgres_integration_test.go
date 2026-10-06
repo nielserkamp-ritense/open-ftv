@@ -70,7 +70,7 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
+		t.Fatalf("postgres not reachable: %v", err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 

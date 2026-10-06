@@ -40,7 +40,7 @@ const goodSubject = `{` + goodEvaluationItem + `}`
 // newADLTestDatabaseURL creates an empty database for the calling test and returns its URL. The PDP
 // migrates the Authorization Decision Log schema into it itself, at startup.
 //
-// It skips the test when no Postgres is reachable, so the suite still runs without one; point
+// It fails the test when no Postgres is reachable; point
 // PDP_TEST_POSTGRES_URL at a server whose credentials differ from the compose file's.
 func newADLTestDatabaseURL(t *testing.T) string {
 	t.Helper()
@@ -54,7 +54,7 @@ func newADLTestDatabaseURL(t *testing.T) string {
 
 	admin, err := pgx.Connect(ctx, baseURL)
 	if err != nil {
-		t.Skipf("postgres not reachable at %s (start it with `docker compose -f docker/compose-integration-tests.yaml up -d`): %v", baseURL, err)
+		t.Fatalf("postgres not reachable: %v", err)
 	}
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
