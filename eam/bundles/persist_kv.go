@@ -229,11 +229,6 @@ func (s *KeyValueDB) makeKey(prefix, id string) string {
 	return fmt.Sprintf("%s$$$%s$$$%s%s", s.basePath, prefix, pathSeparator, id)
 }
 
-func (s *KeyValueDB) mustMarshal(p *KeyValueDB) []byte {
-	b, _ := json.Marshal(p)
-	return b
-}
-
 func (s *KeyValueDB) unmarshalVersion(kv *store.KVPair) (uint64, error) {
 	var v uint64
 	if err := json.Unmarshal(kv.Value, &v); err != nil {

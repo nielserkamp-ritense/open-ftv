@@ -16,16 +16,6 @@ type dynamicData struct {
 	mutex       sync.RWMutex
 }
 
-func (d *dynamicData) isModified() bool {
-	if d.dynReporter == nil {
-		return false
-	}
-
-	d.mutex.RLock()
-	defer d.mutex.RUnlock()
-	return d.modified
-}
-
 func (d *dynamicData) addAttribute(a *models.Attribute) {
 	if d.dynReporter == nil {
 		return
@@ -52,21 +42,6 @@ func (d *dynamicData) addEntity(e *models.Entity) {
 	prev := d.entities.GetEntity(e.UID())
 	if prev == nil || !prev.Equals(e) {
 		_, _ = d.entities.AddEntity(e)
-		d.modified = true
-	}
-}
-
-func (d *dynamicData) addRelation(r *models.Relation) {
-	if d.dynReporter == nil {
-		return
-	}
-
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-
-	prev := d.relations.GetRelation(r.UID())
-	if prev == nil || !prev.Equals(r) {
-		_, _ = d.relations.AddRelation(r)
 		d.modified = true
 	}
 }

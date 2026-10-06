@@ -160,7 +160,3 @@ type Services struct {
 func (s *Services) GetMainService() server.Service {
 	return s.main
 }
-
-func (s *Services) GetHealthService() server.Service {
-	return s.health
-}

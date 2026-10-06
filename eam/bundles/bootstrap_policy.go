@@ -36,24 +36,6 @@ func newOpenFGAPolicy(tag string) *models.Policy {
 	return p.WithTags(tag).WithTitle("initieel voorbeeld (alles toestaan)").WithDescription("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 }
 
-func newOpenFGARelations(tags []string) []*models.Relation {
-	out := make([]*models.Relation, 0, len(openfgaUsers)*len(openfgaActions)*len(openfgaResources))
-
-	for i := range openfgaUsers {
-		for j := range openfgaActions {
-			for k := range openfgaResources {
-				out = append(out, models.NewRelation(
-					models.NewEntity("user", openfgaUsers[i], nil),
-					models.NewEntity("name", openfgaActions[j], nil),
-					models.NewEntity("resource", openfgaResources[k], nil),
-				).WithTags(tags...))
-			}
-		}
-	}
-
-	return out
-}
-
 const cedarDummy = `@comment("initieel voorbeeld dat alle autorisatie-verzoeken accepteert (OpenFTV)")
 permit (
     principal,
@@ -92,9 +74,3 @@ type resource
   relations
     define can_read: [user]
 `
-
-var (
-	openfgaUsers     = []string{"alice", "bob"}
-	openfgaActions   = []string{"can_read"}
-	openfgaResources = []string{"BRP", "BRV"}
-)
