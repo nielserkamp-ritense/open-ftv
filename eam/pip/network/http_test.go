@@ -23,7 +23,7 @@ func TestRunner_InitClient(t *testing.T) {
 	// TODO: figure out why Parallel() causes a deadlock.
 	// t.Parallel()
 
-	_, caFile, caCert, caKey := makeIntermediate(t)
+	caFile, caCert, caKey := makeIntermediate(t)
 	certFile, keyFile := makeCert(t, caCert, caKey)
 
 	testCases := []struct {
@@ -110,7 +110,7 @@ func TestManager_Execute(t *testing.T) {
 		return req.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	_, caFile, caCert, caKey := makeIntermediate(t)
+	caFile, caCert, caKey := makeIntermediate(t)
 	certFile1, keyFile1 := makeCert(t, caCert, caKey)
 	certFile2, keyFile2 := makeCert(t, caCert, caKey)
 
@@ -350,7 +350,7 @@ entities:
 `
 
 	t.Run("execute with decoding", func(t *testing.T) {
-		_, caFile, caCert, caKey := makeIntermediate(t)
+		caFile, caCert, caKey := makeIntermediate(t)
 		certFile1, keyFile1 := makeCert(t, caCert, caKey)
 		certFile2, keyFile2 := makeCert(t, caCert, caKey)
 
