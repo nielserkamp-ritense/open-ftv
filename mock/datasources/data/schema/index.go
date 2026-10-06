@@ -7,7 +7,6 @@ import (
 	"github.com/goccy/go-yaml"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/compare"
 )
 
 // Index represents an index on a datasource table.
@@ -44,7 +43,33 @@ func (i *Index) Equal(other []string) bool {
 		}
 	}
 
-	return compare.StringsEqual(mine, other)
+	return stringsEqual(mine, other)
+}
+
+// stringsEqual return true if all elements in the first list are present in the second list, and vice versa.
+//
+// The order of the elements can be different as long as all elements exist in both lists.
+func stringsEqual(list1, list2 []string) bool {
+	if len(list1) != len(list2) {
+		return false
+	}
+
+	for i := range list1 {
+		var ok bool
+
+		for j := range list2 {
+			if strings.EqualFold(list1[i], list2[j]) {
+				ok = true
+				break
+			}
+		}
+
+		if !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // MarshalJSON implements the JSON Marshaler interface.
