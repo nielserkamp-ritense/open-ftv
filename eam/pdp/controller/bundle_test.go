@@ -353,7 +353,7 @@ func TestBase_NewBundle_wireBundleFromAddPolicy(t *testing.T) {
 	buf := &bytes.Buffer{}
 	require.NoError(t, src.Compress(bundles.CompressGZ, buf))
 
-	wire, err := bundles.BundleFromAPI(buf, map[string][]string{"Content-Encoding": {"gzip"}})
+	wire, err := bundles.Decompress(bundles.CompressGZ, buf)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -230,7 +230,7 @@ func TestBundle_AddPolicy_setsBundledPolicyLanguage(t *testing.T) {
 	buf := &bytes.Buffer{}
 	require.NoError(t, b.Compress(CompressGZ, buf))
 
-	b2, err := BundleFromAPI(buf, map[string][]string{"Content-Encoding": {"gzip"}})
+	b2, err := Decompress(CompressGZ, buf)
 	require.NoError(t, err)
 	require.NotNil(t, b2)
 
@@ -361,14 +361,14 @@ func TestBundle_Transfer(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
-		name     string
-		version  uint64
-		language string
-		tags     []string
-		compress CompressionType
-		headers  map[string][]string
-		wantErr  bool
-		wantErr2 bool
+		name       string
+		version    uint64
+		language   string
+		tags       []string
+		compress   CompressionType
+		decompress CompressionType
+		wantErr    bool
+		wantErr2   bool
 	}{
 		{
 			name:     "bad compression type",
@@ -379,46 +379,38 @@ func TestBundle_Transfer(t *testing.T) {
 			wantErr:  true,
 		},
 		{
-			name:     "bad compression header (1)",
-			version:  1,
-			language: "OPA",
-			tags:     []string{"x"},
-			compress: CompressBZ2,
-			headers:  map[string][]string{},
-			wantErr2: true,
+			name:       "bzip2 read as gzip",
+			version:    1,
+			language:   "OPA",
+			tags:       []string{"x"},
+			compress:   CompressBZ2,
+			decompress: CompressGZ,
+			wantErr2:   true,
 		},
 		{
-			name:     "bad compression header (2)",
-			version:  1,
-			language: "OPA",
-			tags:     []string{"x"},
-			compress: CompressGZ,
-			headers:  map[string][]string{"Content-Encoding": {"bz2"}},
-			wantErr2: true,
+			name:       "gzip read as bzip2",
+			version:    1,
+			language:   "OPA",
+			tags:       []string{"x"},
+			compress:   CompressGZ,
+			decompress: CompressBZ2,
+			wantErr2:   true,
 		},
 		{
-			name:     "good gzip - no header",
-			version:  1,
-			language: "OPA",
-			tags:     []string{"x"},
-			compress: CompressGZ,
-			headers:  map[string][]string{},
+			name:       "good gzip",
+			version:    1,
+			language:   "OPA",
+			tags:       []string{"x"},
+			compress:   CompressGZ,
+			decompress: CompressGZ,
 		},
 		{
-			name:     "good gzip - with header",
-			version:  1,
-			language: "OPA",
-			tags:     []string{"x"},
-			compress: CompressGZ,
-			headers:  map[string][]string{"Content-Encoding": {"gzip"}},
-		},
-		{
-			name:     "good bzip2",
-			version:  1,
-			language: "OPA",
-			tags:     []string{"x"},
-			compress: CompressBZ2,
-			headers:  map[string][]string{"Content-Encoding": {"bz2"}},
+			name:       "good bzip2",
+			version:    1,
+			language:   "OPA",
+			tags:       []string{"x"},
+			compress:   CompressBZ2,
+			decompress: CompressBZ2,
 		},
 	}
 
@@ -441,7 +433,7 @@ func TestBundle_Transfer(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 
-				b2, err2 := BundleFromAPI(buf, tc.headers)
+				b2, err2 := Decompress(tc.decompress, buf)
 				if tc.wantErr2 {
 					require.Error(t, err2)
 					require.Nil(t, b2)

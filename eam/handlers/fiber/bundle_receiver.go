@@ -2,12 +2,9 @@ package fiber
 
 import (
 	"bytes"
-	"compress/gzip"
 	"io"
 	"log/slog"
 
-	"github.com/dsnet/compress/bzip2"
-	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/authorization"
@@ -52,22 +49,9 @@ func (h *BundleReceiverHandler) PostBundle(req *fiber.Ctx) error {
 
 // ProcessBundle processes a received bundle and replaces all policies/data.
 func (h *BundleReceiverHandler) ProcessBundle(ct string, body io.Reader) (old uint64, err error) {
-	var r io.Reader
-	switch bundles.CompressionTypeFromString(ct) {
-	case bundles.CompressBZ2:
-		r, err = bzip2.NewReader(body, &bzip2.ReaderConfig{})
-	default:
-		r, err = gzip.NewReader(body)
-	}
-
+	bundle, err := bundles.Decompress(bundles.CompressionTypeFromString(ct), body)
 	if err != nil {
-		h.logger.Error("failed to set up bundle decompression", "compression", ct, "err", err)
-		return
-	}
-
-	bundle := new(bundles.Bundle)
-	if err = json.NewDecoder(r).Decode(bundle); err != nil {
-		h.logger.Error("failed to decode new bundle", "err", err)
+		h.logger.Error("failed to decode new bundle", "compression", ct, "err", err)
 		return
 	}
 

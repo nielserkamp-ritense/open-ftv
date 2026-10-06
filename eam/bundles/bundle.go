@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/dsnet/compress/bzip2"
 	"github.com/goccy/go-json"
@@ -63,49 +62,23 @@ func NewBundle(version uint64, language string, tags ...string) *Bundle {
 	return b
 }
 
-// BundleFromAPI is used by a receiving PDP to decode a compressed binary bundle.
-//
-// The Content-Encoding header is used to determine the type of compression.
-// If it is not supplied, or has no recognized value(s), gzip is assumed.
-func BundleFromAPI(body io.Reader, headers map[string][]string) (*Bundle, error) {
-	var ce CompressionType
-
-	list := headers["Content-Encoding"]
-	for i := range list {
-		switch strings.ToLower(list[i]) {
-		case "gzip", "gz":
-			ce = CompressGZ
-		case "bz2", "bzip2":
-			ce = CompressBZ2
+// Decompress decodes a bundle that Compress wrote with the given compression.
+func Decompress(compression CompressionType, body io.Reader) (*Bundle, error) {
+	if compression == CompressBZ2 {
+		r, err := bzip2.NewReader(body, &bzip2.ReaderConfig{})
+		if err != nil {
+			return nil, err
 		}
 
-		if ce > 0 {
-			break
-		}
+		return bundleFromReader(r)
 	}
 
-	switch ce {
-	case CompressBZ2:
-		return bundleFromBZip2(body)
-	default:
-		return bundleFromGZip(body)
+	r, err := gzip.NewReader(body)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func bundleFromBZip2(body io.Reader) (b *Bundle, err error) {
-	var r *bzip2.Reader
-	if r, err = bzip2.NewReader(body, &bzip2.ReaderConfig{}); err == nil {
-		b, err = bundleFromReader(r)
-	}
-	return
-}
-
-func bundleFromGZip(body io.Reader) (b *Bundle, err error) {
-	var r *gzip.Reader
-	if r, err = gzip.NewReader(body); err == nil {
-		b, err = bundleFromReader(r)
-	}
-	return
+	return bundleFromReader(r)
 }
 
 func bundleFromReader(r io.ReadCloser) (b *Bundle, err error) {
