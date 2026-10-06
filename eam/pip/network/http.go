@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-
-	"k8s.io/client-go/transport"
 )
 
 func (m *manager) execute(logger *slog.Logger, req *Request) error {
@@ -35,13 +33,12 @@ func (r *runner) run() {
 }
 
 func (r *runner) initClient() bool {
-	trans := http.DefaultTransport
+	trans, err := r.req.transport()
+	if err != nil {
+		r.err = err
+		r.logger.Error("failed to setup TLS for https request", "error", r.err)
 
-	if cfg := r.req.TLSConfig(); cfg != nil {
-		if trans, r.err = transport.New(&transport.Config{TLS: *cfg}); r.err != nil {
-			r.logger.Error("failed to setup TLS for https request", "error", r.err)
-			return false
-		}
+		return false
 	}
 
 	r.httpClient = &http.Client{

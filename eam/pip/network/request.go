@@ -9,11 +9,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
-	"k8s.io/client-go/transport"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -71,12 +71,14 @@ type Request struct {
 	Schedule        string            `json:"schedule,omitempty"        yaml:"schedule,omitempty"        toml:"schedule,omitempty"`
 	Mapping         *ResponseMapping  `json:"mapping,omitempty"         yaml:"mapping,omitempty"         toml:"mapping,omitempty"`
 	// hidden fields.
-	uri      string               // Fully encoded uri.
-	query    string               // Fully encoded query.
-	body     io.Reader            // Fully encoded body.
-	bodyLen  int                  // Length of fully encoded body.
-	tls      *transport.TLSConfig // TLS configuration.
-	lastCall time.Time            // timestamp of the last successful call.
+	uri      string    // Fully encoded uri.
+	query    string    // Fully encoded query.
+	body     io.Reader // Fully encoded body.
+	bodyLen  int       // Length of fully encoded body.
+	lastCall time.Time // timestamp of the last successful call.
+
+	transportMutex sync.Mutex
+	roundTripper   http.RoundTripper
 }
 
 // HTTPRequest returns an HTTP request for retrieving the external data.
@@ -106,11 +108,6 @@ func (r *Request) HTTPRequest(ctx context.Context, get models.GetAttributeValue)
 	}
 
 	return httpReq, nil
-}
-
-// TLSConfig returns the TLS client configuration for http requests.
-func (r *Request) TLSConfig() *transport.TLSConfig {
-	return r.tls
 }
 
 func (r *Request) prepareQuery(get models.GetAttributeValue) (string, bool) {
@@ -224,15 +221,6 @@ func (r *Request) prepare() {
 	if body, bodyLen, static2 := r.prepareBody(dummyGetter); static2 {
 		r.body = body
 		r.bodyLen = bodyLen
-	}
-
-	if r.CAFile != "" || r.CertFile != "" || r.KeyFile != "" || r.Insecure {
-		r.tls = &transport.TLSConfig{
-			CAFile:   r.CAFile,
-			CertFile: r.CertFile,
-			KeyFile:  r.KeyFile,
-			Insecure: r.Insecure,
-		}
 	}
 }
 
