@@ -36,7 +36,6 @@ require (
 	golang.org/x/crypto v0.56.0
 	golang.org/x/exp v0.0.0-20260718201538-764159d718ef
 	golang.org/x/net v0.58.0
-	google.golang.org/genproto v0.0.0-20260715232425-e75dac1f907d
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d
 	google.golang.org/grpc v1.83.2
 	k8s.io/client-go v0.36.2
