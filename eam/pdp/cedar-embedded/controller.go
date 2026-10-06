@@ -9,7 +9,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/module"
 )
 
 // Version defines the version of this Cedar PDP.
@@ -49,7 +48,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	}
 
 	mod := "github.com/cedar-policy/cedar-go"
-	modVersion := module.GetModuleVersion(mod)
+	modVersion := pdp.GetModuleVersion(mod)
 
 	if c.ADL != nil {
 		c.ADL.NewEngine(map[string]any{

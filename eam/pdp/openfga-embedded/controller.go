@@ -14,7 +14,6 @@ import (
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
 	pdp "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pdp/controller"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/module"
 )
 
 // Version defines the version of this OpenFGA PDP.
@@ -41,7 +40,7 @@ func NewController(options ...pdp.Option) pdp.Controller {
 	}
 
 	mod := "github.com/openfga/openfga"
-	modVersion := module.GetModuleVersion(mod)
+	modVersion := pdp.GetModuleVersion(mod)
 
 	if c.ADL != nil {
 		c.ADL.NewEngine(map[string]any{

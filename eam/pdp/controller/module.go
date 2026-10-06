@@ -1,5 +1,4 @@
-// Package module contains functionality to work with runtime info regarding Golang schema.
-package module
+package controller
 
 import "runtime/debug"
 
@@ -12,5 +11,6 @@ func GetModuleVersion(module string) string {
 			}
 		}
 	}
+
 	return ""
 }
