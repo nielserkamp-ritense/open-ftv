@@ -1,4 +1,4 @@
-package mimetype
+package pip
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ func TestContainsAttribute(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ContainsAttribute(tc.m)
+			got := containsAttribute(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
 	}
@@ -52,7 +52,7 @@ func TestContainsEntity(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ContainsEntity(tc.m)
+			got := containsEntity(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
 	}
@@ -77,7 +77,7 @@ func TestContainsRelation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ContainsRelation(tc.m)
+			got := containsRelation(tc.m)
 			assert.Equal(t, tc.want, got)
 		})
 	}
@@ -171,7 +171,7 @@ func TestContainsJsonLD(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			got := ContainsJSONLD(m)
+			got := containsJSONLD(m)
 			assert.Equal(t, tc.want, got)
 		})
 	}

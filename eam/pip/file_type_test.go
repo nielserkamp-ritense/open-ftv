@@ -1,4 +1,4 @@
-package mimetype
+package pip
 
 import (
 	"os"
@@ -18,26 +18,26 @@ func TestDetectType(t *testing.T) {
 	testCases := []struct {
 		name     string
 		path     string
-		wantType FileType
+		wantType fileType
 		wantMime string
 		wantData bool
 	}{
-		{name: "empty text file", path: "../../testdata/unittest/bad/empty.txt", wantType: UnknownFile},
-		{name: "empty unknown file", path: "../../testdata/unittest/bad/empty.unknown.extension", wantType: UnknownFile},
-		{name: "bad yaml (1)", path: "../../testdata/unittest/pip/not_yaml.yaml", wantType: UnknownFile},
-		{name: "bad yaml (2)", path: "../../testdata/unittest/bad/not_yaml.yml", wantType: UnknownFile},
-		{name: "bad toml", path: "../../testdata/unittest/bad/not_toml.toml", wantType: UnknownFile},
-		{name: "bad json attributes", path: "../../testdata/unittest/pip2/misc/attr1.json", wantType: UnknownFile},
-		{name: "yaml attributes", path: "../../testdata/pip/attributes/werktijden.yaml", wantType: AttributesFile, wantMime: mime.MimeTypeYAML, wantData: true},
-		{name: "yaml entities (1)", path: "../../testdata/pip/entities/apps/app1.yaml", wantType: EntitiesFile, wantMime: mime.MimeTypeYAML, wantData: true},
-		{name: "yaml entities (2)", path: "../../testdata/pip/entities/services/brp.yaml", wantType: EntitiesFile, wantMime: mime.MimeTypeYAML, wantData: true},
-		{name: "toml attributes", path: "../../testdata/unittest/pip2/misc/attributes.toml", wantType: AttributesFile, wantMime: mime.MimeTypeTOML, wantData: true},
-		{name: "json attributes", path: "../../testdata/unittest/pip2/misc/attr2.json", wantType: AttributesFile, wantMime: mime.MimeTypeJSON, wantData: true},
-		{name: "openFGA model", path: "../../testdata/policies/openfga/doelbinding.model", wantType: PolicyFile, wantMime: mime.MimeTypeOpenFGA},
-		{name: "openFGA relations", path: "../../testdata/policies/openfga/doelbinding.relations", wantType: RelationsFile, wantMime: mime.MimeTypeJSON, wantData: true},
-		{name: "cedar policy", path: "../../testdata/policies/cedar/brp/subsidies.cedar", wantType: PolicyFile, wantMime: mime.MimeTypeCedar},
-		{name: "opa policy", path: "../../testdata/policies/opa/brp/subsidies.rego", wantType: PolicyFile, wantMime: mime.MimeTypeOPA},
-		{name: "turtle collection (1)", path: "../../testdata/rdf/entities/services/rvig.ttl", wantType: CollectionFile, wantMime: mime.MimeTypeTurtle},
+		{name: "empty text file", path: "../../testdata/unittest/bad/empty.txt", wantType: unknownFile},
+		{name: "empty unknown file", path: "../../testdata/unittest/bad/empty.unknown.extension", wantType: unknownFile},
+		{name: "bad yaml (1)", path: "../../testdata/unittest/pip/not_yaml.yaml", wantType: unknownFile},
+		{name: "bad yaml (2)", path: "../../testdata/unittest/bad/not_yaml.yml", wantType: unknownFile},
+		{name: "bad toml", path: "../../testdata/unittest/bad/not_toml.toml", wantType: unknownFile},
+		{name: "bad json attributes", path: "../../testdata/unittest/pip2/misc/attr1.json", wantType: unknownFile},
+		{name: "yaml attributes", path: "../../testdata/pip/attributes/werktijden.yaml", wantType: attributesFile, wantMime: mime.MimeTypeYAML, wantData: true},
+		{name: "yaml entities (1)", path: "../../testdata/pip/entities/apps/app1.yaml", wantType: entitiesFile, wantMime: mime.MimeTypeYAML, wantData: true},
+		{name: "yaml entities (2)", path: "../../testdata/pip/entities/services/brp.yaml", wantType: entitiesFile, wantMime: mime.MimeTypeYAML, wantData: true},
+		{name: "toml attributes", path: "../../testdata/unittest/pip2/misc/attributes.toml", wantType: attributesFile, wantMime: mime.MimeTypeTOML, wantData: true},
+		{name: "json attributes", path: "../../testdata/unittest/pip2/misc/attr2.json", wantType: attributesFile, wantMime: mime.MimeTypeJSON, wantData: true},
+		{name: "openFGA model", path: "../../testdata/policies/openfga/doelbinding.model", wantType: policyFile, wantMime: mime.MimeTypeOpenFGA},
+		{name: "openFGA relations", path: "../../testdata/policies/openfga/doelbinding.relations", wantType: relationsFile, wantMime: mime.MimeTypeJSON, wantData: true},
+		{name: "cedar policy", path: "../../testdata/policies/cedar/brp/subsidies.cedar", wantType: policyFile, wantMime: mime.MimeTypeCedar},
+		{name: "opa policy", path: "../../testdata/policies/opa/brp/subsidies.rego", wantType: policyFile, wantMime: mime.MimeTypeOPA},
+		{name: "turtle collection (1)", path: "../../testdata/rdf/entities/services/rvig.ttl", wantType: collectionFile, wantMime: mime.MimeTypeTurtle},
 	}
 
 	for _, tc := range testCases {
@@ -51,7 +51,7 @@ func TestDetectType(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			ft, mt2, data := DetectType(f, mt)
+			ft, mt2, data := detectType(f, mt)
 			assert.Equal(t, tc.wantType, ft)
 			assert.Equal(t, tc.wantMime, mt2)
 
@@ -71,7 +71,7 @@ func TestDetectTypeFromJSON(t *testing.T) {
 		name     string
 		data     string
 		wantErr  bool
-		wantType FileType
+		wantType fileType
 		wantMime string
 		wantData bool
 	}{
@@ -97,14 +97,14 @@ func TestDetectTypeFromJSON(t *testing.T) {
 		{
 			name:     "good JSON",
 			data:     `{"key":"werktijden","value":{"maandag":{"begin":"09:00","eind":"17:00"}}}`,
-			wantType: AttributesFile,
+			wantType: attributesFile,
 			wantMime: "application/json",
 			wantData: true,
 		},
 		{
 			name:     "good JSON-LD",
 			data:     `{"@context":"production","value":"hello world"}`,
-			wantType: CollectionFile,
+			wantType: collectionFile,
 			wantMime: "application/ld+json",
 			wantData: true,
 		},
@@ -116,7 +116,7 @@ func TestDetectTypeFromJSON(t *testing.T) {
 
 			ft, mt, d := detectTypeFromJSON(strings.NewReader(tc.data))
 			if tc.wantErr {
-				assert.Equal(t, UnknownFile, ft)
+				assert.Equal(t, unknownFile, ft)
 				assert.Empty(t, mt)
 				assert.Nil(t, d)
 			} else {
@@ -140,7 +140,7 @@ func TestDetectTypeFromYAML(t *testing.T) {
 		name     string
 		data     string
 		wantErr  bool
-		wantType FileType
+		wantType fileType
 		wantMime string
 		wantData bool
 	}{
@@ -172,7 +172,7 @@ value:
     begin: "09:00"
     eind: "17:00"
 `,
-			wantType: AttributesFile,
+			wantType: attributesFile,
 			wantMime: "application/yaml",
 			wantData: true,
 		},
@@ -184,7 +184,7 @@ value:
 
 			ft, mt, d := detectTypeFromYAML(strings.NewReader(tc.data))
 			if tc.wantErr {
-				assert.Equal(t, UnknownFile, ft)
+				assert.Equal(t, unknownFile, ft)
 				assert.Empty(t, mt)
 				assert.Nil(t, d)
 			} else {
@@ -208,13 +208,13 @@ func TestDetectTypeFromTOML(t *testing.T) {
 		name     string
 		data     string
 		wantErr  bool
-		wantType FileType
+		wantType fileType
 		wantMime string
 		wantData bool
 	}{
 		{
 			name:     "empty",
-			wantType: AttributesFile,
+			wantType: attributesFile,
 			wantMime: "application/toml",
 		},
 		{
@@ -231,7 +231,7 @@ func TestDetectTypeFromTOML(t *testing.T) {
 			name: "good object",
 			data: `key = "hello"
 value = "world"`,
-			wantType: AttributesFile,
+			wantType: attributesFile,
 			wantMime: "application/toml",
 			wantData: true,
 		},
@@ -243,7 +243,7 @@ value = "world"`,
 
 			ft, mt, d := detectTypeFromTOML(strings.NewReader(tc.data))
 			if tc.wantErr {
-				assert.Equal(t, UnknownFile, ft)
+				assert.Equal(t, unknownFile, ft)
 				assert.Empty(t, mt)
 				assert.Nil(t, d)
 			} else {

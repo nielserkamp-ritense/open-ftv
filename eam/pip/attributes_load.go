@@ -6,8 +6,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 
-	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mimetype"
-	mime2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
+	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 func (p *PIP) loadAttributes(path string) {
@@ -20,7 +19,7 @@ func (p *PIP) loadAttributes(path string) {
 
 	// detect the file-type and mime-type if possible.
 	// this should cover all supported file types.
-	if ft, mt, data := mime.DetectType(f, mime2.ConvertExt(filepath.Ext(path))); ft == mime.AttributesFile || ft == mime.CollectionFile {
+	if ft, mt, data := detectType(f, mime.ConvertExt(filepath.Ext(path))); ft == attributesFile || ft == collectionFile {
 		if data != nil {
 			// this covers YAML, TOML & JSON.
 			p.loadAttributesAny(data)
@@ -28,7 +27,7 @@ func (p *PIP) loadAttributes(path string) {
 		}
 
 		switch mt {
-		case mime2.MimeTypeTurtle, mime2.MimeTypeJSONLD, mime2.MimeTypeRDF:
+		case mime.MimeTypeTurtle, mime.MimeTypeJSONLD, mime.MimeTypeRDF:
 			// this covers our supported RDF file encodings.
 			p.loadRDF(f, path, mt)
 			return
