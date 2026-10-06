@@ -54,7 +54,7 @@ func TestAuthZEN_PDPFailureIsServerError(t *testing.T) {
 			body:       `{"evaluations":[{` + unknown + `}]}`,
 			traceID:    "6bf92f3577b34da6a3ce929d0e0e47b3",
 			wantStatus: http.StatusOK,
-			want:       `{"evaluations":[{"decision":false}]}`,
+			want:       `{"evaluations":[{"decision":false,"context":{"error":{"status":500,"message":"opa_undefined_error: /doelbinding/onbekend decision was undefined"}}}]}`,
 			wantADL:    "Ok",
 		},
 	}

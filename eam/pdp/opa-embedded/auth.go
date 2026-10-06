@@ -127,7 +127,7 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 			logger.Warn("authorization not granted", "item#", i+1, "pdp elapsed", duration.String())
 		}
 
-		out = append(out, models.Response{Allowed: false, Message: reason, Context: policyCtx})
+		out = append(out, models.Response{Allowed: false, Message: reason, Context: policyCtx, Err: err})
 
 		if req.Semantics == models.DenyOnFirstDeny {
 			break

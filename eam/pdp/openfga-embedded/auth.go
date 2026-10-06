@@ -2,6 +2,7 @@ package openfga_embedded
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -22,11 +23,8 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 		logger.Debug("authorization request")
 	}
 
-	out := &models.Response{Allowed: false}
-
 	fgaReq, err := c.buildCheckRequest(parc)
 	if err != nil {
-		out.Message = err.Error()
 		if debug {
 			logger.Error("authorization failed", "error", err)
 		}
@@ -43,13 +41,14 @@ func (c *controller) Authorize(uid string, parc *models.PARC) (*models.Response,
 
 	switch {
 	case err2 != nil:
-		out.Message = err2.Error()
+		logger.Error("authorization failed", "error", err2, "pdp elapsed", duration.String())
+		return nil, err2
 	case resp == nil:
-		out.Message = "authorization failed; empty response from engine"
-	default:
-		out.Allowed = resp.Allowed
-		out.Message = resp.Resolution
+		logger.Error("authorization failed; empty response from engine", "pdp elapsed", duration.String())
+		return nil, errors.New("authorization failed; empty response from engine")
 	}
+
+	out := &models.Response{Allowed: resp.Allowed, Message: resp.Resolution}
 
 	if debug {
 		if out.Allowed {
@@ -113,11 +112,12 @@ func (c *controller) Batch(uid string, req *models.Batch) ([]models.Response, er
 			allowed++
 			out = append(out, models.Response{Allowed: true})
 		} else {
-			var msg string
+			var itemErr error
 			if e := decision.GetError(); e != nil {
-				msg = e.GetMessage()
+				itemErr = errors.New(e.GetMessage())
 			}
-			out = append(out, models.Response{Allowed: false, Message: msg})
+
+			out = append(out, models.Response{Allowed: false, Err: itemErr})
 		}
 	}
 

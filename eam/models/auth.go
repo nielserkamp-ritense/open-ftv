@@ -68,4 +68,6 @@ type Response struct {
 	Context    map[string]any      `json:"context,omitempty"`
 	PolicyKey  string              `json:"policyKey,omitempty"`
 	PolicyHash string              `json:"policyHash,omitempty"`
+	// Err is set on a batch item the engine failed to evaluate.
+	Err error `json:"-"`
 }

@@ -166,9 +166,15 @@ func (p *authProcess) authorizeBatchAuthZEN() error {
 	for i := range results {
 		resp := &results[i]
 
+		decisionCtx := resp.Context
+		if resp.Err != nil {
+			// AuthZEN 1.0 §7.2.1: an item that failed to evaluate is denied, with the error in its context.
+			decisionCtx = map[string]any{"error": map[string]any{"status": fiber.StatusInternalServerError, "message": resp.Err.Error()}}
+		}
+
 		out.Evaluations = append(out.Evaluations, oas.EvaluationDecision{
 			Decision: resp.Allowed,
-			Context:  resp.Context,
+			Context:  decisionCtx,
 		})
 	}
 
