@@ -1,4 +1,4 @@
-package redact
+package fiber
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSensitive(t *testing.T) {
+func TestRedactSensitive(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -49,7 +49,7 @@ func TestSensitive(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.want, Sensitive(tc.input))
+			assert.Equal(t, tc.want, redactSensitive(tc.input))
 		})
 	}
 }

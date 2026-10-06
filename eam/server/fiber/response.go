@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2/utils"
 
 	apierror "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/errors"
-	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/redact"
 )
 
 // SendBasicResponse sends a basic response corresponding with the given status code.
@@ -22,7 +21,7 @@ func SendMessageResponse(req *fiber.Ctx, status int, msg string) error {
 	return req.Status(status).JSON(&apierror.ErrorResponse{
 		Status: status,
 		Title:  utils.StatusMessage(status),
-		Detail: redact.Sensitive(msg),
+		Detail: redactSensitive(msg),
 	})
 }
 
@@ -32,7 +31,7 @@ func SendProblemResponse(req *fiber.Ctx, status int, code, msg string) error {
 	return req.Status(status).JSON(&apierror.ErrorResponse{
 		Status: status,
 		Title:  utils.StatusMessage(status),
-		Detail: redact.Sensitive(msg),
+		Detail: redactSensitive(msg),
 		Code:   code,
 	})
 }

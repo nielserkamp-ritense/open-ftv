@@ -1,9 +1,8 @@
-// Package redact strips network-identifying details from free-text error messages.
-package redact
+package fiber
 
 import "regexp"
 
-const mask = "*****"
+const redactMask = "*****"
 
 var (
 	// bracketedIPv6Regex matches the bracketed form Go's net package uses for IPv6 hosts in dial
@@ -20,14 +19,14 @@ var (
 	hostRegex = regexp.MustCompile(`\b([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b`)
 )
 
-// Sensitive redacts IPv4/IPv6 addresses, URLs, and hostnames from input, e.g. so a dial error
+// redactSensitive redacts IPv4/IPv6 addresses, URLs, and hostnames from input, e.g. so a dial error
 // against a user-supplied URL can't be used to fingerprint internal network topology.
-func Sensitive(input string) string {
-	out := bracketedIPv6Regex.ReplaceAllString(input, mask)
-	out = bareIPv6Regex.ReplaceAllString(out, mask)
-	out = ipv4Regex.ReplaceAllString(out, mask)
-	out = urlRegex.ReplaceAllString(out, mask)
-	out = hostRegex.ReplaceAllString(out, mask)
+func redactSensitive(input string) string {
+	out := bracketedIPv6Regex.ReplaceAllString(input, redactMask)
+	out = bareIPv6Regex.ReplaceAllString(out, redactMask)
+	out = ipv4Regex.ReplaceAllString(out, redactMask)
+	out = urlRegex.ReplaceAllString(out, redactMask)
+	out = hostRegex.ReplaceAllString(out, redactMask)
 
 	return out
 }
