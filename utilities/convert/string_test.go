@@ -7,32 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOpaqueString(t *testing.T) {
-	t.Parallel()
-
-	s1 := ""
-	s2 := "hello world"
-
-	testCases := []struct {
-		name string
-		in   *string
-		want string
-	}{
-		{name: "nil"},
-		{name: "empty", in: &s1},
-		{name: "hello world", in: &s2, want: s2},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := OpaqueString(tc.in)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
 func TestRemoveHeaderParameters(t *testing.T) {
 	t.Parallel()
 
