@@ -5,7 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
 func TestLoadConfig_BadPath(t *testing.T) {
@@ -102,3 +105,59 @@ sources = [
 
 	bad = `oops`
 )
+
+func TestSniffFile(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name string
+		path string
+		want string
+	}{
+		{
+			name: "bad path",
+			path: "/this/is/not/a/real/file/duh",
+			// file open error!
+			want: io.DefaultMimeType,
+		},
+		{
+			name: "empty unknown file",
+			path: "../../../testdata/unittest/bad/empty.unknown.extension",
+			// based on content!
+			want: io.DefaultMimeType,
+		},
+		{
+			name: "empty txt file",
+			path: "../../../testdata/unittest/bad/empty.txt",
+			// based on extension!
+			want: io.MimeTypePlain,
+		},
+		{
+			name: "bad toml",
+			path: "../../../testdata/unittest/bad/not_toml.toml",
+			// based on extension!
+			want: io.MimeTypeTOML,
+		},
+		{
+			name: "bad yaml",
+			path: "../../../testdata/unittest/bad/not_yaml.yml",
+			// based on extension!
+			want: io.MimeTypeYAML,
+		},
+		{
+			name: "OpenFGA",
+			path: "../../../testdata/unittest/openfga/doelbinding.model",
+			// based on content!
+			want: io.MimeTypeOpenFGA,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := sniffFile(tc.path)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

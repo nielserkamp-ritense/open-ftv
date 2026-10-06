@@ -4,6 +4,7 @@ package network
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
@@ -14,7 +15,7 @@ import (
 
 // LoadConfig loads the external sources configuration from the given path.
 func LoadConfig(path string) (*Config, error) {
-	mime := io.SnifFile(path)
+	mime := sniffFile(path)
 
 	f, err := os.Open(path)
 	if err != nil {
@@ -40,6 +41,19 @@ func LoadConfig(path string) (*Config, error) {
 
 	cfg.prepareRequests()
 	return cfg, nil
+}
+
+func sniffFile(path string) string {
+	if t := io.ConvertExt(filepath.Ext(path)); io.IsSupported(t) {
+		return t
+	}
+
+	if f, err := os.Open(path); err == nil {
+		defer f.Close()
+		return io.SnifStream(f)
+	}
+
+	return io.DefaultMimeType
 }
 
 func (c *Config) prepareRequests() {
