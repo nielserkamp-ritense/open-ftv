@@ -2,6 +2,7 @@
 package models
 
 import (
+	"maps"
 	"reflect"
 	"slices"
 	"sync"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
-	"golang.org/x/exp/maps"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
@@ -176,7 +176,7 @@ func (a *Attribute) Type() string {
 // Tags returns the tags for the Attribute.
 func (a *Attribute) Tags() []string {
 	a.mutex.RLock()
-	tags := maps.Keys(a.tags)
+	tags := slices.AppendSeq(make([]string, 0, len(a.tags)), maps.Keys(a.tags))
 	a.mutex.RUnlock()
 
 	slices.Sort(tags)

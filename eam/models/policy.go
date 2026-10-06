@@ -16,7 +16,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
-	"golang.org/x/exp/maps"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
@@ -413,7 +412,7 @@ func (p *Policy) UnmarshalJSON(data []byte) error {
 	if p.tags == nil {
 		p.tags = make(map[string]struct{}, len(p2.Tags))
 	} else {
-		maps.Clear(p.tags)
+		clear(p.tags)
 	}
 
 	for i := range p2.Tags {

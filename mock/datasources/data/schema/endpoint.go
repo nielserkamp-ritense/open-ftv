@@ -6,7 +6,6 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/goccy/go-yaml"
-	"golang.org/x/exp/maps"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/enums"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/mock/datasources/data/matching"
@@ -206,8 +205,8 @@ func (e *Endpoint) Fix(ds *Datasource) {
 		e.datasource = ds
 		e.primary = nil
 
-		maps.Clear(e.includeFields)
-		maps.Clear(e.excludeFields)
+		clear(e.includeFields)
+		clear(e.excludeFields)
 
 		if t := ds.Table(e.Table); t != nil {
 			e.primary = t
