@@ -18,6 +18,8 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 
 ## Development setup
 
+How we write commits, code and merge requests is in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### Prerequisites
 
 - [mise](https://github.com/jdx/mise)
