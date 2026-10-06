@@ -26,13 +26,13 @@ func encodeValues(def *schema.Field, v any) any {
 	case enums.StringType, enums.URLType, enums.EmailType, enums.PhoneNrType, enums.IPAddressType:
 		return encodeStrings(def, v)
 	case enums.IntegerType:
-		return encodeStrings(def, convert.AnyToInts(v))
+		return encodeStrings(def, anyToInts(v))
 	case enums.UnsignedIntegerType:
-		return encodeStrings(def, convert.AnyToUints(v))
+		return encodeStrings(def, anyToUints(v))
 	case enums.FloatType:
-		return encodeStrings(def, convert.AnyToFloats(v))
+		return encodeStrings(def, anyToFloats(v))
 	case enums.BooleanType:
-		return encodeStrings(def, convert.AnyToBools(v))
+		return encodeStrings(def, anyToBools(v))
 	case enums.DateType, enums.TimeType, enums.DateTimeType:
 		// TODO: encode slice of dates, times or timestamps.
 	case enums.ObjectType, enums.AnyType:
