@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/convert"
 )
 
-func TestAnyToBools(t *testing.T) {
+func TestToSlice_bool(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -16,6 +18,7 @@ func TestAnyToBools(t *testing.T) {
 	}{
 		{name: "nil", want: []bool{}},
 		{name: "single bool", in: true, want: []bool{true}},
+		{name: "single int", in: 5, want: []bool{true}},
 		{name: "bool slice", in: []bool{true, false, true}, want: []bool{true, false, true}},
 		{name: "any slice", in: []any{1, 2.1, true, "hello world"}, want: []bool{true, true, true, false}},
 		{name: "int slice", in: []int{1, 0, 1}, want: []bool{true, false, true}},
@@ -38,13 +41,13 @@ func TestAnyToBools(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := anyToBools(tc.in)
+			got := toSlice(tc.in, convert.AnyToBool)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
 
-func TestAnyToFloats(t *testing.T) {
+func TestToSlice_float64(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -77,13 +80,13 @@ func TestAnyToFloats(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := anyToFloats(tc.in)
+			got := toSlice(tc.in, convert.AnyToFloat64)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
 
-func TestAnyToInts(t *testing.T) {
+func TestToSlice_int64(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -93,7 +96,9 @@ func TestAnyToInts(t *testing.T) {
 	}{
 		{name: "nil", want: []int64{}},
 		{name: "single int", in: int64(3), want: []int64{3}},
-		{name: "int slice", in: []int64{1, 0, 3}, want: []int64{1, 0, 3}},
+		{name: "single float", in: 2.6, want: []int64{3}},
+		{name: "single bool", in: true, want: []int64{1}},
+		{name: "int64 slice", in: []int64{1, 0, 3}, want: []int64{1, 0, 3}},
 		{name: "any slice", in: []any{1, 2.1, true, "hello world"}, want: []int64{1, 2, 1, 0}},
 		{name: "int slice", in: []int{1, 0, 1}, want: []int64{1, 0, 1}},
 		{name: "int8 slice", in: []int8{1, 0, 3}, want: []int64{1, 0, 3}},
@@ -115,13 +120,13 @@ func TestAnyToInts(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := anyToInts(tc.in)
+			got := toSlice(tc.in, convert.AnyToInt64)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
 
-func TestAnyToUints(t *testing.T) {
+func TestToSlice_uint64(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -131,7 +136,7 @@ func TestAnyToUints(t *testing.T) {
 	}{
 		{name: "nil", want: []uint64{}},
 		{name: "single uint", in: uint64(3), want: []uint64{3}},
-		{name: "uint slice", in: []uint64{1, 0, 3}, want: []uint64{1, 0, 3}},
+		{name: "uint64 slice", in: []uint64{1, 0, 3}, want: []uint64{1, 0, 3}},
 		{name: "any slice", in: []any{1, 2.1, true, "hello world"}, want: []uint64{1, 2, 1, 0}},
 		{name: "int slice", in: []int{1, 0, 1}, want: []uint64{1, 0, 1}},
 		{name: "int8 slice", in: []int8{1, 0, 3}, want: []uint64{1, 0, 3}},
@@ -153,7 +158,7 @@ func TestAnyToUints(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := anyToUints(tc.in)
+			got := toSlice(tc.in, convert.AnyToUint64)
 			assert.Equal(t, tc.want, got)
 		})
 	}
