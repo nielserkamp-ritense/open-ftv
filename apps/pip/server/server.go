@@ -80,25 +80,36 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 	return s
 }
 
-// Serve activates the HTTP(S) services.
+// Serve blocks until all services have stopped, and then closes the database connection pool.
 func (s *Services) Serve() {
 	wg := sync.WaitGroup{}
-	wg.Add(2)
 
-	go s.health.ServeWithWG(&wg)
-	go s.main.ServeWithWG(&wg)
+	s.serve(&wg, s.health)
+	s.serve(&wg, s.main)
 
 	wg.Wait()
-}
-
-// Shutdown shuts down the HTTP(S) services.
-func (s *Services) Shutdown() {
-	s.main.Shutdown()
-	s.health.Shutdown()
 
 	if s.dbCancel != nil {
 		s.dbCancel() // closes the connection pool.
 	}
+}
+
+// Shutdown stops the HTTP(S) services gracefully; Serve returns once they have stopped.
+func (s *Services) Shutdown() {
+	s.main.Shutdown()
+	s.health.Shutdown()
+}
+
+// serve runs svc until it stops. A service stops on an OS signal or when it fails to start; either way, the others stop too.
+func (s *Services) serve(wg *sync.WaitGroup, svc server.Service) {
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		svc.Serve()
+		s.Shutdown()
+	}()
 }
 
 // Services contains the details of the HTTP(S) services.

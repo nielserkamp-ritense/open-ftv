@@ -63,10 +63,16 @@ func (s *Services) Serve() {
 	services := []server.Service{s.main, s.health}
 
 	wg := sync.WaitGroup{}
-	wg.Add(len(services))
 
+	// a service stops on an OS signal or when it fails to start; either way, the others stop too.
 	for _, svc := range services {
-		go svc.ServeWithWG(&wg)
+		wg.Go(func() {
+			svc.Serve()
+
+			for _, other := range services {
+				other.Shutdown()
+			}
+		})
 	}
 
 	wg.Wait()
