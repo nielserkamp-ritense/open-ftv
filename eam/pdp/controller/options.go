@@ -1,9 +1,8 @@
 package controller
 
 import (
+	"context"
 	"log/slog"
-
-	"golang.org/x/net/context"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/mapping"
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pap"
