@@ -1,5 +1,5 @@
 id: "brp-access"
 language: "rego"
 metadata:
-  description: "Doelbinding check for BRP reads."
+  description: "Allows BRP reads for the identificatie-en-ingezetenschap doelbinding."
   tags: ["inway"]
