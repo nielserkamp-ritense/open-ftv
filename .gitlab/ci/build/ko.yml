@@ -28,7 +28,7 @@
         MAIN: ./mock/datasources/generic/cmd/rvig
       - APP: mock-ds-rdw
         MAIN: ./mock/datasources/generic/cmd/rdw
-      - APP: gw-kong
+      - APP: pep-kong
         MAIN: ./apps/pep-kong/cmd/openftv
   before_script:
     - go install github.com/google/ko@${KO_VERSION}

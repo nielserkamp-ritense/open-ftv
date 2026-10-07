@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: kong
-          image: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/gw-kong:v${OPEN_FTV_VERSION}
+          image: registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/pep-kong:v${OPEN_FTV_VERSION}
           # The image's entrypoint is the OpenFTV plugin, which Kong starts itself.
           command:
             - /docker-entrypoint.sh

@@ -10,7 +10,7 @@ The plugin is configured per service or route in Kong's declarative configuratio
 ## Running
 
 - **Locally:** docker compose builds `Dockerfile`, a Kong image with the plugin at `/usr/local/bin/openftv`.
-- **Simulation:** CI builds the `gw-kong` image with ko on a Kong base image, with the plugin at `/ko-app/openftv`.
+- **Simulation:** CI builds the `pep-kong` image with ko on a Kong base image, with the plugin at `/ko-app/openftv`.
 
 Kong names a Go plugin after its executable, and ko names the executable after the folder holding `main.go`. That
 folder must therefore stay `cmd/openftv`, or Kong no longer finds the `openftv` plugin.
