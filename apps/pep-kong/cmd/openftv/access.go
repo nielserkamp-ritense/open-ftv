@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Kong/go-pdk"
@@ -78,6 +79,11 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 	traceParent := models.ResolveOutgoingTraceParent(baseTraceParent)
 	models.SetHeader(headers, models.HeaderTraceParent, traceParent)
 
+	// Next to the traceparent minted here, a dropped tracestate would look valid to the response evaluation.
+	if traceState == "" {
+		deleteHeader(headers, models.HeaderTraceState)
+	}
+
 	// Saved with the resolved traceparent, so the response evaluation continues this trace.
 	if response == nil && c.EvaluateResponse {
 		if err := saveRequestHeaders(kong, headers); err != nil {
@@ -133,6 +139,14 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 	authResp, err := c.askPDP(&authBody, traceParent, traceState, fscTransactionID)
 
 	return authResp, upstream, err
+}
+
+func deleteHeader(headers map[string][]string, key string) {
+	for k := range headers {
+		if strings.EqualFold(k, key) {
+			delete(headers, k)
+		}
+	}
 }
 
 // Kong's Go plugin schema has no defaults, so a config without a timeout would cancel every PDP call at once.

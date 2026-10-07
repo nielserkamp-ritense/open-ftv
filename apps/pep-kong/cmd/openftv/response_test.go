@@ -118,3 +118,35 @@ func TestResponse_HeaderRemovedAfterAccess_StillSentToPDP(t *testing.T) {
 	assert.Equal(t, "Diane", evaluation.Context.CoreUser)
 	assert.Equal(t, http.StatusOK, env.ClientRes.Status)
 }
+
+// The access phase drops a tracestate that came without a valid traceparent; the response evaluation must
+// not pick it up again from the saved request headers, next to the traceparent the access phase minted.
+func TestResponse_TraceStateWithoutTraceParent_IsDropped(t *testing.T) {
+	var responseTraceStateSet bool
+
+	pdp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if b, _ := io.ReadAll(r.Body); bytes.Contains(b, []byte(`"response"`)) {
+			_, responseTraceStateSet = r.Header["Tracestate"]
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"decision":true}`))
+	}))
+	defer pdp.Close()
+
+	env, err := test.New(t, test.Request{
+		Method:  "GET",
+		Url:     "https://gw.test/v1/voertuigen",
+		Headers: http.Header{"Tracestate": {"vendorA=1"}},
+	})
+	require.NoError(t, err)
+
+	env.ServiceRes = test.Response{Status: http.StatusOK, Body: []byte(vehicles)}
+
+	cfg := &Config{PDP: pdp.URL, Timeout: 5000, EvaluateResponse: true}
+	env.DoAccess(cfg)
+	env.DoResponse(cfg)
+
+	assert.Equal(t, http.StatusOK, env.ClientRes.Status)
+	assert.False(t, responseTraceStateSet, "the response evaluation must not forward the dropped tracestate")
+}
