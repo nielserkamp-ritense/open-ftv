@@ -1,6 +1,6 @@
 ---
 # A template: its addresses are variables, filled in from demo/addresses.env locally and from
-# deploy/kustomize/simulation-pre-release/addresses.env in the Simulatieomgeving.
+# deploy/kustomize/<overlay>/addresses.env in the Simulatieomgeving.
 id: "pdp1"
 title: "Outway deployment bundle (pdp1)"
 language: "cedar"

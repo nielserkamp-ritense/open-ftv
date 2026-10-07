@@ -159,9 +159,10 @@ The pre-release version on `main` always assumes a *patch* bump, so it is number
 
 #### Simulatieomgeving
 
-There are two independent deployments running on the Simulatieomgeving, each deployed automatically by Flux.
+There are two independent deployments running on the Simulatieomgeving, each deployed automatically by Flux. Both run
+the Laadpalen demo.
 
-The latest `main` **pre-release** runs the Laadpalen demo:
+The latest `main` **pre-release**:
 
 - Laadpalen application: https://openftv-vlierdam-pre.simulatie.datastelsel.nl
 - Management interfaces:
@@ -171,24 +172,29 @@ The latest `main` **pre-release** runs the Laadpalen demo:
 - Keycloak: `https://openftv-<vlierdam|brp|rdw>-keycloak-pre.simulatie.datastelsel.nl`
 - Namespace: `fds-tenant-ictu-open-ftv`
 - Manifests: `deploy/kustomize/simulation-pre-release`
-- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
-
-Every pre-release deploy resets the demo: the `demo-reset-<version>` Job empties each manager's database, so edits
-made in the management interfaces are lost, and the managers seed the demo policies from `demo/` again. A new file in
-`demo/<organization>/manager/policies` also needs a line in the overlay's `kustomization.yaml`. The Laadpalen
-application reaches Vlierdam's mock dataspace, outway and PDP1 through `/dataspace`, `/outway` and `/pdp1` on its own
-host.
-
-The overlay reads the demo's bundle configurations, PDP pull-configs and Kong configurations from `demo/`; the
-deploy job fills in their addresses from the overlay's `addresses.env`. A new variable in a template needs a value
-there as well as in `demo/addresses.env`.
 
 The latest tagged **release**:
 
-- Management interface: https://open-ftv-vlierdam.simulatie.datastelsel.nl
+- Laadpalen application: https://openftv-vlierdam.simulatie.datastelsel.nl
+- Management interfaces:
+  - Gemeente Vlierdam: https://openftv-vlierdam-beheer.simulatie.datastelsel.nl
+  - RvIG (BRP): https://openftv-brp-beheer.simulatie.datastelsel.nl
+  - RDW: https://openftv-rdw-beheer.simulatie.datastelsel.nl
+- Keycloak: `https://openftv-<vlierdam|brp|rdw>-keycloak.simulatie.datastelsel.nl`
 - Namespace: `fds-organization-gemeente-vlierdam`
 - Manifests: `deploy/kustomize/simulation-release`
-- [Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
+
+[Tenant configuration](https://gitlab.com/datastelsel.nl/federatief/simulation/platform/-/tree/main/flux/tenants/simulation/ictu-open-ftv)
+
+Every deploy resets the demo: the `demo-reset-<version>` Job empties each manager's database, so edits made in the
+management interfaces are lost, and the managers seed the demo policies from `demo/` again. A new file in
+`demo/<organization>/manager/policies` also needs a line in both overlays' `kustomization.yaml`. The Laadpalen
+application reaches Vlierdam's mock dataspace, outway and PDP1 through `/dataspace`, `/outway` and `/pdp1` on its own
+host.
+
+The overlays read the demo's bundle configurations, PDP pull-configs and Kong configurations from `demo/`; the
+deploy job fills in their addresses from the overlay's `addresses.env`. A new variable in a template needs a value
+in both overlays' `addresses.env` as well as in `demo/addresses.env`.
 
 [Cluster access](https://gitlab.com/datastelsel.nl/federatief/simulation/simulation/#access-to-k8s-cluster)
 
@@ -202,8 +208,7 @@ kubectl get pods -n fds-organization-gemeente-vlierdam -o jsonpath='{..image}'
 ##### Header title and colors
 
 Each management interface takes its header title and colors from the settings API. They are in
-`demo/<organization>/manager/settings.json`. The pre-release reset Job sets them on every deploy. On the release, an
-admin sets them once on its Instellingen page after a first deploy.
+`demo/<organization>/manager/settings.json`. The reset Job sets them on every deploy.
 
 ##### Accounts
 

@@ -5,4 +5,110 @@ kind: Kustomization
 namespace: fds-organization-gemeente-vlierdam
 
 resources:
-  - open-ftv.yaml
+  - charts.yaml
+  - laadpalen-applicatie.yaml
+  - demo-reset.yaml
+  # Gemeente Vlierdam
+  - open-ftv-vlierdam.yaml
+  - open-ftv-vlierdam-pdp2.yaml
+  - vlierdam-dataspace.yaml
+  - vlierdam-outway.yaml
+  # RvIG
+  - open-ftv-brp.yaml
+  - brp-dataspace.yaml
+  - brp-inway.yaml
+  # RDW
+  - open-ftv-rdw.yaml
+  - rdw-dataspace.yaml
+  - rdw-inway.yaml
+
+# The Kong configs, bundles and PDP pull-configs in demo/ are templates: the deploy job fills in
+# the addresses from addresses.env.
+#
+# The manager and PDP ConfigMaps keep a fixed name: HelmRelease values refer to them by name,
+# which kustomize only rewrites with a nameReference configuration for every such field. The
+# reset Job restarts the managers, and every deploy rolls out new PDPs, so they pick up
+# changes. The Kong ConfigMaps keep their hash suffix, so a changed configuration rolls out a
+# new Kong.
+configMapGenerator:
+  - name: demo-reset-settings
+    files:
+      - vlierdam.json=../../../demo/gemeente-vlierdam/manager/settings.json
+      - brp.json=../../../demo/rvig/manager/settings.json
+      - rdw.json=../../../demo/rdw/manager/settings.json
+  - name: open-ftv-vlierdam-manager-policies
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/gemeente-vlierdam/manager/policies/brv-diplomatiek.rego
+      - ../../../demo/gemeente-vlierdam/manager/policies/brv-diplomatiek.rego.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-afdeling.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-afdeling.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-doelbinding.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-doelbinding.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding-verlopen.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding-verlopen.cedar.meta
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding.cedar
+      - ../../../demo/gemeente-vlierdam/manager/policies/laadpaal-aanvragen-opleiding.cedar.meta
+  - name: open-ftv-vlierdam-manager-tags
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/gemeente-vlierdam/manager/tags/tags.yaml
+  - name: open-ftv-vlierdam-manager-bundles
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pdp1.yaml=../../../demo/gemeente-vlierdam/manager/bundles/pdp1.yaml.template
+      - pdp2.yaml=../../../demo/gemeente-vlierdam/manager/bundles/pdp2.yaml.template
+  - name: open-ftv-vlierdam-pdp1-pull-config
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pip-pull-config.yaml=../../../demo/gemeente-vlierdam/pdp1/pull-config/config.yaml.template
+  - name: open-ftv-vlierdam-pdp2-pull-config
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pip-pull-config.yaml=../../../demo/gemeente-vlierdam/pdp2/pull-config/config.yaml.template
+  - name: vlierdam-outway-config
+    files:
+      - conf.yaml=../../../demo/gemeente-vlierdam/kong/conf.yaml.template
+  - name: open-ftv-brp-manager-policies
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/rvig/manager/policies/brp-access.rego
+      - ../../../demo/rvig/manager/policies/brp-access.rego.meta
+  - name: open-ftv-brp-manager-tags
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/rvig/manager/tags/tags.yaml
+  - name: open-ftv-brp-manager-bundles
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pdp1.yaml=../../../demo/rvig/manager/bundles/pdp1.yaml.template
+  - name: brp-inway-config
+    files:
+      - conf.yaml=../../../demo/rvig/kong/conf.yaml.template
+  - name: open-ftv-rdw-manager-policies
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/rdw/manager/policies/brv-access.rego
+      - ../../../demo/rdw/manager/policies/brv-access.rego.meta
+  - name: open-ftv-rdw-manager-tags
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../demo/rdw/manager/tags/tags.yaml
+  - name: open-ftv-rdw-manager-bundles
+    options:
+      disableNameSuffixHash: true
+    files:
+      - pdp1.yaml=../../../demo/rdw/manager/bundles/pdp1.yaml.template
+  - name: rdw-inway-config
+    files:
+      - conf.yaml=../../../demo/rdw/kong/conf.yaml.template

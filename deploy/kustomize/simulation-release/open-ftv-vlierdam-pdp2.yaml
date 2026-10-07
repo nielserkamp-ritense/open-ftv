@@ -1,0 +1,30 @@
+# Vlierdam's second PDP (Rego), which decides on the outway's RDW route.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-ftv-vlierdam-pdp2
+spec:
+  serviceAccountName: flux-reconciler
+  interval: 35m
+  # The database secret and the Authorization Decision Log database come from the
+  # open-ftv-vlierdam release.
+  dependsOn:
+    - name: open-ftv-vlierdam
+  chartRef:
+    kind: OCIRepository
+    name: open-ftv-pdp
+  values:
+    fullnameOverride: open-ftv-vlierdam-pdp2
+    config:
+      policySource: manager
+      policyLanguage: rego
+      bundleManager:
+        url: http://open-ftv-vlierdam-manager:9090/v1/bundle/pdp2
+      authorizationDecisionLog:
+        serviceName: vlierdam
+        postgresql:
+          database: openftv_adl
+          existingSecret:
+            name: open-ftv-vlierdam-postgresql-app
+      # From demo/gemeente-vlierdam/pdp2 (see kustomization.yaml).
+      pipPullConfigExistingConfigMap: open-ftv-vlierdam-pdp2-pull-config

@@ -1,17 +1,7 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
-metadata:
-  name: open-ftv
-spec:
-  url: oci://registry.gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/charts/open-ftv
-  ref:
-    tag: ${OPEN_FTV_VERSION}
-  interval: 10m
----
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: open-ftv
+  name: open-ftv-vlierdam
 spec:
   serviceAccountName: flux-reconciler
   interval: 35m
@@ -21,25 +11,30 @@ spec:
   values:
     pdp:
       config:
+        policySource: manager
+        bundleManager:
+          url: http://{{ .Release.Name }}-manager:9090/v1/bundle/pdp1
         authorizationDecisionLog:
-          type: postgresql
+          serviceName: vlierdam
+        # From demo/gemeente-vlierdam/pdp1 (see kustomization.yaml).
+        pipPullConfigExistingConfigMap: open-ftv-vlierdam-pdp1-pull-config
     manager:
       enabled: true
       config:
-        authorizationDecisionLog:
-          type: postgresql
         corsOrigins:
-          - https://open-ftv-vlierdam.simulatie.datastelsel.nl
+          - https://openftv-vlierdam-beheer.simulatie.datastelsel.nl
         oidc:
-          issuer: https://keycloak-vlierdam.simulatie.datastelsel.nl/realms/openftv
+          issuer: https://openftv-vlierdam-keycloak.simulatie.datastelsel.nl/realms/openftv
           jwksUrl: http://{{ .Release.Name }}-keycloak/realms/openftv/protocol/openid-connect/certs
           audience: openftv
+        seedPoliciesExistingConfigMap: open-ftv-vlierdam-manager-policies
+        tagsExistingConfigMap: open-ftv-vlierdam-manager-tags
+        bundlesExistingConfigMap: open-ftv-vlierdam-manager-bundles
     management-interface:
       enabled: true
       config:
         oidc:
-          authority: https://keycloak-vlierdam.simulatie.datastelsel.nl/realms/openftv
-          clientId: openftv
+          authority: https://openftv-vlierdam-keycloak.simulatie.datastelsel.nl/realms/openftv
       httpRoute:
         enabled: true
         parentRefs:
@@ -49,23 +44,18 @@ spec:
             namespace: fds-public
             sectionName: https
         hostnames:
-          - open-ftv-vlierdam.simulatie.datastelsel.nl
+          - openftv-vlierdam-beheer.simulatie.datastelsel.nl
     keycloak:
       enabled: true
       config:
-        # Reach the admin console with: kubectl port-forward svc/open-ftv-keycloak 8080:80
+        # Reach the admin console with: kubectl port-forward svc/open-ftv-vlierdam-keycloak 8080:80
         adminHostname: http://localhost:8080
-        adminUsername: admin
         adminPassword: Yh6Auje4BeWT3luyfpzkw0ojHCeL
         realm:
           redirectUris:
-            - https://open-ftv-vlierdam.simulatie.datastelsel.nl/*
+            - https://openftv-vlierdam-beheer.simulatie.datastelsel.nl/*
           webOrigins:
-            - https://open-ftv-vlierdam.simulatie.datastelsel.nl
-          users:
-            adminPassword: password
-            authorPassword: password
-            auditorPassword: password
+            - https://openftv-vlierdam-beheer.simulatie.datastelsel.nl
       httpRoute:
         enabled: true
         parentRefs:
@@ -75,4 +65,4 @@ spec:
             namespace: fds-public
             sectionName: https
         hostnames:
-          - keycloak-vlierdam.simulatie.datastelsel.nl
+          - openftv-vlierdam-keycloak.simulatie.datastelsel.nl

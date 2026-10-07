@@ -1,4 +1,4 @@
-# Every pre-release deploy starts the demo clean: visitors can edit policies in beheer, and
+# Every deploy starts the demo clean: visitors can edit policies in beheer, and
 # those edits survive restarts. The Job's name carries the version, so Flux runs it once per
 # deploy and prunes the previous one. It has no ttlSecondsAfterFinished: Flux would recreate
 # a Job that disappeared and run it again.

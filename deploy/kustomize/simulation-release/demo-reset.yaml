@@ -1,0 +1,255 @@
+# Every deploy starts the demo clean: visitors can edit policies in beheer, and
+# those edits survive restarts. The Job's name carries the version, so Flux runs it once per
+# deploy and prunes the previous one. It has no ttlSecondsAfterFinished: Flux would recreate
+# a Job that disappeared and run it again.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: demo-reset-${OPEN_FTV_VERSION}
+spec:
+  # A retry runs the whole pod again, emptying every manager database once more. Retry only
+  # a failed reset: when setting the headers fails, the demo is already clean.
+  backoffLimit: 2
+  podFailurePolicy:
+    rules:
+      - action: FailJob
+        onExitCodes:
+          containerName: set-headers
+          operator: NotIn
+          values:
+            - 0
+  # Room for the release waits of up to 30 minutes each and the manager restarts.
+  activeDeadlineSeconds: 10800
+  template:
+    spec:
+      serviceAccountName: demo-reset
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Emptying a database while Helm is still upgrading its manager would race the
+        # migrations, so wait until this version is installed and ready everywhere. Flux records
+        # an OCI chart's version with its digest appended, so match the app version, which the
+        # charts job sets to v<version>.
+        - name: wait-for-releases
+          image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
+          command:
+            - sh
+            - -ec
+            - |
+              for release in open-ftv-vlierdam open-ftv-brp open-ftv-rdw; do
+                kubectl wait helmrelease/$${release} --timeout=30m --for=jsonpath='{.status.history[0].appVersion}'=v${OPEN_FTV_VERSION}
+                kubectl wait helmrelease/$${release} --timeout=30m --for=condition=Ready
+              done
+          env:
+            - name: HOME
+              value: /tmp
+          securityContext:
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        # Empties each manager's database, and its Authorization Decision Log: the bundle versions
+        # start again at 1, so older decisions would point at version numbers that now mean another
+        # bundle. The PDPs keep their decision table, so it's emptied rather than dropped.
+        - name: empty-vlierdam-databases
+          image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+          command:
+            - psql
+            - --set=ON_ERROR_STOP=1
+            - --command=DROP SCHEMA public CASCADE
+            - --command=CREATE SCHEMA public
+            - --command=\connect openftv_adl
+            - --command=TRUNCATE decision
+          env:
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-vlierdam-postgresql-app
+                  key: host
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-vlierdam-postgresql-app
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-vlierdam-postgresql-app
+                  key: password
+            - name: PGDATABASE
+              value: openftv
+          securityContext:
+            runAsUser: 70
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        - name: empty-brp-databases
+          image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+          command:
+            - psql
+            - --set=ON_ERROR_STOP=1
+            - --command=DROP SCHEMA public CASCADE
+            - --command=CREATE SCHEMA public
+            - --command=\connect openftv_adl
+            - --command=TRUNCATE decision
+          env:
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-brp-postgresql-app
+                  key: host
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-brp-postgresql-app
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-brp-postgresql-app
+                  key: password
+            - name: PGDATABASE
+              value: openftv
+          securityContext:
+            runAsUser: 70
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        - name: empty-rdw-databases
+          image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+          command:
+            - psql
+            - --set=ON_ERROR_STOP=1
+            - --command=DROP SCHEMA public CASCADE
+            - --command=CREATE SCHEMA public
+            - --command=\connect openftv_adl
+            - --command=TRUNCATE decision
+          env:
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-rdw-postgresql-app
+                  key: host
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-rdw-postgresql-app
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: open-ftv-rdw-postgresql-app
+                  key: password
+            - name: PGDATABASE
+              value: openftv
+          securityContext:
+            runAsUser: 70
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        # On start a manager migrates, seeds the demo policies and creates the allow-everything
+        # bootstrap policy again, and restarting it picks up changed ConfigMaps too.
+        - name: restart-managers
+          image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
+          command:
+            - sh
+            - -ec
+            - |
+              for manager in open-ftv-vlierdam-manager open-ftv-brp-manager open-ftv-rdw-manager; do
+                kubectl rollout restart deployment/$${manager}
+              done
+              for manager in open-ftv-vlierdam-manager open-ftv-brp-manager open-ftv-rdw-manager; do
+                kubectl rollout status deployment/$${manager} --timeout=10m
+              done
+          env:
+            - name: HOME
+              value: /tmp
+          securityContext:
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        # The header titles and colors from demo/<organization>/manager/settings.json. A manager can
+        # refuse the first requests until its bootstrap policy is in place, so retry until one
+        # succeeds.
+        - name: set-headers
+          image: curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+          command:
+            - sh
+            - -ec
+            - |
+              curl http://open-ftv-vlierdam-manager/v1/settings --silent --show-error --output /dev/null --fail \
+                --retry 60 --retry-delay 5 --retry-all-errors \
+                --request PUT --header 'Content-Type: application/json' \
+                --data @/etc/demo-reset/settings/vlierdam.json
+              curl http://open-ftv-brp-manager/v1/settings --silent --show-error --output /dev/null --fail \
+                --retry 60 --retry-delay 5 --retry-all-errors \
+                --request PUT --header 'Content-Type: application/json' \
+                --data @/etc/demo-reset/settings/brp.json
+              curl http://open-ftv-rdw-manager/v1/settings --silent --show-error --output /dev/null --fail \
+                --retry 60 --retry-delay 5 --retry-all-errors \
+                --request PUT --header 'Content-Type: application/json' \
+                --data @/etc/demo-reset/settings/rdw.json
+          volumeMounts:
+            - name: settings
+              mountPath: /etc/demo-reset/settings
+              readOnly: true
+          securityContext:
+            runAsUser: 101
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: settings
+          configMap:
+            name: demo-reset-settings
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-reset
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: demo-reset
+rules:
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: demo-reset
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: demo-reset
+subjects:
+  - kind: ServiceAccount
+    name: demo-reset
