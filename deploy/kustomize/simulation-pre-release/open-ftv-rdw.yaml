@@ -34,7 +34,6 @@ spec:
       config:
         oidc:
           authority: https://openftv-rdw-keycloak-pre.simulatie.datastelsel.nl/realms/openftv
-          clientId: openftv
       httpRoute:
         enabled: true
         parentRefs:
@@ -50,17 +49,12 @@ spec:
       config:
         # Reach the admin console with: kubectl port-forward svc/open-ftv-rdw-keycloak 8080:80
         adminHostname: http://localhost:8080
-        adminUsername: admin
         adminPassword: yzX8R5R5zCJm88x8dOeQRNOKMN3
         realm:
           redirectUris:
             - https://openftv-rdw-beheer-pre.simulatie.datastelsel.nl/*
           webOrigins:
             - https://openftv-rdw-beheer-pre.simulatie.datastelsel.nl
-          users:
-            adminPassword: password
-            authorPassword: password
-            auditorPassword: password
       httpRoute:
         enabled: true
         parentRefs:
