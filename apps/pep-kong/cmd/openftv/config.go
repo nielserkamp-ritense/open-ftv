@@ -44,7 +44,3 @@ func (c *Config) ensurePEP() {
 		}
 	})
 }
-
-func newPEPWith(opt pep.Option) *pep.PEP {
-	return pep.New(context.Background(), slog.New(slog.NewJSONHandler(os.Stdout, nil)), opt)
-}

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
+	"log/slog"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/models"
+	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 )
 
 func mustParse(t *testing.T, raw string) *url.URL {
@@ -50,7 +53,7 @@ func TestPEPOptionFromConfigValidatesJWKSSignedToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, opt)
 
-	p := newPEPWith(opt)
+	p := pep.New(context.Background(), slog.New(slog.DiscardHandler), opt)
 
 	tok := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss": "https://idp.test", "aud": "openftv", "sub": "carol",

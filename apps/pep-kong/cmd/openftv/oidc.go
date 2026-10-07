@@ -15,7 +15,7 @@ const jwksFetchTimeout = 10 * time.Second
 // pepOptionFromConfig builds a JWKS-backed JWT validation option from the plugin
 // config. Returns (nil, nil) when OIDC is not configured (no JWKSURL).
 func pepOptionFromConfig(c *Config) (pep.Option, error) {
-	if c == nil || c.JWKSURL == "" {
+	if c.JWKSURL == "" {
 		return nil, nil
 	}
 
