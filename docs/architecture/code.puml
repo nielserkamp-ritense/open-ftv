@@ -11,10 +11,7 @@ package "Deployable apps" {
   component "apps/pip" as PIP
   component "apps/management-interface\n(React / Vite UI)" as MI
   component "apps/laadpalen-applicatie\n(React / Vite demo UI)" as LP
-}
-
-package "Gateway plugins (Go)" {
-  component "external/gateways/kong" as KONG
+  component "apps/pep-kong\n(Kong plugin)" as KONG
 }
 
 package "eam — domain libraries" {
@@ -87,7 +84,8 @@ BUND --> OAS
 CADL --> UT
 
 note as N1
-  All apps share the same base layer:
+  All apps but pep-kong, which Kong hosts,
+  share the same base layer:
   eam/config, eam/server(+fiber),
   eam/handlers, eam/models, utilities/slog.
   Only the distinguishing dependencies are drawn.

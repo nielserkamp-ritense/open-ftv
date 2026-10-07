@@ -29,7 +29,7 @@
       - APP: mock-ds-rdw
         MAIN: ./mock/datasources/generic/cmd/rdw
       - APP: gw-kong
-        MAIN: ./external/gateways/kong/plugins/openftv
+        MAIN: ./apps/pep-kong/cmd/openftv
   before_script:
     - go install github.com/google/ko@${KO_VERSION}
     - printf '%s' "${CI_DEPENDENCY_PROXY_PASSWORD}" | ko login ${CI_DEPENDENCY_PROXY_SERVER} -u ${CI_DEPENDENCY_PROXY_USER} --password-stdin

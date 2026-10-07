@@ -21,8 +21,10 @@ import (
 
 func mustParse(t *testing.T, raw string) *url.URL {
 	t.Helper()
+
 	u, err := url.Parse(raw)
 	require.NoError(t, err)
+
 	return u
 }
 
@@ -31,10 +33,11 @@ func TestPEPOptionFromConfigValidatesJWKSSignedToken(t *testing.T) {
 	require.NoError(t, err)
 
 	const kid = "test-key-1"
+
 	jwks := map[string]any{"keys": []map[string]any{{
 		"kty": "RSA", "alg": "RS256", "use": "sig", "kid": kid,
-		"n": base64.RawURLEncoding.EncodeToString(key.PublicKey.N.Bytes()),
-		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.PublicKey.E)).Bytes()),
+		"n": base64.RawURLEncoding.EncodeToString(key.N.Bytes()),
+		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.E)).Bytes()),
 	}}}
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -73,12 +76,15 @@ func TestPEPOptionFromConfigValidatesJWKSSignedToken(t *testing.T) {
 func TestEnsurePEPValidatesToken(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
+
 	const kid = "test-key-1"
+
 	jwks := map[string]any{"keys": []map[string]any{{
 		"kty": "RSA", "alg": "RS256", "use": "sig", "kid": kid,
-		"n": base64.RawURLEncoding.EncodeToString(key.PublicKey.N.Bytes()),
-		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.PublicKey.E)).Bytes()),
+		"n": base64.RawURLEncoding.EncodeToString(key.N.Bytes()),
+		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.E)).Bytes()),
 	}}}
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(jwks)
 	}))

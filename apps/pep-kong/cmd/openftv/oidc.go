@@ -10,6 +10,8 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 )
 
+const jwksFetchTimeout = 10 * time.Second
+
 // pepOptionFromConfig builds a JWKS-backed JWT validation option from the plugin
 // config. Returns (nil, nil) when OIDC is not configured (no JWKSURL).
 func pepOptionFromConfig(c *Config) (pep.Option, error) {
@@ -17,7 +19,7 @@ func pepOptionFromConfig(c *Config) (pep.Option, error) {
 		return nil, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), jwksFetchTimeout)
 	defer cancel()
 
 	k, err := keyfunc.NewDefaultCtx(ctx, []string{c.JWKSURL})

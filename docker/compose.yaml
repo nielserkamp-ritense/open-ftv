@@ -39,7 +39,7 @@ services:
   vlierdam-api-gateway:
     build:
       context: ../
-      dockerfile: ./external/gateways/kong/Dockerfile
+      dockerfile: ./apps/pep-kong/Dockerfile
     ports:
       - "9002:8000/tcp"
     environment:
@@ -70,7 +70,7 @@ services:
   rvig-api-gateway:
     build:
       context: ../
-      dockerfile: ./external/gateways/kong/Dockerfile
+      dockerfile: ./apps/pep-kong/Dockerfile
     ports:
       - "9022:8000/tcp"
     environment:
@@ -101,7 +101,7 @@ services:
   rdw-api-gateway:
     build:
       context: ../
-      dockerfile: ./external/gateways/kong/Dockerfile
+      dockerfile: ./apps/pep-kong/Dockerfile
     ports:
       - "9042:8000/tcp"
     environment:

@@ -9,6 +9,20 @@ import (
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/pep"
 )
 
+type Config struct {
+	PDP        string `json:"pdp"`
+	Timeout    int    `json:"timeout"`
+	Issuer     string `json:"issuer"`
+	JWKSURL    string `json:"jwks_url"`
+	Audience   string `json:"audience"`
+	RolesClaim string `json:"roles_claim"`
+	// EvaluateResponse also asks the PDP for a decision on the upstream response.
+	EvaluateResponse bool `json:"evaluate_response"`
+	// hidden fields
+	once sync.Once
+	pep  *pep.PEP
+}
+
 func newConfig() any {
 	return &Config{}
 }
@@ -26,18 +40,4 @@ func (c *Config) ensurePEP() {
 
 func newPEPWith(opt pep.Option) *pep.PEP {
 	return pep.New(context.Background(), slog.New(slog.NewJSONHandler(os.Stdout, nil)), opt)
-}
-
-type Config struct {
-	PDP        string `json:"pdp"`
-	Timeout    int    `json:"timeout"`
-	Issuer     string `json:"issuer"`
-	JWKSURL    string `json:"jwks_url"`
-	Audience   string `json:"audience"`
-	RolesClaim string `json:"roles_claim"`
-	// EvaluateResponse also asks the PDP for a decision on the upstream response.
-	EvaluateResponse bool `json:"evaluate_response"`
-	// hidden fields
-	once sync.Once
-	pep  *pep.PEP
 }

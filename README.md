@@ -4,11 +4,10 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 
 ## Folder structure
 
-- `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip` etc.).
+- `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip`, `pep-kong` etc.).
 - `demo      ` configuration of the Laadpalen demo, per organization.
 - `docker    ` docker and compose related scripts.
 - `eam       ` shared generic EAM components.
-- `external  ` OpenFTV plugins for external software products. 
 - `migrations` database migration scripts.
 - `mock      ` mock services, including the generic mock data-service.
 - `oas       ` OpenAPI specifications for the project.

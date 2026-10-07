@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/openftv ./external/gateways/kong/plugins/openftv/
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /build/openftv ./apps/pep-kong/cmd/openftv/
 
 # Stage 2 - run
 FROM kong:3.9.3
