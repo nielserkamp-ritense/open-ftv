@@ -9,8 +9,8 @@ package "Deployable apps" {
   component "apps/pdp" as PDP
   component "apps/pap" as PAP
   component "apps/pip" as PIP
-  component "apps/fsc-auth" as FSC
   component "apps/management-interface\n(React / Vite UI)" as MI
+  component "apps/laadpalen-applicatie\n(React / Vite demo UI)" as LP
 }
 
 package "Gateway plugins (Go)" {
@@ -62,7 +62,6 @@ PIP --> EPIP
 PDP --> CTRL
 PDP --> CADL
 PDP --> LOG
-FSC --> AUTHN
 
 ' ---- PDP controller delegates to a policy engine ----
 CTRL --> CEDAR
@@ -74,6 +73,8 @@ CTRL --> CERBOS
 KONG  --> PEP
 PEP  ..> PDP : AuthZEN evaluate (runtime HTTP)
 MI   ..> MGR : REST PAP/PIP (runtime)
+LP   ..> PDP : AuthZEN evaluate (runtime HTTP)
+LP   ..> KONG : data requests via the outway (runtime)
 
 ' ---- shared base + foundation ----
 MGR --> SRV
