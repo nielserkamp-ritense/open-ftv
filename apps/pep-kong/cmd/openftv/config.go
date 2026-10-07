@@ -10,7 +10,8 @@ import (
 )
 
 type Config struct {
-	PDP        string `json:"pdp"`
+	PDP string `json:"pdp"`
+	// Timeout is in milliseconds; without one, the PDP call gets defaultPDPTimeout.
 	Timeout    int    `json:"timeout"`
 	Issuer     string `json:"issuer"`
 	JWKSURL    string `json:"jwks_url"`

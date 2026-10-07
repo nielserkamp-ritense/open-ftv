@@ -135,6 +135,9 @@ func (c *Config) evaluate(kong *pdk.PDK, response map[string]any) (authzen.Evalu
 	return authResp, upstream, err
 }
 
+// Kong's Go plugin schema has no defaults, so a config without a timeout would cancel every PDP call at once.
+const defaultPDPTimeout = 5 * time.Second
+
 // askPDP sends the evaluation request to the PDP, continuing the request's trace.
 func (c *Config) askPDP(
 	authBody *authzen.EvaluationRequest, traceParent, traceState, fscTransactionID string,
@@ -146,7 +149,12 @@ func (c *Config) askPDP(
 		return authResp, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Timeout)*time.Millisecond)
+	timeout := time.Duration(c.Timeout) * time.Millisecond
+	if timeout <= 0 {
+		timeout = defaultPDPTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	authReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.PDP, bytes.NewBuffer(b))

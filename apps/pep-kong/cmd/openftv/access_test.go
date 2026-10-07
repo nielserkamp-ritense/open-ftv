@@ -221,3 +221,17 @@ func TestAccess_PDPError_ExitsInternalServerError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, env.ClientRes.Status)
 }
+
+// TestAccess_NoTimeout_AsksPDP covers a plugin config without a timeout: Kong fills in no default, and a
+// zero timeout must not cancel the PDP call before it starts.
+func TestAccess_NoTimeout_AsksPDP(t *testing.T) {
+	pdp := decisionPDP(t, true, nil)
+	defer pdp.Close()
+
+	env, err := test.New(t, test.Request{Method: "GET", Url: "https://gw.test/resource"})
+	require.NoError(t, err)
+
+	env.DoAccess(&Config{PDP: pdp.URL})
+
+	assert.True(t, env.IsRunning(), "an allowed request must go on to the upstream service")
+}
