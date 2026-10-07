@@ -10,33 +10,20 @@ import (
 	mime "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/utilities/io"
 )
 
-// fileType represents the detected type of file.
 type fileType uint8
 
-// List of file types that can be detected.
 const (
-	unknownFile    fileType = iota // the type of file could not be detected.
-	attributesFile                 // file contains attributes.
-	entitiesFile                   // file contains entities.
-	relationsFile                  // file contains relations.
-	collectionFile                 // file contains a combination of attributes, entities and/or relations.
-	policyFile                     // file contains a policy.
+	unknownFile fileType = iota
+	attributesFile
+	entitiesFile
+	relationsFile
+	collectionFile // a combination of attributes, entities and/or relations.
+	policyFile
 )
 
-// detectType attempts to detect the type of file from the given stream and mime-type.
-//
-// If the given mime-type is empty, the function will attempt to detect the mime-type from the given stream.
-// The return parameter *mimeType* may contain a different value again;
-// e.g. when the mem-type appears to be 'application/json', but clearly contains JSON-LD content,
-// the output parameter *mimeType* will be set to 'application/ld+json'.
-//
-// For supported mime-types, the function will detect what type of content the given stream contains,
-// and return this value in the output parameter *ft*.
-//
-// When the content of the file needs to be examined, and if the type of content can then be determined,
-// the output parameter *data* may contain the decoded content.
-//
-// In all other cases, it will return unknownFile for ft, mimeType will be empty and data will be nil.
+// detectType sniffs the mime-type from f when mt is empty. The mime-type it returns can be more specific than
+// mt, e.g. 'application/ld+json' for JSON that holds JSON-LD. When it had to decode f to tell the type, it
+// returns the decoded content as data.
 func detectType(f io.ReadSeeker, mt string) (ft fileType, mimeType string, data any) {
 	if mt == "" {
 		mt = mime.SnifStream(f)

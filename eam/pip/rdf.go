@@ -28,9 +28,6 @@ const (
 	ftvEntityType      = uriFTV + "entityType"
 )
 
-// rdfFromString converts an RDF literal into a Golang variable of the appropriate type.
-//
-// This function supports the RDF data-types, as well as most of the common XSD data-types.
 func rdfFromString(data, t string) (any, error) {
 	switch t {
 	case rdfHTML, rdfXMLLiteral:
