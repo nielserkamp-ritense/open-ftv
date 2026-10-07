@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/goccy/go-json"
@@ -50,21 +51,12 @@ func (i *Index) Equal(other []string) bool {
 //
 // The order of the elements can be different as long as all elements exist in both lists.
 func stringsEqual(list1, list2 []string) bool {
-	if len(list1) != len(list2) {
-		return false
-	}
+	return len(list1) == len(list2) && containsAllFold(list1, list2) && containsAllFold(list2, list1)
+}
 
-	for i := range list1 {
-		var ok bool
-
-		for j := range list2 {
-			if strings.EqualFold(list1[i], list2[j]) {
-				ok = true
-				break
-			}
-		}
-
-		if !ok {
+func containsAllFold(list, other []string) bool {
+	for _, s := range list {
+		if !slices.ContainsFunc(other, func(o string) bool { return strings.EqualFold(s, o) }) {
 			return false
 		}
 	}

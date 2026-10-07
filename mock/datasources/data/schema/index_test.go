@@ -275,6 +275,9 @@ func TestStringsEqual(t *testing.T) {
 		{name: "unmatched length (1)", l1: []string{"a", "c"}, l2: []string{"a", "b", "c"}},
 		{name: "unmatched length (2)", l1: []string{"a", "b", "c"}, l2: []string{"b", "c"}},
 		{name: "unmatched items", l1: []string{"a", "b", "c"}, l2: []string{"c", "a", "d"}},
+		{name: "duplicate in first", l1: []string{"a", "a"}, l2: []string{"a", "b"}},
+		{name: "duplicate in second", l1: []string{"a", "b"}, l2: []string{"a", "a"}},
+		{name: "matched case-insensitive", l1: []string{"A", "b"}, l2: []string{"B", "a"}, want: true},
 		{name: "matched", l1: []string{"a", "b", "c"}, l2: []string{"b", "c", "a"}, want: true},
 	}
 
