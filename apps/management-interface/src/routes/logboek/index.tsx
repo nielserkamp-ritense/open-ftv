@@ -3,15 +3,22 @@ import {Button} from "@/components/ui/button.tsx";
 import Card from "@/components/ui/card.tsx";
 import {IconAlertTriangleFilled, IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
 import {AuthlogEntry, useAuthlogEntries} from "@/services/authlog.ts";
-import type {ColDef, RowClassRules, RowClassParams, RowClickedEvent} from "ag-grid-community";
+import type {ColDef, FilterChangedEvent, GridApi, GridReadyEvent, RowClassRules, RowClassParams, RowClickedEvent, TextFilterModel} from "ag-grid-community";
 import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
-import {useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import {formatDateTime} from "@/utilities/datetime.ts";
 import {Decision, entryDecision, entryReason} from "@/services/decision.ts";
 
+interface LogboekSearch {
+    traceId?: string
+}
+
 export const Route = createFileRoute('/logboek/')({
+    validateSearch: (search: Record<string, unknown>): LogboekSearch => ({
+        traceId: typeof search.traceId === 'string' && search.traceId !== '' ? search.traceId : undefined,
+    }),
     component: RouteComponent,
 })
 
@@ -34,9 +41,41 @@ const BeslissingRenderer = (params: CustomCellRendererProps<AuthlogEntry, Decisi
     }
 };
 
+const traceIdFilterModel = (traceId?: string): TextFilterModel | null =>
+    traceId ? {filterType: 'text', type: 'equals', filter: traceId} : null;
+
+const filteredTraceId = (api: GridApi<AuthlogEntry>): string | undefined => {
+    const value = api.getColumnFilterModel<TextFilterModel>('traceId')?.filter?.trim().toLowerCase();
+    return value === '' ? undefined : value;
+};
+
 function RouteComponent() {
     const navigate = useNavigate();
-    const { data } = useAuthlogEntries({recent: "168h"});
+    const {traceId} = Route.useSearch();
+    // A trace ID searches the whole log, so its decision is found however old the decision is.
+    const { data } = useAuthlogEntries(traceId ? {traceId} : {recent: "168h"});
+
+    const [gridApi, setGridApi] = useState<GridApi<AuthlogEntry>>();
+
+    const handleGridReady = (event: GridReadyEvent<AuthlogEntry>) => setGridApi(event.api);
+
+    // The Trace ID filter of the grid searches the whole log, through the URL, instead of the rows it has.
+    const handleFilterChanged = (event: FilterChangedEvent<AuthlogEntry>) => {
+        const value = filteredTraceId(event.api);
+        if (value !== traceId) {
+            navigate({to: '/logboek', search: {traceId: value}})
+                .catch(e => console.error('Navigation error:', e));
+        }
+    };
+
+    // A link or the back button changes the URL with the grid already open, so its filter follows the URL.
+    useEffect(() => {
+        if (!gridApi || filteredTraceId(gridApi) === traceId) return;
+
+        gridApi.setColumnFilterModel('traceId', traceIdFilterModel(traceId))
+            .then(() => gridApi.onFilterChanged())
+            .catch(e => console.error('Filter error:', e));
+    }, [gridApi, traceId]);
 
     const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => {
         if (event.data?.id) {
@@ -55,7 +94,9 @@ function RouteComponent() {
             field: "traceId",
             resizable: true,
             cellStyle: {color: 'var(--color-content-secondary)'},
-            filter: true,
+            filter: 'agTextColumnFilter',
+            // The decision log only finds a whole trace ID, and Enter applies it, not every key typed.
+            filterParams: {filterOptions: ['equals'], maxNumConditions: 1, buttons: ['apply', 'reset'], closeOnApply: true},
         },
         {
             headerName: "Span ID",
@@ -161,6 +202,9 @@ function RouteComponent() {
                             columnDefs={colDefs}
                             rowClassRules={rowClassRules}
                             onRowClicked={handleRowClick}
+                            onGridReady={handleGridReady}
+                            onFilterChanged={handleFilterChanged}
+                            initialState={{filter: {filterModel: traceId ? {traceId: traceIdFilterModel(traceId)} : {}}}}
                             rowSelection={undefined}
                         />
                     </div>
