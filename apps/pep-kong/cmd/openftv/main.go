@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Kong/go-pdk/server"
 )
 
@@ -13,5 +15,7 @@ const (
 )
 
 func main() {
-	_ = server.StartServer(newConfig, version, priority)
+	if err := server.StartServer(newConfig, version, priority); err != nil {
+		log.Fatal(err)
+	}
 }
