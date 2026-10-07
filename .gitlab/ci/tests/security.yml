@@ -16,14 +16,17 @@ go_mod_graph:
     expire_in: 1 day
     paths:
       - go.graph
+  # The same rules as the dependency-scanning template: the license approval policy reads the merge request's
+  # latest pipeline, so with an open merge request the scan runs there instead of in the branch pipeline.
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_OPEN_MERGE_REQUESTS
+      when: never
     - if: $CI_COMMIT_BRANCH
 
 dependency-scanning:
   needs:
     - go_mod_graph
-  rules:
-    - if: $CI_COMMIT_BRANCH
 
 secret_detection:
   stage: Security
