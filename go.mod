@@ -11,7 +11,6 @@ require (
 	github.com/dsnet/compress v0.0.1
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/getkin/kin-openapi v0.144.0
 	github.com/go-co-op/gocron/v2 v2.22.0
 	github.com/goccy/go-json v0.10.6
 	github.com/goccy/go-yaml v1.19.2
@@ -64,6 +63,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
+	github.com/getkin/kin-openapi v0.144.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
