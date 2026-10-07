@@ -4,7 +4,7 @@
 
 ### Issue tracker
 
-Issues live in Jira project **FTV - ICTU** (ICTU). Agents create issues via the `jira` CLI and read via the Jira API / MCP. See `docs/agents/issue-tracker.md`.
+Issues live in Jira project **FTV - ICTU** (key `SCRUM`). Agents create issues via the `jira` CLI and read via the Jira API / MCP. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

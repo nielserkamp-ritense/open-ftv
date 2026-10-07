@@ -85,7 +85,8 @@ https://openid.net/specs/authorization-api-1_0.html#section-7.2.1
 - Rebase onto `main` before review, and clean up the history (fixups, order) before merging.
 - The history shows the end result, not how you got there. A fix for something the branch itself introduced goes
   into the commit that introduced it, as a fixup. Only a fix for code already on `main` gets a commit of its own.
-- The merge request says what changes and why, and links the Jira issue.
+- The merge request says what changes and why, and ends with its Jira issue: `Issue: SCRUM-<issue number>`, e.g.
+  `Issue: SCRUM-157`.
 - Keep review comments short and concrete. Say so when an LLM wrote a comment.
 
 ## Decisions and vocabulary
