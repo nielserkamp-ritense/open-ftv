@@ -203,3 +203,21 @@ func TestAccess_PDPUnreachable_ExitsInternalServerError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, env.ClientRes.Status)
 }
+
+// TestAccess_PDPError_ExitsInternalServerError covers a PDP that answers with an error: its body may well
+// decode as a denial, but no policy decided, so the request must fail with a 500 rather than a 403.
+func TestAccess_PDPError_ExitsInternalServerError(t *testing.T) {
+	pdp := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"title":"Internal Server Error","status":500}`))
+	}))
+	defer pdp.Close()
+
+	env, err := test.New(t, test.Request{Method: "GET", Url: "https://gw.test/resource"})
+	require.NoError(t, err)
+
+	env.DoAccess(&Config{PDP: pdp.URL, Timeout: 5000})
+
+	assert.Equal(t, http.StatusInternalServerError, env.ClientRes.Status)
+}

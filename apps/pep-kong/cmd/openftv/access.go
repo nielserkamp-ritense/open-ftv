@@ -171,6 +171,11 @@ func (c *Config) askPDP(
 
 	defer resp.Body.Close()
 
+	// An error body may still decode as {"decision":false}, which would pass a PDP failure off as a denial.
+	if resp.StatusCode != http.StatusOK {
+		return authResp, fmt.Errorf("PDP answered %s", resp.Status)
+	}
+
 	err = json.NewDecoder(resp.Body).Decode(&authResp)
 
 	return authResp, err
