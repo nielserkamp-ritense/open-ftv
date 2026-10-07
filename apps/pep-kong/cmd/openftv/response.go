@@ -18,14 +18,14 @@ func (c *Config) Response(kong *pdk.PDK) {
 		return
 	}
 
-	c.ensurePEP()
-
 	defer func() {
 		if e := recover(); e != nil {
 			_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: response error: %v", e))
 			kong.Response.Exit(http.StatusInternalServerError, nil, nil)
 		}
 	}()
+
+	c.ensurePEP()
 
 	status, _ := kong.ServiceResponse.GetStatus()
 	raw, _ := kong.ServiceResponse.GetRawBody()

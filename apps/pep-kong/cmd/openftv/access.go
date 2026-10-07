@@ -21,14 +21,14 @@ import (
 
 // Access implements the Kong-plugin Access handler.
 func (c *Config) Access(kong *pdk.PDK) {
-	c.ensurePEP()
-
 	defer func() {
 		if e := recover(); e != nil {
 			_ = kong.Log.Err(fmt.Sprintf("OpenFTV AuthZEN: access error: %v", e))
 			kong.Response.Exit(http.StatusInternalServerError, nil, nil)
 		}
 	}()
+
+	c.ensurePEP()
 
 	authResp, upstream, err := c.evaluate(kong, nil)
 	if err != nil {
