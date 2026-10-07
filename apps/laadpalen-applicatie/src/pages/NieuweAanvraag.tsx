@@ -19,6 +19,7 @@ interface AuditLogEntry {
   result: "success" | "error" | "info";
   details: string;
   isPublic?: boolean;
+  traceId?: string;
 }
 
 const NieuweAanvraag = () => {
@@ -192,6 +193,11 @@ const NieuweAanvraag = () => {
                         <p className="text-muted-foreground text-xs">
                           {entry.details}
                         </p>
+                        {entry.traceId && (
+                          <p className="text-muted-foreground text-xs mt-1 select-all">
+                            Trace ID: <span className="font-mono">{entry.traceId}</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))

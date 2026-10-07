@@ -33,8 +33,12 @@ export async function evaluateLaadpaalIndienen(params: {
   laadpaalOpleiding?: string
   postcode: string
   huisnummer: number
+  traceId: string
 }): Promise<AuthzenEvaluationResponse> {
-  const { gebruiker, afdeling, laadpaalOpleiding, postcode, huisnummer } = params
+  const { gebruiker, afdeling, laadpaalOpleiding, postcode, huisnummer, traceId } = params
+  // The PDP logs its decision under the trace ID of this traceparent, so the trace ID finds the decision in
+  // the Logboek.
+  const traceparent = `00-${traceId}-${randomHex(8)}-01`
   return vlierdamPdp1Client!.post<AuthzenEvaluationResponse>('/authzen/v1/evaluation', {
     subject: {
       type: 'medewerker',
@@ -44,5 +48,10 @@ export async function evaluateLaadpaalIndienen(params: {
     resource: { type: 'laadpaalAanvraag', id: `${postcode}-${huisnummer}` },
     action: { name: 'aanvragen' },
     context: { now: new Date().toISOString(), doelbinding: VITE_DOELBINDING },
-  } satisfies AuthzenEvaluationRequest)
+  } satisfies AuthzenEvaluationRequest, { headers: { traceparent } })
 }
+
+export const newTraceId = () => randomHex(16)
+
+const randomHex = (bytes: number) =>
+  Array.from(crypto.getRandomValues(new Uint8Array(bytes)), (b) => b.toString(16).padStart(2, '0')).join('')

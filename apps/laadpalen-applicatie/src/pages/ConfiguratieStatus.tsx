@@ -9,7 +9,7 @@ import {ArrowLeft, CheckCircle2, XCircle, Loader2, Database, Users, Car, Info} f
 import {
   apiClient, brpApiClient, rdwApiClient,
   vlierdamPdp1Client,
-  evaluateLaadpaalIndienen,
+  evaluateLaadpaalIndienen, newTraceId,
   ApiError, isApiError, reattributeChainError,
 } from "@/lib/api";
 import {VITE_API_BASE_URL, VITE_VLIERDAM_OUTWAY_URL} from "@/lib/env";
@@ -166,7 +166,7 @@ const vlierdamHealthChecks: HealthCheck[] =
     segments: [{text: "pdp1", source: "openftv-vlierdam-pdp"}, {text: "outway"}],
     queryFn: async () => {
       try {
-        await evaluateLaadpaalIndienen({gebruiker: "healthcheck", postcode: "0000AA", huisnummer: 0});
+        await evaluateLaadpaalIndienen({gebruiker: "healthcheck", postcode: "0000AA", huisnummer: 0, traceId: newTraceId()});
       } catch (err) {
         throw isApiError(err) ? new ApiError(err.message, err.status, err.data, "openftv-vlierdam-pdp") : err;
       }

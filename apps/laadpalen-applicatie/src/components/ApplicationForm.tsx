@@ -4,7 +4,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {AlertCircle, CheckCircle2, XCircle} from "lucide-react";
 import {z} from "zod";
-import {evaluateLaadpaalIndienen} from "@/lib/api";
+import {evaluateLaadpaalIndienen, newTraceId} from "@/lib/api";
 
 const applicationSchema = z.object({
   postcode: z.string()
@@ -21,6 +21,7 @@ interface AuditLogEntry {
   result: "success" | "error" | "info";
   details: string;
   isPublic?: boolean;
+  traceId?: string;
 }
 
 interface ApplicationFormProps {
@@ -48,6 +49,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
       });
 
       const gebruiker = gebruikers.find(g => g.naam === currentUser);
+      const traceId = newTraceId();
       setIsAuthorizing(true);
       let beslissing;
       try {
@@ -57,7 +59,26 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
           laadpaalOpleiding: gebruiker?.["laadpaal-opleiding"],
           postcode: validated.postcode,
           huisnummer: validated.huisnummer,
+          traceId,
         });
+      } catch (error) {
+        // The PDP logs a failed check as well, so its trace ID leads to the error in the Logboek.
+        const feedback = {
+          type: "error" as const,
+          message: `Autorisatiecontrole mislukt: ${error instanceof Error ? error.message : "onbekende fout"}`,
+        };
+        setPublicFeedback(feedback);
+        if (onAuditLog) {
+          onAuditLog({
+            action: "Autorisatiecontrole",
+            system: "FTV",
+            result: "error",
+            details: feedback.message,
+            isPublic: true,
+            traceId,
+          });
+        }
+        return;
       } finally {
         setIsAuthorizing(false);
       }
@@ -78,6 +99,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
             result: "error",
             details: feedback.message,
             isPublic: true,
+            traceId,
           });
         }
         return;
