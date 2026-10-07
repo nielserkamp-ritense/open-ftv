@@ -23,10 +23,7 @@ CI publishes multi-arch images (linux/amd64 and linux/arm64) built with ko. The 
 Build the image
 
 ```bash
-# From apps/management-interface
-make docker
-
-# or from the repository root
+# From the repository root
 docker build -f apps/management-interface/Dockerfile -t management-interface-app:latest-dev .
 ```
 

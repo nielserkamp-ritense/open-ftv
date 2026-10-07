@@ -24,7 +24,6 @@ How we write commits, code and merge requests is in [CONTRIBUTING.md](CONTRIBUTI
 - [mise](https://github.com/jdx/mise)
 - [Docker](https://docs.docker.com/install/)
 - htpasswd
-- Make
 
 ### Installation
 
@@ -44,12 +43,13 @@ mise install
 
 The repository is a single Go module (see
 [ADR 0003](docs/adr/0003-single-go-module.md)), so the standard Go commands work from the
-root: `go build ./...`, `go test ./...`.
-
-To build and test everything locally, run the following command from the project root directory:
+root:
 
 ```shell
-make all
+go generate ./oas/...   # regenerate the Go code of the OpenAPI specs
+go vet ./...
+golangci-lint run       # as the Lint Golang job in CI does
+go test ./...
 ```
 
 ### Local setup
