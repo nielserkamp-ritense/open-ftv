@@ -196,49 +196,49 @@ func TestInvalidHostPort(t *testing.T) {
 func TestForceAbort(t *testing.T) {
 	t.Parallel()
 
-	t.Run("force abort", func(t *testing.T) {
-		h := slog2.NewDummyHandler(slog.LevelInfo)
-		logger := slog.New(h)
+	h := slog2.NewDummyHandler(slog.LevelInfo)
 
-		opts := []server.Option{
-			server.WithDefaults(),
-			server.WithHostPort("0.0.0.0", 20005),
-			server.WithRecovery(),
+	entered := make(chan struct{})
+	release := make(chan struct{})
+
+	router := func(_ context.Context, svc *fiber.App) {
+		svc.Get("/slow", func(req *fiber.Ctx) error {
+			close(entered)
+			<-release
+
+			return req.SendStatus(fiber.StatusOK)
+		})
+	}
+
+	s := New(slog.New(h), router, server.WithDefaults(), server.WithHostPort("127.0.0.1", 20005))
+
+	done := make(chan error)
+
+	go func() {
+		done <- s.Serve()
+	}()
+
+	time.Sleep(25 * time.Millisecond)
+
+	go func() {
+		resp, err := http.DefaultClient.Get("http://127.0.0.1:20005/slow")
+		if err == nil {
+			_ = resp.Body.Close()
 		}
+	}()
 
-		router := func(_ context.Context, svc *fiber.App) {
-			svc.Get("/healthz", func(req *fiber.Ctx) error {
-				return req.SendStatus(fiber.StatusOK)
-			})
-		}
+	// the request still being answered keeps the graceful stop waiting.
+	<-entered
+	s.Shutdown()
 
-		s := New(logger, router, opts...)
+	// a second OS signal while stopping forces the stop.
+	s.(*service).intChan <- syscall.SIGQUIT
 
-		wg := &sync.WaitGroup{}
-		wg.Add(2)
+	require.NoError(t, <-done)
+	close(release)
 
-		go func() {
-			s.Serve()
-			wg.Done()
-		}()
-
-		go func() {
-			time.Sleep(25 * time.Millisecond)
-			s.Shutdown()
-
-			// a second OS signal while stopping forces the stop.
-			select {
-			case s.(*service).intChan <- syscall.SIGQUIT:
-			case <-time.After(time.Second):
-			}
-
-			wg.Done()
-		}()
-
-		wg.Wait()
-
-		assert.GreaterOrEqual(t, h.Count(), 1)
-	})
+	assert.Contains(t, h.Log(), "http service aborted")
+	assert.NotContains(t, h.Log(), "stopped successfully")
 }
 
 func TestShutdownBeforeServe(t *testing.T) {
