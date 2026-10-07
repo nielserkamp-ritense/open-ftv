@@ -62,8 +62,7 @@ func saveRequestHeaders(kong *pdk.PDK, headers map[string][]string) error {
 
 func requestHeaders(kong *pdk.PDK, saved bool) (map[string][]string, error) {
 	if !saved {
-		headers, _ := kong.Request.GetHeaders(maxRequestHeaders)
-		return headers, nil
+		return kong.Request.GetHeaders(maxRequestHeaders)
 	}
 
 	s, err := kong.Ctx.GetSharedString(sharedRequestHeaders)
