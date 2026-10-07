@@ -9,7 +9,6 @@ require (
 	github.com/cerbos/cerbos-sdk-go v0.4.4
 	github.com/deiu/rdf2go v0.0.0-20241212211204-b661ba0dfd25
 	github.com/dsnet/compress v0.0.1
-	github.com/envoyproxy/go-control-plane/envoy v1.37.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-co-op/gocron/v2 v2.22.0
 	github.com/goccy/go-json v0.10.6
@@ -32,8 +31,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/crypto v0.56.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d
-	google.golang.org/grpc v1.83.2
 )
 
 require (
@@ -55,7 +52,6 @@ require (
 	github.com/cerbos/cloud-api v0.2.7 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
-	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1 // indirect
 	github.com/deiu/gon3 v0.0.0-20241212124032-93153c038193 // indirect
@@ -165,6 +161,8 @@ require (
 	golang.org/x/tools v0.49.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d // indirect
+	google.golang.org/grpc v1.83.2 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

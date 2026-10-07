@@ -15,7 +15,6 @@ package "Deployable apps" {
 
 package "Gateway plugins (Go)" {
   component "external/gateways/kong" as KONG
-  component "external/gateways/envoy" as ENVOY
 }
 
 package "eam — domain libraries" {
@@ -73,7 +72,6 @@ CTRL --> CERBOS
 
 ' ---- gateways enforce via PEP, then call the PDP over HTTP ----
 KONG  --> PEP
-ENVOY --> PEP
 PEP  ..> PDP : AuthZEN evaluate (runtime HTTP)
 MI   ..> MGR : REST PAP/PIP (runtime)
 

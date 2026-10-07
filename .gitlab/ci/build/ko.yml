@@ -28,8 +28,6 @@
         MAIN: ./mock/datasources/generic/cmd/rvig
       - APP: mock-ds-rdw
         MAIN: ./mock/datasources/generic/cmd/rdw
-      - APP: gw-plugin-envoy
-        MAIN: ./external/gateways/envoy/plugins/openftv/cmd
       - APP: gw-kong
         MAIN: ./external/gateways/kong/plugins/openftv
   before_script:
