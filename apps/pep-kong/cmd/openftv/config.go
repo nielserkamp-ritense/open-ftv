@@ -31,7 +31,13 @@ func newConfig() any {
 func (c *Config) ensurePEP() {
 	c.once.Do(func() {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-		if opt, err := pepOptionFromConfig(c); err == nil && opt != nil {
+
+		opt, err := pepOptionFromConfig(c)
+		if err != nil {
+			logger.Error("OpenFTV AuthZEN: JWT validation is off, so bearer tokens are refused", "error", err)
+		}
+
+		if opt != nil {
 			c.pep = pep.New(context.Background(), logger, opt)
 		} else {
 			c.pep = pep.New(context.Background(), logger)
