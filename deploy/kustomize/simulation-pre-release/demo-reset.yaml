@@ -52,9 +52,9 @@ spec:
             capabilities:
               drop:
                 - ALL
-        # Empties each manager's database, and its decision log: the bundle versions start again
-        # at 1, so older decisions would point at version numbers that now mean another bundle.
-        # The PDPs keep their decision table, so it's emptied rather than dropped.
+        # Empties each manager's database, and its Authorization Decision Log: the bundle versions
+        # start again at 1, so older decisions would point at version numbers that now mean another
+        # bundle. The PDPs keep their decision table, so it's emptied rather than dropped.
         - name: empty-vlierdam-databases
           image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
           command:

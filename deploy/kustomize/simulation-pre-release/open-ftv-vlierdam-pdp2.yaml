@@ -6,7 +6,8 @@ metadata:
 spec:
   serviceAccountName: flux-reconciler
   interval: 35m
-  # The database secret and the audit log database come from the open-ftv-vlierdam release.
+  # The database secret and the Authorization Decision Log database come from the
+  # open-ftv-vlierdam release.
   dependsOn:
     - name: open-ftv-vlierdam
   chartRef:
