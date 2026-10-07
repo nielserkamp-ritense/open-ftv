@@ -7,6 +7,7 @@ This repository contains the reference implementation of [Federatieve Toegangsve
 - `apps      ` code for EAM services (e.g. `pap`, `pdp`, `pip`, `pep-kong` etc.).
 - `demo      ` configuration of the Laadpalen demo, per organization.
 - `docker    ` docker and compose related scripts.
+- `e2e       ` end-to-end tests of the Laadpalen demo.
 - `eam       ` shared generic EAM components.
 - `migrations` database migration scripts.
 - `mock      ` mock services, including the generic mock data-service.
@@ -109,6 +110,10 @@ On every start, modd saves each Policy Editor's header title and colors through 
 `modd.conf`), replacing changes made on the Instellingen page.
 
 modd does not reload `modd.conf` itself: restart modd after changing it.
+
+#### End-to-end tests
+
+The end-to-end tests of the Laadpalen demo run against this setup. See [e2e/README.md](e2e/README.md).
 
 #### FAQ
 

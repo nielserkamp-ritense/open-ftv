@@ -12,3 +12,6 @@ deploy/charts/*/Chart.lock
 /demo/*/kong/conf.yaml
 /demo/*/manager/bundles/*.yaml
 /demo/*/pdp*/pull-config/config.yaml
+# Written by the end-to-end tests.
+/e2e/output/
+/e2e/screenshots/

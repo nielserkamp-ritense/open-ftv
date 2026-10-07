@@ -1,9 +1,10 @@
 version: "2"
 
 run:
-  # Without the tag, golangci-lint never compiles the integration tests.
+  # Without the tags, golangci-lint never compiles the integration and end-to-end tests.
   build-tags:
     - integration
+    - e2e
 
 linters:
   default: none
