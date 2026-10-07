@@ -335,6 +335,20 @@ value = "first code"
 			},
 		},
 		{
+			name:    "good yaml with parameters",
+			data:    goodYAML,
+			content: "application/yaml; charset=utf-8",
+			dec: &ResponseMapping{
+				Attributes: []*AttributesMapping{
+					{Base: "attributes", Map: []*AttributeMapping{{KeyField: "key", ValueField: "value", TypeField: "type"}}},
+				},
+			},
+			wantAttr: map[string]*models.Attribute{
+				"code": models.NewOriginalAttribute("code", int64(119), uint64(119), "xsd:short"),
+				"name": models.NewOriginalAttribute("name", "first code", "first code", ""),
+			},
+		},
+		{
 			name: "good json",
 			data: goodJSON,
 			dec: &ResponseMapping{

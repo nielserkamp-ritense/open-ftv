@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	stdmime "mime"
 	"unicode"
 
 	"github.com/goccy/go-json"
@@ -30,7 +31,7 @@ func (r *runner) decodeResponse() {
 		return
 	}
 
-	ct := resp.Header.Get(models.HeaderContentType)
+	ct, _, _ := stdmime.ParseMediaType(resp.Header.Get(models.HeaderContentType))
 	if ct == "" {
 		ct = mime.SnifStream(bytes.NewReader(data))
 	}
