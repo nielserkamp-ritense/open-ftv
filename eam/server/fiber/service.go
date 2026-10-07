@@ -66,17 +66,10 @@ func (s *service) Logger() *slog.Logger {
 	return s.logger
 }
 
-// Serve runs the HTTP(S) service.
-func (s *service) Serve() {
-	s.run()
-	s.cancel()
-}
+func (s *service) Serve() error {
+	defer s.cancel()
 
-// ServeWithWG runs the HTTP(S) service, and marks the WaitGroup done when finished.
-func (s *service) ServeWithWG(wg *sync.WaitGroup) {
-	defer wg.Done()
-	s.run()
-	s.cancel()
+	return s.run()
 }
 
 // Unlike a second OS signal, calling Shutdown again never forces the stop.

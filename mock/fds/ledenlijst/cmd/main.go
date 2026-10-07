@@ -29,5 +29,8 @@ func main() {
 	}
 
 	logger.Info("configuration loaded successfully", "config", cfg)
-	server.NewService(cfg, logger).Serve()
+
+	if err := server.NewService(cfg, logger).Serve(); err != nil {
+		os.Exit(1) // the service that failed has logged why.
+	}
 }

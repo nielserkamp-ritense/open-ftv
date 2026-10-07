@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 	"time"
@@ -81,35 +82,34 @@ func NewServices(cfg *config.Config, logger *slog.Logger) *Services {
 }
 
 // Serve blocks until all services have stopped, and then closes the database connection pool.
-func (s *Services) Serve() {
+func (s *Services) Serve() error {
+	services := []server.Service{s.health, s.main}
+
+	errs := make([]error, len(services))
 	wg := sync.WaitGroup{}
 
-	s.serve(&wg, s.health)
-	s.serve(&wg, s.main)
+	// a service stops on an OS signal or when it fails to start; either way, the others stop too.
+	for i, svc := range services {
+		wg.Go(func() {
+			errs[i] = svc.Serve()
+
+			s.Shutdown()
+		})
+	}
 
 	wg.Wait()
 
 	if s.dbCancel != nil {
 		s.dbCancel() // closes the connection pool.
 	}
+
+	return errors.Join(errs...)
 }
 
 // Shutdown stops the HTTP(S) services gracefully; Serve returns once they have stopped.
 func (s *Services) Shutdown() {
 	s.main.Shutdown()
 	s.health.Shutdown()
-}
-
-// serve runs svc until it stops. A service stops on an OS signal or when it fails to start; either way, the others stop too.
-func (s *Services) serve(wg *sync.WaitGroup, svc server.Service) {
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		svc.Serve()
-		s.Shutdown()
-	}()
 }
 
 // Services contains the details of the HTTP(S) services.

@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 	"time"
@@ -110,21 +111,32 @@ func NewExternal(cfg *config.Config, logger *slog.Logger) *Services {
 }
 
 // Serve blocks until all services have stopped, and then closes the database connection pool.
-func (s *Services) Serve() {
-	wg := sync.WaitGroup{}
+func (s *Services) Serve() error {
+	services := []server.Service{s.main, s.health}
 
 	if s.cfg.BundlePath != "" {
-		s.serve(&wg, s.bundles)
+		services = append(services, s.bundles)
 	}
 
-	s.serve(&wg, s.main)
-	s.serve(&wg, s.health)
+	errs := make([]error, len(services))
+	wg := sync.WaitGroup{}
+
+	// a service stops on an OS signal or when it fails to start; either way, the others stop too.
+	for i, svc := range services {
+		wg.Go(func() {
+			errs[i] = svc.Serve()
+
+			s.Shutdown()
+		})
+	}
 
 	wg.Wait()
 
 	if s.dbCancel != nil {
 		s.dbCancel() // closes the connection pool.
 	}
+
+	return errors.Join(errs...)
 }
 
 // Shutdown stops the HTTP(S) services gracefully; Serve returns once they have stopped.
@@ -135,18 +147,6 @@ func (s *Services) Shutdown() {
 	if s.cfg.BundlePath != "" {
 		s.bundles.Shutdown()
 	}
-}
-
-// serve runs svc until it stops. A service stops on an OS signal or when it fails to start; either way, the others stop too.
-func (s *Services) serve(wg *sync.WaitGroup, svc server.Service) {
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		svc.Serve()
-		s.Shutdown()
-	}()
 }
 
 // Services contains the details of the HTTP(S) services.

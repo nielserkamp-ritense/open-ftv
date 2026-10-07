@@ -4,17 +4,15 @@ package server
 import (
 	"context"
 	"log/slog"
-	"sync"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 // Service represents the interface for an HTTP service.
 type Service interface {
-	Context() context.Context       // the context of the service.
-	Logger() *slog.Logger           // the logger for the service.
-	Serve()                         // start the service.
-	ServeWithWG(wg *sync.WaitGroup) // start the service, and signal the WaitGroup when finished.
-	Shutdown()                      // stop the service.
+	Context() context.Context
+	Logger() *slog.Logger
+	Serve() error // fails when the service could not start or stopped serving by itself.
+	Shutdown()
 	GetFiberApp() *fiber.App
 }

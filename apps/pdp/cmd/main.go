@@ -42,5 +42,7 @@ func main() {
 	}
 
 	srv := server.NewService(cfg, logger)
-	srv.Serve()
+	if err := srv.Serve(); err != nil {
+		os.Exit(1) // the service that failed has logged why.
+	}
 }

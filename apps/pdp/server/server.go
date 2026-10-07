@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 	"time"
@@ -92,16 +93,26 @@ func NewService(cfg *config.Config, logger *slog.Logger) *Services {
 }
 
 // Serve blocks until all services have stopped, and then flushes the authorization decision log.
-func (s *Services) Serve() {
+func (s *Services) Serve() error {
+	services := []server.Service{s.bundles, s.main, s.health}
+
+	errs := make([]error, len(services))
 	wg := sync.WaitGroup{}
 
-	s.serve(&wg, s.bundles)
-	s.serve(&wg, s.main)
-	s.serve(&wg, s.health)
+	// a service stops on an OS signal or when it fails to start; either way, the others stop too.
+	for i, svc := range services {
+		wg.Go(func() {
+			errs[i] = svc.Serve()
+
+			s.Shutdown()
+		})
+	}
 
 	wg.Wait()
 
 	s.flushDecisionLog()
+
+	return errors.Join(errs...)
 }
 
 // flushDecisionLog blocks until any authorization decisions queued for export by the batch span processor
@@ -124,18 +135,6 @@ func (s *Services) Shutdown() {
 	s.health.Shutdown()
 	s.main.Shutdown()
 	s.bundles.Shutdown()
-}
-
-// serve runs svc until it stops. A service stops on an OS signal or when it fails to start; either way, the others stop too.
-func (s *Services) serve(wg *sync.WaitGroup, svc server.Service) {
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		svc.Serve()
-		s.Shutdown()
-	}()
 }
 
 // Services contains the details of the HTTP(S) services.

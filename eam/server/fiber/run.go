@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func (s *service) run() {
+func (s *service) run() error {
 	t := s.name()
 
 	s.logger.Info(fmt.Sprintf("%s starting", t), "host", s.Host, "port", s.Port)
@@ -18,7 +18,7 @@ func (s *service) run() {
 	ln, err := s.listen()
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("failed to start %s", t), "error", err)
-		return
+		return err
 	}
 
 	s.logger.Info(fmt.Sprintf("%s started", t))
@@ -35,7 +35,7 @@ func (s *service) run() {
 	case <-s.stop:
 	case err := <-served:
 		s.logger.Error(fmt.Sprintf("%s stopped serving", t), "error", err)
-		return
+		return err
 	}
 
 	s.logger.Info(fmt.Sprintf("%s stopping", t))
@@ -58,6 +58,8 @@ func (s *service) run() {
 	case <-s.intChan:
 		s.logger.Info(fmt.Sprintf("%s aborted", t))
 	}
+
+	return nil
 }
 
 func (s *service) name() string {

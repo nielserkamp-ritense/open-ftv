@@ -178,7 +178,7 @@ func TestInvalidHostPort(t *testing.T) {
 		wg.Add(2)
 
 		go func() {
-			s.Serve()
+			assert.Error(t, s.Serve())
 			wg.Done()
 		}()
 
@@ -248,12 +248,27 @@ func TestShutdownBeforeServe(t *testing.T) {
 	s := New(slog.New(h), nil, server.WithDefaults(), server.WithHostPort("127.0.0.1", 20007))
 
 	s.Shutdown()
-	s.Serve()
+	require.NoError(t, s.Serve())
 
 	// the port is free again: the server didn't start listening after all.
 	ln, err := net.Listen("tcp", "127.0.0.1:20007")
 	require.NoError(t, err)
 	require.NoError(t, ln.Close())
+}
+
+func TestServePortTaken(t *testing.T) {
+	t.Parallel()
+
+	ln, err := net.Listen("tcp4", "127.0.0.1:20008")
+	require.NoError(t, err)
+
+	t.Cleanup(func() { _ = ln.Close() })
+
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	s := New(slog.New(h), nil, server.WithDefaults(), server.WithHostPort("127.0.0.1", 20008))
+
+	require.Error(t, s.Serve())
+	assert.Contains(t, h.Log(), "failed to start http service")
 }
 
 func TestShutdownTwiceStopsGracefully(t *testing.T) {
@@ -265,7 +280,7 @@ func TestShutdownTwiceStopsGracefully(t *testing.T) {
 	done := make(chan struct{})
 
 	go func() {
-		s.Serve()
+		assert.NoError(t, s.Serve())
 		close(done)
 	}()
 

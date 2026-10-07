@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log/slog"
@@ -59,15 +60,16 @@ func NewService(cfg *config.Config, logger *slog.Logger, assets fs.FS, runtimeEn
 	return s, nil
 }
 
-func (s *Services) Serve() {
+func (s *Services) Serve() error {
 	services := []server.Service{s.main, s.health}
 
+	errs := make([]error, len(services))
 	wg := sync.WaitGroup{}
 
 	// a service stops on an OS signal or when it fails to start; either way, the others stop too.
-	for _, svc := range services {
+	for i, svc := range services {
 		wg.Go(func() {
-			svc.Serve()
+			errs[i] = svc.Serve()
 
 			for _, other := range services {
 				other.Shutdown()
@@ -76,6 +78,8 @@ func (s *Services) Serve() {
 	}
 
 	wg.Wait()
+
+	return errors.Join(errs...)
 }
 
 // runtimeEnvScript renders the JavaScript that exposes the runtime environment to the browser app.

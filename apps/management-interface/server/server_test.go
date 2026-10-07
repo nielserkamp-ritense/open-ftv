@@ -24,16 +24,16 @@ func TestServeStopsWhenHealthPortTaken(t *testing.T) {
 	srv, err := NewService(cfg, slog.New(slog.DiscardHandler), testAssets, nil)
 	require.NoError(t, err)
 
-	done := make(chan struct{})
+	done := make(chan error)
 
 	go func() {
-		srv.Serve()
-		close(done)
+		done <- srv.Serve()
 	}()
 
 	// Serve returns only once the main service has stopped as well.
 	select {
-	case <-done:
+	case err := <-done:
+		require.Error(t, err)
 	case <-time.After(5 * time.Second):
 		t.Fatal("the main service kept running without its health service")
 	}

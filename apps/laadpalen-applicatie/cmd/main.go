@@ -44,5 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv.Serve()
+	if err := srv.Serve(); err != nil {
+		os.Exit(1) // the service that failed has logged why.
+	}
 }
