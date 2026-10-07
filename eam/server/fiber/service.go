@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"sync/atomic"
 	"syscall"
 
 	"github.com/goccy/go-json"
@@ -98,5 +97,4 @@ type service struct {
 	intChan  chan os.Signal
 	stop     chan struct{}
 	stopOnce sync.Once
-	shutdown atomic.Bool
 }

@@ -3,6 +3,7 @@ package fiber
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"sync"
 	"syscall"
@@ -238,6 +239,21 @@ func TestForceAbort(t *testing.T) {
 
 		assert.GreaterOrEqual(t, h.Count(), 1)
 	})
+}
+
+func TestShutdownBeforeServe(t *testing.T) {
+	t.Parallel()
+
+	h := slog2.NewDummyHandler(slog.LevelInfo)
+	s := New(slog.New(h), nil, server.WithDefaults(), server.WithHostPort("127.0.0.1", 20007))
+
+	s.Shutdown()
+	s.Serve()
+
+	// the port is free again: the server didn't start listening after all.
+	ln, err := net.Listen("tcp", "127.0.0.1:20007")
+	require.NoError(t, err)
+	require.NoError(t, ln.Close())
 }
 
 func TestShutdownTwiceStopsGracefully(t *testing.T) {
