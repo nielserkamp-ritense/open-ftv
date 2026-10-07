@@ -19,10 +19,10 @@ func pepOptionFromConfig(c *Config) (pep.Option, error) {
 		return nil, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), jwksFetchTimeout)
-	defer cancel()
-
-	k, err := keyfunc.NewDefaultCtx(ctx, []string{c.JWKSURL})
+	// The context also ends the goroutine that refreshes the keys, so it must outlive this call.
+	k, err := keyfunc.NewDefaultOverrideCtx(
+		context.Background(), []string{c.JWKSURL}, keyfunc.Override{HTTPTimeout: jwksFetchTimeout},
+	)
 	if err != nil {
 		return nil, errors.Join(errors.New("failed to initialize JWKS keyfunc"), err)
 	}
