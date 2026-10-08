@@ -25,17 +25,26 @@ export const Route = createFileRoute('/logboek/')({
 const BeslissingRenderer = (params: CustomCellRendererProps<AuthlogEntry, Decision>) => {
     switch (params.value) {
         case 'permitted':
-            return <div className={"flex items-center justify-center"}><IconCircleArrowUpFilled
-                color={"var(--color-rhc-color-feedback-info-default)"}
-                className={"mx-auto mt-1.5"}></IconCircleArrowUpFilled></div>
+            return <>
+                <IconCircleArrowUpFilled
+                    color={"var(--color-rhc-color-feedback-info-default)"}
+                    className={"mx-auto mt-1.5"} aria-hidden="true"></IconCircleArrowUpFilled>
+                <span className={"sr-only"}>Toegestaan</span>
+            </>
         case 'denied':
-            return <IconCircleRectangleFilled
-                color={"var(--color-carrotnl-alert-icon-error-color)"}
-                className={"mx-auto mt-1.5"}></IconCircleRectangleFilled>
+            return <>
+                <IconCircleRectangleFilled
+                    color={"var(--color-carrotnl-alert-icon-error-color)"}
+                    className={"mx-auto mt-1.5"} aria-hidden="true"></IconCircleRectangleFilled>
+                <span className={"sr-only"}>Geweigerd</span>
+            </>
         case 'error':
-            return <IconAlertTriangleFilled
-                color={"var(--color-rhc-color-feedback-warning-default)"}
-                className={"mx-auto mt-1.5"}></IconAlertTriangleFilled>
+            return <>
+                <IconAlertTriangleFilled
+                    color={"var(--color-rhc-color-feedback-warning-default)"}
+                    className={"mx-auto mt-1.5"} aria-hidden="true"></IconAlertTriangleFilled>
+                <span className={"sr-only"}>Fout</span>
+            </>
         default:
             return null
     }
