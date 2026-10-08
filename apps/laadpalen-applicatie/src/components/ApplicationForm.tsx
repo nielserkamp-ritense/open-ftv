@@ -11,8 +11,10 @@ const applicationSchema = z.object({
     .trim()
     .regex(/^[1-9][0-9]{3}\s?[A-Z]{2}$/i, {message: "Ongeldige postcode (bijv. 1234AB)"})
     .transform(val => val.toUpperCase().replace(/\s/g, "")),
-  huisnummer: z.number()
-    .min(1, {message: "Huisnummer mag niet lager zijn dan 1"}),
+  huisnummer: z.string()
+    .trim()
+    .regex(/^[1-9][0-9]{0,4}$/, {message: "Ongeldig huisnummer (bv. 12)"})
+    .transform(Number),
 });
 
 interface AuditLogEntry {
@@ -33,7 +35,7 @@ interface ApplicationFormProps {
 
 export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}: ApplicationFormProps) => {
   const [postcode, setPostcode] = useState("");
-  const [huisnummer, setHuisnummer] = useState(1);
+  const [huisnummer, setHuisnummer] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [publicFeedback, setPublicFeedback] = useState<{ type: "success" | "error", message: string } | null>(null);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -112,7 +114,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
 
       // Reset form
       setPostcode("");
-      setHuisnummer(1);
+      setHuisnummer("");
       setPublicFeedback(null);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -188,11 +190,11 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
         <Input
           id="huisnummer"
           value={huisnummer}
-          type="number"
-          onChange={(e) => setHuisnummer(parseInt(e.target.value))}
+          inputMode="numeric"
+          onChange={(e) => setHuisnummer(e.target.value)}
           placeholder="123"
           className={`h-12 ${errors.huisnummer ? "border-destructive" : ""}`}
-          maxLength={10}
+          maxLength={5}
           aria-required="true"
           aria-invalid={!!errors.huisnummer}
           aria-describedby={errors.huisnummer ? "huisnummer-error" : undefined}
