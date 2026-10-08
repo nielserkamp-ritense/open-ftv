@@ -43,21 +43,21 @@ function RouteComponent() {
                 <div className="flex flex-col h-full px-4 py-5 sm:p-6 gap-4">
                     <div className="flex flex-col flex-1">
                         <FTVHeading level={2}>Response</FTVHeading>
-                        <Textarea 
-                            name="response" 
-                            value={responseJson} 
-                            readOnly={true} 
-                            disabled={true} 
+                        <Textarea
+                            name="response"
+                            aria-label="Response"
+                            value={responseJson}
+                            readOnly={true}
                             className="flex-1 bg-content-tertiary mt-3 font-mono text-sm"
                         />
                     </div>
                     <div className="flex flex-col flex-1">
                         <FTVHeading level={2}>Request</FTVHeading>
-                        <Textarea 
-                            name="request" 
-                            value={requestJson} 
-                            readOnly={true} 
-                            disabled={true} 
+                        <Textarea
+                            name="request"
+                            aria-label="Request"
+                            value={requestJson}
+                            readOnly={true}
                             className="flex-1 bg-content-tertiary mt-3 font-mono text-sm"
                         />
                     </div>
