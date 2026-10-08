@@ -10,46 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PublicatiesIndexRouteImport } from './routes/publicaties/index'
-import { Route as ProfielIndexRouteImport } from './routes/profiel/index'
-import { Route as PoliciesIndexRouteImport } from './routes/policies/index'
-import { Route as LogboekIndexRouteImport } from './routes/logboek/index'
-import { Route as InstellingenIndexRouteImport } from './routes/instellingen/index'
 import { Route as AttributenIndexRouteImport } from './routes/attributen/index'
-import { Route as PoliciesAddRouteImport } from './routes/policies/add'
 import { Route as AttributenToevoegenRouteImport } from './routes/attributen/toevoegen'
-import { Route as PoliciesIdIndexRouteImport } from './routes/policies/$id/index'
-import { Route as LogboekIdIndexRouteImport } from './routes/logboek/$id/index'
+import { Route as InstellingenIndexRouteImport } from './routes/instellingen/index'
+import { Route as LogboekIndexRouteImport } from './routes/logboek/index'
+import { Route as PoliciesIndexRouteImport } from './routes/policies/index'
+import { Route as PoliciesAddRouteImport } from './routes/policies/add'
+import { Route as ProfielIndexRouteImport } from './routes/profiel/index'
+import { Route as PublicatiesIndexRouteImport } from './routes/publicaties/index'
 import { Route as AttributenKeyIndexRouteImport } from './routes/attributen/$key/index'
+import { Route as LogboekIdIndexRouteImport } from './routes/logboek/$id/index'
+import { Route as PoliciesIdIndexRouteImport } from './routes/policies/$id/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PublicatiesIndexRoute = PublicatiesIndexRouteImport.update({
-  id: '/publicaties/',
-  path: '/publicaties/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfielIndexRoute = ProfielIndexRouteImport.update({
-  id: '/profiel/',
-  path: '/profiel/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PoliciesIndexRoute = PoliciesIndexRouteImport.update({
-  id: '/policies/',
-  path: '/policies/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LogboekIndexRoute = LogboekIndexRouteImport.update({
-  id: '/logboek/',
-  path: '/logboek/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstellingenIndexRoute = InstellingenIndexRouteImport.update({
-  id: '/instellingen/',
-  path: '/instellingen/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttributenIndexRoute = AttributenIndexRouteImport.update({
@@ -57,19 +32,44 @@ const AttributenIndexRoute = AttributenIndexRouteImport.update({
   path: '/attributen/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoliciesAddRoute = PoliciesAddRouteImport.update({
-  id: '/policies/add',
-  path: '/policies/add',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AttributenToevoegenRoute = AttributenToevoegenRouteImport.update({
   id: '/attributen/toevoegen',
   path: '/attributen/toevoegen',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoliciesIdIndexRoute = PoliciesIdIndexRouteImport.update({
-  id: '/policies/$id/',
-  path: '/policies/$id/',
+const InstellingenIndexRoute = InstellingenIndexRouteImport.update({
+  id: '/instellingen/',
+  path: '/instellingen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogboekIndexRoute = LogboekIndexRouteImport.update({
+  id: '/logboek/',
+  path: '/logboek/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesIndexRoute = PoliciesIndexRouteImport.update({
+  id: '/policies/',
+  path: '/policies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesAddRoute = PoliciesAddRouteImport.update({
+  id: '/policies/add',
+  path: '/policies/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfielIndexRoute = ProfielIndexRouteImport.update({
+  id: '/profiel/',
+  path: '/profiel/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicatiesIndexRoute = PublicatiesIndexRouteImport.update({
+  id: '/publicaties/',
+  path: '/publicaties/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttributenKeyIndexRoute = AttributenKeyIndexRouteImport.update({
+  id: '/attributen/$key/',
+  path: '/attributen/$key/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogboekIdIndexRoute = LogboekIdIndexRouteImport.update({
@@ -77,9 +77,9 @@ const LogboekIdIndexRoute = LogboekIdIndexRouteImport.update({
   path: '/logboek/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AttributenKeyIndexRoute = AttributenKeyIndexRouteImport.update({
-  id: '/attributen/$key/',
-  path: '/attributen/$key/',
+const PoliciesIdIndexRoute = PoliciesIdIndexRouteImport.update({
+  id: '/policies/$id/',
+  path: '/policies/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -195,53 +195,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/publicaties/': {
-      id: '/publicaties/'
-      path: '/publicaties'
-      fullPath: '/publicaties/'
-      preLoaderRoute: typeof PublicatiesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profiel/': {
-      id: '/profiel/'
-      path: '/profiel'
-      fullPath: '/profiel/'
-      preLoaderRoute: typeof ProfielIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/policies/': {
-      id: '/policies/'
-      path: '/policies'
-      fullPath: '/policies/'
-      preLoaderRoute: typeof PoliciesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/logboek/': {
-      id: '/logboek/'
-      path: '/logboek'
-      fullPath: '/logboek/'
-      preLoaderRoute: typeof LogboekIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/instellingen/': {
-      id: '/instellingen/'
-      path: '/instellingen'
-      fullPath: '/instellingen/'
-      preLoaderRoute: typeof InstellingenIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/attributen/': {
       id: '/attributen/'
       path: '/attributen'
       fullPath: '/attributen/'
       preLoaderRoute: typeof AttributenIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/policies/add': {
-      id: '/policies/add'
-      path: '/policies/add'
-      fullPath: '/policies/add'
-      preLoaderRoute: typeof PoliciesAddRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attributen/toevoegen': {
@@ -251,11 +209,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttributenToevoegenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/policies/$id/': {
-      id: '/policies/$id/'
-      path: '/policies/$id'
-      fullPath: '/policies/$id/'
-      preLoaderRoute: typeof PoliciesIdIndexRouteImport
+    '/instellingen/': {
+      id: '/instellingen/'
+      path: '/instellingen'
+      fullPath: '/instellingen/'
+      preLoaderRoute: typeof InstellingenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logboek/': {
+      id: '/logboek/'
+      path: '/logboek'
+      fullPath: '/logboek/'
+      preLoaderRoute: typeof LogboekIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies/': {
+      id: '/policies/'
+      path: '/policies'
+      fullPath: '/policies/'
+      preLoaderRoute: typeof PoliciesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies/add': {
+      id: '/policies/add'
+      path: '/policies/add'
+      fullPath: '/policies/add'
+      preLoaderRoute: typeof PoliciesAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profiel/': {
+      id: '/profiel/'
+      path: '/profiel'
+      fullPath: '/profiel/'
+      preLoaderRoute: typeof ProfielIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicaties/': {
+      id: '/publicaties/'
+      path: '/publicaties'
+      fullPath: '/publicaties/'
+      preLoaderRoute: typeof PublicatiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attributen/$key/': {
+      id: '/attributen/$key/'
+      path: '/attributen/$key'
+      fullPath: '/attributen/$key/'
+      preLoaderRoute: typeof AttributenKeyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logboek/$id/': {
@@ -265,11 +265,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogboekIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/attributen/$key/': {
-      id: '/attributen/$key/'
-      path: '/attributen/$key'
-      fullPath: '/attributen/$key/'
-      preLoaderRoute: typeof AttributenKeyIndexRouteImport
+    '/policies/$id/': {
+      id: '/policies/$id/'
+      path: '/policies/$id'
+      fullPath: '/policies/$id/'
+      preLoaderRoute: typeof PoliciesIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
