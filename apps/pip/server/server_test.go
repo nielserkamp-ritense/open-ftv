@@ -47,7 +47,7 @@ func TestServe(t *testing.T) {
 		wg.Add(2)
 
 		go func() {
-			s.Serve()
+			assert.NoError(t, s.Serve())
 			wg.Done()
 		}()
 
@@ -121,7 +121,7 @@ func TestErrorHandler(t *testing.T) {
 		wg.Add(2)
 
 		go func() {
-			s.Serve()
+			assert.NoError(t, s.Serve())
 			wg.Done()
 		}()
 
