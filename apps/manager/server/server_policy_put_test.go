@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -33,7 +34,7 @@ func Test_Put_Policy(t *testing.T) {
 			Data:     policyData,
 		}
 
-		res := putPolicy(t, mainFiberApp, "aaaaaaaa-0000-0000-0000-000000000000", policy)
+		res := putPolicy(t, mainFiberApp, "aaaaaaaa-0000-0000-0000-000000000000", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusNotFound, res.StatusCode)
@@ -47,14 +48,14 @@ func Test_Put_Policy(t *testing.T) {
 
 		invalidID := strings.Repeat("x", 41)
 
-		res := putPolicy(t, mainFiberApp, invalidID, policy)
+		res := putPolicy(t, mainFiberApp, invalidID, &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
 	t.Run("id_mismatch", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{Title: "Put id mismatch base"},
@@ -66,14 +67,14 @@ func Test_Put_Policy(t *testing.T) {
 			Data:     policyData,
 		}
 
-		res := putPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy)
+		res := putPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
 	t.Run("malformed_json", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{Title: "Put malformed base"},
@@ -91,7 +92,7 @@ func Test_Put_Policy(t *testing.T) {
 	})
 
 	t.Run("happy_flow", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{Title: "Update original title"},
@@ -107,7 +108,7 @@ func Test_Put_Policy(t *testing.T) {
 			},
 		}
 
-		res := putPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", updated)
+		res := putPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", &updated)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusOK, res.StatusCode)
@@ -135,7 +136,7 @@ func Test_Put_Policy(t *testing.T) {
 			Metadata: oas.Metadata{Title: "Created via PUT"},
 		}
 
-		res := putPolicyWithQuery(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy, "forceUpsert=true")
+		res := putPolicyWithQuery(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", &policy, "forceUpsert=true")
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusOK, res.StatusCode)
@@ -152,13 +153,13 @@ func Test_Put_Policy(t *testing.T) {
 	})
 }
 
-func putPolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy) *http.Response {
+func putPolicy(t *testing.T, app *fiber.App, id string, policy *oas.Policy) *http.Response {
 	t.Helper()
 
 	return putPolicyWithQuery(t, app, id, policy, "")
 }
 
-func putPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy oas.Policy, query string) *http.Response {
+func putPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy *oas.Policy, query string) *http.Response {
 	t.Helper()
 
 	body, err := json.Marshal(policy)

@@ -56,6 +56,7 @@ func newADLTestDatabaseURL(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("postgres not reachable: %v", err)
 	}
+
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
 	dbName := adlTestDatabaseName(t, t.Name())
@@ -63,6 +64,7 @@ func newADLTestDatabaseURL(t *testing.T) string {
 	if _, err = admin.Exec(ctx, "DROP DATABASE IF EXISTS "+dbName+" WITH (FORCE)"); err != nil {
 		t.Fatalf("failed to drop existing test database %q: %v", dbName, err)
 	}
+
 	if _, err = admin.Exec(ctx, "CREATE DATABASE "+dbName); err != nil {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
@@ -72,12 +74,12 @@ func newADLTestDatabaseURL(t *testing.T) string {
 
 // newADLTestConfig returns a PDP config wired to a fresh, isolated Postgres-backed ADL for one test, and
 // the DSN of that database for direct verification queries.
-func newADLTestConfig(t *testing.T) (*config.Config, string) {
+func newADLTestConfig(t *testing.T) (cfg *config.Config, dsn string) {
 	t.Helper()
 
-	dsn := newADLTestDatabaseURL(t)
+	dsn = newADLTestDatabaseURL(t)
 
-	cfg := &config.Config{
+	cfg = &config.Config{
 		PAP:            config2.PAP{Language: "cedar", Store: "../../../testdata/unittest/cedar"},
 		PIP:            config2.PIP{Store: "../../../testdata/pip", StoreRecurse: true},
 		ADLService:     "adl-compliance-test",
@@ -100,8 +102,10 @@ func adlTestDatabaseName(t *testing.T, name string) string {
 
 	safe := nonDatabaseNameChar.ReplaceAllString(strings.ToLower(name), "_")
 
-	const maxLengthDatabaseName = 63 // Postgres identifier length limit.
-	const prefix = "adl_"
+	const (
+		maxLengthDatabaseName = 63 // Postgres identifier length limit.
+		prefix                = "adl_"
+	)
 
 	if maxPrefixLen := maxLengthDatabaseName - len(prefix) - len(suffix); len(safe) > maxPrefixLen {
 		safe = safe[:maxPrefixLen]
@@ -117,6 +121,7 @@ func withADLDatabase(dsn, name string) string {
 	}
 
 	u.Path = "/" + name
+
 	return u.String()
 }
 
@@ -148,6 +153,7 @@ func postEvaluation(t *testing.T, app *fiber.App, headers map[string]string) *ht
 
 	req := httptest.NewRequest(http.MethodPost, "/authzen/v1/evaluation", bytes.NewReader([]byte(goodSubject)))
 	req.Header.Set("Content-Type", "application/json")
+
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -178,9 +184,11 @@ func queryDecisionByTraceID(t *testing.T, dsn, traceID string) decisionRow {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
 	require.NoError(t, err)
+
 	defer conn.Close(ctx)
 
 	var row decisionRow
+
 	err = conn.QueryRow(ctx,
 		`SELECT trace_id, span_id, parent_span_id, event_name, status, timestamp, body, attributes, resource
 		 FROM decision WHERE trace_id = $1 ORDER BY id DESC LIMIT 1`,
@@ -197,9 +205,11 @@ func countDecisionsByTraceID(t *testing.T, dsn, traceID string) int {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
 	require.NoError(t, err)
+
 	defer conn.Close(ctx)
 
 	var count int
+
 	err = conn.QueryRow(ctx, "SELECT count(*) FROM decision WHERE trace_id = $1", traceID).Scan(&count)
 	require.NoError(t, err)
 
@@ -211,13 +221,16 @@ func TestADLCompliance_RecordFields(t *testing.T) {
 	cfg, dsn := newADLTestConfig(t)
 	app := newADLTestApp(t, cfg)
 
-	const incomingTraceID = "4bf92f3577b34da6a3ce929d0e0e4736"
-	const incomingSpanID = "00f067aa0ba902b7"
+	const (
+		incomingTraceID = "4bf92f3577b34da6a3ce929d0e0e4736"
+		incomingSpanID  = "00f067aa0ba902b7"
+	)
 
 	resp := postEvaluation(t, app, map[string]string{
 		"traceparent": "00-" + incomingTraceID + "-" + incomingSpanID + "-01",
 	})
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, incomingTraceID)
@@ -249,14 +262,17 @@ func TestADLCompliance_FSCTransactionID(t *testing.T) {
 	cfg, dsn := newADLTestConfig(t)
 	app := newADLTestApp(t, cfg)
 
-	const traceID = "5bf92f3577b34da6a3ce929d0e0e4737"
-	const fscTxnID = "fsc-txn-abc123"
+	const (
+		traceID  = "5bf92f3577b34da6a3ce929d0e0e4737"
+		fscTxnID = "fsc-txn-abc123"
+	)
 
 	resp := postEvaluation(t, app, map[string]string{
 		"traceparent":        "00-" + traceID + "-00f067aa0ba902b7-01",
 		"fsc-transaction-id": fscTxnID,
 	})
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, traceID)
@@ -270,14 +286,17 @@ func TestADLCompliance_BodyAttributesNoOverlap(t *testing.T) {
 	cfg, dsn := newADLTestConfig(t)
 	app := newADLTestApp(t, cfg)
 
-	const traceID = "6bf92f3577b34da6a3ce929d0e0e4738"
-	const fscTxnID = "fsc-txn-no-overlap"
+	const (
+		traceID  = "6bf92f3577b34da6a3ce929d0e0e4738"
+		fscTxnID = "fsc-txn-no-overlap"
+	)
 
 	resp := postEvaluation(t, app, map[string]string{
 		"traceparent":        "00-" + traceID + "-00f067aa0ba902b7-01",
 		"fsc-transaction-id": fscTxnID,
 	})
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, traceID)
@@ -295,7 +314,7 @@ func TestADLCompliance_BodyAttributesNoOverlap(t *testing.T) {
 	assert.NotContains(t, attrs, "adl.core.response", "§3.3.7: a field MUST NOT appear in both body and attributes")
 }
 
-// TestADLCompliance_TraceContextOnReceipt covers "Honouring the caller's trace" (§3.2.2, §3.3.3).
+// TestADLCompliance_TraceContextOnReceipt covers ADR "Honouring the caller's trace" (§3.2.2, §3.3.3).
 func TestADLCompliance_TraceContextOnReceipt(t *testing.T) {
 	t.Run("no traceparent starts a root trace", func(t *testing.T) {
 		cfg, dsn := newADLTestConfig(t)
@@ -303,6 +322,7 @@ func TestADLCompliance_TraceContextOnReceipt(t *testing.T) {
 
 		resp := postEvaluation(t, app, nil)
 		defer resp.Body.Close()
+
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		row := queryFirstDecision(t, dsn)
@@ -317,6 +337,7 @@ func TestADLCompliance_TraceContextOnReceipt(t *testing.T) {
 
 		resp := postEvaluation(t, app, map[string]string{"traceparent": "not-a-traceparent"})
 		defer resp.Body.Close()
+
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		row := queryFirstDecision(t, dsn)
@@ -334,6 +355,7 @@ func TestADLCompliance_TraceContextOnReceipt(t *testing.T) {
 			"traceparent": "00-" + traceID + "-00f067aa0ba902b7-00", // sampled=00
 		})
 		defer resp.Body.Close()
+
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		row := queryDecisionByTraceID(t, dsn, traceID)
@@ -347,9 +369,11 @@ func queryFirstDecision(t *testing.T, dsn string) decisionRow {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
 	require.NoError(t, err)
+
 	defer conn.Close(ctx)
 
 	var row decisionRow
+
 	err = conn.QueryRow(ctx,
 		`SELECT trace_id, span_id, parent_span_id, event_name, status, timestamp, body, attributes, resource
 		 FROM decision ORDER BY id DESC LIMIT 1`,
@@ -375,7 +399,9 @@ func TestADLCompliance_ExactlyOneRecordPerDecision(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	assert.Equal(t, 1, countDecisionsByTraceID(t, dsn, traceID))
@@ -393,6 +419,7 @@ func TestADLCompliance_RecordQueryableWithoutPolling(t *testing.T) {
 		"traceparent": "00-" + traceID + "-00f067aa0ba902b7-01",
 	})
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	assert.Equal(t, 1, countDecisionsByTraceID(t, dsn, traceID))
@@ -443,7 +470,9 @@ func TestADLCompliance_SearchEventNamesAndErrorStatus(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
+
 			defer resp.Body.Close()
+
 			require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 			row := queryDecisionByTraceID(t, dsn, tc.traceID)
@@ -459,8 +488,10 @@ func TestADLCompliance_DenialIsNotFailure(t *testing.T) {
 	cfg, dsn := newADLTestConfig(t)
 	app := newADLTestApp(t, cfg)
 
-	const traceID = "9bf92f3577b34da6a3ce929d0e0e473b"
-	const deniedSubject = `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"GET"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
+	const (
+		traceID       = "9bf92f3577b34da6a3ce929d0e0e473b"
+		deniedSubject = `{"subject":{"type":"doelbinding","id":"subsidies"},"action":{"name":"can_read","properties":{"method":"GET"}},"resource":{"type":"service","id":"https://inway-fsc-nlx-inway:443/brp-personen"}}`
+	)
 
 	req := httptest.NewRequest(http.MethodPost, "/authzen/v1/evaluation", bytes.NewReader([]byte(deniedSubject)))
 	req.Header.Set("Content-Type", "application/json")
@@ -468,7 +499,9 @@ func TestADLCompliance_DenialIsNotFailure(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, traceID)
@@ -489,9 +522,11 @@ func TestADLCompliance_BodyEmbeddedTraceParentFallback(t *testing.T) {
 	cfg, dsn := newADLTestConfig(t)
 	app := newADLTestApp(t, cfg)
 
-	const bodyTraceID = "5bf92f3577b34da6a3ce929d0e0e4736"
-	const bodySpanID = "00f067aa0ba902b7"
-	const bodyTraceParent = "00-" + bodyTraceID + "-" + bodySpanID + "-01"
+	const (
+		bodyTraceID     = "5bf92f3577b34da6a3ce929d0e0e4736"
+		bodySpanID      = "00f067aa0ba902b7"
+		bodyTraceParent = "00-" + bodyTraceID + "-" + bodySpanID + "-01"
+	)
 
 	body := `{` + goodEvaluationItem + `,"context":{"traceparent":"` + bodyTraceParent + `"}}`
 
@@ -501,7 +536,9 @@ func TestADLCompliance_BodyEmbeddedTraceParentFallback(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
 	defer resp.Body.Close()
+
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	row := queryDecisionByTraceID(t, dsn, bodyTraceID)

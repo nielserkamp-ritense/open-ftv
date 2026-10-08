@@ -14,6 +14,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -33,12 +34,12 @@ func Test_Post_Policy(t *testing.T) {
 			Metadata: oas.Metadata{Title: "Conflict policy"},
 		}
 
-		res := postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy)
+		res := postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
-		res = postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy)
+		res = postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusConflict, res.StatusCode)
@@ -53,14 +54,14 @@ func Test_Post_Policy(t *testing.T) {
 			},
 		}
 
-		res := postPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy)
+		res := postPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
 		policy.Metadata.Title = "Updated title"
 
-		res = postPolicyWithQuery(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy, "forceUpsert=true")
+		res = postPolicyWithQuery(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", &policy, "forceUpsert=true")
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusCreated, res.StatusCode)
@@ -84,7 +85,7 @@ func Test_Post_Policy(t *testing.T) {
 
 		invalidID := strings.Repeat("x", 41)
 
-		res := postPolicy(t, mainFiberApp, invalidID, policy)
+		res := postPolicy(t, mainFiberApp, invalidID, &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -97,7 +98,7 @@ func Test_Post_Policy(t *testing.T) {
 			Data:     policyData,
 		}
 
-		res := postPolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", policy)
+		res := postPolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -108,7 +109,7 @@ func Test_Post_Policy(t *testing.T) {
 			Data: policyData,
 		}
 
-		res := postPolicy(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", policy)
+		res := postPolicy(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -119,7 +120,7 @@ func Test_Post_Policy(t *testing.T) {
 			Language: "cedar",
 		}
 
-		res := postPolicy(t, mainFiberApp, "66666666-6666-6666-6666-666666666666", policy)
+		res := postPolicy(t, mainFiberApp, "66666666-6666-6666-6666-666666666666", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
@@ -149,7 +150,7 @@ func Test_Post_Policy(t *testing.T) {
 			},
 		}
 
-		res := postPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", policy)
+		res := postPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", &policy)
 		defer res.Body.Close()
 
 		require.Equal(t, http.StatusCreated, res.StatusCode)
@@ -168,13 +169,13 @@ func Test_Post_Policy(t *testing.T) {
 	})
 }
 
-func postPolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy) *http.Response {
+func postPolicy(t *testing.T, app *fiber.App, id string, policy *oas.Policy) *http.Response {
 	t.Helper()
 
 	return postPolicyWithQuery(t, app, id, policy, "")
 }
 
-func postPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy oas.Policy, query string) *http.Response {
+func postPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy *oas.Policy, query string) *http.Response {
 	t.Helper()
 
 	body, err := json.Marshal(policy)
@@ -194,7 +195,7 @@ func postPolicyWithQuery(t *testing.T, app *fiber.App, id string, policy oas.Pol
 	return res
 }
 
-func mustCreatePolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy) oas.Policy {
+func mustCreatePolicy(t *testing.T, app *fiber.App, id string, policy *oas.Policy) oas.Policy {
 	t.Helper()
 
 	res := postPolicy(t, app, id, policy)
@@ -208,7 +209,7 @@ func mustCreatePolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy
 func getPolicy(t *testing.T, app *fiber.App, id string) *http.Response {
 	t.Helper()
 
-	req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+id, nil)
+	req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+id, http.NoBody)
 
 	res, err := app.Test(req)
 	require.Nil(t, err)

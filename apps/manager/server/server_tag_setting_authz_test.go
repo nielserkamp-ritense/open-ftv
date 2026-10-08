@@ -22,7 +22,7 @@ import (
 func Test_TagAndSetting_RoleMatrix(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	cnf.PAP.Store = "../../../testdata/apps/manager/policies/cedar"
-	cnf.Authorization.FailClosedOnEmpty = true
+	cnf.FailClosedOnEmpty = true
 
 	ip := newIDP(t)
 	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}

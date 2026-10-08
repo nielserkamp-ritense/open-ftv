@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/attributes"
 )
 
@@ -25,7 +26,7 @@ func Test_Get_Attributes(t *testing.T) {
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	t.Run("no_data", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", http.NoBody)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -59,7 +60,7 @@ func Test_Get_Attributes(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
-		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", http.NoBody)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)

@@ -25,7 +25,7 @@ import (
 func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	cnf.PAP.Store = "../../../testdata/apps/manager/policies/cedar"
-	cnf.Authorization.FailClosedOnEmpty = true
+	cnf.FailClosedOnEmpty = true
 
 	ip := newIDP(t)
 	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}
@@ -247,7 +247,8 @@ func Test_AttributeAndEntity_RoleMatrix(t *testing.T) {
 		require.Equal(t, "concept", statusOf("/v1/entity/user/alice"))
 
 		born := ent
-		born.Id, born.Status = "bob", "accepted"
+		born.Id = "bob"
+		born.Status = "accepted"
 
 		res = call(t, app, http.MethodPost, "/v1/entity/user/bob", author, born)
 		require.NoError(t, res.Body.Close())

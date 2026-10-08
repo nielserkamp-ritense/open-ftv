@@ -36,8 +36,10 @@ func decisionsTestDatabaseName(name string) string {
 
 	safe := nonDatabaseNameChar.ReplaceAllString(strings.ToLower(name), "_")
 
-	const maxLengthDatabaseName = 63 // Postgres identifier length limit.
-	const prefix = "adl_"
+	const (
+		maxLengthDatabaseName = 63 // Postgres identifier length limit.
+		prefix                = "adl_"
+	)
 
 	if maxPrefixLen := maxLengthDatabaseName - len(prefix) - len(suffix); len(safe) > maxPrefixLen {
 		safe = safe[:maxPrefixLen]
@@ -53,12 +55,13 @@ func withDatabase(dsn, name string) string {
 	}
 
 	u.Path = "/" + name
+
 	return u.String()
 }
 
 // newTestPostgresLogger returns a Logger backed by a fresh, migrated, isolated database, and that
 // database's DSN for direct verification queries.
-func newTestPostgresLogger(t *testing.T) (*Logger, string) {
+func newTestPostgresLogger(t *testing.T) (l *Logger, dsn string) {
 	t.Helper()
 
 	baseURL := os.Getenv("MANAGER_TEST_POSTGRES_URL")
@@ -72,6 +75,7 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 	if err != nil {
 		t.Fatalf("postgres not reachable: %v", err)
 	}
+
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
 	dbName := decisionsTestDatabaseName(t.Name())
@@ -79,16 +83,17 @@ func newTestPostgresLogger(t *testing.T) (*Logger, string) {
 	if _, err = admin.Exec(ctx, "DROP DATABASE IF EXISTS "+dbName+" WITH (FORCE)"); err != nil {
 		t.Fatalf("failed to drop existing test database %q: %v", dbName, err)
 	}
+
 	if _, err = admin.Exec(ctx, "CREATE DATABASE "+dbName); err != nil {
 		t.Fatalf("failed to create test database %q: %v", dbName, err)
 	}
 
-	dsn := withDatabase(baseURL, dbName)
+	dsn = withDatabase(baseURL, dbName)
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 	require.NoError(t, Migrate(dsn, logger))
 
-	l, err := NewWithPostgreSQL(ctx, "adl-idempotency-test", dsn, nil, time.Minute, 5, opentelemetry.WithBatchTimeout(2*time.Second))
+	l, err = NewWithPostgreSQL(ctx, "adl-idempotency-test", dsn, nil, time.Minute, 5, opentelemetry.WithBatchTimeout(2*time.Second))
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = l.Shutdown(context.Background()) })
 
@@ -101,9 +106,11 @@ func countDecisionRows(t *testing.T, dsn, traceID, spanID string) int {
 	ctx := context.Background()
 	conn, err := pgx.Connect(ctx, dsn)
 	require.NoError(t, err)
+
 	defer conn.Close(ctx)
 
 	var count int
+
 	err = conn.QueryRow(ctx, "SELECT count(*) FROM decision WHERE trace_id = $1 AND span_id = $2", traceID, spanID).Scan(&count)
 	require.NoError(t, err)
 
@@ -113,8 +120,10 @@ func countDecisionRows(t *testing.T, dsn, traceID, spanID string) int {
 func TestPgLogger_Decision_IdempotentIngestion(t *testing.T) {
 	logger, dsn := newTestPostgresLogger(t)
 
-	const traceID = "9bf92f3577b34da6a3ce929d0e0e473b"
-	const spanID = "00f067aa0ba902b7"
+	const (
+		traceID = "9bf92f3577b34da6a3ce929d0e0e473b"
+		spanID  = "00f067aa0ba902b7"
+	)
 
 	d := &Decision{
 		Timestamp:   time.Now().UTC(),

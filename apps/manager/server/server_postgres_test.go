@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+
 	"gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/apps/manager/config"
 	config2 "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/eam/config"
 )
@@ -32,6 +33,7 @@ func newManagerConfigWithPostgres(t *testing.T) *config.Config {
 	if err != nil {
 		t.Fatalf("postgres not reachable: %v", err)
 	}
+
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
 	dbName := composeDatabaseNameFromTestName(t, t.Name())
@@ -90,5 +92,6 @@ func withDatabase(dsn, name string) string {
 	}
 
 	u.Path = "/" + name
+
 	return u.String()
 }

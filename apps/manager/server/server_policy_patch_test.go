@@ -15,6 +15,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -29,7 +30,7 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 	const policyData = "permit (\n    principal,\n    action,\n    resource\n);\n"
 
 	t.Run("invalid_status", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{
@@ -57,7 +58,7 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 	})
 
 	t.Run("id_mismatch", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{Title: "Patch id mismatch base"},
@@ -73,7 +74,7 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 	})
 
 	t.Run("malformed_json", func(t *testing.T) {
-		mustCreatePolicy(t, mainFiberApp, "66666666-6666-6666-6666-666666666666", oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, "66666666-6666-6666-6666-666666666666", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{
@@ -93,7 +94,7 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 	})
 
 	t.Run("happy_flow", func(t *testing.T) {
-		created := mustCreatePolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", oas.Policy{
+		created := mustCreatePolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{

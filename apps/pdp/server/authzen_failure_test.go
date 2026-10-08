@@ -78,6 +78,7 @@ func TestAuthZEN_PDPFailureIsServerError(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
+
 			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)

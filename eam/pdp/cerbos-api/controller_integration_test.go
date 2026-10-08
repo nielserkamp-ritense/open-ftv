@@ -5,6 +5,7 @@ package cerbos_api
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,7 +55,7 @@ func TestNewController_GoodEngine(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			opts := append(tc.opts, pdp.WithLogger(logger))
+			opts := append(slices.Clone(tc.opts), pdp.WithLogger(logger))
 
 			c := NewController(Config{
 				Addr1: addr,

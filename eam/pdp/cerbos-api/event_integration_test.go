@@ -134,8 +134,9 @@ func TestController_Handle(t *testing.T) {
 			h := slog2.NewDummyHandler(slog.LevelDebug)
 			logger := slog.New(h)
 
-			p, err := pap.New(nil, logger, pap.WithKeyValueDB(memory.New(), ""))
+			p, err := pap.New(t.Context(), logger, pap.WithKeyValueDB(memory.New(), ""))
 			require.NoError(t, err)
+
 			for key := range tc.policies {
 				data := []byte(tc.policies[key])
 				parts := strings.Split(key, "/")
@@ -168,10 +169,12 @@ func TestController_Handle(t *testing.T) {
 
 			if tc.wantLog1 > 0 && tc.logPrefix1 != "" {
 				var i int
+
 				h.Iterate(func(_ time.Time, msg string, _ slog.Level) {
 					if i == 0 {
 						assert.Equalf(t, tc.logPrefix1, msg, h.Log())
 					}
+
 					i++
 				})
 			}
@@ -184,10 +187,12 @@ func TestController_Handle(t *testing.T) {
 
 				if tc.wantLog2 > 0 && tc.logPrefix2 != "" {
 					var i int
+
 					h.Iterate(func(_ time.Time, msg string, _ slog.Level) {
 						if i == 0 {
 							assert.Equalf(t, tc.logPrefix2, msg, h.Log())
 						}
+
 						i++
 					})
 				}

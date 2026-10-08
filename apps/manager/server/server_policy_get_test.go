@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -26,7 +27,7 @@ func Test_Get_Policy(t *testing.T) {
 	mainFiberApp := srv.GetMainService().GetFiberApp()
 
 	t.Run("not_found", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/v1/policy/22222222-2222-2222-2222-222222222222", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/22222222-2222-2222-2222-222222222222", http.NoBody)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -38,7 +39,7 @@ func Test_Get_Policy(t *testing.T) {
 
 	t.Run("invalid_id", func(t *testing.T) {
 		invalidID := strings.Repeat("x", 41)
-		req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+invalidID, nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/"+invalidID, http.NoBody)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
@@ -76,7 +77,7 @@ func Test_Get_Policy(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
-		req := httptest.NewRequest(http.MethodGet, "/v1/policy/11111111-1111-1111-1111-111111111111", nil)
+		req := httptest.NewRequest(http.MethodGet, "/v1/policy/11111111-1111-1111-1111-111111111111", http.NoBody)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)

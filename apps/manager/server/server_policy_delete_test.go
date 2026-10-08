@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
 	oas "gitlab.com/digilab.overheid.nl/ecosystem/ftv/open-ftv/oas/policies"
 )
 
@@ -55,7 +56,7 @@ func Test_NewServer_Delete_Policy(t *testing.T) {
 	t.Run("happy_flow", func(t *testing.T) {
 		const id = "11111111-1111-1111-1111-111111111111"
 
-		mustCreatePolicy(t, mainFiberApp, id, oas.Policy{
+		mustCreatePolicy(t, mainFiberApp, id, &oas.Policy{
 			Language: "cedar",
 			Data:     policyData,
 			Metadata: oas.Metadata{Title: "Delete happy flow"},
@@ -88,7 +89,7 @@ func deletePolicyWithQuery(t *testing.T, app *fiber.App, id, query string) *http
 		url += "?" + query
 	}
 
-	req := httptest.NewRequest(http.MethodDelete, url, nil)
+	req := httptest.NewRequest(http.MethodDelete, url, http.NoBody)
 
 	res, err := app.Test(req)
 	require.Nil(t, err)

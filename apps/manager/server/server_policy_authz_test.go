@@ -38,8 +38,8 @@ func newIDP(t *testing.T) *idp {
 
 	jwks, err := json.Marshal(map[string]any{"keys": []map[string]any{{
 		"kty": "RSA", "kid": "test", "use": "sig", "alg": "RS256",
-		"n": base64.RawURLEncoding.EncodeToString(key.PublicKey.N.Bytes()),
-		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.PublicKey.E)).Bytes()),
+		"n": base64.RawURLEncoding.EncodeToString(key.N.Bytes()),
+		"e": base64.RawURLEncoding.EncodeToString(big.NewInt(int64(key.E)).Bytes()),
 	}}})
 	require.NoError(t, err)
 
@@ -98,7 +98,7 @@ func call(t *testing.T, app *fiber.App, method, path, bearer string, body any) *
 func Test_Policy_RoleMatrix(t *testing.T) {
 	cnf := newManagerConfigWithPostgres(t)
 	cnf.PAP.Store = "../../../testdata/apps/manager/policies/cedar"
-	cnf.Authorization.FailClosedOnEmpty = true
+	cnf.FailClosedOnEmpty = true
 
 	ip := newIDP(t)
 	cnf.OIDC = config2.OIDC{JWKSURL: ip.srv.URL, Issuer: "https://idp.test", Audience: "openftv"}

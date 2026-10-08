@@ -35,6 +35,7 @@ func newTestDatabaseURL(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("postgres not reachable: %v", err)
 	}
+
 	t.Cleanup(func() { _ = admin.Close(ctx) })
 
 	dbName := composeDatabaseNameFromTestName(t, t.Name())
