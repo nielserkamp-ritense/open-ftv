@@ -44,7 +44,7 @@ function AuthGate({ children }: { children: ReactNode }) {
   const auth = useAuth()
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated && !auth.activeNavigator && !auth.error) {
-      void auth.signinRedirect()
+      void auth.signinRedirect({ state: window.location.pathname + window.location.search + window.location.hash })
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.activeNavigator, auth.error])
   if (auth.error) return <div className="p-6">Authenticatie-fout: {auth.error.message}</div>

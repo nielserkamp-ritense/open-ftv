@@ -10,7 +10,10 @@ export const oidcConfig: AuthProviderProps = {
   response_type: 'code',
   scope: 'openid profile email',
   userStore: new WebStorageStateStore({ store: window.localStorage }),
-  onSigninCallback: () => {
-    window.history.replaceState({}, document.title, window.location.pathname);
+  // The login keeps the page it started on as its state, so a link into the management interface still opens
+  // its page after logging in.
+  onSigninCallback: (user) => {
+    const page = typeof user?.state === 'string' ? user.state : window.location.pathname;
+    window.history.replaceState({}, document.title, page);
   },
 };
