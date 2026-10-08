@@ -40,15 +40,17 @@ const Index = () => {
                         {organisation: "Gemeente Vlierdam", url: VITE_BEHEER_URL},
                         {organisation: "RDW", url: VITE_RDW_BEHEER_URL},
                         {organisation: "RvIG", url: VITE_RVIG_BEHEER_URL},
-                      ].map(({organisation, url}) => (
+                      ].map(({organisation, url}, index) => (
                         <a key={organisation}
                            href={url}
                            target="_blank"
+                           aria-labelledby={`beheer-${index}`}
+                           aria-describedby={`beheer-${index}-omschrijving`}
                            className="group flex items-center justify-between gap-4 rounded-md border p-4 transition-colors hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           <div>
-                            <div className="font-semibold">{organisation}</div>
-                            <div className="text-sm text-muted-foreground">Toegangsregels beheren</div>
+                            <div id={`beheer-${index}`} className="font-semibold">{organisation}</div>
+                            <div id={`beheer-${index}-omschrijving`} className="text-sm text-muted-foreground">Toegangsregels beheren</div>
                           </div>
                           <ExternalLink className="size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
                         </a>
