@@ -26,6 +26,8 @@ func TestAnyToString(t *testing.T) {
 		{name: "int64 987654321", in: int64(-987654321), want: "-987654321"},
 		{name: "double 0.0", in: 0.0, want: "0"},
 		{name: "double -99.88", in: -99.88, want: "-99.88"},
+		{name: "double 4821937265", in: 4821937265.0, want: "4821937265"},
+		{name: "double 0.0000001", in: 0.0000001, want: "0.0000001"},
 		{name: "json.Number 0", in: json.Number("0"), want: "0"},
 		{name: "json.Number -9876", in: json.Number("-9876"), want: "-9876"},
 		{name: "json.Number 0.01234", in: json.Number("0.01234"), want: "0.01234"},

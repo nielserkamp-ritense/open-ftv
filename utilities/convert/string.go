@@ -28,7 +28,7 @@ func AnyToString(in any) string {
 	case int64:
 		return strconv.FormatInt(t, 10)
 	case float64:
-		return strconv.FormatFloat(t, 'g', -1, 64)
+		return strconv.FormatFloat(t, 'f', -1, 64)
 	case json.Number:
 		return t.String()
 	default:
