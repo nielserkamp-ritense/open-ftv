@@ -93,6 +93,7 @@ plugins:
       - Content-Type
       - X-Api-Key
       - Doelbinding
+      - traceparent
 
 - id: f6dd4246-8186-44e2-a713-22407ffb7469
   route: 41dd269a-d7fc-4d5e-97bf-a0ab86724d35
@@ -158,3 +159,4 @@ plugins:
       - Content-Type
       - Doelbinding
       - Dpl-Core-User
+      - traceparent

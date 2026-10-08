@@ -9,6 +9,7 @@ import {Textarea} from "@/components/ui/textarea";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {useCurrentUser} from "@/contexts/CurrentUserContext";
+import {VITE_BEHEER_URL} from "@/lib/env.ts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,7 @@ import {
   useLaadpalen,
   usePatchAanvraag,
   useGebruikers,
+  newTraceId,
   getDutchErrorMessage,
   getErrorMessage
 } from "@/lib/api";
@@ -107,8 +109,12 @@ const AanvraagDetail = () => {
   const [isCheckingLaadpaal, setIsCheckingLaadpaal] = useState(false);
   const [vergunningBeslissing, setVergunningBeslissing] = useState<"goedkeuren" | "afwijzen" | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [enableBrpCheck, setEnableBrpCheck] = useState(false);
-  const [enableRdwCheck, setEnableRdwCheck] = useState(false);
+  // A check runs once it has a trace ID, and each run gets a new one, so its decisions in the Logboek are its own.
+  const [brpTraceId, setBrpTraceId] = useState<string | null>(null);
+  // The RDW check also keeps the user it ran for. Right after a switch, the reset below has yet to take effect,
+  // and its trace ID would carry a request for the next user.
+  const [rdwRun, setRdwRun] = useState<{ traceId: string; gebruiker: string } | null>(null);
+  const rdwTraceId = rdwRun?.gebruiker === currentUser ? rdwRun.traceId : null;
   const [enableLaadpalenCheck, setEnableLaadpalenCheck] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
@@ -122,7 +128,7 @@ const AanvraagDetail = () => {
   // else must not stay on screen after switching user, nor a decision taken on it.
   useEffect(() => {
     setRdwData(null);
-    setEnableRdwCheck(false);
+    setRdwRun(null);
     setIsCheckingRDW(false);
     setVergunningBeslissing(null);
   }, [currentUser]);
@@ -134,13 +140,14 @@ const AanvraagDetail = () => {
   const brpQuery = useBrpAddress(
     application?.postcode || '',
     application?.huisnummer || 0,
-    { enabled: enableBrpCheck && !!application }
+    brpTraceId,
+    { enabled: !!application }
   );
 
   // RDW query hook - enabled only when check is triggered and brpData is available
   const bsnList = brpData?.map(b => b.bsn).filter(Boolean) || [];
-  const rdwQuery = useRdwVehiclesForMultipleBsns(bsnList, currentUser, {
-    enabled: enableRdwCheck && bsnList.length > 0
+  const rdwQuery = useRdwVehiclesForMultipleBsns(bsnList, currentUser, rdwTraceId, {
+    enabled: bsnList.length > 0
   });
 
   // Laadpalen query hook - enabled only when check is triggered
@@ -153,7 +160,7 @@ const AanvraagDetail = () => {
 
   // Handle BRP query state changes
   useEffect(() => {
-    if (!enableBrpCheck) return;
+    if (!brpTraceId) return;
 
     if (brpQuery.isLoading) {
       setIsCheckingBRP(true);
@@ -169,11 +176,11 @@ const AanvraagDetail = () => {
       setIsCheckingBRP(false);
       console.error("BRP check failed:", brpQuery.error);
     }
-  }, [brpQuery.isLoading, brpQuery.isSuccess, brpQuery.isError, brpQuery.error, brpQuery.data, enableBrpCheck]);
+  }, [brpQuery.isLoading, brpQuery.isSuccess, brpQuery.isError, brpQuery.error, brpQuery.data, brpTraceId]);
 
   // Handle RDW query state changes
   useEffect(() => {
-    if (!enableRdwCheck) return;
+    if (!rdwTraceId) return;
     if (rdwQuery.isLoading) {
       setIsCheckingRDW(true);
     } else if (rdwQuery.isSuccess) {
@@ -183,7 +190,7 @@ const AanvraagDetail = () => {
       setIsCheckingRDW(false);
       console.error("RDW check failed:", rdwQuery.error);
     }
-  }, [rdwQuery.isLoading, rdwQuery.isSuccess, rdwQuery.isError, rdwQuery.error, rdwQuery.data, enableRdwCheck]);
+  }, [rdwQuery.isLoading, rdwQuery.isSuccess, rdwQuery.isError, rdwQuery.error, rdwQuery.data, rdwTraceId]);
 
   // Handle Laadpalen query state changes
   useEffect(() => {
@@ -215,22 +222,15 @@ const AanvraagDetail = () => {
 
   const handleBRPCheck = async () => {
     if (!application) return;
-    if (enableBrpCheck) {
-      brpQuery.refetch();
-    } else {
-      setEnableBrpCheck(true);
-    }
+    setBrpTraceId(newTraceId());
   };
 
   const handleRDWCheck = async () => {
-    if (!brpData) {
+    // Without a BSN the check sends no request, so a trace ID would lead to nothing in the Logboek.
+    if (bsnList.length === 0) {
       return;
     }
-    if (enableRdwCheck) {
-      rdwQuery.refetch();
-    } else {
-      setEnableRdwCheck(true);
-    }
+    setRdwRun({traceId: newTraceId(), gebruiker: currentUser});
   };
 
   const handleCheckLaadpaal = async () => {
@@ -445,6 +445,7 @@ const AanvraagDetail = () => {
               <p className="text-sm text-muted-foreground mb-6">
                 Voer controles uit bij BRP en RDW via het Federatief Toegangsstelsel voor Vertrouwde dienstverlening
               </p>
+              <span id="nieuw-tabblad" className="sr-only">opent in een nieuw tabblad</span>
 
               <div className="space-y-4">
                 {/* BRP Check */}
@@ -519,6 +520,15 @@ const AanvraagDetail = () => {
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  {brpTraceId && (
+                    <p className="text-muted-foreground text-xs mt-3">
+                      Trace ID: <a href={`${VITE_BEHEER_URL}/logboek?traceId=${brpTraceId}`}
+                                   target="_blank"
+                                   aria-describedby="nieuw-tabblad"
+                                   className="font-mono underline select-all">{brpTraceId}</a>
+                    </p>
                   )}
                 </div>
 
@@ -622,6 +632,15 @@ const AanvraagDetail = () => {
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  {rdwTraceId && (
+                    <p className="text-muted-foreground text-xs mt-3">
+                      Trace ID: <a href={`${VITE_BEHEER_URL}/logboek?traceId=${rdwTraceId}`}
+                                   target="_blank"
+                                   aria-describedby="nieuw-tabblad"
+                                   className="font-mono underline select-all">{rdwTraceId}</a>
+                    </p>
                   )}
                 </div>
               </div>
