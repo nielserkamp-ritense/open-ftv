@@ -3,7 +3,7 @@ import {Button} from "@/components/ui/button.tsx";
 import Card from "@/components/ui/card.tsx";
 import {IconAlertTriangleFilled, IconCircleArrowUpFilled, IconCircleRectangleFilled, IconFileExport} from "@tabler/icons-react";
 import {AuthlogEntry, useAuthlogEntries} from "@/services/authlog.ts";
-import type {ColDef, FilterChangedEvent, GridApi, GridReadyEvent, RowClassRules, RowClassParams, RowClickedEvent, TextFilterModel} from "ag-grid-community";
+import type {CellKeyDownEvent, ColDef, FilterChangedEvent, FullWidthCellKeyDownEvent, GridApi, GridReadyEvent, RowClassRules, RowClassParams, RowClickedEvent, TextFilterModel} from "ag-grid-community";
 import CondensedGrid from "@/components/ui/condensed-grid.tsx";
 import {CustomCellRendererProps} from "ag-grid-react";
 import {useEffect, useMemo, useState} from "react";
@@ -86,14 +86,23 @@ function RouteComponent() {
             .catch(e => console.error('Filter error:', e));
     }, [gridApi, traceId]);
 
-    const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => {
-        if (event.data?.id) {
-          navigate({
+    const openEntry = (entry?: AuthlogEntry) => {
+        if (entry?.id) {
+            navigate({
                 to: '/logboek/$id',
-                params: {id: String(event.data.id)},
+                params: {id: String(entry.id)},
                 // @ts-expect-error - The type state is not defined in the type definition
-                state: {entry: event.data}
+                state: {entry}
             }).catch(e => console.error('Navigation error:', e));
+        }
+    };
+
+    const handleRowClick = (event: RowClickedEvent<AuthlogEntry>) => openEntry(event.data);
+
+    // AG Grid only reports a row click for the mouse, so Enter opens the entry for keyboard users.
+    const handleCellKeyDown = (event: CellKeyDownEvent<AuthlogEntry> | FullWidthCellKeyDownEvent<AuthlogEntry>) => {
+        if (event.event instanceof KeyboardEvent && event.event.key === 'Enter') {
+            openEntry(event.data);
         }
     };
 
@@ -211,6 +220,7 @@ function RouteComponent() {
                             columnDefs={colDefs}
                             rowClassRules={rowClassRules}
                             onRowClicked={handleRowClick}
+                            onCellKeyDown={handleCellKeyDown}
                             onGridReady={handleGridReady}
                             onFilterChanged={handleFilterChanged}
                             initialState={{filter: {filterModel: traceId ? {traceId: traceIdFilterModel(traceId)} : {}}}}
