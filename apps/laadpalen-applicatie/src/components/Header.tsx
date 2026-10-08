@@ -46,7 +46,7 @@ export const Header = ({
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground" />
               <Select value={currentUser} onValueChange={onUserChange} disabled={isLoading}>
-                <SelectTrigger className="w-[260px]">
+                <SelectTrigger className="w-[260px]" aria-label="Gebruiker">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
