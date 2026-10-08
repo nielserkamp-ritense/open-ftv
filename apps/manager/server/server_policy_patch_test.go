@@ -40,6 +40,8 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 		res := patchPolicyStatus(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", oas.PolicyStatus{
 			Status: "an-invalid-status",
 		})
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -49,6 +51,8 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 		res := patchPolicyStatus(t, mainFiberApp, invalidID, oas.PolicyStatus{
 			Status: "accepted",
 		})
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -63,6 +67,8 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 			Id: "99999999-9999-9999-9999-999999999999", Status: "accepted"}
 
 		res := patchPolicyStatus(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", status)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -80,6 +86,9 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -96,6 +105,8 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 		res := patchPolicyStatus(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", oas.PolicyStatus{
 			Status: "accepted",
 		})
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -115,6 +126,8 @@ func Test_Patch_PolicyStatus(t *testing.T) {
 
 		// ensure the change is persisted
 		thePolicy := getPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111")
+		defer thePolicy.Body.Close()
+
 		fetched := decodePolicy(t, thePolicy)
 		require.Equal(t, "accepted", fetched.Status)
 	})

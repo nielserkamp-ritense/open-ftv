@@ -39,20 +39,36 @@ func Test_LanguageAndDecision_RoleMatrix(t *testing.T) {
 
 	t.Run("everyone reads the languages and the log", func(t *testing.T) {
 		for name, tok := range everyone {
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/languages", tok, nil).StatusCode, name)
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", tok, nil).StatusCode, name)
+			res := call(t, app, http.MethodGet, "/v1/languages", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
+
+			res = call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
 		}
 	})
 
 	t.Run("no token is denied, not served", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/languages", "", nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", "", nil).StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/languages", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("a role the examples do not know reads neither", func(t *testing.T) {
 		user := ip.token(t, "plain-user", "user")
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/languages", user, nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", user, nil).StatusCode)
+
+		res := call(t, app, http.MethodGet, "/v1/languages", user, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/adl/entries?recent=1h", user, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("an API key reads the languages, not the log", func(t *testing.T) {
@@ -73,7 +89,12 @@ func Test_LanguageAndDecision_RoleMatrix(t *testing.T) {
 	})
 
 	t.Run("malformed criteria are a 400 for a reader and a 403 for anyone else", func(t *testing.T) {
-		require.Equal(t, http.StatusBadRequest, call(t, app, http.MethodGet, "/v1/adl/entries?recent=soon", everyone["auditor"], nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/adl/entries?recent=soon", "", nil).StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/adl/entries?recent=soon", everyone["auditor"], nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/adl/entries?recent=soon", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 }

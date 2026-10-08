@@ -97,9 +97,17 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 	// release 1 seeds deleted.cedar and kept.cedar; the operator then deletes the first on purpose.
 	app1 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusOK, call(t, app1, http.MethodGet, "/v1/policy/"+deletedID, author, nil).StatusCode, "deleted.cedar must be seeded on an empty store")
-	require.Equal(t, http.StatusOK, call(t, app1, http.MethodGet, "/v1/policy/"+keptID, author, nil).StatusCode, "kept.cedar must be seeded on an empty store")
-	require.Equal(t, http.StatusOK, call(t, app1, http.MethodDelete, "/v1/policy/"+deletedID, author, nil).StatusCode)
+	res := call(t, app1, http.MethodGet, "/v1/policy/"+deletedID, author, nil)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusOK, res.StatusCode, "deleted.cedar must be seeded on an empty store")
+
+	res = call(t, app1, http.MethodGet, "/v1/policy/"+keptID, author, nil)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusOK, res.StatusCode, "kept.cedar must be seeded on an empty store")
+
+	res = call(t, app1, http.MethodDelete, "/v1/policy/"+deletedID, author, nil)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusOK, res.StatusCode)
 
 	// release 2 ships added.cedar as well and changes kept.cedar on disk; the manager restarts
 	// against the same store.
@@ -108,10 +116,17 @@ func Test_Seed_PerFile_AcrossRestarts(t *testing.T) {
 
 	app2 := NewExternal(cnf, lgr).GetMainService().GetFiberApp()
 
-	require.Equal(t, http.StatusNotFound, call(t, app2, http.MethodGet, "/v1/policy/"+deletedID, author, nil).StatusCode, "a seed file the operator deleted must not come back")
-	require.Equal(t, http.StatusOK, call(t, app2, http.MethodGet, "/v1/policy/"+addedID, author, nil).StatusCode, "a seed file added by a later release must reach the populated store")
+	res = call(t, app2, http.MethodGet, "/v1/policy/"+deletedID, author, nil)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusNotFound, res.StatusCode, "a seed file the operator deleted must not come back")
 
-	res := call(t, app2, http.MethodGet, "/v1/policy/"+keptID, author, nil)
+	res = call(t, app2, http.MethodGet, "/v1/policy/"+addedID, author, nil)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusOK, res.StatusCode, "a seed file added by a later release must reach the populated store")
+
+	res = call(t, app2, http.MethodGet, "/v1/policy/"+keptID, author, nil)
+	defer res.Body.Close()
+
 	require.Equal(t, http.StatusOK, res.StatusCode, "a seed file the operator left alone must still be there")
 	require.Equal(t, permitAll, decodePolicy(t, res).Data, "a present row is the source of truth; a changed seed file must not overwrite it")
 }

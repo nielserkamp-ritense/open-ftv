@@ -39,43 +39,91 @@ func Test_Deployment_RoleMatrix(t *testing.T) {
 
 	t.Run("everyone reads the collection and its vocabulary", func(t *testing.T) {
 		for name, tok := range map[string]string{"author": author, "auditor": auditor, "admin": admin} {
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/deployments", tok, nil).StatusCode, name)
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/statuses", tok, nil).StatusCode, name)
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/bundle-configurations", tok, nil).StatusCode, name)
+			res := call(t, app, http.MethodGet, "/v1/deployments", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
+
+			res = call(t, app, http.MethodGet, "/v1/statuses", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
+
+			res = call(t, app, http.MethodGet, "/v1/bundle-configurations", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
 		}
 	})
 
 	t.Run("no token is denied, not served", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/deployments", "", nil).StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/deployments", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("a denied caller is answered 403 before a not-found and before a validation error", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/deployment/1", "", nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/deployment/999", "", nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/deployment/last", "", nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/deployment/abc", "", nil).StatusCode, "a malformed version is 403, not 400")
-		require.Equal(t, http.StatusForbidden, callRaw(t, app, http.MethodPost, "/v1/deployment", auditor, "not json").StatusCode, "a malformed body is 403, not 400")
+		res := call(t, app, http.MethodGet, "/v1/deployment/1", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/deployment/999", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/deployment/last", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/deployment/abc", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode, "a malformed version is 403, not 400")
+
+		res = callRaw(t, app, http.MethodPost, "/v1/deployment", auditor, "not json")
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode, "a malformed body is 403, not 400")
 	})
 
 	t.Run("a permitted caller gets the store's answer: not found, or a validation error", func(t *testing.T) {
-		require.Equal(t, http.StatusNotFound, call(t, app, http.MethodGet, "/v1/deployment/last", auditor, nil).StatusCode)
-		require.Equal(t, http.StatusNotFound, call(t, app, http.MethodGet, "/v1/deployment/999", auditor, nil).StatusCode)
-		require.Equal(t, http.StatusBadRequest, call(t, app, http.MethodGet, "/v1/deployment/abc", auditor, nil).StatusCode)
-		require.Equal(t, http.StatusBadRequest, callRaw(t, app, http.MethodPost, "/v1/deployment", author, "not json").StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/deployment/last", auditor, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusNotFound, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/deployment/999", auditor, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusNotFound, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/deployment/abc", auditor, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		res = callRaw(t, app, http.MethodPost, "/v1/deployment", author, "not json")
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
 	t.Run("only the author publishes", func(t *testing.T) {
 		body := oas.NewDeploymentBody{Title: "Publicatie"}
 
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/deployment", auditor, body).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/deployment", admin, body).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPost, "/v1/deployment", author, body).StatusCode)
+		res := call(t, app, http.MethodPost, "/v1/deployment", auditor, body)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/deployment", admin, body)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/deployment", author, body)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("everyone reads the published deployment", func(t *testing.T) {
 		for name, tok := range map[string]string{"author": author, "auditor": auditor, "admin": admin} {
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/deployment/last", tok, nil).StatusCode, name)
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/deployment/1", tok, nil).StatusCode, name)
+			res := call(t, app, http.MethodGet, "/v1/deployment/last", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
+
+			res = call(t, app, http.MethodGet, "/v1/deployment/1", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
 		}
 	})
 }

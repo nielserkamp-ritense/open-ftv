@@ -130,7 +130,9 @@ func TestNewService_ErrorHandler(t *testing.T) {
 
 			resp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d", cfg.Host, cfg.Port))
 			require.NoError(t, err)
-			require.NotNil(t, resp)
+
+			defer resp.Body.Close()
+
 			assert.Equal(t, 404, resp.StatusCode)
 
 			time.Sleep(10 * time.Millisecond)

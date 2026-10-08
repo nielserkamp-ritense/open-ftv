@@ -85,7 +85,6 @@ func TestErrorHandler(t *testing.T) {
 
 			resp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d", cfg.Host, cfg.Port))
 			require.NoError(t, err)
-			require.NotNil(t, resp)
 
 			defer resp.Body.Close()
 

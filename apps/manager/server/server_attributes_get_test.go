@@ -29,6 +29,9 @@ func Test_Get_Attributes(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		attrs := decodeAttributes(t, res)
@@ -52,12 +55,17 @@ func Test_Get_Attributes(t *testing.T) {
 		postRes, err := mainFiberApp.Test(postReq)
 		require.Nil(t, err)
 
+		defer postRes.Body.Close()
+
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
 		req := httptest.NewRequest(http.MethodGet, "/v1/attributes", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		attrs := decodeAttributes(t, res)
@@ -72,7 +80,6 @@ func decodeAttributes(t *testing.T, res *http.Response) []oas.Attribute {
 
 	body, err := io.ReadAll(res.Body)
 	require.Nil(t, err)
-	defer func() { require.NoError(t, res.Body.Close()) }()
 
 	var attrs []oas.Attribute
 	require.NoError(t, json.Unmarshal(body, &attrs))

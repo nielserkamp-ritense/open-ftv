@@ -28,6 +28,8 @@ func Test_NewServer_Delete_Policy(t *testing.T) {
 	t.Run("not_found", func(t *testing.T) {
 		// Deleting an unknown policy is a 404 unless ignoreMissing is set.
 		res := deletePolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222")
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusNotFound, res.StatusCode)
 	})
 
@@ -37,12 +39,16 @@ func Test_NewServer_Delete_Policy(t *testing.T) {
 		// With ignoreMissing=true, deleting an unknown policy succeeds
 		// idempotently and echoes back an (empty) policy carrying the id.
 		res := deletePolicyWithQuery(t, mainFiberApp, id, "ignoreMissing=true")
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 		require.Equal(t, id, decodePolicy(t, res).Id)
 	})
 
 	t.Run("invalid_id", func(t *testing.T) {
 		res := deletePolicy(t, mainFiberApp, strings.Repeat("x", 41))
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -56,10 +62,14 @@ func Test_NewServer_Delete_Policy(t *testing.T) {
 		})
 
 		res := deletePolicy(t, mainFiberApp, id)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		// After deletion the policy must no longer be retrievable.
 		fetched := getPolicy(t, mainFiberApp, id)
+		defer fetched.Body.Close()
+
 		require.Equal(t, http.StatusNotFound, fetched.StatusCode)
 	})
 }

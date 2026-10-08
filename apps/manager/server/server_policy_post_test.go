@@ -34,9 +34,13 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
 		res = postPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusConflict, res.StatusCode)
 	})
 
@@ -50,11 +54,15 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
 		policy.Metadata.Title = "Updated title"
 
 		res = postPolicyWithQuery(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy, "forceUpsert=true")
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -62,6 +70,8 @@ func Test_Post_Policy(t *testing.T) {
 
 		// ensure the update is persisted
 		fetched := getPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333")
+		defer fetched.Body.Close()
+
 		require.Equal(t, http.StatusOK, fetched.StatusCode)
 		require.Equal(t, "Updated title", decodePolicy(t, fetched).Metadata.Title)
 	})
@@ -75,6 +85,8 @@ func Test_Post_Policy(t *testing.T) {
 		invalidID := strings.Repeat("x", 41)
 
 		res := postPolicy(t, mainFiberApp, invalidID, policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -86,6 +98,8 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "44444444-4444-4444-4444-444444444444", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -95,6 +109,8 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "55555555-5555-5555-5555-555555555555", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -104,6 +120,8 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "66666666-6666-6666-6666-666666666666", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -113,6 +131,9 @@ func Test_Post_Policy(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -129,6 +150,8 @@ func Test_Post_Policy(t *testing.T) {
 		}
 
 		res := postPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusCreated, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -175,6 +198,8 @@ func mustCreatePolicy(t *testing.T, app *fiber.App, id string, policy oas.Policy
 	t.Helper()
 
 	res := postPolicy(t, app, id, policy)
+	defer res.Body.Close()
+
 	require.Equal(t, http.StatusCreated, res.StatusCode)
 
 	return decodePolicy(t, res)

@@ -30,6 +30,9 @@ func Test_Get_Policy(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusNotFound, res.StatusCode)
 	})
 
@@ -39,6 +42,9 @@ func Test_Get_Policy(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -65,12 +71,18 @@ func Test_Get_Policy(t *testing.T) {
 
 		postRes, err := mainFiberApp.Test(postReq)
 		require.Nil(t, err)
+
+		defer postRes.Body.Close()
+
 		require.Equal(t, http.StatusCreated, postRes.StatusCode)
 
 		req := httptest.NewRequest(http.MethodGet, "/v1/policy/11111111-1111-1111-1111-111111111111", nil)
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -94,7 +106,6 @@ func decodePolicy(t *testing.T, res *http.Response) oas.Policy {
 
 	body, err := io.ReadAll(res.Body)
 	require.Nil(t, err)
-	defer func() { require.NoError(t, res.Body.Close()) }()
 
 	var policy oas.Policy
 	require.NoError(t, json.Unmarshal(body, &policy))

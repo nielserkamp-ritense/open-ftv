@@ -115,51 +115,91 @@ func Test_Policy_RoleMatrix(t *testing.T) {
 
 	t.Run("everyone reads the collection", func(t *testing.T) {
 		for name, tok := range map[string]string{"author": author, "auditor": auditor, "admin": admin} {
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/policies", tok, nil).StatusCode, name)
+			res := call(t, app, http.MethodGet, "/v1/policies", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
 		}
 	})
 
 	t.Run("no token is denied, not served", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/policies", "", nil).StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/policies", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("only the author creates", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/policy/"+id, auditor, policy).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/policy/"+id, admin, policy).StatusCode)
-		require.Equal(t, http.StatusCreated, call(t, app, http.MethodPost, "/v1/policy/"+id, author, policy).StatusCode)
+		res := call(t, app, http.MethodPost, "/v1/policy/"+id, auditor, policy)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/policy/"+id, admin, policy)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/policy/"+id, author, policy)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusCreated, res.StatusCode)
 	})
 
 	t.Run("a denied caller cannot tell a missing id from an existing one", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/policy/"+id, auditor, nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/policy/55555555-5555-5555-5555-555555555555", auditor, nil).StatusCode)
+		res := call(t, app, http.MethodDelete, "/v1/policy/"+id, auditor, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodDelete, "/v1/policy/55555555-5555-5555-5555-555555555555", auditor, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("status changes are accept and deploy, never a read", func(t *testing.T) {
 		accepted := oas.PolicyStatus{Id: id, Status: "accepted"}
 
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", auditor, accepted).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", admin, accepted).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, accepted).StatusCode)
+		res := call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", auditor, accepted)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", admin, accepted)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, accepted)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("an accepted policy is not edited in place", func(t *testing.T) {
 		policy.Metadata.Title = "Edited"
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy).StatusCode)
+
+		res := call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("only the author reverts, and an illegal transition is a client error", func(t *testing.T) {
 		concept := oas.PolicyStatus{Id: id, Status: "concept"}
 
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", admin, concept).StatusCode)
-		require.Equal(t, http.StatusBadRequest, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, oas.PolicyStatus{Id: id, Status: "deployed"}).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, concept).StatusCode)
+		res := call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", admin, concept)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, oas.PolicyStatus{Id: id, Status: "deployed"})
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+		res = call(t, app, http.MethodPatch, "/v1/policy/"+id+"/status", author, concept)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		// back in concept, the author edits again.
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy).StatusCode)
+		res = call(t, app, http.MethodPut, "/v1/policy/"+id, author, policy)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("the author is attributed", func(t *testing.T) {
 		res := call(t, app, http.MethodGet, "/v1/policy/"+id, auditor, nil)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 		require.Equal(t, "author-user", decodePolicy(t, res).Audit.CreatedBy.Id)
 	})

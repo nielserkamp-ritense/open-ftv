@@ -34,6 +34,8 @@ func Test_Put_Policy(t *testing.T) {
 		}
 
 		res := putPolicy(t, mainFiberApp, "aaaaaaaa-0000-0000-0000-000000000000", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusNotFound, res.StatusCode)
 	})
 
@@ -46,6 +48,8 @@ func Test_Put_Policy(t *testing.T) {
 		invalidID := strings.Repeat("x", 41)
 
 		res := putPolicy(t, mainFiberApp, invalidID, policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -63,6 +67,8 @@ func Test_Put_Policy(t *testing.T) {
 		}
 
 		res := putPolicy(t, mainFiberApp, "33333333-3333-3333-3333-333333333333", policy)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -78,6 +84,9 @@ func Test_Put_Policy(t *testing.T) {
 
 		res, err := mainFiberApp.Test(req)
 		require.Nil(t, err)
+
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusBadRequest, res.StatusCode)
 	})
 
@@ -99,6 +108,8 @@ func Test_Put_Policy(t *testing.T) {
 		}
 
 		res := putPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111", updated)
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -109,7 +120,10 @@ func Test_Put_Policy(t *testing.T) {
 		require.Equal(t, []string{"updated"}, got.Metadata.Tags)
 
 		// ensure the changes are persisted
-		fetched := decodePolicy(t, getPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111"))
+		thePolicy := getPolicy(t, mainFiberApp, "11111111-1111-1111-1111-111111111111")
+		defer thePolicy.Body.Close()
+
+		fetched := decodePolicy(t, thePolicy)
 		require.Equal(t, "Update new title", fetched.Metadata.Title)
 		require.Equal(t, "Now with a description", fetched.Metadata.Description)
 	})
@@ -122,6 +136,8 @@ func Test_Put_Policy(t *testing.T) {
 		}
 
 		res := putPolicyWithQuery(t, mainFiberApp, "22222222-2222-2222-2222-222222222222", policy, "forceUpsert=true")
+		defer res.Body.Close()
+
 		require.Equal(t, http.StatusOK, res.StatusCode)
 
 		got := decodePolicy(t, res)
@@ -130,6 +146,8 @@ func Test_Put_Policy(t *testing.T) {
 		require.Equal(t, "Created via PUT", got.Metadata.Title)
 
 		fetched := getPolicy(t, mainFiberApp, "22222222-2222-2222-2222-222222222222")
+		defer fetched.Body.Close()
+
 		require.Equal(t, http.StatusOK, fetched.StatusCode)
 	})
 }

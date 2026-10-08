@@ -38,38 +38,81 @@ func Test_TagAndSetting_RoleMatrix(t *testing.T) {
 
 	t.Run("everyone reads tags and settings", func(t *testing.T) {
 		for name, tok := range everyone {
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/tags", tok, nil).StatusCode, name)
-			require.Equal(t, http.StatusOK, call(t, app, http.MethodGet, "/v1/settings", tok, nil).StatusCode, name)
+			res := call(t, app, http.MethodGet, "/v1/tags", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
+
+			res = call(t, app, http.MethodGet, "/v1/settings", tok, nil)
+			require.NoError(t, res.Body.Close())
+			require.Equal(t, http.StatusOK, res.StatusCode, name)
 		}
 	})
 
 	t.Run("no token is denied, not served", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/tags", "", nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodGet, "/v1/settings", "", nil).StatusCode)
+		res := call(t, app, http.MethodGet, "/v1/tags", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodGet, "/v1/settings", "", nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 	})
 
 	t.Run("only the admin creates a tag", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/tag/laadpalen", author, tag).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPost, "/v1/tag/laadpalen", auditor, tag).StatusCode)
-		require.Equal(t, http.StatusCreated, call(t, app, http.MethodPost, "/v1/tag/laadpalen", admin, tag).StatusCode)
+		res := call(t, app, http.MethodPost, "/v1/tag/laadpalen", author, tag)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/tag/laadpalen", auditor, tag)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPost, "/v1/tag/laadpalen", admin, tag)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusCreated, res.StatusCode)
 	})
 
 	t.Run("a denied caller cannot tell a missing tag from an existing one", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/tag/laadpalen", author, nil).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodDelete, "/v1/tag/nope", author, nil).StatusCode)
-		require.Equal(t, http.StatusNotFound, call(t, app, http.MethodDelete, "/v1/tag/nope", admin, nil).StatusCode)
+		res := call(t, app, http.MethodDelete, "/v1/tag/laadpalen", author, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodDelete, "/v1/tag/nope", author, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodDelete, "/v1/tag/nope", admin, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusNotFound, res.StatusCode)
 	})
 
 	t.Run("only the admin updates and deletes a tag", func(t *testing.T) {
 		tag.Name = "Laadpalen (bewerkt)"
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPut, "/v1/tag/laadpalen", author, tag).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPut, "/v1/tag/laadpalen", admin, tag).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodDelete, "/v1/tag/laadpalen", admin, nil).StatusCode)
+
+		res := call(t, app, http.MethodPut, "/v1/tag/laadpalen", author, tag)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPut, "/v1/tag/laadpalen", admin, tag)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
+
+		res = call(t, app, http.MethodDelete, "/v1/tag/laadpalen", admin, nil)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 	})
 
 	t.Run("only the admin writes the settings, without a path in any rule", func(t *testing.T) {
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPut, "/v1/settings", author, ui).StatusCode)
-		require.Equal(t, http.StatusForbidden, call(t, app, http.MethodPut, "/v1/settings", auditor, ui).StatusCode)
-		require.Equal(t, http.StatusOK, call(t, app, http.MethodPut, "/v1/settings", admin, ui).StatusCode)
+		res := call(t, app, http.MethodPut, "/v1/settings", author, ui)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPut, "/v1/settings", auditor, ui)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+
+		res = call(t, app, http.MethodPut, "/v1/settings", admin, ui)
+		require.NoError(t, res.Body.Close())
+		require.Equal(t, http.StatusOK, res.StatusCode)
 	})
 }
