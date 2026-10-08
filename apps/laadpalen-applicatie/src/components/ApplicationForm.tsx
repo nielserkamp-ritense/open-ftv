@@ -160,7 +160,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
 
       <div className="space-y-2">
         <Label htmlFor="postcode" className="text-base font-semibold">
-          Postcode <span className="text-destructive">*</span>
+          Postcode <span className="text-destructive" aria-hidden="true">*</span>
         </Label>
         <Input
           id="postcode"
@@ -169,6 +169,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
           placeholder="1234AB"
           className={`h-12 ${errors.postcode ? "border-destructive" : ""}`}
           maxLength={7}
+          aria-required="true"
           aria-invalid={!!errors.postcode}
           aria-describedby={errors.postcode ? "postcode-error" : undefined}
         />
@@ -182,7 +183,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
 
       <div className="space-y-2">
         <Label htmlFor="huisnummer" className="text-base font-semibold">
-          Huisnummer <span className="text-destructive">*</span>
+          Huisnummer <span className="text-destructive" aria-hidden="true">*</span>
         </Label>
         <Input
           id="huisnummer"
@@ -192,6 +193,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
           placeholder="123"
           className={`h-12 ${errors.huisnummer ? "border-destructive" : ""}`}
           maxLength={10}
+          aria-required="true"
           aria-invalid={!!errors.huisnummer}
           aria-describedby={errors.huisnummer ? "huisnummer-error" : undefined}
         />
