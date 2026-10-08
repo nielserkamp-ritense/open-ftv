@@ -136,6 +136,7 @@ export const ApplicationForm = ({onSubmit, onAuditLog, currentUser, gebruikers}:
     <form onSubmit={handleSubmit} className="space-y-6">
       {publicFeedback && (
         <div
+          role="alert"
           className={`rounded-lg p-4 border-l-4 ${
             publicFeedback.type === "success"
               ? "bg-success/10 border-success"
