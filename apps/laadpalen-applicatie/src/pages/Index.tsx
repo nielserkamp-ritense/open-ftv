@@ -27,7 +27,7 @@ const Index = () => {
                 </div>
                 <div className="my-8 space-y-6">
                   <Button asChild size="lg" className="w-full h-14 text-lg font-semibold">
-                    <a href="/behandelaar" target="_blank">
+                    <a href="/behandelaar" target="_blank" aria-describedby="nieuw-tabblad">
                       Open het Zaaksysteem Laadpalen
                       <ArrowRight />
                     </a>
@@ -45,7 +45,7 @@ const Index = () => {
                            href={url}
                            target="_blank"
                            aria-labelledby={`beheer-${index}`}
-                           aria-describedby={`beheer-${index}-omschrijving`}
+                           aria-describedby={`beheer-${index}-omschrijving nieuw-tabblad`}
                            className="group flex items-center justify-between gap-4 rounded-md border p-4 transition-colors hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           <div>
@@ -57,6 +57,7 @@ const Index = () => {
                       ))}
                     </div>
                   </div>
+                  <span id="nieuw-tabblad" className="sr-only">opent in een nieuw tabblad</span>
                 </div>
                 <div className={"flex justify-center mt-4"}>
                   <Link to={"https://vng-realisatie.github.io/ftv/"}><img src={"logo_tekst.svg"} className={"h-[60px] opacity-50"}></img></Link>
