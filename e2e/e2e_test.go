@@ -41,11 +41,12 @@ func TestFeatures(t *testing.T) {
 			initializeScenario(sc, &env)
 		},
 		Options: &godog.Options{
-			Format:   "pretty,junit:output/report.xml",
-			Paths:    []string{"features"},
-			Tags:     env.tags,
-			Strict:   true,
-			TestingT: t,
+			Format:      "pretty,junit:output/report.xml",
+			Paths:       []string{"features"},
+			Tags:        env.tags,
+			Concurrency: env.concurrency,
+			Strict:      true,
+			TestingT:    t,
 		},
 	}
 

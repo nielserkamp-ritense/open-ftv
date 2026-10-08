@@ -25,6 +25,7 @@ Environment variables point them at another environment:
 | `E2E_VLIERDAM_BEHEER_PASSWORD` | `password`                                  | Its password.                                                                      |
 | `E2E_BROWSER_PATH`             | Chrome or Chromium in the standard location | The browser to run, for example Chrome Canary or Brave.                            |
 | `E2E_TIMEOUT`                  | `30s`                                       | How long a step waits for the page.                                                |
+| `E2E_CONCURRENCY`              | `4`                                         | How many scenarios run at the same time, each in its own browser.                  |
 | `E2E_TAGS`                     |                                             | Runs only the scenarios with these [tags](https://github.com/cucumber/godog#tags). |
 
 The browser runs headless; `CHROMEDP_VISIBLEWINDOW=1` shows it. A failed scenario leaves a screenshot of each of its

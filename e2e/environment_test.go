@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -14,11 +15,17 @@ type environment struct {
 	vlierdamPassword string
 	browserPath      string
 	timeout          time.Duration
+	concurrency      int
 	tags             string
 }
 
 func environmentFromEnv() (environment, error) {
 	timeout, err := time.ParseDuration(getEnv("E2E_TIMEOUT", "30s"))
+	if err != nil {
+		return environment{}, err
+	}
+
+	concurrency, err := strconv.Atoi(getEnv("E2E_CONCURRENCY", "4"))
 	if err != nil {
 		return environment{}, err
 	}
@@ -29,6 +36,7 @@ func environmentFromEnv() (environment, error) {
 		vlierdamPassword: getEnv("E2E_VLIERDAM_BEHEER_PASSWORD", "password"),
 		browserPath:      os.Getenv("E2E_BROWSER_PATH"),
 		timeout:          timeout,
+		concurrency:      concurrency,
 		tags:             os.Getenv("E2E_TAGS"),
 	}, nil
 }
