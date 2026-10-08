@@ -1,5 +1,10 @@
 version: "2"
 
+run:
+  # Without the tag, golangci-lint never compiles the integration tests.
+  build-tags:
+    - integration
+
 linters:
   default: none
   enable:
@@ -61,6 +66,7 @@ linters:
       ignore-rules:
         - productie
         - adres
+        - honouring
     revive:
       rules:
         - name: unexported-return
@@ -89,6 +95,11 @@ linters:
           - gocyclo
           - goconst
           - mnd
+      # Tests fall back to the credentials of a local development database.
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G101: Potential hardcoded credentials: Password in URL"
     paths:
       - third_party$
       - builtin$
