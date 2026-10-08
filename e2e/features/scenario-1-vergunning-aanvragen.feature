@@ -9,5 +9,7 @@ Feature: Scenario 1, vergunning aanvragen
     And the Logboek of "Gemeente Vlierdam" shows my aanvraag as Geweigerd because of "<reden>"
 
     Examples:
-      | nr | gebruiker | postcode | huisnummer | melding                                  | reden    |
-      | 1  | Rick      | 1111AA   | 1          | Rick niet geautoriseerd vanwege afdeling | afdeling |
+      | nr | gebruiker | postcode | huisnummer | melding                                            | reden              |
+      | 1  | Rick      | 1111AA   | 1          | Rick niet geautoriseerd vanwege afdeling           | afdeling           |
+      | 2  | Morty     | 1111AA   | 1          | Morty niet geautoriseerd vanwege opleiding         | opleiding          |
+      | 3  | Beth      | 1111AA   | 1          | Beth niet geautoriseerd vanwege verlopen opleiding | verlopen opleiding |
