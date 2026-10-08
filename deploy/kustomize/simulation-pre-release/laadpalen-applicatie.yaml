@@ -14,6 +14,7 @@ spec:
       apiBaseURL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/dataspace
       vlierdamOutwayURL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/outway
       vlierdamPdp1URL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl/pdp1
+      brpApiKey: vlierdam_475f1db8e46d4274010247933058effe0aefcbc2
       beheerURL: https://openftv-vlierdam-beheer-pre.simulatie.datastelsel.nl
       rvigBeheerURL: https://openftv-brp-beheer-pre.simulatie.datastelsel.nl
       rdwBeheerURL: https://openftv-rdw-beheer-pre.simulatie.datastelsel.nl
