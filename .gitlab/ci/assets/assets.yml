@@ -5,6 +5,7 @@ Management interface:
     - cd apps/management-interface
   script:
     - npm ci --prefer-offline --cache .npm
+    - npm test
     - npm run build
   cache:
     key:
