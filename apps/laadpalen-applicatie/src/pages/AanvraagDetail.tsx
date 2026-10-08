@@ -449,11 +449,11 @@ const AanvraagDetail = () => {
 
               <div className="space-y-4">
                 {/* BRP Check */}
-                <div className="border border-border rounded-lg p-4">
+                <section aria-labelledby="brp-controle" className="border border-border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <UserCheck className="h-5 w-5 text-primary"/>
-                      <h3 className="font-semibold text-foreground">BRP Controle</h3>
+                      <h3 id="brp-controle" className="font-semibold text-foreground">BRP Controle</h3>
                     </div>
                     <Button
                       onClick={handleBRPCheck}
@@ -530,14 +530,14 @@ const AanvraagDetail = () => {
                                    className="font-mono underline select-all">{brpTraceId}</a>
                     </p>
                   )}
-                </div>
+                </section>
 
                 {/* RDW Check */}
-                <div className="border border-border rounded-lg p-4">
+                <section aria-labelledby="rdw-controle" className="border border-border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Car className="h-5 w-5 text-primary"/>
-                      <h3 className="font-semibold text-foreground">RDW/BRV Controle</h3>
+                      <h3 id="rdw-controle" className="font-semibold text-foreground">RDW/BRV Controle</h3>
                     </div>
                     <Button
                       onClick={handleRDWCheck}
@@ -642,7 +642,7 @@ const AanvraagDetail = () => {
                                    className="font-mono underline select-all">{rdwTraceId}</a>
                     </p>
                   )}
-                </div>
+                </section>
               </div>
             </Card>
 
@@ -713,11 +713,11 @@ const AanvraagDetail = () => {
                 Controle Bestaande Laadpalen
               </h2>
 
-              <div className="border border-border rounded-lg p-4">
+              <section aria-labelledby="laadpaal-check" className="border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-primary"/>
-                    <h3 className="font-semibold text-foreground">Laadpaal Check</h3>
+                    <h3 id="laadpaal-check" className="font-semibold text-foreground">Laadpaal Check</h3>
                   </div>
                   <Button
                     onClick={handleCheckLaadpaal}
@@ -779,7 +779,7 @@ const AanvraagDetail = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
             </Card>
 
             {/* Vergunningbeslissing */}
