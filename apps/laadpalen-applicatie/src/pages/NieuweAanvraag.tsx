@@ -10,6 +10,7 @@ import {format} from "date-fns";
 import {nl} from "date-fns/locale";
 import {useAanvragen, useCreateAanvraag, useGebruikers} from "@/lib/api";
 import {useCurrentUser} from "@/contexts/CurrentUserContext";
+import {VITE_BEHEER_URL} from "@/lib/env.ts";
 
 interface AuditLogEntry {
   id: string;
@@ -134,6 +135,7 @@ const NieuweAanvraag = () => {
               <p className="text-sm text-muted-foreground mb-4 flex-shrink-0">
                 Chronologisch overzicht van feedback en beslissingen
               </p>
+              <span id="nieuw-tabblad" className="sr-only">opent in een nieuw tabblad</span>
 
               {/* Reserved space for sticky item - empty for this page */}
               <div className="mb-4 flex-shrink-0">
@@ -194,8 +196,11 @@ const NieuweAanvraag = () => {
                           {entry.details}
                         </p>
                         {entry.traceId && (
-                          <p className="text-muted-foreground text-xs mt-1 select-all">
-                            Trace ID: <span className="font-mono">{entry.traceId}</span>
+                          <p className="text-muted-foreground text-xs mt-1">
+                            Trace ID: <a href={`${VITE_BEHEER_URL}/logboek?traceId=${entry.traceId}`}
+                                         target="_blank"
+                                         aria-describedby="nieuw-tabblad"
+                                         className="font-mono underline select-all">{entry.traceId}</a>
                           </p>
                         )}
                       </div>
