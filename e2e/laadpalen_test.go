@@ -4,10 +4,12 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/chromedp/chromedp"
+	"github.com/chromedp/chromedp/kb"
 )
 
 func iOpenTheLaadpalenUIAs(ctx context.Context, gebruiker string) error {
@@ -89,4 +91,105 @@ func (s *scenario) traceID() (string, error) {
 	}
 
 	return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(text), "Trace ID:")), nil
+}
+
+// The regions of the checks of an aanvraag, named after their heading.
+var checkRegions = map[string]string{
+	"BRP":      "BRP Controle",
+	"RDW":      "RDW/BRV Controle",
+	"Laadpaal": "Laadpaal Check",
+}
+
+// checkRegion returns the region of the check. Each check has a button named Uitvoeren, so a step finds the one of
+// its check within the region. Like byRole, it needs the Zaaksysteem to be the active tab.
+func (s *scenario) checkRegion(check string) (*chromedp.Node, error) {
+	if err := s.bringToFront(s.zaaksysteem); err != nil {
+		return nil, fmt.Errorf("switch to the Zaaksysteem: %w", err)
+	}
+
+	nodes, err := run(s, s.zaaksysteem, chromedp.Nodes("", byRole("region", checkRegions[check]), chromedp.NodeVisible))
+	if err != nil {
+		return nil, fmt.Errorf("the aanvraag has no %s controle: %w", check, err)
+	}
+
+	return nodes[0], nil
+}
+
+// iRunTheCheck presses the button of the check once it is enabled: the RDW controle waits for the BRP controle. It
+// presses Enter instead of clicking, because a check that finishes adds results above the buttons below it, and a
+// click lands where the button was a moment before.
+func iRunTheCheck(ctx context.Context, check string) error {
+	s := scenarioFrom(ctx)
+
+	region, err := s.checkRegion(check)
+	if err != nil {
+		return err
+	}
+
+	if err := s.do(s.zaaksysteem,
+		chromedp.WaitEnabled("", byRole("button", "Uitvoeren"), chromedp.FromNode(region)),
+		chromedp.SendKeys("", kb.Enter, byRole("button", "Uitvoeren"), chromedp.FromNode(region)),
+	); err != nil {
+		return fmt.Errorf("run the %s controle: %w", check, err)
+	}
+
+	return nil
+}
+
+func theAanvraagShows(ctx context.Context, text string) error {
+	s := scenarioFrom(ctx)
+
+	if err := s.do(s.zaaksysteem, chromedp.WaitVisible(xpath(`//*[normalize-space(.)=%s]`, text))); err != nil {
+		return fmt.Errorf("the aanvraag doesn't show %q: %w", text, err)
+	}
+
+	return nil
+}
+
+func theAanvraagCanBeApproved(ctx context.Context) error {
+	s := scenarioFrom(ctx)
+
+	if err := theAanvraagShows(ctx, "Aanvraag kan worden goedgekeurd"); err != nil {
+		return err
+	}
+
+	if err := s.do(s.zaaksysteem, chromedp.WaitEnabled("", byRole("button", "Goedkeuren"))); err != nil {
+		return fmt.Errorf("the aanvraag can't be approved: %w", err)
+	}
+
+	return nil
+}
+
+func theAanvraagCanOnlyBeRejected(ctx context.Context) error {
+	s := scenarioFrom(ctx)
+
+	if err := theAanvraagShows(ctx, "Aanvraag kan worden afgewezen"); err != nil {
+		return err
+	}
+
+	disabled, err := run(s, s.zaaksysteem, chromedp.AttributeValue("", "disabled", byRole("button", "Goedkeuren")))
+	if err != nil {
+		return err
+	}
+
+	if !disabled.Exists {
+		return errors.New("the aanvraag can be approved")
+	}
+
+	return nil
+}
+
+// checkTraceID reads the trace ID that the Zaaksysteem shows with the check, the only link in its region.
+func (s *scenario) checkTraceID(check string) (string, error) {
+	region, err := s.checkRegion(check)
+	if err != nil {
+		return "", err
+	}
+
+	traceID, err := run(s, s.zaaksysteem, chromedp.Text("", byRole("link", ""), chromedp.FromNode(region)))
+	if err != nil {
+		return "", fmt.Errorf("the %s controle shows no trace ID: %w", check, err)
+	}
+
+	return strings.TrimSpace(traceID), nil
 }

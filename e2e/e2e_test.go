@@ -81,8 +81,16 @@ func initializeScenario(sc *godog.ScenarioContext, env *environment) {
 
 	sc.Given(`^I open the Laadpalen UI as "([^"]*)"$`, iOpenTheLaadpalenUIAs)
 	sc.When(`^I submit an aanvraag for postcode "([^"]*)" and huisnummer "([^"]*)"$`, iSubmitAnAanvraag)
+	sc.When(`^I run the (BRP|RDW|Laadpaal) controle$`, iRunTheCheck)
 	sc.Then(`^I see "([^"]*)"$`, iSee)
+	sc.Then(`^the aanvraag shows "([^"]*)"$`, theAanvraagShows)
+	sc.Then(`^the aanvraag can be approved$`, theAanvraagCanBeApproved)
+	sc.Then(`^the aanvraag can only be rejected$`, theAanvraagCanOnlyBeRejected)
 	sc.Then(`^the Logboek of "([^"]*)" shows my aanvraag as Geweigerd because of "([^"]*)"$`, theLogboekShowsMyAanvraagAsDenied)
+	sc.Then(`^the Logboek of "([^"]*)" shows the (BRP|RDW) controle as Toegestaan for doelbinding "([^"]*)" in (\d+) decisions?$`,
+		theLogboekShowsTheCheckAsAllowed)
+	sc.Then(`^the Logboek of "([^"]*)" shows the (BRP|RDW) controle as Toegestaan in (\d+) decisions? and as Geweigerd in (\d+) decisions? because of "([^"]*)"$`,
+		theLogboekShowsTheCheckAsAllowedAndDenied)
 }
 
 type scenarioKey struct{}

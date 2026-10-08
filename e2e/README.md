@@ -23,6 +23,10 @@ Environment variables point them at another environment:
 | `E2E_LAADPALEN_URL`            | `http://localhost:8080`                     | The frontpage of the Laadpalen application.                                        |
 | `E2E_VLIERDAM_BEHEER_USERNAME` | `auditor-user`                              | The account for the management interface of Gemeente Vlierdam.                     |
 | `E2E_VLIERDAM_BEHEER_PASSWORD` | `password`                                  | Its password.                                                                      |
+| `E2E_RVIG_BEHEER_USERNAME`     | `auditor-user`                              | The account for the management interface of RvIG.                                  |
+| `E2E_RVIG_BEHEER_PASSWORD`     | `password`                                  | Its password.                                                                      |
+| `E2E_RDW_BEHEER_USERNAME`      | `auditor-user`                              | The account for the management interface of the RDW.                               |
+| `E2E_RDW_BEHEER_PASSWORD`      | `password`                                  | Its password.                                                                      |
 | `E2E_BROWSER_PATH`             | Chrome or Chromium in the standard location | The browser to run, for example Chrome Canary or Brave.                            |
 | `E2E_TIMEOUT`                  | `30s`                                       | How long a step waits for the page.                                                |
 | `E2E_CONCURRENCY`              | `4`                                         | How many scenarios run at the same time, each in its own browser.                  |

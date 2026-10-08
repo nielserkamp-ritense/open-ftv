@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -13,6 +14,10 @@ type environment struct {
 	laadpalenURL     string
 	vlierdamUsername string
 	vlierdamPassword string
+	rvigUsername     string
+	rvigPassword     string
+	rdwUsername      string
+	rdwPassword      string
 	browserPath      string
 	timeout          time.Duration
 	concurrency      int
@@ -34,6 +39,10 @@ func environmentFromEnv() (environment, error) {
 		laadpalenURL:     getEnv("E2E_LAADPALEN_URL", "http://localhost:8080"),
 		vlierdamUsername: getEnv("E2E_VLIERDAM_BEHEER_USERNAME", "auditor-user"),
 		vlierdamPassword: getEnv("E2E_VLIERDAM_BEHEER_PASSWORD", "password"),
+		rvigUsername:     getEnv("E2E_RVIG_BEHEER_USERNAME", "auditor-user"),
+		rvigPassword:     getEnv("E2E_RVIG_BEHEER_PASSWORD", "password"),
+		rdwUsername:      getEnv("E2E_RDW_BEHEER_USERNAME", "auditor-user"),
+		rdwPassword:      getEnv("E2E_RDW_BEHEER_PASSWORD", "password"),
 		browserPath:      os.Getenv("E2E_BROWSER_PATH"),
 		timeout:          timeout,
 		concurrency:      concurrency,
@@ -47,4 +56,18 @@ func getEnv(key, fallback string) string {
 	}
 
 	return fallback
+}
+
+// account returns the account for the management interface of the organization, as the frontpage names it.
+func (e *environment) account(organization string) (username, password string, err error) {
+	switch organization {
+	case "Gemeente Vlierdam":
+		return e.vlierdamUsername, e.vlierdamPassword, nil
+	case "RvIG":
+		return e.rvigUsername, e.rvigPassword, nil
+	case "RDW":
+		return e.rdwUsername, e.rdwPassword, nil
+	default:
+		return "", "", fmt.Errorf("no account for the management interface of %s", organization)
+	}
 }

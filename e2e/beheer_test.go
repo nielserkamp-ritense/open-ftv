@@ -21,7 +21,7 @@ func theLogboekShowsMyAanvraagAsDenied(ctx context.Context, organization, reden 
 		return err
 	}
 
-	if err := s.logIn(beheer); err != nil {
+	if err := s.logIn(beheer, organization); err != nil {
 		return err
 	}
 
@@ -30,7 +30,7 @@ func theLogboekShowsMyAanvraagAsDenied(ctx context.Context, organization, reden 
 		return err
 	}
 
-	row, err := s.findLogboekEntry(beheer, traceID)
+	row, err := s.findLogboekEntry(beheer, traceID, 1)
 	if err != nil {
 		return err
 	}
@@ -46,8 +46,147 @@ func theLogboekShowsMyAanvraagAsDenied(ctx context.Context, organization, reden 
 	return s.checkLogboekDetails(beheer, reden)
 }
 
+// theLogboekShowsTheCheckAsAllowed waits for all decisions of the check before it reads them, because the PDP logs
+// them one by one and a denial that comes later would otherwise go unnoticed.
+func theLogboekShowsTheCheckAsAllowed(ctx context.Context, organization, check, doelbinding string, decisions int) error {
+	s := scenarioFrom(ctx)
+
+	beheer, row, err := s.findCheckInLogboek(organization, check, decisions)
+	if err != nil {
+		return err
+	}
+
+	if err := s.expectRows(beheer, row, decisions, check+" controle"); err != nil {
+		return err
+	}
+
+	allowed := row + xpath(`[.//div[@role="gridcell"][normalize-space(.)=%s]]`, "Toegestaan")
+	if err := s.expectRows(beheer, allowed, decisions, check+" controle as Toegestaan"); err != nil {
+		return err
+	}
+
+	return s.checkDoelbinding(beheer, row, decisions, doelbinding)
+}
+
+// theLogboekShowsTheCheckAsAllowedAndDenied counts the decisions, because the grid shows no difference between the
+// evaluation of the request and that of the response.
+func theLogboekShowsTheCheckAsAllowedAndDenied(ctx context.Context, organization, check string, allowed, denied int, reden string) error {
+	s := scenarioFrom(ctx)
+
+	beheer, row, err := s.findCheckInLogboek(organization, check, allowed+denied)
+	if err != nil {
+		return err
+	}
+
+	if err := s.expectRows(beheer, row, allowed+denied, check+" controle"); err != nil {
+		return err
+	}
+
+	allowedRows := row + xpath(`[.//div[@role="gridcell"][normalize-space(.)=%s]]`, "Toegestaan")
+	if err := s.expectRows(beheer, allowedRows, allowed, check+" controle as Toegestaan"); err != nil {
+		return err
+	}
+
+	deniedRows := row + xpath(`[.//div[@role="gridcell"][normalize-space(.)=%s]][.//div[@role="gridcell"][normalize-space(.)=%s]]`,
+		"Geweigerd", reden)
+
+	return s.expectRows(beheer, deniedRows, denied, fmt.Sprintf("%s controle as Geweigerd because of %q", check, reden))
+}
+
+// expectRows waits for the last of the rows before it counts them, because the grid fills in the cells of a row after
+// it adds the row.
+func (s *scenario) expectRows(beheer context.Context, rows chromedp.Search, want int, what string) error {
+	if err := s.do(beheer, chromedp.WaitVisible(chromedp.Search(fmt.Sprintf("(%s)[%d]", rows, want)))); err != nil {
+		text, _ := run(s, beheer, chromedp.Text(xpath(`//*[@role="grid" or @role="treegrid"]`)))
+
+		return fmt.Errorf("the Logboek doesn't show %d decisions of the %s: %q: %w", want, what, text, err)
+	}
+
+	found, err := s.count(beheer, rows)
+	if err != nil {
+		return err
+	}
+
+	if found != want {
+		text, _ := run(s, beheer, chromedp.Text(xpath(`//*[@role="grid" or @role="treegrid"]`)))
+
+		return fmt.Errorf("the Logboek shows %d decisions of the %s, not %d: %q", found, what, want, text)
+	}
+
+	return nil
+}
+
+func (s *scenario) count(tab context.Context, query chromedp.Search) (int, error) {
+	return run(s, tab, chromedp.Evaluate[int](fmt.Sprintf(
+		`document.evaluate(%q, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotLength`, query)))
+}
+
+// checkDoelbinding opens each of the decisions, because the grid doesn't show the doelbinding: it is in the context
+// of the request.
+func (s *scenario) checkDoelbinding(beheer context.Context, row chromedp.Search, decisions int, doelbinding string) error {
+	for i := 1; i <= decisions; i++ {
+		traceID := chromedp.Search(fmt.Sprintf(`(%s)[%d]//div[@col-id="traceId"][@role="gridcell"]`, row, i))
+		if err := s.do(beheer, chromedp.Click(traceID, chromedp.NodeVisible)); err != nil {
+			return fmt.Errorf("open decision %d of the Logboek: %w", i, err)
+		}
+
+		var request struct {
+			Context struct {
+				Doelbinding string `json:"doelbinding"`
+			} `json:"context"`
+		}
+
+		if err := s.readJSON(beheer, "Request", &request); err != nil {
+			return err
+		}
+
+		if request.Context.Doelbinding != doelbinding {
+			return fmt.Errorf("decision %d of the Logboek is for doelbinding %q, not %q", i, request.Context.Doelbinding, doelbinding)
+		}
+
+		if err := s.do(beheer,
+			chromedp.NavigateBack(),
+			chromedp.WaitVisible(chromedp.Search(fmt.Sprintf("(%s)[%d]", row, decisions))),
+		); err != nil {
+			return fmt.Errorf("return to the Logboek: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// findCheckInLogboek opens the Logboek of the organization from the frontpage and finds the decisions of the
+// check by the trace ID that the Zaaksysteem shows with it.
+func (s *scenario) findCheckInLogboek(organization, check string, decisions int) (context.Context, chromedp.Search, error) {
+	traceID, err := s.checkTraceID(check)
+	if err != nil {
+		return nil, "", err
+	}
+
+	beheer, err := s.openTab(s.frontpage, organization)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if err := s.logIn(beheer, organization); err != nil {
+		return nil, "", err
+	}
+
+	row, err := s.findLogboekEntry(beheer, traceID, decisions)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return beheer, row, nil
+}
+
 // logIn logs in to Keycloak when the beheeromgeving sends the browser there.
-func (s *scenario) logIn(beheer context.Context) error {
+func (s *scenario) logIn(beheer context.Context, organization string) error {
+	username, password, err := s.env.account(organization)
+	if err != nil {
+		return err
+	}
+
 	page, err := s.keycloakOrBeheer(beheer)
 	if err != nil {
 		return fmt.Errorf("the beheeromgeving shows neither Keycloak nor its menu: %w", err)
@@ -58,12 +197,12 @@ func (s *scenario) logIn(beheer context.Context) error {
 	}
 
 	if err := s.do(beheer,
-		chromedp.SendKeys(chromedp.ID("username"), s.env.vlierdamUsername),
-		chromedp.SendKeys(chromedp.ID("password"), s.env.vlierdamPassword),
+		chromedp.SendKeys(chromedp.ID("username"), username),
+		chromedp.SendKeys(chromedp.ID("password"), password),
 		chromedp.Click(chromedp.ID("kc-login")),
 		chromedp.WaitVisible("", byRole("link", "Logboek")),
 	); err != nil {
-		return fmt.Errorf("log in to the beheeromgeving as %s: %w", s.env.vlierdamUsername, err)
+		return fmt.Errorf("log in to the beheeromgeving of %s as %s: %w", organization, username, err)
 	}
 
 	return nil
@@ -87,12 +226,12 @@ func (s *scenario) keycloakOrBeheer(beheer context.Context) (string, error) {
 	}
 }
 
-// findLogboekEntry filters the Logboek on the trace ID and returns the row of its decision. The PDP writes its
-// decisions to the log in the background, so the page is reloaded until the row is there; the URL keeps the filter.
-// The Logboek first shows the recent decisions, which may hold this row too, and the grid replaces all its rows
-// when the filter applies. So the row only counts once the grid shows no other trace ID, or the step would hold
-// on to a row that is about to be replaced.
-func (s *scenario) findLogboekEntry(beheer context.Context, traceID string) (chromedp.Search, error) {
+// findLogboekEntry filters the Logboek on the trace ID and returns the rows of its decisions once there are this
+// many. The PDP writes its decisions to the log in the background, so the page is reloaded until they are all
+// there; the URL keeps the filter. The Logboek first shows the recent decisions, which may hold these rows too, and
+// the grid replaces all its rows when the filter applies. So a row only counts once the grid shows no other trace
+// ID, or the step would hold on to a row that is about to be replaced.
+func (s *scenario) findLogboekEntry(beheer context.Context, traceID string, decisions int) (chromedp.Search, error) {
 	row := xpath(`//div[@role="row"][.//div[@role="gridcell"][normalize-space(.)=%s]]`+
 		`[not(ancestor::*[@role="grid" or @role="treegrid"]//div[@col-id="traceId"][@role="gridcell"][normalize-space(.)!=%s])]`,
 		traceID, traceID)
@@ -116,10 +255,19 @@ func (s *scenario) findLogboekEntry(beheer context.Context, traceID string) (chr
 		cancel()
 
 		if err == nil {
-			return row, nil
-		}
+			found, err := s.count(beheer, row)
+			if err != nil {
+				return "", err
+			}
 
-		if !errors.Is(err, context.DeadlineExceeded) || time.Now().After(deadline) {
+			if found >= decisions {
+				return row, nil
+			}
+
+			if time.Now().After(deadline) {
+				return "", fmt.Errorf("the Logboek has %d of the %d decisions with trace ID %s", found, decisions, traceID)
+			}
+		} else if !errors.Is(err, context.DeadlineExceeded) || time.Now().After(deadline) {
 			return "", fmt.Errorf("the Logboek has no entry with trace ID %s: %w", traceID, err)
 		}
 
