@@ -8,7 +8,7 @@ import {ApplicationForm} from "@/components/ApplicationForm";
 import {ArrowLeft} from "lucide-react";
 import {format} from "date-fns";
 import {nl} from "date-fns/locale";
-import {useAanvragen, useCreateAanvraag, useGebruikers} from "@/lib/api";
+import {useCreateAanvraag, useGebruikers} from "@/lib/api";
 import {useCurrentUser} from "@/contexts/CurrentUserContext";
 import {VITE_BEHEER_URL} from "@/lib/env.ts";
 
@@ -23,12 +23,17 @@ interface AuditLogEntry {
   traceId?: string;
 }
 
+// The API stores an aanvraag under the id the client picks. The next free id would go to both of two aanvragen
+// submitted at the same time, so pick a random one in the range of the schema.
+const randomAanvraagId = () => {
+  const [high, low] = crypto.getRandomValues(new Uint32Array(2));
+
+  return ((high % 2 ** 21) * 2 ** 32 + low) % 9_999_999_999 + 1;
+};
+
 const NieuweAanvraag = () => {
   const navigate = useNavigate();
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
-  // The API stores an aanvraag under the id the client picks, so take the next free one.
-  const {data: aanvragen} = useAanvragen();
-  const applicationId = Math.max(0, ...(aanvragen ?? []).map((a) => a.id)) + 1;
   const {currentUser, setCurrentUser} = useCurrentUser();
   const createAanvraag = useCreateAanvraag();
   const {data: gebruikers = []} = useGebruikers();
@@ -43,17 +48,7 @@ const NieuweAanvraag = () => {
   };
 
   const handleSubmit = (data: { postcode: string; huisnummer: number; }) => {
-    if (!aanvragen) {
-      addAuditEntry({
-        action: "Aanvraag opslaan mislukt",
-        system: "API",
-        result: "error",
-        details: "De bestaande aanvragen zijn nog niet geladen, probeer het opnieuw",
-        isPublic: true,
-      });
-      return;
-    }
-
+    const applicationId = randomAanvraagId();
     const statusDatum = new Date().toISOString();
 
     createAanvraag.mutate(
