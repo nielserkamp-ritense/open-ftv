@@ -3,7 +3,7 @@ import {FTVHeading} from "@/components/ui/heading.tsx";
 import Card from "@/components/ui/card.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {DescriptionDetails, DescriptionList, DescriptionTerm} from "@/components/ui/description-list.tsx";
-import {AuthlogEntry} from "@/services/authlog.ts";
+import {useAuthlogEntry} from "@/services/authlog.ts";
 import {Breadcrumb} from "@/components/ui/breadcrumb.tsx";
 import {formatDateTime} from "@/utilities/datetime.ts";
 
@@ -12,15 +12,15 @@ export const Route = createFileRoute('/logboek/$id/')({
 })
 
 function RouteComponent() {
-    const navigate = Route.useNavigate()
+    const {id} = Route.useParams()
+    const {data: entry, isPending} = useAuthlogEntry(Number(id))
 
-    const entry = (history.state as { entry?: AuthlogEntry })?.entry
-
-    // If no entry data is available, navigate back to overview
-    if (!entry) {
-        navigate({to: '/logboek'})
-          .catch(e => console.error('Navigation error:', e));
+    if (isPending) {
         return null
+    }
+
+    if (!entry) {
+        return <p>Logboekregel niet gevonden</p>
     }
 
     // Pretty print JSON objects

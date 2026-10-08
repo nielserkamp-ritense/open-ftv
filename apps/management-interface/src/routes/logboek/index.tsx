@@ -88,12 +88,8 @@ function RouteComponent() {
 
     const openEntry = (entry?: AuthlogEntry) => {
         if (entry?.id) {
-            navigate({
-                to: '/logboek/$id',
-                params: {id: String(entry.id)},
-                // @ts-expect-error - The type state is not defined in the type definition
-                state: {entry}
-            }).catch(e => console.error('Navigation error:', e));
+            navigate({to: '/logboek/$id', params: {id: String(entry.id)}})
+                .catch(e => console.error('Navigation error:', e));
         }
     };
 
