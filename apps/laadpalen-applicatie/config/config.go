@@ -27,6 +27,9 @@ var runtimeEnvNames = []string{
 	"VITE_RVIG_BEHEER_URL",
 	"VITE_RDW_BEHEER_URL",
 	"VITE_VLIERDAM_PDP1_URL",
+	// The browser app reads neither: CI waits for both before the end-to-end tests.
+	"VITE_APP_VERSION",
+	"DEMO_RESET_VERSION",
 }
 
 const (

@@ -66,6 +66,8 @@ spec:
               value: {{ .Values.config.rvigBeheerURL | quote }}
             - name: VITE_RDW_BEHEER_URL
               value: {{ .Values.config.rdwBeheerURL | quote }}
+            - name: VITE_APP_VERSION
+              value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
           ports:
             - name: http
               containerPort: 8080

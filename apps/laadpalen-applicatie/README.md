@@ -35,4 +35,7 @@ The app loads `/runtime-env.js` before the main bundle and reads `window.__ENV__
 - `VITE_BEHEER_URL`, `VITE_RVIG_BEHEER_URL` and `VITE_RDW_BEHEER_URL`
 - `VITE_VLIERDAM_PDP1_URL`
 
+It also carries `VITE_APP_VERSION`, the version the chart deployed, and `DEMO_RESET_VERSION`, the version the demo reset last ran for.
+The browser app reads neither: CI waits for both before it runs the end-to-end tests.
+
 The server's own settings use the `LAADPALEN_APPLICATIE_` prefix, e.g. `LAADPALEN_APPLICATIE_PORT` and `LAADPALEN_APPLICATIE_HEALTH_PORT`.
