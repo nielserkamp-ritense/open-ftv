@@ -7,6 +7,7 @@ stages:
   - Charts
   - Deploy
   - Release
+  - E2E
 
 include:
   - ".gitlab/ci/**.yml"

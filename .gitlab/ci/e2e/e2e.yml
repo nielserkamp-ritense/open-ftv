@@ -1,0 +1,103 @@
+e2e-pre-release:
+  stage: E2E
+  # Room for the 45-minute wait and the tests.
+  timeout: 75m
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine
+  needs:
+    - version-pre-release
+    - deploy-pre-release
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/.go-cache
+    GOCACHE: ${CI_PROJECT_DIR}/.go-cache/build
+    E2E_LAADPALEN_URL: https://openftv-vlierdam-pre.simulatie.datastelsel.nl
+    E2E_BROWSER_PATH: /usr/bin/chromium
+  before_script:
+    - mkdir -p .go-cache
+  script:
+    # The deploy job only pushes the manifests: Flux picks them up within 10 minutes, rolls them
+    # out and runs the demo reset, which records its version once the demo is clean.
+    - |-
+      deadline=$(( $(date +%s) + 45 * 60 ))
+      until wget -q -T 30 -O runtime-env.js "${E2E_LAADPALEN_URL}/runtime-env.js" \
+        && grep -qF "\"VITE_APP_VERSION\":\"v${VERSION}\"" runtime-env.js \
+        && grep -qF "\"DEMO_RESET_VERSION\":\"v${VERSION}\"" runtime-env.js; do
+        if [ "$(date +%s)" -ge "${deadline}" ]; then
+          echo "The demo at ${E2E_LAADPALEN_URL} did not get ready with v${VERSION} within 45 minutes:"
+          cat runtime-env.js
+          exit 1
+        fi
+        sleep 30
+      done
+    # Only now, so a demo that never gets ready doesn't cost the browser download.
+    - apk add --no-cache chromium font-noto
+    - /usr/local/go/bin/go test -tags=e2e -count=1 ./e2e/
+  cache:
+    key: OpenFTV-E2E
+    paths:
+      - .go-cache
+  artifacts:
+    when: always
+    expire_in: 2 weeks
+    paths:
+      - e2e/screenshots/
+      - e2e/output/report.xml
+    reports:
+      junit: e2e/output/report.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"
+  tags:
+    - amd64
+
+e2e-release:
+  stage: E2E
+  # Room for the 45-minute wait and the tests.
+  timeout: 75m
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/golang:1.26.7-alpine
+  needs:
+    - version-release
+    - deploy-release
+  variables:
+    GOPATH: ${CI_PROJECT_DIR}/.go-cache
+    GOCACHE: ${CI_PROJECT_DIR}/.go-cache/build
+    E2E_LAADPALEN_URL: https://openftv-vlierdam.simulatie.datastelsel.nl
+    E2E_BROWSER_PATH: /usr/bin/chromium
+  before_script:
+    - mkdir -p .go-cache
+  script:
+    # The deploy job only pushes the manifests: Flux picks them up within 10 minutes, rolls them
+    # out and runs the demo reset, which records its version once the demo is clean.
+    - |-
+      deadline=$(( $(date +%s) + 45 * 60 ))
+      until wget -q -T 30 -O runtime-env.js "${E2E_LAADPALEN_URL}/runtime-env.js" \
+        && grep -qF "\"VITE_APP_VERSION\":\"v${VERSION}\"" runtime-env.js \
+        && grep -qF "\"DEMO_RESET_VERSION\":\"v${VERSION}\"" runtime-env.js; do
+        if [ "$(date +%s)" -ge "${deadline}" ]; then
+          echo "The demo at ${E2E_LAADPALEN_URL} did not get ready with v${VERSION} within 45 minutes:"
+          cat runtime-env.js
+          exit 1
+        fi
+        sleep 30
+      done
+    # Only now, so a demo that never gets ready doesn't cost the browser download.
+    - apk add --no-cache chromium font-noto
+    - /usr/local/go/bin/go test -tags=e2e -count=1 ./e2e/
+  cache:
+    key: OpenFTV-E2E
+    paths:
+      - .go-cache
+  artifacts:
+    when: always
+    expire_in: 2 weeks
+    paths:
+      - e2e/screenshots/
+      - e2e/output/report.xml
+    reports:
+      junit: e2e/output/report.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: '$CI_COMMIT_TAG && $CI_PROJECT_PATH == "digilab.overheid.nl/ecosystem/ftv/open-ftv"'
+  tags:
+    - amd64

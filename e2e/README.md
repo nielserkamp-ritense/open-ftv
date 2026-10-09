@@ -34,3 +34,10 @@ Environment variables point them at another environment:
 
 The browser runs headless; `CHROMEDP_VISIBLEWINDOW=1` shows it. A failed scenario leaves a screenshot of each of its
 tabs in `screenshots`, and `output/report.xml` has the results as JUnit XML.
+
+## In CI
+
+After every deploy, CI runs the tests against the pre-release (`e2e-pre-release`, on `main`) and the release
+(`e2e-release`, on a tag). It first waits until the Laadpalen application's `/runtime-env.js` shows the new version as both `VITE_APP_VERSION`
+and `DEMO_RESET_VERSION`. The demo reset records its version once it has emptied the databases. The JUnit report and
+the screenshots of failed scenarios are kept as job artifacts.
