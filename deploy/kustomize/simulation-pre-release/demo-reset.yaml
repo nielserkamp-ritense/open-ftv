@@ -8,13 +8,20 @@ metadata:
   name: demo-reset-${OPEN_FTV_VERSION}
 spec:
   # A retry runs the whole pod again, emptying every manager database once more. Retry only
-  # a failed reset: when setting the headers fails, the demo is already clean.
+  # a failed reset: when setting the headers or recording the reset fails, the demo is
+  # already clean, and the end-to-end tests may already run against it.
   backoffLimit: 2
   podFailurePolicy:
     rules:
       - action: FailJob
         onExitCodes:
           containerName: set-headers
+          operator: NotIn
+          values:
+            - 0
+      - action: FailJob
+        onExitCodes:
+          containerName: record-demo-reset
           operator: NotIn
           values:
             - 0
@@ -39,7 +46,7 @@ spec:
             - sh
             - -ec
             - |
-              for release in open-ftv-vlierdam open-ftv-brp open-ftv-rdw; do
+              for release in open-ftv-vlierdam open-ftv-vlierdam-pdp2 open-ftv-brp open-ftv-rdw laadpalen-applicatie; do
                 kubectl wait helmrelease/$${release} --timeout=30m --for=jsonpath='{.status.history[0].appVersion}'=v${OPEN_FTV_VERSION}
                 kubectl wait helmrelease/$${release} --timeout=30m --for=condition=Ready
               done
@@ -177,7 +184,6 @@ spec:
             capabilities:
               drop:
                 - ALL
-      containers:
         # The header titles and colors from demo/<organization>/manager/settings.json. A manager can
         # refuse the first requests until its bootstrap policy is in place, so retry until one
         # succeeds.
@@ -205,6 +211,26 @@ spec:
               readOnly: true
           securityContext:
             runAsUser: 101
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        # The end-to-end tests in CI wait until the Laadpalen application reads this version as
+        # DEMO_RESET_VERSION. The chart leaves it out, so an upgrade keeps the previous version.
+        - name: record-demo-reset
+          image: ghcr.io/fluxcd/flux-cli:v2.9.5@sha256:704d5529535570a495249b643159c93a9aa88ffca07813c974a54b7ba6edbd86
+          command:
+            - sh
+            - -ec
+            - |
+              kubectl set env deployment/laadpalen-applicatie DEMO_RESET_VERSION=v${OPEN_FTV_VERSION}
+              kubectl rollout status deployment/laadpalen-applicatie --timeout=10m
+          env:
+            - name: HOME
+              value: /tmp
+          securityContext:
+            runAsUser: 65534
             allowPrivilegeEscalation: false
             capabilities:
               drop:
